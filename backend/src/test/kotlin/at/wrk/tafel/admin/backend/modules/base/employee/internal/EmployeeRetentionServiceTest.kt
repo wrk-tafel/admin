@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Clock
 import java.time.LocalDateTime
+import java.time.Period
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -42,8 +43,8 @@ class EmployeeRetentionServiceTest {
     }
 
     @Test
-    fun `deletes every unlinked employee expired past the configured retention window`() {
-        properties.employeeDeletion.retentionYears = 7
+    fun `deletes every unreferenced employee expired past the configured retention window`() {
+        properties.employeeDeletion.retentionTime = Period.ofYears(3)
         every { employeeRepository.findExpiredEmployeeIdsSkipLocked(any()) } returns listOf(2001L, 2002L)
 
         service.cleanupExpiredEmployees()
@@ -54,7 +55,7 @@ class EmployeeRetentionServiceTest {
             employeeService.deleteEmployee(2001L)
             employeeService.deleteEmployee(2002L)
         }
-        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2019, 8, 25, 6, 30))
+        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2023, 8, 25, 6, 30))
     }
 
     /**
@@ -72,9 +73,25 @@ class EmployeeRetentionServiceTest {
         assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2019, 8, 25, 6, 30))
     }
 
+    /**
+     * Also proves the retention window really is a [Period], not a plain year count - a
+     * months-only value has to move the cutoff by exactly that many months.
+     */
     @Test
-    fun `a non-positive retention keeps every employee rather than deleting them all`() {
-        properties.employeeDeletion.retentionYears = 0
+    fun `supports a retention window expressed in months`() {
+        properties.employeeDeletion.retentionTime = Period.ofMonths(18)
+        every { employeeRepository.findExpiredEmployeeIdsSkipLocked(any()) } returns emptyList()
+
+        service.cleanupExpiredEmployees()
+
+        val cutoff = slot<LocalDateTime>()
+        verify { employeeRepository.findExpiredEmployeeIdsSkipLocked(capture(cutoff)) }
+        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2025, 2, 25, 6, 30))
+    }
+
+    @Test
+    fun `a zero retention keeps every employee rather than deleting them all`() {
+        properties.employeeDeletion.retentionTime = Period.ZERO
 
         service.cleanupExpiredEmployees()
 
@@ -83,9 +100,19 @@ class EmployeeRetentionServiceTest {
     }
 
     @Test
-    fun `the enabled switch keeps every employee regardless of retentionYears`() {
+    fun `a negative retention keeps every employee rather than deleting them all`() {
+        properties.employeeDeletion.retentionTime = Period.ofYears(-1)
+
+        service.cleanupExpiredEmployees()
+
+        verify(exactly = 0) { employeeRepository.findExpiredEmployeeIdsSkipLocked(any()) }
+        verify(exactly = 0) { employeeService.deleteEmployee(any()) }
+    }
+
+    @Test
+    fun `the enabled switch keeps every employee regardless of retentionTime`() {
         properties.employeeDeletion.enabled = false
-        properties.employeeDeletion.retentionYears = 1
+        properties.employeeDeletion.retentionTime = Period.ofDays(1)
 
         service.cleanupExpiredEmployees()
 

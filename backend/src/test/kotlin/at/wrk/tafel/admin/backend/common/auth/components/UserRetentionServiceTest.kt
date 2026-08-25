@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Clock
 import java.time.LocalDateTime
+import java.time.Period
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -45,12 +46,12 @@ class UserRetentionServiceTest {
     }
 
     @Test
-    fun `deletes every disabled account expired past the configured retention window`() {
-        properties.userDeletion.retentionYears = 3
+    fun `deletes every account expired past the configured retention window`() {
+        properties.userDeletion.retentionTime = Period.ofYears(3)
         every { userRepository.findExpiredUserIdsSkipLocked(any(), any()) } returns listOf(1001L, 1002L)
         every { userRepository.findAllById(listOf(1001L, 1002L)) } returns listOf(
-            disabledUser(1001L, "expired-one"),
-            disabledUser(1002L, "expired-two"),
+            testUser(1001L, "expired-one"),
+            testUser(1002L, "expired-two"),
         )
 
         service.cleanupExpiredUsers()
@@ -85,19 +86,35 @@ class UserRetentionServiceTest {
      * decision rather than a tuning knob - worth failing a test if it is changed by accident.
      */
     @Test
-    fun `keeps three years by default`() {
+    fun `keeps seven years by default`() {
         every { userRepository.findExpiredUserIdsSkipLocked(any(), any()) } returns emptyList()
 
         service.cleanupExpiredUsers()
 
         val cutoff = slot<LocalDateTime>()
         verify { userRepository.findExpiredUserIdsSkipLocked(capture(cutoff), any()) }
-        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2023, 8, 25, 6, 15))
+        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2019, 8, 25, 6, 15))
+    }
+
+    /**
+     * Also proves the retention window really is a [Period], not a plain year count - a mixed
+     * years+months value has to move the cutoff by both parts.
+     */
+    @Test
+    fun `supports a retention window expressed in years and months`() {
+        properties.userDeletion.retentionTime = Period.of(1, 6, 0)
+        every { userRepository.findExpiredUserIdsSkipLocked(any(), any()) } returns emptyList()
+
+        service.cleanupExpiredUsers()
+
+        val cutoff = slot<LocalDateTime>()
+        verify { userRepository.findExpiredUserIdsSkipLocked(capture(cutoff), any()) }
+        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2025, 2, 25, 6, 15))
     }
 
     @Test
-    fun `a non-positive retention keeps every account rather than deleting them all`() {
-        properties.userDeletion.retentionYears = 0
+    fun `a zero retention keeps every account rather than deleting them all`() {
+        properties.userDeletion.retentionTime = Period.ZERO
 
         service.cleanupExpiredUsers()
 
@@ -106,9 +123,19 @@ class UserRetentionServiceTest {
     }
 
     @Test
-    fun `the enabled switch keeps every account regardless of retentionYears`() {
+    fun `a negative retention keeps every account rather than deleting them all`() {
+        properties.userDeletion.retentionTime = Period.ofYears(-1)
+
+        service.cleanupExpiredUsers()
+
+        verify(exactly = 0) { userRepository.findExpiredUserIdsSkipLocked(any(), any()) }
+        verify(exactly = 0) { userDetailsManager.deleteUser(any()) }
+    }
+
+    @Test
+    fun `the enabled switch keeps every account regardless of retentionTime`() {
         properties.userDeletion.enabled = false
-        properties.userDeletion.retentionYears = 1
+        properties.userDeletion.retentionTime = Period.ofDays(1)
 
         service.cleanupExpiredUsers()
 
@@ -125,10 +152,10 @@ class UserRetentionServiceTest {
         verify(exactly = 0) { userDetailsManager.deleteUser(any()) }
     }
 
-    private fun disabledUser(id: Long, username: String) = UserEntity(
+    private fun testUser(id: Long, username: String) = UserEntity(
         username = username,
         password = "irrelevant",
         employee = EmployeeEntity(personnelNumber = "$id", firstname = "first", lastname = "last"),
-        enabled = false,
+        enabled = true,
     ).apply { this.id = id }
 }

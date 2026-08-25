@@ -73,20 +73,24 @@ interface UserRepository :
     fun findIdsByUsernames(@Param("usernames") usernames: Collection<String>): List<UserIdProjection>
 
     /**
-     * Candidate ids for `UserRetentionService` (GDPR gap G13) - every disabled, non-administrator
-     * account whose row hasn't been written to since before [cutoff], locked for the caller's
-     * transaction so a second instance's poll skips an account this one is already deleting rather
-     * than racing it (see ADR-0047). An account holding [administratorAuthority] is never a
-     * candidate, full stop - not just while it's the last one, the way `UserController`'s manual
-     * safeguards work; that permission is deliberately kept out of an automatic job's reach entirely.
-     * Native and set-based because `FOR UPDATE SKIP LOCKED` has no derived-query equivalent. Only the
-     * candidate ids, not the deletion itself - that goes through `TafelUserDetailsManager.deleteUser`
-     * for its cascades.
+     * Candidate ids for `UserRetentionService` (GDPR gap G13) - every non-administrator account that
+     * hasn't logged in since before [cutoff], locked for the caller's transaction so a second
+     * instance's poll skips an account this one is already deleting rather than racing it (see
+     * ADR-0047). An account that has never logged in at all (`last_login is null`) is measured from
+     * `created_at` instead, so a fresh or long-unused account still ages out rather than being
+     * permanently exempt. An account holding [administratorAuthority] is never a candidate, full stop
+     * - not just while it's the last one, the way `UserController`'s manual safeguards work; that
+     * permission is deliberately kept out of an automatic job's reach entirely. Native and set-based
+     * because `FOR UPDATE SKIP LOCKED` has no derived-query equivalent. Only the candidate ids, not
+     * the deletion itself - that goes through `TafelUserDetailsManager.deleteUser` for its cascades.
      */
     @Query(
         value = """
             SELECT u.id FROM users u
-            WHERE u.enabled = false AND u.updated_at < :cutoff
+            WHERE (
+                (u.last_login IS NOT NULL AND u.last_login < :cutoff)
+                OR (u.last_login IS NULL AND u.created_at < :cutoff)
+            )
               AND NOT EXISTS (
                   SELECT 1 FROM users_authorities ua
                   WHERE ua.user_id = u.id AND ua.name = :administratorAuthority

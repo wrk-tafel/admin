@@ -183,37 +183,52 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
 
     /**
      * Only the candidate-selection query, not the actual deletion - see the household test above for
-     * why. Also proves `enabled = false` is required: an enabled account untouched just as long is
-     * never a candidate, regardless of `updated_at`.
+     * why.
      *
      * `contains`, not `containsExactly`: unlike `households`/`validUntil`, more than one test in this
-     * class plants a disabled, non-administrator account backdated to [LONG_AGO] (see the
-     * administrator-exclusion test below), so another test's leftover fixture can legitimately show
-     * up here too - what matters is that *this* one does, and the still-recent/enabled ones don't.
+     * class plants an account backdated to [LONG_AGO] (see the never-logged-in and
+     * administrator-exclusion tests below), so another test's leftover fixture can legitimately show
+     * up here too - what matters is that *this* one does, and the still-recently-logged-in one
+     * doesn't.
      */
     @Test
-    fun `user deletion candidates select disabled accounts untouched since before the cutoff`() {
-        val expired = givenUser(enabled = false, updatedAt = LONG_AGO)
-        val keptStillRecent = givenUser(enabled = false, updatedAt = STILL_RECENT)
-        val keptEnabled = givenUser(enabled = true, updatedAt = LONG_AGO)
+    fun `user deletion candidates select accounts whose last login is past the cutoff`() {
+        val expired = givenUser(lastLogin = LONG_AGO)
+        val keptStillRecent = givenUser(lastLogin = STILL_RECENT)
 
         val candidates = userRepository.findExpiredUserIdsSkipLocked(CUTOFF, UserPermissions.ADMINISTRATOR.key)
 
         assertThat(candidates).contains(expired)
-        assertThat(candidates).doesNotContain(keptStillRecent, keptEnabled)
+        assertThat(candidates).doesNotContain(keptStillRecent)
     }
 
     /**
-     * The one exclusion `enabled = false` alone doesn't cover: a disabled administrator is still
-     * never a candidate, unlike every other disabled account just as old - see
-     * `TafelAdminUserRetentionProperties`'s KDoc for why this job is stricter here than the manual
-     * "last administrator" safeguards in `UserController`. `contains`, not `containsExactly` - see
-     * the test above for why.
+     * An account that has never logged in has no `last_login` to measure from - falls back to
+     * `created_at` instead, so a long-forgotten never-used account still ages out rather than being
+     * permanently exempt. `contains`, not `containsExactly` - see the test above for why.
      */
     @Test
-    fun `user deletion candidates exclude a disabled administrator regardless of age`() {
-        val keptAdministrator = givenUser(enabled = false, updatedAt = LONG_AGO, administrator = true)
-        val expired = givenUser(enabled = false, updatedAt = LONG_AGO)
+    fun `user deletion candidates fall back to created_at for an account that never logged in`() {
+        val expired = givenUser(lastLogin = null, createdAt = LONG_AGO)
+        val keptStillRecent = givenUser(lastLogin = null, createdAt = STILL_RECENT)
+
+        val candidates = userRepository.findExpiredUserIdsSkipLocked(CUTOFF, UserPermissions.ADMINISTRATOR.key)
+
+        assertThat(candidates).contains(expired)
+        assertThat(candidates).doesNotContain(keptStillRecent)
+    }
+
+    /**
+     * The one exclusion the login/creation cutoff alone doesn't cover: an administrator is still
+     * never a candidate, unlike every other account just as inactive - see
+     * `TafelAdminUserRetentionProperties`'s KDoc for why this job is stricter here than the manual
+     * "last administrator" safeguards in `UserController`. `contains`, not `containsExactly` - see
+     * the first test above for why.
+     */
+    @Test
+    fun `user deletion candidates exclude an administrator regardless of age`() {
+        val keptAdministrator = givenUser(lastLogin = LONG_AGO, administrator = true)
+        val expired = givenUser(lastLogin = LONG_AGO)
 
         val candidates = userRepository.findExpiredUserIdsSkipLocked(CUTOFF, UserPermissions.ADMINISTRATOR.key)
 
@@ -223,19 +238,26 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
 
     /**
      * Only the candidate-selection query, not the actual deletion - see the household test above for
-     * why. Also proves the linked-account exclusion: an employee an account still references is never
-     * a candidate, regardless of `updated_at`.
+     * why. Also covers two of the five `NOT EXISTS` clauses
+     * (`EmployeeRepository.findExpiredEmployeeIdsSkipLocked`'s KDoc has the full list): a linked user
+     * account and a household issuer are both references that keep an employee out of the candidate
+     * set, regardless of `updated_at`. `household_notes`, `food_collections` (driver/co-driver) and
+     * `routes_stops_completions` follow the identical single-nullable-FK `NOT EXISTS` shape already
+     * proven here via `households` and aren't each given their own fixture -
+     * `food_collections` in particular needs a `distributions`+`routes` graph to satisfy its own
+     * not-null FKs, which is disproportionate for exercising a SQL shape this test already covers.
      */
     @Test
-    fun `employee deletion candidates select unlinked employees untouched since before the cutoff and nothing else`() {
+    fun `employee deletion candidates select unreferenced employees untouched since before the cutoff and nothing else`() {
         val expired = givenEmployee(updatedAt = LONG_AGO)
         val keptStillRecent = givenEmployee(updatedAt = STILL_RECENT)
-        val keptLinked = givenEmployee(updatedAt = LONG_AGO, linkedToUser = true)
+        val keptLinkedToUser = givenEmployee(updatedAt = LONG_AGO, linkedToUser = true)
+        val keptHouseholdIssuer = givenEmployee(updatedAt = LONG_AGO, referencedByHousehold = true)
 
         val candidates = employeeRepository.findExpiredEmployeeIdsSkipLocked(CUTOFF)
 
         assertThat(candidates).containsExactly(expired)
-        assertThat(candidates).doesNotContain(keptStillRecent, keptLinked)
+        assertThat(candidates).doesNotContain(keptStillRecent, keptLinkedToUser, keptHouseholdIssuer)
     }
 
     /**
@@ -341,38 +363,42 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
     }
 
     /**
-     * `updated_at` is Hibernate-generated (`@UpdateTimestamp`), so a value assigned on the entity
+     * `created_at` is Hibernate-generated (`@CreationTimestamp`), so a value assigned on the entity
      * before `save` is always overwritten with the real current time - it has to be backdated with a
-     * direct SQL update afterwards instead, same as [givenEmployee] below.
+     * direct SQL update afterwards instead, same as `updated_at` on [givenEmployee] below.
+     * `last_login` has no such generator and can be set directly.
      *
      * The employee is built transient and saved through `UserEntity`'s own `PERSIST` cascade rather
      * than saved separately first - handing `save` an already-persisted (and by then detached)
      * `EmployeeEntity` throws `PersistentObjectException`, since a `PERSIST` cascade only ever
      * applies to a still-transient association.
      */
-    private fun givenUser(enabled: Boolean, updatedAt: LocalDateTime, administrator: Boolean = false): Long {
+    private fun givenUser(lastLogin: LocalDateTime?, createdAt: LocalDateTime = LONG_AGO, administrator: Boolean = false): Long {
         val number = fixtureCounter++
         val newUser = UserEntity(
             username = "cleanup-skip-locked-user-$number",
             password = "irrelevant",
             employee = EmployeeEntity(personnelNumber = "cleanup-skip-locked-user-$number", firstname = "first", lastname = "last"),
-            enabled = enabled,
-        )
+            enabled = true,
+        ).apply { this.lastLogin = lastLogin }
         if (administrator) {
             newUser.authorities.add(UserAuthorityEntity(user = newUser, name = UserPermissions.ADMINISTRATOR.key))
         }
 
         val user = userRepository.save(newUser)
-        jdbcTemplate.update("UPDATE users SET updated_at = ? WHERE id = ?", updatedAt, user.id)
+        jdbcTemplate.update("UPDATE users SET created_at = ? WHERE id = ?", createdAt, user.id)
         return user.id!!
     }
 
     /**
-     * [linkedToUser] adds a user account referencing the employee, so it is never a candidate - built
-     * together with the employee through `UserEntity`'s `PERSIST` cascade for the same reason
-     * [givenUser] above does.
+     * [linkedToUser] adds a user account referencing the employee, built together with it through
+     * `UserEntity`'s `PERSIST` cascade for the same reason [givenUser] above does.
+     * [referencedByHousehold] instead points a fresh household's `issuer` at the employee - safe to
+     * do with an already-persisted employee since `HouseholdEntity.issuer` carries no cascade at all
+     * (unlike `UserEntity.employee`), so Hibernate only ever reads its id for the FK column. Either
+     * way the employee is never a candidate.
      */
-    private fun givenEmployee(updatedAt: LocalDateTime, linkedToUser: Boolean = false): Long {
+    private fun givenEmployee(updatedAt: LocalDateTime, linkedToUser: Boolean = false, referencedByHousehold: Boolean = false): Long {
         val number = fixtureCounter++
         val employeeId = if (linkedToUser) {
             userRepository.save(
@@ -390,6 +416,17 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
         }
 
         jdbcTemplate.update("UPDATE employees SET updated_at = ? WHERE id = ?", updatedAt, employeeId)
+
+        if (referencedByHousehold) {
+            val household = HouseholdEntity(
+                householdId = HOUSEHOLD_ID_BASE + fixtureCounter++,
+                validUntil = STILL_RECENT_DATE,
+                locked = false,
+            )
+            household.issuer = employeeRepository.getReferenceById(employeeId)
+            householdRepository.save(household)
+        }
+
         return employeeId
     }
 }

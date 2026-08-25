@@ -26,8 +26,8 @@ Two things to be clear about before reading on:
 | `household_documents` + the files under `tafeladmin.storage.documentsPath` | customers | uploaded ID scans and proofs of income, as plain files (`DocumentStorageService`) | same as `households` (cascades on delete, files removed from disk too) |
 | `distributions_households` | customers | which household collected food on which date, ticket number, whether the cost contribution was paid | same as `households` (cascades on delete) |
 | `audit_log` | customers and staff | before/after values of every audited change, including names, addresses and income, plus who made it | `tafeladmin.audit.retentionDays`, 30 by default (`AuditRetentionService`) |
-| `users`, `user_authorities` | staff | username, Argon2 password hash, permissions | until deleted by hand, or disabled and untouched for longer than `tafeladmin.userDeletion.retentionYears` (`UserRetentionService`, 3 years by default) - never for an `ADMINISTRATOR` account, see G13 |
-| `employees` | staff | personnel number, name | until deleted by hand, or unlinked from any user account and untouched for longer than `tafeladmin.employeeDeletion.retentionYears` (`EmployeeRetentionService`, 7 years by default) - see G13 |
+| `users`, `user_authorities` | staff | username, Argon2 password hash, permissions | until deleted by hand, or not logged into for longer than `tafeladmin.userDeletion.retentionTime` (`UserRetentionService`, 7 years by default) - never for an `ADMINISTRATOR` account, see G13 |
+| `employees` | staff | personnel number, name | until deleted by hand, or referenced by nothing else at all (no user account, household, note, food collection or route stop completion) and untouched for longer than `tafeladmin.employeeDeletion.retentionTime` (`EmployeeRetentionService`, 7 years by default) - see G13 |
 | `login_attempts` | staff (anyone who typed a username) | username, failure count, lockout window | cleaned hourly (`LoginAttemptService`) |
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
 | `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
@@ -334,27 +334,31 @@ all, until an administrator opened it and pressed delete; nothing expired it on 
 Unlike a household, neither entity has a field that encodes "no longer relevant" the way
 `validUntil` does, which is why this needed its own decision rather than reusing G1's job outright:
 
-- **`users`** (`UserRetentionService`) treats `enabled = false` as the trigger - a disabled account
-  can never log in again to move any clock, while an *enabled* account that simply hasn't logged in
-  yet (a fresh account, or one whose owner is on long leave) is never touched. The moment measured is
-  `updated_at` rather than `lastLogin`, since only `updated_at` moves again if an administrator
-  revisits a disabled row - exactly the signal that it isn't abandoned yet. **An `ADMINISTRATOR`
-  account is never a candidate, full stop, regardless of `enabled` or age** - stricter than
-  `UserController`'s manual safeguards, which only ever protect the *last* enabled one. Deletion goes
-  through `TafelUserDetailsManager.deleteUser`, the same method the manual `DELETE
-  /api/users/{userId}` endpoint uses, and defaults to 3 years - the general civil-law limitation
-  period under Austrian law (ABGB Section 1489) - as a defensible floor, not a final legal-basis
-  answer.
-- **`employees`** (`EmployeeRetentionService`) is deliberately a separate job with its own, longer
-  window: an employee is a shared record other modules reference by a plain, non-cascading FK
-  (household issuer, household notes, food collection driver/co-driver) that already tolerates a
-  missing employee by design - `EmployeeService.deleteEmployee` lets a staff member delete one by hand
-  at any time, showing "Mitarbeiter gelöscht" wherever such a reference is displayed, and only refuses
-  when a user account is still linked. This job mirrors that: it only ever considers an employee with
-  no linked user account, again measured from `updated_at`, defaulting to 7 years - the same UGB/BAO
-  Section 132 bookkeeping floor as `householdDeletion.retentionYears`, since an unlinked employee is
-  most often still the issuer or driver of record on a household's or food collection's own
-  bookkeeping-relevant history.
+- **`users`** (`UserRetentionService`) treats `lastLogin` as the trigger, directly, rather than an
+  inferred proxy - falling back to `createdAt` for an account that has never logged in at all, so a
+  forgotten never-used account still ages out. This applies regardless of `enabled`: a still-enabled
+  account nobody has used in the window is exactly what this job is for. **An `ADMINISTRATOR` account
+  is never a candidate, full stop, regardless of `enabled` or age** - stricter than `UserController`'s
+  manual safeguards, which only ever protect the *last* enabled one. Deletion goes through
+  `TafelUserDetailsManager.deleteUser`, the same method the manual `DELETE /api/users/{userId}`
+  endpoint uses, and defaults to 7 years - unified with `householdDeletion.retentionYears` and
+  `employeeDeletion.retentionTime` as one consistent retention floor across the application, even
+  though unlike `householdDeletion.retentionYears` (a bookkeeping-law period) there is no single
+  statute this particular window has to clear.
+- **`employees`** (`EmployeeRetentionService`) is deliberately a separate job: an employee is a shared
+  record other modules reference by a plain, non-cascading FK (household issuer, household notes, food
+  collection driver/co-driver, route stop completion recorder) that already tolerates a missing
+  employee by design - `EmployeeService.deleteEmployee` lets a staff member delete one by hand at any
+  time, showing "Mitarbeiter gelöscht" wherever such a reference is displayed, and only refuses when a
+  user account is still linked. This job is *stricter* than that manual delete: it only ever considers
+  an employee referenced by **nothing** - not just no linked user account, but none of `households`,
+  `household_notes`, `food_collections` (driver or co-driver) or `routes_stops_completions` either -
+  since silently blanking a reference on a record that is itself well within its own retention window
+  would erase part of a still-live case file rather than an abandoned one. Measured from `updated_at`,
+  defaulting to 7 years - the same unified floor as `userDeletion.retentionTime` and
+  `householdDeletion.retentionYears`, even though an employee this job ever actually reaches is, by
+  definition, not the issuer/driver/recorder of anything still on record, so no bookkeeping period
+  specifically applies to it.
 
 Both jobs are configurable and switchable per deployment
 (`tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*`, read per use), run nightly after

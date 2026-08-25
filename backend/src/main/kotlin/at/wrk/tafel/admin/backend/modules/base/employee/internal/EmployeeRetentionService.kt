@@ -10,17 +10,18 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * GDPR gap G13 - the `employees` half of what `UserRetentionService` does for `users`. An unlinked
- * employee (no user account referencing it) is deleted through the same [EmployeeService.deleteEmployee]
- * a staff member's manual delete uses, once its row hasn't been written to in longer than the
- * configured window - see `TafelAdminEmployeeRetentionProperties`'s KDoc for why that window
- * defaults longer than the one on `users`.
+ * GDPR gap G13 - the `employees` half of what `UserRetentionService` does for `users`. An employee no
+ * longer referenced by any other table is deleted through the same
+ * [EmployeeService.deleteEmployee] a staff member's manual delete uses, once its row hasn't been
+ * written to in longer than the configured window - see
+ * [EmployeeRepository.findExpiredEmployeeIdsSkipLocked]'s KDoc for the full list of tables checked,
+ * and `TafelAdminEmployeeRetentionProperties`'s KDoc for the window itself.
  *
- * [EmployeeRepository.findExpiredEmployeeIdsSkipLocked] already excludes any employee with a linked
- * user account, so `deleteEmployee`'s own guard against that never actually fires here - it stays in
- * place because that method is also the manual `DELETE /api/employees/{employeeId}` endpoint's, and
- * is what protects against a user account getting (re)linked between the candidate select and this
- * transaction's delete.
+ * [EmployeeRepository.findExpiredEmployeeIdsSkipLocked] already excludes any employee referenced
+ * anywhere, so `deleteEmployee`'s own guard against a linked user account never actually fires here -
+ * it stays in place because that method is also the manual `DELETE /api/employees/{employeeId}`
+ * endpoint's, and is what protects against a user account getting (re)linked between the candidate
+ * select and this transaction's delete.
  *
  * Runs once a night, at 06:30 - after `UserRetentionService` (06:15), so an employee whose only user
  * account is deleted the same night is a candidate for the very next run rather than an extra day.
@@ -41,17 +42,17 @@ class EmployeeRetentionService(
     @Transactional
     fun cleanupExpiredEmployees() {
         if (!properties.employeeDeletion.enabled) {
-            logger.debug("Employee retention is disabled - keeping every unlinked employee regardless of age")
+            logger.debug("Employee retention is disabled - keeping every unreferenced employee regardless of age")
             return
         }
 
-        val retentionYears = properties.employeeDeletion.retentionYears
-        if (retentionYears <= 0) {
-            logger.debug("Employee retention is disabled (retentionYears={}) - keeping every employee", retentionYears)
+        val retentionTime = properties.employeeDeletion.retentionTime
+        if (retentionTime.isZero || retentionTime.isNegative) {
+            logger.debug("Employee retention is disabled (retentionTime={}) - keeping every employee", retentionTime)
             return
         }
 
-        val cutoff = LocalDateTime.now(clock).minusYears(retentionYears)
+        val cutoff = LocalDateTime.now(clock).minus(retentionTime)
         val expiredEmployeeIds = employeeRepository.findExpiredEmployeeIdsSkipLocked(cutoff)
         if (expiredEmployeeIds.isEmpty()) {
             return
@@ -59,10 +60,10 @@ class EmployeeRetentionService(
 
         expiredEmployeeIds.forEach { employeeService.deleteEmployee(it) }
         logger.info(
-            "Deleted {} unlinked employee(s) untouched since before {} ({} year(s) retention)",
+            "Deleted {} unreferenced employee(s) untouched since before {} ({} retention)",
             expiredEmployeeIds.size,
             cutoff,
-            retentionYears,
+            retentionTime,
         )
     }
 }

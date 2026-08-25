@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.util.unit.DataSize
 import java.time.Duration
+import java.time.Period
 
 /**
  * Mutable, JavaBean-bound on purpose - that is what makes this application's configuration
@@ -139,18 +140,16 @@ class TafelAdminHouseholdRetentionProperties {
  * GDPR gap G13 (`docs/architecture/gdpr-compliance.md`) - mirrors [TafelAdminHouseholdRetentionProperties]
  * (G1) for the other data subject who gets a login: a `users` row otherwise stays in the database,
  * permissions and all, until an administrator opens it and presses delete. `enabled` and
- * `retentionYears` are read per use, so an operator can widen the window or switch the job off on a
+ * `retentionTime` are read per use, so an operator can widen the window or switch the job off on a
  * running deployment (`ConfigFileReloadService`).
  *
- * Unlike a household, [at.wrk.tafel.admin.backend.database.model.auth.UserEntity] has no field that
- * encodes "no longer relevant" the way `validUntil` does. `enabled = false` is the closest thing, and
- * is deliberately what this is measured against rather than `lastLogin`: a disabled account can never
- * log in again to move that clock, while an *enabled* account that simply hasn't logged in yet (a
- * fresh account, or one whose owner is on long leave) is not something an automatic job should ever
- * touch. The moment used is
- * [at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity.updatedAt] - for a
- * disabled account that only moves again if an administrator revisits the row, which is exactly the
- * signal that it isn't abandoned yet.
+ * The candidate measure is
+ * [at.wrk.tafel.admin.backend.database.model.auth.UserEntity.lastLogin] - the actual, direct signal
+ * for "is anyone still using this account", rather than an inferred proxy like `enabled` or
+ * `updatedAt`. An account that has never logged in at all (`lastLogin == null`) is measured from
+ * `createdAt` instead, so a long-forgotten never-used account still ages out rather than being
+ * permanently exempt. This applies regardless of `enabled` - a still-enabled account nobody has used
+ * in the configured window is exactly what this job is for.
  *
  * An account holding the `ADMINISTRATOR` permission is never a candidate, full stop - regardless of
  * `enabled` or age. `UserController`'s manual safeguards only ever protect the *last* enabled
@@ -172,37 +171,42 @@ class TafelAdminHouseholdRetentionProperties {
 @ExcludeFromTestCoverage
 class TafelAdminUserRetentionProperties {
     /**
-     * Kill switch for the whole job, independent of [retentionYears].
+     * Kill switch for the whole job, independent of [retentionTime].
      */
     var enabled: Boolean = true
 
     /**
-     * How long a *disabled* account is kept, measured from the last time its row was written to
-     * (see the class KDoc for why that stands in for "last login"). Defaults to 3 - the general
-     * civil-law limitation period under Austrian law (ABGB Section 1489) - as a defensible floor,
-     * not a final legal-basis answer; the actual period is the operator's call, same as
-     * `householdDeletion.retentionYears`. A value of 0 or less keeps every account instead of
-     * deleting them all. An *enabled* account is never a candidate, regardless of this value.
+     * How long an account is kept without a login (see the class KDoc for the `createdAt` fallback
+     * on an account that has never logged in). A [Period] rather than a [java.time.Duration] so a
+     * deployment can express it the way an operator actually thinks about it - `7y`, `18m`, `730d` -
+     * via Spring Boot's simple `Period` parsing (`y`/`m`/`w`/`d` suffixes); `Duration` has no year/month
+     * unit at all, since neither has a fixed length. Defaults to 7 years, the same floor as
+     * `householdDeletion.retentionYears` and [TafelAdminEmployeeRetentionProperties.retentionTime] -
+     * one unified retention window across the application rather than three separately reasoned ones,
+     * even though this one isn't itself tied to that bookkeeping period; widen or shorten it per
+     * deployment. A zero or negative period ([Period.isZero]/[Period.isNegative] - the latter true as
+     * soon as *any* field is negative, so don't mix positive and negative fields in one value) keeps
+     * every account instead of deleting them all. An account holding `ADMINISTRATOR` is never a
+     * candidate, regardless of this value.
      */
-    var retentionYears: Long = 3
+    var retentionTime: Period = Period.ofYears(7)
 }
 
 /**
  * GDPR gap G13, the `employees` half - see [TafelAdminUserRetentionProperties] for `users`. An
  * employee is a shared record other modules reference by a plain, non-cascading FK (household
- * issuer, household notes, food collection driver/co-driver) that already tolerates a missing
- * employee by design (`EmployeeService.deleteEmployee`'s KDoc shows "Mitarbeiter gelöscht" wherever
- * such a reference is displayed) - so this job deletes an employee the moment nothing still needs it
- * kept, exactly like a manual delete already can, just triggered by age instead of a person pressing
- * delete.
+ * issuer, household notes, food collection driver/co-driver, route stop completion recorder) that
+ * already tolerates a missing employee by design (`EmployeeService.deleteEmployee`'s KDoc shows
+ * "Mitarbeiter gelöscht" wherever such a reference is displayed) - so this job deletes an employee
+ * the moment nothing still needs it kept, exactly like a manual delete already can, just triggered by
+ * age instead of a person pressing delete.
  *
- * An employee with a linked user account is never a candidate - that account's own retention
- * ([TafelAdminUserRetentionProperties]) has to remove the account first, same as
- * `EmployeeService.deleteEmployee` itself refuses a linked employee. The moment used is again
+ * An employee referenced anywhere - a linked user account included - is never a candidate; see
+ * `EmployeeRepository.findExpiredEmployeeIdsSkipLocked`'s KDoc for the full list of tables checked.
+ * This job is deliberately *stricter* here than a manual delete, which is allowed to blank a still-live
+ * reference (`ON DELETE SET NULL`) the moment a person chooses to: an unattended nightly job should
+ * never do that to a record that is itself well within its own retention window. The moment used is
  * [at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity.updatedAt].
- * `retentionYears` defaults to 7 - the same UGB/BAO Section 132 bookkeeping floor as
- * `householdDeletion.retentionYears` - since an unlinked employee is most often still the issuer or
- * driver on record for a household's or a food collection's own bookkeeping-relevant history.
  *
  * `tafeladmin.employeeDeletion.cleanupCron` - default 06:30 daily, after `userDeletion` at 06:15 so
  * an employee whose only user account is deleted the same night is a candidate for the very next run
@@ -212,16 +216,21 @@ class TafelAdminUserRetentionProperties {
 @ExcludeFromTestCoverage
 class TafelAdminEmployeeRetentionProperties {
     /**
-     * Kill switch for the whole job, independent of [retentionYears].
+     * Kill switch for the whole job, independent of [retentionTime].
      */
     var enabled: Boolean = true
 
     /**
-     * How long an *unlinked* employee (no user account referencing it) is kept before automatic
-     * deletion. A value of 0 or less keeps every employee instead of deleting them all. An employee
-     * with a linked user account is never a candidate, regardless of this value.
+     * How long an employee referenced by nothing else is kept before automatic deletion - a [Period]
+     * for the same reason as `userDeletion.retentionTime`, see its KDoc. Defaults to 7 years, the
+     * same unified floor as `householdDeletion.retentionYears` and
+     * [TafelAdminUserRetentionProperties.retentionTime], even though an employee this job ever
+     * actually reaches is - by definition - not the issuer/driver/recorder of anything still on
+     * record, so no bookkeeping period specifically applies to it. A zero or negative period keeps
+     * every employee instead of deleting them all. An employee referenced anywhere is never a
+     * candidate, regardless of this value.
      */
-    var retentionYears: Long = 7
+    var retentionTime: Period = Period.ofYears(7)
 }
 
 /**
