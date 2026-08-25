@@ -442,6 +442,51 @@ only - it does not follow the reverse references above (issuer/author/driver) ba
 household, note or food collection rows that name them, since those rows are substantively that
 other record's own data. See the takeout plan's §1 "Scope" note.
 
+### G15 A central screen now ties the three GDPR exports together, and can erase what it finds too
+
+**Art. 15, Art. 17, Art. 20.** G5/G12/G14 each answer "what do you have on this person" for one of
+three separate categories (customer, staff with an account, staff without one) - but a real
+data-subject request doesn't arrive pre-labelled with which category the requester falls into, and
+answering it meant guessing, then navigating three different screens under three different
+permissions (`CUSTOMER`, `USER_MANAGEMENT`, `SETTINGS`), then manually combining two downloads by
+hand for someone who is both a customer and a volunteer.
+
+`DataSubjectRequestController`/`DataSubjectRequestService` (issue #3396) close that with one search
+box across `households`, `users` and `employees` (reusing `SearchTextSpecs`'s trigram search for the
+first two, the Mitarbeiter screen's own `findBySearchInput` for the third, filtered to exclude an
+employee already covered by G14's own refusal), grouped by which of the three areas each match is.
+Export and delete both trigger the existing per-area service through a thin cross-module facade
+(`HouseholdDataSubjectFacade`/`EmployeeDataSubjectFacade` - Spring Modulith never exposes an
+`.internal` type across a module boundary, named interface or not) rather than a new pipeline:
+exporting one or more selected matches always returns one ZIP (a household's own export unpacked
+into a `kunde-<id>/` folder, a user's or employee's PDF added under its own folder, so a customer and
+a staff match selected together - the same person, holding both - come back as one archive);
+deleting runs per match independently since, unlike export, two unrelated records failing together
+would be a worse experience than one of them simply staying (`DataSubjectDeleteResultItem` reports
+`DELETED`/`NOT_FOUND` per match, not a single pass/fail).
+
+Behind a new `DATA_SUBJECT_REQUESTS` permission, additive rather than a replacement: holding it only
+grants reaching the search and picking a match - the export/delete action on a specific match still
+requires that area's own permission (`CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`), enforced again inside
+`DataSubjectRequestService` since the class-level `@PreAuthorize` alone can't express a check that
+depends on which match a request body names. This is the permission-model question the takeout
+plan's §6 left for "the future ticket to confirm" - answered here as additive so today's screens
+keep meaning what they already meant, rather than `DATA_SUBJECT_REQUESTS` alone becoming a fourth way
+to reach the same data.
+
+Deletion reuses `HouseholdService.deleteHouseholdByHouseholdId`, `EmployeeService.deleteEmployee` and
+a new `TafelUserDetailsManager.deleteUserById` (the same "keep at least one active administrator"
+guard `UserController.deleteUser` already enforces, re-checked here since this is a second caller of
+`deleteUser` that must not bypass it) - no new erasure logic, matching §6's own prediction that
+household erasure (and now staff erasure) "already exists in part" for a future feature to reuse.
+
+No separate audit entry for the search itself - only the eventual export/delete stays audited, the
+same as before (§5's `AuditOperation.READ`/writes tracked per entity, not per screen).
+
+What remains open: same as G5/G12/G14, `audit_log` entries are excluded from the export; the search
+itself caps at 20 best matches per area (a lookup for one specific person, not a report), and nothing
+reports if it silently drops a match past that.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -497,8 +542,9 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 11 | [G14](#g14-an-employee-with-no-user-account-can-now-be-exported-too-closing-a-gap-g12-left-open) no Art. 15/20 export for an employee with no user account | [#3394](https://github.com/wrk-tafel/admin/issues/3394) | done | `GET /api/employees/{employeeId}/export`, `EmployeeExportService` |
 | 11 | [G7](#g7-the-documents-tab-now-requires-its-own-permission-separate-from-customer) documents tab behind its own permission | [#3181](https://github.com/wrk-tafel/admin/issues/3181) | done | `CUSTOMER_DOCUMENTS`, see [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md) |
 | 12 | [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) no breach detection | [#3184](https://github.com/wrk-tafel/admin/issues/3184) | done | `ExcessiveReadAccessDetectionService`, a fixed hourly read-count threshold |
+| 13 | [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too) no single entry point spanning G5/G12/G14 | [#3396](https://github.com/wrk-tafel/admin/issues/3396) | done | `DataSubjectRequestController`/`DataSubjectRequestService`, `DATA_SUBJECT_REQUESTS` |
 
 G3 and G4 are worth doing regardless of what the operator decides; G9 no longer needs G6's answer
-first but is otherwise unchanged. G2, G1, G13, G5, G6, G7, G11 and G12 are done. Of what remains
-(G8, G10), both depend on answers that come from outside this repository — which makes
+first but is otherwise unchanged. G2, G1, G13, G5, G6, G7, G11, G12 and G15 are done. Of what
+remains (G8, G10), both depend on answers that come from outside this repository — which makes
 [§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code.

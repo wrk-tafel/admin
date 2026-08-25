@@ -1,0 +1,62 @@
+<mat-card class="w-full">
+  <mat-card-header class="mb-2">
+    <mat-card-title>
+      <h2 class="tafel-h5 mb-0 mt-1">Datenauskunft</h2>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Ein Suchfeld über Kunden, Benutzerkonten und Mitarbeiter ohne Benutzerkonto - für eine
+      Datenschutz-Anfrage ("welche Daten sind über mich gespeichert?"), ohne vorher raten zu müssen,
+      welcher der drei Kategorien die Person zuzuordnen ist. Export und Löschung wirken je gewählten
+      Treffer über den bestehenden Ablauf des jeweiligen Bereichs.
+    </p>
+
+    <mat-form-field class="w-full max-w-md" subscriptSizing="dynamic">
+      <mat-label>Suche</mat-label>
+      <mat-icon matPrefix svgIcon="search"></mat-icon>
+      <input matInput testid="data-subject-request-search-input" [ngModel]="searchInput()"
+             (ngModelChange)="onSearchInput($event)" placeholder="Name, Kundennummer, Benutzername, Personalnummer, ...">
+    </mat-form-field>
+
+    <p class="sr-only" role="status" testid="data-subject-request-search-announcement">{{ searchAnnouncement() }}</p>
+
+    @if (matches(); as items) {
+      @if (items.length === 0) {
+        <div class="mt-4 text-center" testid="data-subject-request-empty">Keine Treffer gefunden.</div>
+      } @else {
+        <div class="mt-4 flex flex-col gap-4" testid="data-subject-request-results">
+          @for (group of groupedMatches(); track group.type) {
+            <div>
+              <h3 class="tafel-h6 mb-2">{{ group.label }}</h3>
+              <div class="flex flex-col gap-1">
+                @for (match of group.items; track match.type + '-' + match.id) {
+                  <mat-checkbox testid="data-subject-request-match" [checked]="isSelected(match)" [disabled]="!canActOn(match)"
+                                (change)="toggleSelection(match)"
+                                [matTooltip]="canActOn(match) ? '' : 'Fehlende Berechtigung für diesen Bereich'">
+                    <span class="font-bold">{{ match.name }}</span> ({{ match.businessKey }})
+                  </mat-checkbox>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="mt-6 flex gap-2">
+          <button testid="data-subject-request-export" matButton="filled" [disabled]="selectedMatches().length === 0 || exporting()"
+                  (click)="exportSelected()">
+            <mat-icon svgIcon="download"></mat-icon>
+            Datenexport herunterladen
+          </button>
+          <button testid="data-subject-request-delete" matButton="outlined" [disabled]="selectedMatches().length === 0 || deleting()"
+                  (click)="deleteSelected()">
+            <mat-icon svgIcon="delete"></mat-icon>
+            Daten löschen
+          </button>
+        </div>
+      }
+    } @else if (searchInput().trim().length > 0) {
+      <div class="mt-4 text-center text-sm text-slate-600" testid="data-subject-request-hint">Mindestens 2 Zeichen eingeben.</div>
+    }
+  </mat-card-content>
+</mat-card>

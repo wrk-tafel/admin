@@ -17,6 +17,7 @@ import lockPersonIcon from '@material-symbols/svg-400/outlined/lock_person-fill.
 import monitoringIcon from '@material-symbols/svg-400/outlined/monitoring-fill.svg';
 import historyIcon from '@material-symbols/svg-400/outlined/history-fill.svg';
 import settingsIcon from '@material-symbols/svg-400/outlined/settings-fill.svg';
+import personSearchIcon from '@material-symbols/svg-400/outlined/person_search-fill.svg';
 
 // Every icon name used anywhere in navigationMenuItems below, registered once from here rather than
 // by each consumer (DefaultLayoutComponent's sidebar, QuickOpenDialogComponent's flattened search
@@ -41,7 +42,8 @@ export function registerNavigationIcons(): void {
     lock_person: lockPersonIcon,
     monitoring: monitoringIcon,
     history: historyIcon,
-    settings: settingsIcon
+    settings: settingsIcon,
+    person_search: personSearchIcon
   });
 }
 
@@ -196,6 +198,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     url: '/aenderungsprotokoll',
     icon: 'history',
     permissions: ['AUDIT_LOG']
+  },
+  {
+    name: 'Datenauskunft',
+    url: '/datenauskunft',
+    icon: 'person_search',
+    permissions: ['DATA_SUBJECT_REQUESTS']
   },
   {
     name: 'Einstellungen',

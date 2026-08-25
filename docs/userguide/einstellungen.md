@@ -162,6 +162,8 @@ Da Stopps in beliebiger Reihenfolge eingegeben und erst beim Speichern nach Uhrz
 
 Pro Route darf jede Filiale nur einmal vorkommen und jede Uhrzeit nur einmal vergeben sein; andernfalls erscheint beim Speichern eine entsprechende Meldung. Wie bei den Filialen können Routen deaktiviert statt gelöscht werden: eine deaktivierte Route steht im Routen-Navi und in der Warenerfassung nicht mehr zur Auswahl, bereits erfasste Ausgabetage bleiben aber unverändert.
 
+<a id="mitarbeiter"></a>
+
 ## Mitarbeiter
 
 Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Personalnummer, Vorname, Nachname) verwaltet, auf denen die [Benutzerkonten](benutzer.md) sowie die Fahrer/Beifahrer-Zuordnung in der [Warenerfassung](logistik.md) basieren. Die Liste filtert sich beim Tippen im Suchfeld — es gibt keinen eigenen Such-Button —, gesucht wird nach Personalnummer, Vor- und Nachname. Anders als bei Notschlafstellen, Fahrzeugen und Lebensmittelkategorien gibt es hier keine Aktiv/Inaktiv-Kennzeichnung, dafür können Mitarbeiter jederzeit endgültig gelöscht werden. Dieser Hinweis steht auch über der Liste.
@@ -178,4 +180,4 @@ Beim Anlegen sind Personalnummer, Vorname und Nachname Pflichtfelder (max. 50 Ze
 
 ![Mitarbeiter löschen](images/einstellungen-mitarbeiter-loeschen.jpg)
 
-Über den Download-Button lässt sich pro Mitarbeiter eine DSGVO-Datenauskunft (Art. 15/20) als PDF-Datei herunterladen – Personalnummer, Name und Anlagedatum. Dieser Button erscheint nur bei Mitarbeitern ohne Benutzerkonto (z. B. reinen Fahrern): sie haben kein Konto, über das sie sich selbst anmelden könnten, und sind daher sonst über keinen Weg auskunftsfähig. Ist ein Benutzerkonto verknüpft, entfällt der Button hier - die Auskunft zu diesem Mitarbeiter ist dann bereits vollständig über den Export auf der [Benutzer-Detailseite](benutzer.md) verfügbar (der auch die verknüpfte Personalnummer und den Namen enthält), sodass hier kein zweites, unvollständiges Dokument für dieselbe Person entstehen soll.
+Über den Download-Button lässt sich pro Mitarbeiter eine DSGVO-Datenauskunft (Art. 15/20) als PDF-Datei herunterladen – Personalnummer, Name und Anlagedatum. Dieser Button erscheint nur bei Mitarbeitern ohne Benutzerkonto (z. B. reinen Fahrern): sie haben kein Konto, über das sie sich selbst anmelden könnten, und sind daher sonst über keinen Weg auskunftsfähig. Ist ein Benutzerkonto verknüpft, entfällt der Button hier - die Auskunft zu diesem Mitarbeiter ist dann bereits vollständig über den Export auf der [Benutzer-Detailseite](benutzer.md) verfügbar (der auch die verknüpfte Personalnummer und den Namen enthält), sodass hier kein zweites, unvollständiges Dokument für dieselbe Person entstehen soll. Ist die Personalnummer nicht bekannt, hilft stattdessen die Suche unter [Datenauskunft](datenauskunft.md).

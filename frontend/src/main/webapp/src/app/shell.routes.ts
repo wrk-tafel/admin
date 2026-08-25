@@ -109,6 +109,13 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'datenauskunft',
+        loadChildren: () => import('./modules/data-subject-request/data-subject-request.routes').then(m => m.routes),
+        data: {
+          anyPermissionOf: ['DATA_SUBJECT_REQUESTS']
+        }
+      },
+      {
         path: 'statistiken',
         loadChildren: () => import('./modules/statistics/statistics.routes').then(m => m.routes),
         data: {
