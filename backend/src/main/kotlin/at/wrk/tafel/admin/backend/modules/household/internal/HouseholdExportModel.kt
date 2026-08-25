@@ -4,9 +4,8 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import com.fasterxml.jackson.annotation.JsonRootName
 
 /**
- * One row of [HouseholdExportService]'s data export, shared verbatim between the HTML file
- * (`haushaltsdaten.html`) and the PDF file (`datenexport.pdf`) inside the export ZIP - built once so
- * the two can never drift into showing different numbers for the same household.
+ * One row of [HouseholdExportService]'s data export, feeding the PDF file (`datenexport.pdf`) inside
+ * the export ZIP.
  */
 @ExcludeFromTestCoverage
 data class HouseholdExportField(

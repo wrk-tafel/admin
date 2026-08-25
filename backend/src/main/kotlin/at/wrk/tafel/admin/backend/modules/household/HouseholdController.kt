@@ -167,8 +167,8 @@ class HouseholdController(
 
     /**
      * The GDPR Art. 15/20 data takeout (issue #3179) - one downloadable ZIP containing the household
-     * record (persons, notes and distribution attendance history, as one human-readable HTML file)
-     * plus every uploaded document (see `docs/architecture/gdpr-data-takeout-plan.md`).
+     * record (persons, notes and distribution attendance history, as one PDF file) plus every
+     * uploaded document (see `docs/architecture/gdpr-data-takeout-plan.md`).
      */
     @GetMapping("/{householdId}/export", produces = ["application/zip"])
     @PreAuthorize("hasAuthority('CUSTOMER')")

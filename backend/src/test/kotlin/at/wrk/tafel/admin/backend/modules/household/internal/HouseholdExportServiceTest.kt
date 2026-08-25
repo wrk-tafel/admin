@@ -95,7 +95,7 @@ internal class HouseholdExportServiceTest {
     }
 
     @Test
-    fun `export household - zips the data html and every uploaded file, deduplicating identical filenames`() {
+    fun `export household - zips the data pdf and every uploaded file, deduplicating identical filenames`() {
         val household = testHouseholdEntityWithMainPerson()
         val householdResponse = HouseholdResponse(
             id = 100,
@@ -161,17 +161,9 @@ internal class HouseholdExportServiceTest {
                 entry = zip.nextEntry
             }
         }
-        assertThat(entries).hasSize(4)
+        assertThat(entries).hasSize(3)
         assertThat(entries["ausweis.jpg"]).isEqualTo("content-1".toByteArray())
         assertThat(entries["ausweis_2.jpg"]).isEqualTo("content-2".toByteArray())
-
-        val html = entries["haushaltsdaten.html"]?.decodeToString()
-        assertThat(html).isNotNull
-        assertThat(html).contains("<html")
-        assertThat(html).contains("mustermann max")
-        assertThat(html).contains("1010 Wien")
-        assertThat(html).contains("note")
-        assertThat(html).contains("ausweis.jpg")
 
         val pdf = entries["datenexport.pdf"]
         assertThat(pdf).isNotNull
@@ -187,7 +179,7 @@ internal class HouseholdExportServiceTest {
     }
 
     @Test
-    fun `export household - no documents zips only the data html and pdf`() {
+    fun `export household - no documents zips only the data pdf`() {
         val household = testHouseholdEntityWithMainPerson()
         val householdResponse = HouseholdResponse(
             id = 100,
@@ -211,35 +203,6 @@ internal class HouseholdExportServiceTest {
                 entry = zip.nextEntry
             }
         }
-        assertThat(entries).containsExactly("haushaltsdaten.html", "datenexport.pdf")
-    }
-
-    @Test
-    fun `export household - escapes user-provided text in the data html`() {
-        val household = testHouseholdEntityWithMainPerson()
-        val householdResponse = HouseholdResponse(
-            id = 100,
-            address = HouseholdAddress(street = "Teststraße", houseNumber = "1", postalCode = 1010, city = "Wien"),
-            locked = true,
-            lockReason = "<script>alert('x')</script>",
-        )
-        val notes = listOf(
-            HouseholdNoteItem(id = 1, author = "<b>tester</b>", timestamp = LocalDateTime.now(), note = "<script>alert(1)</script>"),
-        )
-
-        every { householdRepository.findByHouseholdId(100) } returns household
-        every { householdConverter.mapEntityToHousehold(household) } returns householdResponse
-        every { householdNoteService.getAllNotes(100) } returns notes
-        every { distributionHouseholdRepository.findAllByHouseholdEntityIds(listOf(42L)) } returns emptyList()
-        every { documentRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(100) } returns emptyList()
-
-        val result = service.exportHousehold(100)
-
-        val html = ZipInputStream(result!!.bytes.inputStream()).use { zip ->
-            zip.nextEntry
-            zip.readBytes().decodeToString()
-        }
-        assertThat(html).doesNotContain("<script>")
-        assertThat(html).contains("&lt;script&gt;")
+        assertThat(entries).containsExactly("datenexport.pdf")
     }
 }

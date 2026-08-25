@@ -203,9 +203,9 @@ short, visible rule is.
 serves one ZIP behind the same `CUSTOMER` permission as the rest of a household's data, from
 customer-detail's "Weitere Aktionen" menu: `GET /households/{householdId}/export` — household,
 persons, notes (via the unpaged `HouseholdNoteService.getAllNotes`, so a page-size cap can't silently
-truncate the record), distribution attendance history and the list of uploaded documents, as both an
-HTML file and a PDF — plus every uploaded document itself. One combined archive rather than several
-separate downloads: a data-subject request normally wants "everything you have on me" in one piece.
+truncate the record), distribution attendance history and the list of uploaded documents, as a PDF —
+plus every uploaded document itself. One combined archive rather than several separate downloads: a
+data-subject request normally wants "everything you have on me" in one piece.
 The endpoint stores nothing; the archive is built on request and never written to disk or a table. It
 is recorded in the audit trail as a single `AuditOperation.READ` entry against the household
 (G6/#3180), the same way `generatePdf` already was.

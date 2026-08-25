@@ -20,7 +20,6 @@ import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.MimeTypeUtils
-import org.springframework.web.util.HtmlUtils
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -34,11 +33,10 @@ import java.util.zip.ZipOutputStream
 /**
  * The GDPR Art. 15/20 data takeout for a household (issue #3179, see
  * `docs/architecture/gdpr-data-takeout-plan.md`) - one downloadable ZIP containing the household
- * record (persons, notes, distribution attendance history and the list of uploaded documents) as
- * both a human-readable HTML file and a PDF, plus every uploaded document itself. One combined
- * archive rather than several separate downloads: a data-subject request normally wants "everything
- * you have on me" in one piece, and a requester who only wants part of it can simply ignore the rest
- * of the ZIP's contents.
+ * record (persons, notes, distribution attendance history and the list of uploaded documents) as a
+ * PDF, plus every uploaded document itself. One combined archive rather than several separate
+ * downloads: a data-subject request normally wants "everything you have on me" in one piece, and a
+ * requester who only wants part of it can simply ignore the rest of the ZIP's contents.
  *
  * Stores nothing - the archive is built on request and never written to disk or a table.
  *
@@ -59,11 +57,9 @@ class HouseholdExportService(
 ) {
 
     companion object {
-        private const val HTML_ENTRY_NAME = "haushaltsdaten.html"
         private const val PDF_ENTRY_NAME = "datenexport.pdf"
         private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
         private const val PDF_STYLESHEET_PATH = "/pdf-templates/household-export/export-document.xsl"
-        private const val TABLE_CLOSE_TAG = "</table>\n"
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
 
@@ -110,14 +106,10 @@ class HouseholdExportService(
 
         val buffer = ByteArrayOutputStream()
         ZipOutputStream(buffer).use { zip ->
-            // Reserving the export's own file names first means a document that happens to share one
-            // of them (e.g. an actual "haushaltsdaten.html" upload) gets renamed instead of silently
-            // overwriting an export file - same dedup mechanism as the documents below.
-            val usedEntryNames = mutableSetOf(HTML_ENTRY_NAME, PDF_ENTRY_NAME)
-
-            zip.putNextEntry(ZipEntry(HTML_ENTRY_NAME))
-            zip.write(buildHouseholdHtml(householdResponse.id, exportedAt, masterDataFields, personRows, noteRows, attendanceRows, documentRows))
-            zip.closeEntry()
+            // Reserving the export's own file name first means an actual "datenexport.pdf" upload
+            // gets renamed instead of silently overwriting the export's own data file - same dedup
+            // mechanism as the documents below.
+            val usedEntryNames = mutableSetOf(PDF_ENTRY_NAME)
 
             zip.putNextEntry(ZipEntry(PDF_ENTRY_NAME))
             zip.write(buildHouseholdPdf(householdResponse.id, exportedAt, masterDataFields, personRows, noteRows, attendanceRows, documentRows))
@@ -217,126 +209,6 @@ class HouseholdExportService(
         )
     }
 
-    private fun buildHouseholdHtml(
-        householdId: Long?,
-        exportedAt: String,
-        masterDataFields: List<HouseholdExportField>,
-        personRows: List<HouseholdExportPersonRow>,
-        noteRows: List<HouseholdExportNoteRow>,
-        attendanceRows: List<HouseholdExportAttendanceRow>,
-        documentRows: List<HouseholdExportDocumentRow>,
-    ): ByteArray {
-        val html = buildString {
-            append("<!doctype html>\n")
-            append("<html lang=\"de\">\n<head>\n<meta charset=\"UTF-8\">\n")
-            append("<title>Datenexport - Kundennummer $householdId</title>\n")
-            append(
-                """
-                <style>
-                  body { font-family: Helvetica, Arial, sans-serif; color: #1a1a1a; margin: 2rem; }
-                  h1 { margin-bottom: 0.25rem; }
-                  h2 { margin-top: 2rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; }
-                  .subtitle { color: #555; margin-top: 0; }
-                  table { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
-                  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
-                  th { background-color: #f2f2f2; }
-                  .label { color: #555; width: 30%; }
-                </style>
-                """.trimIndent(),
-            )
-            append("\n</head>\n<body>\n")
-            append("<h1>Datenexport</h1>\n")
-            append("<p class=\"subtitle\">Kundennummer $householdId · erstellt am ${exportedAt.esc()}</p>\n")
-
-            append("<h2>Stammdaten</h2>\n")
-            append("<table>\n")
-            masterDataFields.forEach { append("<tr><td class=\"label\">${it.label.esc()}</td><td>${it.value.esc()}</td></tr>\n") }
-            append(TABLE_CLOSE_TAG)
-
-            append("<h2>Personen</h2>\n")
-            appendPersonsTable(personRows)
-
-            append("<h2>Notizen</h2>\n")
-            appendNotesTable(noteRows)
-
-            append("<h2>Teilnahme-Historie</h2>\n")
-            appendAttendancesTable(attendanceRows)
-
-            append("<h2>Dokumente</h2>\n")
-            appendDocumentsTable(documentRows)
-
-            append("</body>\n</html>\n")
-        }
-        return html.toByteArray(Charsets.UTF_8)
-    }
-
-    private fun StringBuilder.appendPersonsTable(personRows: List<HouseholdExportPersonRow>) {
-        append("<table>\n<tr><th>Name</th><th>Hauptbezieher</th><th>Geburtsdatum</th><th>Geschlecht</th>")
-        append("<th>Land</th><th>Arbeitgeber</th><th>Einkommen</th><th>Einkommen gültig bis</th>")
-        append("<th>Familienbeihilfe</th><th>Nicht im Haushalt</th></tr>\n")
-        personRows.forEach { person ->
-            append("<tr>")
-            append("<td>${person.name.esc()}</td>")
-            append("<td>${person.mainPerson.esc()}</td>")
-            append("<td>${person.birthDate.esc()}</td>")
-            append("<td>${person.gender.esc()}</td>")
-            append("<td>${person.country.esc()}</td>")
-            append("<td>${person.employer.esc()}</td>")
-            append("<td>${person.income.esc()}</td>")
-            append("<td>${person.incomeDue.esc()}</td>")
-            append("<td>${person.familyAllowance.esc()}</td>")
-            append("<td>${person.excludeFromHousehold.esc()}</td>")
-            append("</tr>\n")
-        }
-        append(TABLE_CLOSE_TAG)
-    }
-
-    private fun StringBuilder.appendNotesTable(noteRows: List<HouseholdExportNoteRow>) {
-        if (noteRows.isEmpty()) {
-            append("<p>Keine Notizen vorhanden</p>\n")
-            return
-        }
-
-        append("<table>\n<tr><th>Zeitpunkt</th><th>Verfasst von</th><th>Notiz</th></tr>\n")
-        noteRows.forEach { note ->
-            append("<tr><td>${note.timestamp.esc()}</td><td>${note.author.esc()}</td><td>${note.note.esc()}</td></tr>\n")
-        }
-        append(TABLE_CLOSE_TAG)
-    }
-
-    private fun StringBuilder.appendAttendancesTable(attendanceRows: List<HouseholdExportAttendanceRow>) {
-        if (attendanceRows.isEmpty()) {
-            append("<p>Keine Teilnahmen an Ausgabetagen vorhanden</p>\n")
-            return
-        }
-
-        append("<table>\n<tr><th>Ausgabe gestartet</th><th>Ausgabe beendet</th><th>Ticketnummer</th>")
-        append("<th>Bearbeitet</th><th>Unkostenbeitrag bezahlt</th></tr>\n")
-        attendanceRows.forEach { attendance ->
-            append("<tr>")
-            append("<td>${attendance.startedAt.esc()}</td>")
-            append("<td>${attendance.endedAt.esc()}</td>")
-            append("<td>${attendance.ticketNumber}</td>")
-            append("<td>${attendance.processed.esc()}</td>")
-            append("<td>${attendance.costContributionPaid.esc()}</td>")
-            append("</tr>\n")
-        }
-        append(TABLE_CLOSE_TAG)
-    }
-
-    private fun StringBuilder.appendDocumentsTable(documentRows: List<HouseholdExportDocumentRow>) {
-        if (documentRows.isEmpty()) {
-            append("<p>Keine Dokumente vorhanden</p>\n")
-            return
-        }
-
-        append("<table>\n<tr><th>Dateiname</th><th>Art</th><th>Hochgeladen am</th></tr>\n")
-        documentRows.forEach { document ->
-            append("<tr><td>${document.fileName.esc()}</td><td>${document.documentType.esc()}</td><td>${document.uploadedAt.esc()}</td></tr>\n")
-        }
-        append(TABLE_CLOSE_TAG)
-    }
-
     private fun buildHouseholdPdf(
         householdId: Long?,
         exportedAt: String,
@@ -361,8 +233,6 @@ class HouseholdExportService(
     }
 
     private fun loadLogoBytes(): ByteArray = IOUtils.toByteArray(javaClass.getResourceAsStream(LOGO_RESOURCE_PATH))
-
-    private fun String.esc(): String = HtmlUtils.htmlEscape(this)
 
     private fun String?.orDash(): String = if (isNullOrBlank()) "-" else this
 
@@ -419,7 +289,7 @@ data class HouseholdExportFileResult(
 /**
  * One distribution a household attended - part of [HouseholdExportService]'s data export. Bare, not
  * `Item`-suffixed: it's never bound to a controller signature, only used internally to render the
- * exported HTML/PDF files' attendance table.
+ * exported PDF's attendance table.
  */
 @ExcludeFromTestCoverage
 data class HouseholdAttendance(

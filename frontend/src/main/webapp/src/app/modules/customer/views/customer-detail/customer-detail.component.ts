@@ -249,7 +249,7 @@ export class CustomerDetailComponent {
     });
   }
 
-  /** Downloads the GDPR Art. 15/20 data takeout (issue #3179): one ZIP with the household record (as HTML and PDF) and every document. */
+  /** Downloads the GDPR Art. 15/20 data takeout (issue #3179): one ZIP with the household record (as a PDF) and every document. */
   exportHousehold() {
     this.exporting.set(true);
     this.customerApiService.exportHousehold(this.customerData().id!).subscribe({

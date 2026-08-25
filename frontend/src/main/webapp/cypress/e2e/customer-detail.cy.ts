@@ -58,8 +58,8 @@ describe('Customer Detail', () => {
       const downloadsFolder = Cypress.config('downloadsFolder');
       const downloadedFilename = path.join(downloadsFolder, `datenexport-${customerId}-${lastname}-${firstname}.zip`);
 
-      // A ZIP holding the data HTML, the data PDF and a real document is well past the ~22 bytes
-      // of an empty archive - the exact per-file content is covered by the backend unit test.
+      // A ZIP holding the data PDF and a real document is well past the ~22 bytes of an empty
+      // archive - the exact per-file content is covered by the backend unit test.
       cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
         .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(1000));
 

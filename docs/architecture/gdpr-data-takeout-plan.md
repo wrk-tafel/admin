@@ -43,9 +43,9 @@ rather than inventing a new one:
 - `GET /api/households/{householdId}/export` → one ZIP (built with `java.util.zip.ZipOutputStream`;
   nothing in the backend built a ZIP before this, so it was new, small code, not a reused helper)
   containing the household record — persons, notes, attendance history and the list of uploaded
-  documents — as both a human-readable HTML file and a PDF (rendered through the same
-  `PDFService`/XSL-FO pipeline as every other PDF in the app), plus every file
-  `DocumentStorageService` holds for that household, read through `DocumentStorageService.read`.
+  documents — as a PDF (rendered through the same `PDFService`/XSL-FO pipeline as every other PDF in
+  the app), plus every file `DocumentStorageService` holds for that household, read through
+  `DocumentStorageService.read`.
 
 One combined archive rather than several separate downloads: a data-subject request normally wants
 "everything you have on me" in one piece, and a requester who only wants part of it can simply
@@ -162,7 +162,7 @@ there is no equivalent for staff accounts at all. None of that is this plan's to
   issues above rather than as its own — the `AuditOperation.EXPORT` value only needs to exist once.
 
 Recommended order: customer export first — it's the concrete case both #3362 and G5 were written
-against, and it's the larger of the two (the combined HTML/PDF/document ZIP, versus a single JSON
+against, and it's the larger of the two (the combined PDF/document ZIP, versus a single JSON
 response for staff).
 
 ## References
