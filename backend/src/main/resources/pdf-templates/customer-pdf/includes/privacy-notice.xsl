@@ -110,7 +110,14 @@
                     </fo:table-cell>
                     <fo:table-cell>
                         <xsl:call-template name="field-with-label">
-                            <xsl:with-param name="value" select="''"/>
+                            <!--
+                                A truly empty value collapses the block to zero height in FOP, so the
+                                signature line ends up higher than the "Name"/"Ort, Datum" rules next to
+                                it, which do have text pushing them down. A non-breaking space keeps the
+                                (invisible) value line the same height as its neighbors, so all three
+                                rules land on one row.
+                            -->
+                            <xsl:with-param name="value" select="'&#160;'"/>
                             <xsl:with-param name="label" select="'Unterschrift'"/>
                         </xsl:call-template>
                     </fo:table-cell>
