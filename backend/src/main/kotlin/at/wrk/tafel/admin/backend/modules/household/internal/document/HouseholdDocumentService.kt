@@ -202,6 +202,7 @@ class HouseholdDocumentService(
     private fun germanLabel(documentType: DocumentType): String = when (documentType) {
         DocumentType.PROOF_OF_INCOME -> "Einkommensnachweis"
         DocumentType.ID -> "Ausweis"
+        DocumentType.PRIVACY_NOTICE -> "Datenschutzerklaerung"
         DocumentType.OTHER -> "Sonstiges"
     }
 

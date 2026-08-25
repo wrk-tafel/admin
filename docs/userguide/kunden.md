@@ -58,7 +58,9 @@ Der Tab "Weitere Personen" listet alle zusätzlichen Haushaltsmitglieder (z. B. 
 
 ### Dokumente
 
-Der Tab "Dokumente" zeigt alle zum Kunden hochgeladenen Dokumente (z. B. Einkommensnachweise, Ausweiskopien) mit Dateiname, Dokumenttyp, Datum und Ersteller. Dokumente können heruntergeladen oder gelöscht werden (jeweils mit Sicherheitsabfrage).
+Der Tab "Dokumente" zeigt alle zum Kunden hochgeladenen Dokumente (z. B. Einkommensnachweise, Ausweiskopien, unterschriebene Datenschutzerklärungen) mit Dateiname, Dokumenttyp, Datum und Ersteller. Dokumente können heruntergeladen oder gelöscht werden (jeweils mit Sicherheitsabfrage).
+
+Die bei "Daten ausdrucken" heruntergeladene Datenschutzerklärung (siehe oben) wird nach der Unterschrift durch den Kunden hier wieder hochgeladen, mit Dokumenttyp "Datenschutzerklärung (unterschrieben)" – das unterschriebene Blatt ist der einzige Nachweis der Einwilligung, es gibt dafür kein eigenes Datenfeld im System.
 
 Neue Dokumente können über die Quelle-Auswahl auf zwei Arten hochgeladen werden:
 

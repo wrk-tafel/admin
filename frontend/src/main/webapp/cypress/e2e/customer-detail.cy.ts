@@ -395,6 +395,21 @@ describe('Customer Detail', () => {
       });
     });
 
+    it('uploads a signed privacy notice as its own document type', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-PRIVACY_NOTICE').click();
+        cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('document-0-typeText').should('have.text', 'Datenschutzerklärung (unterschrieben)');
+      });
+    });
+
     it('moves document actions below the filename on phone, keeps them alongside it on tablet/desktop', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;

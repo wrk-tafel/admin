@@ -290,6 +290,16 @@ internal class HouseholdDocumentServiceTest {
     }
 
     @Test
+    fun `import from scanner file - PRIVACY_NOTICE type derives ASCII-only filename`() {
+        every { scannerFileService.read("scan1.pdf") } returns "scanned-content".toByteArray()
+        every { scannerFileService.resolveContentType("scan1.pdf") } returns "application/pdf"
+
+        val result = service.importFromScannerFile(100L, "scan1.pdf", null, DocumentType.PRIVACY_NOTICE)
+
+        assertThat(result.fileName).matches("Datenschutzerklaerung_\\d{4}-\\d{2}-\\d{2}_\\d{4}\\.pdf")
+    }
+
+    @Test
     fun `import from scanner file - too large rejected`() {
         every { scannerFileService.read("scan1.pdf") } returns ByteArray(26 * 1024 * 1024)
         every { scannerFileService.resolveContentType("scan1.pdf") } returns "application/pdf"
