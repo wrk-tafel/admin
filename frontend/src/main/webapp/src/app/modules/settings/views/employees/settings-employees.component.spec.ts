@@ -322,4 +322,15 @@ describe('SettingsEmployeesComponent', () => {
     expect(fileHelperMock.downloadFile).not.toHaveBeenCalled();
     expect(toastrMock.error).toHaveBeenCalledWith('Datenexport fehlgeschlagen!');
   });
+
+  // testEmployee1 has a linked user account (whose own export already carries this employee's
+  // personnel number/name), testEmployee2 does not - only the latter is meant to offer this button.
+  it('only offers the export button for an employee with no linked user account', () => {
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="exportEmployeeButton-0"]')).toBeNull();
+    expect(element.querySelector('[testid="exportEmployeeButton-1"]')).not.toBeNull();
+  });
 });

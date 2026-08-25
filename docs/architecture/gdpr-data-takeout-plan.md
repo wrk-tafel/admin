@@ -105,6 +105,11 @@ is no self-service angle for someone who has no account to authenticate with in 
 Master data only - personnel number, name, created date - since that is the entirety of what an
 `EmployeeEntity` holds on its own.
 
+One person, one export: since a `users` row's own export already carries its linked employee's
+personnel number and name, `EmployeeExportService` refuses (409) an employee a `users` row
+references, and the frontend hides the button for that case - otherwise a person with an account
+would end up with two takeout documents, one of them a strict subset of the other.
+
 ## 4. Open questions
 
 Not blocking on the design above, but each one changes what "smallest useful step" means once an

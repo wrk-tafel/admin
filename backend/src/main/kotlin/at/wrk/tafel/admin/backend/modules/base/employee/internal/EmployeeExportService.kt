@@ -5,10 +5,12 @@ import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeExportField
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeExportPdfData
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.springframework.data.repository.findByIdOrNull
@@ -27,11 +29,17 @@ import java.time.format.DateTimeFormatter
  * Mitarbeiter settings screen, behind `SETTINGS` rather than `USER_MANAGEMENT` - there is no
  * self-service angle, since such an employee has no account of their own to authenticate with.
  *
+ * Deliberately refuses an employee a `users` row already references: that account's own export
+ * already carries this employee's personnel number and name as part of its master data
+ * (`UserExportService.buildMasterData`), so a person is meant to have exactly one takeout document,
+ * not a second, less complete one alongside it.
+ *
  * Stores nothing - the PDF is built on request and never written to disk or a table.
  */
 @Service
 class EmployeeExportService(
     private val employeeRepository: EmployeeRepository,
+    private val userRepository: UserRepository,
     private val auditLogWriter: AuditLogWriter,
     private val pdfService: PDFService,
     private val clock: Clock,
@@ -51,6 +59,9 @@ class EmployeeExportService(
     @Transactional
     fun exportEmployeeById(employeeId: Long): EmployeeExportFileResult? {
         val employeeEntity = employeeRepository.findByIdOrNull(employeeId) ?: return null
+        if (userRepository.existsByEmployeeId(employeeId)) {
+            throw ConflictException("Mitarbeiter hat ein Benutzerkonto - Datenexport erfolgt über das Benutzerkonto!")
+        }
         recordExportRead(employeeEntity)
 
         val data = EmployeeExportPdfData(

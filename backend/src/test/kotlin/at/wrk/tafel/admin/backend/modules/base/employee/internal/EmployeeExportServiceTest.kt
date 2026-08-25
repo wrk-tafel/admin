@@ -3,8 +3,10 @@ package at.wrk.tafel.admin.backend.modules.base.employee.internal
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -13,6 +15,7 @@ import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import java.time.Clock
@@ -25,6 +28,9 @@ internal class EmployeeExportServiceTest {
 
     @RelaxedMockK
     private lateinit var employeeRepository: EmployeeRepository
+
+    @RelaxedMockK
+    private lateinit var userRepository: UserRepository
 
     @RelaxedMockK
     private lateinit var auditLogWriter: AuditLogWriter
@@ -68,6 +74,18 @@ internal class EmployeeExportServiceTest {
         val result = service.exportEmployeeById(999)
 
         assertThat(result).isNull()
+        verify(exactly = 0) { auditLogWriter.record(any()) }
+    }
+
+    @Test
+    fun `export employee by id - refuses when a user account is linked`() {
+        val employeeEntity = EmployeeEntity(personnelNumber = "00001", firstname = "Max", lastname = "Mustermann").apply { id = 7 }
+        every { employeeRepository.findByIdOrNull(7) } returns employeeEntity
+        every { userRepository.existsByEmployeeId(7) } returns true
+
+        val exception = assertThrows<ConflictException> { service.exportEmployeeById(7) }
+
+        assertThat(exception.body.detail).isEqualTo("Mitarbeiter hat ein Benutzerkonto - Datenexport erfolgt über das Benutzerkonto!")
         verify(exactly = 0) { auditLogWriter.record(any()) }
     }
 }

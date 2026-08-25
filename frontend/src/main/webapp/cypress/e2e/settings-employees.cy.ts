@@ -268,6 +268,15 @@ describe('Settings - Employees', () => {
     cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Mitarbeiter');
   });
 
+  // An employee with a linked user account already has a complete export via that account's own
+  // detail page (username, permissions, login history *and* this employee's personnel number/name)
+  // - a second, less complete export here would be a duplicate document for the same person.
+  it('does not offer the export button for an employee with a linked user account', () => {
+    cy.byTestId('employeeSearchInput').type('00000');
+    cy.byTestId('employees-row-0').should('contain.text', '00000');
+    cy.byTestId('exportEmployeeButton-0').should('not.exist');
+  });
+
   it('renders as a card list on phone and stays usable', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.reload();

@@ -430,6 +430,12 @@ G5's and G12's exports are - even though `EmployeeEntity` writes themselves are 
 behind `SETTINGS` rather than `USER_MANAGEMENT` - the permission `EmployeeController` itself already
 requires, since there is no self-service angle for an employee with no account of their own.
 
+Refuses (409) an employee a `users` row already references - one person is meant to have exactly one
+takeout document, and `UserExportService`'s own master data already carries the linked employee's
+personnel number and name, so a second, less complete PDF here would be a duplicate rather than a
+second useful export. The frontend hides the button for exactly that case, and the linked account's
+own detail page is where the complete export for that person already lives.
+
 What remains open: same as G5/G12, `audit_log` entries about the employee are excluded from the
 export. Settled, not open, same as G12: this export is master data about the employee themselves
 only - it does not follow the reverse references above (issuer/author/driver) back into the
