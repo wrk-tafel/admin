@@ -123,25 +123,33 @@ and there is no report of what the job is about to delete before it runs — an 
 database this old accumulate its first deletions has only the job's log line
 (`Deleted N household(s)...`) to go on.
 
-### G2 There is no privacy notice and no record of a legal basis
+### G2 A privacy notice now exists as a printable consent form, signed on paper
 
 **Art. 13, Art. 5(1)(a), Art. 30(1).** Data subjects must be informed at collection; the controller
 must be able to state the legal basis for each processing.
 
-Nothing in the repository mentions Datenschutz, DSGVO or consent — not in the UI, not on the
-Stammdatenblatt the customer receives, not in the user guide. `HouseholdEntity` has no field
-recording a legal basis, a consent, its date, or its withdrawal. When a customer asks "what did I
-agree to and when", the application cannot answer, and staff have nothing to hand out.
+`pdf-templates/customer-pdf/includes/privacy-notice.xsl` (issue #3177) renders a "Datenschutzerklärung
+und Einwilligung" sheet covering what is collected, the legal basis (Einwilligung, Art. 6(1)(a)),
+retention (matching `HouseholdRetentionService`'s actual 7-year window), data-subject rights and a
+complaints/contact address — with a signature line. It is downloadable per household from
+customer-detail's "Daten ausdrucken" menu, and reference-less (no household to sign yet) from the
+customer search screen and the global quick search (Strg+K), for a walk-in before a case record
+exists. The operator settled on consent as the basis: the signed sheet is handed to the customer at
+intake, and its upload back into that household's documents (`DocumentType.PRIVACY_NOTICE`) is the
+whole record — there is deliberately no stored consent field anywhere in the application, so there
+is nothing to go stale when a consent is withdrawn or a form is never returned. The customer search
+screen's "Datenschutzerklärung fehlt" filter surfaces exactly that: households with no such document
+uploaded.
 
-Whether *consent* is even the right basis here is the operator's call — for a food bank, Art. 6(1)(e)
-or (f) with a documented legitimate-interest assessment is often the better fit, and consent is
-awkward precisely because refusing it would cost the person the aid. Either way the application
-currently records nothing.
+Controller identity, DPO contact and the rights/complaints wording are taken from the organisation's
+own published privacy notice; the purpose, legal-basis and retention paragraphs are written
+specifically for this intake flow, since that page has no section covering Team-Österreich-
+Tafel/aid-recipient data at all (see the template file's own header comment for the source and date
+checked).
 
-**Smallest useful step:** get the notice text from the operator, print it on the Stammdatenblatt
-(`pdf-templates/customer-pdf/masterdata-document.xsl`) and link it in the shell. Only add a stored
-consent field if the operator settles on consent as the basis — a field nobody maintains is worse
-than none.
+What remains open: this was drafted against the organisation's public website text rather than
+routed through a documented legal/DPO sign-off process, and nothing in the application tracks
+*whether* that sign-off happened — see issue #3185.
 
 ### G3 The support form mails free text that can name a customer
 
@@ -412,7 +420,7 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 1 | [G9](#g9-the-access-log-never-rotates-and-never-expires) access log unbounded | [#3174](https://github.com/wrk-tafel/admin/issues/3174) | hours | rotation + retention in `application.yml` |
 | 2 | [G4](#g4-nothing-keeps-special-category-data-out-of-notes-and-documents) special-category data in free text | [#3175](https://github.com/wrk-tafel/admin/issues/3175) | hours | a visible rule at the note field, upload dialog and user guide |
 | 3 | [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer) support text can name a customer | [#3176](https://github.com/wrk-tafel/admin/issues/3176) | hours | a line in the dialog, plus retention on the support mailbox |
-| 4 | [G2](#g2-there-is-no-privacy-notice-and-no-record-of-a-legal-basis) no privacy notice | [#3177](https://github.com/wrk-tafel/admin/issues/3177) | days, mostly the operator's | notice text on the Stammdatenblatt and in the shell |
+| 4 | [G2](#g2-a-privacy-notice-now-exists-as-a-printable-consent-form-signed-on-paper) privacy notice | [#3177](https://github.com/wrk-tafel/admin/issues/3177) | done | printable consent form, per-household and reference-less |
 | 5 | [G1](#g1-a-household-is-now-deleted-once-it-has-been-expired-long-enough) retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | done | nightly job modelled on `AuditRetentionService`, `tafeladmin.householdDeletion.*` |
 | 6 | [G5](#g5-a-data-subject-request-cannot-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | days | one endpoint returning the full household record + documents |
 | 7 | [G6](#g6-read-access-to-a-case-file-is-not-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | days | audit document downloads and PDF generation |
@@ -420,8 +428,8 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 9 | [G12](#g12-a-staff-data-subject-request-cannot-be-answered-from-the-application-either) staff export missing | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | days | see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3 |
 | 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
 
-G3, G9 and G4 are worth doing regardless of what the operator decides. Everything from G2 downwards
-depends on answers that come from outside this repository — which makes
+G3, G9 and G4 are worth doing regardless of what the operator decides. G2, G1 and G13 are done. Of
+what remains, most depends on answers that come from outside this repository — which makes
 [§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code. G5 and G12 are
 the exception to that dependency: both are answerable from inside the repository today, and
 [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) is a concrete design for both.

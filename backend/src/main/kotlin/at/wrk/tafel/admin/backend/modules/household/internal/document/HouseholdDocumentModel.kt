@@ -14,6 +14,7 @@ import java.time.LocalDateTime
 enum class DocumentType {
     PROOF_OF_INCOME,
     ID,
+    PRIVACY_NOTICE,
     OTHER,
 }
 

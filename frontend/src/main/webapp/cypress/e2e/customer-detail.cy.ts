@@ -33,6 +33,11 @@ describe('Customer Detail', () => {
     generateAndDownloadPdf('stammdaten-100-mustermann-max-single.pdf');
   });
 
+  it('generate privacy notice pdf and opens for download', () => {
+    cy.visit('/kunden/detail/101');
+    generateAndDownloadPdf('datenschutzerklaerung-101-musterfrau-eva.pdf', 'printPrivacyNoticeButton');
+  });
+
   it('edit customer', () => {
     cy.visit('/kunden/detail/101');
 
@@ -318,7 +323,7 @@ describe('Customer Detail', () => {
     });
   });
 
-  function generateAndDownloadPdf(expectedFilename: string) {
+  function generateAndDownloadPdf(expectedFilename: string, buttonTestId = 'printMasterdataButton') {
     cy.intercept('/api/households/*/generate-pdf**', request => {
       request.on('response', function (response) {
         expect(response.statusCode).is.lessThan(500);
@@ -326,7 +331,7 @@ describe('Customer Detail', () => {
     });
 
     cy.byTestId('printMenuButton').click();
-    cy.byTestId('printMasterdataButton').click();
+    cy.byTestId(buttonTestId).click();
 
     const downloadsFolder = Cypress.config('downloadsFolder');
     const downloadedFilename = path.join(downloadsFolder, expectedFilename);
@@ -387,6 +392,21 @@ describe('Customer Detail', () => {
         });
 
         cy.byTestId('upload-document-panel').should('be.visible');
+      });
+    });
+
+    it('uploads a signed privacy notice as its own document type', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('documents-tab-label').click();
+        cy.byTestId('documentTypeInput').click();
+        cy.byTestId('documentTypeInput-option-PRIVACY_NOTICE').click();
+        cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('document-0-typeText').should('have.text', 'Datenschutzerklärung (unterschrieben)');
       });
     });
 

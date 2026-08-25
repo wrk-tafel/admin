@@ -78,7 +78,22 @@
         <xsl:param name="value"/>
         <xsl:param name="label"/>
         <fo:block font-size="11pt" color="{$tafelInk}" linefeed-treatment="preserve">
-            <xsl:value-of select="$value"/>
+            <xsl:choose>
+                <!--
+                    A block with no content collapses to zero height in FOP, which pulls its
+                    accent-rule "underline" up to sit right under the label above it instead of a
+                    line below where a value would normally be - visible wherever several of these
+                    fields sit side by side (e.g. an unsigned "Unterschrift" line, or a blank
+                    print-and-fill template) and the neighboring fields do have a value. A
+                    non-breaking space keeps the line's height without rendering anything.
+                -->
+                <xsl:when test="normalize-space($value) = ''">
+                    <xsl:text>&#160;</xsl:text>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$value"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </fo:block>
         <fo:block border-top="0.4mm solid {$tafelAccent}" margin-top="1mm">
             <fo:block font-size="7.5pt" font-weight="bold" color="{$tafelMuted}" margin-top="1mm">

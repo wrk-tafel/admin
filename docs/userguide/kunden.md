@@ -4,13 +4,17 @@
 
 Der Bereich "Kunden" verwaltet die Haushalte (Kunden) der Tafel: Stammdaten, Familienmitglieder, Notizen, Dokumente sowie Sonderfälle wie Duplikate oder Kunden über dem Einkommenslimit.
 
+<a id="kunden-suchen"></a>
+
 ## Kunden suchen
 
 Unter **Kunden → Kunden suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Kundennummer entspricht, springt direkt zur Detailansicht (wie früher der Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen); der Button **Suchen** funktioniert weiterhin zusätzlich, etwa bei einer nur einstelligen Eingabe.
 
 Das Suchfeld durchsucht alles, woran ein Haushalt erkennbar ist: Kundennummer, die Namen **aller** Personen des Haushalts (nicht nur der Hauptperson), Adresse, Telefonnummer und E-Mail-Adresse. Es genügt ein Teil davon – die Eingabe muss nicht vollständig sein und auch nicht am Wortanfang stehen. Tippfehler werden toleriert: Wird "Mustermsnn" statt "Mustermann" eingegeben, wird der Kunde trotzdem gefunden. Genaue Treffer stehen im Ergebnis immer oben, ähnliche darunter.
 
-Zusätzlich lässt sich über die Filter-Chips "Daten unvollständig", "Unkostenbeitrag offen", "Derzeit bezugsberechtigt" und "Gesperrt" einschränken; die Filter können auch ohne Sucheingabe verwendet werden und wirken sich sofort auf das Ergebnis aus.
+Zusätzlich lässt sich über die Filter-Chips "Daten unvollständig", "Unkostenbeitrag offen", "Derzeit bezugsberechtigt", "Gesperrt" und "Datenschutzerklärung fehlt" einschränken; die Filter können auch ohne Sucheingabe verwendet werden und wirken sich sofort auf das Ergebnis aus. "Datenschutzerklärung fehlt" zeigt Kunden, bei denen noch keine unterschriebene Datenschutzerklärung im Tab "[Dokumente](#dokumente)" hochgeladen wurde.
+
+Über den Button **Datenschutzerklärung (Vorlage)** rechts oben lässt sich die Datenschutzerklärung ohne Kundenbezug herunterladen und ausdrucken - etwa um sie einer Person schon vor der Kundenanlage zum Unterschreiben mitzugeben. Die unterschriebene Erklärung wird später am neu angelegten Kunden im Tab "[Dokumente](#dokumente)" hochgeladen.
 
 ![Kunden-Suche](images/kunden-suchen.jpg)
 
@@ -35,7 +39,7 @@ Die Detailansicht eines Kunden beginnt mit einem Kopfbereich, der Name und Kunde
 Rechts oben im Kopfbereich stehen die Aktionen zur Verfügung, gereiht nach ihrer Verwendungshäufigkeit (auf schmalen Bildschirmen erscheinen sie stattdessen unterhalb der Daten, siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
 
 - **Bezug verlängern**: Verlängert die Gültigkeit des Kunden um 1, 2, 3, 6 oder 12 Monate; jeder Menüpunkt zeigt bereits das resultierende Datum an (z. B. "3 Monate → 12.11.2026").
-- **Daten ausdrucken**: Druck der Stammdaten oder nur des Kundenausweises. Während die PDF-Datei erstellt wird, zeigt der Button eine Ladeanimation statt stumm zu warten.
+- **Daten ausdrucken**: Druck der Stammdaten, nur des Kundenausweises oder einer Datenschutzerklärung zum Ausdrucken und Unterschreiben durch den Kunden bei der Aufnahme. Während die PDF-Datei erstellt wird, zeigt der Button eine Ladeanimation statt stumm zu warten.
 - **Kunde bearbeiten**: Öffnet die Bearbeitung der Stammdaten (siehe unten).
 - **Unkostenbeitrag**: Ist noch ein Betrag offen, wird er als roter Hinweis direkt am Button angezeigt; im Menü stehen dann zusätzlich "Alles bezahlt" und "Betrag eintragen" zur Verfügung. Unabhängig davon kann über "Betrag bearbeiten" (unterhalb einer Trennlinie) der Betrag jederzeit manuell korrigiert werden.
 - **Weitere Aktionen**: Sammelt die selteneren bzw. sicherheitskritischen Aktionen **Kunde deaktivieren**, **Kunde sperren**/**entsperren** und **Kunde löschen** (jeweils mit Sicherheitsabfrage) in einem Menü.
@@ -58,7 +62,9 @@ Der Tab "Weitere Personen" listet alle zusätzlichen Haushaltsmitglieder (z. B. 
 
 ### Dokumente
 
-Der Tab "Dokumente" zeigt alle zum Kunden hochgeladenen Dokumente (z. B. Einkommensnachweise, Ausweiskopien) mit Dateiname, Dokumenttyp, Datum und Ersteller. Dokumente können heruntergeladen oder gelöscht werden (jeweils mit Sicherheitsabfrage).
+Der Tab "Dokumente" zeigt alle zum Kunden hochgeladenen Dokumente (z. B. Einkommensnachweise, Ausweiskopien, unterschriebene Datenschutzerklärungen) mit Dateiname, Dokumenttyp, Datum und Ersteller. Dokumente können heruntergeladen oder gelöscht werden (jeweils mit Sicherheitsabfrage).
+
+Die bei "Daten ausdrucken" heruntergeladene Datenschutzerklärung (siehe oben) wird nach der Unterschrift durch den Kunden hier wieder hochgeladen, mit Dokumenttyp "Datenschutzerklärung (unterschrieben)" – das unterschriebene Blatt ist der einzige Nachweis der Einwilligung, es gibt dafür kein eigenes Datenfeld im System.
 
 Neue Dokumente können über die Quelle-Auswahl auf zwei Arten hochgeladen werden:
 

@@ -1,11 +1,28 @@
 <mat-card>
   <mat-card-content>
-    <div class="mb-4">
-      <h2 class="tafel-h5 text-lg font-semibold">Kunden-Suche</h2>
-      <p class="mt-2 mb-0 text-sm text-slate-600">
-        Kundennummer für den direkten Sprung, alles andere für die Suche - wahlweise eingegrenzt
-        über die Filter darunter.
-      </p>
+    <div class="mb-4 flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h2 class="tafel-h5 text-lg font-semibold">Kunden-Suche</h2>
+        <p class="mt-2 mb-0 text-sm text-slate-600">
+          Kundennummer für den direkten Sprung, alles andere für die Suche - wahlweise eingegrenzt
+          über die Filter darunter.
+        </p>
+      </div>
+      <div class="flex items-center gap-1">
+        <button type="button" matButton="outlined" testid="downloadPrivacyNoticeTemplateButton"
+                [disabled]="downloadingPrivacyNoticeTemplate()" (click)="downloadPrivacyNoticeTemplate()">
+          @if (downloadingPrivacyNoticeTemplate()) {
+            <span class="inline-flex items-center gap-1.5 align-middle">
+              <mat-icon svgIcon="progress_activity" class="animate-spin"></mat-icon>
+              <span>Wird erstellt...</span>
+            </span>
+          } @else {
+            Datenschutzerklärung (Vorlage)
+          }
+        </button>
+        <tafel-info-tooltip [testId]="'privacy-notice-template-info-tooltip'"
+                            text="Datenschutzerklärung ohne Kundenbezug zum Ausdrucken - z. B. um sie einer Person vor der Kundenanlage zum Unterschreiben mitzugeben."></tafel-info-tooltip>
+      </div>
     </div>
 
     <div class="mb-4">
@@ -30,6 +47,8 @@
                           (selectionChange)="toggleFilter(valid, $event.selected)">Derzeit bezugsberechtigt</mat-chip-option>
         <mat-chip-option testid="filter-locked" [selected]="locked()"
                           (selectionChange)="toggleFilter(locked, $event.selected)">Gesperrt</mat-chip-option>
+        <mat-chip-option testid="filter-missingPrivacyNotice" [selected]="missingPrivacyNotice()"
+                          (selectionChange)="toggleFilter(missingPrivacyNotice, $event.selected)">Datenschutzerklärung fehlt</mat-chip-option>
       </mat-chip-listbox>
     </div>
 

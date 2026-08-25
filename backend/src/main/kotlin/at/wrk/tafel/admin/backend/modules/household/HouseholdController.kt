@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
+import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdSearchFilters
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import jakarta.validation.Valid
@@ -105,15 +106,19 @@ class HouseholdController(
         @RequestParam costContribution: Boolean? = null,
         @RequestParam valid: Boolean? = null,
         @RequestParam locked: Boolean? = null,
+        @RequestParam missingPrivacyNotice: Boolean? = null,
         @RequestParam pageSize: Int? = null,
     ): PagedResponse<HouseholdResponse> {
         val householdSearchResult = householdService.getHouseholds(
             searchInput = searchInput,
             page = page,
-            postProcessing = postProcessing,
-            costContribution = costContribution,
-            valid = valid,
-            locked = locked,
+            filters = HouseholdSearchFilters(
+                postProcessing = postProcessing,
+                costContribution = costContribution,
+                valid = valid,
+                locked = locked,
+                missingPrivacyNotice = missingPrivacyNotice,
+            ),
             pageSize = pageSize,
         )
         return PagedResponse(
@@ -156,6 +161,25 @@ class HouseholdController(
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
         } ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+    }
+
+    /**
+     * The blank counterpart to `generate-pdf`'s `PRIVACY_NOTICE` type - reachable before a household
+     * exists, so the path is flat rather than nested under `/{householdId}` (same shape as
+     * `/above-limit`/`/overview` below).
+     */
+    @GetMapping("/privacy-notice-template", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun generatePrivacyNoticeTemplatePdf(): ResponseEntity<InputStreamResource> {
+        val pdfResult = householdService.generatePrivacyNoticeTemplatePdf()
+        val headers = HttpHeaders()
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${pdfResult.filename}")
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
     }
 
     @GetMapping("/above-limit")

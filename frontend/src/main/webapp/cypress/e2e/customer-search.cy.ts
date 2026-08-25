@@ -1,3 +1,4 @@
+import * as path from 'path';
 import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {Gender} from '../support/commands';
@@ -16,6 +17,21 @@ describe('Customer Search', () => {
     // The testdata always contains customers, so an unfiltered first page has something in it.
     cy.byTestId('searchresult-table').should('be.visible');
     cy.byTestId('searchresult-row').should('exist');
+  });
+
+  it('downloads the reference-less privacy notice template', () => {
+    cy.intercept('/api/households/privacy-notice-template**', request => {
+      request.on('response', function (response) {
+        expect(response.statusCode).is.lessThan(500);
+      });
+    });
+
+    cy.byTestId('downloadPrivacyNoticeTemplateButton').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, 'datenschutzerklaerung-vorlage.pdf');
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
   });
 
   it('jumps straight to a customer by its exact number', () => {
@@ -234,6 +250,21 @@ describe('Customer Search', () => {
 
         clickSearchAndOpenExpectedResult(customer.id!, {alreadySearched: true});
       });
+    });
+  });
+
+  it('search by missing privacy notice filter', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      // Filter by lastname too - same reasoning as the cost-contribution/locked filter tests above.
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+      cy.intercept('GET', /\/api\/households(\?|$)/).as('missingPrivacyNoticeFilterSearch');
+      cy.byTestId('filter-missingPrivacyNotice').click();
+      cy.wait('@missingPrivacyNoticeFilterSearch');
+
+      clickSearchAndOpenExpectedResult(customer.id!, {alreadySearched: true});
     });
   });
 

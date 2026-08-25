@@ -1,7 +1,7 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {ActivatedRoute, convertToParamMap, Router} from '@angular/router';
-import {HttpErrorResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpHeaders, HttpResponse} from '@angular/common/http';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {EMPTY, of, throwError} from 'rxjs';
@@ -12,11 +12,13 @@ import {CustomerSearchComponent} from './customer-search.component';
 import {By} from '@angular/platform-browser';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 
 describe('CustomerSearchComponent', () => {
   let apiService: MockedObject<CustomerApiService>;
   let router: MockedObject<Router>;
   let toastr: MockedObject<TafelToastrService>;
+  let fileHelperService: MockedObject<FileHelperService>;
   let queryParams: Record<string, string>;
 
   const testCustomer = {
@@ -56,7 +58,14 @@ describe('CustomerSearchComponent', () => {
           provide: CustomerApiService,
           useValue: {
             getCustomer: vi.fn().mockName('CustomerApiService.getCustomer'),
-            searchCustomer: vi.fn().mockName('CustomerApiService.searchCustomer')
+            searchCustomer: vi.fn().mockName('CustomerApiService.searchCustomer'),
+            generatePrivacyNoticeTemplate: vi.fn().mockName('CustomerApiService.generatePrivacyNoticeTemplate')
+          }
+        },
+        {
+          provide: FileHelperService,
+          useValue: {
+            downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
           }
         },
         {
@@ -88,6 +97,7 @@ describe('CustomerSearchComponent', () => {
     apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+    fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
 
     // The component searches once as it is constructed, before any test can arrange a response -
     // without a default here every test would fail on the constructor rather than on its subject.
@@ -120,7 +130,7 @@ describe('CustomerSearchComponent', () => {
     const {component} = createComponent();
 
     expect(apiService.searchCustomer)
-      .toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
     expect(component.searchResult()).toEqual(searchCustomerMockResponse);
     expect(toastr.warning).not.toHaveBeenCalled();
     expect(component.searchAnnouncement()).toBe('');
@@ -136,7 +146,7 @@ describe('CustomerSearchComponent', () => {
 
     expect(component.query()).toBe('Muster');
     expect(component.postProcessing()).toBe(true);
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('Muster', true, undefined, undefined, undefined, 2, undefined);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith('Muster', true, undefined, undefined, undefined, undefined, 2, undefined);
     // A restore must not rewrite the URL that was just used to arrive here.
     expect(router.navigate).not.toHaveBeenCalled();
   });
@@ -162,7 +172,8 @@ describe('CustomerSearchComponent', () => {
       component.query.set('999');
       component.search();
 
-      expect(apiService.searchCustomer).toHaveBeenCalledWith('999', undefined, undefined, undefined, undefined, undefined, undefined);
+      expect(apiService.searchCustomer)
+        .toHaveBeenCalledWith('999', undefined, undefined, undefined, undefined, undefined, undefined, undefined);
       expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', 999]);
     });
 
@@ -185,7 +196,8 @@ describe('CustomerSearchComponent', () => {
       component.query.set('muster');
       component.search();
 
-      expect(apiService.searchCustomer).toHaveBeenCalledWith('muster', undefined, undefined, undefined, undefined, undefined, undefined);
+      expect(apiService.searchCustomer)
+        .toHaveBeenCalledWith('muster', undefined, undefined, undefined, undefined, undefined, undefined, undefined);
       expect(apiService.getCustomer).not.toHaveBeenCalled();
     });
 
@@ -204,7 +216,8 @@ describe('CustomerSearchComponent', () => {
 
       vi.advanceTimersByTime(1);
       expect(apiService.searchCustomer).toHaveBeenCalledTimes(2);
-      expect(apiService.searchCustomer).toHaveBeenLastCalledWith('mu', undefined, undefined, undefined, undefined, undefined, undefined);
+      expect(apiService.searchCustomer)
+        .toHaveBeenLastCalledWith('mu', undefined, undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('lets the explicit search bypass the debounce and the two-character threshold', () => {
@@ -214,7 +227,8 @@ describe('CustomerSearchComponent', () => {
       component.query.set('m');
       component.search();
 
-      expect(apiService.searchCustomer).toHaveBeenLastCalledWith('m', undefined, undefined, undefined, undefined, undefined, undefined);
+      expect(apiService.searchCustomer)
+        .toHaveBeenLastCalledWith('m', undefined, undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('an explicit search absorbs the debounced search still pending for the same input', () => {
@@ -244,7 +258,8 @@ describe('CustomerSearchComponent', () => {
       component.toggleFilter(component.costContribution, true);
 
       expect(apiService.getCustomer).not.toHaveBeenCalled();
-      expect(apiService.searchCustomer).toHaveBeenLastCalledWith('42', undefined, true, undefined, undefined, undefined, undefined);
+      expect(apiService.searchCustomer)
+        .toHaveBeenLastCalledWith('42', undefined, true, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('search with postProcessing enabled', () => {
@@ -253,7 +268,8 @@ describe('CustomerSearchComponent', () => {
 
       component.toggleFilter(component.postProcessing, true);
 
-      expect(apiService.searchCustomer).toHaveBeenLastCalledWith(undefined, true, undefined, undefined, undefined, undefined, undefined);
+      expect(apiService.searchCustomer)
+        .toHaveBeenLastCalledWith(undefined, true, undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('search with valid enabled', () => {
@@ -262,7 +278,8 @@ describe('CustomerSearchComponent', () => {
 
       component.toggleFilter(component.valid, true);
 
-      expect(apiService.searchCustomer).toHaveBeenLastCalledWith(undefined, undefined, undefined, true, undefined, undefined, undefined);
+      expect(apiService.searchCustomer)
+        .toHaveBeenLastCalledWith(undefined, undefined, undefined, true, undefined, undefined, undefined, undefined);
     });
 
     it('search with locked enabled', () => {
@@ -271,7 +288,18 @@ describe('CustomerSearchComponent', () => {
 
       component.toggleFilter(component.locked, true);
 
-      expect(apiService.searchCustomer).toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, true, undefined, undefined);
+      expect(apiService.searchCustomer)
+        .toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, true, undefined, undefined, undefined);
+    });
+
+    it('search with missingPrivacyNotice enabled', () => {
+      apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+      const {component} = createComponent();
+
+      component.toggleFilter(component.missingPrivacyNotice, true);
+
+      expect(apiService.searchCustomer)
+        .toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, undefined, true, undefined, undefined);
     });
   });
 
@@ -372,6 +400,21 @@ describe('CustomerSearchComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css('[testid="searchresult-personsCount-0"]')).nativeElement.textContent).toBe('2');
+  });
+
+  it('downloads the reference-less privacy notice template', () => {
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenschutzerklaerung-vorlage.pdf'}),
+      body: new Blob()
+    });
+    apiService.generatePrivacyNoticeTemplate.mockReturnValue(of(response));
+
+    const {component} = createComponent();
+    component.downloadPrivacyNoticeTemplate();
+
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-vorlage.pdf', response.body);
+    expect(component.downloadingPrivacyNoticeTemplate()).toBe(false);
   });
 
 });

@@ -654,7 +654,16 @@ class HouseholdServiceTest {
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), pageRequest) } returns page
 
         val searchResult =
-            service.getHouseholds(page = selectedPage, postProcessing = true, costContribution = true, valid = true, locked = true)
+            service.getHouseholds(
+                page = selectedPage,
+                filters = HouseholdSearchFilters(
+                    postProcessing = true,
+                    costContribution = true,
+                    valid = true,
+                    locked = true,
+                    missingPrivacyNotice = true,
+                ),
+            )
 
         assertThat(searchResult.currentPage).isEqualTo(selectedPage)
         assertThat(searchResult.totalPages).isEqualTo(page.totalPages)
@@ -1291,6 +1300,35 @@ class HouseholdServiceTest {
         assertThat(result?.filename).isEqualTo("ausweis-100-mustermann-max.pdf")
         assertThat(result?.bytes?.size).isEqualTo(pdfBytes.size.toLong())
         verify(exactly = 1) { householdPdfService.generateIdCardPdf(testHouseholdEntity) }
+    }
+
+    @Test
+    fun `generate pdf household - PRIVACY_NOTICE type`() {
+        val testHouseholdEntity = testHouseholdEntityWithMainPerson()
+
+        val pdfBytes = ByteArray(10)
+        every { householdRepository.findByHouseholdId(any()) } returns testHouseholdEntity
+        every { householdPdfService.generatePrivacyNoticePdf(any()) } returns pdfBytes
+
+        val result = service.generatePdf(1, HouseholdPdfType.PRIVACY_NOTICE)
+
+        assertThat(result).isNotNull
+        assertThat(result?.filename).isEqualTo("datenschutzerklaerung-100-mustermann-max.pdf")
+        assertThat(result?.bytes?.size).isEqualTo(pdfBytes.size.toLong())
+        verify(exactly = 1) { householdPdfService.generatePrivacyNoticePdf(testHouseholdEntity) }
+    }
+
+    @Test
+    fun `generate privacy notice template pdf - no household lookup or audit log`() {
+        val pdfBytes = ByteArray(10)
+        every { householdPdfService.generatePrivacyNoticeTemplatePdf() } returns pdfBytes
+
+        val result = service.generatePrivacyNoticeTemplatePdf()
+
+        assertThat(result.filename).isEqualTo("datenschutzerklaerung-vorlage.pdf")
+        assertThat(result.bytes).isEqualTo(pdfBytes)
+        verify(exactly = 0) { householdRepository.findByHouseholdId(any()) }
+        verify(exactly = 0) { auditLogWriter.record(any()) }
     }
 
     @Test

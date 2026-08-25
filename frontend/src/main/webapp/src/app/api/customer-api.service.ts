@@ -77,12 +77,21 @@ export class CustomerApiService {
       });
   }
 
+  /**
+   * The blank counterpart to {@link generatePdf}'s `PRIVACY_NOTICE` type - no household reference,
+   * for staff to print and hand a walk-in before a customer record even exists.
+   */
+  generatePrivacyNoticeTemplate(): Observable<HttpResponse<Blob>> {
+    return this.http.get('/households/privacy-notice-template', {responseType: 'blob', observe: 'response'});
+  }
+
   searchCustomer(
     searchInput?: string | null,
     postProcessing?: boolean | null,
     costContribution?: boolean | null,
     valid?: boolean | null,
     locked?: boolean | null,
+    missingPrivacyNotice?: boolean | null,
     page?: number,
     pageSize?: number
   ): Observable<CustomerSearchResult> {
@@ -101,6 +110,9 @@ export class CustomerApiService {
     }
     if (locked) {
       queryParams = queryParams.set('locked', locked);
+    }
+    if (missingPrivacyNotice) {
+      queryParams = queryParams.set('missingPrivacyNotice', missingPrivacyNotice);
     }
     if (page) {
       queryParams = queryParams.set('page', page);
@@ -392,7 +404,7 @@ export const genderLabel: { [key in Gender]: string } = {
   [Gender.MALE]: 'Männlich'
 };
 
-type PdfType = 'MASTERDATA' | 'IDCARD';
+type PdfType = 'MASTERDATA' | 'IDCARD' | 'PRIVACY_NOTICE';
 
 export type CustomerDuplicatesResponse = PagedResponse<CustomerDuplicatesItem>;
 
