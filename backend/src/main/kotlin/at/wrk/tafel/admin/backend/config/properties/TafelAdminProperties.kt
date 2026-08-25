@@ -38,6 +38,7 @@ class TafelAdminProperties {
     var checkin: TafelAdminCheckinProperties = TafelAdminCheckinProperties()
     var distribution: TafelAdminDistributionProperties = TafelAdminDistributionProperties()
     var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
+    var householdDeletion: TafelAdminHouseholdRetentionProperties = TafelAdminHouseholdRetentionProperties()
     var mail: TafelAdminMailProperties? = null
     var mailOutbox: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties()
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
@@ -83,6 +84,53 @@ class TafelAdminFeaturesProperties {
      * with no `scannerPath` the feature is off either way.
      */
     var scannerFolderEnabled: Boolean = true
+}
+
+/**
+ * GDPR gap G1 (`docs/architecture/gdpr-compliance.md`) - a household stays in the database in full,
+ * including its persons, notes, documents and attendance history, until an operator decides
+ * otherwise. `enabled` and `retentionYears` are read per use, so an operator can widen the window or
+ * switch the job off on a running deployment (`ConfigFileReloadService`).
+ *
+ * The window is measured from [at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.validUntil],
+ * not from the last distribution attended - a household that was never eligible again after its
+ * `validUntil` passed has just as much a claim to being forgotten as one that also stopped attending.
+ * Deletion goes through [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.deleteHouseholdByHouseholdId],
+ * the same method a staff member's manual delete uses - which is also why documents and attendance
+ * history (`distributions_households`) don't get their own retention window: that method already
+ * cascades to persons and documents (removing the files on disk too) and the database cascades
+ * `household_notes` and `distributions_households` on the same delete, so master data, documents and
+ * attendance history age out together rather than needing three separate clocks. Per
+ * `docs/architecture/adr/0020-reports-are-frozen-snapshots.md`, the year-end statistics aggregates
+ * are snapshotted at close time and stay correct once the underlying `distributions_households` rows
+ * are gone - that ADR separately notes that some point-in-time exporters still read the live
+ * `distribution.households` relation rather than the snapshot, a pre-existing gap this feature
+ * neither causes nor fixes, but worth knowing before re-generating a historical export for a
+ * distribution whose households have since aged out.
+ *
+ * `tafeladmin.householdDeletion.cleanupCron` - when the retention job runs, default 06:00 daily - is
+ * deliberately *not* a field here, for the same reason as `tafeladmin.audit.cleanupCron`: `@Scheduled`
+ * fixes its expression at bean creation, so it is startup-only. It lives in `application.yml` as a
+ * plain placeholder. See `HouseholdRetentionService`.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminHouseholdRetentionProperties {
+    /**
+     * Kill switch for the whole job, independent of [retentionYears] - if the deletion ever needs to
+     * be paused (e.g. while the operator is still deciding the right window, or after an incident),
+     * this turns it off without touching the number.
+     */
+    var enabled: Boolean = true
+
+    /**
+     * How many years past `validUntil` a household, and everything attached to it, is kept before
+     * automatic deletion. Defaults to 7 - the Austrian bookkeeping retention period (UGB/BAO Section
+     * 132) for records touching cost contributions - as a defensible floor even though the
+     * application itself does not yet record a legal basis per household (see gap G2). Raise or lower
+     * it per deployment; it is re-read per use, so a change takes effect without a restart. A value of
+     * 0 or less keeps every household instead of deleting them all.
+     */
+    var retentionYears: Long = 7
 }
 
 /**

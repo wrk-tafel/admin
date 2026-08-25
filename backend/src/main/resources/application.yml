@@ -203,6 +203,22 @@ tafeladmin:
   # wired up once it's on lives in its own section (e.g. storage.scannerPath for the scanner folder).
   features:
     scannerFolderEnabled: true
+  # GDPR gap G1 (docs/architecture/gdpr-compliance.md) - deletes a household, and everything attached
+  # to it (persons, notes, documents on disk, attendance history), once its validUntil has been in the
+  # past for longer than retentionYears. Runs through the same HouseholdService.deleteHouseholdByHouseholdId
+  # a staff member's manual delete uses, so there is only the one retention window rather than a
+  # separate one per data class - see HouseholdRetentionService. `enabled` and `retentionYears` are
+  # read per use and take effect on a running deployment; `cleanupCron` does not, for the same reason
+  # as audit.cleanupCron above. 06:00 is a quiet slot after the audit/document-storage cleanups at
+  # 05:00, so a night's deletions do not overlap with each other's transactions.
+  #
+  # retentionYears defaults to 7, the Austrian bookkeeping retention period (UGB/BAO Section 132) for
+  # records touching cost contributions - a defensible floor, not a final answer; the actual period is
+  # the operator's call. A value of 0 or less keeps every household instead of deleting them all.
+  householdDeletion:
+    enabled: true
+    retentionYears: 7
+    cleanupCron: "0 0 6 * * *"
   # Watches the config files this application was started with - in production the operator-managed
   # /app/config/config.yml bind-mounted into the container - and re-binds tafeladmin.* whenever one
   # of them changes, so a setting can be flipped without restarting the container. See
