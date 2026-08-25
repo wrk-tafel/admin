@@ -253,6 +253,21 @@ describe('Customer Search', () => {
     });
   });
 
+  it('search by missing privacy notice filter', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      // Filter by lastname too - same reasoning as the cost-contribution/locked filter tests above.
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+      cy.intercept('GET', /\/api\/households(\?|$)/).as('missingPrivacyNoticeFilterSearch');
+      cy.byTestId('filter-missingPrivacyNotice').click();
+      cy.wait('@missingPrivacyNoticeFilterSearch');
+
+      clickSearchAndOpenExpectedResult(customer.id!, {alreadySearched: true});
+    });
+  });
+
   it('keeps query, filters and page after returning from a customer via the back button', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;

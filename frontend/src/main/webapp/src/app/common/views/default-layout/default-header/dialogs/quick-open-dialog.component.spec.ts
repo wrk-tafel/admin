@@ -224,7 +224,7 @@ describe('QuickOpenDialogComponent', () => {
     await new Promise(resolve => setTimeout(resolve, SEARCH_DEBOUNCE_WAIT_MS));
     fixture.detectChanges();
 
-    expect(customerApiService.searchCustomer).toHaveBeenCalledWith('Muster', null, null, null, null, undefined, 5);
+    expect(customerApiService.searchCustomer).toHaveBeenCalledWith('Muster', null, null, null, null, null, undefined, 5);
     expect(component.customerResults()).toEqual([testCustomer]);
   });
 

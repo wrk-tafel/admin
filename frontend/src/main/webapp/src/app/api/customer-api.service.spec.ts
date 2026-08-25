@@ -341,8 +341,16 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
+  it('search customer including missingPrivacyNotice parameter', () => {
+    apiService.searchCustomer(null, null, null, null, null, true).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households?missingPrivacyNotice=true'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('search customer including page parameter', () => {
-    apiService.searchCustomer('max', null, null, null, null, 3).subscribe();
+    apiService.searchCustomer('max', null, null, null, null, null, 3).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/households?searchInput=max&page=3'});
     req.flush(null);

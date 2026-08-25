@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.lockedHousehold
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.missingPrivacyNoticeDocument
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.orderBySearchRelevance
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.pendingCostContribution
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.postProcessingNecessary
@@ -246,6 +247,7 @@ class HouseholdService(
         costContribution: Boolean?,
         valid: Boolean?,
         locked: Boolean? = null,
+        missingPrivacyNotice: Boolean? = null,
         pageSize: Int? = null,
     ): HouseholdSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
@@ -259,6 +261,7 @@ class HouseholdService(
                     if (costContribution != null) pendingCostContribution() else null,
                     if (valid != null) validHousehold() else null,
                     if (locked != null) lockedHousehold() else null,
+                    if (missingPrivacyNotice != null) missingPrivacyNoticeDocument() else null,
                 ).mapNotNull { it },
             ),
         )

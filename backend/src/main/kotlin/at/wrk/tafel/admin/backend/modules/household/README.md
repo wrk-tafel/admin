@@ -125,7 +125,11 @@ search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUP
 The core service: `createHousehold`, `updateHousehold`, `findByHouseholdId`, `getHouseholds`
 (paginated search with `HouseholdEntity.Specs` JPA specifications - one free-text `searchInput`
 matched against the trigger-maintained `search_text` column plus the postProcessing/
-cost-contribution/valid filters, see `SearchTextSpecs`), `getHouseholdsAboveLimit`,
+cost-contribution/valid/locked/`missingPrivacyNotice` filters, see `SearchTextSpecs`).
+`missingPrivacyNotice` (`HouseholdEntity.Specs.missingPrivacyNoticeDocument()`) is a `NOT EXISTS`
+subquery over `household_documents` for `documentType = PRIVACY_NOTICE` - it reads the same signal
+`DocumentType.PRIVACY_NOTICE` uploads write (GDPR G2, issue #3177), not a stored consent flag; there
+still is none. `getHouseholdsAboveLimit`,
 `getHouseholdsOverview`, `generatePdf`,
 `deleteHouseholdByHouseholdId`. Owns the `saveWithMainPerson` save-order logic described above.
 Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see

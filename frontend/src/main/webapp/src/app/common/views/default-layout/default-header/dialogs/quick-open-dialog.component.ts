@@ -132,7 +132,7 @@ export class QuickOpenDialogComponent {
         if (!this.hasCustomerPermission() || query.length < MIN_CUSTOMER_SEARCH_CHARS) {
           return of(null);
         }
-        return this.customerApiService.searchCustomer(query, null, null, null, null, undefined, CUSTOMER_RESULT_LIMIT).pipe(
+        return this.customerApiService.searchCustomer(query, null, null, null, null, null, undefined, CUSTOMER_RESULT_LIMIT).pipe(
           map(result => result.items ?? []),
           catchError(() => of<CustomerData[]>([]))
         );

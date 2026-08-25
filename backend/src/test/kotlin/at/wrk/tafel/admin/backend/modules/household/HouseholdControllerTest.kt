@@ -435,6 +435,7 @@ class HouseholdControllerTest {
                 true,
                 true,
                 true,
+                true,
             )
         } returns testSearchResult
 
@@ -445,6 +446,7 @@ class HouseholdControllerTest {
             costContribution = true,
             valid = true,
             locked = true,
+            missingPrivacyNotice = true,
         )
 
         verify {
@@ -455,6 +457,7 @@ class HouseholdControllerTest {
                 costContribution = true,
                 valid = true,
                 locked = true,
+                missingPrivacyNotice = true,
             )
         }
         assertThat(response.items).hasSize(1)

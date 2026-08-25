@@ -213,6 +213,24 @@ class HouseholdEntity(
                 val locked: Expression<Boolean> = root["locked"]
                 cb.isTrue(locked)
             }
+
+            /**
+             * Matches households with no `PRIVACY_NOTICE`-typed document uploaded (see GDPR G2,
+             * issue #3177) - not "no consent recorded", since there is no such field anywhere in the
+             * application; the uploaded, signed sheet is the only record.
+             */
+            fun missingPrivacyNoticeDocument(): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                val subQuery: Subquery<Long> = cq!!.subquery(Long::class.java)
+                val subRoot: Root<DocumentEntity> = subQuery.from(DocumentEntity::class.java)
+                val subHousehold: Join<DocumentEntity, HouseholdEntity> = subRoot.join("household")
+                val documentType: Expression<DocumentType> = subRoot["documentType"]
+
+                subQuery.select(subHousehold["id"]).distinct(true)
+                    .where(cb.equal(documentType, DocumentType.PRIVACY_NOTICE))
+
+                val id: Expression<Long> = root["id"]
+                cb.not(id.`in`(subQuery))
+            }
         }
     }
 }

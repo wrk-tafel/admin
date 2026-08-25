@@ -654,7 +654,14 @@ class HouseholdServiceTest {
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), pageRequest) } returns page
 
         val searchResult =
-            service.getHouseholds(page = selectedPage, postProcessing = true, costContribution = true, valid = true, locked = true)
+            service.getHouseholds(
+                page = selectedPage,
+                postProcessing = true,
+                costContribution = true,
+                valid = true,
+                locked = true,
+                missingPrivacyNotice = true,
+            )
 
         assertThat(searchResult.currentPage).isEqualTo(selectedPage)
         assertThat(searchResult.totalPages).isEqualTo(page.totalPages)

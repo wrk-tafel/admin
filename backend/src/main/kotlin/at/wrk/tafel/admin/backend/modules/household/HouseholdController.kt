@@ -105,6 +105,7 @@ class HouseholdController(
         @RequestParam costContribution: Boolean? = null,
         @RequestParam valid: Boolean? = null,
         @RequestParam locked: Boolean? = null,
+        @RequestParam missingPrivacyNotice: Boolean? = null,
         @RequestParam pageSize: Int? = null,
     ): PagedResponse<HouseholdResponse> {
         val householdSearchResult = householdService.getHouseholds(
@@ -114,6 +115,7 @@ class HouseholdController(
             costContribution = costContribution,
             valid = valid,
             locked = locked,
+            missingPrivacyNotice = missingPrivacyNotice,
             pageSize = pageSize,
         )
         return PagedResponse(

@@ -7,6 +7,9 @@ GET {{baseApiPath}}/households?searchInput=muster
 ### Search for households (fuzzy search combined with the filters)
 GET {{baseApiPath}}/households?searchInput=muster&valid=true&costContribution=true
 
+### Search for households with no PRIVACY_NOTICE document uploaded
+GET {{baseApiPath}}/households?missingPrivacyNotice=true
+
 ### Validate household
 POST {{baseApiPath}}/households/validate
 Content-Type: application/json

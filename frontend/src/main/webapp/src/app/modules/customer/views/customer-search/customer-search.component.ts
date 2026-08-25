@@ -48,6 +48,7 @@ const QUERY_PARAMS = {
   costContribution: 'unkostenbeitrag',
   valid: 'bezugsberechtigt',
   locked: 'gesperrt',
+  missingPrivacyNotice: 'ohne-datenschutzerklaerung',
   page: 'seite',
   pageSize: 'anzahl',
 } as const;
@@ -103,6 +104,7 @@ export class CustomerSearchComponent {
   costContribution = signal(false);
   valid = signal(false);
   locked = signal(false);
+  missingPrivacyNotice = signal(false);
 
   // Use a signal so the template-sugar (@if / @for) reacts immediately when updated
   searchResult = signal<CustomerSearchResult | undefined>(undefined);
@@ -213,6 +215,7 @@ export class CustomerSearchComponent {
       this.costContribution() || undefined,
       this.valid() || undefined,
       this.locked() || undefined,
+      this.missingPrivacyNotice() || undefined,
       request.page,
       request.pageSize,
     ).pipe(
@@ -315,6 +318,7 @@ export class CustomerSearchComponent {
     this.costContribution.set(params.get(QUERY_PARAMS.costContribution) === 'true');
     this.valid.set(params.get(QUERY_PARAMS.valid) === 'true');
     this.locked.set(params.get(QUERY_PARAMS.locked) === 'true');
+    this.missingPrivacyNotice.set(params.get(QUERY_PARAMS.missingPrivacyNotice) === 'true');
 
     const page = Number(params.get(QUERY_PARAMS.page));
     const pageSize = Number(params.get(QUERY_PARAMS.pageSize));
@@ -335,6 +339,7 @@ export class CustomerSearchComponent {
         [QUERY_PARAMS.costContribution]: this.costContribution() ? 'true' : null,
         [QUERY_PARAMS.valid]: this.valid() ? 'true' : null,
         [QUERY_PARAMS.locked]: this.locked() ? 'true' : null,
+        [QUERY_PARAMS.missingPrivacyNotice]: this.missingPrivacyNotice() ? 'true' : null,
         [QUERY_PARAMS.page]: response.currentPage > 1 ? response.currentPage : null,
         [QUERY_PARAMS.pageSize]: response.pageSize !== DEFAULT_PAGE_SIZE ? response.pageSize : null,
       }
