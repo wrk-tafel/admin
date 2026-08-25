@@ -14,6 +14,7 @@ import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
+import org.apache.pdfbox.text.PDFTextStripper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -179,6 +180,29 @@ class HouseholdPdfServiceTest {
 
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
+        document.close()
+    }
+
+    @Test
+    fun `generate privacy notice pdf - falls back to persons list when mainPerson pointer is unset`() {
+        // saveWithMainPerson persists a brand-new household with mainPerson = null first (see
+        // HouseholdService) - generatePrivacyNoticePdf has to resolve the main person from persons
+        // the same way createHouseholdPdfData already does.
+        testHousehold.mainPerson = null
+
+        val document = Loader.loadPDF(service.generatePrivacyNoticePdf(testHousehold))
+        assertThat(document.numberOfPages).isEqualTo(1)
+        assertThat(PDFTextStripper().getText(document)).contains("Max Mustermann")
+        document.close()
+    }
+
+    @Test
+    fun `generate privacy notice pdf - falls back to placeholder name when there is no main person at all`() {
+        testHousehold.mainPerson = null
+        testHousehold.persons = mutableListOf()
+
+        val document = Loader.loadPDF(service.generatePrivacyNoticePdf(testHousehold))
+        assertThat(document.numberOfPages).isEqualTo(1)
         document.close()
     }
 }
