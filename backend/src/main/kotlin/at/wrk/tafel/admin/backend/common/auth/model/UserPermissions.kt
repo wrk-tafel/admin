@@ -23,6 +23,15 @@ enum class UserPermissions(val key: String, val title: String, val category: Per
     DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Ablauf", PermissionCategory.OPERATIONS),
     USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung", PermissionCategory.LEADERSHIP),
     CUSTOMER("CUSTOMER", "Kundenverwaltung", PermissionCategory.OPERATIONS),
+
+    /**
+     * The documents tab (uploaded ID scans, proofs of income) and the document-scanner-file import
+     * behind it - `HouseholdDocumentController`/`DocumentScannerController`. Deliberately not
+     * implied by `CUSTOMER`: those two controllers hold the most sensitive artefacts in the system,
+     * and staff who only need to look up or edit a household's own data (e.g. check-in) do not need
+     * to see a customer's ID scan (GDPR G7, issue #3181).
+     */
+    CUSTOMER_DOCUMENTS("CUSTOMER_DOCUMENTS", "Kunden-Dokumente", PermissionCategory.OPERATIONS),
     CUSTOMER_DUPLICATES("CUSTOMER_DUPLICATES", "Kunden-Duplikate", PermissionCategory.ADMINISTRATION),
     CUSTOMERS_ABOVE_LIMIT("CUSTOMERS_ABOVE_LIMIT", "Kunden über dem Limit", PermissionCategory.ADMINISTRATION),
     CUSTOMERS_OVERVIEW("CUSTOMERS_OVERVIEW", "Kunden-Übersicht (Neu & Verlängert)", PermissionCategory.ADMINISTRATION),

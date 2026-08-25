@@ -166,6 +166,7 @@ export class CustomerDetailComponent {
 
   readonly isDistributionActive = computed(() => !!this.globalStateService.getCurrentDistribution()());
   readonly hasAuditPermission = computed(() => this.authenticationService.hasPermission('AUDIT_LOG'));
+  readonly hasDocumentsPermission = computed(() => this.authenticationService.hasPermission('CUSTOMER_DOCUMENTS'));
 
   /** Which PDF is currently being generated, so the triggering print action can show a busy state. */
   readonly printing = signal<'MASTERDATA' | 'IDCARD' | 'PRIVACY_NOTICE' | null>(null);
