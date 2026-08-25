@@ -116,6 +116,10 @@ search and duplicate merging. All endpoints require `CUSTOMER` (or `CUSTOMER_DUP
   latter a printable privacy-notice/consent sheet for the customer to sign at intake, GDPR G2/#3177;
   its text is a placeholder until the operator supplies the real wording, see
   `docs/architecture/gdpr-compliance.md`).
+- `generatePrivacyNoticeTemplatePdf` (`GET /households/privacy-notice-template`, flat like
+  `/above-limit`/`/overview` below rather than nested under `/{householdId}`) streams the same
+  privacy-notice sheet with no household reference - reachable from the customer search screen, for
+  a walk-in before a case record exists.
 
 ### `HouseholdService` (`internal`)
 The core service: `createHousehold`, `updateHousehold`, `findByHouseholdId`, `getHouseholds`
@@ -337,6 +341,14 @@ issue #3177). The notice text in `includes/privacy-notice.xsl` is a placeholder,
 such on the rendered page - it needs the operator's actual privacy-notice wording (legal basis,
 purposes, retention, contact) before going live, see `docs/architecture/gdpr-compliance.md` and
 issue #3185.
+
+`generatePrivacyNoticeTemplatePdf` is the reference-less sibling: the same template with
+`householdId`/`fullName`/`issuedAtDate` all blank. `branding.xsl`'s shared `field-with-label`
+renders a blank value as a non-breaking space rather than nothing, so the "Name"/"Ort, Datum"/
+"Unterschrift" lines all keep the same height whether or not there is text above them - a genuinely
+empty `fo:block` collapses to zero height in FOP, which visibly misaligns the accent-rule
+"underline" next to fields that do have a value. `privacy-notice.xsl`'s subtitle ("Kundennummer …")
+is likewise omitted entirely, not shown blank, when `householdId` is empty.
 
 ### `HouseholdNoteController` / `HouseholdNoteService` (`internal/note`)
 Free-text notes attached to a household (`household_notes` table,

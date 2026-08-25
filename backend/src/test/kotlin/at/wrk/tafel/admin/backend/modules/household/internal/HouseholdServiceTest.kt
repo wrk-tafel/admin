@@ -1310,6 +1310,19 @@ class HouseholdServiceTest {
     }
 
     @Test
+    fun `generate privacy notice template pdf - no household lookup or audit log`() {
+        val pdfBytes = ByteArray(10)
+        every { householdPdfService.generatePrivacyNoticeTemplatePdf() } returns pdfBytes
+
+        val result = service.generatePrivacyNoticeTemplatePdf()
+
+        assertThat(result.filename).isEqualTo("datenschutzerklaerung-vorlage.pdf")
+        assertThat(result.bytes).isEqualTo(pdfBytes)
+        verify(exactly = 0) { householdRepository.findByHouseholdId(any()) }
+        verify(exactly = 0) { auditLogWriter.record(any()) }
+    }
+
+    @Test
     fun `delete household by householdId releases the main person pointer first`() {
         val householdId = 123L
         val testHouseholdEntity = testHouseholdEntityWithMainPerson()

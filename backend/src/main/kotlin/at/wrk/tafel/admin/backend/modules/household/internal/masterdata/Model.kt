@@ -112,7 +112,12 @@ data class PdfIdCardData(
 data class PrivacyNoticePdfData(
     val logoContentType: String,
     val logoBytes: ByteArray,
-    val householdId: Long,
+    /**
+     * Blank for the reference-less template (see [at.wrk.tafel.admin.backend.modules.household.internal.masterdata.HouseholdPdfService.generatePrivacyNoticeTemplatePdf]) -
+     * a `String`, not the household's own `Long` id, purely because this is display-only text, never
+     * parsed back.
+     */
+    val householdId: String,
     val fullName: String,
     val issuedAtDate: String,
 ) {

@@ -188,6 +188,14 @@ Content-Type: application/json
 GET {{baseApiPath}}/households/100/generate-pdf?type=IDCARD
 Content-Type: application/json
 
+### Get privacy notice pdf
+GET {{baseApiPath}}/households/100/generate-pdf?type=PRIVACY_NOTICE
+Content-Type: application/json
+
+### Get privacy notice pdf (blank template, no household reference)
+GET {{baseApiPath}}/households/privacy-notice-template
+Content-Type: application/json
+
 ### Get duplicates
 GET {{baseApiPath}}/households/duplicates
 Content-Type: application/json

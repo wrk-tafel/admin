@@ -158,6 +158,25 @@ class HouseholdController(
         } ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
     }
 
+    /**
+     * The blank counterpart to `generate-pdf`'s `PRIVACY_NOTICE` type - reachable before a household
+     * exists, so the path is flat rather than nested under `/{householdId}` (same shape as
+     * `/above-limit`/`/overview` below).
+     */
+    @GetMapping("/privacy-notice-template", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun generatePrivacyNoticeTemplatePdf(): ResponseEntity<InputStreamResource> {
+        val pdfResult = householdService.generatePrivacyNoticeTemplatePdf()
+        val headers = HttpHeaders()
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${pdfResult.filename}")
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
+    }
+
     @GetMapping("/above-limit")
     @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
     fun getHouseholdsAboveLimit(

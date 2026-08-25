@@ -12,6 +12,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Haushalte werden jetzt automatisch endgültig gelöscht (inkl. Personen, Notizen, Dokumenten und Ausgabe-Teilnahmen), sobald ihre Gültigkeit seit mehr als 7 Jahren abgelaufen ist.
 - Benutzerkonten werden jetzt automatisch endgültig gelöscht, sobald sie sich seit mehr als 7 Jahren nicht mehr angemeldet haben (Administrator-Konten ausgenommen); Mitarbeiter:innen, auf die nirgends mehr verwiesen wird, werden nach 7 Jahren ebenso endgültig gelöscht.
 - In der Kundenansicht kann jetzt unter "Daten ausdrucken" eine Datenschutzerklärung zum Ausdrucken und Unterschreiben heruntergeladen und nach der Unterschrift als eigener Dokumenttyp wieder hochgeladen werden.
+- Bei der Kundensuche kann die Datenschutzerklärung jetzt auch ohne Kundenbezug als Vorlage heruntergeladen werden, z. B. um sie einer Person schon vor der Kundenanlage zum Unterschreiben mitzugeben.
 
 ## [1.11.0] - 2026-08-24
 - Mitarbeiter können jetzt jederzeit endgültig gelöscht werden; bereits erfasste Kundendaten, Notizen und Warenerfassungen, die auf einen gelöschten Mitarbeiter verweisen, zeigen stattdessen "Mitarbeiter gelöscht" an. Ist noch ein Benutzerkonto mit dem Mitarbeiter verknüpft, muss dieses zuerst entfernt werden.

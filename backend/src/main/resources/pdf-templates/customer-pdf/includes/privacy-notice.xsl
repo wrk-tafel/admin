@@ -23,9 +23,19 @@
     </xsl:template>
 
     <xsl:template name="privacy-notice-header">
+        <!--
+            Blank for the reference-less template (HouseholdPdfService.generatePrivacyNoticeTemplatePdf)
+            - there is no household to reference, so the "Kundennummer" line is omitted entirely rather
+            than shown blank.
+        -->
+        <xsl:variable name="subtitle">
+            <xsl:if test="normalize-space(./householdId) != ''">
+                <xsl:value-of select="concat('Kundennummer ', ./householdId)"/>
+            </xsl:if>
+        </xsl:variable>
         <xsl:call-template name="document-header">
             <xsl:with-param name="title" select="'Datenschutzerklärung und Einwilligung'"/>
-            <xsl:with-param name="subtitle" select="concat('Kundennummer ', ./householdId)"/>
+            <xsl:with-param name="subtitle" select="$subtitle"/>
             <xsl:with-param name="logoContentType" select="./logoContentType"/>
             <xsl:with-param name="logoBytes" select="./logoBytes"/>
         </xsl:call-template>
@@ -110,14 +120,7 @@
                     </fo:table-cell>
                     <fo:table-cell>
                         <xsl:call-template name="field-with-label">
-                            <!--
-                                A truly empty value collapses the block to zero height in FOP, so the
-                                signature line ends up higher than the "Name"/"Ort, Datum" rules next to
-                                it, which do have text pushing them down. A non-breaking space keeps the
-                                (invisible) value line the same height as its neighbors, so all three
-                                rules land on one row.
-                            -->
-                            <xsl:with-param name="value" select="'&#160;'"/>
+                            <xsl:with-param name="value" select="''"/>
                             <xsl:with-param name="label" select="'Unterschrift'"/>
                         </xsl:call-template>
                     </fo:table-cell>

@@ -1,7 +1,7 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {ActivatedRoute, convertToParamMap, Router} from '@angular/router';
-import {HttpErrorResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpHeaders, HttpResponse} from '@angular/common/http';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {EMPTY, of, throwError} from 'rxjs';
@@ -12,11 +12,13 @@ import {CustomerSearchComponent} from './customer-search.component';
 import {By} from '@angular/platform-browser';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 
 describe('CustomerSearchComponent', () => {
   let apiService: MockedObject<CustomerApiService>;
   let router: MockedObject<Router>;
   let toastr: MockedObject<TafelToastrService>;
+  let fileHelperService: MockedObject<FileHelperService>;
   let queryParams: Record<string, string>;
 
   const testCustomer = {
@@ -56,7 +58,14 @@ describe('CustomerSearchComponent', () => {
           provide: CustomerApiService,
           useValue: {
             getCustomer: vi.fn().mockName('CustomerApiService.getCustomer'),
-            searchCustomer: vi.fn().mockName('CustomerApiService.searchCustomer')
+            searchCustomer: vi.fn().mockName('CustomerApiService.searchCustomer'),
+            generatePrivacyNoticeTemplate: vi.fn().mockName('CustomerApiService.generatePrivacyNoticeTemplate')
+          }
+        },
+        {
+          provide: FileHelperService,
+          useValue: {
+            downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
           }
         },
         {
@@ -88,6 +97,7 @@ describe('CustomerSearchComponent', () => {
     apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+    fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
 
     // The component searches once as it is constructed, before any test can arrange a response -
     // without a default here every test would fail on the constructor rather than on its subject.
@@ -372,6 +382,21 @@ describe('CustomerSearchComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css('[testid="searchresult-personsCount-0"]')).nativeElement.textContent).toBe('2');
+  });
+
+  it('downloads the reference-less privacy notice template', () => {
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenschutzerklaerung-vorlage.pdf'}),
+      body: new Blob()
+    });
+    apiService.generatePrivacyNoticeTemplate.mockReturnValue(of(response));
+
+    const {component} = createComponent();
+    component.downloadPrivacyNoticeTemplate();
+
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-vorlage.pdf', response.body);
+    expect(component.downloadingPrivacyNoticeTemplate()).toBe(false);
   });
 
 });

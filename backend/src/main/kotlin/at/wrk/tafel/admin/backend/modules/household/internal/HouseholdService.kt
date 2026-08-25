@@ -577,6 +577,16 @@ class HouseholdService(
         return null
     }
 
+    /**
+     * The blank counterpart to [generatePdf]'s `PRIVACY_NOTICE` type - no household is read, so
+     * unlike that method this is neither `@Transactional` nor audit-logged: there is nothing here
+     * that is anyone's personal data.
+     */
+    fun generatePrivacyNoticeTemplatePdf(): HouseholdPdfResult = HouseholdPdfResult(
+        filename = "datenschutzerklaerung-vorlage.pdf",
+        bytes = householdPdfService.generatePrivacyNoticeTemplatePdf(),
+    )
+
     @Transactional
     fun deleteHouseholdByHouseholdId(householdId: Long) {
         val household = householdRepository.findByHouseholdId(householdId) ?: return

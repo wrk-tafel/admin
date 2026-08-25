@@ -519,6 +519,26 @@ class HouseholdControllerTest {
     }
 
     @Test
+    fun `generate privacy notice template pdf`() {
+        val testFilename = "datenschutzerklaerung-vorlage.pdf"
+        every { householdService.generatePrivacyNoticeTemplatePdf() } returns HouseholdPdfResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = controller.generatePrivacyNoticeTemplatePdf()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+        assertThat(
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
+    }
+
+    @Test
     fun `get households above limit`() {
         val page = 2
         val sortBy = "totalSum"

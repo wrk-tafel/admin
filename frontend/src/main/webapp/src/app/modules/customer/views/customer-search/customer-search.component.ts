@@ -2,7 +2,7 @@ import {Component, computed, inject, signal, WritableSignal} from '@angular/core
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {catchError, debounceTime, distinctUntilChanged, EMPTY, filter, map, Observable, Subject, switchMap} from 'rxjs';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import {HttpErrorResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
 import {CustomerApiService, CustomerData, CustomerSearchResult} from '../../../../api/customer-api.service';
@@ -22,11 +22,13 @@ import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity-fill.svg';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 
 /** Long enough not to search on every keystroke, short enough to still feel immediate. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -79,12 +81,21 @@ const QUERY_PARAMS = {
   ]
 })
 export class CustomerSearchComponent {
-  private readonly registerIcons = registerSvgIcons({lock: lockIcon, person: personIcon, edit: editIcon});
+  private readonly registerIcons = registerSvgIcons({
+    lock: lockIcon,
+    person: personIcon,
+    edit: editIcon,
+    progress_activity: progressActivityIcon
+  });
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toastr = inject(TafelToastrService);
+  private readonly fileHelperService = inject(FileHelperService);
+
+  /** Whether the reference-less privacy notice template is currently being generated/downloaded. */
+  downloadingPrivacyNoticeTemplate = signal(false);
 
   /** The one search box. A pure number is tried as an exact customer-id jump first - see [resolveSearch$]. */
   query = signal('');
@@ -256,6 +267,26 @@ export class CustomerSearchComponent {
 
   personsCount(customer: CustomerData): number {
     return 1 + (customer.additionalPersons ?? []).filter(person => !person.excludeFromHousehold).length;
+  }
+
+  /**
+   * Downloads the blank Datenschutzerklärung to print and hand a walk-in before their customer
+   * record exists - this is the one place in the app that fits, since it is where staff stand
+   * before deciding to search or create.
+   */
+  downloadPrivacyNoticeTemplate() {
+    this.downloadingPrivacyNoticeTemplate.set(true);
+    this.customerApiService.generatePrivacyNoticeTemplate().subscribe({
+      next: (response) => this.processPdfResponse(response),
+      error: () => this.downloadingPrivacyNoticeTemplate.set(false),
+      complete: () => this.downloadingPrivacyNoticeTemplate.set(false)
+    });
+  }
+
+  private processPdfResponse(response: HttpResponse<Blob>) {
+    const contentDisposition = response.headers.get('content-disposition')!;
+    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    this.fileHelperService.downloadFile(filename, response.body!);
   }
 
   /**
