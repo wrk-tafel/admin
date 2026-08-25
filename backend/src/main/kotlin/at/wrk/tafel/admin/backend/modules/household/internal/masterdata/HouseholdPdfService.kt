@@ -21,6 +21,7 @@ class HouseholdPdfService(
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
     }
 
     fun generateMasterdataPdf(household: HouseholdEntity): ByteArray {
@@ -41,7 +42,7 @@ class HouseholdPdfService(
      */
     fun generatePrivacyNoticePdf(household: HouseholdEntity): ByteArray {
         val mainPerson = household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson }
-        val logoBytes = IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
+        val logoBytes = IOUtils.toByteArray(javaClass.getResourceAsStream(LOGO_RESOURCE_PATH))
 
         val data = PrivacyNoticePdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
@@ -66,7 +67,7 @@ class HouseholdPdfService(
                 .count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
 
         val logoBytes =
-            IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
+            IOUtils.toByteArray(javaClass.getResourceAsStream(LOGO_RESOURCE_PATH))
         return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
@@ -125,7 +126,7 @@ class HouseholdPdfService(
 
     private fun generateQRCode(data: String): ByteArray {
         val logoBytes =
-            IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
+            IOUtils.toByteArray(javaClass.getResourceAsStream(LOGO_RESOURCE_PATH))
 
         val qrCode = QRCode.ofSquares()
             .withErrorCorrectionLevel(ErrorCorrectionLevel.MEDIUM)
