@@ -405,6 +405,30 @@ LOCKED` (ADR-0047) the same way G1 does. What remains open, same as G1: both win
 without a documented legal-basis decision (see G2), and there is no report of what either job is about
 to delete before it runs.
 
+### G14 An employee with no user account can now be exported too, closing a gap G12 left open
+
+**Art. 15, Art. 20.** G12's own export assumed every staff member has a `users` row to key off of -
+but `EmployeeEntity` (personnel number, first/last name) can exist entirely on its own, referenced as
+a household's issuer, a household note's author, or a food collection's driver/co-driver, with nobody
+ever logging in as them (someone who only drives for a route, say). For that person there was no
+export path at all: not self-service (no account to authenticate with), and not admin-triggered
+either, since `UserController.exportUserById` is keyed by a `userId` such an employee never has, and
+the Mitarbeiter settings screen (`SettingsEmployeesComponent`) had no detail view to hang an export
+action off of.
+
+Found while implementing G12 (issue #3394). `EmployeeExportService` closes it with the same
+`PDFService`/XSL-FO pipeline as G12's own export, master data only (personnel number, name, created
+date) - an `EmployeeEntity` holds nothing else, so there is no permissions table the way G12's export
+has one. Recorded in the audit trail as a single `AuditOperation.READ` entry (G6/#3180), the same way
+G5's and G12's exports are - even though `EmployeeEntity` writes themselves are not audited at all
+(see G13's own note that employee writes aren't in `AuditScope`'s map). Reachable from
+`GET /api/employees/{employeeId}/export`, an export action in the Mitarbeiter table's row actions,
+behind `SETTINGS` rather than `USER_MANAGEMENT` - the permission `EmployeeController` itself already
+requires, since there is no self-service angle for an employee with no account of their own.
+
+What remains open: same as G5/G12, `audit_log` entries about the employee are excluded from the
+export.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -457,6 +481,7 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 8 | [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) | [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183) | structural | each needs a decision with the operator before code |
 | 9 | [G12](#g12-a-staff-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export for staff | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | done | `GET /api/users/export`, `UserExportService` |
 | 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
+| 11 | [G14](#g14-an-employee-with-no-user-account-can-now-be-exported-too-closing-a-gap-g12-left-open) no Art. 15/20 export for an employee with no user account | [#3394](https://github.com/wrk-tafel/admin/issues/3394) | done | `GET /api/employees/{employeeId}/export`, `EmployeeExportService` |
 | 11 | [G7](#g7-the-documents-tab-now-requires-its-own-permission-separate-from-customer) documents tab behind its own permission | [#3181](https://github.com/wrk-tafel/admin/issues/3181) | done | `CUSTOMER_DOCUMENTS`, see [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md) |
 | 12 | [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) no breach detection | [#3184](https://github.com/wrk-tafel/admin/issues/3184) | done | `ExcessiveReadAccessDetectionService`, a fixed hourly read-count threshold |
 

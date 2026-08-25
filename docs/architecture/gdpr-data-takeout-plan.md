@@ -31,7 +31,11 @@ rows, and — see [§4](#4-open-questions) — arguably its `audit_log` entries.
 **A staff member**: their `users` row (username, enabled state, `passwordChangeRequired`,
 `lastLogin` — never the Argon2 hash, see [§3](#3-design--staff-takeout)), their
 `user_authorities`, the linked `employees` row (personnel number, name), and — same open question —
-their `audit_log` entries and `AuditScope.USER_LOGIN_ENTITY_TYPE` login history.
+their `audit_log` entries and `AuditScope.USER_LOGIN_ENTITY_TYPE` login history. This assumes a
+`users` row exists at all — an `employees` row can stand entirely on its own (a driver/co-driver who
+never logs in), in which case "the whole record" is just that row's personnel number and name; see
+[G14](gdpr-compliance.md#g14-an-employee-with-no-user-account-can-now-be-exported-too-closing-a-gap-g12-left-open)
+([#3394](https://github.com/wrk-tafel/admin/issues/3394)).
 
 ## 2. Design — customer takeout
 
@@ -76,6 +80,14 @@ requested in person or by mail and acted on by staff, so an operator-triggered e
 *only* way in (see [§4](#4-open-questions)). A staff member is already authenticated against their
 own account, so self-service is the default entry point here, with the admin-triggered endpoint
 covering the same "on someone's behalf" need the household design has no equivalent gap for.
+
+Both endpoints above are keyed by a `userId`, which is exactly what an `employees` row with no
+linked `users` row never has - `EmployeeExportService` (G14, issue #3394) closes that separately,
+keyed by `employeeId` instead: `GET /api/employees/{employeeId}/export`, behind `SETTINGS` (the
+permission `EmployeeController` itself already requires) rather than `USER_MANAGEMENT`, since there
+is no self-service angle for someone who has no account to authenticate with in the first place.
+Master data only - personnel number, name, created date - since that is the entirety of what an
+`EmployeeEntity` holds on its own.
 
 ## 4. Open questions
 
@@ -158,6 +170,9 @@ there is no equivalent for staff accounts at all. None of that is this plan's to
 - [#3363](https://github.com/wrk-tafel/admin/issues/3363) (G12, staff) — implement
   [§3](#3-design--staff-takeout): the self-service and admin-triggered export endpoints. **Done** -
   `UserExportService`/`UserController`.
+- [#3394](https://github.com/wrk-tafel/admin/issues/3394) (G14, staff without a `users` row) — the
+  gap #3363 left open for an employee with no linked user account. **Done** -
+  `EmployeeExportService`/`EmployeeController`.
 - [§5](#5-recording-the-export-itself)'s audit write is small enough to land inside each of the two
   issues above rather than as its own — the `AuditOperation.EXPORT` value only needs to exist once.
 

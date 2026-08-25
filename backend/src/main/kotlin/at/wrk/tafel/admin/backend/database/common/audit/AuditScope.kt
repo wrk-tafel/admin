@@ -54,6 +54,15 @@ object AuditScope {
     const val DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE = "DistributionHouseholdList"
 
     /**
+     * An employee's data-takeout read - see
+     * [at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeExportService]. Employee
+     * writes are not audited at all (`EmployeeEntity` carries no [auditedEntities] map entry), so
+     * unlike the reads above this type never appears on a write-derived entry - only on the export's
+     * own manually-recorded read, the same way [USER_LOGIN_ENTITY_TYPE] and the others here are.
+     */
+    const val EMPLOYEE_EXPORT_ENTITY_TYPE = "Employee"
+
+    /**
      * @param entityType the label stored in `audit_log.entity_type`. Kept as a stable string rather
      * than the class name so renaming a Kotlin class doesn't split one entity's history in two.
      * @param householdScoped whether [businessKey] yields a household number, i.e. whether entries
@@ -133,7 +142,7 @@ object AuditScope {
 
     val allEntityTypes: List<String> = (
         auditedEntities.values.map { it.entityType } +
-            listOf(USER_LOGIN_ENTITY_TYPE, SCANNER_FILE_ENTITY_TYPE, DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE)
+            listOf(USER_LOGIN_ENTITY_TYPE, SCANNER_FILE_ENTITY_TYPE, DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE, EMPLOYEE_EXPORT_ENTITY_TYPE)
         ).sorted()
 
     /**

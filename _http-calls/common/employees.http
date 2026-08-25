@@ -29,3 +29,6 @@ Content-Type: application/json
   "firstname": "first-updated",
   "lastname": "last-updated"
 }
+
+### Export employee data (GDPR takeout) - for an employee with no linked user account
+GET {{baseApiPath}}/employees/1/export

@@ -133,6 +133,10 @@
                     (click)="deleteEmployee(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' löschen'">
               <mat-icon svgIcon="delete"></mat-icon>
             </button>
+            <button matButton="outlined" class="ml-2" [attr.testid]="'exportEmployeeButton-' + i" matTooltip="Daten exportieren (PDF)"
+                    (click)="exportEmployee(employee)" [attr.aria-label]="'Daten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' exportieren'">
+              <mat-icon svgIcon="download"></mat-icon>
+            </button>
           }
         </td>
       </ng-container>
@@ -222,6 +226,10 @@
                 <button matButton="outlined" class="button-danger" [attr.testid]="'deleteEmployeeButtonMobile-' + i" matTooltip="Mitarbeiter löschen"
                         (click)="deleteEmployee(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' löschen'">
                   <mat-icon svgIcon="delete"></mat-icon>
+                </button>
+                <button matButton="outlined" [attr.testid]="'exportEmployeeButtonMobile-' + i" matTooltip="Daten exportieren (PDF)"
+                        (click)="exportEmployee(employee)" [attr.aria-label]="'Daten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' exportieren'">
+                  <mat-icon svgIcon="download"></mat-icon>
                 </button>
               }
             </mat-card-actions>
