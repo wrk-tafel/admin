@@ -215,19 +215,25 @@ left as an unanswered permission-boundary question in the takeout plan's §4 rat
 omission. [G12](#g12-a-staff-data-subject-request-still-cannot-be-answered-from-the-application), the
 same question for staff instead of customers, is still open.
 
-### G6 Read access to a case file is not recorded
+### G6 A small, targeted set of reads is now recorded
 
 **Art. 5(2), Art. 32.**
 
-The audit trail records writes. Opening a household, downloading its ID scans or exporting the
-Kundenliste leaves no trace — so "did somebody look up their neighbour's income" is a question the
-system cannot answer, in an organisation where volunteers and the customers can live in the same
-district. For a small application, auditing every read would be noise; auditing the sensitive
-handful (document download, Stammdatenblatt/Kundenliste generation) would not.
+The audit trail used to record writes only. Opening a household or downloading its ID scans left no
+trace — so "did somebody look up their neighbour's income" was a question the system could not
+answer, in an organisation where volunteers and the customers can live in the same district.
+Auditing every read would be noise for an application this size; the sensitive handful is not.
 
-**Smallest useful step:** extend `AuditLogWriter` with a read/export operation and call it from the
-document download and the two PDF endpoints. The retention window and the existing
-Änderungsprotokoll screen carry it from there.
+`AuditOperation.READ` entries are now written for exactly that handful: document download
+(`HouseholdDocumentService.getDocumentFile`), viewing a not-yet-imported scanner file
+(`DocumentScannerController`), Stammdatenblatt/Ausweis generation (`HouseholdService.generatePdf`),
+Kundenliste generation for a distribution (`DistributionService`), and the G5 data-subject export
+(`HouseholdExportService`). They land in the same `audit_log` table and retention window as writes,
+and show up on the existing Änderungsprotokoll screen and a household's "Verlauf" tab like any other
+entry.
+
+What remains open: [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) is the detection
+this made possible, not this gap itself.
 
 ### G7 The documents tab now requires its own permission, separate from CUSTOMER
 
@@ -250,9 +256,9 @@ for the full decision and its consequences, and issue #3181.
 What remains open: `HouseholdController`'s own endpoints (household master data, income, cost
 contribution) are still behind the single broader `CUSTOMER`, and — unchanged by this — nobody has
 written down who holds `CUSTOMER` or `CUSTOMER_DOCUMENTS` today and why; that write-up is the
-operator's, tracked with the rest of [§6](#6-what-this-repository-cannot-answer) in #3185. Combined
-with [G6](#g6-read-access-to-a-case-file-is-not-recorded), there is still no trace of who actually
-read a given case file, only a limit on who could.
+operator's, tracked with the rest of [§6](#6-what-this-repository-cannot-answer) in #3185.
+[G6](#g6-a-small-targeted-set-of-reads-is-now-recorded) now traces who actually read a document or
+generated a Stammdatenblatt; this gap only ever limited who could.
 
 ### G8 Documents and database rows are stored unencrypted by the application
 
@@ -279,11 +285,12 @@ that grows for the life of the deployment, holding one line per request — incl
 which address as the container sees it. It is the one store in the system with no bound at all, and
 unlike the audit trail nobody chose it: it is a default nobody revisited.
 
-Note that this is also the closest thing to a read log that exists today — which makes it an
-accident rather than a control, since it is neither queryable nor scoped.
+Before [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded), this was also the closest thing to a
+read log that existed — an accident rather than a control, since it was neither queryable nor
+scoped. `audit_log` is now the real, scoped read log; `access.log` is still unbounded regardless.
 
-**Smallest useful step:** turn rotation on and set a retention (`max-days`), matching whatever
-retention [G6](#g6-read-access-to-a-case-file-is-not-recorded) lands on if a real read log is built.
+**Smallest useful step:** turn rotation on and set a retention (`max-days`), matching `audit_log`'s
+own retention window.
 
 ### G10 Copies survive an erasure, and nobody can say for how long
 
@@ -306,20 +313,26 @@ What is left is outside the application: a printed or mailed PDF, and the operat
 — so a request can be answered honestly ("gelöscht, letzte technische Spuren nach 30 Tagen"), and
 agree with the operator how backup restores are followed by a re-run of pending deletions.
 
-### G11 There is no way to notice a breach
+### G11 A fixed threshold now flags excessive read access
 
 **Art. 33, Art. 32(1)(d).**
 
-The only security signal the application produces is the lockout push after repeated failed logins
-(`UserLockedOutPushListener`). Nothing notices or reports a session downloading every document in
-sequence, an export run at an odd hour, or a database dump. With no read log
-([G6](#g6-read-access-to-a-case-file-is-not-recorded)), a breach that used a legitimate account would
-leave nothing behind to detect or reconstruct — which also makes the 72-hour notification duty
-impossible to discharge with any accuracy.
+The only security signal the application used to produce was the lockout push after repeated failed
+logins (`UserLockedOutPushListener`). Nothing noticed or reported a session downloading every
+document in sequence, an export run at an odd hour, or a database dump. With no read log
+([G6](#g6-a-small-targeted-set-of-reads-is-now-recorded)), a breach that used a legitimate account
+would have left nothing behind to detect or reconstruct — which also made the 72-hour notification
+duty impossible to discharge with any accuracy.
 
-**Smallest useful step:** this only becomes tractable after G6. Once reads are recorded, a simple
-threshold ("more than N documents downloaded by one user in an hour") reusing the existing push
-channel covers the realistic case.
+`ExcessiveReadAccessDetectionService` (`modules/push/internal`) now runs hourly and pushes a
+notification to administrators when one user's `AuditOperation.READ` count in the trailing hour
+exceeds `tafeladmin.audit.breachDetection.readThreshold` (default 20). Deliberately just a fixed
+threshold rather than anomaly detection: an application this size has no learned "normal" to compare
+against, and a detector nobody understands is a detector nobody trusts.
+
+What remains open: this covers one realistic case — a single account reading an unusual volume — not
+every way a breach could look, and whether a fixed threshold is the right long-term answer (versus,
+say, per-role baselines) is a judgement call rather than a settled one.
 
 ### G12 A staff data-subject request still cannot be answered from the application
 
@@ -432,14 +445,16 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 4 | [G2](#g2-a-privacy-notice-now-exists-as-a-printable-consent-form-signed-on-paper) privacy notice | [#3177](https://github.com/wrk-tafel/admin/issues/3177) | done | printable consent form, per-household and reference-less |
 | 5 | [G1](#g1-a-household-is-now-deleted-once-it-has-been-expired-long-enough) retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | done | nightly job modelled on `AuditRetentionService`, `tafeladmin.householdDeletion.*` |
 | 6 | [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | done | two endpoints, household record + documents, on `HouseholdExportService` |
-| 7 | [G6](#g6-read-access-to-a-case-file-is-not-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | days | audit document downloads and PDF generation |
-| 8 | [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), [G11](#g11-there-is-no-way-to-notice-a-breach) | [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183), [#3184](https://github.com/wrk-tafel/admin/issues/3184) | structural | each needs a decision with the operator before code |
+| 7 | [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | done | `AuditOperation.READ` on document download, PDF/Kundenliste generation and the G5 export |
+| 8 | [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) | [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183) | structural | each needs a decision with the operator before code |
 | 9 | [G12](#g12-a-staff-data-subject-request-still-cannot-be-answered-from-the-application) staff export missing | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | days | see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3 |
 | 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
 | 11 | [G7](#g7-the-documents-tab-now-requires-its-own-permission-separate-from-customer) documents tab behind its own permission | [#3181](https://github.com/wrk-tafel/admin/issues/3181) | done | `CUSTOMER_DOCUMENTS`, see [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md) |
+| 12 | [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) no breach detection | [#3184](https://github.com/wrk-tafel/admin/issues/3184) | done | `ExcessiveReadAccessDetectionService`, a fixed hourly read-count threshold |
 
-G3, G9 and G4 are worth doing regardless of what the operator decides. G2, G1, G13, G5 and G7 are
-done. Of what remains, most depends on answers that come from outside this repository — which makes
+G3 and G4 are worth doing regardless of what the operator decides; G9 no longer needs G6's answer
+first but is otherwise unchanged. G2, G1, G13, G5, G6, G7 and G11 are done. Of what remains, most
+depends on answers that come from outside this repository — which makes
 [§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code. G12 is the
 exception to that dependency: it is answerable from inside the repository today, and
 [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) — written for G5 and G12 together — is a

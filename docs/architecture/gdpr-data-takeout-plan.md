@@ -107,7 +107,7 @@ issue is opened:
 
 Both G5 and G12's write-ups call out that an export is itself a concentrated read of personal data
 and should be recorded (also see
-[G6](gdpr-compliance.md#g6-read-access-to-a-case-file-is-not-recorded),
+[G6](gdpr-compliance.md#g6-a-small-targeted-set-of-reads-is-now-recorded),
 [#3180](https://github.com/wrk-tafel/admin/issues/3180)). Rather than waiting on G6's broader
 "audit every sensitive read" work, this plan proposes the same shortcut the audit trail already took
 for logins: `AuditOperation` has no `INSERT`/`UPDATE`/`DELETE`-shaped equivalent for "someone read
