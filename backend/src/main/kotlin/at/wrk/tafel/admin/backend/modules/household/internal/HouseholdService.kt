@@ -243,11 +243,7 @@ class HouseholdService(
     fun getHouseholds(
         searchInput: String? = null,
         page: Int?,
-        postProcessing: Boolean?,
-        costContribution: Boolean?,
-        valid: Boolean?,
-        locked: Boolean? = null,
-        missingPrivacyNotice: Boolean? = null,
+        filters: HouseholdSearchFilters = HouseholdSearchFilters(),
         pageSize: Int? = null,
     ): HouseholdSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
@@ -257,11 +253,11 @@ class HouseholdService(
             Specification.allOf(
                 listOf(
                     searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold),
-                    if (postProcessing != null) postProcessingNecessary() else null,
-                    if (costContribution != null) pendingCostContribution() else null,
-                    if (valid != null) validHousehold() else null,
-                    if (locked != null) lockedHousehold() else null,
-                    if (missingPrivacyNotice != null) missingPrivacyNoticeDocument() else null,
+                    if (filters.postProcessing != null) postProcessingNecessary() else null,
+                    if (filters.costContribution != null) pendingCostContribution() else null,
+                    if (filters.valid != null) validHousehold() else null,
+                    if (filters.locked != null) lockedHousehold() else null,
+                    if (filters.missingPrivacyNotice != null) missingPrivacyNoticeDocument() else null,
                 ).mapNotNull { it },
             ),
         )
@@ -698,6 +694,20 @@ data class HouseholdSearchResult(
     val currentPage: Int,
     val totalPages: Int,
     val pageSize: Int,
+)
+
+/**
+ * The boolean filter chips on the customer search screen - bundled into one parameter object so
+ * [HouseholdService.getHouseholds] stays under SonarQube's parameter-count limit (kotlin:S107) as
+ * the filter list keeps growing. `null` on any field means "not applied", same as before.
+ */
+@ExcludeFromTestCoverage
+data class HouseholdSearchFilters(
+    val postProcessing: Boolean? = null,
+    val costContribution: Boolean? = null,
+    val valid: Boolean? = null,
+    val locked: Boolean? = null,
+    val missingPrivacyNotice: Boolean? = null,
 )
 
 @ExcludeFromTestCoverage

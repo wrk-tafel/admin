@@ -656,11 +656,13 @@ class HouseholdServiceTest {
         val searchResult =
             service.getHouseholds(
                 page = selectedPage,
-                postProcessing = true,
-                costContribution = true,
-                valid = true,
-                locked = true,
-                missingPrivacyNotice = true,
+                filters = HouseholdSearchFilters(
+                    postProcessing = true,
+                    costContribution = true,
+                    valid = true,
+                    locked = true,
+                    missingPrivacyNotice = true,
+                ),
             )
 
         assertThat(searchResult.currentPage).isEqualTo(selectedPage)

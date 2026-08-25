@@ -431,11 +431,13 @@ class HouseholdControllerTest {
             householdService.getHouseholds(
                 any(),
                 testSearchResult.currentPage,
-                true,
-                true,
-                true,
-                true,
-                true,
+                HouseholdSearchFilters(
+                    postProcessing = true,
+                    costContribution = true,
+                    valid = true,
+                    locked = true,
+                    missingPrivacyNotice = true,
+                ),
             )
         } returns testSearchResult
 
@@ -453,11 +455,13 @@ class HouseholdControllerTest {
             householdService.getHouseholds(
                 searchInput = " muster ",
                 page = testSearchResult.currentPage,
-                postProcessing = true,
-                costContribution = true,
-                valid = true,
-                locked = true,
-                missingPrivacyNotice = true,
+                filters = HouseholdSearchFilters(
+                    postProcessing = true,
+                    costContribution = true,
+                    valid = true,
+                    locked = true,
+                    missingPrivacyNotice = true,
+                ),
             )
         }
         assertThat(response.items).hasSize(1)
@@ -473,7 +477,7 @@ class HouseholdControllerTest {
             pageSize = 10,
         )
         every {
-            householdService.getHouseholds(null, null, null, null, null)
+            householdService.getHouseholds(null, null, HouseholdSearchFilters())
         } returns testSearchResult
 
         val response = controller.getHouseholds()
@@ -482,9 +486,7 @@ class HouseholdControllerTest {
             householdService.getHouseholds(
                 searchInput = null,
                 page = null,
-                postProcessing = null,
-                costContribution = null,
-                valid = null,
+                filters = HouseholdSearchFilters(),
             )
         }
         assertThat(response.items).hasSize(1)

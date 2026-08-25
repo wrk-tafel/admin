@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
+import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdSearchFilters
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import jakarta.validation.Valid
@@ -111,11 +112,13 @@ class HouseholdController(
         val householdSearchResult = householdService.getHouseholds(
             searchInput = searchInput,
             page = page,
-            postProcessing = postProcessing,
-            costContribution = costContribution,
-            valid = valid,
-            locked = locked,
-            missingPrivacyNotice = missingPrivacyNotice,
+            filters = HouseholdSearchFilters(
+                postProcessing = postProcessing,
+                costContribution = costContribution,
+                valid = valid,
+                locked = locked,
+                missingPrivacyNotice = missingPrivacyNotice,
+            ),
             pageSize = pageSize,
         )
         return PagedResponse(
