@@ -85,6 +85,15 @@ export class CustomerApiService {
     return this.http.get('/households/privacy-notice-template', {responseType: 'blob', observe: 'response'});
   }
 
+  /**
+   * The GDPR Art. 15/20 data takeout (issue #3179): one downloadable ZIP containing the household
+   * record (persons, notes, distribution attendance history and the list of uploaded documents) as
+   * a PDF, plus every uploaded document itself.
+   */
+  exportHousehold(id: number): Observable<HttpResponse<Blob>> {
+    return this.http.get('/households/' + id + '/export', {responseType: 'blob', observe: 'response'});
+  }
+
   searchCustomer(
     searchInput?: string | null,
     postProcessing?: boolean | null,

@@ -164,6 +164,12 @@
               [disabled]="!customerData() || !customerData()?.locked">Kunde entsperren
       </button>
       <mat-divider></mat-divider>
+      <!-- The GDPR Art. 15/20 data takeout (issue #3179) - always available regardless of lock
+           state, since a locked customer still has the same data-subject rights. -->
+      <button mat-menu-item testid="exportHouseholdButton" (click)="exportHousehold()" [disabled]="exporting()">
+        Daten exportieren (ZIP)
+      </button>
+      <mat-divider></mat-divider>
       <button mat-menu-item testid="deleteCustomerButton" (click)="openDeleteCustomerDialog()"
               [disabled]="!customerData() || customerData()?.locked">Kunde löschen
       </button>

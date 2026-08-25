@@ -38,6 +38,39 @@ describe('Customer Detail', () => {
     generateAndDownloadPdf('datenschutzerklaerung-101-musterfrau-eva.pdf', 'printPrivacyNoticeButton');
   });
 
+  it('export household (GDPR takeout) and downloads one ZIP with the data and the uploaded document', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id;
+      const lastname = response.body.data.lastname.toLowerCase();
+      const firstname = response.body.data.firstname.toLowerCase();
+      cy.visit('/kunden/detail/' + customerId);
+
+      cy.byTestId('documents-tab-label').click();
+      cy.byTestId('documentTypeInput').click();
+      cy.byTestId('documentTypeInput-option-PROOF_OF_INCOME').click();
+      cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+      cy.byTestId('okButton').click();
+      cy.byTestId('document-0-fileNameText').should('have.text', 'test-document.pdf');
+
+      openEditMenu();
+      cy.byTestId('exportHouseholdButton').click();
+
+      const downloadsFolder = Cypress.config('downloadsFolder');
+      const downloadedFilename = path.join(downloadsFolder, `datenexport-${customerId}-${lastname}-${firstname}.zip`);
+
+      // A ZIP holding the data PDF and a real document is well past the ~22 bytes of an empty
+      // archive - the exact per-file content is covered by the backend unit test.
+      cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+        .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(1000));
+
+      // The export is one of the GDPR-sensitive reads recorded in the audit trail (issue #3180) -
+      // proven here against the real backend, not just a mocked unit test.
+      cy.byTestId('history-tab-label').click();
+      cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+      cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kunde');
+    });
+  });
+
   it('edit customer', () => {
     cy.visit('/kunden/detail/101');
 

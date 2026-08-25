@@ -154,6 +154,7 @@ describe('CustomerDetailComponent', () => {
   beforeEach((() => {
     const customerApiServiceSpy = {
       generatePdf: vi.fn().mockName('CustomerApiService.generatePdf'),
+      exportHousehold: vi.fn().mockName('CustomerApiService.exportHousehold'),
       deleteCustomer: vi.fn().mockReturnValue(of(undefined)).mockName('CustomerApiService.deleteCustomer'),
       updateCustomer: vi.fn().mockImplementation((customerData: CustomerData) => of({
         data: customerData,
@@ -431,6 +432,28 @@ describe('CustomerDetailComponent', () => {
     component.printPrivacyNotice();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
+  });
+
+  it('exportHousehold', () => {
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenexport-1.zip'}),
+      body: new Blob()
+    });
+    customerApiService.exportHousehold.mockReturnValue(of(response));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+
+    fixture.detectChanges();
+    component.exportHousehold();
+
+    expect(customerApiService.exportHousehold).toHaveBeenCalledWith(mockCustomer.id);
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenexport-1.zip', response.body);
+    expect(component.exporting()).toBe(false);
   });
 
   it('editCustomer', async () => {

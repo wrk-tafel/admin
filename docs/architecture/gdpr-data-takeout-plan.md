@@ -4,9 +4,10 @@ Written for [issue #3362](https://github.com/wrk-tafel/admin/issues/3362), which
 with a suggestion" rather than code. This is that plan — nothing here is decided, and turning any
 section below into working code needs its own issue, same convention as the rest of
 [`gdpr-compliance.md`](gdpr-compliance.md). It ties together two gaps from that review:
-[G5](gdpr-compliance.md#g5-a-data-subject-request-cannot-be-answered-from-the-application)
-(customers, [#3179](https://github.com/wrk-tafel/admin/issues/3179)) and
-[G12](gdpr-compliance.md#g12-a-staff-data-subject-request-cannot-be-answered-from-the-application-either)
+[G5](gdpr-compliance.md#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application)
+(customers, [#3179](https://github.com/wrk-tafel/admin/issues/3179), done - see
+[§7](#7-suggested-breakdown-into-issues)) and
+[G12](gdpr-compliance.md#g12-a-staff-data-subject-request-still-cannot-be-answered-from-the-application)
 (staff, [#3363](https://github.com/wrk-tafel/admin/issues/3363), added alongside this plan) — the two
 data subjects this application holds data about get one shared design instead of two independent
 ones.
@@ -32,30 +33,26 @@ rows, and — see [§4](#4-open-questions) — arguably its `audit_log` entries.
 `user_authorities`, the linked `employees` row (personnel number, name), and — same open question —
 their `audit_log` entries and `AuditScope.USER_LOGIN_ENTITY_TYPE` login history.
 
-## 2. Proposed design — customer takeout
+## 2. Design — customer takeout
 
 Mirrors the existing `HouseholdController.generatePdf` endpoint
 (`GET /api/households/{householdId}/generate-pdf`) — same `InputStreamResource` +
 `Content-Disposition` pattern, same `CUSTOMER` permission, same synchronous request/response shape —
 rather than inventing a new one:
 
-- `GET /api/households/{householdId}/export` → a JSON `HouseholdExportResponse` (new type; per the
-  [DTO naming convention](../../CLAUDE.md#rest-dto-naming-convention) it's directly returned and
-  never a request body, so it gets the `Response` suffix, not reused from `HouseholdResponse`) —
-  household, persons, notes and attendance history.
-- `GET /api/households/{householdId}/export/documents` → a ZIP of every file
-  `DocumentStorageService` holds for that household, built with `java.util.zip.ZipOutputStream`
-  reading each file through `DocumentStorageService.read`. Nothing in the backend builds a ZIP today
-  (confirmed — no `ZipOutputStream`/`ZipEntry` usage anywhere in `backend/`), so this is new, small
-  code, not a reused helper.
+- `GET /api/households/{householdId}/export` → one ZIP (built with `java.util.zip.ZipOutputStream`;
+  nothing in the backend built a ZIP before this, so it was new, small code, not a reused helper)
+  containing the household record — persons, notes, attendance history and the list of uploaded
+  documents — as a PDF (rendered through the same `PDFService`/XSL-FO pipeline as every other PDF in
+  the app), plus every file `DocumentStorageService` holds for that household, read through
+  `DocumentStorageService.read`.
 
-Two separate endpoints, not one ZIP containing both a `data.json` and the documents, so a requester
-who only wants the record (the common case — most data-subject requests are "what do you have on
-me", not "give me my ID scan back") doesn't pay for zipping files they already gave the Tafel in the
-first place.
+One combined archive rather than several separate downloads: a data-subject request normally wants
+"everything you have on me" in one piece, and a requester who only wants part of it can simply
+ignore the rest of the archive's contents.
 
-Both stay behind `CUSTOMER` — the permission already grants read of every field either endpoint
-would return, so this needs no new permission, only new endpoints.
+Stays behind `CUSTOMER` — the permission already granted read of every field the endpoint returns, so
+this needed no new permission, only the one new endpoint.
 
 ## 3. Proposed design — staff takeout
 
@@ -98,15 +95,15 @@ issue is opened:
   self-service anywhere in the application to route it through instead. If that assumption is wrong
   (e.g. a future customer portal), the permission model above changes.
 - **Retention of the generated files.** Neither endpoint proposed above stores anything — the ZIP
-  and JSON are generated on request and never written to disk or a table, so there's nothing for a
-  future erasure feature to also clean up here. Confirm that's the intended behavior rather than,
-  say, caching a takeout for re-download.
+  is generated on request and never written to disk or a table, so there's nothing for a future
+  erasure feature to also clean up here. Confirm that's the intended behavior rather than, say,
+  caching a takeout for re-download.
 
 ## 5. Recording the export itself
 
 Both G5 and G12's write-ups call out that an export is itself a concentrated read of personal data
 and should be recorded (also see
-[G6](gdpr-compliance.md#g6-read-access-to-a-case-file-is-not-recorded),
+[G6](gdpr-compliance.md#g6-a-small-targeted-set-of-reads-is-now-recorded),
 [#3180](https://github.com/wrk-tafel/admin/issues/3180)). Rather than waiting on G6's broader
 "audit every sensitive read" work, this plan proposes the same shortcut the audit trail already took
 for logins: `AuditOperation` has no `INSERT`/`UPDATE`/`DELETE`-shaped equivalent for "someone read
@@ -121,6 +118,12 @@ this needs no new synthetic entity type — `Household` and `User` are already r
 household or user being exported, with the actor resolved normally (the caller is authenticated by
 definition here, unlike `LoginAuditService`'s special case). One enum value and one small service,
 reused by both the customer and staff endpoint.
+
+G6 ([#3180](https://github.com/wrk-tafel/admin/issues/3180)) landed before #3179 did and already
+added `AuditOperation.READ` for exactly this shape of entry (a household PDF export is one of the
+examples in its own KDoc). #3179 reused that value instead of adding the `EXPORT` proposed above,
+directly from `HouseholdExportService` - no separate export-audit service either, the same
+`AuditLogWriter.record` call `HouseholdService.generatePdf` already made.
 
 ## 6. Compatibility with a future erasure feature
 
@@ -151,14 +154,15 @@ there is no equivalent for staff accounts at all. None of that is this plan's to
 ## 7. Suggested breakdown into issues
 
 - [#3179](https://github.com/wrk-tafel/admin/issues/3179) (G5) — implement
-  [§2](#2-proposed-design--customer-takeout): the two household export endpoints.
+  [§2](#2-design--customer-takeout): the household export endpoint. **Done** -
+  `HouseholdExportService`/`HouseholdController`.
 - [#3363](https://github.com/wrk-tafel/admin/issues/3363) (G12, staff) — implement
   [§3](#3-proposed-design--staff-takeout): the self-service export endpoint.
 - [§5](#5-recording-the-export-itself)'s audit write is small enough to land inside each of the two
   issues above rather than as its own — the `AuditOperation.EXPORT` value only needs to exist once.
 
 Recommended order: customer export first — it's the concrete case both #3362 and G5 were written
-against, and it's the larger of the two (JSON export plus the document ZIP, versus a single JSON
+against, and it's the larger of the two (the combined PDF/document ZIP, versus a single JSON
 response for staff).
 
 ## References
