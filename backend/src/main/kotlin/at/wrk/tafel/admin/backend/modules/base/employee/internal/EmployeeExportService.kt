@@ -79,11 +79,10 @@ class EmployeeExportService(
      * `UserExportService.buildFilename`, since a personnel number is free text rather than a
      * guaranteed-ASCII identifier.
      */
-    private fun buildFilename(employeeEntity: EmployeeEntity): String =
-        StringUtils.stripAccents("mitarbeiterdaten-${employeeEntity.personnelNumber}")
-            .lowercase()
-            .replace("ß", "ss")
-            .replace("[^a-z0-9]".toRegex(), "-") + ".pdf"
+    private fun buildFilename(employeeEntity: EmployeeEntity): String = StringUtils.stripAccents("mitarbeiterdaten-${employeeEntity.personnelNumber}")
+        .lowercase()
+        .replace("ß", "ss")
+        .replace("[^a-z0-9]".toRegex(), "-") + ".pdf"
 
     private fun recordExportRead(employeeEntity: EmployeeEntity) {
         auditLogWriter.record(
