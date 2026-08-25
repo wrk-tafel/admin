@@ -38,30 +38,7 @@ describe('Customer Detail', () => {
     generateAndDownloadPdf('datenschutzerklaerung-101-musterfrau-eva.pdf', 'printPrivacyNoticeButton');
   });
 
-  it('export household data (GDPR takeout) and downloads the JSON file', () => {
-    cy.visit('/kunden/detail/101');
-
-    openEditMenu();
-    cy.byTestId('exportDataButton').click();
-
-    const downloadsFolder = Cypress.config('downloadsFolder');
-    const downloadedFilename = path.join(downloadsFolder, 'datenexport-101-musterfrau-eva.json');
-
-    // cy.readFile parses a `.json` file into an object rather than handing back raw text.
-    cy.readFile(downloadedFilename, {timeout: 15000}).then((parsed) => {
-      expect(parsed.household.id).to.equal(101);
-      expect(parsed.notes).to.have.length(3);
-      expect(parsed.attendances).to.be.an('array');
-    });
-
-    // The export is one of the GDPR-sensitive reads recorded in the audit trail (issue #3180) -
-    // proven here against the real backend, not just a mocked unit test.
-    cy.byTestId('history-tab-label').click();
-    cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
-    cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kunde');
-  });
-
-  it('export household documents (GDPR takeout) and downloads a ZIP with the uploaded file', () => {
+  it('export household (GDPR takeout) and downloads one ZIP with the data and the uploaded document', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id;
       const lastname = response.body.data.lastname.toLowerCase();
@@ -76,14 +53,21 @@ describe('Customer Detail', () => {
       cy.byTestId('document-0-fileNameText').should('have.text', 'test-document.pdf');
 
       openEditMenu();
-      cy.byTestId('exportDocumentsButton').click();
+      cy.byTestId('exportHouseholdButton').click();
 
       const downloadsFolder = Cypress.config('downloadsFolder');
-      const downloadedFilename = path.join(downloadsFolder, `dokumente-${customerId}-${lastname}-${firstname}.zip`);
+      const downloadedFilename = path.join(downloadsFolder, `datenexport-${customerId}-${lastname}-${firstname}.zip`);
 
-      // A ZIP holding at least one real document is well past the ~22 bytes of an empty archive.
+      // A ZIP holding the data HTML, the data PDF and a real document is well past the ~22 bytes
+      // of an empty archive - the exact per-file content is covered by the backend unit test.
       cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
-        .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(100));
+        .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(1000));
+
+      // The export is one of the GDPR-sensitive reads recorded in the audit trail (issue #3180) -
+      // proven here against the real backend, not just a mocked unit test.
+      cy.byTestId('history-tab-label').click();
+      cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+      cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kunde');
     });
   });
 

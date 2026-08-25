@@ -171,8 +171,8 @@ export class CustomerDetailComponent {
   /** Which PDF is currently being generated, so the triggering print action can show a busy state. */
   readonly printing = signal<'MASTERDATA' | 'IDCARD' | 'PRIVACY_NOTICE' | null>(null);
 
-  /** Which GDPR data-takeout download is currently running, so the triggering action can show a busy state. */
-  readonly exporting = signal<'DATA' | 'DOCUMENTS' | null>(null);
+  /** Whether the GDPR data-takeout download is currently running, so the triggering action can show a busy state. */
+  readonly exporting = signal(false);
 
   readonly validityState = computed(() => computeCustomerValidityState(this.customerData()?.validUntil));
   readonly validityColor = computed(() => customerValidityStateColor(this.validityState()));
@@ -249,23 +249,13 @@ export class CustomerDetailComponent {
     });
   }
 
-  /** Downloads the GDPR Art. 15/20 data takeout (issue #3179): household, persons, notes and attendance history as JSON. */
-  exportData() {
-    this.exporting.set('DATA');
-    this.customerApiService.exportData(this.customerData().id!).subscribe({
+  /** Downloads the GDPR Art. 15/20 data takeout (issue #3179): one ZIP with the household record (as HTML and PDF) and every document. */
+  exportHousehold() {
+    this.exporting.set(true);
+    this.customerApiService.exportHousehold(this.customerData().id!).subscribe({
       next: (response) => this.processFileResponse(response),
-      error: () => this.exporting.set(null),
-      complete: () => this.exporting.set(null)
-    });
-  }
-
-  /** Downloads every document uploaded for this customer as a ZIP - the other half of the GDPR data takeout. */
-  exportDocuments() {
-    this.exporting.set('DOCUMENTS');
-    this.customerApiService.exportDocuments(this.customerData().id!).subscribe({
-      next: (response) => this.processFileResponse(response),
-      error: () => this.exporting.set(null),
-      complete: () => this.exporting.set(null)
+      error: () => this.exporting.set(false),
+      complete: () => this.exporting.set(false)
     });
   }
 

@@ -200,15 +200,15 @@ short, visible rule is.
 **Art. 15, Art. 20.**
 
 `HouseholdExportService` (issue #3179, see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md))
-serves two downloads behind the same `CUSTOMER` permission as the rest of a household's data, from
+serves one ZIP behind the same `CUSTOMER` permission as the rest of a household's data, from
 customer-detail's "Weitere Aktionen" menu: `GET /households/{householdId}/export` — household,
 persons, notes (via the unpaged `HouseholdNoteService.getAllNotes`, so a page-size cap can't silently
-truncate the record) and distribution attendance history, as one JSON file — and
-`GET /households/{householdId}/export/documents` — every uploaded document as a ZIP. Split into two
-downloads rather than one combined archive so a requester who only wants the record (the common case)
-isn't charged for zipping files already on hand. Neither endpoint stores anything; the file is built
-on request and never written to disk or a table. Both are recorded in the audit trail as an
-`AuditOperation.READ` entry against the household (G6/#3180), the same way `generatePdf` already was.
+truncate the record), distribution attendance history and the list of uploaded documents, as both an
+HTML file and a PDF — plus every uploaded document itself. One combined archive rather than several
+separate downloads: a data-subject request normally wants "everything you have on me" in one piece.
+The endpoint stores nothing; the archive is built on request and never written to disk or a table. It
+is recorded in the audit trail as a single `AuditOperation.READ` entry against the household
+(G6/#3180), the same way `generatePdf` already was.
 
 What remains open: `audit_log` entries about the household are deliberately excluded from the export —
 left as an unanswered permission-boundary question in the takeout plan's §4 rather than folded in by

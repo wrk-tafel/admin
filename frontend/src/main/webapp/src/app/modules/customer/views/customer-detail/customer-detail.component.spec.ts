@@ -154,8 +154,7 @@ describe('CustomerDetailComponent', () => {
   beforeEach((() => {
     const customerApiServiceSpy = {
       generatePdf: vi.fn().mockName('CustomerApiService.generatePdf'),
-      exportData: vi.fn().mockName('CustomerApiService.exportData'),
-      exportDocuments: vi.fn().mockName('CustomerApiService.exportDocuments'),
+      exportHousehold: vi.fn().mockName('CustomerApiService.exportHousehold'),
       deleteCustomer: vi.fn().mockReturnValue(of(undefined)).mockName('CustomerApiService.deleteCustomer'),
       updateCustomer: vi.fn().mockImplementation((customerData: CustomerData) => of({
         data: customerData,
@@ -435,13 +434,13 @@ describe('CustomerDetailComponent', () => {
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
   });
 
-  it('exportData', () => {
+  it('exportHousehold', () => {
     const response = new HttpResponse({
       status: 200,
-      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenexport-1.json'}),
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenexport-1.zip'}),
       body: new Blob()
     });
-    customerApiService.exportData.mockReturnValue(of(response));
+    customerApiService.exportHousehold.mockReturnValue(of(response));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
@@ -450,33 +449,11 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
 
     fixture.detectChanges();
-    component.exportData();
+    component.exportHousehold();
 
-    expect(customerApiService.exportData).toHaveBeenCalledWith(mockCustomer.id);
-    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenexport-1.json', response.body);
-    expect(component.exporting()).toBeNull();
-  });
-
-  it('exportDocuments', () => {
-    const response = new HttpResponse({
-      status: 200,
-      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=dokumente-1.zip'}),
-      body: new Blob()
-    });
-    customerApiService.exportDocuments.mockReturnValue(of(response));
-
-    const fixture = TestBed.createComponent(CustomerDetailComponent);
-    fixture.componentRef.setInput('customerData', mockCustomer);
-    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
-    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
-    const component = fixture.componentInstance;
-
-    fixture.detectChanges();
-    component.exportDocuments();
-
-    expect(customerApiService.exportDocuments).toHaveBeenCalledWith(mockCustomer.id);
-    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('dokumente-1.zip', response.body);
-    expect(component.exporting()).toBeNull();
+    expect(customerApiService.exportHousehold).toHaveBeenCalledWith(mockCustomer.id);
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenexport-1.zip', response.body);
+    expect(component.exporting()).toBe(false);
   });
 
   it('editCustomer', async () => {

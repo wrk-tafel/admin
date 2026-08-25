@@ -86,17 +86,12 @@ export class CustomerApiService {
   }
 
   /**
-   * The GDPR Art. 15/20 data takeout (issue #3179): household, persons, notes and distribution
-   * attendance history as one downloadable JSON file. See {@link exportDocuments} for the uploaded
-   * documents, which come as a separate download on purpose.
+   * The GDPR Art. 15/20 data takeout (issue #3179): one downloadable ZIP containing the household
+   * record (persons, notes, distribution attendance history and the list of uploaded documents) as
+   * both an HTML file and a PDF, plus every uploaded document itself.
    */
-  exportData(id: number): Observable<HttpResponse<Blob>> {
+  exportHousehold(id: number): Observable<HttpResponse<Blob>> {
     return this.http.get('/households/' + id + '/export', {responseType: 'blob', observe: 'response'});
-  }
-
-  /** The document half of the GDPR data takeout - every file uploaded for this household, as a ZIP. */
-  exportDocuments(id: number): Observable<HttpResponse<Blob>> {
-    return this.http.get('/households/' + id + '/export/documents', {responseType: 'blob', observe: 'response'});
   }
 
   searchCustomer(

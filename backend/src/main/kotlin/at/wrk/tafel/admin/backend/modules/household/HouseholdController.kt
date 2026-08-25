@@ -166,35 +166,14 @@ class HouseholdController(
     }
 
     /**
-     * The GDPR Art. 15/20 data takeout (issue #3179) - household, persons, notes and distribution
-     * attendance history as one downloadable JSON file. See [exportDocuments] for the household's
-     * uploaded documents, kept as a separate download on purpose (see
-     * `docs/architecture/gdpr-data-takeout-plan.md`).
+     * The GDPR Art. 15/20 data takeout (issue #3179) - one downloadable ZIP containing the household
+     * record (persons, notes and distribution attendance history, as one human-readable HTML file)
+     * plus every uploaded document (see `docs/architecture/gdpr-data-takeout-plan.md`).
      */
-    @GetMapping("/{householdId}/export", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping("/{householdId}/export", produces = ["application/zip"])
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun exportHousehold(@PathVariable householdId: Long): ResponseEntity<InputStreamResource> {
         val result = householdExportService.exportHousehold(householdId)
-            ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
-
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${result.filename}")
-
-        return ResponseEntity
-            .ok()
-            .headers(headers)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(InputStreamResource(ByteArrayInputStream(result.bytes)))
-    }
-
-    /**
-     * The document half of the GDPR data takeout - every file uploaded for this household, as a ZIP.
-     * See [exportHousehold].
-     */
-    @GetMapping("/{householdId}/export/documents", produces = ["application/zip"])
-    @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun exportDocuments(@PathVariable householdId: Long): ResponseEntity<InputStreamResource> {
-        val result = householdExportService.exportDocuments(householdId)
             ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
 
         val headers = HttpHeaders()

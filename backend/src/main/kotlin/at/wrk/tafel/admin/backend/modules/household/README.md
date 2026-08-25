@@ -365,25 +365,32 @@ frontend needs the id as a stable list key.
 
 ### `HouseholdExportService` (`internal`)
 The GDPR Art. 15/20 data takeout (G5, issue #3179, see
-`docs/architecture/gdpr-data-takeout-plan.md`), exposed as two `HouseholdController` endpoints
+`docs/architecture/gdpr-data-takeout-plan.md`), exposed as a single `HouseholdController` endpoint
 mirroring `generatePdf`'s `InputStreamResource`/`Content-Disposition` shape:
-- `GET /{householdId}/export` - household, persons, notes (via `HouseholdNoteService.getAllNotes`,
-  the unpaged counterpart to `getNotes` - a page-size cap would silently truncate the record) and
-  distribution attendance history (`DistributionHouseholdRepository.findAllByHouseholdEntityIds`),
-  serialized to one downloadable JSON file.
-- `GET /{householdId}/export/documents` - every uploaded document, read via `DocumentStorageService`
-  and streamed back as one ZIP (`java.util.zip.ZipOutputStream`), deduplicating same-named documents
-  so a second `ausweis.jpg` doesn't silently overwrite the first inside the archive.
+- `GET /{householdId}/export` - one ZIP (`java.util.zip.ZipOutputStream`) containing the household
+  record - persons, notes (via `HouseholdNoteService.getAllNotes`, the unpaged counterpart to
+  `getNotes` - a page-size cap would silently truncate the record), distribution attendance history
+  (`DistributionHouseholdRepository.findAllByHouseholdEntityIds`) and the list of uploaded documents -
+  as both `haushaltsdaten.html` and `datenexport.pdf` (the PDF rendered through the same
+  `PDFService`/XSL-FO pipeline as every other PDF in the app, see
+  `pdf-templates/household-export/export-document.xsl` and
+  `docs/architecture/adr/0009-server-side-document-generation-with-xsl-fo.md`), plus every uploaded
+  document itself, read via `DocumentStorageService`. Deduplicates same-named
+  documents so a second `ausweis.jpg` doesn't silently overwrite the first inside the archive, and
+  reserves the two data file names first so an actual upload named `haushaltsdaten.html` or
+  `datenexport.pdf` gets renamed the same way instead of colliding with them.
 
-Split into two downloads rather than one combined archive so a requester who only wants the record
-(the common case) doesn't pay for zipping files already on hand. Neither method stores anything - the
-file is built on request and never written to disk or a table. Both record an `AuditOperation.READ`
-entry (`entityType = "Household"`, see issue #3180) the same way `generatePdf` does, and both are
-deliberately not `readOnly` transactions for the same reason: `AuditLogWriter.record`'s write only
-takes effect for a transaction that actually commits. Deliberately excludes `audit_log` entries - see
-the takeout plan's §4 for why that's left an open question rather than answered here. Shares
-`buildHouseholdFilename` (`internal/HouseholdFilenames.kt`) with `HouseholdService.generatePdf` so the
-two filename schemes don't drift.
+One combined archive rather than several separate downloads: a data-subject request normally wants
+"everything you have on me" in one piece. The HTML and PDF share one set of pre-formatted rows
+(`HouseholdExportModel.kt`) built once per request, so the two can never drift into showing different
+numbers for the same household. The service stores nothing - the archive is built on request and
+never written to disk or a table. It records one `AuditOperation.READ` entry (`entityType =
+"Household"`, see issue #3180) the same way `generatePdf` does, and is deliberately not a `readOnly`
+transaction for the same reason: `AuditLogWriter.record`'s write only takes effect for a transaction
+that actually commits. Deliberately excludes `audit_log` entries - see the takeout plan's §4 for why
+that's left an open question rather than answered here. Shares `buildHouseholdFilename`
+(`internal/HouseholdFilenames.kt`) with `HouseholdService.generatePdf` so the filename schemes don't
+drift.
 
 ### `HouseholdDocumentController` / `DocumentScannerController` (`internal/document`)
 `HouseholdDocumentController` (`/api/households/{householdId}/documents`) is upload/list/download/
