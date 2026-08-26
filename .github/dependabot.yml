@@ -75,11 +75,4 @@ updates:
     directory: "/_build"
     schedule:
       interval: "daily"
-    ignore:
-      # A JDK major bump (e.g. 26-alpine -> 27-alpine) needs coordinating with the Gradle toolchain
-      # version, so that stays a manual decision - but the base image is pinned by digest, so a
-      # same-tag digest refresh (e.g. Amazon rebuilding 26-alpine with a patched libssl3) should
-      # still come through automatically instead of sitting frozen on today's digest forever.
-      - dependency-name: "amazoncorretto"
-        update-types: [ "version-update:semver-major" ]
     open-pull-requests-limit: 50
