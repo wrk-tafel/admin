@@ -39,6 +39,10 @@ RUN su postgres -c "pg_ctl -D '$PGDATA' -o \"-c listen_addresses=localhost\" -w 
     && su postgres -c "pg_ctl -D '$PGDATA' -w stop"
 
 FROM amazoncorretto:26-alpine
+# Alpine's own repo ships patched packages (e.g. libssl3/libcrypto3 CVE fixes) well before a new
+# amazoncorretto:26-alpine tag is published, so pulling them at build time closes that gap instead
+# of waiting on upstream - see the Trivy code-scanning alerts this addresses.
+RUN apk --no-cache upgrade
 ARG VERSION=dev
 ARG BUILD_TIME=unknown
 ENV TAFELADMIN_VERSION=$VERSION
