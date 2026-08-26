@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import jakarta.servlet.FilterChain
@@ -78,7 +79,10 @@ class TafelLoginFilter(
                 expirationSeconds = expirationTimeInSeconds,
             )
 
-            logger.info("Login successful via user '${user.username}' on '${request.requestURL}' (password-change required: ${user.passwordChangeRequired})")
+            logger.info(
+                "Login successful via user '${sanitizeForLog(user.username)}' on '${request.requestURL}' " +
+                    "(password-change required: ${user.passwordChangeRequired})",
+            )
 
             val cookie = createTokenCookie(token, expirationTimeInSeconds, tafelAdminProperties.server.relativeBaseUrl, request)
             response.addCookie(cookie)
