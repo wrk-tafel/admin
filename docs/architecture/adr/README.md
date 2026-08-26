@@ -99,9 +99,7 @@ decided. They live one level up, in `docs/architecture/`:
 |---|---|
 | [`gdpr-compliance.md`](../gdpr-compliance.md) | What the application does with personal data, and where that falls short of the GDPR ([#3124](https://github.com/wrk-tafel/admin/issues/3124)) |
 | [`gdpr-data-takeout-plan.md`](../gdpr-data-takeout-plan.md) | A concrete design for a customer/staff data-takeout export, covering gaps G5 and G12 of the GDPR review ([#3362](https://github.com/wrk-tafel/admin/issues/3362)) |
-| [`push-outbox-evaluation.md`](../push-outbox-evaluation.md) | Whether push notifications should be sent through an outbox like mails and SSE events ([#3155](https://github.com/wrk-tafel/admin/issues/3155)) |
-| [`material-icons-migration-evaluation.md`](../material-icons-migration-evaluation.md) | Whether the frontend's FontAwesome icons can be replaced with Material icons, and which delivery form survives the pipeline's gates ([#3304](https://github.com/wrk-tafel/admin/issues/3304)) |
-| [`material-theming-migration-evaluation.md`](../material-theming-migration-evaluation.md) | Whether the frontend's custom styling can move onto Angular Material's own theming tooling, and which overrides are already silently dead ([#3306](https://github.com/wrk-tafel/admin/issues/3306)) |
+| [`rls-postgres-evaluation.md`](../rls-postgres-evaluation.md) | Whether Postgres Row Level Security makes sense given this application's single-tenant, permission-not-row access model ([#3411](https://github.com/wrk-tafel/admin/issues/3411)) |
 
 ## Writing a new one
 
