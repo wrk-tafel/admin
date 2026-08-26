@@ -94,7 +94,7 @@
 
           @if (view.mapsUrl; as mapsUrl) {
             <div class="mb-4">
-              <a matButton="outlined" [href]="mapsUrl" target="_blank" rel="noopener"
+              <a matButton="outlined" [href]="mapsUrl" target="_blank" rel="noopener noreferrer"
                  [attr.testid]="'route-map-link-' + i"
                  [attr.aria-label]="'Route ' + view.route.name + ' in Karte öffnen (in neuem Tab)'">
                 <mat-icon svgIcon="directions" class="me-2"></mat-icon>

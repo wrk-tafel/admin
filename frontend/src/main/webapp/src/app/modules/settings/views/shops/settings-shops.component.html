@@ -85,7 +85,7 @@
               <dd class="m-0">{{ view.shop.addressStreet }}</dd>
               <dd class="m-0 flex flex-wrap items-center gap-2">
                 <span>{{ view.shop.addressPostalCode }} {{ view.shop.addressCity }}</span>
-                <a class="text-blue-700 underline" [href]="view.mapUrl" target="_blank" rel="noopener"
+                <a class="text-blue-700 underline" [href]="view.mapUrl" target="_blank" rel="noopener noreferrer"
                    [attr.aria-label]="'Adresse von ' + view.shop.name + ' in Karte öffnen (in neuem Tab)'"
                    [attr.testid]="'shops-map-link-' + i">
                   <mat-icon svgIcon="location_on" class="me-1"></mat-icon>Karte
