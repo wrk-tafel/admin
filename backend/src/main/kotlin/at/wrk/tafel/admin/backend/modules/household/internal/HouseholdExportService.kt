@@ -32,16 +32,16 @@ import java.util.zip.ZipOutputStream
 
 /**
  * The GDPR Art. 15/20 data takeout for a household (issue #3179, see
- * `docs/architecture/gdpr-data-takeout-plan.md`) - one downloadable ZIP containing the household
- * record (persons, notes, distribution attendance history and the list of uploaded documents) as a
- * PDF, plus every uploaded document itself. One combined archive rather than several separate
- * downloads: a data-subject request normally wants "everything you have on me" in one piece, and a
- * requester who only wants part of it can simply ignore the rest of the ZIP's contents.
+ * `docs/architecture/adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md`)
+ * - one downloadable ZIP containing the household record (persons, notes, distribution attendance
+ * history and the list of uploaded documents) as a PDF, plus every uploaded document itself. One
+ * combined archive rather than several separate downloads: a data-subject request normally wants
+ * "everything you have on me" in one piece, and a requester who only wants part of it can simply
+ * ignore the rest of the ZIP's contents.
  *
  * Stores nothing - the archive is built on request and never written to disk or a table.
  *
- * Deliberately excludes `audit_log` entries - left as an open question in the takeout plan's §4
- * rather than answered by this service.
+ * Deliberately excludes `audit_log` entries - left as an open question; see ADR-0051's Consequences.
  */
 @Service
 class HouseholdExportService(

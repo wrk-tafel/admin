@@ -51,6 +51,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0017](0017-web-push-as-a-second-notification-channel.md) | Web Push (VAPID) as a second, out-of-app channel | accepted |
 | [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
 | [0050](0050-customer-documents-split-into-its-own-permission.md) | The documents tab gets its own permission, separate from CUSTOMER | accepted |
+| [0051](0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md) | Data-subject requests search across areas, then delegate to each area's own export/delete | accepted |
 | [0034](0034-error-contract-problemdetail-to-german-toast.md) | One error contract — RFC 7807 out, a German toast in | accepted |
 | [0009](0009-server-side-document-generation-with-xsl-fo.md) | Server-side documents — XSL-FO/FOP for PDF, Commons CSV | accepted |
 | [0040](0040-route-navigation-by-map-app-deep-link.md) | Navigation along a route is a deep link into the device's map app | accepted |
@@ -98,7 +99,6 @@ decided. They live one level up, in `docs/architecture/`:
 | Document | Subject |
 |---|---|
 | [`gdpr-compliance.md`](../gdpr-compliance.md) | What the application does with personal data, and where that falls short of the GDPR ([#3124](https://github.com/wrk-tafel/admin/issues/3124)) |
-| [`gdpr-data-takeout-plan.md`](../gdpr-data-takeout-plan.md) | A concrete design for a customer/staff data-takeout export, covering gaps G5 and G12 of the GDPR review ([#3362](https://github.com/wrk-tafel/admin/issues/3362)) |
 | [`rls-postgres-evaluation.md`](../rls-postgres-evaluation.md) | Whether Postgres Row Level Security makes sense given this application's single-tenant, permission-not-row access model ([#3411](https://github.com/wrk-tafel/admin/issues/3411)) |
 
 ## Writing a new one
