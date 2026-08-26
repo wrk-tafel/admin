@@ -5,6 +5,8 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+
+## [1.13.0] - 2026-08-26
 - Im Benutzermenü kann jetzt unter "Meine Daten exportieren" eine DSGVO-Auskunft zum eigenen Benutzerkonto (Benutzername, Mitarbeiter-Stammdaten, Berechtigungen, Aktiv-Status, letzter Login) als PDF-Datei heruntergeladen werden; auf der Benutzerdetailseite steht derselbe Export für andere Benutzer:innen zur Verfügung.
 - In der Kundenansicht kann unter "Weitere Aktionen" jetzt eine ZIP-Datei mit den vollständigen Kundendaten (Stammdaten, weitere Personen, Notizen, Teilnahme-Historie, Dokumentenliste) als PDF-Datei sowie allen hochgeladenen Dokumenten heruntergeladen werden, für die Beantwortung einer DSGVO-Auskunftsanfrage.
 - Der Dokumente-Tab in der Kundenansicht (Ausweise, Einkommensnachweise) benötigt jetzt die eigene Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung; bestehende Benutzer:innen mit Kundenverwaltung erhalten die neue Berechtigung automatisch mit.
