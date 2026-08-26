@@ -1,5 +1,9 @@
 import * as path from 'path';
+import dayjs from 'dayjs';
+import {Gender} from '../support/commands';
 import {MAIN_CONTENT} from '../support/accessibility';
+
+const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
 
 // Clicking the mat-checkbox host element itself is unreliable once its label text is long enough
 // to shift the element's center away from the actual checkbox glyph - the native input underneath
@@ -26,12 +30,34 @@ describe('Data Subject Request', () => {
 
   it('searches across households and employees without an account, grouped by type', () => {
     cy.getAnyRandomNumber().then((randomId) => {
-      cy.createDummyCustomer().then((customerResponse) => {
-        // The household's own randomized lastname doubles as the shared search term - the
-        // employee below is given the exact same one, so a single search is guaranteed to hit
-        // both without depending on any other test's or testdata's fixtures.
-        const discriminator = customerResponse.body.data.lastname;
+      // A dedicated prefix, deliberately not the 'lastname-' every cy.createDummyCustomer()/
+      // cy.createDummyUser() fixture across the whole e2e suite shares - the search is fuzzy
+      // (strict_word_similarity, see SearchTextSpecs), and by the time a long e2e run has
+      // accumulated thousands of dummy households/employees, some unrelated fixture's own
+      // 'lastname-<digits>' can cross the similarity threshold against this test's discriminator
+      // and inflate the match count (see #3406). This prefix shares no word with any other spec's
+      // fixtures, so it can't be confused with them regardless of how much data has accumulated.
+      const discriminator = 'dsr-discriminator-' + randomId;
 
+      cy.createCustomer({
+        firstname: 'firstname-' + randomId,
+        lastname: discriminator,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        telephoneNumber: '0123456789',
+        email: 'firstname.lastname@test.com',
+        employer: 'employer-' + randomId,
+        country: AUSTRIA,
+        income: 1000,
+        incomeDue: dayjs().add(30, 'days').toDate(),
+        address: {
+          street: 'street-' + randomId,
+          houseNumber: '1A',
+          city: 'city-' + randomId,
+          postalCode: 1234
+        },
+        validUntil: dayjs().add(1, 'year').toDate()
+      }).then(() => {
         cy.request('POST', '/api/employees', {
           personnelNumber: 'DSR-' + randomId,
           firstname: 'NoAccount',
