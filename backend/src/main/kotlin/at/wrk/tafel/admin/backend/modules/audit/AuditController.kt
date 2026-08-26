@@ -54,7 +54,13 @@ class AuditController(
      * Feeds the "Verlauf" tab. Sits under `/api/audit` rather than under
      * `/api/households/{householdId}/...` so the whole feature stays behind one permission and one
      * controller - the household module knows nothing about the audit trail.
+     *
+     * Requires `CUSTOMER` in addition to the class-level `AUDIT_LOG`, unlike every other endpoint
+     * here: this one serves one household's full history - names, addresses, income - rather than
+     * the redacted view [AuditService.search]/[AuditService.getFilterOptions] give an `AUDIT_LOG`-only
+     * caller for the same entity types (see [at.wrk.tafel.admin.backend.database.common.audit.AuditScope.householdScopedEntityTypes]).
      */
+    @PreAuthorize("hasAuthority('AUDIT_LOG') and hasAuthority('CUSTOMER')")
     @GetMapping("/households/{householdId}")
     fun getHouseholdHistory(
         @PathVariable householdId: Long,
