@@ -247,12 +247,13 @@ its methods that isn't behind one of the narrower customer permissions. Check-in
 need to confirm that a number is valid held the same access as the person doing the income
 assessment. `ADMINISTRATOR` still expands to everything by design.
 
-`HouseholdDocumentController` and `DocumentScannerController` — the ID scans, proofs of income and
-the not-yet-imported scanner-folder files behind them, the most sensitive artefacts the application
-stores — now require a separate `CUSTOMER_DOCUMENTS` permission instead (`UserPermissions.kt`), and
-the customer detail screen's "Dokumente" tab is hidden without it, the same pattern the "Verlauf"
-tab already used for `AUDIT_LOG`. See [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md)
-for the full decision and its consequences, and issue #3181.
+`HouseholdDocumentController`, `DocumentScannerController` and `DocumentScannerSseController` — the
+ID scans, proofs of income and the not-yet-imported scanner-folder files behind them, the most
+sensitive artefacts the application stores — now require a separate `CUSTOMER_DOCUMENTS` permission
+instead (`UserPermissions.kt`), and the customer detail screen's "Dokumente" tab is hidden without
+it, the same pattern the "Verlauf" tab already used for `AUDIT_LOG`. See
+[ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md) for the full decision and
+its consequences, and issue #3181.
 
 What remains open: `HouseholdController`'s own endpoints (household master data, income, cost
 contribution) are still behind the single broader `CUSTOMER`, and — unchanged by this — nobody has

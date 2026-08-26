@@ -10,7 +10,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
 @RestController
 @RequestMapping("/api/sse/document-scanner-files")
-@PreAuthorize("hasAuthority('CUSTOMER')")
+@PreAuthorize("hasAuthority('CUSTOMER_DOCUMENTS')")
 class DocumentScannerSseController(
     private val sseOutboxService: SseOutboxService,
     private val sseEmitterFactory: SseEmitterFactory,

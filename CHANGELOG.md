@@ -19,6 +19,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Beim Löschen mehrerer Treffer auf der Seite "Datenauskunft" wird jetzt namentlich aufgelistet, welcher Treffer bereits gelöscht war, statt nur eine Anzahl anzuzeigen.
 - Fehlermeldungen bei fehlerhaft empfangenen Live-Aktualisierungen (SSE) enthalten jetzt keine Nutzdaten mehr, damit über die Support-Anfrage keine personenbezogenen Daten (z. B. Haushalts- oder Ticketnummern) versehentlich mitgeschickt werden.
 - Beim endgültigen Löschen eines Haushalts werden jetzt auch dessen als "Kein Duplikat" abgelehnte Duplikat-Prüfungen mitgelöscht, statt dauerhaft in der Datenbank zu verbleiben.
+- Die Live-Aktualisierung der Scanner-Dateiliste im Dokumente-Tab der Kundenansicht benötigt jetzt ebenfalls die Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung.
 
 ## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).
