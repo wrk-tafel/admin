@@ -13,9 +13,11 @@ RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination 
 # here would silently produce a dead archive that never gets used at runtime.
 FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c437a8c5a951512724297b7 AS cds-trainer
 # fuzzystrmatch (used by household duplicate detection, see R__00031) lives in postgresql-contrib, not
-# the base package. Versions pinned for a reproducible build - see the note on the final stage's
-# libssl3/libcrypto3 pin below for why a floating apk install isn't good enough on its own.
-RUN apk add --no-cache postgresql17=17.11-r0 postgresql17-contrib=17.11-r0
+# the base package. Deliberately not version-pinned: Alpine's repo only carries the current build of
+# each package, so a pinned version here would eventually vanish from the index and break the build
+# outright rather than just drift - the base image digest pin above is what makes the rest of this
+# stage reproducible.
+RUN apk add --no-cache postgresql17 postgresql17-contrib
 ENV PGDATA=/var/lib/postgresql/data
 RUN mkdir -p "$PGDATA" /run/postgresql && chown -R postgres:postgres /var/lib/postgresql /run/postgresql \
     && su postgres -c "initdb -D '$PGDATA' --auth=trust --no-sync" \
@@ -44,8 +46,10 @@ FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c4
 # same image, rather than silently picking up whatever Alpine packages happen to be current that day.
 # The cost is that a fixed digest also fixes its bundled package versions, so a patched CVE (e.g.
 # libssl3/libcrypto3, see the Trivy code-scanning alerts this addresses) never arrives on its own -
-# it has to be pulled and pinned explicitly here, and re-pinned by hand whenever a newer fix ships.
-RUN apk add --no-cache --upgrade libssl3=3.5.8-r0 libcrypto3=3.5.8-r0
+# pulling current versions here closes that gap. Deliberately not version-pinned like the base image:
+# Alpine's repo only carries the current build of each package, so pinning an exact version here
+# would eventually vanish from the index and break the build outright once Alpine ships the next fix.
+RUN apk add --no-cache --upgrade libssl3 libcrypto3
 ARG VERSION=dev
 ARG BUILD_TIME=unknown
 ENV TAFELADMIN_VERSION=$VERSION
