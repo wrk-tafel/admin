@@ -312,7 +312,7 @@ class FoodCollectionService(
 
         return entity.apply {
             this.distribution = distributionEntity
-            this.route = route
+            updateRoute(route)
             car = carRepository.findByIdOrNull(data.carId)
                 ?: throw NotFoundException("KFZ nicht gefunden!")
             driver = employeeRepository.findByIdOrNull(data.driverId)
@@ -334,7 +334,7 @@ class FoodCollectionService(
 
         return entity.apply {
             this.distribution = distributionEntity
-            this.route = route
+            updateRoute(route)
             items = mapItemsToEntity(data.items)
         }
     }

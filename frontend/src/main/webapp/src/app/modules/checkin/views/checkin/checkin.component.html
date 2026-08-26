@@ -90,6 +90,13 @@
             Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
           </div>
         }
+        @if (customer()?.hasPrivacyNotice === false) {
+          <div class="inline-flex items-center gap-2 bg-white font-bold px-3 py-1 tall:py-1.5 rounded mt-2 tall:mt-3"
+               style="color: var(--tafel-severity-danger);" testid="missingPrivacyNoticeChip">
+            <mat-icon svgIcon="warning" class="!w-5 !h-5"></mat-icon>
+            Datenschutzerklärung fehlt
+          </div>
+        }
       </div>
 
       <mat-card-content class="!pt-3 tall:!pt-5 !flex flex-col grow">

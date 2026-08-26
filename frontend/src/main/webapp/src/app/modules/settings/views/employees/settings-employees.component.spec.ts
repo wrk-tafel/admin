@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import {provideHttpClient, withXhr} from '@angular/common/http';
+import {HttpHeaders, HttpResponse, provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {provideRouter} from '@angular/router';
 import {SettingsEmployeesComponent} from './settings-employees.component';
@@ -13,6 +13,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {EmployeeCreateDialogResult} from './dialogs/employee-create-dialog.component';
 
 describe('SettingsEmployeesComponent', () => {
@@ -39,6 +40,7 @@ describe('SettingsEmployeesComponent', () => {
 
   let employeeApiMock: Partial<EmployeeApiService>;
   let toastrMock: Partial<TafelToastrService>;
+  let fileHelperMock: Partial<FileHelperService>;
   let permissions: string[];
 
   beforeEach(() => {
@@ -51,11 +53,16 @@ describe('SettingsEmployeesComponent', () => {
       saveEmployee: vi.fn(() => of(testEmployee1)),
       deleteEmployee: vi.fn(() => of(undefined)),
       checkPersonnelNumberAvailability: vi.fn(() => of<PersonnelNumberAvailabilityResponse>({available: true})),
+      exportEmployee: vi.fn(),
     };
 
     toastrMock = {
       success: vi.fn(),
       error: vi.fn()
+    };
+
+    fileHelperMock = {
+      downloadFile: vi.fn()
     };
 
     const matDialogMock: Partial<MatDialog> = {
@@ -70,6 +77,7 @@ describe('SettingsEmployeesComponent', () => {
         {provide: EmployeeApiService, useValue: employeeApiMock},
         {provide: TafelToastrService, useValue: toastrMock},
         {provide: MatDialog, useValue: matDialogMock},
+        {provide: FileHelperService, useValue: fileHelperMock},
         {
           provide: AuthenticationService,
           useValue: {hasPermission: (permission: string) => permissions.includes(permission)}
@@ -282,5 +290,47 @@ describe('SettingsEmployeesComponent', () => {
     component['deleteEmployee'](testEmployee1);
 
     expect(toastrMock.error).toHaveBeenCalled();
+  });
+
+  it('exportEmployee() downloads this employee\'s GDPR data takeout PDF', () => {
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=mitarbeiterdaten-00002.pdf'}),
+      body: new Blob()
+    });
+    (employeeApiMock.exportEmployee as any).mockReturnValue(of(response));
+
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['exportEmployee'](testEmployee2);
+
+    expect(employeeApiMock.exportEmployee).toHaveBeenCalledWith(testEmployee2.id);
+    expect(fileHelperMock.downloadFile).toHaveBeenCalledWith('mitarbeiterdaten-00002.pdf', response.body);
+  });
+
+  it('exportEmployee() shows an error toast when the export fails', () => {
+    (employeeApiMock.exportEmployee as any).mockReturnValue(throwError(() => new Error('failed')));
+
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['exportEmployee'](testEmployee2);
+
+    expect(fileHelperMock.downloadFile).not.toHaveBeenCalled();
+    expect(toastrMock.error).toHaveBeenCalledWith('Datenexport fehlgeschlagen!');
+  });
+
+  // testEmployee1 has a linked user account (whose own export already carries this employee's
+  // personnel number/name), testEmployee2 does not - only the latter is meant to offer this button.
+  it('only offers the export button for an employee with no linked user account', () => {
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="exportEmployeeButton-0"]')).toBeNull();
+    expect(element.querySelector('[testid="exportEmployeeButton-1"]')).not.toBeNull();
   });
 });

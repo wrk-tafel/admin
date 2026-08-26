@@ -71,8 +71,10 @@ in the mailed export set without any other wiring change:
   today.
 - **`FoodCollectionsExporter`** (`TOeT_Spenden`) – Also year-to-date (same `getDistributionsForYear` pattern).
   Builds one row per shop-per-food-collection-per-distribution, with one column per `FoodCategoryEntity`
-  (sorted return-items-last, then by name), so the column set changes if food categories are added/removed in
-  the `logistics` module.
+  (sorted by name), so the column set changes if food categories are added/removed in the `logistics` module.
+  The route name, shop number and each row's category weight come from the snapshot recorded on
+  `FoodCollectionEntity`/`FoodCollectionItemEntity` at collection time, not a live join - see the `logistics`
+  module's persistence-gotchas section.
 
 Because `AgeDistributionExporter`/`CountryDistributionExporter`/`HouseholdSizeDistributionExporter` only look
 at `currentStatistic.distribution.households`, they silently report empty/zero data if that relation isn't
@@ -187,6 +189,10 @@ same list) and hand it to this one utility — there's no shared "CSV row builde
 - Shelter data in the daily report PDF is a historical snapshot on `DistributionStatisticEntity`, not a live
   join to `logistics`' `Shelter` entity — same reasoning as in the `dashboard` module's README: renaming or
   deleting a shelter later must not change past PDFs/exports.
-- `FoodCollectionsExporter`'s CSV column set is derived from *current* `FoodCategoryEntity` rows at export
-  time, sorted return-items-last then by name — adding/renaming a food category in `logistics` changes the
-  column layout of future exports (but not past ones, since those were already generated and mailed).
+- `FoodCollectionsExporter`'s CSV column *set* (which category ids get a column at all) is still derived from
+  *current* `FoodCategoryEntity` rows at export time, so adding a food category in `logistics` adds a column to
+  every export from then on, current year included. The *labels/values* in that CSV are not live, though: the
+  route name, shop number and each column's category name come from the snapshot `FoodCollectionEntity`/
+  `FoodCollectionItemEntity` recorded at collection time (`R__00108`) — renaming any of them in `logistics`
+  only affects a category's header label if it was never actually recorded in the exported period (nothing to
+  freeze a label from), and never changes an already-recorded row.

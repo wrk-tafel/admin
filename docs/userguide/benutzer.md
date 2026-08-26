@@ -34,6 +34,8 @@ Die Detailansicht zeigt Name, Benutzername, Personalnummer, ob eine Passwortänd
 
 Über **Benutzer bearbeiten** gelangt man zur Bearbeitungsmaske. Über das Dropdown **Benutzer-Status ändern** kann der Benutzer aktiviert bzw. deaktiviert werden (je nach aktuellem Status wird nur die passende Option angezeigt); zusätzlich steht dort, getrennt durch eine Trennlinie, **Benutzer löschen** zur Verfügung, um den Benutzer unwiderruflich zu entfernen.
 
+Über **Daten exportieren (PDF)** lässt sich eine DSGVO-Datenauskunft (Art. 15/20) zu diesem Benutzerkonto als PDF-Datei herunterladen – Stammdaten (Benutzername, Personalnummer, Name, Aktiv-Status, letzter Login) und alle zugewiesenen Berechtigungen. Nützlich, wenn eine Auskunftsanfrage im Namen einer anderen Person gestellt wird, etwa durch die Personalabteilung oder nach dem Ausscheiden aus dem Verein. Für die eigenen Daten steht derselbe Export auch über das Benutzermenü zur Verfügung (Benutzer-Icon oben rechts, **Meine Daten exportieren**).
+
 ![Benutzer-Status ändern](images/benutzer-status-aendern.jpg)
 
 ## Benutzer anlegen / bearbeiten
@@ -56,12 +58,16 @@ Im unteren Bereich werden die **Berechtigungen** einzeln oder je Kategorie ("All
 
 | Kategorie | Berechtigungen |
 |---|---|
-| Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kundenverwaltung, Scanner |
+| Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kunden-Dokumente, Kundenverwaltung, Scanner |
 | Logistik | Transport/Logistik |
 | Leitung | Benutzerverwaltung, Einstellungen, Supervisor |
-| Verwaltung | Änderungsprotokoll, Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken, Administrator |
+| Verwaltung | Änderungsprotokoll, Datenauskunft, Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken, Administrator |
 
 Die Berechtigung **Änderungsprotokoll** gibt Einsicht in den Verlauf aller Änderungen – sowohl in den gleichnamigen Menüpunkt als auch in den Reiter "Verlauf" auf der Kunden-Detailseite (siehe [Änderungsprotokoll](aenderungsprotokoll.md)). Sie ist bewusst von "Kundenverwaltung" getrennt, da sie auch Vorgängerwerte und Änderungen an Benutzern und Einstellungen sichtbar macht.
+
+Die Berechtigung **Datenauskunft** gibt Zugriff auf die gleichnamige Seite (siehe [Datenauskunft](datenauskunft.md)), auf der sich Kunden, Benutzerkonten und Mitarbeiter ohne Benutzerkonto mit einem einzigen Suchfeld finden lassen. Sie kommt **zusätzlich** zur jeweiligen Fachbereichs-Berechtigung hinzu, ersetzt diese aber nicht: Wer dort einen Kunden-Treffer exportieren oder löschen möchte, braucht weiterhin "Kundenverwaltung", bei einem Benutzerkonto "Benutzerverwaltung" und bei einem Mitarbeiter ohne Konto "Einstellungen" – genau wie beim direkten Aufruf über die jeweilige Seite.
+
+Die Berechtigung **Kunden-Dokumente** gibt Zugriff auf den Reiter "Dokumente" der Kunden-Detailseite (hochgeladene Ausweise, Einkommensnachweise und der Import aus dem Scanner-Ordner, siehe [Kunden](kunden.md)). Auch sie ist bewusst von "Kundenverwaltung" getrennt, da diese Dokumente zu den sensibelsten Daten im System gehören und nicht jede Person, die Kundendaten bearbeiten darf, sie auch einsehen muss. Ohne diese Berechtigung ist der Reiter auf der Kunden-Detailseite nicht sichtbar.
 
 Die Berechtigung **Administrator** ist eine Sonderrolle für jene Personen, die die Anwendung technisch betreuen: sie schließt automatisch **alle anderen Berechtigungen** mit ein, unabhängig davon, was sonst noch angehakt ist. In der Berechtigungsliste des Benutzers bleibt trotzdem nur "Administrator" markiert – die übrigen Berechtigungen ergeben sich erst bei der Anmeldung.
 

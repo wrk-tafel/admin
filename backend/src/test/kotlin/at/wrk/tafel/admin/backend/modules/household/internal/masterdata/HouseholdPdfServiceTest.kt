@@ -21,15 +21,22 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.math.BigDecimal
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import javax.imageio.ImageIO
 
 class HouseholdPdfServiceTest {
 
     private lateinit var service: HouseholdPdfService
     private lateinit var testHousehold: HouseholdEntity
+
+    // Fixed so generatePrivacyNoticePdf's "Ort, Datum" (LocalDate.now(clock)) doesn't drift a day
+    // past midnight and mismatch the checked-in golden reference image below.
+    private val clock: Clock = Clock.fixed(Instant.parse("2026-01-15T10:00:00Z"), ZoneId.of("UTC"))
 
     companion object {
         private val comparisonResultDirectory = File(
@@ -101,7 +108,7 @@ class HouseholdPdfServiceTest {
         testHousehold.persons = mutableListOf(mainPerson, addPers1, addPers2, addPers3)
         testHousehold.mainPerson = mainPerson
 
-        service = HouseholdPdfService(PDFService())
+        service = HouseholdPdfService(PDFService(), clock)
     }
 
     @Test

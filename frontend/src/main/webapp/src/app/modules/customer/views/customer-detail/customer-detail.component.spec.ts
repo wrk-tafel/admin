@@ -36,6 +36,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 import {
   EditCostContributionDialogComponent
 } from '../../../../common/components/edit-cost-contribution-dialog/edit-cost-contribution-dialog.component';
+import {AuthenticationService} from '../../../../common/security/authentication.service';
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: MockedObject<CustomerApiService>;
@@ -153,6 +154,7 @@ describe('CustomerDetailComponent', () => {
   beforeEach((() => {
     const customerApiServiceSpy = {
       generatePdf: vi.fn().mockName('CustomerApiService.generatePdf'),
+      exportHousehold: vi.fn().mockName('CustomerApiService.exportHousehold'),
       deleteCustomer: vi.fn().mockReturnValue(of(undefined)).mockName('CustomerApiService.deleteCustomer'),
       updateCustomer: vi.fn().mockImplementation((customerData: CustomerData) => of({
         data: customerData,
@@ -430,6 +432,28 @@ describe('CustomerDetailComponent', () => {
     component.printPrivacyNotice();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
+  });
+
+  it('exportHousehold', () => {
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenexport-1.zip'}),
+      body: new Blob()
+    });
+    customerApiService.exportHousehold.mockReturnValue(of(response));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+
+    fixture.detectChanges();
+    component.exportHousehold();
+
+    expect(customerApiService.exportHousehold).toHaveBeenCalledWith(mockCustomer.id);
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenexport-1.zip', response.body);
+    expect(component.exporting()).toBe(false);
   });
 
   it('editCustomer', async () => {
@@ -1015,6 +1039,29 @@ describe('CustomerDetailComponent', () => {
     expect(customerDocumentApiService.deleteDocument).toHaveBeenCalledWith(mockCustomer.id, document.id);
     expect(component.customerDocuments()).toEqual([]);
     expect(toastr.success).toHaveBeenCalledWith('Dokument wurde gelöscht!');
+  });
+
+  it('hides the documents tab from a user without CUSTOMER_DOCUMENTS', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="documents-tab-label"]'))).toBeNull();
+  });
+
+  it('shows the documents tab for a user with CUSTOMER_DOCUMENTS', () => {
+    const authenticationService = TestBed.inject(AuthenticationService);
+    authenticationService.userInfo.set({username: 'tester', permissions: ['CUSTOMER_DOCUMENTS']});
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="documents-tab-label"]'))).not.toBeNull();
   });
 
   it('pay cost contribution - all', () => {

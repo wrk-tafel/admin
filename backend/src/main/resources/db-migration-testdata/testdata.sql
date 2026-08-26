@@ -83,6 +83,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2006, NOW(), NOW(), 200, 'CUSTOMERS_ABOVE_LIMIT');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2007, NOW(), NOW(), 200, 'CUSTOMERS_OVERVIEW');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (2008, NOW(), NOW(), 200, 'CUSTOMER_DOCUMENTS');
 
 -- user: admin
 -- pwd: 12345
@@ -120,6 +122,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3013, NOW(), NOW(), 300, 'ADMINISTRATOR');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3014, NOW(), NOW(), 300, 'AUDIT_LOG');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3015, NOW(), NOW(), 300, 'CUSTOMER_DOCUMENTS');
 
 -- user: scanner1
 -- pwd: 12345
@@ -163,7 +167,8 @@ VALUES (700, NOW(), NOW(), 'checkin1',
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (7001, NOW(), NOW(), 700, 'CHECKIN');
 
--- user e2etest2 for cypress tests
+-- user e2etest2 for cypress tests - deliberately holds only CUSTOMER, nothing else, to exercise
+-- what a user is *not* shown (e.g. the audit "Verlauf" tab, the documents tab)
 -- pwd: e2etest
 INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
 VALUES (800, NOW(), NOW(), '0800', 'E2E', 'Test 2');
@@ -730,9 +735,11 @@ VALUES (5, NOW(), NOW(), 9000, 140, 1, true, false);
 INSERT INTO distributions_households (id, created_at, updated_at, distribution_id, household_id, ticket_number, processed, cost_contribution_paid)
 VALUES (6, NOW(), NOW(), 9000, 141, 2, true, false);
 
--- 135 more households, registered into distribution 9000 alongside the two above, so its numbers
--- add up to a round, realistic-looking day on the dashboard's "Letzte Ausgabe" summary: 137 Kunden,
--- 142 Personen, 137 bearbeitete Tickets. First/last names are drawn from two lists by index, same
+-- 18 more households, registered into distribution 9000 alongside the two above, so its numbers
+-- add up to a round, realistic-looking day on the dashboard's "Letzte Ausgabe" summary: 20 Kunden,
+-- 22 Personen, 20 bearbeitete Tickets. Deliberately a small block, not hundreds of rows - this data
+-- also shows up in the plain customer list, and a household search screen that opens onto a wall of
+-- look-alike filler isn't useful test data. First/last names are drawn from two lists by index, same
 -- approach as the three-year statistics history further down.
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_postalcode, address_city,
@@ -751,7 +758,7 @@ SELECT 5000 + i,
        'Wien',
        '2999-12-31',
        0
-FROM generate_series(0, 134) AS i;
+FROM generate_series(0, 17) AS i;
 
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
                      birth_date, gender, country_id, exclude_household, receives_family_allowance)
@@ -762,18 +769,18 @@ SELECT 6000 + i,
        true,
        (ARRAY ['Anna','Bernd','Clara','David','Elena','Fatima','Goran','Hanna','Igor','Jasmin',
            'Katrin','Lukas','Milan','Nadja','Omar','Petra','Quirin','Ruslan','Selma','Tomas'])[1 + (i % 20)],
-       (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + ((i / 20) % 8)],
+       (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + (i % 8)],
        (CURRENT_DATE - interval '1 year' * (20 + (i % 50)))::date,
        CASE WHEN i % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
        1,
        false,
        false
-FROM generate_series(0, 134) AS i;
+FROM generate_series(0, 17) AS i;
 
-UPDATE households SET main_person_id = 6000 + (id - 5000) WHERE id BETWEEN 5000 AND 5134;
+UPDATE households SET main_person_id = 6000 + (id - 5000) WHERE id BETWEEN 5000 AND 5017;
 
--- five of the new households also have one additional (non-excluded) member, so "Personen gesamt"/
--- the summary's person count (142) comes out a few higher than the household count (137) instead
+-- two of the new households also have one additional (non-excluded) member, so "Personen gesamt"/
+-- the summary's person count (22) comes out a bit higher than the household count (20) instead
 -- of being exactly one person per household.
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
                      birth_date, gender, country_id, exclude_household, receives_family_allowance)
@@ -789,7 +796,7 @@ SELECT 7000 + i,
        1,
        false,
        false
-FROM generate_series(0, 4) AS i;
+FROM generate_series(0, 1) AS i;
 
 INSERT INTO distributions_households (id, created_at, updated_at, distribution_id, household_id, ticket_number, processed, cost_contribution_paid)
 SELECT 6 + i,
@@ -800,7 +807,7 @@ SELECT 6 + i,
        2 + i,
        true,
        false
-FROM generate_series(1, 135) AS i;
+FROM generate_series(1, 18) AS i;
 
 -- an end-of-day statistic for distribution 9000 too, with two shelters, so the dashboard's "Letzte
 -- Ausgabe" summary has real "Notschlafstellen"/"Personen in Notschlafstellen" figures instead of
@@ -1090,15 +1097,17 @@ VALUES (5, NOW(), NOW(), 'W-NC-222', 'Stillgelegter Lieferwagen 2', false);
 
 -- food collection for route 1
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
-                              driver_employee_id, co_driver_employee_id, km_start, km_end)
-VALUES (1, NOW(), NOW(), 100, 1, 1, 2000, 2100, 213000, 213500);
+                              driver_employee_id, co_driver_employee_id, km_start, km_end, route_name)
+VALUES (1, NOW(), NOW(), 100, 1, 1, 2000, 2100, 213000, 213500, (SELECT name FROM routes WHERE id = 1));
 
 -- food collections items for route 1
 -- `weight` is stored, not derived on read (see FoodCollectionItemEntity), so it has to be computed
 -- here exactly as the application would: the amount itself for a shop measuring in KG, otherwise
--- amount * the category's weight per unit.
+-- amount * the category's weight per unit. `shop_number`/`category_name` are frozen the same way
+-- (see R__00108).
 WITH ShopCategories AS (
-                        SELECT s.id AS shop_id, fc.id AS food_category_id, s.food_unit, fc.weight_per_unit
+                        SELECT s.id AS shop_id, s.number AS shop_number, fc.id AS food_category_id,
+                               fc.name AS category_name, s.food_unit, fc.weight_per_unit
                         FROM shops s
                         JOIN routes_stops rs ON rs.shop_id = s.id
                         JOIN routes r ON rs.route_id = r.id
@@ -1112,22 +1121,26 @@ INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
                              amount,
-                             weight)
+                             weight,
+                             shop_number,
+                             category_name)
 SELECT 1,         -- fixed collection 1
        i.shop_id,
        i.food_category_id,
        i.amount,
-       CASE WHEN i.food_unit = 'KG' THEN i.amount ELSE i.amount * COALESCE(i.weight_per_unit, 0) END
+       CASE WHEN i.food_unit = 'KG' THEN i.amount ELSE i.amount * COALESCE(i.weight_per_unit, 0) END,
+       i.shop_number,
+       i.category_name
 FROM Items i;
 
 -- food collection for route 2
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
-                              driver_employee_id, co_driver_employee_id, km_start, km_end)
-VALUES (2, NOW(), NOW(), 100, 2, 2, 2000, 2100, 213000, 213500);
+                              driver_employee_id, co_driver_employee_id, km_start, km_end, route_name)
+VALUES (2, NOW(), NOW(), 100, 2, 2, 2000, 2100, 213000, 213500, (SELECT name FROM routes WHERE id = 2));
 
 -- food collections items for route 2
 WITH ShopCategories AS (
-    SELECT s.id AS shop_id, fc.id AS food_category_id
+    SELECT s.id AS shop_id, s.number AS shop_number, fc.id AS food_category_id, fc.name AS category_name
     FROM shops s
              JOIN routes_stops rs ON rs.shop_id = s.id
              JOIN routes r ON rs.route_id = r.id
@@ -1139,12 +1152,16 @@ INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
                              amount,
-                             weight)
+                             weight,
+                             shop_number,
+                             category_name)
 SELECT 2,         -- fixed collection 2
        sc.shop_id,
        sc.food_category_id,
        0, -- amount
-       0  -- a zero amount weighs nothing whatever the unit is
+       0, -- a zero amount weighs nothing whatever the unit is
+       sc.shop_number,
+       sc.category_name
 FROM ShopCategories sc;
 
 -- return boxes route 2 brought back last time - the route guidance screen sends them out again
@@ -1160,12 +1177,13 @@ VALUES (2, 21, 'Ströck Kisten', 0);
 
 -- food collection for route 3 (empty)
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
-                              driver_employee_id, co_driver_employee_id, km_start, km_end)
-VALUES (3, NOW(), NOW(), 100, 3, 3, 2000, 2100, 1000, 1200);
+                              driver_employee_id, co_driver_employee_id, km_start, km_end, route_name)
+VALUES (3, NOW(), NOW(), 100, 3, 3, 2000, 2100, 1000, 1200, (SELECT name FROM routes WHERE id = 3));
 
 -- food collections items for route 3 (all empty)
 WITH ShopCategories AS (
-    SELECT s.id AS shop_id, fc.id AS food_category_id, s.food_unit, fc.weight_per_unit
+    SELECT s.id AS shop_id, s.number AS shop_number, fc.id AS food_category_id, fc.name AS category_name,
+           s.food_unit, fc.weight_per_unit
     FROM shops s
              JOIN routes_stops rs ON rs.shop_id = s.id
              JOIN routes r ON rs.route_id = r.id
@@ -1177,12 +1195,16 @@ INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
                              amount,
-                             weight)
+                             weight,
+                             shop_number,
+                             category_name)
 SELECT 3,         -- fixed collection 3
        sc.shop_id,
        sc.food_category_id,
        1, -- amount
-       CASE WHEN sc.food_unit = 'KG' THEN 1 ELSE COALESCE(sc.weight_per_unit, 0) END
+       CASE WHEN sc.food_unit = 'KG' THEN 1 ELSE COALESCE(sc.weight_per_unit, 0) END,
+       sc.shop_number,
+       sc.category_name
 FROM ShopCategories sc;
 
 -- return boxes route 3 brought back last time. Route 3 is the only route no e2e spec ever records a
@@ -1202,10 +1224,12 @@ VALUES (3, 31, 'Ströck Kisten', 0);
 -- has a non-zero "Erfasste Warenmenge" as well - one KG-measured shop/category combo is enough,
 -- the exact split doesn't matter for that figure.
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
-                              driver_employee_id, co_driver_employee_id, km_start, km_end)
-VALUES (9000, NOW(), NOW(), 9000, 1, 1, 2000, 2100, 150000, 150180);
-INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight)
-VALUES (9000, 6, 2, 5230, 5230);
+                              driver_employee_id, co_driver_employee_id, km_start, km_end, route_name)
+VALUES (9000, NOW(), NOW(), 9000, 1, 1, 2000, 2100, 150000, 150180, (SELECT name FROM routes WHERE id = 1));
+INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight,
+                                    shop_number, category_name)
+VALUES (9000, 6, 2, 5230, 5230, (SELECT number FROM shops WHERE id = 6),
+        (SELECT name FROM food_categories WHERE id = 2));
 
 -- shelters
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
@@ -1376,7 +1400,7 @@ VALUES (201, NOW() - interval '3 hours', 100, 'e2etest', 'E2E', 'Test', 'Househo
 -- row's index instead of random(), so the same import on the same day always produces the same
 -- history.
 
--- 160 households: a base of 120 that were already registered before this window opens, plus 40 that
+-- 40 households: a base of 30 that were already registered before this window opens, plus 10 that
 -- registered during it. Four fifths of them were renewed and are entitled into the coming year, the
 -- rest stopped coming and lapsed somewhere in the last three and a half years - so the customer key
 -- figures drift, slightly upwards, instead of holding one number, and the oldest point of a
@@ -1419,11 +1443,11 @@ FROM (SELECT i,
              CASE
                  -- a base of long-standing households, registered before the window this history
                  -- covers, so the oldest point of a timeline is a going concern rather than zero
-                 WHEN i < 120 THEN NOW() - interval '3 years' - interval '4 years' * ((120 - i) / 120.0)
+                 WHEN i < 30 THEN NOW() - interval '3 years' - interval '4 years' * ((30 - i) / 30.0)
                  -- and the ones that registered during it
-                 ELSE NOW() - interval '3 years' * ((160 - i) / 40.0)
+                 ELSE NOW() - interval '3 years' * ((40 - i) / 10.0)
                  END AS registered_at
-      FROM generate_series(0, 159) AS i) seed;
+      FROM generate_series(0, 39) AS i) seed;
 
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
                      birth_date, gender, country_id, employer, income, income_due,
@@ -1435,7 +1459,7 @@ SELECT 3000 + s.i,
        true,
        (ARRAY ['Anna','Bernd','Clara','David','Elena','Fatima','Goran','Hanna','Igor','Jasmin',
            'Katrin','Lukas','Milan','Nadja','Omar','Petra','Quirin','Ruslan','Selma','Tomas'])[1 + (s.i % 20)],
-       (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + (s.i / 20)],
+       (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + (s.i / 5)],
        (CURRENT_DATE - interval '1 year' * (25 + (s.i % 40)))::date,
        CASE WHEN s.i % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
        1 + (s.i % 5),
@@ -1448,9 +1472,9 @@ SELECT 3000 + s.i,
        false
 FROM households h
          CROSS JOIN LATERAL (SELECT (h.id - 2000)::int AS i) s
-WHERE h.id BETWEEN 2000 AND 2159;
+WHERE h.id BETWEEN 2000 AND 2039;
 
-UPDATE households SET main_person_id = 3000 + (id - 2000) WHERE id BETWEEN 2000 AND 2159;
+UPDATE households SET main_person_id = 3000 + (id - 2000) WHERE id BETWEEN 2000 AND 2039;
 
 -- The demo households further up all carry this script's own NOW() as their registration date,
 -- which would drop every one of them into the newest bucket of every statistics timeline at once -
@@ -1462,14 +1486,23 @@ SET created_at = NOW() - interval '3 years' * (((id % 11) + 1) / 12.0),
     updated_at = NOW() - interval '3 years' * (((id % 11) + 1) / 12.0)
 WHERE id BETWEEN 100 AND 139;
 
+-- The default (no search term) customer list sorts by updated_at desc, so whichever households were
+-- touched most recently are what a freshly imported database actually shows on the first page - and
+-- without this, that would be a wall of near-identical bulk-generated filler (the "Letzte Ausgabe"
+-- and three-year-history blocks below/above) rather than anything useful to look at. Bump a
+-- representative, diverse handful back to "just touched": a plain household, one each in the
+-- locked/expired/expiring-soon/missing-master-data states, two different ways of landing above the
+-- income limit, a large family and one half of a duplicate-candidate pair.
+UPDATE households SET updated_at = NOW() WHERE id IN (101, 102, 103, 104, 105, 106, 110, 114, 115, 120);
+
 -- 0 to 3 children per household, aged 4 to 24. The ages straddle the 15-year mark on purpose:
 -- "Haushalte mit Kindern (Alter <= 15)" measures the age at each point of the timeline, so a child
 -- who is 17 today still counted two years ago - which is what makes that key figure move.
 --
--- The lastname above is shared by a group of 20 consecutive households (160 households / 8
+-- The lastname above is shared by a group of 5 consecutive households (40 households / 8
 -- lastnames), so the birth-date offset is built from each household's position within its own
--- group (0-19, unique by construction) rather than from a small modulus of h.id - a modulus
--- smaller than the 20-household group would otherwise guarantee, by the pigeonhole principle, that
+-- group (0-4, unique by construction) rather than from a small modulus of h.id - a modulus
+-- smaller than the 5-household group would otherwise guarantee, by the pigeonhole principle, that
 -- two households in the same group land on the same offset and (with a shared k) the exact same
 -- "Kind k"/lastname/birth_date triple, which HouseholdDuplicationService then flags as a duplicate.
 INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname,
@@ -1481,8 +1514,8 @@ SELECT 3200 + (row_number() OVER (ORDER BY h.id, k))::int,
        h.id,
        false,
        'Kind ' || k,
-       (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + ((h.id - 2000) / 20)],
-       (CURRENT_DATE - interval '1 year' * (2 + ((h.id - 2000) % 20) + k))::date,
+       (ARRAY ['Gruber','Hofer','Leitner','Novak','Reiter','Steiner','Weber','Zimmermann'])[1 + ((h.id - 2000) / 5)],
+       (CURRENT_DATE - interval '1 year' * (2 + ((h.id - 2000) % 5) + k))::date,
        CASE WHEN (h.id + k) % 2 = 0 THEN 'FEMALE' ELSE 'MALE' END,
        1 + (h.id % 5),
        null,
@@ -1491,7 +1524,7 @@ SELECT 3200 + (row_number() OVER (ORDER BY h.id, k))::int,
        true
 FROM households h
          CROSS JOIN LATERAL generate_series(1, (h.id - 2000) % 4) AS k
-WHERE h.id BETWEEN 2000 AND 2159;
+WHERE h.id BETWEEN 2000 AND 2039;
 
 -- one distribution every Saturday for the last three years, the most recent one a week ago -
 -- today itself is covered by the "Kunden-Übersicht" distribution above
@@ -1576,7 +1609,7 @@ WHERE ds.distribution_id BETWEEN 1001 AND 1160;
 -- The routes start at different points of the history, so the number of donors grows over the
 -- years and "Spender (Anzahl)" has something to compare year over year.
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
-                              driver_employee_id, co_driver_employee_id, km_start, km_end)
+                              driver_employee_id, co_driver_employee_id, km_start, km_end, route_name)
 SELECT 2000 + (row_number() OVER (ORDER BY d.id, r.route_id))::int,
        d.created_at,
        d.updated_at,
@@ -1586,24 +1619,32 @@ SELECT 2000 + (row_number() OVER (ORDER BY d.id, r.route_id))::int,
        2000,
        2100,
        213000 + (d.id - 1000) * 60,
-       213000 + (d.id - 1000) * 60 + r.km
+       213000 + (d.id - 1000) * 60 + r.km,
+       rt.name
 FROM distributions d
          JOIN (VALUES (1, 0, 55), (4, 40, 35), (5, 90, 18)) AS r(route_id, active_from, km)
               ON (d.id - 1000) >= r.active_from
+         JOIN routes rt ON rt.id = r.route_id
 WHERE d.id BETWEEN 1001 AND 1160;
 
 -- what came back from each donor. `weight` is stored rather than derived on read (see
--- FoodCollectionItemEntity), so it is computed here exactly as the application would.
-INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight)
+-- FoodCollectionItemEntity), so it is computed here exactly as the application would; `shop_number`/
+-- `category_name` are frozen the same way (see R__00108).
+INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight,
+                                    shop_number, category_name)
 SELECT food_collection_id,
        shop_id,
        food_category_id,
        amount,
-       CASE WHEN food_unit = 'KG' THEN amount ELSE amount * COALESCE(weight_per_unit, 0) END
+       CASE WHEN food_unit = 'KG' THEN amount ELSE amount * COALESCE(weight_per_unit, 0) END,
+       shop_number,
+       category_name
 FROM (SELECT fc.id                                                                       AS food_collection_id,
              sh.id                                                                       AS shop_id,
              cat.id                                                                      AS food_category_id,
              sh.food_unit,
+             sh.number                                                                   AS shop_number,
+             cat.name                                                                    AS category_name,
              cat.weight_per_unit,
              GREATEST(1, 14 + ((s.idx * 3 + sh.id * 7 + cat.id * 11) % 15)
                  + round(5 * sin(2 * pi() * s.idx / 52.0))

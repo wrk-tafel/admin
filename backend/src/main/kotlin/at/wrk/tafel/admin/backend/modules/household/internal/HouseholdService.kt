@@ -8,6 +8,8 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
+import at.wrk.tafel.admin.backend.database.model.household.DocumentType
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.lockedHousehold
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.missingPrivacyNoticeDocument
@@ -36,7 +38,6 @@ import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValida
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.household.internal.masterdata.HouseholdPdfService
-import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -58,6 +59,7 @@ class HouseholdService(
     private val householdPdfService: HouseholdPdfService,
     private val householdConverter: HouseholdConverter,
     private val documentStorageService: DocumentStorageService,
+    private val documentRepository: DocumentRepository,
     private val distributionRepository: DistributionRepository,
     private val tafelAdminProperties: TafelAdminProperties,
     private val householdDuplicationService: HouseholdDuplicationService,
@@ -89,8 +91,16 @@ class HouseholdService(
 
     fun existsByHouseholdId(householdId: Long): Boolean = householdRepository.existsByHouseholdId(householdId)
 
+    /**
+     * The single-household lookup is the only place [HouseholdResponse.hasPrivacyNotice] gets
+     * computed (the checkin screen's missing-privacy-notice warning is what needs it) - a paged
+     * listing intentionally leaves it null rather than paying one `exists` query per row.
+     */
     @Transactional(readOnly = true)
-    fun findByHouseholdId(householdId: Long): HouseholdResponse? = householdRepository.findByHouseholdId(householdId)?.let { householdConverter.mapEntityToHousehold(it) }
+    fun findByHouseholdId(householdId: Long): HouseholdResponse? = householdRepository.findByHouseholdId(householdId)?.let {
+        val hasPrivacyNotice = documentRepository.existsByHouseholdHouseholdIdAndDocumentType(householdId, DocumentType.PRIVACY_NOTICE)
+        householdConverter.mapEntityToHousehold(it, hasPrivacyNotice)
+    }
 
     @Transactional
     fun createHousehold(household: HouseholdRequest, force: Boolean, isSupervisor: Boolean): HouseholdCreationResponse {
@@ -557,20 +567,7 @@ class HouseholdService(
                 }
             }
 
-            val mainPerson = household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson }
-            val householdName =
-                listOfNotNull(
-                    household.householdId,
-                    mainPerson?.lastname,
-                    mainPerson?.firstname,
-                ).joinToString("-") { it.toString() }
-            // StringUtils.stripAccents strips diacritics generally (é, ñ, ...) but - like
-            // java.text.Normalizer underneath it - leaves "ß" alone (it has no Unicode
-            // decomposition), so without the explicit replace it still collapses to a lone "-" in
-            // the ASCII-only regex below, e.g. "Großfamilie" -> "gro-familie" instead of "gross...".
-            val filename = StringUtils.stripAccents("$filenamePrefix-$householdName").lowercase()
-                .replace("ß", "ss")
-                .replace("[^a-z0-9]".toRegex(), "-") + ".pdf"
+            val filename = buildHouseholdFilename(filenamePrefix, household, "pdf")
             return HouseholdPdfResult(filename = filename, bytes = bytes)
         }
         return null

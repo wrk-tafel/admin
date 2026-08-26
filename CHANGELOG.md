@@ -5,6 +5,15 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Im Benutzermenü kann jetzt unter "Meine Daten exportieren" eine DSGVO-Auskunft zum eigenen Benutzerkonto (Benutzername, Mitarbeiter-Stammdaten, Berechtigungen, Aktiv-Status, letzter Login) als PDF-Datei heruntergeladen werden; auf der Benutzerdetailseite steht derselbe Export für andere Benutzer:innen zur Verfügung.
+- In der Kundenansicht kann unter "Weitere Aktionen" jetzt eine ZIP-Datei mit den vollständigen Kundendaten (Stammdaten, weitere Personen, Notizen, Teilnahme-Historie, Dokumentenliste) als PDF-Datei sowie allen hochgeladenen Dokumenten heruntergeladen werden, für die Beantwortung einer DSGVO-Auskunftsanfrage.
+- Der Dokumente-Tab in der Kundenansicht (Ausweise, Einkommensnachweise) benötigt jetzt die eigene Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung; bestehende Benutzer:innen mit Kundenverwaltung erhalten die neue Berechtigung automatisch mit.
+- In der Mitarbeiterverwaltung kann jetzt pro Mitarbeiter eine DSGVO-Auskunft (Personalnummer, Name, Anlagedatum) als PDF-Datei heruntergeladen werden - der einzige Auskunftsweg für Mitarbeiter:innen ohne eigenes Benutzerkonto, z. B. reine Fahrer:innen.
+- Eine neue Seite "Datenauskunft" durchsucht Kunden, Benutzerkonten und Mitarbeiter ohne Benutzerkonto mit einem einzigen Suchfeld und bietet je gefundenem Treffer den Datenexport (als ein gemeinsames ZIP bei mehreren ausgewählten Treffern) sowie die endgültige Löschung an - dafür ist die neue Berechtigung "Datenauskunft" zusätzlich zur jeweiligen Fachbereichs-Berechtigung erforderlich.
+- Der Spenden-Export (TOeT_Spenden) zeigt für bereits erfasste Warenerfassungen dauerhaft die zum Erfassungszeitpunkt gültigen Namen von Route, Filiale und Lebensmittelkategorie, auch wenn diese später umbenannt werden.
+- Die Kunden-Annahme zeigt jetzt einen Warnhinweis "Datenschutzerklärung fehlt", wenn für den angezeigten Haushalt noch keine unterschriebene Datenschutzerklärung als Dokument hochgeladen ist.
+
+## [1.12.0] - 2026-08-25
 - Beim Erfassen einer Notiz und beim Hochladen eines Dokuments erinnert jetzt ein Hinweis daran, nur für die Anspruchsprüfung notwendige Angaben zu erfassen - keine Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.
 - Die Support-Anfrage weist jetzt im Dialog selbst darauf hin, bei einem Kundenanliegen die Kundennummer statt des Namens zu verwenden und die Kundenseite vor dem Öffnen zu verlassen, falls deren Inhalt nicht als Screenshot mitgeschickt werden soll.
 - Das Änderungsprotokoll erfasst jetzt zusätzlich zu Änderungen auch eine kleine, gezielte Auswahl an Zugriffen auf sensible Kundendaten: den Download eines Dokuments, das Ansehen einer Scanner-Datei sowie die Erstellung des Stammdatenblatts, des Ausweises oder der Kundenliste einer Ausgabe.

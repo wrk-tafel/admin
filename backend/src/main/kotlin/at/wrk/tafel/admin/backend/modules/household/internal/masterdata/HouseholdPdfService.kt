@@ -11,6 +11,7 @@ import qrcode.raw.ErrorCorrectionLevel
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
+import java.time.Clock
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -18,6 +19,7 @@ import java.time.format.DateTimeFormatter
 @Service
 class HouseholdPdfService(
     private val pdfService: PDFService,
+    private val clock: Clock,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -48,7 +50,7 @@ class HouseholdPdfService(
             logoBytes = loadLogoBytes(),
             householdId = household.householdId.toString(),
             fullName = listOfNotNull(mainPerson?.firstname, mainPerson?.lastname).joinToString(" ").ifBlank { "-" },
-            issuedAtDate = LocalDate.now().format(DATE_FORMATTER),
+            issuedAtDate = LocalDate.now(clock).format(DATE_FORMATTER),
         )
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")
     }
@@ -80,7 +82,7 @@ class HouseholdPdfService(
         val countInfants =
             additionalPersons
                 .filter { it.birthDate != null }
-                .count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
+                .count { Period.between(it.birthDate, LocalDate.now(clock)).years <= 3 }
 
         return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,

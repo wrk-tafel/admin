@@ -33,6 +33,13 @@ class HouseholdNoteService(
     }
 
     /**
+     * The unpaged counterpart to [getNotes] - every note for a household, not one page of them. Used
+     * by `HouseholdExportService` for the GDPR data export (issue #3179), where a page-size cap
+     * would silently truncate the record.
+     */
+    fun getAllNotes(householdId: Long): List<HouseholdNoteItem> = householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId).map { mapNote(it) }
+
+    /**
      * A note's author is always set on creation (see [createNewNote]), so a missing [HouseholdNoteEntity.employee]
      * here only ever means that employee has since been deleted - employees are personal data and stay
      * deletable even once referenced by a note (`household_notes.employee_id` is `on delete set null`).

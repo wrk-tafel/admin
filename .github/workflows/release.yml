@@ -96,7 +96,7 @@ jobs:
         run: |
           cd docs/userguide
           cp README.md combined.md
-          for chapter in anmeldung kunden logistik benutzer einstellungen aenderungsprotokoll statistiken; do
+          for chapter in anmeldung kunden logistik benutzer einstellungen aenderungsprotokoll datenauskunft statistiken; do
             cat "$chapter.md" >> combined.md
           done
           # The chapters link to each other as separate files (e.g. "[Kunden](kunden.md)"), which
@@ -109,8 +109,8 @@ jobs:
           # elsewhere in the merged document (e.g. README.md's own "## Anmeldung" section) and
           # silently jump to the wrong place. Rewrite the cross-file links into same-document
           # anchor links accordingly.
-          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|aenderungsprotokoll|statistiken|README)\.md#([^)]+)\)/](#\2)/g' combined.md
-          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|aenderungsprotokoll|statistiken)\.md\)/](#kapitel-\1)/g' combined.md
+          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|aenderungsprotokoll|datenauskunft|statistiken|README)\.md#([^)]+)\)/](#\2)/g' combined.md
+          sed -E -i 's/\]\((anmeldung|kunden|logistik|benutzer|einstellungen|aenderungsprotokoll|datenauskunft|statistiken)\.md\)/](#kapitel-\1)/g' combined.md
       # Everything about the render itself - document title, page geometry (A4 portrait, 2cm
       # margins), the page-break styles, and the footer with version/date/page numbers - lives in
       # docs/userguide/md-to-pdf.config.js rather than in CLI flags here. The two env vars below

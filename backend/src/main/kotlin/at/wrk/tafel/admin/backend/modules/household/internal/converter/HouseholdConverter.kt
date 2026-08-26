@@ -124,7 +124,7 @@ class HouseholdConverter(
         return householdEntity
     }
 
-    fun mapEntityToHousehold(householdEntity: HouseholdEntity): HouseholdResponse {
+    fun mapEntityToHousehold(householdEntity: HouseholdEntity, hasPrivacyNotice: Boolean? = null): HouseholdResponse {
         val mainPersonEntity = householdEntity.mainPerson ?: householdEntity.persons.firstOrNull { it.isMainPerson }
         val additionalPersons = householdEntity.persons
             .filterNot { it.isMainPerson }
@@ -159,6 +159,7 @@ class HouseholdConverter(
             pendingCostContribution = householdEntity.pendingCostContribution,
             singleParent = householdEntity.singleParent,
             persons = listOfNotNull(mainPersonEntity?.let { mapPerson(it) }) + additionalPersons,
+            hasPrivacyNotice = hasPrivacyNotice,
         )
     }
 

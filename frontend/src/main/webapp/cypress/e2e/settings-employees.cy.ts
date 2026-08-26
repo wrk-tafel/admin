@@ -1,3 +1,4 @@
+import * as path from 'path';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('Settings - Employees', () => {
@@ -240,6 +241,40 @@ describe('Settings - Employees', () => {
 
     cy.get('.toast-message').should('be.visible').and('contain.text', 'Benutzerkonto');
     cy.byTestId('employees-table').should('contain.text', '00000');
+  });
+
+  // The GDPR Art. 15/20 data takeout (issue #3394) - the export path for an employee with no
+  // linked user account, since UserApiService's export endpoints have no userId to key off for
+  // one. '02000' is a driver with no account of their own (see 'shows which employees a user
+  // account references' above).
+  it('exports an employee\'s data (GDPR takeout) and downloads a PDF', () => {
+    cy.byTestId('employeeSearchInput').type('02000');
+    cy.byTestId('employees-row-0').should('contain.text', 'Fahrer');
+
+    cy.byTestId('exportEmployeeButton-0').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, 'mitarbeiterdaten-02000.pdf');
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string) => expect(buffer.length).to.be.gt(1000));
+
+    // The export is one of the GDPR-sensitive reads recorded in the audit trail (issue #3180).
+    cy.visit('/aenderungsprotokoll');
+    cy.byTestId('audit-filter-entityType').click();
+    cy.get('mat-option').contains('Mitarbeiter').click();
+
+    cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+    cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Mitarbeiter');
+  });
+
+  // An employee with a linked user account already has a complete export via that account's own
+  // detail page (username, permissions, login history *and* this employee's personnel number/name)
+  // - a second, less complete export here would be a duplicate document for the same person.
+  it('does not offer the export button for an employee with a linked user account', () => {
+    cy.byTestId('employeeSearchInput').type('00000');
+    cy.byTestId('employees-row-0').should('contain.text', '00000');
+    cy.byTestId('exportEmployeeButton-0').should('not.exist');
   });
 
   it('renders as a card list on phone and stays usable', () => {

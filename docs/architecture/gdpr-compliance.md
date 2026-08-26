@@ -195,70 +195,85 @@ and nothing enforces or even mentions that assumption to the person typing.
 and in the user guide chapter for the Kunden screen. Field-level restriction is not realistic; a
 short, visible rule is.
 
-### G5 A data-subject request cannot be answered from the application
+### G5 A customer data-subject request can now be answered from the application
 
 **Art. 15, Art. 20.**
 
-A customer asking for a copy of everything held about them would need: master data, all household
-members, notes, the list and content of uploaded documents, attendance history, and — arguably — the
-audit entries about them. The application offers the Stammdatenblatt PDF, which covers the first
-part. Everything else has to be assembled by hand from the UI, or by querying the database directly.
-There is no "export this household" action and no machine-readable format.
+`HouseholdExportService` (issue #3179, see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md))
+serves one ZIP behind the same `CUSTOMER` permission as the rest of a household's data, from
+customer-detail's "Weitere Aktionen" menu: `GET /households/{householdId}/export` — household,
+persons, notes (via the unpaged `HouseholdNoteService.getAllNotes`, so a page-size cap can't silently
+truncate the record), distribution attendance history and the list of uploaded documents, as a PDF —
+plus every uploaded document itself. One combined archive rather than several separate downloads: a
+data-subject request normally wants "everything you have on me" in one piece.
+The endpoint stores nothing; the archive is built on request and never written to disk or a table. It
+is recorded in the audit trail as a single `AuditOperation.READ` entry against the household
+(G6/#3180), the same way `generatePdf` already was.
 
-The same gap makes it impossible to tell a requester what was erased and what remains.
+What remains open: `audit_log` entries about the household are deliberately excluded from the export —
+left as an unanswered permission-boundary question in the takeout plan's §4 rather than folded in by
+omission. [G12](#g12-a-staff-data-subject-request-can-now-be-answered-from-the-application), the
+same question for staff instead of customers, leaves the same question open for the same reason.
 
-**Smallest useful step:** see
-[`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) for a concrete endpoint design — written
-together with [G12](#g12-a-staff-data-subject-request-cannot-be-answered-from-the-application-either)
-below as one shared plan, since both gaps are the same question for a different data subject.
-
-### G6 Read access to a case file is not recorded
+### G6 A small, targeted set of reads is now recorded
 
 **Art. 5(2), Art. 32.**
 
-The audit trail records writes. Opening a household, downloading its ID scans or exporting the
-Kundenliste leaves no trace — so "did somebody look up their neighbour's income" is a question the
-system cannot answer, in an organisation where volunteers and the customers can live in the same
-district. For a small application, auditing every read would be noise; auditing the sensitive
-handful (document download, Stammdatenblatt/Kundenliste generation) would not.
+The audit trail used to record writes only. Opening a household or downloading its ID scans left no
+trace — so "did somebody look up their neighbour's income" was a question the system could not
+answer, in an organisation where volunteers and the customers can live in the same district.
+Auditing every read would be noise for an application this size; the sensitive handful is not.
 
-**Smallest useful step:** extend `AuditLogWriter` with a read/export operation and call it from the
-document download and the two PDF endpoints. The retention window and the existing
-Änderungsprotokoll screen carry it from there.
+`AuditOperation.READ` entries are now written for exactly that handful: document download
+(`HouseholdDocumentService.getDocumentFile`), viewing a not-yet-imported scanner file
+(`DocumentScannerController`), Stammdatenblatt/Ausweis generation (`HouseholdService.generatePdf`),
+Kundenliste generation for a distribution (`DistributionService`), and the G5 data-subject export
+(`HouseholdExportService`). They land in the same `audit_log` table and retention window as writes,
+and show up on the existing Änderungsprotokoll screen and a household's "Verlauf" tab like any other
+entry.
 
-### G7 One permission grants every customer's complete file
+What remains open: [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) is the detection
+this made possible, not this gap itself.
+
+### G7 The documents tab now requires its own permission, separate from CUSTOMER
 
 **Art. 5(1)(c), Art. 32(1)(b).**
 
-`CUSTOMER` is a single flag, and it grants read and write on every household, every note, every
+`CUSTOMER` used to be a single flag granting read and write on every household, every note, every
 income figure and every uploaded ID scan — `HouseholdNoteController`, `HouseholdDocumentController`
-and `DocumentScannerController` require it once at class level, `HouseholdController` on each of its
-methods that isn't behind one of the narrower customer permissions. Check-in staff who only need
-to confirm that a number is valid hold the same access as the person doing the income assessment.
-`ADMINISTRATOR` expands to everything by design.
+and `DocumentScannerController` required it once at class level, `HouseholdController` on each of
+its methods that isn't behind one of the narrower customer permissions. Check-in staff who only
+need to confirm that a number is valid held the same access as the person doing the income
+assessment. `ADMINISTRATOR` still expands to everything by design.
 
-This may well be proportionate for a team of this size — but it is a decision nobody has recorded,
-and combined with [G6](#g6-read-access-to-a-case-file-is-not-recorded) there is neither a limit nor a
-trace.
+`HouseholdDocumentController` and `DocumentScannerController` — the ID scans, proofs of income and
+the not-yet-imported scanner-folder files behind them, the most sensitive artefacts the application
+stores — now require a separate `CUSTOMER_DOCUMENTS` permission instead (`UserPermissions.kt`), and
+the customer detail screen's "Dokumente" tab is hidden without it, the same pattern the "Verlauf"
+tab already used for `AUDIT_LOG`. See [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md)
+for the full decision and its consequences, and issue #3181.
 
-**Smallest useful step:** write down who holds `CUSTOMER` today and why, then decide whether the
-documents tab in particular deserves its own permission. That one split is cheap and covers the most
-sensitive artefacts in the system.
+What remains open: `HouseholdController`'s own endpoints (household master data, income, cost
+contribution) are still behind the single broader `CUSTOMER`, and — unchanged by this — nobody has
+written down who holds `CUSTOMER` or `CUSTOMER_DOCUMENTS` today and why; that write-up is the
+operator's, tracked with the rest of [§6](#6-what-this-repository-cannot-answer) in #3185.
+[G6](#g6-a-small-targeted-set-of-reads-is-now-recorded) now traces who actually read a document or
+generated a Stammdatenblatt; this gap only ever limited who could.
 
-### G8 Documents and database rows are stored unencrypted by the application
+### G8 Encryption at rest is now confirmed with the operator
 
 **Art. 32(1)(a).**
 
 Uploaded documents are written as plain files under `<documentsPath>/<householdId>/<uuid>_<name>`,
-and the database columns are plain text. That is a normal design — encryption at rest is expected to
-come from the volume and the database host — but the repository holds no evidence that it does, and
-[ADR-0021](adr/0021-documents-on-a-volume-metadata-in-the-database.md) puts the backup obligation on
-the operator without settling encryption. The per-household directory layout also means a copied
-volume is trivially browsable by household number.
+and the database columns are plain text — a normal design, since encryption at rest is expected to
+come from the volume and the database host rather than the application. What was missing was
+evidence that it actually does: [ADR-0021](adr/0021-documents-on-a-volume-metadata-in-the-database.md)
+put the backup obligation on the operator without settling encryption, and the per-household
+directory layout would make a copied volume trivially browsable by household number if it were not.
 
-**Smallest useful step:** confirm with the operator that the documents volume, the database volume
-and their backups are on encrypted storage, and record the answer — in ADR-0021's consequences or a
-new record — rather than leaving it assumed.
+The operator confirmed ([#3182](https://github.com/wrk-tafel/admin/issues/3182)) that the documents
+volume, the database volume and their backups are on encrypted storage at the infrastructure level.
+ADR-0021's consequences record that answer.
 
 ### G9 The access log never rotates and never expires
 
@@ -270,11 +285,12 @@ that grows for the life of the deployment, holding one line per request — incl
 which address as the container sees it. It is the one store in the system with no bound at all, and
 unlike the audit trail nobody chose it: it is a default nobody revisited.
 
-Note that this is also the closest thing to a read log that exists today — which makes it an
-accident rather than a control, since it is neither queryable nor scoped.
+Before [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded), this was also the closest thing to a
+read log that existed — an accident rather than a control, since it was neither queryable nor
+scoped. `audit_log` is now the real, scoped read log; `access.log` is still unbounded regardless.
 
-**Smallest useful step:** turn rotation on and set a retention (`max-days`), matching whatever
-retention [G6](#g6-read-access-to-a-case-file-is-not-recorded) lands on if a real read log is built.
+**Smallest useful step:** turn rotation on and set a retention (`max-days`), matching `audit_log`'s
+own retention window.
 
 ### G10 Copies survive an erasure, and nobody can say for how long
 
@@ -289,47 +305,69 @@ nothing propagates the erasure into it.
 
 Every copy inside the application now has a clock on it, which was not true of a `mail_outbox` row
 parked as `FAILED`: it kept its full MIME message — report PDF or support screenshot included — until
-somebody removed the row by hand, which no screen ever prompted anyone to do.
+somebody removed the row by hand, which no screen ever prompted anyone to do (ADR-0046).
 
-What is left is outside the application: a printed or mailed PDF, and the operator's backups.
+The actual erasure timeline is now written down where an administrator handling a request reads it —
+`docs/userguide/datenauskunft.md`'s "Technische Spuren nach der Löschung" section — instead of only
+existing spread across ADRs, so a request can be answered honestly ("gelöscht, letzte technische
+Spuren spätestens nach 30 Tagen").
 
-**Smallest useful step:** write down the actual erasure timeline — which store empties after how long
-— so a request can be answered honestly ("gelöscht, letzte technische Spuren nach 30 Tagen"), and
-agree with the operator how backup restores are followed by a re-run of pending deletions.
+What is left is outside the application: a printed or mailed PDF, and the operator's backups. How a
+backup restore is followed by a re-run of pending deletions is an operator decision this repository
+cannot make on its own — see [§6](#6-what-this-repository-cannot-answer) and
+[#3185](https://github.com/wrk-tafel/admin/issues/3185).
 
-### G11 There is no way to notice a breach
+### G11 A fixed threshold now flags excessive read access
 
 **Art. 33, Art. 32(1)(d).**
 
-The only security signal the application produces is the lockout push after repeated failed logins
-(`UserLockedOutPushListener`). Nothing notices or reports a session downloading every document in
-sequence, an export run at an odd hour, or a database dump. With no read log
-([G6](#g6-read-access-to-a-case-file-is-not-recorded)), a breach that used a legitimate account would
-leave nothing behind to detect or reconstruct — which also makes the 72-hour notification duty
-impossible to discharge with any accuracy.
+The only security signal the application used to produce was the lockout push after repeated failed
+logins (`UserLockedOutPushListener`). Nothing noticed or reported a session downloading every
+document in sequence, an export run at an odd hour, or a database dump. With no read log
+([G6](#g6-a-small-targeted-set-of-reads-is-now-recorded)), a breach that used a legitimate account
+would have left nothing behind to detect or reconstruct — which also made the 72-hour notification
+duty impossible to discharge with any accuracy.
 
-**Smallest useful step:** this only becomes tractable after G6. Once reads are recorded, a simple
-threshold ("more than N documents downloaded by one user in an hour") reusing the existing push
-channel covers the realistic case.
+`ExcessiveReadAccessDetectionService` (`modules/push/internal`) now runs hourly and pushes a
+notification to administrators when one user's `AuditOperation.READ` count in the trailing hour
+exceeds `tafeladmin.audit.breachDetection.readThreshold` (default 20). Deliberately just a fixed
+threshold rather than anomaly detection: an application this size has no learned "normal" to compare
+against, and a detector nobody understands is a detector nobody trusts.
 
-### G12 A staff data-subject request cannot be answered from the application either
+What remains open: this covers one realistic case — a single account reading an unusual volume — not
+every way a breach could look, and whether a fixed threshold is the right long-term answer (versus,
+say, per-role baselines) is a judgement call rather than a settled one.
+
+### G12 A staff data-subject request can now be answered from the application
 
 **Art. 15, Art. 20.**
 
-The same gap as [G5](#g5-a-data-subject-request-cannot-be-answered-from-the-application), for the
-other data subject this application holds data about: `users`, `user_authorities` and the linked
-`employees` row. A staff member asking "what do you have on me" gets nothing from the application
-either — `UserController`'s only self-service reads are `/api/users/info` (username and permissions,
-for the shell) and password/push-device management; nothing surfaces a personnel number, the full
-authority list or login history in one place, and there is no export.
+The same question [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application)
+answered, for the other data subject this application holds data about: `users`, `user_authorities`
+and the linked `employees` row. A staff member asking "what do you have on me" used to get nothing
+from the application — `UserController`'s only self-service reads were `/api/users/info` (username
+and permissions, for the shell) and password/push-device management; nothing surfaced a personnel
+number, the full authority list or login history in one place, and there was no export.
+
+`UserExportService` (issue #3363, see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3)
+serves a PDF - the same `PDFService`/XSL-FO pipeline as the household export - with master data
+(username, employee personnel number/name, `enabled`, `lastLogin`) and every assigned permission.
+Never the password hash. Recorded in the audit trail as a single `AuditOperation.READ` entry against
+the user (G6/#3180), the same way G5's export is. Reachable two ways: `GET /api/users/export` behind
+`isAuthenticated()` (matching `/api/users/info`'s self-only pattern), from the user menu's "Meine
+Daten exportieren" entry; and `GET /api/users/{userId}/export` behind `USER_MANAGEMENT`, from a
+user's detail screen's "Daten exportieren (PDF)" button, for a request made on someone's behalf.
 
 Added alongside [#3362](https://github.com/wrk-tafel/admin/issues/3362), which asked for a takeout
 plan covering "either customers or internal employees" — the original review (#3124) only considered
 the customer side.
 
-**Smallest useful step:** see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md), written
-together with G5 as one shared plan. Tracked in
-[#3363](https://github.com/wrk-tafel/admin/issues/3363).
+What remains open: same as G5, `audit_log` entries about the user are deliberately excluded from the
+export — left as an unanswered permission-boundary question in the takeout plan's §4. Settled, not
+open: the export does not follow references *into* other tables either - a household this person
+issued, a note they authored, a food collection they drove - since that data is substantively the
+referenced record's own, with this person's name attached only as attribution. See the takeout
+plan's §1 "Scope" note.
 
 ### G13 A system user or employee account now expires too, mirroring G1
 
@@ -375,6 +413,84 @@ LOCKED` (ADR-0047) the same way G1 does. What remains open, same as G1: both win
 without a documented legal-basis decision (see G2), and there is no report of what either job is about
 to delete before it runs.
 
+### G14 An employee with no user account can now be exported too, closing a gap G12 left open
+
+**Art. 15, Art. 20.** G12's own export assumed every staff member has a `users` row to key off of -
+but `EmployeeEntity` (personnel number, first/last name) can exist entirely on its own, referenced as
+a household's issuer, a household note's author, or a food collection's driver/co-driver, with nobody
+ever logging in as them (someone who only drives for a route, say). For that person there was no
+export path at all: not self-service (no account to authenticate with), and not admin-triggered
+either, since `UserController.exportUserById` is keyed by a `userId` such an employee never has, and
+the Mitarbeiter settings screen (`SettingsEmployeesComponent`) had no detail view to hang an export
+action off of.
+
+Found while implementing G12 (issue #3394). `EmployeeExportService` closes it with the same
+`PDFService`/XSL-FO pipeline as G12's own export, master data only (personnel number, name, created
+date) - an `EmployeeEntity` holds nothing else, so there is no permissions table the way G12's export
+has one. Recorded in the audit trail as a single `AuditOperation.READ` entry (G6/#3180), the same way
+G5's and G12's exports are - even though `EmployeeEntity` writes themselves are not audited at all
+(see G13's own note that employee writes aren't in `AuditScope`'s map). Reachable from
+`GET /api/employees/{employeeId}/export`, an export action in the Mitarbeiter table's row actions,
+behind `SETTINGS` rather than `USER_MANAGEMENT` - the permission `EmployeeController` itself already
+requires, since there is no self-service angle for an employee with no account of their own.
+
+Refuses (409) an employee a `users` row already references - one person is meant to have exactly one
+takeout document, and `UserExportService`'s own master data already carries the linked employee's
+personnel number and name, so a second, less complete PDF here would be a duplicate rather than a
+second useful export. The frontend hides the button for exactly that case, and the linked account's
+own detail page is where the complete export for that person already lives.
+
+What remains open: same as G5/G12, `audit_log` entries about the employee are excluded from the
+export. Settled, not open, same as G12: this export is master data about the employee themselves
+only - it does not follow the reverse references above (issuer/author/driver) back into the
+household, note or food collection rows that name them, since those rows are substantively that
+other record's own data. See the takeout plan's §1 "Scope" note.
+
+### G15 A central screen now ties the three GDPR exports together, and can erase what it finds too
+
+**Art. 15, Art. 17, Art. 20.** G5/G12/G14 each answer "what do you have on this person" for one of
+three separate categories (customer, staff with an account, staff without one) - but a real
+data-subject request doesn't arrive pre-labelled with which category the requester falls into, and
+answering it meant guessing, then navigating three different screens under three different
+permissions (`CUSTOMER`, `USER_MANAGEMENT`, `SETTINGS`), then manually combining two downloads by
+hand for someone who is both a customer and a volunteer.
+
+`DataSubjectRequestController`/`DataSubjectRequestService` (issue #3396) close that with one search
+box across `households`, `users` and `employees` (reusing `SearchTextSpecs`'s trigram search for the
+first two, the Mitarbeiter screen's own `findBySearchInput` for the third, filtered to exclude an
+employee already covered by G14's own refusal), grouped by which of the three areas each match is.
+Export and delete both trigger the existing per-area service through a thin cross-module facade
+(`HouseholdDataSubjectFacade`/`EmployeeDataSubjectFacade` - Spring Modulith never exposes an
+`.internal` type across a module boundary, named interface or not) rather than a new pipeline:
+exporting one or more selected matches always returns one ZIP (a household's own export unpacked
+into a `kunde-<id>/` folder, a user's or employee's PDF added under its own folder, so a customer and
+a staff match selected together - the same person, holding both - come back as one archive);
+deleting runs per match independently since, unlike export, two unrelated records failing together
+would be a worse experience than one of them simply staying (`DataSubjectDeleteResultItem` reports
+`DELETED`/`NOT_FOUND` per match, not a single pass/fail).
+
+Behind a new `DATA_SUBJECT_REQUESTS` permission, additive rather than a replacement: holding it only
+grants reaching the search and picking a match - the export/delete action on a specific match still
+requires that area's own permission (`CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`), enforced again inside
+`DataSubjectRequestService` since the class-level `@PreAuthorize` alone can't express a check that
+depends on which match a request body names. This is the permission-model question the takeout
+plan's §6 left for "the future ticket to confirm" - answered here as additive so today's screens
+keep meaning what they already meant, rather than `DATA_SUBJECT_REQUESTS` alone becoming a fourth way
+to reach the same data.
+
+Deletion reuses `HouseholdService.deleteHouseholdByHouseholdId`, `EmployeeService.deleteEmployee` and
+a new `TafelUserDetailsManager.deleteUserById` (the same "keep at least one active administrator"
+guard `UserController.deleteUser` already enforces, re-checked here since this is a second caller of
+`deleteUser` that must not bypass it) - no new erasure logic, matching §6's own prediction that
+household erasure (and now staff erasure) "already exists in part" for a future feature to reuse.
+
+No separate audit entry for the search itself - only the eventual export/delete stays audited, the
+same as before (§5's `AuditOperation.READ`/writes tracked per entity, not per screen).
+
+What remains open: same as G5/G12/G14, `audit_log` entries are excluded from the export; the search
+itself caps at 20 best matches per area (a lookup for one specific person, not a report), and nothing
+reports if it silently drops a match past that.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -412,8 +528,9 @@ picture:
 
 ## 7. Where to start
 
-Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) is collected in
-[#3185](https://github.com/wrk-tafel/admin/issues/3185), which most of the rest is blocked on.
+Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) collects the
+organisational questions in [#3185](https://github.com/wrk-tafel/admin/issues/3185) that have no gap
+number here.
 
 | | Gap | Issue | Cost | First step |
 |---|---|---|---|---|
@@ -422,14 +539,18 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 3 | [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer) support text can name a customer | [#3176](https://github.com/wrk-tafel/admin/issues/3176) | hours | a line in the dialog, plus retention on the support mailbox |
 | 4 | [G2](#g2-a-privacy-notice-now-exists-as-a-printable-consent-form-signed-on-paper) privacy notice | [#3177](https://github.com/wrk-tafel/admin/issues/3177) | done | printable consent form, per-household and reference-less |
 | 5 | [G1](#g1-a-household-is-now-deleted-once-it-has-been-expired-long-enough) retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | done | nightly job modelled on `AuditRetentionService`, `tafeladmin.householdDeletion.*` |
-| 6 | [G5](#g5-a-data-subject-request-cannot-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | days | one endpoint returning the full household record + documents |
-| 7 | [G6](#g6-read-access-to-a-case-file-is-not-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | days | audit document downloads and PDF generation |
-| 8 | [G7](#g7-one-permission-grants-every-customers-complete-file), [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long), [G11](#g11-there-is-no-way-to-notice-a-breach) | [#3181](https://github.com/wrk-tafel/admin/issues/3181), [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183), [#3184](https://github.com/wrk-tafel/admin/issues/3184) | structural | each needs a decision with the operator before code |
-| 9 | [G12](#g12-a-staff-data-subject-request-cannot-be-answered-from-the-application-either) staff export missing | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | days | see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3 |
+| 6 | [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | done | two endpoints, household record + documents, on `HouseholdExportService` |
+| 7 | [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | done | `AuditOperation.READ` on document download, PDF/Kundenliste generation and the G5 export |
+| 8 | [G8](#g8-encryption-at-rest-is-now-confirmed-with-the-operator) unencrypted storage | [#3182](https://github.com/wrk-tafel/admin/issues/3182) | done | operator confirmed the documents volume, database volume and backups are encrypted at rest; recorded in [ADR-0021](adr/0021-documents-on-a-volume-metadata-in-the-database.md) |
+| 9 | [G12](#g12-a-staff-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export for staff | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | done | `GET /api/users/export`, `UserExportService` |
 | 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
+| 11 | [G14](#g14-an-employee-with-no-user-account-can-now-be-exported-too-closing-a-gap-g12-left-open) no Art. 15/20 export for an employee with no user account | [#3394](https://github.com/wrk-tafel/admin/issues/3394) | done | `GET /api/employees/{employeeId}/export`, `EmployeeExportService` |
+| 11 | [G7](#g7-the-documents-tab-now-requires-its-own-permission-separate-from-customer) documents tab behind its own permission | [#3181](https://github.com/wrk-tafel/admin/issues/3181) | done | `CUSTOMER_DOCUMENTS`, see [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md) |
+| 12 | [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) no breach detection | [#3184](https://github.com/wrk-tafel/admin/issues/3184) | done | `ExcessiveReadAccessDetectionService`, a fixed hourly read-count threshold |
+| 13 | [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too) no single entry point spanning G5/G12/G14 | [#3396](https://github.com/wrk-tafel/admin/issues/3396) | done | `DataSubjectRequestController`/`DataSubjectRequestService`, `DATA_SUBJECT_REQUESTS` |
+| 14 | [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) erasure timeline undocumented | [#3183](https://github.com/wrk-tafel/admin/issues/3183) | done | `docs/userguide/datenauskunft.md`; backup-restore propagation stays with §6/#3185 |
 
-G3, G9 and G4 are worth doing regardless of what the operator decides. G2, G1 and G13 are done. Of
-what remains, most depends on answers that come from outside this repository — which makes
-[§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code. G5 and G12 are
-the exception to that dependency: both are answerable from inside the repository today, and
-[`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) is a concrete design for both.
+G3, G4 and G9 are the only gaps still open, and none of them needs an operator answer first. G2, G1,
+G13, G5, G6, G7, G8, G11, G12, G15 and G10 are done — the operator has now answered every question in
+#3185's coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number
+and no PR closes it; it stays open until the operator writes those answers down.

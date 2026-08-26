@@ -1,4 +1,4 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import {PagedResponse} from '../common/api/paged-response';
@@ -44,6 +44,15 @@ export class EmployeeApiService {
 
   deleteEmployee(employeeId: number): Observable<void> {
     return this.http.delete<void>(`/employees/${employeeId}`);
+  }
+
+  /**
+   * The GDPR Art. 15/20 data takeout (issue #3394) for an employee with no linked user account, as
+   * a PDF - the counterpart to `UserApiService.exportUserById` for someone who has no `userId` to
+   * key an export off of.
+   */
+  exportEmployee(employeeId: number): Observable<HttpResponse<Blob>> {
+    return this.http.get(`/employees/${employeeId}/export`, {responseType: 'blob', observe: 'response'});
   }
 
 }
