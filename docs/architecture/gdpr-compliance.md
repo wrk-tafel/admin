@@ -112,8 +112,8 @@ in the past than `tafeladmin.householdDeletion.retentionYears` (7 years by defau
 bookkeeping retention period for records touching cost contributions, UGB/BAO Section 132, chosen
 as a defensible floor rather than a final legal-basis answer). Deletion goes through the same
 `HouseholdService.deleteHouseholdByHouseholdId` a staff member's manual delete uses, which cascades
-to persons and documents (removing the files on disk too) while the database cascades
-`household_notes` and `distributions_households` on the same delete — so master data, documents and
+to persons, documents (removing the files on disk too) and notes, while the database cascades
+`distributions_households` on the same delete — so master data, documents and
 attendance history are all one retention window rather than three, and the year-end statistics
 aggregates (frozen at distribution close, ADR-0020) are unaffected. `tafeladmin.householdDeletion.enabled`
 is a kill switch independent of the window, and both are read per use so an operator can change
@@ -430,8 +430,8 @@ Found while implementing G12 (issue #3394). `EmployeeExportService` closes it wi
 `PDFService`/XSL-FO pipeline as G12's own export, master data only (personnel number, name, created
 date) - an `EmployeeEntity` holds nothing else, so there is no permissions table the way G12's export
 has one. Recorded in the audit trail as a single `AuditOperation.READ` entry (G6/#3180), the same way
-G5's and G12's exports are - even though `EmployeeEntity` writes themselves are not audited at all
-(see G13's own note that employee writes aren't in `AuditScope`'s map). Reachable from
+G5's and G12's exports are, sharing its `AuditScope` entity type with the insert/update/delete
+entries `EmployeeEntity`'s own writes produce. Reachable from
 `GET /api/employees/{employeeId}/export`, an export action in the Mitarbeiter table's row actions,
 behind `SETTINGS` rather than `USER_MANAGEMENT` - the permission `EmployeeController` itself already
 requires, since there is no self-service angle for an employee with no account of their own.

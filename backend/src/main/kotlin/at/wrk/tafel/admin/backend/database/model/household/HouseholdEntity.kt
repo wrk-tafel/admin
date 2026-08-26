@@ -116,6 +116,17 @@ class HouseholdEntity(
     var documents: MutableList<DocumentEntity> = mutableListOf()
 
     /**
+     * Unused in application code - notes are created/queried straight through
+     * [at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteRepository], never via this
+     * collection. It exists so a household delete cascades to its notes through Hibernate (which
+     * fires [at.wrk.tafel.admin.backend.database.common.audit.AuditEventListener] for each one) the
+     * same way [persons] and [documents] already do, rather than only through the DB's own
+     * `on delete cascade` on `household_notes`, which Hibernate never sees.
+     */
+    @OneToMany(mappedBy = "household", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var notes: MutableList<HouseholdNoteEntity> = mutableListOf()
+
+    /**
      * All household members except the main person - the direct equivalent of the former
      * `CustomerEntity.additionalPersons`.
      */

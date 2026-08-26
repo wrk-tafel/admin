@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Beim Löschen mehrerer Treffer auf der Seite "Datenauskunft" werden Dokumente eines Kunden jetzt erst dann endgültig von der Festplatte entfernt, wenn der gesamte Löschvorgang erfolgreich abgeschlossen ist - vorher konnten bei einem später fehlschlagenden Treffer (z. B. fehlende Berechtigung oder ein nicht löschbares letztes Administrator-Konto) bereits entfernte Dateien verwaist zurückbleiben.
+- Änderungen an Mitarbeiter:innen (Anlegen, Bearbeiten, Löschen) werden jetzt im Änderungsprotokoll erfasst; beim Löschen eines Kunden werden dort jetzt auch die gelöschten Notizen vermerkt.
 - Das Änderungsprotokoll zeigt Feldwerte (z. B. Adresse, Einkommen) aus Haushalts-, Personen-, Notiz- und Dokumenten-Einträgen jetzt nur noch mit zusätzlicher Berechtigung "Kundenverwaltung" an; der "Verlauf"-Tab in der Kundenansicht benötigt diese Berechtigung jetzt ebenfalls.
 - Beim Löschen eines Benutzerkontos über die Seite "Datenauskunft" wird der verknüpfte Mitarbeiter-Datensatz jetzt sofort mitgelöscht, sofern er nicht noch anderswo verwendet wird (vorher blieb er bis zu 7 Jahre bestehen).
 - Beim Hochladen eines Dokuments wird jetzt zusätzlich zur Dateiendung auch der tatsächliche Dateiinhalt geprüft, damit eine falsch deklarierte oder umbenannte Datei nicht mehr als Ausweis oder Einkommensnachweis akzeptiert wird.

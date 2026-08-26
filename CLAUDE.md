@@ -842,9 +842,9 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   - The frontend follows along: `ConfigChangePublisher` pushes the new `ConfigResponse` over
     `/api/sse/config`, and `ConfigApiService.observeConfig()` is a shared stream of the HTTP response
     plus that SSE feed — components must subscribe to it rather than reading the config once.
-- **Audit Trail**: every change to a household, person, note, document, user, user authority, static
-  value or mail recipient is recorded in `audit_log` — who, when, and the old/new values as a `jsonb`
-  diff. Written from a Hibernate flush-time listener (`database/common/audit/`) that buffers entries
+- **Audit Trail**: every change to a household, person, note, document, employee, user, user
+  authority, static value or mail recipient is recorded in `audit_log` — who, when, and the old/new
+  values as a `jsonb` diff. Written from a Hibernate flush-time listener (`database/common/audit/`) that buffers entries
   and writes them in `beforeCommit`, so a rolled-back transaction records nothing. Two things to keep
   in mind when touching this area:
   - **`AuditScope` is the whole allow-list.** Adding an entity there is all it takes to audit it —
