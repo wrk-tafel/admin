@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Ändern des eigenen Passworts sowie das Zurücksetzen eines Passworts durch eine Administration entziehen jetzt sofort allen bereits ausgestellten Anmeldungen dieses Benutzerkontos die Gültigkeit; ebenso macht ein Abmelden das dabei verwendete Anmeldeticket sofort ungültig, statt es nur im Browser zu entfernen.
+
+## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).
 
 ## [1.13.0] - 2026-08-26

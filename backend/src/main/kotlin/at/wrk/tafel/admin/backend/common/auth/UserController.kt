@@ -122,6 +122,10 @@ class UserController(
     fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Unit> {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
+        // Clearing the cookie alone only removes it client-side - the JWT itself would otherwise
+        // keep authenticating for the rest of its lifetime if it were captured beforehand.
+        userDetailsManager.invalidateTokens(user.username!!)
+
         val cookie = TafelLoginFilter.createTokenCookie(null, 0, tafelAdminProperties.server.relativeBaseUrl, request)
         response.addCookie(cookie)
 
