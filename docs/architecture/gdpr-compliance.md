@@ -260,20 +260,20 @@ operator's, tracked with the rest of [§6](#6-what-this-repository-cannot-answer
 [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded) now traces who actually read a document or
 generated a Stammdatenblatt; this gap only ever limited who could.
 
-### G8 Documents and database rows are stored unencrypted by the application
+### G8 Encryption at rest is now confirmed with the operator
 
 **Art. 32(1)(a).**
 
 Uploaded documents are written as plain files under `<documentsPath>/<householdId>/<uuid>_<name>`,
-and the database columns are plain text. That is a normal design — encryption at rest is expected to
-come from the volume and the database host — but the repository holds no evidence that it does, and
-[ADR-0021](adr/0021-documents-on-a-volume-metadata-in-the-database.md) puts the backup obligation on
-the operator without settling encryption. The per-household directory layout also means a copied
-volume is trivially browsable by household number.
+and the database columns are plain text — a normal design, since encryption at rest is expected to
+come from the volume and the database host rather than the application. What was missing was
+evidence that it actually does: [ADR-0021](adr/0021-documents-on-a-volume-metadata-in-the-database.md)
+put the backup obligation on the operator without settling encryption, and the per-household
+directory layout would make a copied volume trivially browsable by household number if it were not.
 
-**Smallest useful step:** confirm with the operator that the documents volume, the database volume
-and their backups are on encrypted storage, and record the answer — in ADR-0021's consequences or a
-new record — rather than leaving it assumed.
+The operator confirmed ([#3182](https://github.com/wrk-tafel/admin/issues/3182)) that the documents
+volume, the database volume and their backups are on encrypted storage at the infrastructure level.
+ADR-0021's consequences record that answer.
 
 ### G9 The access log never rotates and never expires
 
@@ -528,8 +528,9 @@ picture:
 
 ## 7. Where to start
 
-Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) is collected in
-[#3185](https://github.com/wrk-tafel/admin/issues/3185), which most of the rest is blocked on.
+Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) collects the
+organisational questions in [#3185](https://github.com/wrk-tafel/admin/issues/3185) that have no gap
+number here.
 
 | | Gap | Issue | Cost | First step |
 |---|---|---|---|---|
@@ -540,7 +541,7 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 5 | [G1](#g1-a-household-is-now-deleted-once-it-has-been-expired-long-enough) retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | done | nightly job modelled on `AuditRetentionService`, `tafeladmin.householdDeletion.*` |
 | 6 | [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | done | two endpoints, household record + documents, on `HouseholdExportService` |
 | 7 | [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | done | `AuditOperation.READ` on document download, PDF/Kundenliste generation and the G5 export |
-| 8 | [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application) unencrypted storage | [#3182](https://github.com/wrk-tafel/admin/issues/3182) | structural | needs a decision with the operator before code |
+| 8 | [G8](#g8-encryption-at-rest-is-now-confirmed-with-the-operator) unencrypted storage | [#3182](https://github.com/wrk-tafel/admin/issues/3182) | done | operator confirmed the documents volume, database volume and backups are encrypted at rest; recorded in [ADR-0021](adr/0021-documents-on-a-volume-metadata-in-the-database.md) |
 | 9 | [G12](#g12-a-staff-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export for staff | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | done | `GET /api/users/export`, `UserExportService` |
 | 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
 | 11 | [G14](#g14-an-employee-with-no-user-account-can-now-be-exported-too-closing-a-gap-g12-left-open) no Art. 15/20 export for an employee with no user account | [#3394](https://github.com/wrk-tafel/admin/issues/3394) | done | `GET /api/employees/{employeeId}/export`, `EmployeeExportService` |
@@ -549,7 +550,7 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 13 | [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too) no single entry point spanning G5/G12/G14 | [#3396](https://github.com/wrk-tafel/admin/issues/3396) | done | `DataSubjectRequestController`/`DataSubjectRequestService`, `DATA_SUBJECT_REQUESTS` |
 | 14 | [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) erasure timeline undocumented | [#3183](https://github.com/wrk-tafel/admin/issues/3183) | done | `docs/userguide/datenauskunft.md`; backup-restore propagation stays with §6/#3185 |
 
-G3 and G4 are worth doing regardless of what the operator decides; G9 no longer needs G6's answer
-first but is otherwise unchanged. G2, G1, G13, G5, G6, G7, G11, G12, G15 and G10 are done. Of what
-remains (G8), it depends on an answer that comes from outside this repository — which makes
-[§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code.
+G3, G4 and G9 are the only gaps still open, and none of them needs an operator answer first. G2, G1,
+G13, G5, G6, G7, G8, G11, G12, G15 and G10 are done — the operator has now answered every question in
+#3185's coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number
+and no PR closes it; it stays open until the operator writes those answers down.

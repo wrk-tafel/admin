@@ -48,7 +48,9 @@ document, including the storage path.**
   existing rows unless they are migrated too.
 - The volume holds the most sensitive data in the system in plain files. Its access control and
   encryption are the host's responsibility, not the application's — and that has to be a conscious
-  part of any deployment.
+  part of any deployment. The operator confirmed
+  ([#3182](https://github.com/wrk-tafel/admin/issues/3182)) that the documents volume, the database
+  volume and their backups are on encrypted storage at the infrastructure level.
 
 ## Alternatives considered
 
