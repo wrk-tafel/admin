@@ -59,6 +59,7 @@ jobs:
               - logout.cy.ts
               - passwordchange.cy.ts
               - audit-log.cy.ts
+              - data-subject-request.cy.ts
               - general.cy.ts
           - name: betrieb
             specs:
