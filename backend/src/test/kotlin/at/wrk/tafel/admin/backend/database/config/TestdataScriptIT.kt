@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.config
 
+import at.wrk.tafel.admin.backend.TEST_POSTGRES_IMAGE
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Test
@@ -36,7 +37,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 class TestdataScriptIT {
 
     companion object {
-        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer("postgres:18-bookworm")
+        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer(TEST_POSTGRES_IMAGE)
             .withDatabaseName("tafeladmin-testdata")
             .withUsername("admin")
             .withPassword("admin")

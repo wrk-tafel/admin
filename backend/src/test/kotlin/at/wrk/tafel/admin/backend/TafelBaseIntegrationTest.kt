@@ -17,7 +17,7 @@ class TafelBaseIntegrationTest {
         // so it stays valid for every subclass. Using @Container/@Testcontainers here would stop it after each
         // test class, while Spring's ApplicationContext cache keeps reusing the (now stale) datasource config
         // across classes, causing "connection refused" once a second IT class runs.
-        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer("postgres:18-bookworm")
+        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer(TEST_POSTGRES_IMAGE)
             .withDatabaseName("tafeladmin")
             .withUsername("admin")
             .withPassword("admin")

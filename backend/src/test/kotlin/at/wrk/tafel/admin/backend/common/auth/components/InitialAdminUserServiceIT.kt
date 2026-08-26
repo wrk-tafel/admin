@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.TEST_POSTGRES_IMAGE
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -35,7 +36,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 class InitialAdminUserServiceIT {
 
     companion object {
-        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer("postgres:18-bookworm")
+        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer(TEST_POSTGRES_IMAGE)
             .withDatabaseName("tafeladmin-initialadmin")
             .withUsername("admin")
             .withPassword("admin")
