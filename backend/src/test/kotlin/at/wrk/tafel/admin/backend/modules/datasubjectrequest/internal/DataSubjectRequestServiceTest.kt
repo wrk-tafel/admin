@@ -115,9 +115,12 @@ internal class DataSubjectRequestServiceTest {
 
     @Test
     fun `search - blank input returns no matches without querying`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
+
         val result = service.search("   ")
 
         assertThat(result.items).isEmpty()
+        assertThat(result.truncated).isFalse()
         verify(exactly = 0) { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) }
         verify(exactly = 0) { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) }
         verify(exactly = 0) { employeeRepository.findBySearchInput(any(), any()) }
@@ -125,6 +128,8 @@ internal class DataSubjectRequestServiceTest {
 
     @Test
     fun `search - combines household, user and employee-without-account matches`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
+
         val household = HouseholdEntity(householdId = 1234, validUntil = LocalDate.now(), locked = false)
         household.mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
             firstname = "Max"
@@ -149,6 +154,7 @@ internal class DataSubjectRequestServiceTest {
 
         val result = service.search(" Muster ")
 
+        assertThat(result.truncated).isFalse()
         assertThat(result.items).containsExactlyInAnyOrder(
             DataSubjectMatchItem(
                 type = DataSubjectMatchType.CUSTOMER,
@@ -173,6 +179,8 @@ internal class DataSubjectRequestServiceTest {
 
     @Test
     fun `search - no employee candidates match`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
+
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
         every { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
         every { employeeRepository.findBySearchInput("nobody", any<PageRequest>()) } returns PageImpl(emptyList())
@@ -181,6 +189,33 @@ internal class DataSubjectRequestServiceTest {
 
         assertThat(result.items).isEmpty()
         verify(exactly = 0) { userRepository.findAccountsByEmployeeIds(any()) }
+    }
+
+    @Test
+    fun `search - only queries areas the caller holds the permission for`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER")
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
+
+        val result = service.search("muster")
+
+        assertThat(result.items).isEmpty()
+        verify(exactly = 0) { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) }
+        verify(exactly = 0) { employeeRepository.findBySearchInput(any(), any()) }
+    }
+
+    @Test
+    fun `search - reports truncation when an area holds more matches than the per-area cap`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) } returns
+            PageImpl(emptyList(), PageRequest.of(0, 20), 21)
+        every { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
+        every { employeeRepository.findBySearchInput("muster", any<PageRequest>()) } returns PageImpl(emptyList())
+
+        val result = service.search("muster")
+
+        assertThat(result.truncated).isTrue()
     }
 
     @Test
