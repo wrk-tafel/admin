@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentType
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.lockedHousehold
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.missingPrivacyNoticeDocument
@@ -61,6 +62,7 @@ class HouseholdService(
     private val documentStorageService: DocumentStorageService,
     private val documentRepository: DocumentRepository,
     private val distributionRepository: DistributionRepository,
+    private val householdDuplicateDismissalRepository: HouseholdDuplicateDismissalRepository,
     private val tafelAdminProperties: TafelAdminProperties,
     private val householdDuplicationService: HouseholdDuplicationService,
     private val auditLogWriter: AuditLogWriter,
@@ -595,6 +597,10 @@ class HouseholdService(
         // JPA cascade removes the household_documents rows, but it can't touch the files on disk -
         // those have to be cleaned up explicitly.
         household.documents.forEach { documentStorageService.delete(it.storagePath) }
+
+        // household_duplicate_dismissals has no foreign key to households (see
+        // R__00102_household_duplicate_dismissals.sql), so JPA cascade never reaches it either.
+        householdDuplicateDismissalRepository.deleteByHouseholdId(householdId)
 
         householdRepository.delete(household)
         log.info("Deleted household {}", householdId)

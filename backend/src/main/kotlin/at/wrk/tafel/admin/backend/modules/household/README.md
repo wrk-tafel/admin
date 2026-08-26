@@ -263,7 +263,11 @@ per direction).
 against that table is what keeps a dismissed pair from resurfacing on a later visit - without it, a
 decision made once would reappear on every review pass. The table has no foreign key to
 `households`: its columns hold the business `household_id`, which is never reused once assigned, so
-a dismissal outliving a deleted household is simply inert rather than a dangling reference.
+a dismissal naming a since-deleted household could never match a pair again - but it would still be
+a customer's data sitting in the database with no purpose, so
+`HouseholdService.deleteHouseholdByHouseholdId` explicitly deletes every row naming the household
+being deleted (`HouseholdDuplicateDismissalRepository.deleteByHouseholdId`) rather than leaving JPA
+cascade, which can't reach this table either, to never clean it up.
 
 `HouseholdController.mergeIntoHousehold`/`getMergePreview` hand off to `HouseholdMergeService` for
 the actual merge - see below for how field conflicts, person de-duplication, and note/distribution
@@ -409,7 +413,8 @@ module's permission on purpose, since these two hold the most sensitive artefact
 GDPR gap G1 (`docs/architecture/gdpr-compliance.md`): a nightly job (06:00, `@Scheduled`) that
 deletes every household whose `validUntil` is further in the past than
 `tafeladmin.householdDeletion.retentionYears` (default 7 years), and everything attached to it -
-persons, notes, documents (rows and files on disk) and attendance history. Candidate ids are
+persons, notes, documents (rows and files on disk), attendance history and duplicate dismissals
+naming it. Candidate ids are
 selected and locked with `FOR UPDATE SKIP LOCKED`
 (`HouseholdRepository.findExpiredHouseholdIdsSkipLocked`) inside the same transaction that then
 deletes each of them through `HouseholdService.deleteHouseholdByHouseholdId` - the same method a
