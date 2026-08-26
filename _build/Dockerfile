@@ -1,4 +1,4 @@
-FROM amazoncorretto:26-alpine AS builder
+FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c437a8c5a951512724297b7 AS builder
 WORKDIR /builder
 COPY ./artifact/admin-backend.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted \
@@ -11,10 +11,11 @@ RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination 
 # #2881). The trainer must launch the app the exact same way the final ENTRYPOINT does (JarLauncher over
 # the extracted layered jar, not a plain `java -jar`) - CDS is classpath-layout sensitive, and a mismatch
 # here would silently produce a dead archive that never gets used at runtime.
-FROM amazoncorretto:26-alpine AS cds-trainer
+FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c437a8c5a951512724297b7 AS cds-trainer
 # fuzzystrmatch (used by household duplicate detection, see R__00031) lives in postgresql-contrib, not
-# the base package.
-RUN apk add --no-cache postgresql17 postgresql17-contrib
+# the base package. Versions pinned for a reproducible build - see the note on the final stage's
+# libssl3/libcrypto3 pin below for why a floating apk install isn't good enough on its own.
+RUN apk add --no-cache postgresql17=17.11-r0 postgresql17-contrib=17.11-r0
 ENV PGDATA=/var/lib/postgresql/data
 RUN mkdir -p "$PGDATA" /run/postgresql && chown -R postgres:postgres /var/lib/postgresql /run/postgresql \
     && su postgres -c "initdb -D '$PGDATA' --auth=trust --no-sync" \
@@ -38,11 +39,13 @@ RUN su postgres -c "pg_ctl -D '$PGDATA' -o \"-c listen_addresses=localhost\" -w 
          org.springframework.boot.loader.launch.JarLauncher --spring.profiles.active=local \
     && su postgres -c "pg_ctl -D '$PGDATA' -w stop"
 
-FROM amazoncorretto:26-alpine
-# Alpine's own repo ships patched packages (e.g. libssl3/libcrypto3 CVE fixes) well before a new
-# amazoncorretto:26-alpine tag is published, so pulling them at build time closes that gap instead
-# of waiting on upstream - see the Trivy code-scanning alerts this addresses.
-RUN apk --no-cache upgrade
+FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c437a8c5a951512724297b7
+# The base image is pinned by digest so every build - local or CI, today or in a year - produces the
+# same image, rather than silently picking up whatever Alpine packages happen to be current that day.
+# The cost is that a fixed digest also fixes its bundled package versions, so a patched CVE (e.g.
+# libssl3/libcrypto3, see the Trivy code-scanning alerts this addresses) never arrives on its own -
+# it has to be pulled and pinned explicitly here, and re-pinned by hand whenever a newer fix ships.
+RUN apk add --no-cache --upgrade libssl3=3.5.8-r0 libcrypto3=3.5.8-r0
 ARG VERSION=dev
 ARG BUILD_TIME=unknown
 ENV TAFELADMIN_VERSION=$VERSION
