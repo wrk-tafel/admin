@@ -305,13 +305,17 @@ nothing propagates the erasure into it.
 
 Every copy inside the application now has a clock on it, which was not true of a `mail_outbox` row
 parked as `FAILED`: it kept its full MIME message — report PDF or support screenshot included — until
-somebody removed the row by hand, which no screen ever prompted anyone to do.
+somebody removed the row by hand, which no screen ever prompted anyone to do (ADR-0046).
 
-What is left is outside the application: a printed or mailed PDF, and the operator's backups.
+The actual erasure timeline is now written down where an administrator handling a request reads it —
+`docs/userguide/datenauskunft.md`'s "Technische Spuren nach der Löschung" section — instead of only
+existing spread across ADRs, so a request can be answered honestly ("gelöscht, letzte technische
+Spuren spätestens nach 30 Tagen").
 
-**Smallest useful step:** write down the actual erasure timeline — which store empties after how long
-— so a request can be answered honestly ("gelöscht, letzte technische Spuren nach 30 Tagen"), and
-agree with the operator how backup restores are followed by a re-run of pending deletions.
+What is left is outside the application: a printed or mailed PDF, and the operator's backups. How a
+backup restore is followed by a re-run of pending deletions is an operator decision this repository
+cannot make on its own — see [§6](#6-what-this-repository-cannot-answer) and
+[#3185](https://github.com/wrk-tafel/admin/issues/3185).
 
 ### G11 A fixed threshold now flags excessive read access
 
@@ -536,15 +540,16 @@ Every gap below has its own issue; [§6](#6-what-this-repository-cannot-answer) 
 | 5 | [G1](#g1-a-household-is-now-deleted-once-it-has-been-expired-long-enough) retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | done | nightly job modelled on `AuditRetentionService`, `tafeladmin.householdDeletion.*` |
 | 6 | [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | done | two endpoints, household record + documents, on `HouseholdExportService` |
 | 7 | [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded) reads unrecorded | [#3180](https://github.com/wrk-tafel/admin/issues/3180) | done | `AuditOperation.READ` on document download, PDF/Kundenliste generation and the G5 export |
-| 8 | [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application), [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) | [#3182](https://github.com/wrk-tafel/admin/issues/3182), [#3183](https://github.com/wrk-tafel/admin/issues/3183) | structural | each needs a decision with the operator before code |
+| 8 | [G8](#g8-documents-and-database-rows-are-stored-unencrypted-by-the-application) unencrypted storage | [#3182](https://github.com/wrk-tafel/admin/issues/3182) | structural | needs a decision with the operator before code |
 | 9 | [G12](#g12-a-staff-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export for staff | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | done | `GET /api/users/export`, `UserExportService` |
 | 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
 | 11 | [G14](#g14-an-employee-with-no-user-account-can-now-be-exported-too-closing-a-gap-g12-left-open) no Art. 15/20 export for an employee with no user account | [#3394](https://github.com/wrk-tafel/admin/issues/3394) | done | `GET /api/employees/{employeeId}/export`, `EmployeeExportService` |
 | 11 | [G7](#g7-the-documents-tab-now-requires-its-own-permission-separate-from-customer) documents tab behind its own permission | [#3181](https://github.com/wrk-tafel/admin/issues/3181) | done | `CUSTOMER_DOCUMENTS`, see [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md) |
 | 12 | [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) no breach detection | [#3184](https://github.com/wrk-tafel/admin/issues/3184) | done | `ExcessiveReadAccessDetectionService`, a fixed hourly read-count threshold |
 | 13 | [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too) no single entry point spanning G5/G12/G14 | [#3396](https://github.com/wrk-tafel/admin/issues/3396) | done | `DataSubjectRequestController`/`DataSubjectRequestService`, `DATA_SUBJECT_REQUESTS` |
+| 14 | [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) erasure timeline undocumented | [#3183](https://github.com/wrk-tafel/admin/issues/3183) | done | `docs/userguide/datenauskunft.md`; backup-restore propagation stays with §6/#3185 |
 
 G3 and G4 are worth doing regardless of what the operator decides; G9 no longer needs G6's answer
-first but is otherwise unchanged. G2, G1, G13, G5, G6, G7, G11, G12 and G15 are done. Of what
-remains (G8, G10), both depend on answers that come from outside this repository — which makes
+first but is otherwise unchanged. G2, G1, G13, G5, G6, G7, G11, G12, G15 and G10 are done. Of what
+remains (G8), it depends on an answer that comes from outside this repository — which makes
 [§6](#6-what-this-repository-cannot-answer) the actual critical path, not the code.

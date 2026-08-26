@@ -28,3 +28,14 @@ Die Treffer sind nach Bereich gruppiert – **Kunde**, **Benutzerkonto** und **M
 ![Daten löschen bestätigen](images/datenauskunft-loeschen.jpg)
 
 Anders als beim Export wirkt die Löschung auf jeden ausgewählten Treffer einzeln: Ist ein Kunde inzwischen bereits von jemand anderem gelöscht worden, hält das die Löschung der übrigen ausgewählten Treffer nicht auf. Jede Löschung läuft über denselben Ablauf wie auf der jeweiligen Fachseite, inklusive deren Einschränkungen – ein Mitarbeiter mit verknüpftem Benutzerkonto lässt sich also weiterhin nicht direkt löschen (siehe [Mitarbeiter](einstellungen.md#mitarbeiter)), und das letzte aktive Administrator-Benutzerkonto bleibt weiterhin geschützt (siehe [Benutzer](benutzer.md)).
+
+## Technische Spuren nach der Löschung
+
+Nach einer endgültigen Löschung sind Haushalt bzw. Personen, Notizen und Dokumente sofort aus der Anwendung verschwunden. Ein paar technische Kopien bleiben im Hintergrund jedoch noch begrenzte Zeit bestehen, bis sie automatisch entfernt werden – eine Anfrage lässt sich also mit "gelöscht, letzte technische Spuren spätestens nach 30 Tagen" beantworten:
+
+- **Änderungsprotokoll** (siehe [Änderungsprotokoll](aenderungsprotokoll.md)), inklusive des Lösch-Eintrags mit dem zuletzt bekannten Stand: bis zu 30 Tage.
+- Noch nicht ausgelieferte Echtzeit-Benachrichtigungen: bis zu 14 Tage.
+- Bereits versendete E-Mails (z. B. Tagesberichte), die den Datensatz betrafen: bis zu 14 Tage nach dem Versand.
+- E-Mails, deren Zustellung nach mehreren Versuchen aufgegeben wurde: bis zu 30 Tage nach der Einreihung in die Warteschlange.
+
+Bereits gedruckte oder per Post versendete Dokumente (z. B. Kundenliste, Stammdatenblatt) sowie Datensicherungen liegen außerhalb der Anwendung – für sie gilt diese Frist nicht.
