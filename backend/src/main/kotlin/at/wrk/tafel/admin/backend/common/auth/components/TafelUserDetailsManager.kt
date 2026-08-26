@@ -39,6 +39,7 @@ class TafelUserDetailsManager(
     private val passwordEncoder: PasswordEncoder,
     private val passwordValidator: PasswordValidator,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val changeTrackingActorAnonymizationService: ChangeTrackingActorAnonymizationService,
 ) : UserDetailsManager {
 
     fun loadUserById(userId: Long): TafelUser? = userRepository.findById(userId)
@@ -138,9 +139,16 @@ class TafelUserDetailsManager(
         userRepository.save(userEntity)
     }
 
+    /**
+     * Deletes the account and, before that, pseudonymizes every trace it left as a
+     * `created_by`/`updated_by` change-tracking actor elsewhere in the database (issue #3426) - see
+     * [ChangeTrackingActorAnonymizationService] for why those columns would otherwise outlive the
+     * account indefinitely on a table with no retention of its own.
+     */
     override fun deleteUser(username: String) {
         val userEntity =
             userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
+        changeTrackingActorAnonymizationService.anonymize(username)
         userRepository.delete(userEntity)
     }
 

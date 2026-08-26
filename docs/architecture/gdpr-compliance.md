@@ -491,6 +491,24 @@ What remains open: same as G5/G12/G14, `audit_log` entries are excluded from the
 itself caps at 20 best matches per area (a lookup for one specific person, not a report), and nothing
 reports if it silently drops a match past that.
 
+### G16 A deleted account's username no longer outlives it on every other table
+
+**Art. 17(1).** `created_by`/`updated_by` (`R__00092_change_tracking_actor.sql:5-7,20-49`, plus
+`R__00096`/`R__00102`) are deliberately not a foreign key to `users(id)` - the value has to stay
+readable after the account is renamed or deleted, and an audit value that cascades away is worthless
+- but on a table with no retention of its own (`shops`, `shelters`, `cars`, `routes`,
+`food_categories`, `distributions`, `food_collections`, `distributions_statistics` among others), that
+also meant a deleted account's username stayed in the database forever, past the point the account
+itself was gone.
+
+`ChangeTrackingActorAnonymizationService` (issue #3426) closes that: `TafelUserDetailsManager.deleteUser`
+now replaces the deleted account's username with a fixed placeholder (`"gelöschter Benutzer"`) in both
+columns, on every table the three migrations above added them to - one generic sweep rather than a
+bespoke handler per table, since covering only the tables named in the finding would leave the next
+migration that adds the columns silently unswept. Runs in the same transaction as the account
+deletion, so every caller (`UserController.deleteUser`, `TafelUserDetailsManager.deleteUserById` via
+G15's data-subject-request delete, and G13's `UserRetentionService`) is covered without a bypass.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -549,8 +567,9 @@ number here.
 | 12 | [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) no breach detection | [#3184](https://github.com/wrk-tafel/admin/issues/3184) | done | `ExcessiveReadAccessDetectionService`, a fixed hourly read-count threshold |
 | 13 | [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too) no single entry point spanning G5/G12/G14 | [#3396](https://github.com/wrk-tafel/admin/issues/3396) | done | `DataSubjectRequestController`/`DataSubjectRequestService`, `DATA_SUBJECT_REQUESTS` |
 | 14 | [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) erasure timeline undocumented | [#3183](https://github.com/wrk-tafel/admin/issues/3183) | done | `docs/userguide/datenauskunft.md`; backup-restore propagation stays with §6/#3185 |
+| 15 | [G16](#g16-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table) `created_by`/`updated_by` outlive a deleted account | [#3426](https://github.com/wrk-tafel/admin/issues/3426) | hours | `ChangeTrackingActorAnonymizationService`, called from `TafelUserDetailsManager.deleteUser` |
 
 G3, G4 and G9 are the only gaps still open, and none of them needs an operator answer first. G2, G1,
-G13, G5, G6, G7, G8, G11, G12, G15 and G10 are done — the operator has now answered every question in
-#3185's coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number
-and no PR closes it; it stays open until the operator writes those answers down.
+G13, G5, G6, G7, G8, G11, G12, G15, G10 and G16 are done — the operator has now answered every
+question in #3185's coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no
+gap number and no PR closes it; it stays open until the operator writes those answers down.
