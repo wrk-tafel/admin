@@ -237,6 +237,16 @@ This is the most involved sub-area — it records what a route's team actually p
   `distributions_statistics.food_total_amount` is frozen at close time and the `TOeT_Spenden`
   export would stop agreeing with it. `updateAmount()` is therefore the only way to change an
   item's `amount`; it recomputes `weight` in the same step so the two can't drift apart.
+- **The route name, shop number and category name are stored the same way (`R__00108`)**:
+  `FoodCollectionEntity.routeName` and `FoodCollectionItemEntity.shopNumber`/`.categoryName` are
+  snapshotted once, from `route.name`/`shop.number`/`category.name`, when the row is recorded -
+  `route`/`shop`/`category` themselves stay as live FKs (needed for the amount/weight lookups,
+  which match by id and are unaffected by a rename). `FoodCollectionEntity.route` can only be
+  changed via `updateRoute()`, which keeps `routeName` in sync the same way `updateAmount()` keeps
+  `weight` in sync; `shop`/`category` on an item are never reassigned after construction. Without
+  this, renaming a route/shop/category in the settings screens would retroactively rewrite the
+  "Route"/"Spender"/per-category columns of the `TOeT_Spenden` export for distributions that
+  already happened.
 
 ## Persistence gotchas — summary
 

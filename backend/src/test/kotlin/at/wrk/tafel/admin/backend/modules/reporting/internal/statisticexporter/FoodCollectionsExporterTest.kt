@@ -3,7 +3,13 @@ package at.wrk.tafel.admin.backend.modules.reporting.internal.statisticexporter
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShopAddress
+import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory2
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory3
@@ -118,6 +124,46 @@ class FoodCollectionsExporterTest {
                 ),
                 listOf("Datum", "Route", "Spender", "Category 1", "Category 2", "Category 3"),
             ),
+        )
+    }
+
+    @Test
+    fun `renaming a route, shop or category afterwards does not change already recorded rows`() {
+        val category = FoodCategoryEntity(name = "Original Category", sortOrder = 0, enabled = true).apply { id = 501 }
+        val shop = ShopEntity(
+            number = 9,
+            name = "Original Shop",
+            address = ShopAddress(street = "Street", postalCode = 1111, city = "City"),
+        ).apply { id = 501 }
+        val route = RouteEntity(number = 9.0, name = "Original Route").apply { id = 501 }
+
+        every { foodCategoryRepository.findAll() } returns listOf(category)
+
+        val pastDistribution = DistributionEntity(startedAt = LocalDateTime.now().minusDays(1), startedByUser = testUserEntity).apply {
+            id = 501
+        }
+        val foodCollection = FoodCollectionEntity(distribution = pastDistribution, route = route).apply {
+            items = listOf(FoodCollectionItemEntity(category = category, shop = shop, amount = 1))
+        }
+        pastDistribution.foodCollections = listOf(foodCollection)
+
+        val currentDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 502
+        }
+        val currentStatistic = DistributionStatisticEntity(distribution = currentDistribution)
+
+        every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(pastDistribution)
+
+        // rename everything in the live master data after the collection was already recorded
+        category.name = "Renamed Category"
+        shop.number = 99
+        route.name = "Renamed Route"
+
+        val rows = exporter.getRows(currentStatistic)
+
+        assertThat(rows[1]).isEqualTo(listOf("Datum", "Route", "Spender", "Original Category"))
+        assertThat(rows[2]).isEqualTo(
+            listOf(pastDistribution.startedAt!!.format(DATE_FORMATTER), "Original Route", "9", "0"),
         )
     }
 }

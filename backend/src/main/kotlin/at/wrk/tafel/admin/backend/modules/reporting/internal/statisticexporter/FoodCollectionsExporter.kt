@@ -28,27 +28,49 @@ class FoodCollectionsExporter(
         val descriptionHeaderRow =
             listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)")
 
+        val distributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)
+            .sortedBy { it.startedAt }
+        val currentDistribution = currentStatistic.distribution
+
         // `food_categories` holds only weighed donation categories now - return boxes are counted
         // by free-text description on the food collection itself and live in their own table, so
         // they never show up in this donation weight export
-        val sortedFoodCategories = foodCategoryRepository.findAll().sortedBy { it.name }
-        val columnsHeaderRow = generateHeaderFromCategories(sortedFoodCategories)
-
-        val distributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)
-            .sortedBy { it.startedAt }
+        val sortedCategories = sortedCategoriesWithDisplayName(distributions + currentDistribution)
+        val columnsHeaderRow = generateHeaderFromCategories(sortedCategories)
 
         val previousRows = distributions.flatMap { distribution ->
-            calculateFoodCollections(sortedFoodCategories, distribution)
+            calculateFoodCollections(sortedCategories, distribution)
         }
-        val currentRows = calculateFoodCollections(sortedFoodCategories, currentStatistic.distribution)
+        val currentRows = calculateFoodCollections(sortedCategories, currentDistribution)
 
         return listOf(descriptionHeaderRow, columnsHeaderRow) + previousRows + currentRows
     }
 
-    private fun generateHeaderFromCategories(sortedFoodCategories: List<FoodCategoryEntity>): List<String> = listOf("Datum", "Route", "Spender") + sortedFoodCategories.map { it.name }
+    /**
+     * A food category's `name` is editable master data, so reading it live would retroactively
+     * rewrite this column's header for distributions that already happened whenever a category gets
+     * renamed. The displayed name therefore prefers the [FoodCollectionItemEntity.categoryName]
+     * actually recorded for the exported distributions (the most recent one, if it changed across
+     * them) and falls back to the category's current name only for one that was never recorded in
+     * this period - so it still gets a (zero-filled) column, same as before.
+     */
+    private fun sortedCategoriesWithDisplayName(
+        distributions: List<DistributionEntity>,
+    ): List<Pair<FoodCategoryEntity, String>> {
+        val recordedNamesById = distributions
+            .flatMap { it.foodCollections }
+            .flatMap { it.items ?: emptyList() }
+            .associate { it.category.id to it.categoryName }
+
+        return foodCategoryRepository.findAll()
+            .map { category -> category to (recordedNamesById[category.id] ?: category.name) }
+            .sortedBy { (_, name) -> name }
+    }
+
+    private fun generateHeaderFromCategories(sortedCategories: List<Pair<FoodCategoryEntity, String>>): List<String> = listOf("Datum", "Route", "Spender") + sortedCategories.map { it.second }
 
     private fun calculateFoodCollections(
-        sortedFoodCategories: List<FoodCategoryEntity>,
+        sortedCategories: List<Pair<FoodCategoryEntity, String>>,
         distribution: DistributionEntity,
     ): List<List<String>> {
         val rows = mutableListOf<List<String>>()
@@ -57,19 +79,20 @@ class FoodCollectionsExporter(
         foodCollections.forEach { foodCollection ->
             val items = foodCollection.items
             if (!items.isNullOrEmpty()) {
-                val shops = items.map { it.shop }
-                    .sortedBy { it.number }
-                    .distinctBy { it.id }
+                val shopIds = items.map { it.shop.id }
+                    .distinct()
+                    .sortedBy { shopId -> items.first { it.shop.id == shopId }.shopNumber }
 
-                shops.forEach { currentShop ->
+                shopIds.forEach { shopId ->
+                    val itemsForShop = items.filter { it.shop.id == shopId }
+
                     val columns = mutableListOf<String>()
                     columns.add(distribution.startedAt.format(DATE_FORMATTER))
-                    columns.add(foodCollection.route.name)
-                    columns.add(currentShop.number.toString())
+                    columns.add(foodCollection.routeName)
+                    columns.add(itemsForShop.first().shopNumber.toString())
 
-                    sortedFoodCategories.forEach { foodCategory ->
-                        val itemPerCategory =
-                            items.firstOrNull { it.category.id == foodCategory.id && it.shop.id == currentShop.id }
+                    sortedCategories.forEach { (category, _) ->
+                        val itemPerCategory = itemsForShop.firstOrNull { it.category.id == category.id }
                         val weight = itemPerCategory?.weight ?: BigDecimal.ZERO
                         columns.add(NUMBER_FORMATTER.format(weight))
                     }
