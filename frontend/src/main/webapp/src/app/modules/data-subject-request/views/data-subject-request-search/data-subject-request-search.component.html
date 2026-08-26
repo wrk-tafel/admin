@@ -48,7 +48,7 @@
             <mat-icon svgIcon="download"></mat-icon>
             Datenexport herunterladen
           </button>
-          <button testid="data-subject-request-delete" matButton="outlined" [disabled]="selectedMatches().length === 0 || deleting()"
+          <button testid="data-subject-request-delete" matButton="filled" class="button-danger" [disabled]="selectedMatches().length === 0 || deleting()"
                   (click)="deleteSelected()">
             <mat-icon svgIcon="delete"></mat-icon>
             Daten löschen
