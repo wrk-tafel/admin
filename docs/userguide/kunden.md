@@ -60,6 +60,8 @@ Der Tab "Weitere Personen" listet alle zusätzlichen Haushaltsmitglieder (z. B. 
 
 ![Weitere Personen](images/kunden-detail-weitere-personen.jpg)
 
+<a id="dokumente"></a>
+
 ### Dokumente
 
 Der Tab "Dokumente" zeigt alle zum Kunden hochgeladenen Dokumente (z. B. Einkommensnachweise, Ausweiskopien, unterschriebene Datenschutzerklärungen) mit Dateiname, Dokumenttyp, Datum und Ersteller. Dokumente können heruntergeladen oder gelöscht werden (jeweils mit Sicherheitsabfrage).

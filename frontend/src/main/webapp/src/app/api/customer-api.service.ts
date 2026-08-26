@@ -372,6 +372,12 @@ export interface CustomerData {
   pendingCostContribution?: number;
   singleParent?: boolean;
   additionalPersons?: CustomerAddPersonData[];
+  /**
+   * Whether a signed privacy notice document is on file - only populated by {@link getCustomer}
+   * (the checkin screen's missing-privacy-notice warning is what needs it), undefined everywhere
+   * else rather than a misleading `false`.
+   */
+  hasPrivacyNotice?: boolean;
 }
 
 export interface CustomerIssuer {
@@ -531,6 +537,7 @@ interface HouseholdData {
   pendingCostContribution?: number;
   singleParent?: boolean;
   persons: PersonData[];
+  hasPrivacyNotice?: boolean;
 }
 
 interface PersonData {
@@ -694,7 +701,8 @@ function mapHouseholdToCustomer(household: HouseholdData | null | undefined): Cu
     lockReason: household?.lockReason,
     pendingCostContribution: household?.pendingCostContribution,
     singleParent: household?.singleParent,
-    additionalPersons: additionalPersons
+    additionalPersons: additionalPersons,
+    hasPrivacyNotice: household?.hasPrivacyNotice
   };
 }
 
