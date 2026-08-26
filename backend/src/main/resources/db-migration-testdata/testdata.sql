@@ -1097,15 +1097,17 @@ VALUES (5, NOW(), NOW(), 'W-NC-222', 'Stillgelegter Lieferwagen 2', false);
 
 -- food collection for route 1
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
-                              driver_employee_id, co_driver_employee_id, km_start, km_end)
-VALUES (1, NOW(), NOW(), 100, 1, 1, 2000, 2100, 213000, 213500);
+                              driver_employee_id, co_driver_employee_id, km_start, km_end, route_name)
+VALUES (1, NOW(), NOW(), 100, 1, 1, 2000, 2100, 213000, 213500, (SELECT name FROM routes WHERE id = 1));
 
 -- food collections items for route 1
 -- `weight` is stored, not derived on read (see FoodCollectionItemEntity), so it has to be computed
 -- here exactly as the application would: the amount itself for a shop measuring in KG, otherwise
--- amount * the category's weight per unit.
+-- amount * the category's weight per unit. `shop_number`/`category_name` are frozen the same way
+-- (see R__00108).
 WITH ShopCategories AS (
-                        SELECT s.id AS shop_id, fc.id AS food_category_id, s.food_unit, fc.weight_per_unit
+                        SELECT s.id AS shop_id, s.number AS shop_number, fc.id AS food_category_id,
+                               fc.name AS category_name, s.food_unit, fc.weight_per_unit
                         FROM shops s
                         JOIN routes_stops rs ON rs.shop_id = s.id
                         JOIN routes r ON rs.route_id = r.id
@@ -1119,22 +1121,26 @@ INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
                              amount,
-                             weight)
+                             weight,
+                             shop_number,
+                             category_name)
 SELECT 1,         -- fixed collection 1
        i.shop_id,
        i.food_category_id,
        i.amount,
-       CASE WHEN i.food_unit = 'KG' THEN i.amount ELSE i.amount * COALESCE(i.weight_per_unit, 0) END
+       CASE WHEN i.food_unit = 'KG' THEN i.amount ELSE i.amount * COALESCE(i.weight_per_unit, 0) END,
+       i.shop_number,
+       i.category_name
 FROM Items i;
 
 -- food collection for route 2
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
-                              driver_employee_id, co_driver_employee_id, km_start, km_end)
-VALUES (2, NOW(), NOW(), 100, 2, 2, 2000, 2100, 213000, 213500);
+                              driver_employee_id, co_driver_employee_id, km_start, km_end, route_name)
+VALUES (2, NOW(), NOW(), 100, 2, 2, 2000, 2100, 213000, 213500, (SELECT name FROM routes WHERE id = 2));
 
 -- food collections items for route 2
 WITH ShopCategories AS (
-    SELECT s.id AS shop_id, fc.id AS food_category_id
+    SELECT s.id AS shop_id, s.number AS shop_number, fc.id AS food_category_id, fc.name AS category_name
     FROM shops s
              JOIN routes_stops rs ON rs.shop_id = s.id
              JOIN routes r ON rs.route_id = r.id
@@ -1146,12 +1152,16 @@ INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
                              amount,
-                             weight)
+                             weight,
+                             shop_number,
+                             category_name)
 SELECT 2,         -- fixed collection 2
        sc.shop_id,
        sc.food_category_id,
        0, -- amount
-       0  -- a zero amount weighs nothing whatever the unit is
+       0, -- a zero amount weighs nothing whatever the unit is
+       sc.shop_number,
+       sc.category_name
 FROM ShopCategories sc;
 
 -- return boxes route 2 brought back last time - the route guidance screen sends them out again
@@ -1167,12 +1177,13 @@ VALUES (2, 21, 'Ströck Kisten', 0);
 
 -- food collection for route 3 (empty)
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
-                              driver_employee_id, co_driver_employee_id, km_start, km_end)
-VALUES (3, NOW(), NOW(), 100, 3, 3, 2000, 2100, 1000, 1200);
+                              driver_employee_id, co_driver_employee_id, km_start, km_end, route_name)
+VALUES (3, NOW(), NOW(), 100, 3, 3, 2000, 2100, 1000, 1200, (SELECT name FROM routes WHERE id = 3));
 
 -- food collections items for route 3 (all empty)
 WITH ShopCategories AS (
-    SELECT s.id AS shop_id, fc.id AS food_category_id, s.food_unit, fc.weight_per_unit
+    SELECT s.id AS shop_id, s.number AS shop_number, fc.id AS food_category_id, fc.name AS category_name,
+           s.food_unit, fc.weight_per_unit
     FROM shops s
              JOIN routes_stops rs ON rs.shop_id = s.id
              JOIN routes r ON rs.route_id = r.id
@@ -1184,12 +1195,16 @@ INTO food_collections_items (food_collection_id,
                              shop_id,
                              food_category_id,
                              amount,
-                             weight)
+                             weight,
+                             shop_number,
+                             category_name)
 SELECT 3,         -- fixed collection 3
        sc.shop_id,
        sc.food_category_id,
        1, -- amount
-       CASE WHEN sc.food_unit = 'KG' THEN 1 ELSE COALESCE(sc.weight_per_unit, 0) END
+       CASE WHEN sc.food_unit = 'KG' THEN 1 ELSE COALESCE(sc.weight_per_unit, 0) END,
+       sc.shop_number,
+       sc.category_name
 FROM ShopCategories sc;
 
 -- return boxes route 3 brought back last time. Route 3 is the only route no e2e spec ever records a
@@ -1209,10 +1224,12 @@ VALUES (3, 31, 'Ströck Kisten', 0);
 -- has a non-zero "Erfasste Warenmenge" as well - one KG-measured shop/category combo is enough,
 -- the exact split doesn't matter for that figure.
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
-                              driver_employee_id, co_driver_employee_id, km_start, km_end)
-VALUES (9000, NOW(), NOW(), 9000, 1, 1, 2000, 2100, 150000, 150180);
-INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight)
-VALUES (9000, 6, 2, 5230, 5230);
+                              driver_employee_id, co_driver_employee_id, km_start, km_end, route_name)
+VALUES (9000, NOW(), NOW(), 9000, 1, 1, 2000, 2100, 150000, 150180, (SELECT name FROM routes WHERE id = 1));
+INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight,
+                                    shop_number, category_name)
+VALUES (9000, 6, 2, 5230, 5230, (SELECT number FROM shops WHERE id = 6),
+        (SELECT name FROM food_categories WHERE id = 2));
 
 -- shelters
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
@@ -1592,7 +1609,7 @@ WHERE ds.distribution_id BETWEEN 1001 AND 1160;
 -- The routes start at different points of the history, so the number of donors grows over the
 -- years and "Spender (Anzahl)" has something to compare year over year.
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
-                              driver_employee_id, co_driver_employee_id, km_start, km_end)
+                              driver_employee_id, co_driver_employee_id, km_start, km_end, route_name)
 SELECT 2000 + (row_number() OVER (ORDER BY d.id, r.route_id))::int,
        d.created_at,
        d.updated_at,
@@ -1602,24 +1619,32 @@ SELECT 2000 + (row_number() OVER (ORDER BY d.id, r.route_id))::int,
        2000,
        2100,
        213000 + (d.id - 1000) * 60,
-       213000 + (d.id - 1000) * 60 + r.km
+       213000 + (d.id - 1000) * 60 + r.km,
+       rt.name
 FROM distributions d
          JOIN (VALUES (1, 0, 55), (4, 40, 35), (5, 90, 18)) AS r(route_id, active_from, km)
               ON (d.id - 1000) >= r.active_from
+         JOIN routes rt ON rt.id = r.route_id
 WHERE d.id BETWEEN 1001 AND 1160;
 
 -- what came back from each donor. `weight` is stored rather than derived on read (see
--- FoodCollectionItemEntity), so it is computed here exactly as the application would.
-INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight)
+-- FoodCollectionItemEntity), so it is computed here exactly as the application would; `shop_number`/
+-- `category_name` are frozen the same way (see R__00108).
+INSERT INTO food_collections_items (food_collection_id, shop_id, food_category_id, amount, weight,
+                                    shop_number, category_name)
 SELECT food_collection_id,
        shop_id,
        food_category_id,
        amount,
-       CASE WHEN food_unit = 'KG' THEN amount ELSE amount * COALESCE(weight_per_unit, 0) END
+       CASE WHEN food_unit = 'KG' THEN amount ELSE amount * COALESCE(weight_per_unit, 0) END,
+       shop_number,
+       category_name
 FROM (SELECT fc.id                                                                       AS food_collection_id,
              sh.id                                                                       AS shop_id,
              cat.id                                                                      AS food_category_id,
              sh.food_unit,
+             sh.number                                                                   AS shop_number,
+             cat.name                                                                    AS category_name,
              cat.weight_per_unit,
              GREATEST(1, 14 + ((s.idx * 3 + sh.id * 7 + cat.id * 11) % 15)
                  + round(5 * sin(2 * pi() * s.idx / 52.0))
