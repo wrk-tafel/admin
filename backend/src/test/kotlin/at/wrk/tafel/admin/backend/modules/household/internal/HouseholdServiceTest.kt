@@ -9,6 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
+import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentType
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
@@ -81,6 +82,9 @@ class HouseholdServiceTest {
 
     @RelaxedMockK
     private lateinit var documentStorageService: DocumentStorageService
+
+    @RelaxedMockK
+    private lateinit var documentRepository: DocumentRepository
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
@@ -290,10 +294,11 @@ class HouseholdServiceTest {
     @Test
     fun `findByHouseholdId - found`() {
         val testHouseholdEntity = mockk<HouseholdEntity>(relaxed = true)
-        every { householdRepository.findByHouseholdId(any()) } returns testHouseholdEntity
+        every { householdRepository.findByHouseholdId(1) } returns testHouseholdEntity
+        every { documentRepository.existsByHouseholdHouseholdIdAndDocumentType(1, DocumentType.PRIVACY_NOTICE) } returns true
 
         val testHousehold = mockk<HouseholdResponse>(relaxed = true)
-        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHousehold
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity, true) } returns testHousehold
 
         val household = service.findByHouseholdId(1)
 

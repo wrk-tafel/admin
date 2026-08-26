@@ -66,6 +66,7 @@ describe('CustomerApiService', () => {
     telephoneNumber: '00436644123123123',
     email: 'max.mustermann@gmail.com',
     singleParent: true,
+    hasPrivacyNotice: true,
     persons: [
       {
         id: 1,
@@ -238,6 +239,7 @@ describe('CustomerApiService', () => {
     expect(result!.address).toEqual(mockCustomer.address);
     expect(result!.telephoneNumber).toEqual('00436644123123123');
     expect(result!.singleParent).toBe(true);
+    expect(result!.hasPrivacyNotice).toBe(true);
 
     expect(result!.additionalPersons).toHaveLength(1);
     expect(result!.additionalPersons![0].id).toEqual(2);

@@ -271,6 +271,34 @@ describe('CheckIn', () => {
     });
   });
 
+  it('shows a warning chip when no signed privacy notice is on file', () => {
+    cy.createDummyCustomer().then((response) => {
+      searchCustomer(response.body.data.id!);
+
+      cy.byTestId('missingPrivacyNoticeChip').should('be.visible')
+        .should('contain.text', 'Datenschutzerklärung fehlt');
+    });
+  });
+
+  it('hides the missing-privacy-notice chip once a signed privacy notice has been uploaded', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+
+      cy.visit('/kunden/detail/' + customerId);
+      cy.byTestId('documents-tab-label').click();
+      cy.byTestId('documentTypeInput').click();
+      cy.byTestId('documentTypeInput-option-PRIVACY_NOTICE').click();
+      cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+      cy.byTestId('okButton').click();
+      cy.byTestId('document-0-typeText').should('be.visible');
+
+      cy.visit('/anmeldung/annahme');
+      searchCustomer(customerId);
+
+      cy.byTestId('missingPrivacyNoticeChip').should('not.exist');
+    });
+  });
+
   it('undo the last check-in from the confirmation toast', () => {
     searchCustomer(100);
     assignTicket(10);
