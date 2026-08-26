@@ -10,6 +10,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Der Dokumente-Tab in der Kundenansicht (Ausweise, Einkommensnachweise) benötigt jetzt die eigene Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung; bestehende Benutzer:innen mit Kundenverwaltung erhalten die neue Berechtigung automatisch mit.
 - In der Mitarbeiterverwaltung kann jetzt pro Mitarbeiter eine DSGVO-Auskunft (Personalnummer, Name, Anlagedatum) als PDF-Datei heruntergeladen werden - der einzige Auskunftsweg für Mitarbeiter:innen ohne eigenes Benutzerkonto, z. B. reine Fahrer:innen.
 - Eine neue Seite "Datenauskunft" durchsucht Kunden, Benutzerkonten und Mitarbeiter ohne Benutzerkonto mit einem einzigen Suchfeld und bietet je gefundenem Treffer den Datenexport (als ein gemeinsames ZIP bei mehreren ausgewählten Treffern) sowie die endgültige Löschung an - dafür ist die neue Berechtigung "Datenauskunft" zusätzlich zur jeweiligen Fachbereichs-Berechtigung erforderlich.
+- Der Spenden-Export (TOeT_Spenden) zeigt für bereits erfasste Warenerfassungen dauerhaft die zum Erfassungszeitpunkt gültigen Namen von Route, Filiale und Lebensmittelkategorie, auch wenn diese später umbenannt werden.
 
 ## [1.12.0] - 2026-08-25
 - Beim Erfassen einer Notiz und beim Hochladen eines Dokuments erinnert jetzt ein Hinweis daran, nur für die Anspruchsprüfung notwendige Angaben zu erfassen - keine Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.

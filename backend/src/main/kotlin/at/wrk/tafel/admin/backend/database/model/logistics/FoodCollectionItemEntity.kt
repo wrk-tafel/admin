@@ -35,6 +35,24 @@ class FoodCollectionItemEntity(
         private set
 
     /**
+     * The shop's number at the time this item was recorded, stored the same way [weight] is: `shop`
+     * is only ever set once (at construction, never reassigned), but its `number` is editable master
+     * data - reading it live would retroactively rewrite the "Spender" column of the TOeT_Spenden
+     * export for past distributions whenever a shop's number changes.
+     */
+    @Column(name = "shop_number", nullable = false)
+    final var shopNumber: Int = shop.number
+        private set
+
+    /**
+     * The category's name at the time this item was recorded - same reasoning as [shopNumber], for
+     * the TOeT_Spenden export's per-category columns.
+     */
+    @Column(name = "category_name", nullable = false)
+    final var categoryName: String = category.name
+        private set
+
+    /**
      * The only way to change the amount, so the stored [weight] can never fall out of sync with it.
      */
     fun updateAmount(newAmount: Int) {

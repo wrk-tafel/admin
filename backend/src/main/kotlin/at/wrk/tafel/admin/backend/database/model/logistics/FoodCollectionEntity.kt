@@ -20,10 +20,30 @@ class FoodCollectionEntity(
     @ManyToOne
     @JoinColumn(nullable = false)
     var distribution: DistributionEntity,
-    @ManyToOne
-    @JoinColumn(nullable = false)
-    var route: RouteEntity,
+    route: RouteEntity,
 ) : BaseChangeTrackingEntity() {
+
+    @ManyToOne
+    @JoinColumn(name = "route_id", nullable = false)
+    final var route: RouteEntity = route
+        private set
+
+    /**
+     * The route's name at the time this collection was last recorded, stored rather than derived on
+     * read: `route.name` is editable master data, so reading it live would retroactively rewrite the
+     * "Route" column of the TOeT_Spenden export for distributions that already happened whenever a
+     * route gets renamed - the same reason [FoodCollectionItemEntity.weight] is stored instead of
+     * recomputed.
+     */
+    @Column(name = "route_name", nullable = false)
+    final var routeName: String = route.name
+        private set
+
+    /** The only way to change [route], so [routeName] can never fall out of sync with it. */
+    fun updateRoute(newRoute: RouteEntity) {
+        route = newRoute
+        routeName = newRoute.name
+    }
 
     @OneToOne
     @JoinColumn(name = "car_id", referencedColumnName = "id")
