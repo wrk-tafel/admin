@@ -75,6 +75,4 @@ updates:
     directory: "/_build"
     schedule:
       interval: "daily"
-    ignore:
-      - dependency-name: "amazoncorretto"
     open-pull-requests-limit: 50
