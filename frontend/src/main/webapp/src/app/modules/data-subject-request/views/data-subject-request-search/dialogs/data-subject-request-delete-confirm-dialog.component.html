@@ -1,0 +1,15 @@
+<tafel-dialog testId="data-subject-request-delete-confirm-dialog" type="warning" title="Daten löschen">
+  <div tafel-dialog-content>
+    <div class="mb-2">Die folgenden Einträge werden unwiderruflich gelöscht:</div>
+    <ul class="list-disc pl-6 mb-2" testid="matches">
+      @for (match of data.matches; track match.type + '-' + match.businessKey) {
+        <li>{{ dataSubjectMatchTypeLabel[match.type] }}: <span class="font-bold">{{ match.name }}</span> ({{ match.businessKey }})</li>
+      }
+    </ul>
+    <div class="font-bold mt-6">Sicher?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(true)">Löschen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

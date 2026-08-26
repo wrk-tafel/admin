@@ -35,6 +35,15 @@ enum class UserPermissions(val key: String, val title: String, val category: Per
     CUSTOMER_DUPLICATES("CUSTOMER_DUPLICATES", "Kunden-Duplikate", PermissionCategory.ADMINISTRATION),
     CUSTOMERS_ABOVE_LIMIT("CUSTOMERS_ABOVE_LIMIT", "Kunden über dem Limit", PermissionCategory.ADMINISTRATION),
     CUSTOMERS_OVERVIEW("CUSTOMERS_OVERVIEW", "Kunden-Übersicht (Neu & Verlängert)", PermissionCategory.ADMINISTRATION),
+
+    /**
+     * The central "Datenauskunft" screen (issue #3396) that searches across households, user
+     * accounts and employees without one, then exports or deletes the matching record(s). Additive
+     * to each area's own permission rather than replacing it: this only grants reaching the search
+     * and picking a match, the export/delete action itself still requires CUSTOMER,
+     * USER_MANAGEMENT or SETTINGS respectively, same as triggering it from that area's own screen.
+     */
+    DATA_SUBJECT_REQUESTS("DATA_SUBJECT_REQUESTS", "Datenauskunft", PermissionCategory.ADMINISTRATION),
     LOGISTICS("LOGISTICS", "Transport/Logistik", PermissionCategory.TRANSPORT),
     SCANNER("SCANNER", "Scanner", PermissionCategory.OPERATIONS),
     SETTINGS("SETTINGS", "Einstellungen", PermissionCategory.LEADERSHIP),

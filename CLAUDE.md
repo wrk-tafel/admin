@@ -130,7 +130,7 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 ### Backend Architecture
 
-The backend uses **Spring Modulith** architecture with 11 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
+The backend uses **Spring Modulith** architecture with 12 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
 
 - **audit**: read access to the audit trail — "who changed what, and what did it look like before".
   Only reads: the listener that fills `audit_log` lives in `database/common/audit/` because it has to
@@ -154,6 +154,14 @@ The backend uses **Spring Modulith** architecture with 11 core feature modules (
   `settings`. `GET /api/config/public` serves the environment label on its own to anonymous callers,
   for the login page, and `GET /api/sse/config` pushes the config again whenever an operator's edit
   changes it (see Config Hot-Reload below)
+- **datasubjectrequest**: the central "Datenauskunft" screen — one search box across households,
+  user accounts and employees without one, so a GDPR data-subject request doesn't mean guessing
+  which of the three a person falls into. Export and delete both trigger the existing
+  household/user/employee flow per selected match through a thin cross-module facade
+  (`HouseholdDataSubjectFacade`, `EmployeeDataSubjectFacade`) rather than a new pipeline; export
+  always returns one combined ZIP, delete reports an outcome per match. Behind
+  `DATA_SUBJECT_REQUESTS`, additive to each area's own permission — see the module's GDPR
+  compliance doc entry (G15) for why
 - **base**: Shared utilities (countries, employees, exception handling). Its entities live in
   `database/model/base/`, but each utility is also its own `@NamedInterface` submodule under
   `modules/base/{country,employee,exception}/` for other modules to depend on. `base` is only for
@@ -645,6 +653,7 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/settings`: Application settings
 - `/api/support`: Mails an in-app support request (title, text, and the browser's `clientContext`) to the configured support addresses
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
+- `/api/data-subject-requests`: the central "Datenauskunft" screen — `/search` across households, user accounts and employees without one; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
 
 Authentication: Basic HTTP auth with JWT token stored in cookie.
 

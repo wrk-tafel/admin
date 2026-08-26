@@ -13,6 +13,7 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
@@ -714,5 +715,68 @@ class TafelUserDetailsManagerTest {
         manager.deleteUser(testUserEntity.username)
 
         verify { userRepository.delete(testUserEntity) }
+    }
+
+    @Test
+    fun `deleteUserById - unknown id returns false`() {
+        every { userRepository.findById(999) } returns Optional.empty()
+
+        val result = manager.deleteUserById(999)
+
+        assertThat(result).isFalse
+        verify(exactly = 0) { userRepository.delete(any<UserEntity>()) }
+    }
+
+    @Test
+    fun `deleteUserById - non-administrator is deleted without checking for another one`() {
+        every { userRepository.findById(testUserEntity.id!!) } returns Optional.of(testUserEntity)
+        every { userRepository.findByUsername(testUserEntity.username) } returns testUserEntity
+
+        val result = manager.deleteUserById(testUserEntity.id!!)
+
+        assertThat(result).isTrue
+        verify { userRepository.delete(testUserEntity) }
+        verify(exactly = 0) { userRepository.countOtherEnabledUsersWithAuthority(any(), any()) }
+    }
+
+    @Test
+    fun `deleteUserById - refuses to delete the last active administrator`() {
+        val administratorEntity = UserEntity(
+            username = "admin-username",
+            password = "test-password",
+            employee = EmployeeEntity(personnelNumber = "1", firstname = "first", lastname = "last"),
+            enabled = true,
+        ).apply {
+            id = 5
+            authorities = mutableListOf(UserAuthorityEntity(user = this, name = UserPermissions.ADMINISTRATOR.key))
+        }
+        every { userRepository.findById(5) } returns Optional.of(administratorEntity)
+        every { userRepository.countOtherEnabledUsersWithAuthority(UserPermissions.ADMINISTRATOR.key, 5) } returns 0
+
+        val exception = assertThrows<ConflictException> { manager.deleteUserById(5) }
+
+        assertThat(exception.body.detail).isEqualTo("Es muss mindestens ein aktiver Benutzer mit der Berechtigung \"Administrator\" verbleiben!")
+        verify(exactly = 0) { userRepository.delete(any<UserEntity>()) }
+    }
+
+    @Test
+    fun `deleteUserById - deletes an administrator when another one remains`() {
+        val administratorEntity = UserEntity(
+            username = "admin-username",
+            password = "test-password",
+            employee = EmployeeEntity(personnelNumber = "1", firstname = "first", lastname = "last"),
+            enabled = true,
+        ).apply {
+            id = 5
+            authorities = mutableListOf(UserAuthorityEntity(user = this, name = UserPermissions.ADMINISTRATOR.key))
+        }
+        every { userRepository.findById(5) } returns Optional.of(administratorEntity)
+        every { userRepository.findByUsername(administratorEntity.username) } returns administratorEntity
+        every { userRepository.countOtherEnabledUsersWithAuthority(UserPermissions.ADMINISTRATOR.key, 5) } returns 1
+
+        val result = manager.deleteUserById(5)
+
+        assertThat(result).isTrue
+        verify { userRepository.delete(administratorEntity) }
     }
 }

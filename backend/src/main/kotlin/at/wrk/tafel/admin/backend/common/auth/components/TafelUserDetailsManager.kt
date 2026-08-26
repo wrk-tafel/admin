@@ -15,6 +15,7 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.ValidationResult
@@ -59,6 +60,28 @@ class TafelUserDetailsManager(
      * Used to keep the last one from being removed - see `UserController`.
      */
     fun anotherEnabledAdministratorExists(excludedUserId: Long): Boolean = userRepository.countOtherEnabledUsersWithAuthority(UserPermissions.ADMINISTRATOR.key, excludedUserId) > 0
+
+    /**
+     * Deletes a user by id, refusing to remove the last active administrator - the same invariant
+     * `UserController.deleteUser` enforces for its own delete path, re-checked here since the
+     * central data-subject-request screen (issue #3396) is a second caller of `deleteUser` that must
+     * not be able to bypass it. Returns `false` rather than throwing when the user no longer exists,
+     * so a caller acting on a stale search result can treat it the same as "already gone".
+     */
+    fun deleteUserById(userId: Long): Boolean {
+        val tafelUser = loadUserById(userId) ?: return false
+
+        val isActiveAdministrator = tafelUser.enabled &&
+            tafelUser.authorities.any { it.authority == UserPermissions.ADMINISTRATOR.key }
+        if (isActiveAdministrator && !anotherEnabledAdministratorExists(userId)) {
+            throw ConflictException(
+                "Es muss mindestens ein aktiver Benutzer mit der Berechtigung \"${UserPermissions.ADMINISTRATOR.title}\" verbleiben!",
+            )
+        }
+
+        deleteUser(tafelUser.username)
+        return true
+    }
 
     fun loadUsers(
         searchInput: String?,
