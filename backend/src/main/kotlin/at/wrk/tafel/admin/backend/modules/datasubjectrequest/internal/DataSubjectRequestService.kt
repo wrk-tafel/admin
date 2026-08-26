@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.common.export.ExportFileResult
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeDataSubjectFacade
@@ -158,7 +159,7 @@ class DataSubjectRequestService(
      * through their USER_ACCOUNT match instead, mirroring `EmployeeExportService`'s own refusal.
      */
     private fun searchEmployeesWithoutAccount(searchTerm: String): List<DataSubjectMatchItem> {
-        val candidates = employeeRepository.findBySearchInput(searchTerm, PageRequest.of(0, EMPLOYEE_CANDIDATE_BATCH_SIZE)).content
+        val candidates: List<EmployeeEntity> = employeeRepository.findBySearchInput(searchTerm, PageRequest.of(0, EMPLOYEE_CANDIDATE_BATCH_SIZE)).content
         if (candidates.isEmpty()) {
             return emptyList()
         }
