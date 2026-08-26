@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Beim Löschen eines Benutzerkontos über die Seite "Datenauskunft" wird der verknüpfte Mitarbeiter-Datensatz jetzt sofort mitgelöscht, sofern er nicht noch anderswo verwendet wird (vorher blieb er bis zu 7 Jahre bestehen).
+
+## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).
 
 ## [1.13.0] - 2026-08-26

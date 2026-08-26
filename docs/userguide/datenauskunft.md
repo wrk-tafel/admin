@@ -38,4 +38,6 @@ Nach einer endgültigen Löschung sind Haushalt bzw. Personen, Notizen und Dokum
 - Bereits versendete E-Mails (z. B. Tagesberichte), die den Datensatz betrafen: bis zu 14 Tage nach dem Versand.
 - E-Mails, deren Zustellung nach mehreren Versuchen aufgegeben wurde: bis zu 30 Tage nach der Einreihung in die Warteschlange.
 
+Eine Ausnahme gilt für die Löschung eines Benutzerkontos: der verknüpfte Mitarbeiter-Datensatz (Personalnummer, Name) wird dabei sofort mitgelöscht, sofern er nicht noch anderswo referenziert ist – etwa als Erfasser:in eines Haushalts oder einer Notiz, oder als Fahrer:in einer Warenerfassung. Ist das der Fall, bleibt der Mitarbeiter-Datensatz bestehen, bis diese Verknüpfung endet, und wird spätestens 7 Jahre danach automatisch entfernt (siehe [Mitarbeiter](einstellungen.md#mitarbeiter)).
+
 Bereits gedruckte oder per Post versendete Dokumente (z. B. Kundenliste, Stammdatenblatt) sowie Datensicherungen liegen außerhalb der Anwendung – für sie gilt diese Frist nicht.
