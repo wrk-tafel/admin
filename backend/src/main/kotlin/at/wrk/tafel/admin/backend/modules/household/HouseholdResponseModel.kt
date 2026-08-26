@@ -71,6 +71,13 @@ data class HouseholdResponse(
     val pendingCostContribution: BigDecimal? = null,
     val singleParent: Boolean? = null,
     val persons: List<Person> = emptyList(),
+    /**
+     * Whether a `PRIVACY_NOTICE`-typed document is on file for this household - null wherever the
+     * caller didn't ask for it (see `HouseholdConverter.mapEntityToHousehold`), so this is not a
+     * blanket "false means missing" signal, only where it is actually populated (currently
+     * `HouseholdService.findByHouseholdId`, for the checkin screen's warning).
+     */
+    val hasPrivacyNotice: Boolean? = null,
 ) {
     /**
      * The single person of this household flagged as main person.

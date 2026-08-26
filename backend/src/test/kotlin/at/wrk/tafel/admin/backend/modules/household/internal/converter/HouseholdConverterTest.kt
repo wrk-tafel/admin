@@ -283,6 +283,16 @@ internal class HouseholdConverterTest {
         assertThat(household.additionalPersons().map { it.firstname })
             .containsExactly("Add pers 1", "Add pers 2")
         assertThat(household.additionalPersons().none { it.isMainPerson }).isTrue()
+
+        // not asked for, so left unset rather than defaulting to a misleading false
+        assertThat(household.hasPrivacyNotice).isNull()
+    }
+
+    @Test
+    fun `map entity to household passes hasPrivacyNotice through when given`() {
+        val household = converter.mapEntityToHousehold(testHouseholdEntity1, hasPrivacyNotice = true)
+
+        assertThat(household.hasPrivacyNotice).isTrue()
     }
 
     @Test

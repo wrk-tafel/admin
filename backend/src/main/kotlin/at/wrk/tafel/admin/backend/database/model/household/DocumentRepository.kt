@@ -12,6 +12,8 @@ interface DocumentRepository : JpaRepository<DocumentEntity, Long> {
 
     fun findByIdAndHouseholdHouseholdId(id: Long, householdId: Long): DocumentEntity?
 
+    fun existsByHouseholdHouseholdIdAndDocumentType(householdId: Long, documentType: DocumentType): Boolean
+
     fun countByHouseholdIdIn(householdEntityIds: Collection<Long>): Int
 
     /**

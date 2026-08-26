@@ -8,6 +8,8 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
+import at.wrk.tafel.admin.backend.database.model.household.DocumentType
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.lockedHousehold
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.missingPrivacyNoticeDocument
@@ -57,6 +59,7 @@ class HouseholdService(
     private val householdPdfService: HouseholdPdfService,
     private val householdConverter: HouseholdConverter,
     private val documentStorageService: DocumentStorageService,
+    private val documentRepository: DocumentRepository,
     private val distributionRepository: DistributionRepository,
     private val tafelAdminProperties: TafelAdminProperties,
     private val householdDuplicationService: HouseholdDuplicationService,
@@ -88,8 +91,16 @@ class HouseholdService(
 
     fun existsByHouseholdId(householdId: Long): Boolean = householdRepository.existsByHouseholdId(householdId)
 
+    /**
+     * The single-household lookup is the only place [HouseholdResponse.hasPrivacyNotice] gets
+     * computed (the checkin screen's missing-privacy-notice warning is what needs it) - a paged
+     * listing intentionally leaves it null rather than paying one `exists` query per row.
+     */
     @Transactional(readOnly = true)
-    fun findByHouseholdId(householdId: Long): HouseholdResponse? = householdRepository.findByHouseholdId(householdId)?.let { householdConverter.mapEntityToHousehold(it) }
+    fun findByHouseholdId(householdId: Long): HouseholdResponse? = householdRepository.findByHouseholdId(householdId)?.let {
+        val hasPrivacyNotice = documentRepository.existsByHouseholdHouseholdIdAndDocumentType(householdId, DocumentType.PRIVACY_NOTICE)
+        householdConverter.mapEntityToHousehold(it, hasPrivacyNotice)
+    }
 
     @Transactional
     fun createHousehold(household: HouseholdRequest, force: Boolean, isSupervisor: Boolean): HouseholdCreationResponse {
