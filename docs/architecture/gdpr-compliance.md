@@ -491,6 +491,28 @@ What remains open: same as G5/G12/G14, `audit_log` entries are excluded from the
 itself caps at 20 best matches per area (a lookup for one specific person, not a report), and nothing
 reports if it silently drops a match past that.
 
+### G16 A document upload is now checked against what the file actually is, not just its declared type
+
+**Art. 32(1)(b).** `HouseholdDocumentService`'s allow-list of `application/pdf`, `image/jpeg`,
+`image/png` was only ever checked against the `Content-Type` the caller declared - for a browser
+upload, that is the client's own claim, with nothing behind it confirming the bytes sent actually
+match. The scanner-import path derived its content type from the file extension instead
+(`ScannerFileService.resolveContentType`), which the browser path did not check at all, and neither
+path looked at the file's own content.
+
+`validateContentType` now checks three things for every upload, browser and scanner-import alike:
+the declared/resolved content type is still allow-listed, the file name's extension matches that
+content type (`ALLOWED_EXTENSIONS_BY_CONTENT_TYPE`), and the file's own magic bytes match it too
+(`%PDF`, the JPEG `FF D8 FF` marker, the PNG signature) - so a renamed file, or a browser sending a
+content type that doesn't match what it actually uploaded, is rejected with the same 400 the size
+check already used, on both paths.
+
+What remains open: no malware scanning exists anywhere in either upload path. Running something like
+ClamAV over an uploaded ID scan or proof of income is an infrastructure decision with its own cost
+and failure modes (a scan daemon to run and keep signatures current, a slower upload path, a rejected
+false positive), and this repository cannot make that call - it is the operator's risk decision to
+take and record, not a gap this fix closes.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
