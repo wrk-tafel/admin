@@ -54,6 +54,8 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.transaction.support.TransactionSynchronizationUtils
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -1376,6 +1378,42 @@ class HouseholdServiceTest {
 
         verify(exactly = 1) { documentStorageService.delete("/documents/123/doc1.pdf") }
         verify(exactly = 1) { documentStorageService.delete("/documents/123/doc2.png") }
+    }
+
+    /**
+     * Inside a real (Spring-managed) transaction, deleting the document files must wait for the
+     * commit - see [HouseholdService.deleteDocumentFilesAfterCommit]'s KDoc for why. A rolled-back
+     * transaction (`afterCommit` never invoked here) must leave the files untouched, since the
+     * database side of the deletion never happened either - see issue #3427.
+     */
+    @Test
+    fun `delete household by householdId defers document file deletion until the transaction commits`() {
+        val householdId = 123L
+        val testHouseholdEntity = testHouseholdEntityWithMainPerson()
+        val document = DocumentEntity(
+            household = testHouseholdEntity,
+            documentType = DocumentType.OTHER,
+            fileName = "doc1.pdf",
+            contentType = "application/pdf",
+            storagePath = "/documents/123/doc1.pdf",
+        )
+        testHouseholdEntity.documents = mutableListOf(document)
+        every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+
+        TransactionSynchronizationManager.initSynchronization()
+        try {
+            service.deleteHouseholdByHouseholdId(householdId)
+
+            // still on disk - the transaction hasn't committed yet
+            verify(exactly = 0) { documentStorageService.delete(any()) }
+
+            TransactionSynchronizationUtils.invokeAfterCommit(TransactionSynchronizationManager.getSynchronizations())
+
+            verify(exactly = 1) { documentStorageService.delete("/documents/123/doc1.pdf") }
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization()
+        }
     }
 
     @Test
