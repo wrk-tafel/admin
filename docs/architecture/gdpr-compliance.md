@@ -199,7 +199,7 @@ short, visible rule is.
 
 **Art. 15, Art. 20.**
 
-`HouseholdExportService` (issue #3179, see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md))
+`HouseholdExportService` (issue #3179, see [ADR-0051](adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md))
 serves one ZIP behind the same `CUSTOMER` permission as the rest of a household's data, from
 customer-detail's "Weitere Aktionen" menu: `GET /households/{householdId}/export` — household,
 persons, notes (via the unpaged `HouseholdNoteService.getAllNotes`, so a page-size cap can't silently
@@ -349,7 +349,7 @@ from the application — `UserController`'s only self-service reads were `/api/u
 and permissions, for the shell) and password/push-device management; nothing surfaced a personnel
 number, the full authority list or login history in one place, and there was no export.
 
-`UserExportService` (issue #3363, see [`gdpr-data-takeout-plan.md`](gdpr-data-takeout-plan.md) §3)
+`UserExportService` (issue #3363, see [ADR-0051](adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md))
 serves a PDF - the same `PDFService`/XSL-FO pipeline as the household export - with master data
 (username, employee personnel number/name, `enabled`, `lastLogin`) and every assigned permission.
 Never the password hash. Recorded in the audit trail as a single `AuditOperation.READ` entry against

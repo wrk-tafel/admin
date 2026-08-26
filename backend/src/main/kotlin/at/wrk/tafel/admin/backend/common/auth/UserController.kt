@@ -63,9 +63,9 @@ class UserController(
 
     /**
      * The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363, see
-     * `docs/architecture/gdpr-data-takeout-plan.md` §3) - a PDF, same shape as the household export.
-     * Self-service, same as [getUserInfo] - no `USER_MANAGEMENT` needed, since the class-level
-     * `isAuthenticated()` already covers it.
+     * `docs/architecture/adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md`)
+     * - a PDF, same shape as the household export. Self-service, same as [getUserInfo] - no
+     * `USER_MANAGEMENT` needed, since the class-level `isAuthenticated()` already covers it.
      */
     @GetMapping("/export", produces = [MediaType.APPLICATION_PDF_VALUE])
     fun exportUser(): ResponseEntity<InputStreamResource> {

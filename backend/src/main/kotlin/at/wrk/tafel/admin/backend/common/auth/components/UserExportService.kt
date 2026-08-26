@@ -21,11 +21,11 @@ import java.time.format.DateTimeFormatter
 
 /**
  * The GDPR Art. 15/20 data takeout for a staff member (issue #3363, see
- * `docs/architecture/gdpr-data-takeout-plan.md` §3) - a PDF with the account's master data and its
- * permissions, mirroring the household export's own PDF (`HouseholdExportService`). Reachable two
- * ways: self-service from the user menu ([exportUserByUsername]), and admin-triggered from a user's
- * detail screen ([exportUserById], behind `USER_MANAGEMENT`) for a request made on someone's behalf.
- * Never the password hash.
+ * `docs/architecture/adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md`)
+ * - a PDF with the account's master data and its permissions, mirroring the household export's own
+ * PDF (`HouseholdExportService`). Reachable two ways: self-service from the user menu
+ * ([exportUserByUsername]), and admin-triggered from a user's detail screen ([exportUserById],
+ * behind `USER_MANAGEMENT`) for a request made on someone's behalf. Never the password hash.
  *
  * Stores nothing - the PDF is built on request and never written to disk or a table.
  */

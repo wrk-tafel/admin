@@ -365,7 +365,8 @@ frontend needs the id as a stable list key.
 
 ### `HouseholdExportService` (`internal`)
 The GDPR Art. 15/20 data takeout (G5, issue #3179, see
-`docs/architecture/gdpr-data-takeout-plan.md`), exposed as a single `HouseholdController` endpoint
+`docs/architecture/adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md`),
+exposed as a single `HouseholdController` endpoint
 mirroring `generatePdf`'s `InputStreamResource`/`Content-Disposition` shape:
 - `GET /{householdId}/export` - one ZIP (`java.util.zip.ZipOutputStream`) containing the household
   record - persons, notes (via `HouseholdNoteService.getAllNotes`, the unpaged counterpart to
