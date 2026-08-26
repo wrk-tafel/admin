@@ -13,7 +13,7 @@ RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination 
 # here would silently produce a dead archive that never gets used at runtime.
 FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c437a8c5a951512724297b7 AS cds-trainer
 # Version matches what's actually run everywhere else (docker-compose.yml, Testcontainers, e2e/
-# lighthouse CI - all postgres:18.4-bookworm), so the CDS training run boots against the same major
+# lighthouse CI - all postgres:18-bookworm), so the CDS training run boots against the same major
 # version the app is deployed against. fuzzystrmatch (used by household duplicate detection, see
 # R__00031) lives in postgresql-contrib, not the base package. Deliberately not version-pinned:
 # Alpine's repo only carries the current build of each package, so a pinned version here would

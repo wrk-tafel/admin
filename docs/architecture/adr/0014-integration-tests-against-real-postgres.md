@@ -28,7 +28,7 @@ integration tests (`*IT.kt`) run against the real thing, with the real migration
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class TafelBaseIntegrationTest {
     companion object {
-        private val postgreSQLContainer = PostgreSQLContainer("postgres:18.4-bookworm")
+        private val postgreSQLContainer = PostgreSQLContainer("postgres:18-bookworm")
             /* ... */.apply { start() }
 
         @DynamicPropertySource

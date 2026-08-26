@@ -36,7 +36,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 class TestdataScriptIT {
 
     companion object {
-        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer("postgres:18.4-bookworm")
+        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer("postgres:18-bookworm")
             .withDatabaseName("tafeladmin-testdata")
             .withUsername("admin")
             .withPassword("admin")
