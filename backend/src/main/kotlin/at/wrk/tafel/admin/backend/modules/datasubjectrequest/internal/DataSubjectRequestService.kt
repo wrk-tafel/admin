@@ -92,12 +92,11 @@ class DataSubjectRequestService(
 
         val buffer = ByteArrayOutputStream()
         ZipOutputStream(buffer).use { zip ->
-            val usedEntryNames = mutableSetOf<String>()
             distinctMatches.forEach { match ->
                 requireAreaPermission(match.type)
                 val result = exportMatch(match)
                 val folder = "${folderName(match.type)}-${match.id}"
-                addToZip(zip, folder, result, usedEntryNames)
+                addToZip(zip, folder, result)
             }
         }
 
@@ -213,35 +212,24 @@ class DataSubjectRequestService(
      * A household's own export is already a ZIP (its master-data PDF plus every uploaded document) -
      * unpacked here rather than nested as-is, so the combined archive reads as one flat set of
      * folders instead of a ZIP containing another ZIP. A user's/employee's export is a single PDF,
-     * added directly under its own folder.
+     * added directly under its own folder. No name collisions to guard against: [folder] already
+     * carries the match's type and id, so two matches never share one, and a household's own entries
+     * are already unique among themselves (`HouseholdExportService` dedupes those itself).
      */
-    private fun addToZip(zip: ZipOutputStream, folder: String, result: ExportFileResult, usedEntryNames: MutableSet<String>) {
+    private fun addToZip(zip: ZipOutputStream, folder: String, result: ExportFileResult) {
         if (result.filename.endsWith(".zip")) {
             ZipInputStream(result.bytes.inputStream()).use { source ->
                 generateSequence { source.nextEntry }.forEach { entry ->
-                    val entryName = uniqueZipEntryName("$folder/${entry.name}", usedEntryNames)
-                    zip.putNextEntry(ZipEntry(entryName))
+                    zip.putNextEntry(ZipEntry("$folder/${entry.name}"))
                     source.copyTo(zip)
                     zip.closeEntry()
                 }
             }
         } else {
-            val entryName = uniqueZipEntryName("$folder/${result.filename}", usedEntryNames)
-            zip.putNextEntry(ZipEntry(entryName))
+            zip.putNextEntry(ZipEntry("$folder/${result.filename}"))
             zip.write(result.bytes)
             zip.closeEntry()
         }
-    }
-
-    private fun uniqueZipEntryName(entryName: String, usedEntryNames: MutableSet<String>): String {
-        var candidate = entryName
-        var suffix = 1
-        while (!usedEntryNames.add(candidate)) {
-            val extension = entryName.substringAfterLast('.', missingDelimiterValue = "")
-            val base = entryName.substringBeforeLast('.', missingDelimiterValue = entryName)
-            candidate = if (extension.isBlank()) "${base}_${++suffix}" else "${base}_${++suffix}.$extension"
-        }
-        return candidate
     }
 
     private fun requireNonEmptyDistinct(matches: List<DataSubjectMatch>): List<DataSubjectMatch> {

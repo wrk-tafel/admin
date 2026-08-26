@@ -172,6 +172,18 @@ internal class DataSubjectRequestServiceTest {
     }
 
     @Test
+    fun `search - no employee candidates match`() {
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
+        every { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
+        every { employeeRepository.findBySearchInput("nobody", any<PageRequest>()) } returns PageImpl(emptyList())
+
+        val result = service.search("nobody")
+
+        assertThat(result.items).isEmpty()
+        verify(exactly = 0) { userRepository.findAccountsByEmployeeIds(any()) }
+    }
+
+    @Test
     fun `export - throws when no matches selected`() {
         assertThrows<BusinessRuleException> { service.export(emptyList()) }
     }
@@ -199,8 +211,28 @@ internal class DataSubjectRequestServiceTest {
     }
 
     @Test
-    fun `export - combines a household zip and a user pdf into one archive`() {
-        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT")
+    fun `export - unknown user match throws not found`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "USER_MANAGEMENT")
+        every { userExportService.exportUserById(2) } returns null
+
+        assertThrows<NotFoundException> {
+            service.export(listOf(DataSubjectMatch(type = DataSubjectMatchType.USER_ACCOUNT, id = 2)))
+        }
+    }
+
+    @Test
+    fun `export - unknown employee match throws not found`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "SETTINGS")
+        every { employeeFacade.export(3) } returns null
+
+        assertThrows<NotFoundException> {
+            service.export(listOf(DataSubjectMatch(type = DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT, id = 3)))
+        }
+    }
+
+    @Test
+    fun `export - combines a household zip, a user pdf and an employee pdf into one archive`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
 
         every { householdFacade.export(1) } returns ExportFileResult(
             filename = "datenexport-mustermann-max-1.zip",
@@ -210,11 +242,16 @@ internal class DataSubjectRequestServiceTest {
             filename = "benutzerdaten-emusterfrau.pdf",
             bytes = "user-pdf".toByteArray(),
         )
+        every { employeeFacade.export(3) } returns ExportFileResult(
+            filename = "mitarbeiterdaten-00002.pdf",
+            bytes = "employee-pdf".toByteArray(),
+        )
 
         val result = service.export(
             listOf(
                 DataSubjectMatch(type = DataSubjectMatchType.CUSTOMER, id = 1),
                 DataSubjectMatch(type = DataSubjectMatchType.USER_ACCOUNT, id = 2),
+                DataSubjectMatch(type = DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT, id = 3),
             ),
         )
 
@@ -222,6 +259,7 @@ internal class DataSubjectRequestServiceTest {
         assertThat(zipEntryNames(result.bytes)).containsExactlyInAnyOrder(
             "kunde-1/datenexport.pdf",
             "benutzerkonto-2/benutzerdaten-emusterfrau.pdf",
+            "mitarbeiter-3/mitarbeiterdaten-00002.pdf",
         )
     }
 
