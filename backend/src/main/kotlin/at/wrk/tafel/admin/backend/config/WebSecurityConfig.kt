@@ -27,6 +27,7 @@ import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
@@ -162,6 +163,25 @@ class WebSecurityConfig(
                     """.trimIndent().lines().joinToString(" ")
 
                     it.policyDirectives(policyDirectives)
+                }
+                // Never send this app's URL to another origin, not even same-site over a scheme
+                // downgrade - the app never needs the referrer read on the other end, and
+                // households/employees/tickets are identifiable straight from the path.
+                headers.referrerPolicy { it.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER) }
+                // Deny every permission this app has no use for. camera stays allowed for same
+                // origin - the checkin module's QR scanner (zxing) depends on it - and
+                // clipboard-write for the "copy generated password" action on the user form.
+                headers.permissionsPolicyHeader {
+                    it.policy(
+                        listOf(
+                            "geolocation=()",
+                            "microphone=()",
+                            "payment=()",
+                            "usb=()",
+                            "camera=(self)",
+                            "clipboard-write=(self)",
+                        ).joinToString(", "),
+                    )
                 }
             }
 
