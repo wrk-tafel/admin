@@ -436,6 +436,13 @@ tafeladmin:
     # nightly cleanup deletes it. A file is written to disk before its row is committed, so this is
     # what keeps the cleanup from deleting a document out from under the request creating it.
     orphanedFileMinAge: 60m
+    # How long an unclaimed file on the scanner share above is kept before the nightly cleanup
+    # deletes it - a scanner file has no database row of its own, so this is its whole retention
+    # window rather than a race-condition guard like orphanedFileMinAge (GDPR gap G18).
+    scannerFileRetention: 7d
+    # How long before scannerFileRetention's deadline a file starts appearing in the "files about to
+    # be discarded" push notification, so staff get a chance to import or discard it themselves first.
+    scannerFileRetentionWarning: 1d
   # Wipes and re-creates the schema on startup so the testdata migrations can seed it from scratch.
   # Only ever true for local development and the Cypress run - it destroys all data. Read once at
   # startup by definition, since Flyway has finished long before anyone could edit the config file.

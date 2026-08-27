@@ -50,8 +50,15 @@ enum class PushNotificationType {
     EXCESSIVE_READ_ACCESS,
 
     /**
+     * A file on the scanner share is approaching `tafeladmin.storage.scannerFileRetention`'s
+     * deadline and will be deleted soon unless someone imports or discards it first - GDPR gap G18,
+     * see `ScannerFileExpiryReminderService`.
+     */
+    SCANNER_FILES_EXPIRING,
+
+    /**
      * A retention job (household/user/employee/audit) either failed or refused to run because it
-     * would have deleted more rows than its configured ceiling - GDPR gap G18, see
+     * would have deleted more rows than its configured ceiling - GDPR gap G19, see
      * `at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent`.
      */
     RETENTION_RUN,

@@ -33,7 +33,7 @@ Two things to be clear about before reading on:
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
 | `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
 | `mail_outbox` | customers and staff | every mail this installation sends, as the finished MIME message — report PDFs, and a support request's free text plus its screenshot of whatever screen it was written on | `tafeladmin.mailOutbox.sentRetention`, 14 days after sending; a row parked as `FAILED` gets `tafeladmin.mailOutbox.failedRetention`, 30 days after queuing (`MailOutboxService.cleanupOldMails`, ADR-0046) |
-| the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | until a user imports or deletes them |
+| the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | `tafeladmin.storage.scannerFileRetention`, 7 days by default (`ScannerFileCleanupService`), or until a user imports or deletes it first |
 | `logs/app.log` | staff | usernames on login/logout/distribution start; no customer names were found in any log statement | Spring Boot's rolling default, 7 files |
 | `logs/access.log` | customers, pseudonymously | one line per request, including `/api/households/{id}` paths | **never** — `rotate: false` in `application.yml` |
 | PDFs and CSVs generated on demand | customers | Stammdatenblatt and ID card per household; the Kundenliste PDF is a distribution's attendance list — ticket number, household number, person and infant counts, no names | outside the application the moment they are downloaded or printed |
@@ -124,7 +124,7 @@ is a kill switch independent of the window, and both are read per use so an oper
 either on a running deployment.
 
 What remains open: the window is a floor picked without a documented legal-basis decision (see G2).
-The job now reports what it is about to delete before it runs, and alerts on failure — see G18.
+The job now reports what it is about to delete before it runs, and alerts on failure — see G19.
 
 ### G2 A privacy notice now exists as a printable consent form, signed on paper
 
@@ -442,7 +442,7 @@ Both jobs are configurable and switchable per deployment
 `HouseholdRetentionService` (06:00) at 06:15/06:30, and claim their candidates with `FOR UPDATE SKIP
 LOCKED` (ADR-0047) the same way G1 does. What remains open, same as G1: both windows are floors picked
 without a documented legal-basis decision (see G2). Both jobs now report what they are about to
-delete before they run, and alert on failure — see G18.
+delete before they run, and alert on failure — see G19.
 
 ### G14 An employee with no user account can now be exported too, closing a gap G12 left open
 
@@ -575,7 +575,28 @@ every caller of `TafelUserDetailsManager.deleteUser` (`UserController.deleteUser
 via G15's data-subject-request delete, and G13's `UserRetentionService`) is covered without having
 to remember to call anything extra.
 
-### G18 A retention job now reports itself instead of only logging one aggregate line
+### G18 The scanner share now expires files too, with a warning before it does
+
+**Art. 5(1)(e).** Files on `tafeladmin.storage.scannerPath` - scanned ID documents not yet imported
+or discarded - stayed until a user imported or deleted them by hand, with no bound of any kind. A
+scan nobody claims is personal data with no retention window, the same gap G1 closed for households.
+
+`ScannerFileCleanupService` (`household`, nightly at 05:05) deletes any file older than
+`tafeladmin.storage.scannerFileRetention` (7 days by default). Unlike an already-imported document,
+a scanner file has no database row to reconcile against - `ScannerFileService` only ever
+lists/reads/deletes the folder directly - so the job only ever needs a file's own last-modified
+timestamp, the same signal the picker already showed staff (`ScannerFileItem.modifiedAt`).
+
+`ScannerFileExpiryReminderService` (`push`, daily) warns before that job deletes anything: once a
+file is within `tafeladmin.storage.scannerFileRetentionWarning` (1 day by default) of the deadline,
+subscribed devices with the `CUSTOMER_DOCUMENTS` permission get a push notification, repeating every
+day the file stays unclaimed - giving staff a real chance to import or discard it deliberately
+before the cleanup job does it for them. The two jobs read the same share independently rather than
+one publishing an event for the other, the same ambient-config-and-filesystem access
+`DistributionStillOpenReminderService`/`ExcessiveReadAccessDetectionService` already use for their
+own checks - so `household` gains no dependency on `push` and vice versa.
+
+### G19 A retention job now reports itself instead of only logging one aggregate line
 
 **Art. 5(1)(e), Art. 32.** Storage limitation is only as trustworthy as the process enforcing it: a
 job that throws is invisible unless someone happens to read `app.log`, and a misconfigured window
@@ -588,12 +609,13 @@ per-job ceiling (`tafeladmin.{householdDeletion,userDeletion,employeeDeletion,au
 read per use, 0 or less switches the ceiling off) — refusing to delete anything that run rather than
 proceeding. `push`'s `RetentionRunPushListener` turns either into a `RETENTION_RUN` broadcast to
 `ADMINISTRATOR`-permission users, mirroring how `ExcessiveReadAccessDetectionService` (G11) already
-alerts on a fixed threshold. An ordinary successful run is deliberately *not* alerted on — only a
-failure or a refused run is worth an interruption. The event type lives in the ambient
-`common.retention` package rather than inside a module, the same reasoning as
-`common.auth.model.UserLockedOutEvent`: `household` and `base::employee` are real Spring Modulith
-modules with their own restricted `allowedDependencies`, and an ambient event needs no dependency
-declaration to be published or listened for (see `push`'s `package-info.java`).
+alerts on a fixed threshold, and `ScannerFileExpiryReminderService` (G18) already warns before its
+own deletion job runs. An ordinary successful run is deliberately *not* alerted on — only a failure
+or a refused run is worth an interruption. The event type lives in the ambient `common.retention`
+package rather than inside a module, the same reasoning as `common.auth.model.UserLockedOutEvent`:
+`household` and `base::employee` are real Spring Modulith modules with their own restricted
+`allowedDependencies`, and an ambient event needs no dependency declaration to be published or
+listened for (see `push`'s `package-info.java`).
 
 Deletions themselves stay visible before they happen too: the customer search screen's "Wird in den
 nächsten 30 Tagen gelöscht" filter chip (`HouseholdEntity.Specs.willBeDeletedSoon`) previews which
@@ -671,7 +693,9 @@ number here.
 | 13 | [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too) no single entry point spanning G5/G12/G14 | [#3396](https://github.com/wrk-tafel/admin/issues/3396) | done | `DataSubjectRequestController`/`DataSubjectRequestService`, `DATA_SUBJECT_REQUESTS` |
 | 14 | [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) erasure timeline undocumented | [#3183](https://github.com/wrk-tafel/admin/issues/3183) | done | `docs/userguide/datenauskunft.md`; backup-restore propagation stays with §6/#3185 |
 | 15 | [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table) `created_by`/`updated_by` outlive a deleted account | [#3426](https://github.com/wrk-tafel/admin/issues/3426) | done | `created_by`/`updated_by` as an `on delete set null` FK to `users(id)`, `R__00111_change_tracking_actor_user_fk.sql` |
-| 16 | [G18](#g18-a-retention-job-now-reports-itself-instead-of-only-logging-one-aggregate-line) retention jobs had no preview, no failure alert, no upper bound | [#3437](https://github.com/wrk-tafel/admin/issues/3437) | done | `RetentionRunAlertEvent`/`RETENTION_RUN` push, per-job `maxDeletionsPerRun` ceilings, `tafeladmin.audit.cleanupEnabled`, the "wird bald gelöscht" search filter |
+| 16 | [G16](#g16-a-document-upload-is-now-checked-against-what-the-file-actually-is-not-just-its-declared-type) uploads trusted the declared content type | [#3420](https://github.com/wrk-tafel/admin/issues/3420) | done | `validateContentType` checks extension and magic bytes too, on both upload paths |
+| 17 | [G18](#g18-the-scanner-share-now-expires-files-too-with-a-warning-before-it-does) scanner share unbounded | [#3443](https://github.com/wrk-tafel/admin/issues/3443) | done | nightly job modelled on `HouseholdRetentionService`, `tafeladmin.storage.scannerFileRetention*`, plus a push warning before deletion |
+| 18 | [G19](#g19-a-retention-job-now-reports-itself-instead-of-only-logging-one-aggregate-line) retention jobs had no preview, no failure alert, no upper bound | [#3437](https://github.com/wrk-tafel/admin/issues/3437) | done | `RetentionRunAlertEvent`/`RETENTION_RUN` push, per-job `maxDeletionsPerRun` ceilings, `tafeladmin.audit.cleanupEnabled`, the "wird bald gelöscht" search filter |
 
 Every gap in this table is done — the operator has now answered every question in #3185's
 coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR

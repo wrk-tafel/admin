@@ -13,19 +13,22 @@
  * between (see {@code distribution.events} and {@code logistics.events}), and a report mail that
  * could not be sent ({@code reporting.events}).
  * <p>
- * Four more triggers need no module dependency at all: an account lockout, published from
+ * Five more triggers need no module dependency at all: an account lockout, published from
  * {@code common.auth}; a distribution left open; one user reading more sensitive data than the
  * configured threshold within an hour ({@code internal.ExcessiveReadAccessDetectionService}, reading
  * {@code database.model.audit} directly, same ambient-layer access as the distribution check reading
- * {@code database.model.distribution}) - both scheduled checks rather than events, since the point in
- * each case is that nothing else noticed; and a retention job (household/user/employee/audit) that
- * failed or refused to run past its configured ceiling, published as {@code common.retention.RetentionRunAlertEvent}
- * from each of the four retention services - three of which live in real modules (`household`,
- * `base::employee`) with their own restricted {@code allowedDependencies}, none of which lists this
- * module or `common.retention`, since only the *type* of an ambient event has to be referenced to
- * publish or listen for it, the same as {@code common.auth}'s lockout event above.
- * {@code base::exception} is the one dependency here that is not an event - the exceptions this
- * module's own controllers throw.
+ * {@code database.model.distribution}); a file on the scanner share approaching {@code household}'s
+ * retention deadline ({@code internal.ScannerFileExpiryReminderService}, reading
+ * {@code config.properties.TafelAdminProperties} and the share itself directly, rather than through
+ * {@code household}'s {@code ScannerFileService}) - all scheduled checks rather than events, since
+ * the point in each case is that nothing else noticed; and a retention job (household/user/employee/audit)
+ * that failed or refused to run past its configured ceiling, published as
+ * {@code common.retention.RetentionRunAlertEvent} from each of the four retention services - three of
+ * which live in real modules (`household`, `base::employee`) with their own restricted
+ * {@code allowedDependencies}, none of which lists this module or `common.retention`, since only the
+ * *type* of an ambient event has to be referenced to publish or listen for it, the same as
+ * {@code common.auth}'s lockout event above. {@code base::exception} is the one dependency here that
+ * is not an event - the exceptions this module's own controllers throw.
  */
 @org.springframework.modulith.ApplicationModule(
         allowedDependencies = {"distribution::events", "logistics::events", "reporting::events", "base::exception"}

@@ -121,7 +121,7 @@ describe('PushNotifications', () => {
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
     // e2etest holds ADMINISTRATOR, which grants every other permission, so every type is listed
     // here - the filtered case is the separate test below.
-    cy.byTestId('push-type-preference').should('have.length', 11);
+    cy.byTestId('push-type-preference').should('have.length', 12);
 
     cy.byTestId('push-master-toggle').click();
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
@@ -129,7 +129,7 @@ describe('PushNotifications', () => {
     // Switching the master off overrules the per-type settings rather than discarding them, so they
     // stay on screen and inert - hiding them read as "my settings are gone".
     cy.byTestId('push-master-disabled-hint').should('be.visible');
-    cy.byTestId('push-type-preference').should('have.length', 11);
+    cy.byTestId('push-type-preference').should('have.length', 12);
     cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('be.disabled');
     // The hint and the disabled section exist only after this click, so no other accessibility gate
     // sees them - see cypress/support/accessibility.ts
@@ -195,6 +195,16 @@ describe('PushNotifications', () => {
         ]);
       });
 
+    cy.get('[testid="push-type-group"][data-group="Erinnerungen"]')
+      .find('[testid="push-type-preference"]')
+      .then(items => {
+        const order = [...items].map(item => item.getAttribute('data-type'));
+        expect(order).to.deep.equal([
+          'DISTRIBUTION_STILL_OPEN',
+          'SCANNER_FILES_EXPIRING'
+        ]);
+      });
+
     cy.get('[testid="push-type-group"][data-group="Technisches"]')
       .find('[testid="push-type-preference"]')
       .then(items => {
@@ -215,6 +225,10 @@ describe('PushNotifications', () => {
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STILL_OPEN"]')
       .find('[testid="push-type-preference-description"]')
       .should('contain.text', 'noch nicht beendet');
+
+    cy.get('[testid="push-type-preference"][data-type="SCANNER_FILES_EXPIRING"]')
+      .find('[testid="push-type-preference-description"]')
+      .should('contain.text', 'wird bald gelöscht');
   });
 
 });

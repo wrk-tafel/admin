@@ -102,6 +102,15 @@ decided. They live one level up, in `docs/architecture/`:
 | [`gdpr-compliance.md`](../gdpr-compliance.md) | What the application does with personal data, and where that falls short of the GDPR ([#3124](https://github.com/wrk-tafel/admin/issues/3124)) |
 | [`rls-postgres-evaluation.md`](../rls-postgres-evaluation.md) | Whether Postgres Row Level Security makes sense given this application's single-tenant, permission-not-row access model ([#3411](https://github.com/wrk-tafel/admin/issues/3411)) |
 
+## Reference
+
+Unlike an ADR or an analysis, this is a living inventory of current state, kept in sync as the
+codebase changes rather than written once and left alone:
+
+| Document | Subject |
+|---|---|
+| [`scheduled-jobs.md`](../scheduled-jobs.md) | Every `@Scheduled` job's schedule and coordination mechanism (row-claim vs. `@SchedulerLock`, see [ADR-0047](0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md)) |
+
 ## Writing a new one
 
 Copy [`template.md`](template.md), take the next free number, and name the file
