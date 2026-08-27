@@ -71,7 +71,7 @@ interface AuditLogRepository :
 
     /**
      * A preview of what [deleteAllByOccurredAtBeforeSkipLocked] would delete this run, for
-     * `AuditRetentionService`'s ceiling check (GDPR gap G18) - a plain count rather than a locking
+     * `AuditRetentionService`'s ceiling check (GDPR gap G19) - a plain count rather than a locking
      * `SELECT ... FOR UPDATE`, since it only has to decide whether to proceed, not claim rows. A
      * concurrent instance may delete some of what this counted before the delete itself runs, which
      * only ever makes the actual run smaller than this preview, never larger - the ceiling this

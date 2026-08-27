@@ -32,7 +32,7 @@ import java.time.LocalDateTime
  * `EmployeeRetentionService` (06:30).
  *
  * A run that throws, or that would delete more than [TafelAdminUserRetentionProperties.maxDeletionsPerRun],
- * publishes `RetentionRunAlertEvent` instead of proceeding silently - GDPR gap G18. See
+ * publishes `RetentionRunAlertEvent` instead of proceeding silently - GDPR gap G19. See
  * `HouseholdRetentionService`'s KDoc for why the ceiling check after the candidates are already
  * claimed is safe.
  */

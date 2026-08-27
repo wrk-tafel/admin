@@ -5,7 +5,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 /**
  * Published by a retention job (`HouseholdRetentionService`, `UserRetentionService`,
  * `EmployeeRetentionService`, `AuditRetentionService`) when a run is worth an administrator's
- * attention rather than only a log line - GDPR gap G18 (`docs/architecture/gdpr-compliance.md`).
+ * attention rather than only a log line - GDPR gap G19 (`docs/architecture/gdpr-compliance.md`).
  * `push`'s `RetentionRunPushListener` is the one and only subscriber, turning this into a
  * `RETENTION_RUN` broadcast; kept here rather than in `modules.push` since every publisher would
  * otherwise need a dependency on a module whose own `package-info.java` states it is never depended

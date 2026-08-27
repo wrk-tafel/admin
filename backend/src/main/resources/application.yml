@@ -192,7 +192,7 @@ tafeladmin:
   # recorded" (HouseholdService.findByHouseholdId), so reloading the customer detail screen doesn't
   # write a fresh entry every time. Read per use.
   #
-  # cleanupEnabled - GDPR gap G18 - the deletion kill switch, independent of both `enabled` above
+  # cleanupEnabled - GDPR gap G19 - the deletion kill switch, independent of both `enabled` above
   # (which only ever gates writing) and retentionDays: before this existed, the only way to pause
   # deletion was retentionDays <= 0, indistinguishable from "no window configured yet". Read per use.
   #
@@ -242,7 +242,7 @@ tafeladmin:
   # records touching cost contributions - a defensible floor, not a final answer; the actual period is
   # the operator's call. A value of 0 or less keeps every household instead of deleting them all.
   #
-  # maxDeletionsPerRun - GDPR gap G18 - the most a single run may delete before it refuses to proceed
+  # maxDeletionsPerRun - GDPR gap G19 - the most a single run may delete before it refuses to proceed
   # and alerts administrators instead (RETENTION_RUN push notification), so a misconfigured window
   # sweeping a database's worth of households doesn't look identical to a normal night. Read per use.
   # 0 or less switches the ceiling off entirely.
@@ -268,7 +268,7 @@ tafeladmin:
   # even though it isn't itself tied to householdDeletion's bookkeeping period; widen or shorten per
   # deployment. A zero or negative period keeps every account instead of deleting them all.
   #
-  # maxDeletionsPerRun - GDPR gap G18 - see householdDeletion.maxDeletionsPerRun above; same
+  # maxDeletionsPerRun - GDPR gap G19 - see householdDeletion.maxDeletionsPerRun above; same
   # reasoning, same ceiling default.
   userDeletion:
     enabled: true
@@ -288,7 +288,7 @@ tafeladmin:
   # not the issuer/driver/recorder of anything still on record, so no bookkeeping period specifically
   # applies to it. A zero or negative period keeps every employee instead of deleting them all.
   #
-  # maxDeletionsPerRun - GDPR gap G18 - see householdDeletion.maxDeletionsPerRun above; same
+  # maxDeletionsPerRun - GDPR gap G19 - see householdDeletion.maxDeletionsPerRun above; same
   # reasoning, same ceiling default.
   employeeDeletion:
     enabled: true

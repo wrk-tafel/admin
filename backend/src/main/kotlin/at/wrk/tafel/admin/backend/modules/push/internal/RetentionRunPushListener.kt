@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 
 /**
  * Reacts to [RetentionRunAlertEvent] by telling administrators that a retention job either failed or
- * refused to run rather than silently deleting more than its configured ceiling - GDPR gap G18. This
+ * refused to run rather than silently deleting more than its configured ceiling - GDPR gap G19. This
  * is the one failure mode of the four retention jobs that is otherwise entirely invisible: a
  * `@Scheduled` method that throws is swallowed by Spring's own scheduler logging, and a
  * ceiling-exceeded refusal looks, from the outside, identical to a quiet night.

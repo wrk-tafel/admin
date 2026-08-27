@@ -81,7 +81,7 @@ class HouseholdService(
         private val CSV_FILENAME_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         private val CSV_ROW_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
 
-        /** How far ahead the "wird bald gelöscht" filter (GDPR gap G18) looks, see [getHouseholds]. */
+        /** How far ahead the "wird bald gelöscht" filter (GDPR gap G19) looks, see [getHouseholds]. */
         private const val DELETION_PREVIEW_WINDOW_DAYS = 30L
     }
 

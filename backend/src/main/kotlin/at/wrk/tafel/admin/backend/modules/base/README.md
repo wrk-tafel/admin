@@ -71,7 +71,7 @@ available to everyone (see [Employees are reachable two ways](#employees-are-rea
   `EmployeeRepository.findExpiredEmployeeIdsSkipLocked`) and its row hasn't been written to in longer
   than `tafeladmin.employeeDeletion.retentionTime` (7 years by default), through the same
   `EmployeeService.deleteEmployee` a staff member's manual delete uses. Mirrors
-  `common/auth/components/UserRetentionService` for `users`. GDPR gap G18: a run above
+  `common/auth/components/UserRetentionService` for `users`. GDPR gap G19: a run above
   `tafeladmin.employeeDeletion.maxDeletionsPerRun` refuses to delete anything and alerts
   administrators (`RETENTION_RUN` push notification) instead of proceeding, same for a run that
   throws.

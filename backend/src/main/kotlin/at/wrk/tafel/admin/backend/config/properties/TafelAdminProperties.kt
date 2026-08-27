@@ -137,7 +137,7 @@ class TafelAdminHouseholdRetentionProperties {
 
     /**
      * The most a single run may delete before it refuses to proceed and alerts administrators
-     * instead (`RETENTION_RUN` push notification, GDPR gap G18) - a misconfigured `retentionYears`
+     * instead (`RETENTION_RUN` push notification, GDPR gap G19) - a misconfigured `retentionYears`
      * that would otherwise sweep a database's worth of households looks identical to a normal night
      * without this. Read per use, same as [retentionYears]. 0 or less switches the ceiling off
      * entirely, same convention as `TafelAdminAuditBreachDetectionProperties.readThreshold`.
@@ -202,7 +202,7 @@ class TafelAdminUserRetentionProperties {
 
     /**
      * The most a single run may delete before it refuses to proceed and alerts administrators
-     * instead (`RETENTION_RUN` push notification, GDPR gap G18) - see
+     * instead (`RETENTION_RUN` push notification, GDPR gap G19) - see
      * [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun] for the reasoning. Read per use. 0
      * or less switches the ceiling off entirely.
      */
@@ -251,7 +251,7 @@ class TafelAdminEmployeeRetentionProperties {
 
     /**
      * The most a single run may delete before it refuses to proceed and alerts administrators
-     * instead (`RETENTION_RUN` push notification, GDPR gap G18) - see
+     * instead (`RETENTION_RUN` push notification, GDPR gap G19) - see
      * [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun] for the reasoning. Read per use. 0
      * or less switches the ceiling off entirely.
      */
@@ -311,7 +311,7 @@ class TafelAdminAuditProperties {
 
     /**
      * The most a single run may delete before it refuses to proceed and alerts administrators
-     * instead (`RETENTION_RUN` push notification, GDPR gap G18) - see
+     * instead (`RETENTION_RUN` push notification, GDPR gap G19) - see
      * [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun] for the reasoning. Defaults far
      * higher than the other retention jobs': this table's daily churn is legitimately in the
      * thousands on a busy day, not the handful a household/user/employee deletion should ever be. 0

@@ -30,7 +30,7 @@ import java.time.LocalDateTime
  * account is deleted the same night is a candidate for the very next run rather than an extra day.
  *
  * A run that throws, or that would delete more than [TafelAdminEmployeeRetentionProperties.maxDeletionsPerRun],
- * publishes `RetentionRunAlertEvent` instead of proceeding silently - GDPR gap G18. See
+ * publishes `RetentionRunAlertEvent` instead of proceeding silently - GDPR gap G19. See
  * `HouseholdRetentionService`'s KDoc for why the ceiling check after the candidates are already
  * claimed is safe.
  */

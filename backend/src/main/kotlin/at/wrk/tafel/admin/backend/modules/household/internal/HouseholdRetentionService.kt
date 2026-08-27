@@ -32,7 +32,7 @@ import java.time.LocalDate
  * night's deletions don't overlap with either.
  *
  * A run that throws, or that would delete more than [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun],
- * publishes [RetentionRunAlertEvent] instead of proceeding silently - GDPR gap G18. The ceiling check
+ * publishes [RetentionRunAlertEvent] instead of proceeding silently - GDPR gap G19. The ceiling check
  * happens after the candidates are already claimed (`FOR UPDATE SKIP LOCKED`); refusing to delete
  * them just lets the transaction end without writing, which releases the locks the same as a normal
  * commit would.

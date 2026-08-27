@@ -29,7 +29,7 @@ import java.time.LocalDateTime
  * take turns on.
  *
  * A run that throws, or that would delete more than [TafelAdminAuditProperties.maxDeletionsPerRun],
- * publishes `RetentionRunAlertEvent` instead of proceeding silently - GDPR gap G18.
+ * publishes `RetentionRunAlertEvent` instead of proceeding silently - GDPR gap G19.
  * [TafelAdminAuditProperties.cleanupEnabled] is the deletion kill switch, independent of both
  * [TafelAdminAuditProperties.enabled] (which only ever gates *writing*, see `AuditLogWriter`) and
  * `retentionDays` itself.
