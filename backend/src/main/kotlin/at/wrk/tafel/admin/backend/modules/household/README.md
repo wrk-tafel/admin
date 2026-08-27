@@ -134,6 +134,11 @@ still is none. `getHouseholdsAboveLimit`,
 Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see
 below.
 
+`findByHouseholdId` (the household detail lookup, `GET /households/{id}`) records one
+`AuditOperation.READ` entry per call the same way `generatePdf` does, de-duplicated per
+actor+household within `tafeladmin.audit.readDedupeWindow` so reloading the detail screen isn't
+counted as a fresh read for `ExcessiveReadAccessDetectionService`'s breach detection (issue #3430).
+
 `getHouseholdsOverview` (`GET /households/overview`) lists the households whose `createdAt`
 ("Neu") or `prolongedAt` ("Verlängert", see `HouseholdConverter` below) falls within a target
 distribution's `[startedAt, endedAt ?: now()]` window - `distributionId` defaults to the newest

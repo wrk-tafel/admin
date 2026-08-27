@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Das Änderungsprotokoll erfasst jetzt zusätzlich das Öffnen der Kunden-Detailansicht als Zugriff auf sensible Kundendaten, damit die Warnung bei ungewöhnlich vielen Zugriffen auch dieses Aufrufen erkennt.
 - Der Hinweis auf eine neue verfügbare Version wird jetzt nicht mehr als Warnung, sondern als neutral-positive Meldung angezeigt.
 - Beim Zusammenführen von Kunden werden verschobene Notizen und Dokumente im Änderungsprotokoll jetzt einzeln erfasst statt nur als Gesamtanzahl.
 - Das Anliegen einer Support-Anfrage und der Text einer Kundennotiz sind jetzt auf eine maximale Länge begrenzt.
