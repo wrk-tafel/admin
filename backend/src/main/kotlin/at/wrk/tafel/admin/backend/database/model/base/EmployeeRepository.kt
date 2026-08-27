@@ -55,4 +55,29 @@ interface EmployeeRepository :
         nativeQuery = true,
     )
     fun findExpiredEmployeeIdsSkipLocked(@Param("cutoff") cutoff: LocalDateTime): List<Long>
+
+    /**
+     * Whether [employeeId] is still referenced by anything other than a `users` row - the same
+     * tables [findExpiredEmployeeIdsSkipLocked] checks, minus `users` itself. Used by the
+     * data-subject-request erasure (issue #3423) to decide whether the employee record behind a
+     * just-deleted user account can be deleted immediately rather than only reachable through
+     * [findExpiredEmployeeIdsSkipLocked]'s own age-gated sweep, up to `tafeladmin.employeeDeletion.retentionTime`
+     * (7 years by default) later.
+     */
+    @Query(
+        value = """
+            SELECT EXISTS (
+                SELECT 1 FROM households h WHERE h.employee_id = :employeeId
+                UNION ALL
+                SELECT 1 FROM household_notes n WHERE n.employee_id = :employeeId
+                UNION ALL
+                SELECT 1 FROM food_collections fc
+                WHERE fc.driver_employee_id = :employeeId OR fc.co_driver_employee_id = :employeeId
+                UNION ALL
+                SELECT 1 FROM routes_stops_completions rsc WHERE rsc.employee_id = :employeeId
+            )
+        """,
+        nativeQuery = true,
+    )
+    fun isReferencedOutsideUserAccounts(@Param("employeeId") employeeId: Long): Boolean
 }

@@ -134,6 +134,11 @@ still is none. `getHouseholdsAboveLimit`,
 Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see
 below.
 
+`findByHouseholdId` (the household detail lookup, `GET /households/{id}`) records one
+`AuditOperation.READ` entry per call the same way `generatePdf` does, de-duplicated per
+actor+household within `tafeladmin.audit.readDedupeWindow` so reloading the detail screen isn't
+counted as a fresh read for `ExcessiveReadAccessDetectionService`'s breach detection (issue #3430).
+
 `getHouseholdsOverview` (`GET /households/overview`) lists the households whose `createdAt`
 ("Neu") or `prolongedAt` ("Verlängert", see `HouseholdConverter` below) falls within a target
 distribution's `[startedAt, endedAt ?: now()]` window - `distributionId` defaults to the newest
@@ -261,9 +266,12 @@ per direction).
 (matching the anchor ordering above) and stores them in `household_duplicate_dismissals`
 (`HouseholdDuplicateDismissalEntity`/`Repository`). `DUPLICATE_CONDITIONS`'s `NOT EXISTS` anti-join
 against that table is what keeps a dismissed pair from resurfacing on a later visit - without it, a
-decision made once would reappear on every review pass. The table has no foreign key to
-`households`: its columns hold the business `household_id`, which is never reused once assigned, so
-a dismissal outliving a deleted household is simply inert rather than a dangling reference.
+decision made once would reappear on every review pass. Its columns hold the business `household_id`
+(not the JPA primary key), so its foreign keys reference `households.household_id`
+(`households_household_id_key`, a unique index rather than the primary key) with
+`on delete cascade` (`R__00110_household_duplicate_dismissals_fk.sql`) - both `household_id_low` and
+`household_id_high` cascade independently, so deleting either household in a dismissed pair removes
+the dismissal row.
 
 `HouseholdController.mergeIntoHousehold`/`getMergePreview` hand off to `HouseholdMergeService` for
 the actual merge - see below for how field conflicts, person de-duplication, and note/distribution
@@ -409,7 +417,8 @@ module's permission on purpose, since these two hold the most sensitive artefact
 GDPR gap G1 (`docs/architecture/gdpr-compliance.md`): a nightly job (06:00, `@Scheduled`) that
 deletes every household whose `validUntil` is further in the past than
 `tafeladmin.householdDeletion.retentionYears` (default 7 years), and everything attached to it -
-persons, notes, documents (rows and files on disk) and attendance history. Candidate ids are
+persons, notes, documents (rows and files on disk), attendance history and duplicate dismissals
+naming it. Candidate ids are
 selected and locked with `FOR UPDATE SKIP LOCKED`
 (`HouseholdRepository.findExpiredHouseholdIdsSkipLocked`) inside the same transaction that then
 deletes each of them through `HouseholdService.deleteHouseholdByHouseholdId` - the same method a

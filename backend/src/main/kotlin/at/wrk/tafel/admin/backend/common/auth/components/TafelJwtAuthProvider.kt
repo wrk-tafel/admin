@@ -12,6 +12,9 @@ import org.springframework.security.authentication.DisabledException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 class TafelJwtAuthProvider(
@@ -27,6 +30,11 @@ class TafelJwtAuthProvider(
      * from the DB on every authenticated request instead, so a permission change an administrator
      * makes takes effect on the user's very next request rather than only after their token expires
      * and they log in again.
+     *
+     * The same per-request reload is what lets a stolen or shared token be cut off on demand: if
+     * [UserEntity.tokenInvalidatedAt] is set and this token's `issuedAt` is not strictly after it,
+     * the token is rejected here even though it is otherwise validly signed and unexpired - see
+     * [UserEntity.tokenInvalidatedAt] for who bumps it and why.
      */
     override fun authenticate(authentication: Authentication): TafelJwtAuthentication {
         try {
@@ -41,6 +49,21 @@ class TafelJwtAuthProvider(
             val userEntity = claims.subject?.let { userRepository.findByUsername(it) }
             if (userEntity?.enabled != true) {
                 throw DisabledException("User '${claims.subject}' is disabled or doesn't exist")
+            }
+
+            val tokenInvalidatedAt = userEntity.tokenInvalidatedAt
+            if (tokenInvalidatedAt != null) {
+                val issuedAt = claims.issuedAt?.let { LocalDateTime.ofInstant(it.toInstant(), ZoneId.systemDefault()) }
+                // The JWT `iat` claim is serialized at whole-second precision (RFC 7519 NumericDate),
+                // while tokenInvalidatedAt carries sub-second precision - comparing against it
+                // untruncated would spuriously reject a token reissued in the very same second as the
+                // invalidating event (e.g. UserController.changePassword minting a replacement token
+                // right after invalidating the request's own). Truncating to seconds before comparing
+                // keeps a same-second reissue valid without weakening the actual protection: a token
+                // genuinely issued before the invalidating event is still rejected either way.
+                if (issuedAt == null || issuedAt.isBefore(tokenInvalidatedAt.truncatedTo(ChronoUnit.SECONDS))) {
+                    throw CredentialsExpiredException("Token not valid")
+                }
             }
 
             return TafelJwtAuthentication(tafelJwtAuthentication.tokenValue, claims.subject, true, effectivePermissions(userEntity))

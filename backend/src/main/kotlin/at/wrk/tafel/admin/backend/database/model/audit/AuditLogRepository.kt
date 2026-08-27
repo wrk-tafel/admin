@@ -91,6 +91,20 @@ interface AuditLogRepository :
         @Param("since") since: LocalDateTime,
         @Param("threshold") threshold: Long,
     ): List<AuditActorOperationCountProjection>
+
+    /**
+     * Whether [actorUsername] already has a recorded [operation] of [entityType]/[businessKey] since
+     * [since] - lets a caller de-duplicate a read (e.g. `HouseholdService.findByHouseholdId`) so a
+     * screen reload within the dedupe window doesn't count as a fresh one for breach detection
+     * (`ExcessiveReadAccessDetectionService`, see issue #3430).
+     */
+    fun existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+        entityType: String,
+        businessKey: String,
+        operation: AuditOperation,
+        actorUsername: String,
+        since: LocalDateTime,
+    ): Boolean
 }
 
 /**
