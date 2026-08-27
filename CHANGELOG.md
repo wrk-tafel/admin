@@ -6,9 +6,14 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Das Anliegen einer Support-Anfrage und der Text einer Kundennotiz sind jetzt auf eine maximale Länge begrenzt.
+- Die Suche auf der Seite "Datenauskunft" durchsucht jetzt nur noch die Bereiche (Kunden, Benutzerkonten, Mitarbeiter ohne Konto), für die auch die jeweilige Fachbereichs-Berechtigung vorliegt, statt immer alle drei zu durchsuchen.
+- Die Suche auf der Seite "Datenauskunft" zeigt jetzt einen Hinweis an, wenn in einem der drei Bereiche mehr als 20 Treffer vorliegen und daher nicht alle angezeigt werden.
+- Beim Löschen mehrerer Treffer auf der Seite "Datenauskunft" wird jetzt namentlich aufgelistet, welcher Treffer bereits gelöscht war, statt nur eine Anzahl anzuzeigen.
+- Fehlermeldungen bei fehlerhaft empfangenen Live-Aktualisierungen (SSE) enthalten jetzt keine Nutzdaten mehr, damit über die Support-Anfrage keine personenbezogenen Daten (z. B. Haushalts- oder Ticketnummern) versehentlich mitgeschickt werden.
 
 ## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).
+- Der Bestätigungsdialog beim Löschen eines Kunden weist jetzt darauf hin, wenn der Kunde noch ein Ticket in der laufenden Ausgabe hat, das dadurch aus der Warteschlange entfernt wird.
 
 ## [1.13.0] - 2026-08-26
 - Im Benutzermenü kann jetzt unter "Meine Daten exportieren" eine DSGVO-Auskunft zum eigenen Benutzerkonto (Benutzername, Mitarbeiter-Stammdaten, Berechtigungen, Aktiv-Status, letzter Login) als PDF-Datei heruntergeladen werden; auf der Benutzerdetailseite steht derselbe Export für andere Benutzer:innen zur Verfügung.

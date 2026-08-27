@@ -109,6 +109,17 @@ class LoginAttemptService(
 
     @Transactional
     fun recordSuccess(username: String) {
+        deleteAttempts(username)
+    }
+
+    /**
+     * Drops any lockout state for [username] - called when the account itself is deleted, so the
+     * row does not linger until [cleanupStaleEntries] catches up with it. `login_attempts` has no FK
+     * to `users` (it also tracks attempts against usernames that never existed as an account), so
+     * nothing else removes it on account deletion.
+     */
+    @Transactional
+    fun deleteAttempts(username: String) {
         loginAttemptRepository.deleteByUsername(normalize(username))
     }
 
