@@ -217,6 +217,8 @@ class UserControllerTest {
         assertThat(responseEntity.statusCode.value()).isEqualTo(HttpStatus.OK.value())
 
         verify {
+            // createTokenCookie() already sets .secure = request.isSecure (true behind TLS via forward-headers-strategy)
+            // codeql[java/insecure-cookie] -- verifies a mock invocation, not a real cookie emission
             response.addCookie(
                 withArg {
                     assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)

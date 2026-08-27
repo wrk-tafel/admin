@@ -18,10 +18,15 @@ data class DataSubjectMatchItem(
     val name: String,
 )
 
-/** Non-paginated full-list response, exempt from the `Request`/`Response`/`Item` suffix rule. */
+/**
+ * Non-paginated full-list response, exempt from the `Request`/`Response`/`Item` suffix rule.
+ * [truncated] is true when at least one area's own result was cut off at its per-area cap - a
+ * match beyond that cap still exists, it just isn't in [items].
+ */
 @ExcludeFromTestCoverage
 data class DataSubjectMatchListResponse(
     val items: List<DataSubjectMatchItem>,
+    val truncated: Boolean = false,
 )
 
 /**
