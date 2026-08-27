@@ -237,9 +237,7 @@ class StatisticsControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)
 
-        assertThat(
-            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
-        ).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
@@ -309,9 +307,7 @@ class StatisticsControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)
-        assertThat(
-            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
-        ).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)

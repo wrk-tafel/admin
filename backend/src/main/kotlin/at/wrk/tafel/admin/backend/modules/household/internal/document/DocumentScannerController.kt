@@ -1,10 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.document
 
+import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -48,8 +48,7 @@ class DocumentScannerController(
             ),
         )
 
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=$fileName")
+        val headers = ContentDispositionUtil.inline(fileName)
 
         return ResponseEntity.ok()
             .headers(headers)
