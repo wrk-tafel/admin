@@ -3,7 +3,7 @@
 Every `@Scheduled` method in the backend, in one place, so a new job can be timed sensibly against
 the others and an existing one's schedule or coordination mechanism can be found without grepping
 the codebase. This is a reference, not a decision record — **why** a job coordinates the way it does
-is [ADR-0047](adr/0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md); this page only
+is [ADR-0047](architecture/adr/0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md); this page only
 tracks the current, concrete list. Keep it in sync when a scheduled job is added, removed, retimed or
 reclassified.
 
