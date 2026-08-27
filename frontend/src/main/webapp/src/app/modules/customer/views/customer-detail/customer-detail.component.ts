@@ -306,7 +306,9 @@ export class CustomerDetailComponent {
 
   openDeleteCustomerDialog() {
     const customer = this.customerData();
-    this.dialog.open(DeleteCustomerDialogComponent, {data: {customerName: `${customer.lastname} ${customer.firstname}`}})
+    this.dialog.open(DeleteCustomerDialogComponent, {
+      data: {customerName: `${customer.lastname} ${customer.firstname}`, ticketNumber: this.ticketNumber()}
+    })
       .afterClosed().subscribe(confirmed => {
       if (confirmed) {
         this.customerApiService.deleteCustomer(this.customerData().id!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({

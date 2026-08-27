@@ -133,7 +133,10 @@ class EmployeeService(
         }
 
         employeeRepository.delete(employeeEntity)
-        log.info("Deleted employee {} ({})", employeeId, sanitizeForLog(employeeEntity.personnelNumber))
+        // DEBUG, not INFO: EmployeeRetentionService already logs an aggregate count for its
+        // nightly run, so an INFO line with the personnel number here would only repeat that for
+        // every employee it deletes.
+        log.debug("Deleted employee {} ({})", employeeId, sanitizeForLog(employeeEntity.personnelNumber))
     }
 
     private fun mapEntityToEmployee(it: EmployeeEntity) = EmployeeResponse(

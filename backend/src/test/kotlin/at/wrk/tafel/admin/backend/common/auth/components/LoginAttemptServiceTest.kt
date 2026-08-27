@@ -256,6 +256,16 @@ internal class LoginAttemptServiceTest {
     }
 
     @Test
+    fun `deleteAttempts removes the row for the given username`() {
+        service.recordFailure("user")
+
+        service.deleteAttempts("USER")
+
+        verify(exactly = 1) { loginAttemptRepository.deleteByUsername("user") }
+        assertThat(entries).doesNotContainKey("user")
+    }
+
+    @Test
     fun `stale failures outside the window dont count towards the limit`() {
         repeat(MAX_FAILURES - 1) { service.recordFailure("user") }
 

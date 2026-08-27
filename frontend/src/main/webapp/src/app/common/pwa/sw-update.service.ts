@@ -23,8 +23,12 @@ export class SwUpdateService {
     this.swUpdate.versionUpdates
       .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
       .subscribe(() => {
-        // durationMs 0: stays open until acted on - an auto-dismissed reload prompt is easily missed
-        const snackBarRef = this.toastr.warning('Eine neue Version ist verfügbar.', undefined, {
+        // 'success' rather than 'warning': a new version is good news, not something wrong that
+        // needs attention - reloading is entirely optional, so the toast shouldn't read as urgent.
+        // durationMs 0: stays open until acted on - an auto-dismissed reload prompt is easily
+        // missed, which matters most on the long-lived kiosk/tablet screens this exists for (see
+        // ADR-0029) - but it can be dismissed via its close button at any time.
+        const snackBarRef = this.toastr.success('Eine neue Version ist verfügbar.', undefined, {
           action: 'Neu laden',
           durationMs: 0,
         });
