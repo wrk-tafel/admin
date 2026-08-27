@@ -48,6 +48,8 @@ class HouseholdDocumentService(
         private val PNG_MAGIC_BYTES = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
 
         private val IMPORT_FILE_NAME_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmm")
+
+        private const val UNSUPPORTED_FILE_TYPE_MESSAGE = "Dateityp wird nicht unterstützt!"
     }
 
     @Transactional
@@ -204,16 +206,16 @@ class HouseholdDocumentService(
      */
     private fun validateContentType(contentType: String?, fileName: String, bytes: ByteArray) {
         if (contentType == null || contentType !in ALLOWED_CONTENT_TYPES) {
-            throw BusinessRuleException("Dateityp wird nicht unterstützt!")
+            throw BusinessRuleException(UNSUPPORTED_FILE_TYPE_MESSAGE)
         }
 
         val extension = fileName.substringAfterLast('.', missingDelimiterValue = "").lowercase()
         if (extension !in ALLOWED_EXTENSIONS_BY_CONTENT_TYPE.getValue(contentType)) {
-            throw BusinessRuleException("Dateityp wird nicht unterstützt!")
+            throw BusinessRuleException(UNSUPPORTED_FILE_TYPE_MESSAGE)
         }
 
         if (!matchesMagicBytes(contentType, bytes)) {
-            throw BusinessRuleException("Dateityp wird nicht unterstützt!")
+            throw BusinessRuleException(UNSUPPORTED_FILE_TYPE_MESSAGE)
         }
     }
 
