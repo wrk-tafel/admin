@@ -14,6 +14,7 @@ import {MatIcon} from '@angular/material/icon';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
 import {TafelIfPermissionDirective} from '../../../../common/security/tafel-if-permission.directive';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import openInNewIcon from '@material-symbols/svg-400/outlined/open_in_new-fill.svg';
@@ -95,8 +96,7 @@ export class CustomerAboveLimitComponent {
   }
 
   private processCsvResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 

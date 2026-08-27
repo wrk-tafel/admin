@@ -19,6 +19,7 @@ import {CommonModule} from '@angular/common';
 import {MatIcon} from '@angular/material/icon';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
 import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
@@ -287,8 +288,7 @@ export class CustomerSearchComponent {
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 
