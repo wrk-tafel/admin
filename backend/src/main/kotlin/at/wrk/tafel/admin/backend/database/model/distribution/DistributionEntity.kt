@@ -20,9 +20,13 @@ import java.time.LocalDateTime
 class DistributionEntity(
     @Column(name = "started_at", nullable = false)
     var startedAt: LocalDateTime,
+    // Always set at creation (DistributionService.startDistribution requires an authenticated
+    // user) but nullable at the DB level with `on delete set null`
+    // (R__00027_user_distributions_fk_cascade.sql) - a since-deleted account clears this, the same
+    // as endedByUser below, so callers must not assume it stays non-null forever.
     @ManyToOne
-    @JoinColumn(name = "startedby_userid", nullable = false)
-    var startedByUser: UserEntity,
+    @JoinColumn(name = "startedby_userid")
+    var startedByUser: UserEntity?,
 ) : BaseChangeTrackingEntity() {
 
     @Column(name = "ended_at")
