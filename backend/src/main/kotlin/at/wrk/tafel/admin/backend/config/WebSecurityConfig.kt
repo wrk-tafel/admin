@@ -171,7 +171,7 @@ class WebSecurityConfig(
                 // Deny every permission this app has no use for. camera stays allowed for same
                 // origin - the checkin module's QR scanner (zxing) depends on it - and
                 // clipboard-write for the "copy generated password" action on the user form.
-                headers.permissionsPolicy {
+                headers.permissionsPolicyHeader {
                     it.policy(
                         listOf(
                             "geolocation=()",
