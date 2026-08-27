@@ -399,7 +399,7 @@ that's left an open question rather than answered here. Shares `buildHouseholdFi
 (`internal/HouseholdFilenames.kt`) with `HouseholdService.generatePdf` so the filename schemes don't
 drift.
 
-### `HouseholdDocumentController` / `DocumentScannerController` (`internal/document`)
+### `HouseholdDocumentController` / `DocumentScannerController` / `DocumentScannerSseController` (`internal/document`)
 `HouseholdDocumentController` (`/api/households/{householdId}/documents`) is upload/list/download/
 delete for a household's documents (ID scans, proofs of income, the signed privacy notice - see
 `DocumentType`), stored as plain files under `tafeladmin.storage.documentsPath` with metadata in
@@ -407,9 +407,11 @@ delete for a household's documents (ID scans, proofs of income, the signed priva
 (`/api/document-scanner-files`) lists and reads the not-yet-imported files a physical document
 scanner writes to `tafeladmin.storage.scannerPath` (see "Scanner Folder" in the root `CLAUDE.md`),
 which `HouseholdDocumentController.importScannerDocument` turns into a proper document.
+`DocumentScannerSseController` (`/api/sse/document-scanner-files`) is that same file list pushed
+live as it changes.
 
-Both controllers require `CUSTOMER_DOCUMENTS`, not `CUSTOMER` - separate from the rest of this
-module's permission on purpose, since these two hold the most sensitive artefacts on a household
+All three controllers require `CUSTOMER_DOCUMENTS`, not `CUSTOMER` - separate from the rest of this
+module's permission on purpose, since these hold the most sensitive artefacts on a household
 (GDPR G7, `docs/architecture/gdpr-compliance.md`, issue #3181,
 `docs/architecture/adr/0050-customer-documents-split-into-its-own-permission.md`).
 
