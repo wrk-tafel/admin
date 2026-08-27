@@ -89,6 +89,23 @@ class HouseholdMergeService(
             .flatMap { source -> source.persons.mapNotNull { person -> person.id?.let { it to source.householdId } } }
             .toMap()
 
+        // Notes/documents have no `mappedBy` back-reference on `HouseholdEntity` (see the
+        // repositories' `reassignToHousehold` KDoc), so they're not reachable via `source.persons`
+        // like above - fetched by business householdId instead, before `reassignToHousehold` moves
+        // them onto the target and either query would come back empty for the source.
+        val sourceHouseholdIdByNoteId = sources
+            .flatMap { source ->
+                householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(source.householdId)
+                    .mapNotNull { note -> note.id?.let { it to source.householdId } }
+            }
+            .toMap()
+        val sourceHouseholdIdByDocumentId = sources
+            .flatMap { source ->
+                documentRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(source.householdId)
+                    .mapNotNull { document -> document.id?.let { it to source.householdId } }
+            }
+            .toMap()
+
         // 1) field selections, while target/sources are still the fresh entities from resolve()
         HouseholdMergeField.entries.forEach { field ->
             val winnerHouseholdId = request.fieldSelections.firstOrNull { it.field == field }?.sourceHouseholdId
@@ -121,10 +138,8 @@ class HouseholdMergeService(
             distributionHouseholdRepository.reassignToHousehold(targetRef, plan.distributionRowIdsToMove)
         }
 
-        val noteCount = householdNoteRepository.countByHouseholdEntityIdIn(sourceEntityIds)
         householdNoteRepository.reassignToHousehold(targetRef, sourceEntityIds)
 
-        val documentCount = documentRepository.countByHouseholdIdIn(sourceEntityIds)
         plan.duplicatePersonIdToMatchedTargetPersonId.forEach { (sourcePersonId, targetPersonId) ->
             documentRepository.reassignPerson(personRepository.getReferenceById(targetPersonId), sourcePersonId)
         }
@@ -145,9 +160,9 @@ class HouseholdMergeService(
             targetEntityId = targetEntityId,
             sourceHouseholdIds = sources.map { it.householdId },
             sourceHouseholdIdByPersonId = sourceHouseholdIdByPersonId,
+            sourceHouseholdIdByNoteId = sourceHouseholdIdByNoteId,
+            sourceHouseholdIdByDocumentId = sourceHouseholdIdByDocumentId,
             plan = plan,
-            noteCount = noteCount,
-            documentCount = documentCount,
         )
 
         val mergedTarget = householdRepository.findByHouseholdId(targetHouseholdId)!!
@@ -162,8 +177,8 @@ class HouseholdMergeService(
             target = householdConverter.mapEntityToHousehold(mergedTarget),
             movedPersonCount = plan.personIdsToMove.size,
             droppedDuplicatePersonCount = plan.duplicatePersonIdToMatchedTargetPersonId.size,
-            movedNoteCount = noteCount,
-            movedDocumentCount = documentCount,
+            movedNoteCount = sourceHouseholdIdByNoteId.size,
+            movedDocumentCount = sourceHouseholdIdByDocumentId.size,
             movedDistributionCount = plan.distributionRowIdsToMove.size,
             droppedDistributionCount = plan.distributionRowIdsToDrop.size,
             deletedHouseholdIds = sources.map { it.householdId },
@@ -175,26 +190,24 @@ class HouseholdMergeService(
      * either moves through a bulk `@Modifying` query - invisible to the Hibernate listener that
      * feeds `audit_log` - or belongs to a household that is deleted a moment later.
      *
-     * Three kinds of entry come out of it, all under the *target*'s business key so they land on the
+     * Four kinds of entry come out of it, all under the *target*'s business key so they land on the
      * household that still exists:
      *
-     * - one per moved person, so an individual person's move stays traceable;
+     * - one per moved person, note and document, so each individual row's move stays traceable to
+     *   the source it came from (see issue #3447 - notes/documents used to be recorded as an
+     *   aggregate count only, which could not answer "which one came from where");
      * - one summarising the merge on the target;
      * - one per source, recording where its data went. The source's own DELETE entry (with its last
      *   field values) is written separately by the listener, under the source's own key.
-     *
-     * Notes and documents are recorded as counts rather than one entry each: unlike persons they
-     * are neither re-keyed nor deduplicated, they simply follow the household they hang off, and
-     * their own content is untouched.
      */
     private fun recordMergeAuditEntries(
         targetHouseholdId: Long,
         targetEntityId: Long,
         sourceHouseholdIds: List<Long>,
         sourceHouseholdIdByPersonId: Map<Long, Long>,
+        sourceHouseholdIdByNoteId: Map<Long, Long>,
+        sourceHouseholdIdByDocumentId: Map<Long, Long>,
         plan: HouseholdMergePlanner.HouseholdMergePlan,
-        noteCount: Int,
-        documentCount: Int,
     ) {
         val targetKey = targetHouseholdId.toString()
 
@@ -212,6 +225,34 @@ class HouseholdMergeService(
             )
         }
 
+        sourceHouseholdIdByNoteId.forEach { (noteId, sourceHouseholdId) ->
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = "HouseholdNote",
+                    entityId = noteId,
+                    businessKey = targetKey,
+                    operation = AuditOperation.UPDATE,
+                    changedFields = mapOf(
+                        "household" to listOf(sourceHouseholdId, targetHouseholdId),
+                    ),
+                ),
+            )
+        }
+
+        sourceHouseholdIdByDocumentId.forEach { (documentId, sourceHouseholdId) ->
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = "Document",
+                    entityId = documentId,
+                    businessKey = targetKey,
+                    operation = AuditOperation.UPDATE,
+                    changedFields = mapOf(
+                        "household" to listOf(sourceHouseholdId, targetHouseholdId),
+                    ),
+                ),
+            )
+        }
+
         auditLogWriter.record(
             AuditLogWriter.PendingEntry(
                 entityType = "Household",
@@ -222,8 +263,8 @@ class HouseholdMergeService(
                     "mergedFromHouseholds" to listOf(null, sourceHouseholdIds.joinToString(", ")),
                     "movedPersons" to listOf(null, plan.personIdsToMove.size),
                     "droppedDuplicatePersons" to listOf(null, plan.duplicatePersonIdToMatchedTargetPersonId.size),
-                    "movedNotes" to listOf(null, noteCount),
-                    "movedDocuments" to listOf(null, documentCount),
+                    "movedNotes" to listOf(null, sourceHouseholdIdByNoteId.size),
+                    "movedDocuments" to listOf(null, sourceHouseholdIdByDocumentId.size),
                     "movedDistributions" to listOf(null, plan.distributionRowIdsToMove.size),
                     "droppedDistributions" to listOf(null, plan.distributionRowIdsToDrop.size),
                 ),

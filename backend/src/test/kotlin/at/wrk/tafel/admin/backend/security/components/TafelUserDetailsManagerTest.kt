@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.ChangeTrackingActorAnonymizationService
+import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
@@ -70,6 +71,9 @@ class TafelUserDetailsManagerTest {
 
     @RelaxedMockK
     private lateinit var changeTrackingActorAnonymizationService: ChangeTrackingActorAnonymizationService
+
+    @RelaxedMockK
+    private lateinit var loginAttemptService: LoginAttemptService
 
     @InjectMockKs
     private lateinit var manager: TafelUserDetailsManager
@@ -720,6 +724,7 @@ class TafelUserDetailsManagerTest {
 
         verify { userRepository.delete(testUserEntity) }
         verify(exactly = 1) { changeTrackingActorAnonymizationService.anonymize(testUserEntity.username) }
+        verify(exactly = 1) { loginAttemptService.deleteAttempts(testUserEntity.username) }
     }
 
     @Test

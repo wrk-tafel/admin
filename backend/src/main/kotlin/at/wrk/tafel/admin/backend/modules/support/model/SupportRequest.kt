@@ -9,6 +9,7 @@ data class SupportRequest(
     @field:Size(max = 80)
     val title: String,
     @field:NotBlank
+    @field:Size(max = 5000)
     val text: String,
     @field:Valid
     val clientContext: SupportClientContext? = null,

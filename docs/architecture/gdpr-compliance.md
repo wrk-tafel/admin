@@ -470,13 +470,14 @@ would be a worse experience than one of them simply staying (`DataSubjectDeleteR
 `DELETED`/`NOT_FOUND` per match, not a single pass/fail).
 
 Behind a new `DATA_SUBJECT_REQUESTS` permission, additive rather than a replacement: holding it only
-grants reaching the search and picking a match - the export/delete action on a specific match still
-requires that area's own permission (`CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`), enforced again inside
+grants reaching the search and picking a match - the search itself only returns matches from an area
+the caller also holds the area permission for, and the export/delete action on a specific match still
+requires that same permission (`CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`), enforced again inside
 `DataSubjectRequestService` since the class-level `@PreAuthorize` alone can't express a check that
-depends on which match a request body names. This is the permission-model question the takeout
-plan's §6 left for "the future ticket to confirm" - answered here as additive so today's screens
-keep meaning what they already meant, rather than `DATA_SUBJECT_REQUESTS` alone becoming a fourth way
-to reach the same data.
+depends on which area a search result or a request body names. This is the permission-model question
+the takeout plan's §6 left for "the future ticket to confirm" - answered here as additive so today's
+screens keep meaning what they already meant, rather than `DATA_SUBJECT_REQUESTS` alone becoming a
+fourth way to reach the same data.
 
 Deletion reuses `HouseholdService.deleteHouseholdByHouseholdId`, `EmployeeService.deleteEmployee` and
 a new `TafelUserDetailsManager.deleteUserById` (the same "keep at least one active administrator"
@@ -488,8 +489,9 @@ No separate audit entry for the search itself - only the eventual export/delete 
 same as before (§5's `AuditOperation.READ`/writes tracked per entity, not per screen).
 
 What remains open: same as G5/G12/G14, `audit_log` entries are excluded from the export; the search
-itself caps at 20 best matches per area (a lookup for one specific person, not a report), and nothing
-reports if it silently drops a match past that.
+itself caps at 20 best matches per area (a lookup for one specific person, not a report), and a search
+that hit that cap in any area comes back with `truncated: true` so the screen can tell the caller to
+narrow the search rather than trust an incomplete list silently.
 
 ### G16 A deleted account's username no longer outlives it on every other table
 

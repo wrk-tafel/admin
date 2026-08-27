@@ -67,6 +67,8 @@ export class DataSubjectRequestSearchComponent {
 
   protected readonly searchInput = signal('');
   protected readonly matches = signal<DataSubjectMatchItem[] | null>(null);
+  /** True when at least one area's results were cut off at its per-area cap - see the search API's `truncated` flag. */
+  protected readonly truncated = signal(false);
   protected readonly selectedKeys = signal<ReadonlySet<string>>(new Set());
   protected readonly exporting = signal(false);
   protected readonly deleting = signal(false);
@@ -170,9 +172,15 @@ export class DataSubjectRequestSearchComponent {
   }
 
   private handleDeleteResponse(response: DataSubjectDeleteResponse) {
+    const priorItems = this.matches() ?? [];
+    const itemByKey = new Map(priorItems.map(item => [this.matchKey(item), item]));
+
     const deletedKeys = new Set(
       response.results.filter(result => result.outcome === 'DELETED').map(result => this.matchKey(result.match))
     );
+    const notFoundLabels = response.results
+      .filter(result => result.outcome === 'NOT_FOUND')
+      .map(result => this.matchLabel(itemByKey.get(this.matchKey(result.match)), result.match));
 
     this.matches.update(items => (items ?? []).filter(item => !deletedKeys.has(this.matchKey(item))));
     this.selectedKeys.set(new Set());
@@ -181,19 +189,26 @@ export class DataSubjectRequestSearchComponent {
       this.toastr.success(deletedKeys.size === 1 ? '1 Eintrag gelöscht' : `${deletedKeys.size} Einträge gelöscht`, 'Erfolgreich');
     }
 
-    const alreadyGoneCount = response.results.length - deletedKeys.size;
-    if (alreadyGoneCount > 0) {
+    if (notFoundLabels.length > 0) {
       this.toastr.error(
-        alreadyGoneCount === 1 ? 'Ein Eintrag war bereits gelöscht.' : `${alreadyGoneCount} Einträge waren bereits gelöscht.`,
+        notFoundLabels.length === 1
+          ? `Bereits gelöscht: ${notFoundLabels[0]}`
+          : `Bereits gelöscht: ${notFoundLabels.join(', ')}`,
         'Hinweis'
       );
     }
+  }
+
+  /** Falls back to the type/id when the match is no longer among the current search results. */
+  private matchLabel(item: DataSubjectMatchItem | undefined, match: DataSubjectMatch): string {
+    return item ? `${item.name} (${item.businessKey})` : `${dataSubjectMatchTypeLabel[match.type]} ${match.id}`;
   }
 
   private runSearch(value: string) {
     const term = value.trim();
     if (term.length < MIN_SEARCH_CHARS) {
       this.matches.set(null);
+      this.truncated.set(false);
       this.selectedKeys.set(new Set());
       return;
     }
@@ -201,8 +216,12 @@ export class DataSubjectRequestSearchComponent {
     this.dataSubjectRequestApiService.search(term).subscribe({
       next: response => {
         this.matches.set(response.items);
+        this.truncated.set(response.truncated);
         this.selectedKeys.set(new Set());
-        this.searchAnnouncement.set(response.items.length === 1 ? '1 Treffer gefunden' : `${response.items.length} Treffer gefunden`);
+        const countAnnouncement = response.items.length === 1 ? '1 Treffer gefunden' : `${response.items.length} Treffer gefunden`;
+        this.searchAnnouncement.set(
+          response.truncated ? `${countAnnouncement}, weitere Treffer werden nicht angezeigt` : countAnnouncement
+        );
       },
       error: () => this.toastr.error('Suche fehlgeschlagen!')
     });
