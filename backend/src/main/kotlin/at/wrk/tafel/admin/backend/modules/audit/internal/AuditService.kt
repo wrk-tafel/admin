@@ -83,7 +83,10 @@ class AuditService(
                 filter.actorUsername?.let { AuditLogEntity.Specs.actorUsernameEquals(it) },
                 filter.businessKey?.let { AuditLogEntity.Specs.businessKeyEquals(it) },
                 filter.from?.let { AuditLogEntity.Specs.occurredAtFrom(it.atStartOfDay()) },
-                filter.to?.let { AuditLogEntity.Specs.occurredAtUntil(it.plusDays(1).atStartOfDay()) },
+                // to is genuinely nullable (LocalDate?) - this ?. is required or it.plusDays below
+                // wouldn't compile. Known SonarKotlin analyzer false positive on kotlin:S6619, see
+                // https://community.sonarsource.com/t/false-positive-kotlin-s6619/180347
+                filter.to?.let { AuditLogEntity.Specs.occurredAtUntil(it.plusDays(1).atStartOfDay()) }, // NOSONAR
             ),
         )
 
