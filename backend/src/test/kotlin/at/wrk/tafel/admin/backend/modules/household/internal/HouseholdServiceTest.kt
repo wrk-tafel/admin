@@ -13,7 +13,6 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionReposi
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentType
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
@@ -95,9 +94,6 @@ class HouseholdServiceTest {
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
-
-    @RelaxedMockK
-    private lateinit var householdDuplicateDismissalRepository: HouseholdDuplicateDismissalRepository
 
     @RelaxedMockK
     private lateinit var tafelAdminProperties: TafelAdminProperties
@@ -1449,25 +1445,12 @@ class HouseholdServiceTest {
     }
 
     @Test
-    fun `delete household by householdId removes its duplicate dismissals`() {
-        val householdId = 123L
-        val testHouseholdEntity = testHouseholdEntityWithMainPerson()
-        every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity
-        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
-
-        service.deleteHouseholdByHouseholdId(householdId)
-
-        verify(exactly = 1) { householdDuplicateDismissalRepository.deleteByHouseholdId(householdId) }
-    }
-
-    @Test
     fun `delete household by householdId - unknown household is ignored`() {
         every { householdRepository.findByHouseholdId(any()) } returns null
 
         service.deleteHouseholdByHouseholdId(999L)
 
         verify(exactly = 0) { householdRepository.delete(any<HouseholdEntity>()) }
-        verify(exactly = 0) { householdDuplicateDismissalRepository.deleteByHouseholdId(any()) }
     }
 
     @Test
