@@ -23,7 +23,7 @@ class DistributionTicketScreenController(
     }
 
     @PostMapping("/show-text")
-    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
+    @PreAuthorize("hasAuthority('CHECKIN')")
     fun showText(@Valid @RequestBody request: TicketScreenShowTextRequest) {
         saveToOutbox(text = request.text, value = request.value)
     }
@@ -34,11 +34,11 @@ class DistributionTicketScreenController(
      * (re)opening that page never overwrites what the monitor is showing (e.g. a start time).
      */
     @GetMapping("/current")
-    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
+    @PreAuthorize("hasAuthority('CHECKIN')")
     fun getCurrentTicket(): TicketScreenTicketResponse = service.getCurrentTicketScreenTicket()
 
     @PostMapping("/show-current")
-    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
+    @PreAuthorize("hasAuthority('CHECKIN')")
     fun showCurrentTicket(): TicketScreenTicketResponse {
         val response = service.getCurrentTicketScreenTicket()
 
@@ -48,7 +48,7 @@ class DistributionTicketScreenController(
 
     @PostMapping("/show-previous")
     @TafelActiveDistributionRequired
-    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
+    @PreAuthorize("hasAuthority('CHECKIN')")
     fun showPreviousTicket(): TicketScreenTicketResponse {
         val response = service.reopenAndGetPreviousTicket()
 
@@ -58,7 +58,7 @@ class DistributionTicketScreenController(
 
     @PostMapping("/show-next")
     @TafelActiveDistributionRequired
-    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
+    @PreAuthorize("hasAuthority('CHECKIN')")
     fun showNextTicket(@Valid @RequestBody request: TicketScreenShowNextTicketRequest): TicketScreenTicketResponse {
         val response = service.closeCurrentTicketAndGetNext(request.costContributionPaid)
 
