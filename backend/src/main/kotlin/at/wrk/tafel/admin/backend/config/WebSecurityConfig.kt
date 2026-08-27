@@ -46,7 +46,6 @@ class WebSecurityConfig(
     private val jsonMapper: JsonMapper,
     private val loginAttemptService: LoginAttemptService,
     private val loginAuditService: LoginAuditService,
-    private val changeTrackingActorAnonymizationService: ChangeTrackingActorAnonymizationService,
 ) {
 
     companion object {
@@ -183,7 +182,7 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator, tafelAdminProperties, changeTrackingActorAnonymizationService, loginAttemptService)
+    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator, tafelAdminProperties, loginAttemptService)
 
     @Bean
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())

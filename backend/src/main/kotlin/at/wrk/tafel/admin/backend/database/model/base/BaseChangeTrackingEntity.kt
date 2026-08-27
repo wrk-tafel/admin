@@ -14,10 +14,10 @@ import java.time.LocalDateTime
 /**
  * Per-row bookkeeping: when a row was written and by whom.
  *
- * [createdBy]/[updatedBy] hold the *username* rather than a reference to `users`, so the value stays
- * readable after that account is renamed or deleted, and they answer only "who last touched this
- * row" - the full history of what changed lives in `audit_log`
- * (`database.common.audit.AuditLogWriter`).
+ * [createdBy]/[updatedBy] hold the acting user's id, a nullable foreign key to `users(id)` with
+ * `on delete set null` (`R__00111_change_tracking_actor_user_fk.sql`, ADR-0052) - deleting an
+ * account clears every row it touched by itself, and they answer only "who last touched this row"
+ * - the full history of what changed lives in `audit_log` (`database.common.audit.AuditLogWriter`).
  *
  * None of these four columns is an audit trail on its own, and [createdAt] in particular is read as
  * ordinary domain data in several places (the "Ausgestellt am" date on the customer PDFs, the
@@ -39,11 +39,11 @@ abstract class BaseChangeTrackingEntity : BaseEntity() {
 
     @Column(name = "created_by")
     @CreatedBy
-    open var createdBy: String? = null
+    open var createdBy: Long? = null
 
     @Column(name = "updated_by")
     @LastModifiedBy
-    open var updatedBy: String? = null
+    open var updatedBy: Long? = null
 
     override fun toString(): String = "BaseChangeTrackingEntity(id=$id, createdAt=$createdAt, updatedAt=$updatedAt)"
 }

@@ -40,7 +40,6 @@ class TafelUserDetailsManager(
     private val passwordEncoder: PasswordEncoder,
     private val passwordValidator: PasswordValidator,
     private val tafelAdminProperties: TafelAdminProperties,
-    private val changeTrackingActorAnonymizationService: ChangeTrackingActorAnonymizationService,
     private val loginAttemptService: LoginAttemptService,
 ) : UserDetailsManager {
 
@@ -142,15 +141,14 @@ class TafelUserDetailsManager(
     }
 
     /**
-     * Deletes the account and, before that, pseudonymizes every trace it left as a
-     * `created_by`/`updated_by` change-tracking actor elsewhere in the database (issue #3426) - see
-     * [ChangeTrackingActorAnonymizationService] for why those columns would otherwise outlive the
-     * account indefinitely on a table with no retention of its own.
+     * Deletes the account. Every `created_by`/`updated_by` change-tracking actor elsewhere in the
+     * database (issue #3426) is a foreign key to `users(id)` with `on delete set null`
+     * (`R__00111_change_tracking_actor_user_fk.sql`, ADR-0052), so deleting the row here clears them
+     * by itself - no separate sweep needed.
      */
     override fun deleteUser(username: String) {
         val userEntity =
             userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
-        changeTrackingActorAnonymizationService.anonymize(username)
         userRepository.delete(userEntity)
         // login_attempts is keyed by username, not a FK to users - clear it explicitly rather than
         // waiting for LoginAttemptService.cleanupStaleEntries to age it out.
