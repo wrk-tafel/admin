@@ -44,7 +44,7 @@ class DataSubjectRequestControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo("application/zip")
-        assertThat(response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
         assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
         verify { dataSubjectRequestService.export(matches) }
     }

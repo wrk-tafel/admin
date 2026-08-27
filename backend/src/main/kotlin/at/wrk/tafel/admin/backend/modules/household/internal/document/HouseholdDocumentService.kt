@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import at.wrk.tafel.admin.backend.database.model.household.DocumentType as DocumentTypeEntity
@@ -70,16 +71,22 @@ class HouseholdDocumentService(
         val fileName = file.originalFilename ?: "dokument"
         validateContentType(file.contentType, fileName, bytes)
 
+        // Browser-supplied and untrusted: strip any path segments so the name stored/displayed for
+        // this document (and later sent back verbatim in a Content-Disposition header, see issue
+        // #3438) can't smuggle one in - the same basename-only rule documentStorageService already
+        // applies to the name it derives the on-disk file from.
+        val sanitizedFileName = Paths.get(file.originalFilename ?: "dokument").fileName.toString()
+
         val storagePath = documentStorageService.store(
             householdId = householdId,
-            originalFileName = fileName,
+            originalFileName = sanitizedFileName,
             bytes = bytes,
         )
 
         val entity = DocumentEntity(
             household = household,
             documentType = DocumentTypeEntity.valueOf(documentType.name),
-            fileName = fileName,
+            fileName = sanitizedFileName,
             contentType = file.contentType!!,
             storagePath = storagePath,
         ).apply {

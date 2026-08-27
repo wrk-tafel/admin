@@ -1,11 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.base.employee
 
+import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeExportService
 import at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeService
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -76,8 +76,7 @@ class EmployeeController(
         val result = employeeExportService.exportEmployeeById(employeeId)
             ?: throw NotFoundException("Mitarbeiter (ID: $employeeId) nicht gefunden!")
 
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${result.filename}")
+        val headers = ContentDispositionUtil.inline(result.filename)
 
         return ResponseEntity
             .ok()
