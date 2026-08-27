@@ -636,6 +636,8 @@ class HouseholdService(
         // those have to be cleaned up explicitly.
         household.documents.forEach { documentStorageService.delete(it.storagePath) }
 
+        // household_duplicate_dismissals rows are removed by its FK's `on delete cascade` (see
+        // R__00110_household_duplicate_dismissals_fk.sql), so nothing to do here explicitly.
         householdRepository.delete(household)
         // DEBUG, not INFO: HouseholdRetentionService already logs an aggregate count for its
         // nightly run, and the audit trail already records the delete itself - an INFO line per
