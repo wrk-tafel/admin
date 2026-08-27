@@ -109,7 +109,7 @@ codebase changes rather than written once and left alone:
 
 | Document | Subject |
 |---|---|
-| [`scheduled-jobs.md`](../scheduled-jobs.md) | Every `@Scheduled` job's schedule and coordination mechanism (row-claim vs. `@SchedulerLock`, see [ADR-0047](0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md)) |
+| [`scheduled-jobs.md`](../../scheduled-jobs.md) | Every `@Scheduled` job's schedule and coordination mechanism (row-claim vs. `@SchedulerLock`, see [ADR-0047](0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md)) |
 
 ## Writing a new one
 

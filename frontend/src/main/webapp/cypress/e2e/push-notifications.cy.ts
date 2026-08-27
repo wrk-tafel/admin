@@ -121,7 +121,7 @@ describe('PushNotifications', () => {
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
     // e2etest holds ADMINISTRATOR, which grants every other permission, so every type is listed
     // here - the filtered case is the separate test below.
-    cy.byTestId('push-type-preference').should('have.length', 12);
+    cy.byTestId('push-type-preference').should('have.length', 13);
 
     cy.byTestId('push-master-toggle').click();
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
@@ -129,7 +129,7 @@ describe('PushNotifications', () => {
     // Switching the master off overrules the per-type settings rather than discarding them, so they
     // stay on screen and inert - hiding them read as "my settings are gone".
     cy.byTestId('push-master-disabled-hint').should('be.visible');
-    cy.byTestId('push-type-preference').should('have.length', 12);
+    cy.byTestId('push-type-preference').should('have.length', 13);
     cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('be.disabled');
     // The hint and the disabled section exist only after this click, so no other accessibility gate
     // sees them - see cypress/support/accessibility.ts
@@ -212,7 +212,8 @@ describe('PushNotifications', () => {
         expect(order).to.deep.equal([
           'REPORT_MAIL_FAILED',
           'USER_LOCKED_OUT',
-          'EXCESSIVE_READ_ACCESS'
+          'EXCESSIVE_READ_ACCESS',
+          'RETENTION_RUN'
         ]);
       });
   });

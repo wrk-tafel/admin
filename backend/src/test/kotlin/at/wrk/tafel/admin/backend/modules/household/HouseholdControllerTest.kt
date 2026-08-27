@@ -440,6 +440,7 @@ class HouseholdControllerTest {
                     valid = true,
                     locked = true,
                     missingPrivacyNotice = true,
+                    willBeDeletedSoon = true,
                 ),
             )
         } returns testSearchResult
@@ -452,6 +453,7 @@ class HouseholdControllerTest {
             valid = true,
             locked = true,
             missingPrivacyNotice = true,
+            willBeDeletedSoon = true,
         )
 
         verify {
@@ -464,6 +466,7 @@ class HouseholdControllerTest {
                     valid = true,
                     locked = true,
                     missingPrivacyNotice = true,
+                    willBeDeletedSoon = true,
                 ),
             )
         }

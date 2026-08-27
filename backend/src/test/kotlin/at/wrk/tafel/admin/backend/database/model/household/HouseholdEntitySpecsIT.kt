@@ -289,6 +289,59 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `willBeDeletedSoon matches only households whose validUntil falls in the job's cutoff window`() {
+        val tag = "Findme${generateRandomLong()}"
+        val retentionYears = 7L
+
+        // deleted next run already - validUntil is before the cutoff, not "soon"
+        val alreadyPastCutoff = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now().minusYears(retentionYears).minusDays(1) },
+        )
+        // exactly at the cutoff - the job's own boundary is exclusive (validUntil < cutoff), so this
+        // is still 30 days out at worst
+        val atCutoff = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now().minusYears(retentionYears) },
+        )
+        // will be swept in 29 days
+        val withinWindow = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now().minusYears(retentionYears).plusDays(29) },
+        )
+        // not due for another 31 days
+        val outsideWindow = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now().minusYears(retentionYears).plusDays(31) },
+        )
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.willBeDeletedSoon(retentionYears, 30).and(searchSpec(tag)),
+        )
+
+        assertThat(result.map { it.id })
+            .contains(atCutoff.id, withinWindow.id)
+            .doesNotContain(alreadyPastCutoff.id, outsideWindow.id)
+    }
+
+    @Test
+    fun `willBeDeletedSoon matches nothing when the retention job itself is disabled`() {
+        val tag = "Findme${generateRandomLong()}"
+        persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now() },
+        )
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.willBeDeletedSoon(0, 30).and(searchSpec(tag)),
+        )
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
     fun `orderBySearchRelevance sorts the verbatim match before the merely similar one`() {
         val tag = distinctiveNumber()
         val fuzzyHit = persistHousehold(customizeMainPerson = { lastname = "Findmr$tag" })

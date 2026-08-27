@@ -526,6 +526,11 @@ Architecture decisions are recorded as ADRs under
 modular monolith, the database-only infrastructure, the migration and API conventions, the SSE
 outbox, the frontend generation, the release process and more.
 
+[`docs/scheduled-jobs.md`](docs/scheduled-jobs.md) lists every `@Scheduled` job with its schedule and
+coordination mechanism (row-claim vs. `@SchedulerLock`, see
+[ADR-0047](docs/architecture/adr/0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md)) —
+a living inventory kept in sync as jobs are added, removed or retimed, unlike an ADR.
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE.txt](LICENSE.txt) for details.

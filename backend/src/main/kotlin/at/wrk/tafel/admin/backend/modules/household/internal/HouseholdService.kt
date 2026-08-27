@@ -20,6 +20,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.postProcessingNecessary
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.searchTextMatches
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.validHousehold
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.willBeDeletedSoon
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
@@ -79,6 +80,9 @@ class HouseholdService(
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val CSV_FILENAME_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         private val CSV_ROW_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+
+        /** How far ahead the "wird bald gelöscht" filter (GDPR gap G19) looks, see [getHouseholds]. */
+        private const val DELETION_PREVIEW_WINDOW_DAYS = 30L
     }
 
     fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
@@ -310,6 +314,11 @@ class HouseholdService(
                     if (filters.valid != null) validHousehold() else null,
                     if (filters.locked != null) lockedHousehold() else null,
                     if (filters.missingPrivacyNotice != null) missingPrivacyNoticeDocument() else null,
+                    if (filters.willBeDeletedSoon != null) {
+                        willBeDeletedSoon(tafelAdminProperties.householdDeletion.retentionYears, DELETION_PREVIEW_WINDOW_DAYS)
+                    } else {
+                        null
+                    },
                 ).mapNotNull { it },
             ),
         )
@@ -781,6 +790,7 @@ data class HouseholdSearchFilters(
     val valid: Boolean? = null,
     val locked: Boolean? = null,
     val missingPrivacyNotice: Boolean? = null,
+    val willBeDeletedSoon: Boolean? = null,
 )
 
 @ExcludeFromTestCoverage

@@ -123,10 +123,8 @@ aggregates (frozen at distribution close, ADR-0020) are unaffected. `tafeladmin.
 is a kill switch independent of the window, and both are read per use so an operator can change
 either on a running deployment.
 
-What remains open: the window is a floor picked without a documented legal-basis decision (see G2),
-and there is no report of what the job is about to delete before it runs — an operator watching a
-database this old accumulate its first deletions has only the job's log line
-(`Deleted N household(s)...`) to go on.
+What remains open: the window is a floor picked without a documented legal-basis decision (see G2).
+The job now reports what it is about to delete before it runs, and alerts on failure — see G19.
 
 ### G2 A privacy notice now exists as a printable consent form, signed on paper
 
@@ -443,8 +441,8 @@ Both jobs are configurable and switchable per deployment
 (`tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*`, read per use), run nightly after
 `HouseholdRetentionService` (06:00) at 06:15/06:30, and claim their candidates with `FOR UPDATE SKIP
 LOCKED` (ADR-0047) the same way G1 does. What remains open, same as G1: both windows are floors picked
-without a documented legal-basis decision (see G2), and there is no report of what either job is about
-to delete before it runs.
+without a documented legal-basis decision (see G2). Both jobs now report what they are about to
+delete before they run, and alert on failure — see G19.
 
 ### G14 An employee with no user account can now be exported too, closing a gap G12 left open
 
@@ -598,6 +596,45 @@ one publishing an event for the other, the same ambient-config-and-filesystem ac
 `DistributionStillOpenReminderService`/`ExcessiveReadAccessDetectionService` already use for their
 own checks - so `household` gains no dependency on `push` and vice versa.
 
+### G19 A retention job now reports itself instead of only logging one aggregate line
+
+**Art. 5(1)(e), Art. 32.** Storage limitation is only as trustworthy as the process enforcing it: a
+job that throws is invisible unless someone happens to read `app.log`, and a misconfigured window
+that deletes far more than intended looks identical to a normal night from the outside.
+
+`HouseholdRetentionService` (G1), `UserRetentionService`/`EmployeeRetentionService` (G13) and
+`AuditRetentionService` each wrap their run in a try/catch and publish a `RetentionRunAlertEvent`
+(`common/retention`) on two conditions: the run threw, or it would have deleted more rows than a new
+per-job ceiling (`tafeladmin.{householdDeletion,userDeletion,employeeDeletion,audit}.maxDeletionsPerRun`,
+read per use, 0 or less switches the ceiling off) — refusing to delete anything that run rather than
+proceeding. `push`'s `RetentionRunPushListener` turns either into a `RETENTION_RUN` broadcast to
+`ADMINISTRATOR`-permission users, mirroring how `ExcessiveReadAccessDetectionService` (G11) already
+alerts on a fixed threshold, and `ScannerFileExpiryReminderService` (G18) already warns before its
+own deletion job runs. An ordinary successful run is deliberately *not* alerted on — only a failure
+or a refused run is worth an interruption. The event type lives in the ambient `common.retention`
+package rather than inside a module, the same reasoning as `common.auth.model.UserLockedOutEvent`:
+`household` and `base::employee` are real Spring Modulith modules with their own restricted
+`allowedDependencies`, and an ambient event needs no dependency declaration to be published or
+listened for (see `push`'s `package-info.java`).
+
+Deletions themselves stay visible before they happen too: the customer search screen's "Wird in den
+nächsten 30 Tagen gelöscht" filter chip (`HouseholdEntity.Specs.willBeDeletedSoon`) previews which
+households `HouseholdRetentionService` will sweep within the next 30 days, at the job's own
+`retentionYears` cutoff — the same way `missingPrivacyNoticeDocument` (G2) already previews a
+different upcoming gap.
+
+`AuditRetentionService` additionally gets `tafeladmin.audit.cleanupEnabled` — a kill switch for
+*deletion*, independent of `tafeladmin.audit.enabled` (which only ever gates *writing*, see
+`AuditLogWriter`) and of `retentionDays` itself. Before this existed, the only way to pause deletion
+was `retentionDays <= 0`, indistinguishable from an operator who simply hasn't configured a window
+yet — the fail-safe direction for that ambiguity was "keep forever", the opposite of every other
+retention job here, which all default their kill switch to *on* and gate on a separate, explicit
+window value.
+
+What remains open: the ceilings are fixed defaults an operator has to actively tune per deployment
+size, same caveat as G11's read-access threshold; and the alert only ever reaches someone already
+holding `ADMINISTRATOR` and push notifications on their device.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -658,6 +695,7 @@ number here.
 | 15 | [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table) `created_by`/`updated_by` outlive a deleted account | [#3426](https://github.com/wrk-tafel/admin/issues/3426) | done | `created_by`/`updated_by` as an `on delete set null` FK to `users(id)`, `R__00111_change_tracking_actor_user_fk.sql` |
 | 16 | [G16](#g16-a-document-upload-is-now-checked-against-what-the-file-actually-is-not-just-its-declared-type) uploads trusted the declared content type | [#3420](https://github.com/wrk-tafel/admin/issues/3420) | done | `validateContentType` checks extension and magic bytes too, on both upload paths |
 | 17 | [G18](#g18-the-scanner-share-now-expires-files-too-with-a-warning-before-it-does) scanner share unbounded | [#3443](https://github.com/wrk-tafel/admin/issues/3443) | done | nightly job modelled on `HouseholdRetentionService`, `tafeladmin.storage.scannerFileRetention*`, plus a push warning before deletion |
+| 18 | [G19](#g19-a-retention-job-now-reports-itself-instead-of-only-logging-one-aggregate-line) retention jobs had no preview, no failure alert, no upper bound | [#3437](https://github.com/wrk-tafel/admin/issues/3437) | done | `RetentionRunAlertEvent`/`RETENTION_RUN` push, per-job `maxDeletionsPerRun` ceilings, `tafeladmin.audit.cleanupEnabled`, the "wird bald gelöscht" search filter |
 
 Every gap in this table is done — the operator has now answered every question in #3185's
 coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
