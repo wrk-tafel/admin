@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal.note
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
@@ -15,6 +16,7 @@ data class HouseholdNoteItem(
 @ExcludeFromTestCoverage
 data class CreateHouseholdNoteRequest(
     @field:NotBlank
+    @field:Size(max = 2000)
     val note: String,
 )
 

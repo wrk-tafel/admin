@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportFileResult
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
 import at.wrk.tafel.admin.backend.common.auth.model.*
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
@@ -100,6 +101,7 @@ class UserController(
     }
 
     @GetMapping("/generate-password")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun generatePassword(): ResponseEntity<GeneratedPasswordResponse> {
         val generatedPassword = tafelPasswordGenerator.generatePassword()
         val response = GeneratedPasswordResponse(password = generatedPassword)
@@ -129,7 +131,7 @@ class UserController(
         val cookie = TafelLoginFilter.createTokenCookie(null, 0, tafelAdminProperties.server.relativeBaseUrl, request)
         response.addCookie(cookie)
 
-        logger.info("User ${user.username} logged out!")
+        logger.info("User ${sanitizeForLog(user.username)} logged out!")
         return ResponseEntity.ok().build()
     }
 
