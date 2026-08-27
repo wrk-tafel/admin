@@ -86,6 +86,17 @@ describe('Login', () => {
     cy.byTestId('errorMessage').should('exist').and('contain.text', 'Server nicht erreichbar');
   });
 
+  // A rate-limited response used to read exactly like a typo too, giving no hint that waiting a
+  // moment (rather than re-entering the password) is what actually helps.
+  it('login shows a distinct message when the request rate was exceeded', () => {
+    cy.intercept('POST', '/api/login', {statusCode: 429}).as('loginRequest');
+
+    enterLoginData('e2etest', 'e2etest');
+    cy.wait('@loginRequest');
+
+    cy.byTestId('errorMessage').should('exist').and('contain.text', 'Zu viele Anmeldeversuche');
+  });
+
   // Shared terminals and external keyboards make an active Caps Lock a frequent, silent cause of a
   // "wrong" password.
   it('shows a Caps Lock warning next to the password field while it is active', () => {

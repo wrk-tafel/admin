@@ -598,6 +598,29 @@ one publishing an event for the other, the same ambient-config-and-filesystem ac
 `DistributionStillOpenReminderService`/`ExcessiveReadAccessDetectionService` already use for their
 own checks - so `household` gains no dependency on `push` and vice versa.
 
+### G19 Login and support requests are now rate-limited per IP
+
+**Art. 32.** Neither `/api/login` nor `/api/support` had any request-rate defence: `LoginAttemptService`
+locks a *username* after repeated failures, but nothing stopped one IP from spraying failed logins
+across many different usernames at ~120 guesses/hour/account each, indefinitely, and nothing bounded
+how often the same IP could queue an authenticated `/api/support` request either (up to a 3 MB mail
+per call).
+
+`RateLimitFilter`, registered in `WebSecurityConfig` in front of both endpoints, now rejects a request
+with `429` once `IpRateLimiterService` says the calling IP has spent its token-bucket budget for that
+endpoint (`tafeladmin.security.rateLimit`, capacity/refill both configurable, 30 requests/minute by
+default) - `/api/login` and `/api/support` get independent budgets per IP, so exhausting one never
+blocks the other. Unlike `login_attempts`, this counts every request (not just failures) and lives
+only in the process's own memory rather than the database: blunting a single IP's request rate needs
+no cross-instance coordination, so a small servlet filter checking `request.remoteAddr` (trustworthy
+here since `server.forward-headers-strategy: framework` is already set) is enough.
+
+What remains open: the rest of the originating issue's findings - `login_attempts`' lockout staying
+username-only with no IP dimension, `TafelLoginFilter` telling a locked account apart from bad
+credentials via its response status (423 vs. 403), and Passay's password rules having no
+character-class requirement for a user-chosen password - are tracked separately in
+[#3484](https://github.com/wrk-tafel/admin/issues/3484) rather than closed here.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -658,7 +681,9 @@ number here.
 | 15 | [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table) `created_by`/`updated_by` outlive a deleted account | [#3426](https://github.com/wrk-tafel/admin/issues/3426) | done | `created_by`/`updated_by` as an `on delete set null` FK to `users(id)`, `R__00111_change_tracking_actor_user_fk.sql` |
 | 16 | [G16](#g16-a-document-upload-is-now-checked-against-what-the-file-actually-is-not-just-its-declared-type) uploads trusted the declared content type | [#3420](https://github.com/wrk-tafel/admin/issues/3420) | done | `validateContentType` checks extension and magic bytes too, on both upload paths |
 | 17 | [G18](#g18-the-scanner-share-now-expires-files-too-with-a-warning-before-it-does) scanner share unbounded | [#3443](https://github.com/wrk-tafel/admin/issues/3443) | done | nightly job modelled on `HouseholdRetentionService`, `tafeladmin.storage.scannerFileRetention*`, plus a push warning before deletion |
+| 18 | [G19](#g19-login-and-support-requests-are-now-rate-limited-per-ip) no rate limiting on `/api/login`/`/api/support` | [#3432](https://github.com/wrk-tafel/admin/issues/3432) | partial | `RateLimitFilter`/`IpRateLimiterService`, an IP-scoped token bucket per endpoint; the lockout/oracle/password-rule findings in the same issue continue in [#3484](https://github.com/wrk-tafel/admin/issues/3484) |
 
-Every gap in this table is done — the operator has now answered every question in #3185's
-coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
-closes it; it stays open until the operator writes those answers down.
+Every gap in this table is done, except G19's rate-limiting fix which addresses one part of its
+issue and leaves the rest to a follow-up — the operator has otherwise answered every question in
+#3185's coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number
+and no PR closes it; it stays open until the operator writes those answers down.

@@ -25,11 +25,29 @@ data class SecurityProperties(
     val jwtToken: SecurityJwtTokenProperties,
     val loginAttempts: SecurityLoginAttemptsProperties = SecurityLoginAttemptsProperties(),
     val argon2: SecurityArgon2Properties = SecurityArgon2Properties(),
+    val rateLimit: SecurityRateLimitProperties = SecurityRateLimitProperties(),
 )
 
 data class SecurityLoginAttemptsProperties(
     val maxFailures: Int = 5,
     val lockoutDurationInSeconds: Long = 900,
+)
+
+/**
+ * Token-bucket limits [RateLimitFilter] enforces per client IP, independently for `/api/login` and
+ * `/api/support` (each gets its own bucket per IP, so hammering one never eats the other's budget).
+ * `capacity` is both the bucket size and the burst a single IP may spend at once; it then refills by
+ * `refillTokens` every `refillPeriodInSeconds`. Unlike [SecurityLoginAttemptsProperties], which tracks
+ * failures per *username* in the database and therefore applies cluster-wide, this counts *every*
+ * request (successful or not) per *IP* and lives only in the process's own memory
+ * ([IpRateLimiterService]) - deliberately so, since blunting credential stuffing needs no cross-instance
+ * coordination, so a small in-process servlet filter is enough.
+ */
+data class SecurityRateLimitProperties(
+    val enabled: Boolean = true,
+    val capacity: Int = 30,
+    val refillTokens: Int = 30,
+    val refillPeriodInSeconds: Long = 60,
 )
 
 data class SecurityJwtTokenProperties(

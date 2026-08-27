@@ -16,6 +16,7 @@ import org.passay.dictionary.sort.ArraysSort
 import org.passay.rule.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.ProviderManager
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -47,6 +48,7 @@ class WebSecurityConfig(
     private val jsonMapper: JsonMapper,
     private val loginAttemptService: LoginAttemptService,
     private val loginAuditService: LoginAuditService,
+    private val ipRateLimiterService: IpRateLimiterService,
 ) {
 
     companion object {
@@ -101,6 +103,22 @@ class WebSecurityConfig(
         )
 
         http
+            .addFilterBefore(
+                RateLimitFilter(
+                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/login"),
+                    scope = "login",
+                    rateLimiterService = ipRateLimiterService,
+                ),
+                TafelLoginFilter::class.java,
+            )
+            .addFilterBefore(
+                RateLimitFilter(
+                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/support"),
+                    scope = "support",
+                    rateLimiterService = ipRateLimiterService,
+                ),
+                TafelLoginFilter::class.java,
+            )
             .addFilter(
                 TafelLoginFilter(
                     authenticationManager = authenticationManager(),

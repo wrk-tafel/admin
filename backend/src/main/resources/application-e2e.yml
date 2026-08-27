@@ -38,3 +38,11 @@ security:
     issuer: http://e2e-test
     audience: wrk-tafel-e2e
     secret.value: e2e-test-only-not-a-real-secret-do-not-use-in-production-00000000000000000000000000000000000000
+  # Several specs deliberately fire 10+ /api/login requests back to back from the runner's own IP to
+  # trigger loginAttempts' username lockout (see login.cy.ts, user-search.cy.ts) - the production
+  # default would trip on that burst well before the lockout under test does. RateLimitFilter itself
+  # is still wired in and gets its own IT coverage; this only raises the ceiling so it stays out of
+  # the way of an unrelated feature's e2e run.
+  rateLimit:
+    capacity: 1000
+    refillTokens: 1000

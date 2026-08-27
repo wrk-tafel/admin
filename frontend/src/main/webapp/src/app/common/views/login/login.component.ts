@@ -153,6 +153,8 @@ export class LoginComponent {
 
       if (loginResult.locked) {
         this.errorMessage.set(this.buildLockedMessage());
+      } else if (loginResult.rateLimited) {
+        this.errorMessage.set('Zu viele Anmeldeversuche! Bitte warten Sie einen Moment und versuchen Sie es erneut.');
       } else if (loginResult.serverUnreachable) {
         this.errorMessage.set('Server nicht erreichbar! Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.');
       } else {

@@ -146,6 +146,15 @@ security:
   loginAttempts:
     maxFailures: 10
     lockoutDurationInSeconds: 300 # 5 minutes
+  # A token bucket per client IP (IpRateLimiterService), separately for /api/login and /api/support -
+  # capacity is the burst an IP may spend at once, refilling by refillTokens every
+  # refillPeriodInSeconds. Unlike loginAttempts above this counts every request (not just failures)
+  # and lives only in this instance's memory, not the database - see RateLimitFilter.
+  rateLimit:
+    enabled: true
+    capacity: 30
+    refillTokens: 30
+    refillPeriodInSeconds: 60
   # Argon2id tuning for password hashes (WebSecurityConfig.passwordEncoder). A change here only
   # affects newly-created hashes; an existing user's hash is migrated onto it lazily, on their next
   # successful login, rather than needing a bulk rehash (see

@@ -79,7 +79,9 @@ describe('LoginComponent', () => {
     });
 
     it('login successful', async () => {
-        const loginResult = { successful: true, passwordChangeRequired: false, locked: false, serverUnreachable: false };
+        const loginResult = {
+            successful: true, passwordChangeRequired: false, locked: false, rateLimited: false, serverUnreachable: false
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -101,7 +103,9 @@ describe('LoginComponent', () => {
     });
 
     it('login failed', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: false };
+        const loginResult = {
+            successful: false, passwordChangeRequired: false, locked: false, rateLimited: false, serverUnreachable: false
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -119,7 +123,9 @@ describe('LoginComponent', () => {
     });
 
     it('login failed - account locked, no configured duration known', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: true, serverUnreachable: false };
+        const loginResult = {
+            successful: false, passwordChangeRequired: false, locked: true, rateLimited: false, serverUnreachable: false
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
         configApiService.getPublicConfig.mockReturnValue(of(null));
 
@@ -141,7 +147,9 @@ describe('LoginComponent', () => {
     });
 
     it('login failed - account locked mentions the configured lockout duration', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: true, serverUnreachable: false };
+        const loginResult = {
+            successful: false, passwordChangeRequired: false, locked: true, rateLimited: false, serverUnreachable: false
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
         configApiService.getPublicConfig.mockReturnValue(of({ environmentLabel: '', accountLockoutDurationInSeconds: 300 }));
 
@@ -163,7 +171,9 @@ describe('LoginComponent', () => {
     });
 
     it('login failed - server unreachable shows a distinct message from a plain credentials failure', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: true };
+        const loginResult = {
+            successful: false, passwordChangeRequired: false, locked: false, rateLimited: false, serverUnreachable: true
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -180,8 +190,30 @@ describe('LoginComponent', () => {
         expect(component.errorMessage()).toContain('Server nicht erreichbar');
     });
 
+    it('login failed - rate limited shows a distinct message from a plain credentials failure', async () => {
+        const loginResult = {
+            successful: false, passwordChangeRequired: false, locked: false, rateLimited: true, serverUnreachable: false
+        };
+        authService.login.mockReturnValue(Promise.resolve(loginResult));
+
+        const fixture = TestBed.createComponent(LoginComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        component.loginFormModel.set({
+            username: 'user',
+            password: 'pwd'
+        });
+
+        await component.login();
+
+        expect(component.errorMessage()).toContain('Zu viele Anmeldeversuche');
+    });
+
     it('login failure moves focus back to the username field and selects its content', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: false };
+        const loginResult = {
+            successful: false, passwordChangeRequired: false, locked: false, rateLimited: false, serverUnreachable: false
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -203,7 +235,7 @@ describe('LoginComponent', () => {
     });
 
     it('login but passwordchange required', async () => {
-        const loginResult = { successful: true, passwordChangeRequired: true, locked: false, serverUnreachable: false };
+        const loginResult = { successful: true, passwordChangeRequired: true, locked: false, rateLimited: false, serverUnreachable: false };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
