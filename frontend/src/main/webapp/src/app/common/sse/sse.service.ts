@@ -56,7 +56,11 @@ export class SseService {
           try {
             observer.next(JSON.parse(event.data) as T);
           } catch (parseError) {
-            console.error('Failed to parse SSE message', parseError, event.data);
+            // Never log `event.data` here: SSE payloads carry pseudonymous data (household/ticket
+            // numbers, scanner values), and this console is also what `ClientLogService` captures
+            // and the support form mails along with a report. Log only the event name and the
+            // payload length, which is enough to spot a malformed stream without leaking its body.
+            console.error('Failed to parse SSE message', parseError, event.type, event.data?.length);
           }
         };
 

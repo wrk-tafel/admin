@@ -315,17 +315,20 @@ class EmployeeServiceTest {
         every { userRepository.existsByEmployeeId(99L) } returns false
 
         val logger = LoggerFactory.getLogger(EmployeeService::class.java) as Logger
+        val originalLevel = logger.level
         val logAppender = ListAppender<ILoggingEvent>().apply { start() }
         logger.addAppender(logAppender)
+        logger.level = Level.DEBUG
         try {
             employeeService.deleteEmployee(99L)
 
             assertThat(logAppender.list).anySatisfy {
-                assertThat(it.level).isEqualTo(Level.INFO)
+                assertThat(it.level).isEqualTo(Level.DEBUG)
                 assertThat(it.formattedMessage).contains("Deleted employee").contains("99").contains("00001")
             }
         } finally {
             logger.detachAppender(logAppender)
+            logger.level = originalLevel
         }
     }
 }
