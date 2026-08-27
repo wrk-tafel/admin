@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.config
 
+import at.wrk.tafel.admin.backend.common.api.TafelPublicEndpoint
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.springframework.security.access.prepost.PreAuthorize
@@ -37,9 +38,12 @@ class ConfigController(
      * because `TafelJwtAuthConverter` rejects any request under `/api` that carries no JWT cookie
      * before a controller is reached - one endpoint serving both audiences would mean changing the
      * authentication filter chain itself, which is a far bigger change than a login-page badge
-     * warrants. Its path is therefore listed in `WebSecurityConfig.publicEndpoints`.
+     * warrants. Its path is therefore listed in `WebSecurityConfig.publicEndpoints`, and it carries
+     * [TafelPublicEndpoint] so the ArchUnit rule requiring a `@PreAuthorize` on every controller
+     * handler method doesn't flag it.
      */
     @GetMapping("/public")
+    @TafelPublicEndpoint
     fun getPublicConfig(): PublicConfigResponse = PublicConfigResponse(
         environmentLabel = tafelAdminProperties.environmentLabel.trim(),
         accountLockoutDurationInSeconds = applicationProperties.security.loginAttempts.lockoutDurationInSeconds,
