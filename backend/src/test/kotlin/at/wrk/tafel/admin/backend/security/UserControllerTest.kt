@@ -229,6 +229,7 @@ class UserControllerTest {
         assertThat(responseEntity.body?.details).hasSameElementsAs(errDetails)
 
         verify { userDetailsManager.changePassword("old", "new") }
+        // codeql[java/insecure-cookie] -- asserts addCookie() was never called, not a real cookie emission
         verify(exactly = 0) { response.addCookie(any()) }
     }
 
