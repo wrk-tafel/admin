@@ -30,6 +30,7 @@ object PushNotificationTypeTargeting {
         PushNotificationType.USER_LOCKED_OUT to setOf(UserPermissions.ADMINISTRATOR),
         PushNotificationType.REPORT_MAIL_FAILED to setOf(UserPermissions.ADMINISTRATOR),
         PushNotificationType.EXCESSIVE_READ_ACCESS to setOf(UserPermissions.ADMINISTRATOR),
+        PushNotificationType.SCANNER_FILES_EXPIRING to setOf(UserPermissions.CUSTOMER_DOCUMENTS),
     )
 
     /**
@@ -53,6 +54,9 @@ object PushNotificationTypeTargeting {
         PushNotificationType.USER_LOCKED_OUT to "benutzer/anmelde-versuche",
         PushNotificationType.REPORT_MAIL_FAILED to "einstellungen/email",
         PushNotificationType.EXCESSIVE_READ_ACCESS to "aenderungsprotokoll",
+        // No standalone scanner-file screen exists - the picker lives inside a household's own
+        // documents tab, so the closest actionable screen is customer search.
+        PushNotificationType.SCANNER_FILES_EXPIRING to "kunden/suchen",
     )
 
     /**

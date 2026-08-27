@@ -568,6 +568,26 @@ class TafelAdminStorageProperties {
      * else.
      */
     var orphanedFileMinAge: Duration = Duration.ofMinutes(60)
+
+    /**
+     * How long an unclaimed file on the scanner share ([scannerPath]) is kept before
+     * `ScannerFileCleanupService` deletes it - GDPR gap G18 (Art. 5(1)(e), see
+     * `docs/architecture/gdpr-compliance.md`): unlike an already-imported document, a scanner file
+     * has no database row and no retention window of its own, so without this it would otherwise
+     * stay on the share indefinitely. Read per run, so an operator can widen or shorten it on a
+     * running deployment. A value of 0 or less keeps every file instead of deleting them, mirroring
+     * [TafelAdminHouseholdRetentionProperties.retentionYears].
+     */
+    var scannerFileRetention: Duration = Duration.ofDays(7)
+
+    /**
+     * How long before [scannerFileRetention]'s deadline a file starts counting toward
+     * `ScannerFileExpiryReminderService`'s "files about to be discarded" push notification, so staff
+     * get a chance to import or discard it deliberately before the cleanup job removes it for them.
+     * Read per run, same as [scannerFileRetention]; a value greater than or equal to it simply means
+     * every remaining file is always in the warning window.
+     */
+    var scannerFileRetentionWarning: Duration = Duration.ofDays(1)
 }
 
 @ExcludeFromTestCoverage

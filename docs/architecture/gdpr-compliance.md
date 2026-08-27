@@ -33,7 +33,7 @@ Two things to be clear about before reading on:
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
 | `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
 | `mail_outbox` | customers and staff | every mail this installation sends, as the finished MIME message — report PDFs, and a support request's free text plus its screenshot of whatever screen it was written on | `tafeladmin.mailOutbox.sentRetention`, 14 days after sending; a row parked as `FAILED` gets `tafeladmin.mailOutbox.failedRetention`, 30 days after queuing (`MailOutboxService.cleanupOldMails`, ADR-0046) |
-| the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | until a user imports or deletes them |
+| the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | `tafeladmin.storage.scannerFileRetention`, 7 days by default (`ScannerFileCleanupService`), or until a user imports or deletes it first |
 | `logs/app.log` | staff | usernames on login/logout/distribution start; no customer names were found in any log statement | Spring Boot's rolling default, 7 files |
 | `logs/access.log` | customers, pseudonymously | one line per request, including `/api/households/{id}` paths | **never** — `rotate: false` in `application.yml` |
 | PDFs and CSVs generated on demand | customers | Stammdatenblatt and ID card per household; the Kundenliste PDF is a distribution's attendance list — ticket number, household number, person and infant counts, no names | outside the application the moment they are downloaded or printed |
@@ -577,6 +577,27 @@ every caller of `TafelUserDetailsManager.deleteUser` (`UserController.deleteUser
 via G15's data-subject-request delete, and G13's `UserRetentionService`) is covered without having
 to remember to call anything extra.
 
+### G18 The scanner share now expires files too, with a warning before it does
+
+**Art. 5(1)(e).** Files on `tafeladmin.storage.scannerPath` - scanned ID documents not yet imported
+or discarded - stayed until a user imported or deleted them by hand, with no bound of any kind. A
+scan nobody claims is personal data with no retention window, the same gap G1 closed for households.
+
+`ScannerFileCleanupService` (`household`, nightly at 05:05) deletes any file older than
+`tafeladmin.storage.scannerFileRetention` (7 days by default). Unlike an already-imported document,
+a scanner file has no database row to reconcile against - `ScannerFileService` only ever
+lists/reads/deletes the folder directly - so the job only ever needs a file's own last-modified
+timestamp, the same signal the picker already showed staff (`ScannerFileItem.modifiedAt`).
+
+`ScannerFileExpiryReminderService` (`push`, daily) warns before that job deletes anything: once a
+file is within `tafeladmin.storage.scannerFileRetentionWarning` (1 day by default) of the deadline,
+subscribed devices with the `CUSTOMER_DOCUMENTS` permission get a push notification, repeating every
+day the file stays unclaimed - giving staff a real chance to import or discard it deliberately
+before the cleanup job does it for them. The two jobs read the same share independently rather than
+one publishing an event for the other, the same ambient-config-and-filesystem access
+`DistributionStillOpenReminderService`/`ExcessiveReadAccessDetectionService` already use for their
+own checks - so `household` gains no dependency on `push` and vice versa.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -635,6 +656,8 @@ number here.
 | 13 | [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too) no single entry point spanning G5/G12/G14 | [#3396](https://github.com/wrk-tafel/admin/issues/3396) | done | `DataSubjectRequestController`/`DataSubjectRequestService`, `DATA_SUBJECT_REQUESTS` |
 | 14 | [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) erasure timeline undocumented | [#3183](https://github.com/wrk-tafel/admin/issues/3183) | done | `docs/userguide/datenauskunft.md`; backup-restore propagation stays with §6/#3185 |
 | 15 | [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table) `created_by`/`updated_by` outlive a deleted account | [#3426](https://github.com/wrk-tafel/admin/issues/3426) | done | `created_by`/`updated_by` as an `on delete set null` FK to `users(id)`, `R__00111_change_tracking_actor_user_fk.sql` |
+| 16 | [G16](#g16-a-document-upload-is-now-checked-against-what-the-file-actually-is-not-just-its-declared-type) uploads trusted the declared content type | [#3420](https://github.com/wrk-tafel/admin/issues/3420) | done | `validateContentType` checks extension and magic bytes too, on both upload paths |
+| 17 | [G18](#g18-the-scanner-share-now-expires-files-too-with-a-warning-before-it-does) scanner share unbounded | [#3443](https://github.com/wrk-tafel/admin/issues/3443) | done | nightly job modelled on `HouseholdRetentionService`, `tafeladmin.storage.scannerFileRetention*`, plus a push warning before deletion |
 
 Every gap in this table is done — the operator has now answered every question in #3185's
 coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR

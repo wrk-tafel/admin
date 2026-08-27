@@ -236,7 +236,8 @@ choice on its own merits).
   seconds later, and which is what makes delivery at-least-once — while the ones already sent keep
   their outcome
 - **Scheduled jobs coordinate on their own rows first, and only take a scheduler lock when there are
-  none** (ADR-0047). A job that works through rows claims them with `FOR UPDATE SKIP LOCKED` — the
+  none** (ADR-0047; `docs/architecture/scheduled-jobs.md` lists every job with its schedule and
+  which mechanism it uses). A job that works through rows claims them with `FOR UPDATE SKIP LOCKED` — the
   five retention cleanups (`sse_outbox`, `mail_outbox`, `login_attempts`, `scanner_registrations`,
   `audit_log`) and the mail poller all do — so two instances share the work out instead of one
   standing idle. Note this is why those deletes are native `@Modifying` queries rather than derived
@@ -800,7 +801,10 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   `TafelAdminStorageProperties.scannerFolderAvailable` is the single rule both sides go by, enforced
   server-side by `ScannerFileService` and reported to the frontend as `/api/config`'s
   `scannerFolderEnabled` so the UI can hide a source the backend would refuse to serve. Both
-  settings can be flipped on a running deployment — see Config Hot-Reload below.
+  settings can be flipped on a running deployment — see Config Hot-Reload below. A file nobody
+  imports or deletes doesn't stay there forever: `ScannerFileCleanupService` deletes it after
+  `tafeladmin.storage.scannerFileRetention` (7 days by default, GDPR gap G18), and `push`'s
+  `ScannerFileExpiryReminderService` warns `CUSTOMER_DOCUMENTS` holders before that happens.
 - **Config Hot-Reload**: the **whole** configuration is re-read while the application runs — not just
   `tafeladmin.*`. Production's settings come from an operator-managed `config.yml` bind-mounted into
   the container (`-Dspring.config.additional-location`, see `_build/Dockerfile`), and
