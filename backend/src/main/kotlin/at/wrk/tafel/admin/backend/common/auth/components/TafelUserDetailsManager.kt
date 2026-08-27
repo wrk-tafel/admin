@@ -39,6 +39,7 @@ class TafelUserDetailsManager(
     private val passwordEncoder: PasswordEncoder,
     private val passwordValidator: PasswordValidator,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val loginAttemptService: LoginAttemptService,
 ) : UserDetailsManager {
 
     fun loadUserById(userId: Long): TafelUser? = userRepository.findById(userId)
@@ -142,6 +143,9 @@ class TafelUserDetailsManager(
         val userEntity =
             userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
         userRepository.delete(userEntity)
+        // login_attempts is keyed by username, not a FK to users - clear it explicitly rather than
+        // waiting for LoginAttemptService.cleanupStaleEntries to age it out.
+        loginAttemptService.deleteAttempts(username)
     }
 
     override fun changePassword(oldPassword: String?, newPassword: String?) {
