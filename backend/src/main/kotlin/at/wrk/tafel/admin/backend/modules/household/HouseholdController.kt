@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
@@ -12,7 +13,6 @@ import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -151,11 +151,7 @@ class HouseholdController(
     ): ResponseEntity<InputStreamResource> {
         val pdfResult = householdService.generatePdf(householdId, type)
         pdfResult?.let {
-            val headers = HttpHeaders()
-            headers.add(
-                HttpHeaders.CONTENT_DISPOSITION,
-                "inline; filename=${pdfResult.filename}",
-            )
+            val headers = ContentDispositionUtil.inline(pdfResult.filename)
 
             return ResponseEntity
                 .ok()
@@ -177,8 +173,7 @@ class HouseholdController(
         val result = householdExportService.exportHousehold(householdId)
             ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
 
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${result.filename}")
+        val headers = ContentDispositionUtil.inline(result.filename)
 
         return ResponseEntity
             .ok()
@@ -196,8 +191,7 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun generatePrivacyNoticeTemplatePdf(): ResponseEntity<InputStreamResource> {
         val pdfResult = householdService.generatePrivacyNoticeTemplatePdf()
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${pdfResult.filename}")
+        val headers = ContentDispositionUtil.inline(pdfResult.filename)
 
         return ResponseEntity
             .ok()
@@ -231,8 +225,7 @@ class HouseholdController(
         @RequestParam sortDirection: String? = null,
     ): ResponseEntity<InputStreamResource> {
         val csvResult = householdService.generateAboveLimitCsv(sortBy, sortDirection)
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${csvResult.filename}")
+        val headers = ContentDispositionUtil.inline(csvResult.filename)
 
         return ResponseEntity
             .ok()
@@ -249,11 +242,7 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
     fun generateHouseholdsOverviewCsv(@RequestParam distributionId: Long? = null): ResponseEntity<InputStreamResource> {
         val csvResult = householdService.generateHouseholdsOverviewCsv(distributionId)
-        val headers = HttpHeaders()
-        headers.add(
-            HttpHeaders.CONTENT_DISPOSITION,
-            "inline; filename=${csvResult.filename}",
-        )
+        val headers = ContentDispositionUtil.inline(csvResult.filename)
 
         return ResponseEntity
             .ok()
