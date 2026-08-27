@@ -52,6 +52,16 @@ class UserEntity(
     var lastLogin: LocalDateTime? = null
 
     /**
+     * `null` until the first time this user's password is changed or they log out - from then on,
+     * [at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthProvider] rejects any JWT whose
+     * `issuedAt` claim is not strictly after this. Neither event can invalidate just the one token
+     * being replaced (a JWT carries no session id), so this invalidates every currently-issued token
+     * for the user at once rather than leaving old ones live for the rest of their expiration.
+     */
+    @Column(name = "token_invalidated_at")
+    var tokenInvalidatedAt: LocalDateTime? = null
+
+    /**
      * Everything the single search box may match a user on - username plus the personnel number and
      * name of the linked employee - concatenated and lower-cased. Maintained by a database trigger
      * (see `R__00088_fulltext_search.sql`), hence read-only here.

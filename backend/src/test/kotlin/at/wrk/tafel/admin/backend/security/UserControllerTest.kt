@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.UserController
 import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.common.auth.model.*
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
@@ -48,10 +49,16 @@ class UserControllerTest {
     private lateinit var tafelAdminProperties: TafelAdminProperties
 
     @RelaxedMockK
+    private lateinit var applicationProperties: ApplicationProperties
+
+    @RelaxedMockK
     private lateinit var loginAttemptService: LoginAttemptService
 
     @RelaxedMockK
     private lateinit var userExportService: UserExportService
+
+    @RelaxedMockK
+    private lateinit var jwtTokenService: JwtTokenService
 
     @RelaxedMockK
     private lateinit var request: HttpServletRequest
@@ -176,12 +183,38 @@ class UserControllerTest {
 
     @Test
     fun `change password`() {
-        val request = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
+        val relativeBaseUrl = "/test-base/"
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
+        every { jwtTokenService.generateToken(any(), any()) } returns "NEW-TOKEN"
 
-        val response = controller.changePassword(request)
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "OLD-TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        val changePasswordRequest = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
+
+        val responseEntity = controller.changePassword(changePasswordRequest, request, response)
+
+        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
         verify { userDetailsManager.changePassword("old", "new") }
+        // Changing one's own password invalidates the very token this request came in on (see
+        // TafelUserDetailsManager.changePassword) - the frontend keeps the user on this session
+        // afterwards, so a fresh cookie has to be issued in the same response.
+        verify {
+            // createTokenCookie() already sets .secure = request.isSecure (true behind TLS via forward-headers-strategy)
+            // codeql[java/insecure-cookie] -- verifies a mock invocation, not a real cookie emission
+            response.addCookie(
+                withArg {
+                    assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
+                    assertThat(it.value).isEqualTo("NEW-TOKEN")
+                    assertThat(it.path).isEqualTo(relativeBaseUrl)
+                    assertThat(it.attributes["SameSite"]).isEqualTo("strict")
+                },
+            )
+        }
     }
 
     @Test
@@ -189,15 +222,17 @@ class UserControllerTest {
         val errMsg = "failed"
         val errDetails = listOf("Length error ...", "Complexity error ...")
         every { userDetailsManager.changePassword(any(), any()) } throws PasswordChangeException(errMsg, errDetails)
-        val request = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
+        val changePasswordRequest = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
 
-        val response = controller.changePassword(request)
+        val responseEntity = controller.changePassword(changePasswordRequest, request, response)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        assertThat(response.body?.message).isEqualTo(errMsg)
-        assertThat(response.body?.details).hasSameElementsAs(errDetails)
+        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(responseEntity.body?.message).isEqualTo(errMsg)
+        assertThat(responseEntity.body?.details).hasSameElementsAs(errDetails)
 
         verify { userDetailsManager.changePassword("old", "new") }
+        // codeql[java/insecure-cookie] -- asserts addCookie() was never called, not a real cookie emission
+        verify(exactly = 0) { response.addCookie(any()) }
     }
 
     @Test
