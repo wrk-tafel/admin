@@ -24,4 +24,14 @@ class HouseholdNotesResponseModelTest {
 
         assertThat(violations).isEmpty()
     }
+
+    @Test
+    fun `create household note request with note exceeding max length is invalid`() {
+        val request = CreateHouseholdNoteRequest(note = "x".repeat(2001))
+
+        val violations = validator.validate(request)
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }
+            .containsExactly("note")
+    }
 }

@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Das Anliegen einer Support-Anfrage und der Text einer Kundennotiz sind jetzt auf eine maximale Länge begrenzt.
 - Die Suche auf der Seite "Datenauskunft" durchsucht jetzt nur noch die Bereiche (Kunden, Benutzerkonten, Mitarbeiter ohne Konto), für die auch die jeweilige Fachbereichs-Berechtigung vorliegt, statt immer alle drei zu durchsuchen.
 - Die Suche auf der Seite "Datenauskunft" zeigt jetzt einen Hinweis an, wenn in einem der drei Bereiche mehr als 20 Treffer vorliegen und daher nicht alle angezeigt werden.
 - Beim Löschen mehrerer Treffer auf der Seite "Datenauskunft" wird jetzt namentlich aufgelistet, welcher Treffer bereits gelöscht war, statt nur eine Anzahl anzuzeigen.
