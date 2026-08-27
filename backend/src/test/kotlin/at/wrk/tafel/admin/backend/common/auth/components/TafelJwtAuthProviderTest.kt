@@ -72,6 +72,7 @@ internal class TafelJwtAuthProviderTest {
             employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
             enabled = true,
         )
+        userEntity.id = 42
         userEntity.authorities = mutableListOf(UserAuthorityEntity(user = userEntity, name = perm1))
         every { userRepository.findByUsername(username) } returns userEntity
 
@@ -81,6 +82,9 @@ internal class TafelJwtAuthProviderTest {
         assertThat(resultingAuthentication.isAuthenticated).isTrue
         assertThat(resultingAuthentication.name).isEqualTo("SUBJ")
         assertThat(resultingAuthentication.authorities.joinToString(",")).isEqualTo(perm1)
+        // AuditActorProvider.currentUserId() reads this instead of looking the user up again -
+        // see JwtAuthenticationModel.kt's KDoc on userId for why.
+        assertThat(resultingAuthentication.userId).isEqualTo(42)
     }
 
     /**

@@ -66,7 +66,7 @@ class TafelJwtAuthProvider(
                 }
             }
 
-            return TafelJwtAuthentication(tafelJwtAuthentication.tokenValue, claims.subject, true, effectivePermissions(userEntity))
+            return TafelJwtAuthentication(tafelJwtAuthentication.tokenValue, claims.subject, true, effectivePermissions(userEntity), userEntity.id)
         } catch (e: JwtException) {
             throw BadCredentialsException(e.message, e)
         }

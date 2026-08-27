@@ -22,5 +22,5 @@ import java.util.Optional
 class JpaAuditingConfig {
 
     @Bean
-    fun auditorProvider(auditActorProvider: AuditActorProvider): AuditorAware<String> = AuditorAware { Optional.ofNullable(auditActorProvider.currentUsername()) }
+    fun auditorProvider(auditActorProvider: AuditActorProvider): AuditorAware<Long> = AuditorAware { Optional.ofNullable(auditActorProvider.currentUserId()) }
 }

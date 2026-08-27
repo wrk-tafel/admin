@@ -140,6 +140,12 @@ class TafelUserDetailsManager(
         userRepository.save(userEntity)
     }
 
+    /**
+     * Deletes the account. Every `created_by`/`updated_by` change-tracking actor elsewhere in the
+     * database (issue #3426) is a foreign key to `users(id)` with `on delete set null`
+     * (`R__00111_change_tracking_actor_user_fk.sql`, ADR-0052), so deleting the row here clears them
+     * by itself - no separate sweep needed.
+     */
     override fun deleteUser(username: String) {
         val userEntity =
             userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")

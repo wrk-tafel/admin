@@ -10,6 +10,12 @@ class TafelJwtAuthentication(
     val username: String? = null,
     private var authenticated: Boolean = false,
     private val authorities: List<GrantedAuthority> = emptyList(),
+    // Carried alongside `username` so `AuditActorProvider.currentUserId()` (JPA auditing's
+    // `@CreatedBy`/`@LastModifiedBy`, see `JpaAuditingConfig`) never has to query for it itself -
+    // that query would run from inside Hibernate's persist cascade for the entity being audited,
+    // which can trigger an auto-flush of an only half-built object graph (issue #3426's fix, see
+    // `TafelJwtAuthProvider`, which already loads the full `UserEntity` for this request anyway).
+    val userId: Long? = null,
 ) : Authentication {
     override fun getName(): String? = username
 
