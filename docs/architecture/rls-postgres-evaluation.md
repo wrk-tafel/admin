@@ -106,15 +106,16 @@ predate this issue:
   in advance "this household is off-limits to this particular `CUSTOMER` holder", because no such
   rule exists to enforce; every `CUSTOMER` holder is legitimately allowed to look up any customer
   during their work.
-- **The GDPR doc's §2 also flags hand-run SQL** (`_reporting/reporting.sql`) as a real bypass: those
-  queries pass no `@PreAuthorize` and produce no `audit_log` entry. This is the one spot where RLS's
-  actual selling point — enforcement that raw SQL can't route around — would apply. It still doesn't
-  fit: whoever runs `reporting.sql` connects with the same `tafeladmin` credential the application
-  uses, which (per [§3](#3-what-rls-would-cost-here)) is exempt from RLS as the table owner unless
-  forced, and a person trusted with that credential can `SET`/reset whatever a policy checks anyway.
-  Closing that gap needs a distinct, lower-privileged credential for ad hoc/reporting access (and
-  ideally an audited path instead of a raw `psql` session) — RLS policies are what you'd add *after*
-  that role exists, not instead of creating it.
+- **Hand-run SQL against production** is the one spot where RLS's actual selling point —
+  enforcement that raw SQL can't route around — would apply: such a query passes no `@PreAuthorize`
+  and produces no `audit_log` entry. No such script exists in this repository today, but the reasoning
+  stays relevant if one is ever added. It still wouldn't fit: whoever runs a hand-written query
+  typically connects with the same `tafeladmin` credential the application uses, which (per
+  [§3](#3-what-rls-would-cost-here)) is exempt from RLS as the table owner unless forced, and a person
+  trusted with that credential can `SET`/reset whatever a policy checks anyway. Closing that gap needs
+  a distinct, lower-privileged credential for ad hoc/reporting access (and ideally an audited path
+  instead of a raw `psql` session) — RLS policies are what you'd add *after* that role exists, not
+  instead of creating it.
 
 ## 5. What to do instead
 
