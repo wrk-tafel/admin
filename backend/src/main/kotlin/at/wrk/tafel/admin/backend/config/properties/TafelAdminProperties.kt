@@ -268,6 +268,15 @@ class TafelAdminAuditProperties {
      */
     var retentionDays: Long = 30
 
+    /**
+     * How long a single actor's `READ` of the same household counts as "already recorded" for
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.findByHouseholdId] -
+     * without this, every reload of the customer detail screen would write another entry, which
+     * inflates `ExcessiveReadAccessDetectionService`'s hourly count for behaviour that isn't a new
+     * read of the record. Re-read per use, same as [retentionDays].
+     */
+    var readDedupeWindow: Duration = Duration.ofMinutes(5)
+
     var breachDetection: TafelAdminAuditBreachDetectionProperties = TafelAdminAuditBreachDetectionProperties()
 }
 
