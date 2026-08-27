@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
@@ -98,7 +99,7 @@ class DistributionService(
                 newDistribution.statistic = statisticEntity
 
                 distributionRepository.save(newDistribution).also {
-                    logger.info("Started distribution: ID ${it.id} (started by: ${startedByUser.username}, at: ${it.startedAt})")
+                    logger.info("Started distribution: ID ${it.id} (started by: ${sanitizeForLog(startedByUser.username)}, at: ${it.startedAt})")
                 }
             }
 
