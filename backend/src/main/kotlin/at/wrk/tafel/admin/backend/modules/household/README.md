@@ -419,6 +419,16 @@ module's permission on purpose, since these hold the most sensitive artefacts on
 (GDPR G7, `docs/architecture/gdpr-compliance.md`, issue #3181,
 `docs/architecture/adr/0050-customer-documents-split-into-its-own-permission.md`).
 
+### `ScannerFileCleanupService` (`internal/document`)
+GDPR gap G18 (`docs/architecture/gdpr-compliance.md`): a nightly job (05:05, `@Scheduled`,
+`@SchedulerLock`) that deletes any file on the scanner share
+(`tafeladmin.storage.scannerPath`) older than `tafeladmin.storage.scannerFileRetention` (default 7
+days). Unlike `DocumentStorageCleanupService`, a scanner file has no database row to reconcile
+against at all - `ScannerFileService` only ever lists/reads/deletes the folder directly - so this
+only ever needs a file's own last-modified timestamp. `push`'s `ScannerFileExpiryReminderService`
+warns before this job deletes anything, reading the same share independently rather than reacting to
+an event this service would have to publish - see that service's KDoc for why.
+
 ### `HouseholdRetentionService` (`internal`)
 GDPR gap G1 (`docs/architecture/gdpr-compliance.md`): a nightly job (06:00, `@Scheduled`) that
 deletes every household whose `validUntil` is further in the past than

@@ -48,4 +48,11 @@ enum class PushNotificationType {
      * `ExcessiveReadAccessDetectionService`.
      */
     EXCESSIVE_READ_ACCESS,
+
+    /**
+     * A file on the scanner share is approaching `tafeladmin.storage.scannerFileRetention`'s
+     * deadline and will be deleted soon unless someone imports or discards it first - GDPR gap G18,
+     * see `ScannerFileExpiryReminderService`.
+     */
+    SCANNER_FILES_EXPIRING,
 }

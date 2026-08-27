@@ -800,7 +800,10 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   `TafelAdminStorageProperties.scannerFolderAvailable` is the single rule both sides go by, enforced
   server-side by `ScannerFileService` and reported to the frontend as `/api/config`'s
   `scannerFolderEnabled` so the UI can hide a source the backend would refuse to serve. Both
-  settings can be flipped on a running deployment — see Config Hot-Reload below.
+  settings can be flipped on a running deployment — see Config Hot-Reload below. A file nobody
+  imports or deletes doesn't stay there forever: `ScannerFileCleanupService` deletes it after
+  `tafeladmin.storage.scannerFileRetention` (7 days by default, GDPR gap G18), and `push`'s
+  `ScannerFileExpiryReminderService` warns `CUSTOMER_DOCUMENTS` holders before that happens.
 - **Config Hot-Reload**: the **whole** configuration is re-read while the application runs — not just
   `tafeladmin.*`. Production's settings come from an operator-managed `config.yml` bind-mounted into
   the container (`-Dspring.config.additional-location`, see `_build/Dockerfile`), and

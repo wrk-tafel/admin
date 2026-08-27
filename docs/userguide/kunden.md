@@ -77,6 +77,8 @@ Neue Dokumente können über die Quelle-Auswahl auf zwei Arten hochgeladen werde
 
 Der Scanner-Ordner ist optional: Ist er für die aktuelle Installation nicht eingerichtet oder deaktiviert, wird die Quelle-Auswahl gar nicht angezeigt und Dokumente werden ausschließlich vom Gerät hochgeladen. Die Administration kann den Scanner-Ordner auch im laufenden Betrieb ein- oder ausschalten: Die Quelle-Auswahl erscheint bzw. verschwindet dann von selbst, ohne dass die Seite neu geladen werden muss. War gerade **Scanner** ausgewählt, wird automatisch auf **Datei hochladen** zurückgeschaltet.
 
+Eine im Scanner-Ordner abgelegte Datei, die niemand importiert oder löscht, wird nach 7 Tagen automatisch gelöscht (Datum und Uhrzeit der Ablage stehen bei jeder Datei in der Liste). Bevor das passiert, erhalten Personen mit der Berechtigung **Kunden-Dokumente** eine [Push-Benachrichtigung](README.md#benachrichtigungen), damit die Datei rechtzeitig importiert oder bewusst gelöscht werden kann.
+
 Vor dem Hochladen muss der **Dokumenttyp** ausgewählt werden. Ein Hinweis erinnert daran, nur für die Prüfung des Anspruchs notwendige Dokumente hochzuladen – möglichst ohne Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.
 
 ![Dokumente](images/kunden-detail-dokumente.jpg)

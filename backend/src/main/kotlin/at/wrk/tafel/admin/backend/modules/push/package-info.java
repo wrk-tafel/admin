@@ -13,13 +13,16 @@
  * between (see {@code distribution.events} and {@code logistics.events}), and a report mail that
  * could not be sent ({@code reporting.events}).
  * <p>
- * Three more triggers need no module dependency at all: an account lockout, published from
- * {@code common.auth}; a distribution left open; and one user reading more sensitive data than the
+ * Four more triggers need no module dependency at all: an account lockout, published from
+ * {@code common.auth}; a distribution left open; one user reading more sensitive data than the
  * configured threshold within an hour ({@code internal.ExcessiveReadAccessDetectionService}, reading
  * {@code database.model.audit} directly, same ambient-layer access as the distribution check reading
- * {@code database.model.distribution}) - both scheduled checks rather than events, since the point in
- * each case is that nothing else noticed. {@code base::exception} is the one dependency here that is
- * not an event - the exceptions this module's own controllers throw.
+ * {@code database.model.distribution}); and a file on the scanner share approaching
+ * {@code household}'s retention deadline ({@code internal.ScannerFileExpiryReminderService}, reading
+ * {@code config.properties.TafelAdminProperties} and the share itself directly, rather than through
+ * {@code household}'s {@code ScannerFileService}) - all scheduled checks rather than events, since
+ * the point in each case is that nothing else noticed. {@code base::exception} is the one dependency
+ * here that is not an event - the exceptions this module's own controllers throw.
  */
 @org.springframework.modulith.ApplicationModule(
         allowedDependencies = {"distribution::events", "logistics::events", "reporting::events", "base::exception"}
