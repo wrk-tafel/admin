@@ -45,6 +45,8 @@ export interface DataSubjectMatchItem {
 
 export interface DataSubjectMatchListResponse {
   items: DataSubjectMatchItem[];
+  /** True when at least one area's own result was cut off at its per-area cap. */
+  truncated: boolean;
 }
 
 export interface DataSubjectMatch {
