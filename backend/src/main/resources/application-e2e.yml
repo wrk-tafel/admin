@@ -37,4 +37,4 @@ security:
   jwtToken:
     issuer: http://e2e-test
     audience: wrk-tafel-e2e
-    secret.value: 8a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe7585012
+    secret.value: e2e-test-only-not-a-real-secret-do-not-use-in-production-00000000000000000000000000000000000000
