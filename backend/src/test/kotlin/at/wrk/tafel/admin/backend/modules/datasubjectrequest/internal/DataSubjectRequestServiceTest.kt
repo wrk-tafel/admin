@@ -318,6 +318,7 @@ internal class DataSubjectRequestServiceTest {
         authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
 
         every { householdFacade.delete(1) } returns true
+        every { userRepository.findById(2) } returns java.util.Optional.empty()
         every { userDetailsManager.deleteUserById(2) } returns false
         every { employeeRepository.existsById(3) } returns true
 
