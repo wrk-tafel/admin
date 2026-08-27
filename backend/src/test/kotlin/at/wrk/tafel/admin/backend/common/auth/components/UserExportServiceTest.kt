@@ -3,7 +3,19 @@ package at.wrk.tafel.admin.backend.common.auth.components
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
+import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
+import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
+import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesEntity
+import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesRepository
+import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
+import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
+import at.wrk.tafel.admin.backend.database.model.push.PushTypePreferenceEntity
+import at.wrk.tafel.admin.backend.database.model.push.PushTypePreferenceRepository
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -12,8 +24,10 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.domain.PageImpl
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -27,6 +41,21 @@ internal class UserExportServiceTest {
     private lateinit var userRepository: UserRepository
 
     @RelaxedMockK
+    private lateinit var pushSubscriptionRepository: PushSubscriptionRepository
+
+    @RelaxedMockK
+    private lateinit var pushPreferencesRepository: PushPreferencesRepository
+
+    @RelaxedMockK
+    private lateinit var pushTypePreferenceRepository: PushTypePreferenceRepository
+
+    @RelaxedMockK
+    private lateinit var loginAttemptRepository: LoginAttemptRepository
+
+    @RelaxedMockK
+    private lateinit var auditLogRepository: AuditLogRepository
+
+    @RelaxedMockK
     private lateinit var auditLogWriter: AuditLogWriter
 
     private val clock: Clock = Clock.fixed(Instant.parse("2026-08-25T10:00:00Z"), ZoneId.of("UTC"))
@@ -37,6 +66,15 @@ internal class UserExportServiceTest {
 
     @InjectMockKs
     private lateinit var service: UserExportService
+
+    @BeforeEach
+    fun setup() {
+        // Explicit rather than relying on RelaxedMockK's default for a Spring Data `Page` return -
+        // `buildLoginRows` calls `.content` on it, which a bare relaxed mock cannot answer safely.
+        every {
+            auditLogRepository.findAllByBusinessKeyAndEntityTypeInOrderByOccurredAtDescIdDesc(any(), any(), any())
+        } returns PageImpl(emptyList())
+    }
 
     @Test
     fun `export user by username`() {
@@ -58,6 +96,48 @@ internal class UserExportServiceTest {
         assertThat(entrySlot.captured.businessKey).isEqualTo("test-username")
         assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
         assertThat(entrySlot.captured.changedFields).isEmpty()
+    }
+
+    @Test
+    fun `export user by username - renders push devices, preferences, login attempt and login history`() {
+        val userEntity = testUserEntity.apply {
+            authorities.forEach { it.createdBy = testUserEntity.id }
+        }
+        every { userRepository.findByUsername("test-username") } returns userEntity
+        every { userRepository.findAllById(listOf(testUserEntity.id!!)) } returns listOf(testUserEntity)
+        every { pushPreferencesRepository.findByUserId(userEntity.id!!) } returns PushPreferencesEntity().apply { enabled = false }
+        every { pushSubscriptionRepository.findAllByUserId(userEntity.id!!) } returns listOf(
+            PushSubscriptionEntity().apply {
+                endpoint = "https://push.example/abc"
+                userAgent = "Mozilla/5.0"
+                label = "Diensthandy"
+            },
+        )
+        every { pushTypePreferenceRepository.findAllByUserId(userEntity.id!!) } returns listOf(
+            PushTypePreferenceEntity().apply {
+                notificationType = PushNotificationType.DISTRIBUTION_STARTED
+                enabled = false
+            },
+        )
+        every { loginAttemptRepository.findByUsername("test-username") } returns LoginAttemptEntity(
+            username = "test-username",
+            lastFailureAt = LocalDateTime.of(2026, 8, 24, 9, 0),
+            failureCount = 2,
+        )
+        every {
+            auditLogRepository.findAllByBusinessKeyAndEntityTypeInOrderByOccurredAtDescIdDesc(
+                "test-username",
+                listOf(AuditScope.USER_LOGIN_ENTITY_TYPE),
+                any(),
+            )
+        } returns PageImpl(
+            listOf(AuditLogEntity(occurredAt = LocalDateTime.of(2026, 8, 20, 10, 0), entityType = AuditScope.USER_LOGIN_ENTITY_TYPE, operation = AuditOperation.LOGIN)),
+        )
+
+        val result = service.exportUserByUsername("test-username")
+
+        assertThat(result).isNotNull
+        assertThat(String(result!!.bytes.copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
     }
 
     @Test

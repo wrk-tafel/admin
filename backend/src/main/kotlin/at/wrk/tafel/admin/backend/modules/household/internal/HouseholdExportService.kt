@@ -4,18 +4,19 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
-import at.wrk.tafel.admin.backend.database.model.base.Gender
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentType
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
 import at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentStorageService
-import at.wrk.tafel.admin.backend.modules.household.internal.note.HouseholdNoteItem
-import at.wrk.tafel.admin.backend.modules.household.internal.note.HouseholdNoteService
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -47,10 +48,11 @@ import java.util.zip.ZipOutputStream
 class HouseholdExportService(
     private val householdRepository: HouseholdRepository,
     private val householdConverter: HouseholdConverter,
-    private val householdNoteService: HouseholdNoteService,
+    private val householdNoteRepository: HouseholdNoteRepository,
     private val distributionHouseholdRepository: DistributionHouseholdRepository,
     private val documentRepository: DocumentRepository,
     private val documentStorageService: DocumentStorageService,
+    private val userRepository: UserRepository,
     private val auditLogWriter: AuditLogWriter,
     private val pdfService: PDFService,
     private val clock: Clock,
@@ -81,8 +83,9 @@ class HouseholdExportService(
         val household = householdRepository.findByHouseholdId(householdId) ?: return null
         recordExportRead(household)
 
-        val householdResponse = householdConverter.mapEntityToHousehold(household)
-        val notes = householdNoteService.getAllNotes(householdId)
+        val hasPrivacyNotice = documentRepository.existsByHouseholdHouseholdIdAndDocumentType(householdId, DocumentType.PRIVACY_NOTICE)
+        val householdResponse = householdConverter.mapEntityToHousehold(household, hasPrivacyNotice)
+        val notes = householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId)
         val attendances = distributionHouseholdRepository.findAllByHouseholdEntityIds(listOf(household.id!!))
             .sortedByDescending { it.distribution.startedAt }
             .map {
@@ -97,10 +100,17 @@ class HouseholdExportService(
             }
         val documents = documentRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(householdId)
 
+        // Household/person/note rows are last touched by a user id (`updatedBy`), not a relation -
+        // one lookup for the whole export rather than one per row (documents carry their uploader as
+        // an actual relation already, so that one is resolved straight off the entity below).
+        val actorNames = resolveActorNames(
+            listOf(household.updatedBy) + household.persons.map { it.updatedBy } + notes.map { it.updatedBy },
+        )
+
         val exportedAt = LocalDateTime.now(clock).format(DATE_TIME_FORMATTER)
-        val masterDataFields = buildMasterDataFields(householdResponse)
-        val personRows = buildPersonRows(householdResponse)
-        val noteRows = buildNoteRows(notes)
+        val masterDataFields = buildMasterDataFields(household, householdResponse, actorNames)
+        val personRows = buildPersonRows(household.persons, actorNames)
+        val noteRows = buildNoteRows(notes, actorNames)
         val attendanceRows = buildAttendanceRows(attendances)
         val documentRows = buildDocumentRows(documents)
 
@@ -132,7 +142,11 @@ class HouseholdExportService(
         )
     }
 
-    private fun buildMasterDataFields(household: HouseholdResponse): List<HouseholdExportField> {
+    private fun buildMasterDataFields(
+        householdEntity: HouseholdEntity,
+        household: HouseholdResponse,
+        actorNames: Map<Long, String>,
+    ): List<HouseholdExportField> {
         val address = household.address
         val addressLine = listOfNotNull(
             listOfNotNull(address.street, address.houseNumber).joinToString(" ").ifBlank { null },
@@ -147,8 +161,10 @@ class HouseholdExportService(
             HouseholdExportField("Telefonnummer", household.telephoneNumber.orDash()),
             HouseholdExportField("E-Mail", household.email.orDash()),
             HouseholdExportField("Gültig bis", household.validUntil?.format(DATE_FORMATTER).orDash()),
+            HouseholdExportField("Verlängert am", householdEntity.prolongedAt?.format(DATE_TIME_FORMATTER).orDash()),
             HouseholdExportField("Alleinerziehend", household.singleParent?.yesNo().orDash()),
             HouseholdExportField("Offener Unkostenbeitrag", household.pendingCostContribution?.formatCurrency().orDash()),
+            HouseholdExportField("Datenschutzerklärung vorhanden", household.hasPrivacyNotice?.yesNo().orDash()),
             HouseholdExportField("Gesperrt", household.locked?.yesNo().orDash()),
         )
         if (household.locked == true) {
@@ -161,35 +177,39 @@ class HouseholdExportService(
             "Ausgestellt von",
             household.issuer?.let { "${it.lastname} ${it.firstname} (${it.personnelNumber})" }.orDash(),
         )
+        fields += HouseholdExportField("Zuletzt geändert von", householdEntity.updatedBy?.let { actorNames[it] }.orDash())
         return fields
     }
 
-    private fun buildPersonRows(household: HouseholdResponse): List<HouseholdExportPersonRow> = household.persons
+    private fun buildPersonRows(persons: List<PersonEntity>, actorNames: Map<Long, String>): List<HouseholdExportPersonRow> = persons
         .sortedByDescending { it.isMainPerson }
         .map { person ->
             HouseholdExportPersonRow(
                 name = listOfNotNull(person.lastname, person.firstname).joinToString(" "),
                 mainPerson = person.isMainPerson.yesNo(),
                 birthDate = person.birthDate?.format(DATE_FORMATTER).orDash(),
-                gender = person.gender?.let { Gender.valueOf(it.name).title }.orDash(),
+                gender = person.gender?.title.orDash(),
                 country = person.country.name,
                 employer = person.employer.orDash(),
                 income = person.income?.formatCurrency().orDash(),
                 incomeDue = person.incomeDue?.format(DATE_FORMATTER).orDash(),
                 familyAllowance = person.receivesFamilyAllowance.yesNo(),
                 excludeFromHousehold = person.excludeFromHousehold.yesNo(),
+                updatedBy = person.updatedBy?.let { actorNames[it] }.orDash(),
             )
         }
 
-    private fun buildNoteRows(notes: List<HouseholdNoteItem>): List<HouseholdExportNoteRow> = notes
-        .sortedByDescending { it.timestamp }
-        .map {
-            HouseholdExportNoteRow(
-                timestamp = it.timestamp.format(DATE_TIME_FORMATTER),
-                author = it.author.orDash(),
-                note = it.note,
-            )
-        }
+    private fun buildNoteRows(notes: List<HouseholdNoteEntity>, actorNames: Map<Long, String>): List<HouseholdExportNoteRow> = notes.map {
+        val employee = it.employee
+        val author = employee?.let { e -> "${e.personnelNumber} ${e.firstname} ${e.lastname}" } ?: "Mitarbeiter gelöscht"
+
+        HouseholdExportNoteRow(
+            timestamp = it.createdAt!!.format(DATE_TIME_FORMATTER),
+            author = author,
+            note = it.note,
+            updatedBy = it.updatedBy?.let { id -> actorNames[id] }.orDash(),
+        )
+    }
 
     private fun buildAttendanceRows(attendances: List<HouseholdAttendance>): List<HouseholdExportAttendanceRow> = attendances.map {
         HouseholdExportAttendanceRow(
@@ -206,7 +226,23 @@ class HouseholdExportService(
             fileName = it.fileName,
             documentType = DOCUMENT_TYPE_TITLES[it.documentType] ?: it.documentType.name,
             uploadedAt = it.createdAt?.format(DATE_TIME_FORMATTER).orDash(),
+            person = it.person?.let { p -> listOfNotNull(p.lastname, p.firstname).joinToString(" ") }.orDash(),
+            uploadedBy = it.uploadedByUser?.let { u -> "${u.employee.personnelNumber} ${u.employee.firstname} ${u.employee.lastname}" }.orDash(),
         )
+    }
+
+    /**
+     * `updatedBy` on [HouseholdEntity]/[PersonEntity]/[HouseholdNoteEntity] is a plain user id, not a
+     * relation (see [at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity]) - one
+     * batched lookup for the whole export rather than one query per row.
+     */
+    private fun resolveActorNames(userIds: Collection<Long?>): Map<Long, String> {
+        val distinctIds = userIds.filterNotNull().distinct()
+        if (distinctIds.isEmpty()) return emptyMap()
+
+        return userRepository.findAllById(distinctIds).associate {
+            it.id!! to "${it.employee.personnelNumber} ${it.employee.firstname} ${it.employee.lastname}"
+        }
     }
 
     private fun buildHouseholdPdf(

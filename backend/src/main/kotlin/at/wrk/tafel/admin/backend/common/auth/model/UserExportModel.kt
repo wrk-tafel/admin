@@ -16,6 +16,27 @@ data class UserExportField(
 data class UserExportPermissionRow(
     val category: String,
     val title: String,
+    val grantedAt: String,
+    val grantedBy: String,
+)
+
+@ExcludeFromTestCoverage
+data class UserExportPushDeviceRow(
+    val label: String,
+    val endpoint: String,
+    val userAgent: String,
+    val registeredAt: String,
+)
+
+@ExcludeFromTestCoverage
+data class UserExportPushTypePreferenceRow(
+    val type: String,
+    val enabled: String,
+)
+
+@ExcludeFromTestCoverage
+data class UserExportLoginRow(
+    val occurredAt: String,
 )
 
 /**
@@ -31,6 +52,10 @@ data class UserExportPdfData(
     val exportedAt: String,
     val masterData: List<UserExportField>,
     val permissions: List<UserExportPermissionRow>,
+    val pushDevices: List<UserExportPushDeviceRow>,
+    val pushTypePreferences: List<UserExportPushTypePreferenceRow>,
+    val loginAttempt: List<UserExportField>,
+    val logins: List<UserExportLoginRow>,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -43,6 +68,10 @@ data class UserExportPdfData(
         if (exportedAt != other.exportedAt) return false
         if (masterData != other.masterData) return false
         if (permissions != other.permissions) return false
+        if (pushDevices != other.pushDevices) return false
+        if (pushTypePreferences != other.pushTypePreferences) return false
+        if (loginAttempt != other.loginAttempt) return false
+        if (logins != other.logins) return false
 
         return true
     }
@@ -53,6 +82,10 @@ data class UserExportPdfData(
         result = 31 * result + exportedAt.hashCode()
         result = 31 * result + masterData.hashCode()
         result = 31 * result + permissions.hashCode()
+        result = 31 * result + pushDevices.hashCode()
+        result = 31 * result + pushTypePreferences.hashCode()
+        result = 31 * result + loginAttempt.hashCode()
+        result = 31 * result + logins.hashCode()
         return result
     }
 }

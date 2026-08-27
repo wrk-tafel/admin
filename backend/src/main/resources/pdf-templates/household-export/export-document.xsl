@@ -84,16 +84,17 @@
         <xsl:choose>
             <xsl:when test="persons/persons">
                 <fo:table table-layout="fixed" width="100%" border="0.25mm solid {$tafelHairline}">
-                    <fo:table-column column-width="16%"/>
-                    <fo:table-column column-width="9%"/>
-                    <fo:table-column column-width="9%"/>
-                    <fo:table-column column-width="9%"/>
-                    <fo:table-column column-width="10%"/>
-                    <fo:table-column column-width="13%"/>
-                    <fo:table-column column-width="9%"/>
-                    <fo:table-column column-width="9%"/>
+                    <fo:table-column column-width="14%"/>
                     <fo:table-column column-width="8%"/>
                     <fo:table-column column-width="8%"/>
+                    <fo:table-column column-width="8%"/>
+                    <fo:table-column column-width="9%"/>
+                    <fo:table-column column-width="12%"/>
+                    <fo:table-column column-width="8%"/>
+                    <fo:table-column column-width="8%"/>
+                    <fo:table-column column-width="7%"/>
+                    <fo:table-column column-width="7%"/>
+                    <fo:table-column column-width="11%"/>
                     <fo:table-header background-color="{$tafelAccent}">
                         <fo:table-row>
                             <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Name'"/></xsl:call-template>
@@ -106,6 +107,7 @@
                             <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Eink. gültig bis'"/></xsl:call-template>
                             <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Familienbeihilfe'"/></xsl:call-template>
                             <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Nicht im HH'"/></xsl:call-template>
+                            <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Geändert von'"/></xsl:call-template>
                         </fo:table-row>
                     </fo:table-header>
                     <fo:table-body>
@@ -121,6 +123,7 @@
                                 <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="incomeDue"/></fo:block></fo:table-cell>
                                 <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="familyAllowance"/></fo:block></fo:table-cell>
                                 <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="excludeFromHousehold"/></fo:block></fo:table-cell>
+                                <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="updatedBy"/></fo:block></fo:table-cell>
                             </fo:table-row>
                         </xsl:for-each>
                     </fo:table-body>
@@ -136,13 +139,15 @@
         <xsl:choose>
             <xsl:when test="notes/notes">
                 <fo:table table-layout="fixed" width="100%" border="0.25mm solid {$tafelHairline}">
-                    <fo:table-column column-width="20%"/>
-                    <fo:table-column column-width="20%"/>
-                    <fo:table-column column-width="60%"/>
+                    <fo:table-column column-width="17%"/>
+                    <fo:table-column column-width="17%"/>
+                    <fo:table-column column-width="16%"/>
+                    <fo:table-column column-width="50%"/>
                     <fo:table-header background-color="{$tafelAccent}">
                         <fo:table-row>
                             <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Zeitpunkt'"/></xsl:call-template>
                             <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Verfasst von'"/></xsl:call-template>
+                            <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Geändert von'"/></xsl:call-template>
                             <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Notiz'"/></xsl:call-template>
                         </fo:table-row>
                     </fo:table-header>
@@ -151,6 +156,7 @@
                             <fo:table-row border-bottom="0.25mm solid {$tafelHairline}">
                                 <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="timestamp"/></fo:block></fo:table-cell>
                                 <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="author"/></fo:block></fo:table-cell>
+                                <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="updatedBy"/></fo:block></fo:table-cell>
                                 <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt" linefeed-treatment="preserve"><xsl:value-of select="note"/></fo:block></fo:table-cell>
                             </fo:table-row>
                         </xsl:for-each>
@@ -204,13 +210,17 @@
         <xsl:choose>
             <xsl:when test="documents/documents">
                 <fo:table table-layout="fixed" width="100%" border="0.25mm solid {$tafelHairline}">
-                    <fo:table-column column-width="50%"/>
                     <fo:table-column column-width="30%"/>
-                    <fo:table-column column-width="20%"/>
+                    <fo:table-column column-width="18%"/>
+                    <fo:table-column column-width="18%"/>
+                    <fo:table-column column-width="17%"/>
+                    <fo:table-column column-width="17%"/>
                     <fo:table-header background-color="{$tafelAccent}">
                         <fo:table-row>
                             <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Dateiname'"/></xsl:call-template>
                             <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Art'"/></xsl:call-template>
+                            <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Person'"/></xsl:call-template>
+                            <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Hochgeladen von'"/></xsl:call-template>
                             <xsl:call-template name="table-header-cell"><xsl:with-param name="text" select="'Hochgeladen am'"/></xsl:call-template>
                         </fo:table-row>
                     </fo:table-header>
@@ -219,6 +229,8 @@
                             <fo:table-row border-bottom="0.25mm solid {$tafelHairline}">
                                 <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="fileName"/></fo:block></fo:table-cell>
                                 <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="documentType"/></fo:block></fo:table-cell>
+                                <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="person"/></fo:block></fo:table-cell>
+                                <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="uploadedBy"/></fo:block></fo:table-cell>
                                 <fo:table-cell padding="1.5mm"><fo:block font-size="8.5pt"><xsl:value-of select="uploadedAt"/></fo:block></fo:table-cell>
                             </fo:table-row>
                         </xsl:for-each>
