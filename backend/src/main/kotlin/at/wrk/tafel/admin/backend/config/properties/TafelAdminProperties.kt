@@ -134,6 +134,15 @@ class TafelAdminHouseholdRetentionProperties {
      * 0 or less keeps every household instead of deleting them all.
      */
     var retentionYears: Long = 7
+
+    /**
+     * The most a single run may delete before it refuses to proceed and alerts administrators
+     * instead (`RETENTION_RUN` push notification, GDPR gap G18) - a misconfigured `retentionYears`
+     * that would otherwise sweep a database's worth of households looks identical to a normal night
+     * without this. Read per use, same as [retentionYears]. 0 or less switches the ceiling off
+     * entirely, same convention as `TafelAdminAuditBreachDetectionProperties.readThreshold`.
+     */
+    var maxDeletionsPerRun: Long = 50
 }
 
 /**
@@ -190,6 +199,14 @@ class TafelAdminUserRetentionProperties {
      * candidate, regardless of this value.
      */
     var retentionTime: Period = Period.ofYears(7)
+
+    /**
+     * The most a single run may delete before it refuses to proceed and alerts administrators
+     * instead (`RETENTION_RUN` push notification, GDPR gap G18) - see
+     * [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun] for the reasoning. Read per use. 0
+     * or less switches the ceiling off entirely.
+     */
+    var maxDeletionsPerRun: Long = 50
 }
 
 /**
@@ -231,15 +248,23 @@ class TafelAdminEmployeeRetentionProperties {
      * candidate, regardless of this value.
      */
     var retentionTime: Period = Period.ofYears(7)
+
+    /**
+     * The most a single run may delete before it refuses to proceed and alerts administrators
+     * instead (`RETENTION_RUN` push notification, GDPR gap G18) - see
+     * [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun] for the reasoning. Read per use. 0
+     * or less switches the ceiling off entirely.
+     */
+    var maxDeletionsPerRun: Long = 50
 }
 
 /**
  * The audit trail (`audit_log`) - see ADR-0039.
  *
- * Both values are read per use, so an operator can widen the retention window or switch recording
- * off on a running deployment (`ConfigFileReloadService`) - the latter being the point of having a
- * switch at all: if the listener ever misbehaves under load during a distribution, turning it off
- * must not need a restart.
+ * Every value here is read per use, so an operator can widen the retention window or switch
+ * recording/deletion off on a running deployment (`ConfigFileReloadService`) - the latter being the
+ * point of having a switch at all: if the listener ever misbehaves under load during a distribution,
+ * turning it off must not need a restart.
  *
  * `tafeladmin.audit.cleanupCron` - when the retention job runs, default 05:00 daily - is deliberately
  * *not* a field here: `@Scheduled` fixes its expression at bean creation, so it is startup-only. It
@@ -248,6 +273,7 @@ class TafelAdminEmployeeRetentionProperties {
  */
 @ExcludeFromTestCoverage
 class TafelAdminAuditProperties {
+    /** Kill switch for *writing* entries only - see [cleanupEnabled] for deleting them. */
     var enabled: Boolean = true
 
     /**
@@ -260,13 +286,38 @@ class TafelAdminAuditProperties {
      *
      * Raise it per deployment if a longer trail is genuinely needed; it is re-read per use, so a
      * change takes effect without a restart. Note that raising it does not bring back what has
-     * already been deleted.
+     * already been deleted. A value of 0 or less disables *deletion*, same as [cleanupEnabled] below
+     * - the two exist for different reasons (see [cleanupEnabled]'s KDoc) but either one keeps every
+     * entry.
      *
      * Deleting a household deliberately does *not* purge its entries early - the DELETE entry, with
      * the last known values, is the single thing the old schema lost and this table exists for. They
      * age out on this clock like everything else.
      */
     var retentionDays: Long = 30
+
+    /**
+     * Kill switch for `AuditRetentionService`'s deletion, independent of [retentionDays] - GDPR gap
+     * G18. Before this existed, the only way to pause deletion was `retentionDays <= 0`, which is
+     * indistinguishable from an operator who simply hasn't set a window yet - the fail-safe direction
+     * for *that* ambiguity is "keep forever", the opposite of every other retention job here
+     * ([TafelAdminHouseholdRetentionProperties.enabled],
+     * [TafelAdminUserRetentionProperties.enabled], [TafelAdminEmployeeRetentionProperties.enabled]),
+     * which all default their kill switch to *on* and gate on a separate, explicit window value.
+     * This makes "deletion is deliberately paused" and "no window is configured yet" two different,
+     * unambiguous states instead of one overloaded number.
+     */
+    var cleanupEnabled: Boolean = true
+
+    /**
+     * The most a single run may delete before it refuses to proceed and alerts administrators
+     * instead (`RETENTION_RUN` push notification, GDPR gap G18) - see
+     * [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun] for the reasoning. Defaults far
+     * higher than the other retention jobs': this table's daily churn is legitimately in the
+     * thousands on a busy day, not the handful a household/user/employee deletion should ever be. 0
+     * or less switches the ceiling off entirely.
+     */
+    var maxDeletionsPerRun: Long = 20000
 
     /**
      * How long a single actor's `READ` of the same household counts as "already recorded" for

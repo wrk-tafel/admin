@@ -48,4 +48,11 @@ enum class PushNotificationType {
      * `ExcessiveReadAccessDetectionService`.
      */
     EXCESSIVE_READ_ACCESS,
+
+    /**
+     * A retention job (household/user/employee/audit) either failed or refused to run because it
+     * would have deleted more rows than its configured ceiling - GDPR gap G18, see
+     * `at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent`.
+     */
+    RETENTION_RUN,
 }

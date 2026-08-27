@@ -191,9 +191,20 @@ tafeladmin:
   # readDedupeWindow - how long the same actor's READ of the same household is considered "already
   # recorded" (HouseholdService.findByHouseholdId), so reloading the customer detail screen doesn't
   # write a fresh entry every time. Read per use.
+  #
+  # cleanupEnabled - GDPR gap G18 - the deletion kill switch, independent of both `enabled` above
+  # (which only ever gates writing) and retentionDays: before this existed, the only way to pause
+  # deletion was retentionDays <= 0, indistinguishable from "no window configured yet". Read per use.
+  #
+  # maxDeletionsPerRun - the most a single cleanup run may delete before it refuses to proceed and
+  # alerts administrators instead (RETENTION_RUN push notification). Higher than the other retention
+  # jobs' ceilings below, since this table's daily churn is legitimately in the thousands. 0 or less
+  # switches the ceiling off entirely.
   audit:
     enabled: true
     retentionDays: 30
+    cleanupEnabled: true
+    maxDeletionsPerRun: 20000
     cleanupCron: "0 0 5 * * *"
     readDedupeWindow: 5m
     breachDetection:
@@ -230,9 +241,15 @@ tafeladmin:
   # retentionYears defaults to 7, the Austrian bookkeeping retention period (UGB/BAO Section 132) for
   # records touching cost contributions - a defensible floor, not a final answer; the actual period is
   # the operator's call. A value of 0 or less keeps every household instead of deleting them all.
+  #
+  # maxDeletionsPerRun - GDPR gap G18 - the most a single run may delete before it refuses to proceed
+  # and alerts administrators instead (RETENTION_RUN push notification), so a misconfigured window
+  # sweeping a database's worth of households doesn't look identical to a normal night. Read per use.
+  # 0 or less switches the ceiling off entirely.
   householdDeletion:
     enabled: true
     retentionYears: 7
+    maxDeletionsPerRun: 50
     cleanupCron: "0 0 6 * * *"
   # GDPR gap G13 (docs/architecture/gdpr-compliance.md), the "users" half - mirrors householdDeletion
   # above for staff accounts. Candidate accounts are measured by lastLogin (falling back to createdAt
@@ -250,9 +267,13 @@ tafeladmin:
   # and employeeDeletion.retentionTime below as one consistent retention floor across the application,
   # even though it isn't itself tied to householdDeletion's bookkeeping period; widen or shorten per
   # deployment. A zero or negative period keeps every account instead of deleting them all.
+  #
+  # maxDeletionsPerRun - GDPR gap G18 - see householdDeletion.maxDeletionsPerRun above; same
+  # reasoning, same ceiling default.
   userDeletion:
     enabled: true
     retentionTime: 7y
+    maxDeletionsPerRun: 50
     cleanupCron: "0 15 6 * * *"
   # GDPR gap G13, the "employees" half - see userDeletion above. Deletes an employee once it is
   # referenced by nothing else at all - not just no linked user account, also no household issuer, no
@@ -266,9 +287,13 @@ tafeladmin:
   # householdDeletion.retentionYears, even though an employee this job ever reaches is by definition
   # not the issuer/driver/recorder of anything still on record, so no bookkeeping period specifically
   # applies to it. A zero or negative period keeps every employee instead of deleting them all.
+  #
+  # maxDeletionsPerRun - GDPR gap G18 - see householdDeletion.maxDeletionsPerRun above; same
+  # reasoning, same ceiling default.
   employeeDeletion:
     enabled: true
     retentionTime: 7y
+    maxDeletionsPerRun: 50
     cleanupCron: "0 30 6 * * *"
   # Watches the config files this application was started with - in production the operator-managed
   # /app/config/config.yml bind-mounted into the container - and re-binds tafeladmin.* whenever one

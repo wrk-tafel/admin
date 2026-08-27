@@ -1,8 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertReason
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -27,6 +30,12 @@ import java.time.LocalDate
  *
  * Runs once a night, at 06:00 - after the audit (05:00) and document-storage (05:00) cleanups, so a
  * night's deletions don't overlap with either.
+ *
+ * A run that throws, or that would delete more than [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun],
+ * publishes [RetentionRunAlertEvent] instead of proceeding silently - GDPR gap G18. The ceiling check
+ * happens after the candidates are already claimed (`FOR UPDATE SKIP LOCKED`); refusing to delete
+ * them just lets the transaction end without writing, which releases the locks the same as a normal
+ * commit would.
  */
 @Service
 class HouseholdRetentionService(
@@ -34,10 +43,12 @@ class HouseholdRetentionService(
     private val householdService: HouseholdService,
     private val properties: TafelAdminProperties,
     private val clock: Clock,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(HouseholdRetentionService::class.java)
+        private const val JOB_NAME = "Haushalts-Bereinigung"
     }
 
     /**
@@ -59,18 +70,47 @@ class HouseholdRetentionService(
             return
         }
 
-        val cutoff = LocalDate.now(clock).minusYears(retentionYears)
-        val expiredHouseholdIds = householdRepository.findExpiredHouseholdIdsSkipLocked(cutoff)
-        if (expiredHouseholdIds.isEmpty()) {
-            return
-        }
+        try {
+            val cutoff = LocalDate.now(clock).minusYears(retentionYears)
+            val expiredHouseholdIds = householdRepository.findExpiredHouseholdIdsSkipLocked(cutoff)
+            if (expiredHouseholdIds.isEmpty()) {
+                return
+            }
 
-        expiredHouseholdIds.forEach { householdService.deleteHouseholdByHouseholdId(it) }
-        logger.info(
-            "Deleted {} household(s) whose validUntil was before {} ({} year(s) retention)",
-            expiredHouseholdIds.size,
-            cutoff,
-            retentionYears,
-        )
+            val ceiling = properties.householdDeletion.maxDeletionsPerRun
+            if (ceiling > 0 && expiredHouseholdIds.size > ceiling) {
+                logger.warn(
+                    "Household retention would delete {} household(s), above the configured ceiling of {} - refusing this run",
+                    expiredHouseholdIds.size,
+                    ceiling,
+                )
+                eventPublisher.publishEvent(
+                    RetentionRunAlertEvent(
+                        jobName = JOB_NAME,
+                        reason = RetentionRunAlertReason.CEILING_EXCEEDED,
+                        detail = "${expiredHouseholdIds.size} Haushalte betroffen, Limit liegt bei $ceiling.",
+                    ),
+                )
+                return
+            }
+
+            expiredHouseholdIds.forEach { householdService.deleteHouseholdByHouseholdId(it) }
+            logger.info(
+                "Deleted {} household(s) whose validUntil was before {} ({} year(s) retention)",
+                expiredHouseholdIds.size,
+                cutoff,
+                retentionYears,
+            )
+        } catch (e: Exception) {
+            logger.error("Household retention run failed", e)
+            eventPublisher.publishEvent(
+                RetentionRunAlertEvent(
+                    jobName = JOB_NAME,
+                    reason = RetentionRunAlertReason.FAILED,
+                    detail = "${e.javaClass.simpleName}: ${e.message}",
+                ),
+            )
+            throw e
+        }
     }
 }

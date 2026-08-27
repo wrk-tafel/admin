@@ -1,8 +1,11 @@
 package at.wrk.tafel.admin.backend.database.common.audit
 
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertReason
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,16 +27,24 @@ import java.time.LocalDateTime
  * the delete never lands while anyone is working. `DocumentStorageCleanupService` shares that slot;
  * the two contend for nothing (rows here, files there) beyond the single scheduled-task thread they
  * take turns on.
+ *
+ * A run that throws, or that would delete more than [TafelAdminAuditProperties.maxDeletionsPerRun],
+ * publishes `RetentionRunAlertEvent` instead of proceeding silently - GDPR gap G18.
+ * [TafelAdminAuditProperties.cleanupEnabled] is the deletion kill switch, independent of both
+ * [TafelAdminAuditProperties.enabled] (which only ever gates *writing*, see `AuditLogWriter`) and
+ * `retentionDays` itself.
  */
 @Service
 class AuditRetentionService(
     private val auditLogRepository: AuditLogRepository,
     private val properties: TafelAdminProperties,
     private val clock: Clock,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(AuditRetentionService::class.java)
+        private const val JOB_NAME = "Audit-Log-Bereinigung"
     }
 
     /**
@@ -46,16 +57,54 @@ class AuditRetentionService(
     @Scheduled(cron = "\${tafeladmin.audit.cleanupCron:0 0 5 * * *}")
     @Transactional
     fun cleanupExpiredEntries() {
+        if (!properties.audit.cleanupEnabled) {
+            logger.debug("Audit retention is disabled (cleanupEnabled=false) - keeping every entry")
+            return
+        }
+
         val retentionDays = properties.audit.retentionDays
         if (retentionDays <= 0) {
             logger.debug("Audit retention is disabled (retentionDays={}) - keeping every entry", retentionDays)
             return
         }
 
-        val cutoff = LocalDateTime.now(clock).minusDays(retentionDays)
-        val deletedCount = auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(cutoff)
-        if (deletedCount > 0) {
-            logger.info("Removed {} audit entries older than {}", deletedCount, cutoff)
+        try {
+            val cutoff = LocalDateTime.now(clock).minusDays(retentionDays)
+
+            val ceiling = properties.audit.maxDeletionsPerRun
+            if (ceiling > 0) {
+                val candidateCount = auditLogRepository.countByOccurredAtBefore(cutoff)
+                if (candidateCount > ceiling) {
+                    logger.warn(
+                        "Audit retention would delete {} entries, above the configured ceiling of {} - refusing this run",
+                        candidateCount,
+                        ceiling,
+                    )
+                    eventPublisher.publishEvent(
+                        RetentionRunAlertEvent(
+                            jobName = JOB_NAME,
+                            reason = RetentionRunAlertReason.CEILING_EXCEEDED,
+                            detail = "$candidateCount Einträge betroffen, Limit liegt bei $ceiling.",
+                        ),
+                    )
+                    return
+                }
+            }
+
+            val deletedCount = auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(cutoff)
+            if (deletedCount > 0) {
+                logger.info("Removed {} audit entries older than {}", deletedCount, cutoff)
+            }
+        } catch (e: Exception) {
+            logger.error("Audit retention run failed", e)
+            eventPublisher.publishEvent(
+                RetentionRunAlertEvent(
+                    jobName = JOB_NAME,
+                    reason = RetentionRunAlertReason.FAILED,
+                    detail = "${e.javaClass.simpleName}: ${e.message}",
+                ),
+            )
+            throw e
         }
     }
 }

@@ -268,6 +268,40 @@ describe('Customer Search', () => {
     });
   });
 
+  // The retention window defaults to 7 years (tafeladmin.householdDeletion.retentionYears, unset
+  // in application-e2e.yml) - a validUntil just past that cutoff is inside the 30-day preview the
+  // chip shows, without actually being expired long enough for HouseholdRetentionService to sweep
+  // it out from under a still-running suite.
+  it('search by "wird bald gelöscht" filter', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        country: AUSTRIA,
+        validUntil: dayjs().subtract(7, 'years').add(15, 'days').toDate(),
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        }
+      }).then((response) => {
+        const customer = response.body.data;
+
+        // Filter by lastname too - same reasoning as the cost-contribution/locked filter tests above.
+        cy.byTestId('searchInputText').type(customer.lastname);
+        clickSearchAndWaitForResult();
+        cy.intercept('GET', /\/api\/households(\?|$)/).as('willBeDeletedSoonFilterSearch');
+        cy.byTestId('filter-willBeDeletedSoon').click();
+        cy.wait('@willBeDeletedSoonFilterSearch');
+
+        clickSearchAndOpenExpectedResult(customer.id!, {alreadySearched: true});
+      });
+    });
+  });
+
   it('keeps query, filters and page after returning from a customer via the back button', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;

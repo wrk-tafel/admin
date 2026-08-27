@@ -30,6 +30,7 @@ object PushNotificationTypeTargeting {
         PushNotificationType.USER_LOCKED_OUT to setOf(UserPermissions.ADMINISTRATOR),
         PushNotificationType.REPORT_MAIL_FAILED to setOf(UserPermissions.ADMINISTRATOR),
         PushNotificationType.EXCESSIVE_READ_ACCESS to setOf(UserPermissions.ADMINISTRATOR),
+        PushNotificationType.RETENTION_RUN to setOf(UserPermissions.ADMINISTRATOR),
     )
 
     /**
@@ -53,6 +54,8 @@ object PushNotificationTypeTargeting {
         PushNotificationType.USER_LOCKED_OUT to "benutzer/anmelde-versuche",
         PushNotificationType.REPORT_MAIL_FAILED to "einstellungen/email",
         PushNotificationType.EXCESSIVE_READ_ACCESS to "aenderungsprotokoll",
+        // a retention job's deletions are themselves recorded there, same as any other delete
+        PushNotificationType.RETENTION_RUN to "aenderungsprotokoll",
     )
 
     /**
