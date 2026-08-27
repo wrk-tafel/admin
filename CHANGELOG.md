@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Beim Zusammenführen von Kunden werden verschobene Notizen und Dokumente im Änderungsprotokoll jetzt einzeln erfasst statt nur als Gesamtanzahl.
+
+## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).
 
 ## [1.13.0] - 2026-08-26
