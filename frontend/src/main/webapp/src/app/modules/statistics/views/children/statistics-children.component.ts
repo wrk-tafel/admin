@@ -29,6 +29,7 @@ import {
   StatisticsApiService
 } from '../../../../api/statistics-api.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {MatIcon} from '@angular/material/icon';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
@@ -215,8 +216,7 @@ export class StatisticsChildrenComponent {
   }
 
   private processCsvResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 

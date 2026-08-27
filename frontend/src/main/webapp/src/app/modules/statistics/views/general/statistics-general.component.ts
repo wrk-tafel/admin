@@ -26,6 +26,7 @@ import {
 } from '../../components/statistics-comparison';
 import {HttpResponse} from '@angular/common/http';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import saveIcon from '@material-symbols/svg-400/outlined/save-fill.svg';
@@ -264,8 +265,7 @@ export class StatisticsGeneralComponent {
   }
 
   private processCsvResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 

@@ -527,9 +527,7 @@ class HouseholdControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/zip")
-        assertThat(
-            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
-        ).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
@@ -548,9 +546,7 @@ class HouseholdControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
 
-        assertThat(
-            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
-        ).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
@@ -568,9 +564,7 @@ class HouseholdControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
-        assertThat(
-            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
-        ).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
@@ -620,9 +614,7 @@ class HouseholdControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)
-        assertThat(
-            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
-        ).isEqualTo("inline; filename=${csvResult.filename}")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(csvResult.filename)
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(bodyBytes).isEqualTo(csvResult.bytes)
@@ -692,9 +684,7 @@ class HouseholdControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)
-        assertThat(
-            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first(),
-        ).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
