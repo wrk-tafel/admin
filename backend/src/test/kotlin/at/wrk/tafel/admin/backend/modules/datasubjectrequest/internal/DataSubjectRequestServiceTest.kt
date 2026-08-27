@@ -313,6 +313,26 @@ internal class DataSubjectRequestServiceTest {
         verify(exactly = 0) { employeeFacade.delete(any()) }
     }
 
+    /**
+     * Every match's permission is checked before any deletion happens - a later match missing its
+     * area permission must not leave an earlier, permitted match half-deleted (household files on
+     * disk in particular, see issue #3427).
+     */
+    @Test
+    fun `delete - checks every match's permission before deleting any of them`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER")
+
+        assertThrows<TafelApiException> {
+            service.delete(
+                listOf(
+                    DataSubjectMatch(type = DataSubjectMatchType.CUSTOMER, id = 1),
+                    DataSubjectMatch(type = DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT, id = 2),
+                ),
+            )
+        }
+        verify(exactly = 0) { householdFacade.delete(any()) }
+    }
+
     @Test
     fun `delete - reports an outcome per match`() {
         authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")

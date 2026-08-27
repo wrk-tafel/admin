@@ -48,6 +48,8 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Clock
@@ -633,8 +635,10 @@ class HouseholdService(
         householdRepository.saveAndFlush(household)
 
         // JPA cascade removes the household_documents rows, but it can't touch the files on disk -
-        // those have to be cleaned up explicitly.
-        household.documents.forEach { documentStorageService.delete(it.storagePath) }
+        // those have to be cleaned up explicitly. Resolved now (the entity is gone after delete
+        // below) but the files themselves are only removed once the transaction actually commits -
+        // see deleteDocumentFilesAfterCommit.
+        val documentStoragePaths = household.documents.map { it.storagePath }
 
         // household_duplicate_dismissals rows are removed by its FK's `on delete cascade` (see
         // R__00110_household_duplicate_dismissals_fk.sql), so nothing to do here explicitly.
@@ -643,6 +647,33 @@ class HouseholdService(
         // nightly run, and the audit trail already records the delete itself - an INFO line per
         // household number here would only repeat that, once per row, for every deletion.
         log.debug("Deleted household {}", householdId)
+
+        deleteDocumentFilesAfterCommit(documentStoragePaths)
+    }
+
+    /**
+     * Deleting a household can be one of several steps in a single transaction - e.g. one match
+     * among several in a GDPR data-subject-request delete (`DataSubjectRequestService.delete`).
+     * Removing the files from disk immediately would mean a later step's failure rolls the database
+     * back while the files stay gone, orphaning `household_documents` rows that point at nothing.
+     * Deferring to `afterCommit` guarantees the files only disappear once the household's deletion
+     * has actually landed.
+     */
+    private fun deleteDocumentFilesAfterCommit(storagePaths: List<String>) {
+        if (storagePaths.isEmpty()) {
+            return
+        }
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            // No transaction to hang the cleanup off (e.g. a caller outside a Spring-managed
+            // transaction) - falling back to an immediate delete is the closest available behavior.
+            storagePaths.forEach { documentStorageService.delete(it) }
+            return
+        }
+        TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+            override fun afterCommit() {
+                storagePaths.forEach { documentStorageService.delete(it) }
+            }
+        })
     }
 
     private fun mapToValidationPersons(mainPerson: Person?, additionalPersons: List<Person>): List<IncomeValidatorPerson> {

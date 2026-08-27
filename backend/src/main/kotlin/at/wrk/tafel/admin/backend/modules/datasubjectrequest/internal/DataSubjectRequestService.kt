@@ -123,13 +123,19 @@ class DataSubjectRequestService(
     /**
      * Runs per match independently - see [DataSubjectDeleteResponse]'s KDoc for why this isn't
      * all-or-nothing the way [export] is.
+     *
+     * Every match's permission is checked upfront, before any deletion happens: this whole method
+     * is one transaction, so a permission check that instead ran mid-loop (as [export]'s still does,
+     * fine there since nothing has side effects on disk) could reject a later match only after an
+     * earlier one had already deleted files from disk - see [HouseholdService.deleteHouseholdByHouseholdId]
+     * for why that ordering matters.
      */
     @Transactional
     fun delete(matches: List<DataSubjectMatch>): DataSubjectDeleteResponse {
         val distinctMatches = requireNonEmptyDistinct(matches)
+        distinctMatches.forEach { requireAreaPermission(it.type) }
 
         val results = distinctMatches.map { match ->
-            requireAreaPermission(match.type)
             val deleted = deleteMatch(match)
             DataSubjectDeleteResultItem(
                 match = match,
