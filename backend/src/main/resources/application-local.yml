@@ -25,7 +25,7 @@ security:
   jwtToken:
     issuer: http://localhost
     audience: wrk-tafel
-    secret.value: 8a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe7585012
+    secret.value: local-dev-only-not-a-real-secret-do-not-use-in-production-0000000000000000000000000000000000000
     expirationTimeInSeconds: 604800 # 1 week for local development
 
 tafeladmin:
