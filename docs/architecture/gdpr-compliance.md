@@ -484,6 +484,14 @@ a new `TafelUserDetailsManager.deleteUserById` (the same "keep at least one acti
 guard `UserController.deleteUser` already enforces, re-checked here since this is a second caller of
 `deleteUser` that must not bypass it) - no new erasure logic, matching §6's own prediction that
 household erasure (and now staff erasure) "already exists in part" for a future feature to reuse.
+One exception: a `USER_ACCOUNT` match's deletion also deletes the linked `employees` row once it's
+no longer referenced by anything other than the just-deleted `users` row itself (issue #3423) -
+`UserEntity.employee` deliberately isn't cascade-`REMOVE`d (see its KDoc), so without this a staff
+erasure would otherwise leave personnel number and name behind until `EmployeeRetentionService`'s
+own age-gated sweep, up to `tafeladmin.employeeDeletion.retentionTime` (7 years by default) later -
+too long for an Art. 17 request. An employee still referenced elsewhere (household issuer, note
+author, food collection driver/co-driver, route stop completion) is left alone, same as that sweep,
+since those are still-live records rather than abandoned personal data.
 
 No separate audit entry for the search itself - only the eventual export/delete stays audited, the
 same as before (§5's `AuditOperation.READ`/writes tracked per entity, not per screen).
