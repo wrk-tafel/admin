@@ -101,6 +101,7 @@ class UserController(
     }
 
     @GetMapping("/generate-password")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun generatePassword(): ResponseEntity<GeneratedPasswordResponse> {
         val generatedPassword = tafelPasswordGenerator.generatePassword()
         val response = GeneratedPasswordResponse(password = generatedPassword)
