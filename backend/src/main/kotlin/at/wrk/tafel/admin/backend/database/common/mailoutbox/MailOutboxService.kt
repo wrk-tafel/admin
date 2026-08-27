@@ -185,7 +185,7 @@ class MailOutboxService(
             mail.lastError = null
             mailOutboxRepository.save(mail)
 
-            logger.info("Mail '{}' sent to {}", mail.subject, mail.recipients)
+            logger.info("Mail '{}' sent to {} recipient(s)", mail.subject, recipientCount(mail.recipients))
         } catch (e: Exception) {
             mail.attempts += 1
             mail.lastError = "${e.javaClass.simpleName}: ${e.message}"
@@ -193,13 +193,16 @@ class MailOutboxService(
             val givenUp = mail.attempts >= properties.maxAttempts
             if (givenUp) {
                 mail.status = MailOutboxStatus.FAILED
-                logger.error("Mail '${mail.subject}' to ${mail.recipients} given up on after ${mail.attempts} attempts", e)
+                logger.error(
+                    "Mail '${mail.subject}' to ${recipientCount(mail.recipients)} recipient(s) given up on after ${mail.attempts} attempts",
+                    e,
+                )
             } else {
                 mail.nextAttemptAt = LocalDateTime.now(clock).plus(retryDelay(mail.attempts, properties))
                 logger.warn(
-                    "Mail '{}' to {} failed on attempt {}, retrying at {}: {}",
+                    "Mail '{}' to {} recipient(s) failed on attempt {}, retrying at {}: {}",
                     mail.subject,
-                    mail.recipients,
+                    recipientCount(mail.recipients),
                     mail.attempts,
                     mail.nextAttemptAt,
                     mail.lastError,
@@ -225,6 +228,10 @@ class MailOutboxService(
     }
 
     private fun retryDelay(attempts: Int, properties: TafelAdminMailOutboxProperties): Duration = minOf(properties.retryBackoff.multipliedBy(attempts.toLong()), properties.maxRetryBackoff)
+
+    // Recipient e-mail addresses are personal data - a count is enough to see a send/retry/give-up
+    // in the logs without also writing out who received the mail.
+    private fun recipientCount(recipients: String?): Int = recipients.orEmpty().split(",").count { it.isNotBlank() }
 }
 
 private fun MimeMessage.toByteArray(): ByteArray {

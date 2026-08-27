@@ -44,6 +44,13 @@ jobs:
       backend: ${{ needs.changes.outputs.backend == 'true' }}
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
       docker: ${{ needs.changes.outputs.docker == 'true' }}
+  codeql:
+    uses: ./.github/workflows/subflow_codeql.yml
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    with:
+      backend: ${{ needs.changes.outputs.backend == 'true' }}
+      frontend: ${{ needs.changes.outputs.frontend == 'true' }}
   # sonar, build-push-image, e2e-test and the deploy jobs need no gate of their own: they depend on
   # build/test, and GitHub skips a job whose dependency was skipped.
   build-push-image:
