@@ -15,6 +15,7 @@ import {UserApiService} from '../../../../api/user-api.service';
 import {SupportContextService} from '../../../support/support-context.service';
 import {ScreenshotService} from '../../../support/screenshot.service';
 import {FileHelperService} from '../../../util/file-helper.service';
+import {parseContentDispositionFilename} from '../../../util/content-disposition.util';
 import {TafelToastrService} from '../../../components/tafel-toastr/tafel-toastr.service';
 import {SupportDialogComponent, SupportDialogResult} from './dialogs/support-dialog.component';
 import {QuickOpenDialogComponent} from './dialogs/quick-open-dialog.component';
@@ -142,8 +143,7 @@ export class DefaultHeaderComponent {
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 

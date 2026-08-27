@@ -11,6 +11,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportFileResult
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
 import at.wrk.tafel.admin.backend.common.auth.model.*
+import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
@@ -24,7 +25,6 @@ import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -94,8 +94,7 @@ class UserController(
     }
 
     private fun exportResponse(result: UserExportFileResult): ResponseEntity<InputStreamResource> {
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${result.filename}")
+        val headers = ContentDispositionUtil.inline(result.filename)
 
         return ResponseEntity
             .ok()

@@ -49,6 +49,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
 
 /** Long enough not to search on every keystroke of a name, short enough to feel immediate. */
 const SEARCH_DEBOUNCE_MS = 400;
@@ -293,8 +294,7 @@ export class SettingsEmployeesComponent {
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 

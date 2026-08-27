@@ -115,7 +115,7 @@ class EmployeeControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
-        assertThat(response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
         assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
     }
 

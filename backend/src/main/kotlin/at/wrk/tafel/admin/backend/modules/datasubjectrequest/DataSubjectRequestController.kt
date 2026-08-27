@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.datasubjectrequest
 
+import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.modules.datasubjectrequest.internal.DataSubjectRequestService
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -40,8 +40,7 @@ class DataSubjectRequestController(
     fun export(@Valid @RequestBody request: DataSubjectExportRequest): ResponseEntity<InputStreamResource> {
         val result = dataSubjectRequestService.export(request.matches)
 
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${result.filename}")
+        val headers = ContentDispositionUtil.inline(result.filename)
 
         return ResponseEntity
             .ok()
