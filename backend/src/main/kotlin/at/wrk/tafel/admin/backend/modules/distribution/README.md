@@ -261,11 +261,14 @@ client is fed an out-of-band "initial state" event first (`sseOutboxService.send
 directly before `forwardNotificationEventsToSse`), because the outbox mechanism only forwards *future*
 notifications, not backlog.
 
-**Note on auth:** `DistributionTicketScreenController.listenForChanges()` (the SSE endpoint for the
-fullscreen ticket display) intentionally has no `@PreAuthorize`, per the class-level comment: the
-physical ticket-screen monitor authenticates as a low-privilege display account, so the read-only SSE
-stream is left open to any authenticated user while the state-changing endpoints
-(`show-next`/`show-previous`/`show-text`) require `CHECKIN`/`SCANNER`.
+**Note on auth:** `DistributionTicketScreenSseController.listenForChanges()` (the SSE endpoint for the
+fullscreen ticket display) intentionally has no `@PreAuthorize` beyond `isAuthenticated()`, per the
+class-level comment: the physical ticket-screen monitor authenticates as a low-privilege display
+account with no other permissions, so the read-only SSE stream (number-only, no household data) is
+left open to any authenticated user while the state-changing/household-carrying endpoints on
+`DistributionTicketScreenController` (`current`/`show-current`/`show-previous`/`show-next`/`show-text`)
+require `CHECKIN` - `SCANNER` is a device-level permission for the kiosk scanner and has no business
+seeing a household's name or outstanding cost contribution.
 
 ## Manually re-sending mails
 
