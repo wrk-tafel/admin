@@ -1,10 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.audit.internal
 
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditActorProjection
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
+import at.wrk.tafel.admin.backend.modules.audit.AuditFieldChangeItem
 import at.wrk.tafel.admin.backend.modules.audit.AuditSearchFilter
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
@@ -12,6 +14,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -19,6 +22,9 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.context.SecurityContextImpl
 import tools.jackson.databind.json.JsonMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -36,8 +42,26 @@ class AuditServiceTest {
         service = AuditService(auditLogRepository, JsonMapper.builder().build())
     }
 
+    @AfterEach
+    fun afterEach() {
+        SecurityContextHolder.clearContext()
+    }
+
+    private fun authenticateWith(vararg authorities: String) {
+        SecurityContextHolder.setContext(
+            SecurityContextImpl(
+                TafelJwtAuthentication(
+                    tokenValue = "TOKEN",
+                    username = "test-user",
+                    authorities = authorities.map { SimpleGrantedAuthority(it) },
+                ),
+            ),
+        )
+    }
+
     @Test
-    fun `household history expands the stored diff into displayable field changes`() {
+    fun `household history expands the stored diff into displayable field changes for a caller with CUSTOMER`() {
+        authenticateWith("AUDIT_LOG", "CUSTOMER")
         every {
             auditLogRepository.findAllByBusinessKeyAndEntityTypeInOrderByOccurredAtDescIdDesc(any(), any(), any())
         } returns PageImpl(listOf(auditEntry("""{"addressCity": ["Wien", "Graz"], "email": [null, "a@b.at"]}""")))
@@ -56,6 +80,25 @@ class AuditServiceTest {
         assertThat(entry.changes.first().oldValue).isEqualTo("Wien")
         assertThat(entry.changes.first().newValue).isEqualTo("Graz")
         assertThat(entry.changes.last().oldValue).isNull()
+    }
+
+    // AuditController.getHouseholdHistory requires CUSTOMER outright, but the service itself must
+    // not rely on that - a redacted result rather than a leak is what protects a future caller that
+    // forgets to gate itself the same way.
+    @Test
+    fun `household history redacts field values for a caller without CUSTOMER, but still names what changed`() {
+        authenticateWith("AUDIT_LOG")
+        every {
+            auditLogRepository.findAllByBusinessKeyAndEntityTypeInOrderByOccurredAtDescIdDesc(any(), any(), any())
+        } returns PageImpl(listOf(auditEntry("""{"addressCity": ["Wien", "Graz"]}""")))
+
+        val result = service.getHouseholdHistory(householdId = 1234, page = null, pageSize = null)
+
+        val entry = result.items.single()
+        assertThat(entry.entityType).isEqualTo("Household")
+        assertThat(entry.businessKey).isEqualTo("1234")
+        assertThat(entry.actorUsername).isEqualTo("test-user")
+        assertThat(entry.changes).isEmpty()
     }
 
     @Test
@@ -85,6 +128,7 @@ class AuditServiceTest {
 
     @Test
     fun `an unparseable diff still yields the entry, just without field changes`() {
+        authenticateWith("AUDIT_LOG", "CUSTOMER")
         every {
             auditLogRepository.findAllByBusinessKeyAndEntityTypeInOrderByOccurredAtDescIdDesc(any(), any(), any())
         } returns PageImpl(listOf(auditEntry("not-json")))
@@ -109,6 +153,7 @@ class AuditServiceTest {
 
     @Test
     fun `search applies every given filter`() {
+        authenticateWith("AUDIT_LOG", "CUSTOMER")
         every { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), any<Pageable>()) } returns
             PageImpl(listOf(auditEntry(null)), PageRequest.of(0, 10), 1)
 
@@ -128,6 +173,50 @@ class AuditServiceTest {
         assertThat(result.items).hasSize(1)
         assertThat(result.items.single().changes).isEmpty()
         verify { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), any<Pageable>()) }
+    }
+
+    // The global log screen mixes household-scoped entries with user/settings ones under the single
+    // AUDIT_LOG permission (see the module README) - a caller without CUSTOMER must still not read a
+    // household's field values through it, which is exactly what issue #3421 found.
+    @Test
+    fun `search redacts a household-scoped entry's field values for a caller without CUSTOMER`() {
+        authenticateWith("AUDIT_LOG")
+        every { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), any<Pageable>()) } returns
+            PageImpl(listOf(auditEntry("""{"income": ["100", "200"]}""")))
+
+        val result = service.search(AuditSearchFilter(), page = null, pageSize = null)
+
+        val entry = result.items.single()
+        assertThat(entry.entityType).isEqualTo("Household")
+        assertThat(entry.businessKey).isEqualTo("1234")
+        assertThat(entry.actorUsername).isEqualTo("test-user")
+        assertThat(entry.changes).isEmpty()
+    }
+
+    @Test
+    fun `search still shows a household-scoped entry's field values for a caller with CUSTOMER`() {
+        authenticateWith("AUDIT_LOG", "CUSTOMER")
+        every { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), any<Pageable>()) } returns
+            PageImpl(listOf(auditEntry("""{"income": ["100", "200"]}""")))
+
+        val result = service.search(AuditSearchFilter(), page = null, pageSize = null)
+
+        assertThat(result.items.single().changes).containsExactly(
+            AuditFieldChangeItem(field = "income", oldValue = "100", newValue = "200"),
+        )
+    }
+
+    // Non-household-scoped entries (users, settings) are what AUDIT_LOG was kept separate from
+    // CUSTOMER for in the first place - a caller without CUSTOMER must still see those in full.
+    @Test
+    fun `search never redacts an entity type outside AuditScope's household scope`() {
+        authenticateWith("AUDIT_LOG")
+        every { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), any<Pageable>()) } returns
+            PageImpl(listOf(auditEntry("""{"username": ["old", "new"]}""", entityType = "User")))
+
+        val result = service.search(AuditSearchFilter(), page = null, pageSize = null)
+
+        assertThat(result.items.single().changes).hasSize(1)
     }
 
     @Test
@@ -166,9 +255,9 @@ class AuditServiceTest {
         override val lastname = last
     }
 
-    private fun auditEntry(changedFields: String?) = AuditLogEntity(
+    private fun auditEntry(changedFields: String?, entityType: String = "Household") = AuditLogEntity(
         occurredAt = LocalDateTime.of(2026, 8, 9, 12, 0),
-        entityType = "Household",
+        entityType = entityType,
         operation = AuditOperation.UPDATE,
     ).apply {
         id = 1

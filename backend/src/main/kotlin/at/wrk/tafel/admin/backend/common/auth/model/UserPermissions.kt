@@ -16,7 +16,11 @@ enum class UserPermissions(val key: String, val title: String, val category: Per
      * Reading the audit trail - the household "Verlauf" tab as well as the global log screen.
      * Separate from `CUSTOMER` on purpose: seeing a household's current data and seeing every
      * change ever made to it, by whom, are different levels of access, and the log spans users and
-     * settings too.
+     * settings too. That separation stops short of household-scoped field values (names, addresses,
+     * income) though: those additionally require `CUSTOMER` - outright on the "Verlauf" tab
+     * (`AuditController.getHouseholdHistory`), redacted otherwise on the global log screen
+     * (`AuditService.isRedactedForCaller`) - so `AUDIT_LOG` alone only ever shows *that* a
+     * household/person/note/document changed, by whom and when, never to what.
      */
     AUDIT_LOG("AUDIT_LOG", "Änderungsprotokoll", PermissionCategory.ADMINISTRATION),
     CHECKIN("CHECKIN", "Anmeldung", PermissionCategory.OPERATIONS),
