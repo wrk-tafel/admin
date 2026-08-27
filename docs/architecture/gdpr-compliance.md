@@ -583,7 +583,7 @@ to remember to call anything extra.
 or discarded - stayed until a user imported or deleted them by hand, with no bound of any kind. A
 scan nobody claims is personal data with no retention window, the same gap G1 closed for households.
 
-`ScannerFileCleanupService` (`household`, nightly at 05:00) deletes any file older than
+`ScannerFileCleanupService` (`household`, nightly at 05:05) deletes any file older than
 `tafeladmin.storage.scannerFileRetention` (7 days by default). Unlike an already-imported document,
 a scanner file has no database row to reconcile against - `ScannerFileService` only ever
 lists/reads/deletes the folder directly - so the job only ever needs a file's own last-modified
