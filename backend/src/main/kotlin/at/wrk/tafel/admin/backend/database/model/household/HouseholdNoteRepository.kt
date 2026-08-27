@@ -27,10 +27,12 @@ interface HouseholdNoteRepository : JpaRepository<HouseholdNoteEntity, Long> {
 
     /**
      * Re-parents notes onto [targetHousehold] as part of a household merge (see
-     * `HouseholdMergeService`). `HouseholdNoteEntity.household` has no `mappedBy` back-reference on
-     * `HouseholdEntity`, so notes are invisible to JPA cascade from the household side - without this,
-     * they'd only ever be reachable via the DB's `on delete cascade`, i.e. destroyed along with the
-     * source instead of preserved.
+     * `HouseholdMergeService`). A bulk `@Modifying` update (rather than loading + saving entities) is
+     * deliberate: touching `HouseholdEntity.notes` in memory - even just removing an element from a
+     * source's collection - would schedule an orphan-removal DELETE for a row we're simultaneously
+     * trying to keep, the same reasoning as `PersonRepository.reassignToHousehold`.
+     * `clearAutomatically` detaches the persistence context so the source household is re-read fresh
+     * (and genuinely childless) before it gets deleted.
      *
      * @param sourceEntityIds `households.id` (entity primary keys) of the merged-away households -
      * never the business `householdId`.

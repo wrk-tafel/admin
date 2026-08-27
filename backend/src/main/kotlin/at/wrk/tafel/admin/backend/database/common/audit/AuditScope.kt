@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.database.common.audit
 
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -55,10 +56,10 @@ object AuditScope {
 
     /**
      * An employee's data-takeout read - see
-     * [at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeExportService]. Employee
-     * writes are not audited at all (`EmployeeEntity` carries no [auditedEntities] map entry), so
-     * unlike the reads above this type never appears on a write-derived entry - only on the export's
-     * own manually-recorded read, the same way [USER_LOGIN_ENTITY_TYPE] and the others here are.
+     * [at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeExportService]. Shares its
+     * string value with the [EmployeeEntity] entry in [auditedEntities] below, so the export's
+     * manually-recorded read lands under the same "Employee" entity type as the insert/update/delete
+     * entries an employee's own writes produce.
      */
     const val EMPLOYEE_EXPORT_ENTITY_TYPE = "Employee"
 
@@ -106,6 +107,11 @@ object AuditScope {
             householdScoped = true,
             businessKey = { (it as DocumentEntity).household.householdId.toString() },
         ),
+        EmployeeEntity::class.java to AuditedEntity(
+            entityType = "Employee",
+            householdScoped = false,
+            businessKey = { (it as EmployeeEntity).personnelNumber },
+        ),
         UserEntity::class.java to AuditedEntity(
             entityType = "User",
             householdScoped = false,
@@ -143,7 +149,7 @@ object AuditScope {
     val allEntityTypes: List<String> = (
         auditedEntities.values.map { it.entityType } +
             listOf(USER_LOGIN_ENTITY_TYPE, SCANNER_FILE_ENTITY_TYPE, DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE, EMPLOYEE_EXPORT_ENTITY_TYPE)
-        ).sorted()
+        ).distinct().sorted()
 
     /**
      * Takes the *mapped* class (`EntityPersister.getMappedClass()`), never `entity.javaClass`: a
