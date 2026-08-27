@@ -21,7 +21,9 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.CredentialsExpiredException
 import org.springframework.security.authentication.DisabledException
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -193,6 +195,100 @@ internal class TafelJwtAuthProviderTest {
         assertThrows<DisabledException> {
             provider.authenticate(authentication)
         }
+    }
+
+    @Test
+    fun `authenticate rejects a token issued before tokenInvalidatedAt`() {
+        val username = "SUBJ"
+        val now = LocalDateTime.now()
+        val issuedAt = Date.from(now.minusMinutes(5).atZone(ZoneId.systemDefault()).toInstant())
+        val expiration = Date.from(now.plusDays(1).atZone(ZoneId.systemDefault()).toInstant())
+
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
+            mapOf(
+                Claims.SUBJECT to username,
+                Claims.EXPIRATION to expiration,
+                Claims.ISSUED_AT to issuedAt,
+            ),
+        )
+        val userEntity = UserEntity(
+            username = username,
+            password = "pwd",
+            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            enabled = true,
+        ).apply { tokenInvalidatedAt = now.minusMinutes(1) }
+        every { userRepository.findByUsername(username) } returns userEntity
+
+        assertThrows<CredentialsExpiredException> {
+            provider.authenticate(authentication)
+        }
+    }
+
+    @Test
+    fun `authenticate accepts a token issued after tokenInvalidatedAt`() {
+        val username = "SUBJ"
+        val now = LocalDateTime.now()
+        val issuedAt = Date.from(now.atZone(ZoneId.systemDefault()).toInstant())
+        val expiration = Date.from(now.plusDays(1).atZone(ZoneId.systemDefault()).toInstant())
+
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
+            mapOf(
+                Claims.SUBJECT to username,
+                Claims.EXPIRATION to expiration,
+                Claims.ISSUED_AT to issuedAt,
+            ),
+        )
+        val userEntity = UserEntity(
+            username = username,
+            password = "pwd",
+            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            enabled = true,
+        ).apply { tokenInvalidatedAt = now.minusMinutes(1) }
+        every { userRepository.findByUsername(username) } returns userEntity
+
+        val resultingAuthentication = provider.authenticate(authentication)
+
+        assertThat(resultingAuthentication.isAuthenticated).isTrue
+    }
+
+    /**
+     * The JWT `iat` claim only carries whole-second precision (RFC 7519 NumericDate), while
+     * `tokenInvalidatedAt` is stored with sub-second precision - a token reissued in the very same
+     * second as the invalidating event (see UserController.changePassword, which mints a
+     * replacement token right after invalidating the request's own) must not be rejected just
+     * because of that truncation.
+     */
+    @Test
+    fun `authenticate accepts a token issued in the same second as tokenInvalidatedAt`() {
+        val username = "SUBJ"
+        val now = LocalDateTime.now()
+        val issuedAtSecond = now.truncatedTo(ChronoUnit.SECONDS)
+        val issuedAt = Date.from(issuedAtSecond.atZone(ZoneId.systemDefault()).toInstant())
+        val expiration = Date.from(now.plusDays(1).atZone(ZoneId.systemDefault()).toInstant())
+
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
+            mapOf(
+                Claims.SUBJECT to username,
+                Claims.EXPIRATION to expiration,
+                Claims.ISSUED_AT to issuedAt,
+            ),
+        )
+        val userEntity = UserEntity(
+            username = username,
+            password = "pwd",
+            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            enabled = true,
+            // Later in the same second as issuedAtSecond - would fail a naive `issuedAt.isAfter(x)`
+            // comparison, since issuedAt was truncated down to the start of that second.
+        ).apply { tokenInvalidatedAt = issuedAtSecond.plusNanos(500_000_000) }
+        every { userRepository.findByUsername(username) } returns userEntity
+
+        val resultingAuthentication = provider.authenticate(authentication)
+
+        assertThat(resultingAuthentication.isAuthenticated).isTrue
     }
 
     @Test
