@@ -36,12 +36,16 @@ Two things to be clear about before reading on:
 | the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | until a user imports or deletes them |
 | `logs/app.log` | staff | usernames on login/logout/distribution start; no customer names were found in any log statement | Spring Boot's rolling default, 7 files |
 | `logs/access.log` | customers, pseudonymously | one line per request, including `/api/households/{id}` paths | **never** — `rotate: false` in `application.yml` |
-| PDFs and CSVs generated on demand | customers | Stammdatenblatt and ID card per household; the Kundenliste PDF lists everyone attending a distribution by name | outside the application the moment they are downloaded or printed |
+| PDFs and CSVs generated on demand | customers | Stammdatenblatt and ID card per household; the Kundenliste PDF is a distribution's attendance list — ticket number, household number, person and infant counts, no names | outside the application the moment they are downloaded or printed |
+| `shelters_contacts` | shelter contacts (not staff, not customers) | name, phone | manual only — no retention job; cascades when its shelter is deleted |
+| `shops` (`contact_person`, `phone`, `note`) | shop contacts (not staff, not customers) | contact name, phone, a free-text note | manual only — no retention job |
+| `mail_recipients` | whoever an operator configured as a mail recipient | an e-mail address, which may identify a named individual | manual only — no retention job |
+| `created_by`/`updated_by` (26 tables — `R__00092`/`R__00096`/`R__00102`, see [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table)) | staff | which account last touched a row | as long as the row lives, unless that account is deleted — then cleared immediately (`on delete set null`). Several of those tables (`shops`, `shelters`, `cars`, `routes`, `food_categories`, `distributions`, `food_collections`, `distributions_statistics`, `routes_stops_completions`, among others) have no retention job of their own, so a still-live row keeps its actor indefinitely |
 
 `persons.country` (nationality) is not an Art. 9 category on its own, and the schema has no field for
 health, religion or convictions. But `household_notes` and the document upload accept anything a
 member of staff decides to put there, so Art. 9 data can enter the system without a single line of
-code being wrong — see [G4](#g4-nothing-keeps-special-category-data-out-of-notes-and-documents).
+code being wrong — see [G4](#g4-a-hint-now-keeps-special-category-data-out-of-notes-and-documents).
 
 ## 2. Where personal data leaves the system
 
@@ -57,13 +61,10 @@ code being wrong — see [G4](#g4-nothing-keeps-special-category-data-out-of-not
   (`SupportService`), together with the reporter's username, the browser context of the report and a
   screenshot of the page it was written on. It stays inside the organisation's own mail, but both
   the free text and the picture can carry a customer's data — see
-  [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer).
-- **Downloads and prints.** The Kundenliste PDF for a distribution is a full attendance list with
-  names; the Stammdatenblatt is a household's complete master data. Once printed, the application
-  has no further say in them.
-- **Direct SQL.** `_reporting/reporting.sql` is a set of hand-run queries, and the first one selects
-  `firstname, lastname, birth_date` for the children report. Whatever it is run
-  against, that access passes no `@PreAuthorize` and produces no `audit_log` entry.
+  [G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name).
+- **Downloads and prints.** The Kundenliste PDF for a distribution carries no names (ticket number,
+  household number, person/infant counts only, see §1); the Stammdatenblatt is a household's
+  complete master data. Once printed, the application has no further say in either.
 
 ## 3. What the code already gets right
 
@@ -74,9 +75,12 @@ Worth recording, because it is the part that does not need work:
   CSRF with a session-bound token and `SameSite=Strict`, lockout after repeated failures.
 - **A tight public surface.** Exactly three endpoints are reachable without a session:
   `/api/login`, `/api/logout`, `/api/config/public` (`WebSecurityConfig.publicEndpoints`).
-- **No third parties in the browser.** The CSP is `'self'` throughout, with no analytics, no fonts
-  and no CDN. The only cookies are the JWT and the CSRF token — both strictly necessary, so no
-  consent banner is owed and none is present.
+- **No third parties loaded by the application.** The CSP is `'self'` throughout, with no analytics,
+  no fonts and no CDN. The only cookies are the JWT and the CSRF token — both strictly necessary, so
+  no consent banner is owed and none is present. A staff member can still *click through* to Google
+  Maps for a shop's or route stop's address (`maps-url.util.ts`) — a user-initiated navigation away
+  from the application, not a resource it loads, and `Referrer-Policy`/`rel="noreferrer"` on those
+  links keep the current page's URL from reaching Google.
 - **Pseudonymity where it is displayed in public.** The ID-card QR code carries the bare household
   number (`HouseholdPdfService.generateQRCode`), and the ticket screen in the distribution room
   renders only a caption and a ticket number (`ticket-screen.component.html`) — the household id and
@@ -152,49 +156,53 @@ What remains open: this was drafted against the organisation's public website te
 routed through a documented legal/DPO sign-off process, and nothing in the application tracks
 *whether* that sign-off happened — see issue #3185.
 
-### G3 The support form mails free text that can name a customer
+### G3 The support form now hints at using the household number instead of a name
 
 **Art. 5(1)(c), Art. 5(1)(f).**
 
-The exposure this section was written for is gone: the form no longer files a public GitHub issue
-but mails the request to the deployment's own support addresses
+The exposure this section was originally written for is gone: the form no longer files a public
+GitHub issue but mails the request to the deployment's own support addresses
 ([ADR-0044](adr/0044-support-requests-sent-as-mail.md)), so a helpfully-worded "Bei Kunde Nr. 1234,
 Maria Musterfrau, wird das Einkommen falsch gerechnet" no longer becomes world-readable, mirrored
 and indexed within seconds.
 
-What is left is ordinary but not nothing. The text is still free text that can name a customer, and
-it now lands in a mailbox — copied to whatever that mail server and its backups keep, outside
+What was left was ordinary but not nothing: the text is still free text that can name a customer,
+and it lands in a mailbox — copied to whatever that mail server and its backups keep, outside
 anything this application can delete. The mail also carries the reporter's username, their browser
 context (page, user agent, last errors) and **a screenshot of the page the request was written on**,
 which on a customer detail screen is that household's name, address and income figures as a picture.
+It is always attached — there is deliberately no opt-out — so the control that remains is *where the
+reporter is standing* when they open support.
 
-What makes that defensible rather than a surprise: the destination is the organisation's own
-mailbox, the dialog states what is attached, and the screenshot is shown as a preview before the
-request is sent (ADR-0044). It is always attached — there is deliberately no opt-out — so the
-control that remains is *where the reporter is standing* when they open support, which is what the
-user guide tells them.
+The dialog's hint (`testid="supportHint"`) now says exactly that: report a customer by household
+number rather than name, and navigate away from a customer screen first if what is on it should not
+travel. The dialog no longer previews the screenshot itself — the preview was a scaled-down copy of
+the page the reporter was already looking at, adding no information while pushing the form down on a
+small screen; the hint still states that a screenshot is attached.
 
-**Smallest useful step:** a line at the note field's level of visibility in the dialog — report the
-household by its number rather than by name, and leave a customer screen before reporting if what is
-on it should not travel — plus a retention rule on the support mailbox, which is the operator's to
-set, not the application's.
+What remains open: a retention rule on the support mailbox is the operator's to set, not the
+application's, and once a request is sent the free text and screenshot are as uncontrolled as any
+other mail the organisation receives.
 
-### G4 Nothing keeps special-category data out of notes and documents
+### G4 A hint now keeps special-category data out of notes and documents
 
 **Art. 9, Art. 5(1)(c).**
 
 `household_notes.note` is unrestricted free text, and the document upload accepts any file under
-`tafeladmin.storage.maxDocumentSize` (25 MB by default). A note reading "kann wegen Physiotherapie nicht selbst kommen" is health data, and an uploaded
-Meldezettel or asylum decision carries more than income. Both then sit in the household file with no
-special handling, no separate permission, and — because `HouseholdNoteEntity` is in `AuditScope` —
-a copy of the previous text in `audit_log` for 30 days.
+`tafeladmin.storage.maxDocumentSize` (25 MB by default). A note reading "kann wegen Physiotherapie
+nicht selbst kommen" is health data, and an uploaded Meldezettel or asylum decision carries more than
+income. Both then sit in the household file with no special handling, no separate permission, and —
+because `HouseholdNoteEntity` is in `AuditScope` — a copy of the previous text in `audit_log` for 30
+days. Field-level restriction was never realistic here; a short, visible rule was the smallest useful
+step.
 
-Nothing in the code is wrong here; the point is that the design assumes the data class stays out,
-and nothing enforces or even mentions that assumption to the person typing.
+The note dialog (`testid="noteHint"`) and the document upload panel (`testid="uploadDocumentHint"`)
+now both say, in the customer's own file, to record only what the claim assessment needs and to leave
+out health, religion or similarly special-category data — and the Kunden user guide chapter carries
+the same rule.
 
-**Smallest useful step:** say it where it is typed (a hint on the note field and the upload dialog)
-and in the user guide chapter for the Kunden screen. Field-level restriction is not realistic; a
-short, visible rule is.
+What remains open: this is a visible rule, not an enforced one — nothing in the code stops a member
+of staff from typing or uploading special-category data anyway.
 
 ### G5 A customer data-subject request can now be answered from the application
 
@@ -277,22 +285,29 @@ The operator confirmed ([#3182](https://github.com/wrk-tafel/admin/issues/3182))
 volume, the database volume and their backups are on encrypted storage at the infrastructure level.
 ADR-0021's consequences record that answer.
 
-### G9 The access log never rotates and never expires
+### G9 The access log's lack of rotation is now a deliberate, documented operator hand-off
 
 **Art. 5(1)(e).**
 
 `server.tomcat.accesslog.rotate: false` in `application.yml` means `logs/access.log` is a single file
 that grows for the life of the deployment, holding one line per request — including every
 `/api/households/{id}` path, i.e. a permanent record of which case files were opened when, from
-which address as the container sees it. It is the one store in the system with no bound at all, and
-unlike the audit trail nobody chose it: it is a default nobody revisited.
+which address as the container sees it. This was the one store in the system with no bound at all,
+and unlike the audit trail nobody had chosen it: it was a default nobody had revisited.
 
 Before [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded), this was also the closest thing to a
 read log that existed — an accident rather than a control, since it was neither queryable nor
-scoped. `audit_log` is now the real, scoped read log; `access.log` is still unbounded regardless.
+scoped. `audit_log` is now the real, scoped read log, which changes what `access.log` is *for*: not
+the record of who read what, but Tomcat's own request trace, which is why the answer settled on is
+host-side rotation rather than an in-application one — `application.yml`'s `rotate: false` now carries
+a comment saying so explicitly, so the setting reads as a decision instead of an oversight the next
+time someone finds it. `app.log`'s own rollover (Spring Boot's logback defaults — 10MB per file, 7
+files, 100MB total cap) is likewise made explicit rather than left as whatever the framework happens
+to default to.
 
-**Smallest useful step:** turn rotation on and set a retention (`max-days`), matching `audit_log`'s
-own retention window.
+What remains open: the retention this hand-off relies on lives in the deployment host's own logrotate
+configuration, outside this repository — the same operator-side gap [§6](#6-what-this-repository-cannot-answer)
+already tracks for backups and processor agreements.
 
 ### G10 Copies survive an erasure, and nobody can say for how long
 
@@ -305,14 +320,21 @@ they were queued if delivery was given up on (ADR-0046), any Kundenliste PDF alr
 mailed, and every backup made before the deletion. Restoring a backup re-creates erased people, and
 nothing propagates the erasure into it.
 
-Every copy inside the application now has a clock on it, which was not true of a `mail_outbox` row
-parked as `FAILED`: it kept its full MIME message — report PDF or support screenshot included — until
-somebody removed the row by hand, which no screen ever prompted anyone to do (ADR-0046).
+Almost every copy inside the application now has a clock on it, which was not true of a
+`mail_outbox` row parked as `FAILED`: it kept its full MIME message — report PDF or support
+screenshot included — until somebody removed the row by hand, which no screen ever prompted anyone to
+do (ADR-0046). Two exceptions still run past 30 days, and are documented as such rather than folded
+into that figure: deleting a *user* account's linked `employees` row can take up to 7 years if that
+employee is still referenced elsewhere (household issuer, note author, food collection driver, route
+stop completion recorder — see [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1)),
+and a household's `household_duplicate_dismissals` row (a reviewer's "kein Duplikat" verdict against
+another household, holding only the two household numbers, deliberately not cascaded — see the
+migration's own comment) is never removed at all once the household behind it is deleted.
 
 The actual erasure timeline is now written down where an administrator handling a request reads it —
-`docs/userguide/datenauskunft.md`'s "Technische Spuren nach der Löschung" section — instead of only
-existing spread across ADRs, so a request can be answered honestly ("gelöscht, letzte technische
-Spuren spätestens nach 30 Tagen").
+`docs/userguide/datenauskunft.md`'s "Technische Spuren nach der Löschung" section, including the two
+exceptions above — instead of only existing spread across ADRs, so a request can be answered honestly
+rather than with a single blanket figure.
 
 What is left is outside the application: a printed or mailed PDF, and the operator's backups. How a
 backup restore is followed by a re-run of pending deletions is an operator decision this repository
@@ -576,8 +598,7 @@ picture:
 - backup retention, encryption and how erasure is propagated into restores;
 - what happens to printed Kundenlisten and Stammdatenblätter after a distribution;
 - who holds which account and permission today, and when that was last reviewed;
-- the incident process behind Art. 33's 72 hours;
-- who runs `_reporting/reporting.sql`, against what, and where its output goes.
+- the incident process behind Art. 33's 72 hours.
 
 ## 7. Where to start
 
@@ -587,9 +608,9 @@ number here.
 
 | | Gap | Issue | Cost | First step |
 |---|---|---|---|---|
-| 1 | [G9](#g9-the-access-log-never-rotates-and-never-expires) access log unbounded | [#3174](https://github.com/wrk-tafel/admin/issues/3174) | hours | rotation + retention in `application.yml` |
-| 2 | [G4](#g4-nothing-keeps-special-category-data-out-of-notes-and-documents) special-category data in free text | [#3175](https://github.com/wrk-tafel/admin/issues/3175) | hours | a visible rule at the note field, upload dialog and user guide |
-| 3 | [G3](#g3-the-support-form-mails-free-text-that-can-name-a-customer) support text can name a customer | [#3176](https://github.com/wrk-tafel/admin/issues/3176) | hours | a line in the dialog, plus retention on the support mailbox |
+| 1 | [G9](#g9-the-access-logs-lack-of-rotation-is-now-a-deliberate-documented-operator-hand-off) access log unbounded | [#3174](https://github.com/wrk-tafel/admin/issues/3174) | done | rotation stays host-side by deliberate, documented choice; `app.log`'s own rollover made explicit |
+| 2 | [G4](#g4-a-hint-now-keeps-special-category-data-out-of-notes-and-documents) special-category data in free text | [#3175](https://github.com/wrk-tafel/admin/issues/3175) | done | a visible hint at the note field, the upload dialog and the user guide |
+| 3 | [G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name) support text can name a customer | [#3176](https://github.com/wrk-tafel/admin/issues/3176) | done | a hint in the dialog naming the household number instead; the screenshot preview was dropped |
 | 4 | [G2](#g2-a-privacy-notice-now-exists-as-a-printable-consent-form-signed-on-paper) privacy notice | [#3177](https://github.com/wrk-tafel/admin/issues/3177) | done | printable consent form, per-household and reference-less |
 | 5 | [G1](#g1-a-household-is-now-deleted-once-it-has-been-expired-long-enough) retention for customer data | [#3178](https://github.com/wrk-tafel/admin/issues/3178) | done | nightly job modelled on `AuditRetentionService`, `tafeladmin.householdDeletion.*` |
 | 6 | [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export | [#3179](https://github.com/wrk-tafel/admin/issues/3179) | done | two endpoints, household record + documents, on `HouseholdExportService` |
@@ -602,9 +623,8 @@ number here.
 | 12 | [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) no breach detection | [#3184](https://github.com/wrk-tafel/admin/issues/3184) | done | `ExcessiveReadAccessDetectionService`, a fixed hourly read-count threshold |
 | 13 | [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too) no single entry point spanning G5/G12/G14 | [#3396](https://github.com/wrk-tafel/admin/issues/3396) | done | `DataSubjectRequestController`/`DataSubjectRequestService`, `DATA_SUBJECT_REQUESTS` |
 | 14 | [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) erasure timeline undocumented | [#3183](https://github.com/wrk-tafel/admin/issues/3183) | done | `docs/userguide/datenauskunft.md`; backup-restore propagation stays with §6/#3185 |
-| 15 | [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table) `created_by`/`updated_by` outlive a deleted account | [#3426](https://github.com/wrk-tafel/admin/issues/3426) | hours | `created_by`/`updated_by` as an `on delete set null` FK to `users(id)`, `R__00111_change_tracking_actor_user_fk.sql` |
+| 15 | [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table) `created_by`/`updated_by` outlive a deleted account | [#3426](https://github.com/wrk-tafel/admin/issues/3426) | done | `created_by`/`updated_by` as an `on delete set null` FK to `users(id)`, `R__00111_change_tracking_actor_user_fk.sql` |
 
-G3, G4 and G9 are the only gaps still open, and none of them needs an operator answer first. G2, G1,
-G13, G5, G6, G7, G8, G11, G12, G15, G10 and G17 are done — the operator has now answered every
-question in #3185's coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no
-gap number and no PR closes it; it stays open until the operator writes those answers down.
+Every gap in this table is done — the operator has now answered every question in #3185's
+coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
+closes it; it stays open until the operator writes those answers down.
