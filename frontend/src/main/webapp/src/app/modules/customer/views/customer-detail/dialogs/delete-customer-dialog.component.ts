@@ -5,6 +5,8 @@ import {TafelDialogComponent} from '../../../../../common/components/tafel-dialo
 
 export interface DeleteCustomerDialogData {
   customerName: string;
+  /** Set when the customer currently holds an unprocessed ticket in the active distribution. */
+  ticketNumber?: number | null;
 }
 
 @Component({

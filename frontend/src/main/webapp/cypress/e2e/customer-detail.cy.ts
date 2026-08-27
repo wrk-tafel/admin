@@ -354,6 +354,38 @@ describe('Customer Detail', () => {
 
       cy.byTestId('assign-ticket-button').should('be.disabled');
     });
+
+    // Deleting a household cascades away its distributions_households row, silently dropping an
+    // assigned ticket from the active distribution's queue (issue #3444) - the confirm dialog has
+    // to call that out rather than deleting the ticket without any warning.
+    it('warns about the active ticket when deleting a customer that still has one', () => {
+      cy.addCustomerToDistribution({customerId: 100, ticketNumber: 25});
+      cy.visit('/kunden/detail/100');
+
+      openEditMenu();
+      cy.byTestId('deleteCustomerButton').click();
+
+      cy.byTestId('deletecustomer-dialog').should('be.visible');
+      cy.byTestId('deletecustomer-ticket-warning').should('contain.text', '25');
+
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+    });
+
+    it('no ticket warning when deleting a customer without an active ticket', () => {
+      cy.visit('/kunden/detail/100');
+
+      openEditMenu();
+      cy.byTestId('deleteCustomerButton').click();
+
+      cy.byTestId('deletecustomer-dialog').should('be.visible');
+      cy.byTestId('deletecustomer-ticket-warning').should('not.exist');
+
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+    });
   });
 
   function generateAndDownloadPdf(expectedFilename: string, buttonTestId = 'printMasterdataButton') {

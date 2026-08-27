@@ -21,6 +21,14 @@ logging:
     org.apache: WARN
   file:
     name: ${user.dir}/logs/app.log
+  # Spring Boot's own defaults (10MB per file, 7 files kept, no total cap) match what is set here -
+  # made explicit so app.log's rollover is a decision rather than whatever the framework happens to
+  # default to.
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+      total-size-cap: 100MB
   pattern:
     file: "%d{ISO8601} %-5level [%t] %C: %msg%n%throwable"
 
@@ -46,6 +54,8 @@ server:
       buffered: false
       prefix: access
       suffix: .log
+      # Tomcat itself never rotates access.log - rotation/retention for it is handled host-side
+      # (e.g. logrotate on the deployment host), outside this application's configuration.
       rotate: false
 
 spring:
