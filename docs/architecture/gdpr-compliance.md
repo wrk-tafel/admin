@@ -210,11 +210,13 @@ of staff from typing or uploading special-category data anyway.
 
 `HouseholdExportService` (issue #3179, see [ADR-0051](adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md))
 serves one ZIP behind the same `CUSTOMER` permission as the rest of a household's data, from
-customer-detail's "Weitere Aktionen" menu: `GET /households/{householdId}/export` — household,
-persons, notes (via the unpaged `HouseholdNoteService.getAllNotes`, so a page-size cap can't silently
-truncate the record), distribution attendance history and the list of uploaded documents, as a PDF —
-plus every uploaded document itself. One combined archive rather than several separate downloads: a
-data-subject request normally wants "everything you have on me" in one piece.
+customer-detail's "Weitere Aktionen" menu: `GET /households/{householdId}/export` — household
+(including `prolongedAt` and whether a privacy-notice document is on file), persons, notes (via the
+unpaged `HouseholdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc`, so a
+page-size cap can't silently truncate the record), each of those three's `updatedBy`, distribution
+attendance history and the list of uploaded documents — including the document's linked person and
+uploader — as a PDF, plus every uploaded document itself. One combined archive rather than several
+separate downloads: a data-subject request normally wants "everything you have on me" in one piece.
 The endpoint stores nothing; the archive is built on request and never written to disk or a table. It
 is recorded in the audit trail as a single `AuditOperation.READ` entry against the household
 (G6/#3180), the same way `generatePdf` already was.
@@ -375,23 +377,30 @@ number, the full authority list or login history in one place, and there was no 
 
 `UserExportService` (issue #3363, see [ADR-0051](adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md))
 serves a PDF - the same `PDFService`/XSL-FO pipeline as the household export - with master data
-(username, employee personnel number/name, `enabled`, `lastLogin`) and every assigned permission.
-Never the password hash. Recorded in the audit trail as a single `AuditOperation.READ` entry against
-the user (G6/#3180), the same way G5's export is. Reachable two ways: `GET /api/users/export` behind
-`isAuthenticated()` (matching `/api/users/info`'s self-only pattern), from the user menu's "Meine
-Daten exportieren" entry; and `GET /api/users/{userId}/export` behind `USER_MANAGEMENT`, from a
-user's detail screen's "Daten exportieren (PDF)" button, for a request made on someone's behalf.
+(username, employee personnel number/name, `enabled`, account creation date, `lastLogin`, whether
+push notifications are enabled), every assigned permission (with when and by whom it was granted),
+registered push devices, any push-notification-type opt-outs, the current failed-login state
+(`login_attempts`) and the login history of the retention window (see below). Never the password
+hash. Recorded in the audit trail as a single `AuditOperation.READ` entry against the user (G6/#3180),
+the same way G5's export is. Reachable two ways: `GET /api/users/export` behind `isAuthenticated()`
+(matching `/api/users/info`'s self-only pattern), from the user menu's "Meine Daten exportieren"
+entry; and `GET /api/users/{userId}/export` behind `USER_MANAGEMENT`, from a user's detail screen's
+"Daten exportieren (PDF)" button, for a request made on someone's behalf.
 
 Added alongside [#3362](https://github.com/wrk-tafel/admin/issues/3362), which asked for a takeout
 plan covering "either customers or internal employees" — the original review (#3124) only considered
 the customer side.
 
-What remains open: same as G5, `audit_log` entries about the user are deliberately excluded from the
-export — left as an unanswered permission-boundary question in the takeout plan's §4. Settled, not
-open: the export does not follow references *into* other tables either - a household this person
-issued, a note they authored, a food collection they drove - since that data is substantively the
-referenced record's own, with this person's name attached only as attribution. See the takeout
-plan's §1 "Scope" note.
+What remains open: same as G5, `audit_log` entries *about* the user (a household they issued, a note
+they authored, a food collection they drove) are still excluded — left as an unanswered
+permission-boundary question in the takeout plan's §4. Settled, not open: `audit_log`'s
+`UserLogin`-typed entries are the one exception (issue #3446) — a login event's subject and actor are
+the same person, so unlike the rest of the trail it is this user's own data rather than another
+record's, and the export now includes it (`buildLoginRows`, retention-bounded the same way the
+Änderungsprotokoll screen is). The export also does not follow references *into* other tables either -
+a household this person issued, a note they authored, a food collection they drove - since that data
+is substantively the referenced record's own, with this person's name attached only as attribution.
+See the takeout plan's §1 "Scope" note.
 
 ### G13 A system user or employee account now expires too, mirroring G1
 
@@ -520,10 +529,12 @@ since those are still-live records rather than abandoned personal data.
 No separate audit entry for the search itself - only the eventual export/delete stays audited, the
 same as before (§5's `AuditOperation.READ`/writes tracked per entity, not per screen).
 
-What remains open: same as G5/G12/G14, `audit_log` entries are excluded from the export; the search
-itself caps at 20 best matches per area (a lookup for one specific person, not a report), and a search
-that hit that cap in any area comes back with `truncated: true` so the screen can tell the caller to
-narrow the search rather than trust an incomplete list silently.
+What remains open: same as G5/G12/G14, `audit_log` entries about the matched record stay excluded from
+the export - except a `USER_ACCOUNT` match's own login history, which is included because it delegates
+to G12's `UserExportService` unchanged (see G12's "What remains open" for why that one entity type is
+different). The search itself caps at 20 best matches per area (a lookup for one specific person, not
+a report), and a search that hit that cap in any area comes back with `truncated: true` so the screen
+can tell the caller to narrow the search rather than trust an incomplete list silently.
 
 ### G16 A document upload is now checked against what the file actually is, not just its declared type
 

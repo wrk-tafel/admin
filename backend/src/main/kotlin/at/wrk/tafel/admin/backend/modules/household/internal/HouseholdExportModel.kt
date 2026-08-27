@@ -25,6 +25,7 @@ data class HouseholdExportPersonRow(
     val incomeDue: String,
     val familyAllowance: String,
     val excludeFromHousehold: String,
+    val updatedBy: String,
 )
 
 @ExcludeFromTestCoverage
@@ -32,6 +33,7 @@ data class HouseholdExportNoteRow(
     val timestamp: String,
     val author: String,
     val note: String,
+    val updatedBy: String,
 )
 
 @ExcludeFromTestCoverage
@@ -48,6 +50,8 @@ data class HouseholdExportDocumentRow(
     val fileName: String,
     val documentType: String,
     val uploadedAt: String,
+    val person: String,
+    val uploadedBy: String,
 )
 
 /**

@@ -377,11 +377,15 @@ The GDPR Art. 15/20 data takeout (G5, issue #3179, see
 exposed as a single `HouseholdController` endpoint
 mirroring `generatePdf`'s `InputStreamResource`/`Content-Disposition` shape:
 - `GET /{householdId}/export` - one ZIP (`java.util.zip.ZipOutputStream`) containing the household
-  record - persons, notes (via `HouseholdNoteService.getAllNotes`, the unpaged counterpart to
-  `getNotes` - a page-size cap would silently truncate the record), distribution attendance history
+  record - master data (including `prolongedAt` and whether a privacy-notice document is on file),
+  persons, notes (via `HouseholdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc`,
+  the unpaged overload - a page-size cap would silently truncate the record; each of these three also
+  carries who last changed it, resolved from `updatedBy`'s plain user id via one batched
+  `UserRepository.findAllById` lookup), distribution attendance history
   (`DistributionHouseholdRepository.findAllByHouseholdEntityIds`) and the list of uploaded documents -
-  as `datenexport.pdf` (rendered through the same `PDFService`/XSL-FO pipeline as every other PDF in
-  the app, see `pdf-templates/household-export/export-document.xsl` and
+  including each document's linked person and uploader - as `datenexport.pdf` (rendered through the
+  same `PDFService`/XSL-FO pipeline as every other PDF in the app, see
+  `pdf-templates/household-export/export-document.xsl` and
   `docs/architecture/adr/0009-server-side-document-generation-with-xsl-fo.md`), plus every uploaded
   document itself, read via `DocumentStorageService`. Deduplicates same-named documents so a second
   `ausweis.jpg` doesn't silently overwrite the first inside the archive, and reserves the PDF's own
@@ -390,12 +394,12 @@ mirroring `generatePdf`'s `InputStreamResource`/`Content-Disposition` shape:
 
 One combined archive rather than several separate downloads: a data-subject request normally wants
 "everything you have on me" in one piece. The PDF's rows (`HouseholdExportModel.kt`) are built once
-per request from the same converted household. The service stores nothing - the archive is built on
-request and never written to disk or a table. It records one `AuditOperation.READ` entry (`entityType =
-"Household"`, see issue #3180) the same way `generatePdf` does, and is deliberately not a `readOnly`
-transaction for the same reason: `AuditLogWriter.record`'s write only takes effect for a transaction
-that actually commits. Deliberately excludes `audit_log` entries - see the takeout plan's §4 for why
-that's left an open question rather than answered here. Shares `buildHouseholdFilename`
+per request from the same household/notes entities. The service stores nothing - the archive is built
+on request and never written to disk or a table. It records one `AuditOperation.READ` entry
+(`entityType = "Household"`, see issue #3180) the same way `generatePdf` does, and is deliberately not
+a `readOnly` transaction for the same reason: `AuditLogWriter.record`'s write only takes effect for a
+transaction that actually commits. Deliberately excludes `audit_log` entries - see the takeout plan's
+§4 for why that's left an open question rather than answered here. Shares `buildHouseholdFilename`
 (`internal/HouseholdFilenames.kt`) with `HouseholdService.generatePdf` so the filename schemes don't
 drift.
 
