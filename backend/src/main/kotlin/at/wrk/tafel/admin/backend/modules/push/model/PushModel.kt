@@ -102,6 +102,7 @@ enum class PushNotificationType {
     REPORT_MAIL_FAILED,
     EXCESSIVE_READ_ACCESS,
     SCANNER_FILES_EXPIRING,
+    RETENTION_RUN,
 }
 
 @ExcludeFromTestCoverage
