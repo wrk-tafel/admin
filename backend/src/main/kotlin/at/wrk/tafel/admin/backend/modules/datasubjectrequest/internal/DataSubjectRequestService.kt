@@ -22,6 +22,7 @@ import at.wrk.tafel.admin.backend.modules.datasubjectrequest.DataSubjectMatchIte
 import at.wrk.tafel.admin.backend.modules.datasubjectrequest.DataSubjectMatchListResponse
 import at.wrk.tafel.admin.backend.modules.datasubjectrequest.DataSubjectMatchType
 import at.wrk.tafel.admin.backend.modules.household.HouseholdDataSubjectFacade
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.http.HttpStatus
@@ -50,6 +51,8 @@ class DataSubjectRequestService(
 ) {
 
     companion object {
+        private val logger = LoggerFactory.getLogger(DataSubjectRequestService::class.java)
+
         // A search box picking one specific person, not a report - a handful of best matches per
         // area is what someone scanning the results by eye can actually use.
         private const val MAX_RESULTS_PER_TYPE = 20
@@ -120,13 +123,19 @@ class DataSubjectRequestService(
     /**
      * Runs per match independently - see [DataSubjectDeleteResponse]'s KDoc for why this isn't
      * all-or-nothing the way [export] is.
+     *
+     * Every match's permission is checked upfront, before any deletion happens: this whole method
+     * is one transaction, so a permission check that instead ran mid-loop (as [export]'s still does,
+     * fine there since nothing has side effects on disk) could reject a later match only after an
+     * earlier one had already deleted files from disk - see [HouseholdService.deleteHouseholdByHouseholdId]
+     * for why that ordering matters.
      */
     @Transactional
     fun delete(matches: List<DataSubjectMatch>): DataSubjectDeleteResponse {
         val distinctMatches = requireNonEmptyDistinct(matches)
+        distinctMatches.forEach { requireAreaPermission(it.type) }
 
         val results = distinctMatches.map { match ->
-            requireAreaPermission(match.type)
             val deleted = deleteMatch(match)
             DataSubjectDeleteResultItem(
                 match = match,
@@ -222,7 +231,7 @@ class DataSubjectRequestService(
     private fun deleteMatch(match: DataSubjectMatch): Boolean = when (match.type) {
         DataSubjectMatchType.CUSTOMER -> householdFacade.delete(match.id)
 
-        DataSubjectMatchType.USER_ACCOUNT -> userDetailsManager.deleteUserById(match.id)
+        DataSubjectMatchType.USER_ACCOUNT -> deleteUserAndLinkedEmployee(match.id)
 
         DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT -> if (employeeRepository.existsById(match.id)) {
             employeeFacade.delete(match.id)
@@ -230,6 +239,29 @@ class DataSubjectRequestService(
         } else {
             false
         }
+    }
+
+    /**
+     * `UserEntity.employee` is deliberately not cascade-`REMOVE`d (see its KDoc), so deleting a user
+     * account alone leaves personnel number and full name in `employees` until
+     * `EmployeeRetentionService` finds it unreferenced, up to `tafeladmin.employeeDeletion.retentionTime`
+     * (7 years by default) later - too long for a GDPR Art. 17 erasure request (issue #3423). The
+     * employee record is deleted here too, but only once nothing other than the just-deleted `users`
+     * row still points at it - a household issuer, a household note's author, a food collection's
+     * driver/co-driver, or a route stop completion's recorder are still-live records, not abandoned
+     * personal data, so cascading into those is left to `EmployeeRetentionService`'s own age-gated
+     * sweep rather than forced here.
+     */
+    private fun deleteUserAndLinkedEmployee(userId: Long): Boolean {
+        val employeeId = userRepository.findById(userId).map { it.employee.id }.orElse(null)
+        val userDeleted = userDetailsManager.deleteUserById(userId)
+
+        if (userDeleted && employeeId != null && !employeeRepository.isReferencedOutsideUserAccounts(employeeId)) {
+            employeeFacade.delete(employeeId)
+            logger.info("Deleted employee {} linked to user account {} as part of a data-subject-request erasure", employeeId, userId)
+        }
+
+        return userDeleted
     }
 
     private fun folderName(type: DataSubjectMatchType): String = when (type) {

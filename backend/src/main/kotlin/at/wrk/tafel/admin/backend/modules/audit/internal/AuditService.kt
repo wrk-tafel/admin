@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.audit.internal
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.json.JsonMapper
@@ -81,7 +83,10 @@ class AuditService(
                 filter.actorUsername?.let { AuditLogEntity.Specs.actorUsernameEquals(it) },
                 filter.businessKey?.let { AuditLogEntity.Specs.businessKeyEquals(it) },
                 filter.from?.let { AuditLogEntity.Specs.occurredAtFrom(it.atStartOfDay()) },
-                filter.to?.let { AuditLogEntity.Specs.occurredAtUntil(it.plusDays(1).atStartOfDay()) },
+                // to is genuinely nullable (LocalDate?) - this ?. is required or it.plusDays below
+                // wouldn't compile. Known SonarKotlin analyzer false positive on kotlin:S6619, see
+                // https://community.sonarsource.com/t/false-positive-kotlin-s6619/180347
+                filter.to?.let { AuditLogEntity.Specs.occurredAtUntil(it.plusDays(1).atStartOfDay()) }, // NOSONAR
             ),
         )
 
@@ -106,8 +111,24 @@ class AuditService(
         entityId = entity.entityId,
         businessKey = entity.businessKey,
         operation = entity.operation,
-        changes = parseChanges(entity),
+        changes = if (isRedactedForCaller(entity)) emptyList() else parseChanges(entity),
     )
+
+    /**
+     * `AUDIT_LOG` alone reaches every entity type on purpose - the log spans users and settings too,
+     * see the module README - but a household-scoped entry's field values are names, addresses and
+     * income, the same data `CUSTOMER` gates everywhere else. A caller without it still sees *that*
+     * a household/person/note/document changed, by whom and when here on the mixed `search` screen;
+     * only the values are withheld. [at.wrk.tafel.admin.backend.modules.audit.AuditController.getHouseholdHistory]
+     * requires `CUSTOMER` outright instead, so this never redacts anything on that path.
+     */
+    private fun isRedactedForCaller(entity: AuditLogEntity): Boolean {
+        if (entity.entityType !in AuditScope.householdScopedEntityTypes) {
+            return false
+        }
+        val authentication = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
+        return authentication?.hasRole("CUSTOMER") != true
+    }
 
     /**
      * The stored document is `{"field": [old, new]}`. A row that cannot be parsed is rendered as an

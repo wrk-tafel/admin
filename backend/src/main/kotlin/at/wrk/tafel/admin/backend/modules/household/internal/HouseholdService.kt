@@ -4,9 +4,11 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentType
@@ -46,8 +48,11 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -64,6 +69,9 @@ class HouseholdService(
     private val tafelAdminProperties: TafelAdminProperties,
     private val householdDuplicationService: HouseholdDuplicationService,
     private val auditLogWriter: AuditLogWriter,
+    private val auditLogRepository: AuditLogRepository,
+    private val auditActorProvider: AuditActorProvider,
+    private val clock: Clock,
 ) {
 
     companion object {
@@ -95,11 +103,45 @@ class HouseholdService(
      * The single-household lookup is the only place [HouseholdResponse.hasPrivacyNotice] gets
      * computed (the checkin screen's missing-privacy-notice warning is what needs it) - a paged
      * listing intentionally leaves it null rather than paying one `exists` query per row.
+     *
+     * Not read-only: this is a household detail view (`GET /api/households/{id}`) being read one
+     * record at a time, so it is recorded as an `AuditOperation.READ` for the same GDPR gap G11
+     * breach detection as [generatePdf] (issue #3430) - and [AuditLogWriter.record]'s write only
+     * takes effect for a transaction that actually commits as one, see [AuditLogWriter]'s
+     * `beforeCommit`. [recordHouseholdRead] de-duplicates per actor+household within
+     * `tafeladmin.audit.readDedupeWindow`, so reloading the same screen isn't counted as a fresh read.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun findByHouseholdId(householdId: Long): HouseholdResponse? = householdRepository.findByHouseholdId(householdId)?.let {
         val hasPrivacyNotice = documentRepository.existsByHouseholdHouseholdIdAndDocumentType(householdId, DocumentType.PRIVACY_NOTICE)
+        recordHouseholdRead(it)
         householdConverter.mapEntityToHousehold(it, hasPrivacyNotice)
+    }
+
+    private fun recordHouseholdRead(household: HouseholdEntity) {
+        val actorUsername = auditActorProvider.currentUsername() ?: return
+        val businessKey = household.householdId.toString()
+        val since = LocalDateTime.now(clock).minus(tafelAdminProperties.audit.readDedupeWindow)
+        val alreadyRecorded = auditLogRepository.existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+            "Household",
+            businessKey,
+            AuditOperation.READ,
+            actorUsername,
+            since,
+        )
+        if (alreadyRecorded) {
+            return
+        }
+
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = "Household",
+                entityId = household.id,
+                businessKey = businessKey,
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
     }
 
     @Transactional
@@ -593,14 +635,45 @@ class HouseholdService(
         householdRepository.saveAndFlush(household)
 
         // JPA cascade removes the household_documents rows, but it can't touch the files on disk -
-        // those have to be cleaned up explicitly.
-        household.documents.forEach { documentStorageService.delete(it.storagePath) }
+        // those have to be cleaned up explicitly. Resolved now (the entity is gone after delete
+        // below) but the files themselves are only removed once the transaction actually commits -
+        // see deleteDocumentFilesAfterCommit.
+        val documentStoragePaths = household.documents.map { it.storagePath }
 
+        // household_duplicate_dismissals rows are removed by its FK's `on delete cascade` (see
+        // R__00110_household_duplicate_dismissals_fk.sql), so nothing to do here explicitly.
         householdRepository.delete(household)
         // DEBUG, not INFO: HouseholdRetentionService already logs an aggregate count for its
         // nightly run, and the audit trail already records the delete itself - an INFO line per
         // household number here would only repeat that, once per row, for every deletion.
         log.debug("Deleted household {}", householdId)
+
+        deleteDocumentFilesAfterCommit(documentStoragePaths)
+    }
+
+    /**
+     * Deleting a household can be one of several steps in a single transaction - e.g. one match
+     * among several in a GDPR data-subject-request delete (`DataSubjectRequestService.delete`).
+     * Removing the files from disk immediately would mean a later step's failure rolls the database
+     * back while the files stay gone, orphaning `household_documents` rows that point at nothing.
+     * Deferring to `afterCommit` guarantees the files only disappear once the household's deletion
+     * has actually landed.
+     */
+    private fun deleteDocumentFilesAfterCommit(storagePaths: List<String>) {
+        if (storagePaths.isEmpty()) {
+            return
+        }
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            // No transaction to hang the cleanup off (e.g. a caller outside a Spring-managed
+            // transaction) - falling back to an immediate delete is the closest available behavior.
+            storagePaths.forEach { documentStorageService.delete(it) }
+            return
+        }
+        TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+            override fun afterCommit() {
+                storagePaths.forEach { documentStorageService.delete(it) }
+            }
+        })
     }
 
     private fun mapToValidationPersons(mainPerson: Person?, additionalPersons: List<Person>): List<IncomeValidatorPerson> {

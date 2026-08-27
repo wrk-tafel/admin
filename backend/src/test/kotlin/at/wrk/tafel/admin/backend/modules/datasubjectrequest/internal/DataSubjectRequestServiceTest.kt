@@ -313,11 +313,32 @@ internal class DataSubjectRequestServiceTest {
         verify(exactly = 0) { employeeFacade.delete(any()) }
     }
 
+    /**
+     * Every match's permission is checked before any deletion happens - a later match missing its
+     * area permission must not leave an earlier, permitted match half-deleted (household files on
+     * disk in particular, see issue #3427).
+     */
+    @Test
+    fun `delete - checks every match's permission before deleting any of them`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER")
+
+        assertThrows<TafelApiException> {
+            service.delete(
+                listOf(
+                    DataSubjectMatch(type = DataSubjectMatchType.CUSTOMER, id = 1),
+                    DataSubjectMatch(type = DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT, id = 2),
+                ),
+            )
+        }
+        verify(exactly = 0) { householdFacade.delete(any()) }
+    }
+
     @Test
     fun `delete - reports an outcome per match`() {
         authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
 
         every { householdFacade.delete(1) } returns true
+        every { userRepository.findById(2) } returns java.util.Optional.empty()
         every { userDetailsManager.deleteUserById(2) } returns false
         every { employeeRepository.existsById(3) } returns true
 
@@ -352,6 +373,50 @@ internal class DataSubjectRequestServiceTest {
         every { employeeRepository.existsById(99) } returns false
 
         val result = service.delete(listOf(DataSubjectMatch(type = DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT, id = 99)))
+
+        assertThat(result.results.single().outcome).isEqualTo(DataSubjectDeleteOutcome.NOT_FOUND)
+        verify(exactly = 0) { employeeFacade.delete(any()) }
+    }
+
+    @Test
+    fun `delete - user account deletion also deletes an unreferenced linked employee`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "USER_MANAGEMENT")
+
+        val employee = EmployeeEntity(personnelNumber = "00001", firstname = "Erika", lastname = "Musterfrau").apply { id = 10 }
+        val userEntity = UserEntity(username = "emusterfrau", password = "hash", employee = employee, enabled = true).apply { id = 42 }
+        every { userRepository.findById(42) } returns java.util.Optional.of(userEntity)
+        every { userDetailsManager.deleteUserById(42) } returns true
+        every { employeeRepository.isReferencedOutsideUserAccounts(10) } returns false
+
+        val result = service.delete(listOf(DataSubjectMatch(type = DataSubjectMatchType.USER_ACCOUNT, id = 42)))
+
+        assertThat(result.results.single().outcome).isEqualTo(DataSubjectDeleteOutcome.DELETED)
+        verify { employeeFacade.delete(10) }
+    }
+
+    @Test
+    fun `delete - user account deletion keeps a linked employee still referenced elsewhere`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "USER_MANAGEMENT")
+
+        val employee = EmployeeEntity(personnelNumber = "00001", firstname = "Erika", lastname = "Musterfrau").apply { id = 10 }
+        val userEntity = UserEntity(username = "emusterfrau", password = "hash", employee = employee, enabled = true).apply { id = 42 }
+        every { userRepository.findById(42) } returns java.util.Optional.of(userEntity)
+        every { userDetailsManager.deleteUserById(42) } returns true
+        every { employeeRepository.isReferencedOutsideUserAccounts(10) } returns true
+
+        val result = service.delete(listOf(DataSubjectMatch(type = DataSubjectMatchType.USER_ACCOUNT, id = 42)))
+
+        assertThat(result.results.single().outcome).isEqualTo(DataSubjectDeleteOutcome.DELETED)
+        verify(exactly = 0) { employeeFacade.delete(any()) }
+    }
+
+    @Test
+    fun `delete - unknown user account match leaves any linked employee alone`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "USER_MANAGEMENT")
+        every { userRepository.findById(42) } returns java.util.Optional.empty()
+        every { userDetailsManager.deleteUserById(42) } returns false
+
+        val result = service.delete(listOf(DataSubjectMatch(type = DataSubjectMatchType.USER_ACCOUNT, id = 42)))
 
         assertThat(result.results.single().outcome).isEqualTo(DataSubjectDeleteOutcome.NOT_FOUND)
         verify(exactly = 0) { employeeFacade.delete(any()) }

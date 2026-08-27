@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
@@ -11,6 +12,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.UserExportFileResult
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
 import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
@@ -42,8 +44,10 @@ class UserController(
     private val userDetailsManager: TafelUserDetailsManager,
     private val tafelPasswordGenerator: TafelPasswordGenerator,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val applicationProperties: ApplicationProperties,
     private val loginAttemptService: LoginAttemptService,
     private val userExportService: UserExportService,
+    private val jwtTokenService: JwtTokenService,
 ) {
 
     companion object {
@@ -110,19 +114,39 @@ class UserController(
 
     @PostMapping("/change-password")
     @Transactional
-    fun changePassword(@Valid @RequestBody request: ChangePasswordRequest): ResponseEntity<ChangePasswordResponse> {
+    fun changePassword(
+        @Valid @RequestBody changePasswordRequest: ChangePasswordRequest,
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<ChangePasswordResponse> {
         try {
-            userDetailsManager.changePassword(request.passwordCurrent, request.passwordNew)
+            userDetailsManager.changePassword(changePasswordRequest.passwordCurrent, changePasswordRequest.passwordNew)
         } catch (e: PasswordChangeException) {
             val validationResult = ChangePasswordResponse(message = e.message, details = e.validationDetails)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationResult)
         }
+
+        // Changing one's own password just invalidated every JWT issued for this account up to now
+        // (see TafelUserDetailsManager.changePassword) - including the one this very request came in
+        // on. The frontend explicitly keeps the user on this session afterwards ("Sie bleiben mit dem
+        // neuen Passwort angemeldet"), so a fresh cookie has to replace it here, the same way
+        // TafelLoginFilter mints one after a real login.
+        val username = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username!!
+        val expirationTimeInSeconds = applicationProperties.security.jwtToken.expirationTimeInSeconds
+        val token = jwtTokenService.generateToken(username = username, expirationSeconds = expirationTimeInSeconds)
+        val cookie = TafelLoginFilter.createTokenCookie(token, expirationTimeInSeconds, tafelAdminProperties.server.relativeBaseUrl, request)
+        response.addCookie(cookie)
+
         return ResponseEntity.ok().build()
     }
 
     @PostMapping("/logout")
     fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Unit> {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+
+        // Clearing the cookie alone only removes it client-side - the JWT itself would otherwise
+        // keep authenticating for the rest of its lifetime if it were captured beforehand.
+        userDetailsManager.invalidateTokens(user.username!!)
 
         val cookie = TafelLoginFilter.createTokenCookie(null, 0, tafelAdminProperties.server.relativeBaseUrl, request)
         response.addCookie(cookie)

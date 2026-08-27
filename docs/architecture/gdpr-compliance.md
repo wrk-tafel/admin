@@ -25,6 +25,7 @@ Two things to be clear about before reading on:
 | `household_notes` | customers | free text written by staff, no restriction on content | same as `households` (cascades on delete) |
 | `household_documents` + the files under `tafeladmin.storage.documentsPath` | customers | uploaded ID scans and proofs of income, as plain files (`DocumentStorageService`) | same as `households` (cascades on delete, files removed from disk too) |
 | `distributions_households` | customers | which household collected food on which date, ticket number, whether the cost contribution was paid | same as `households` (cascades on delete) |
+| `household_duplicate_dismissals` | customers | pairs of household numbers a reviewer judged not to be duplicates, plus the reviewer's username | same as `households` (cascades on delete, via a foreign key on the business `household_id` rather than the surrogate `id` the other rows here use) |
 | `audit_log` | customers and staff | before/after values of every audited change, including names, addresses and income, plus who made it | `tafeladmin.audit.retentionDays`, 30 by default (`AuditRetentionService`) |
 | `users`, `user_authorities` | staff | username, Argon2 password hash, permissions | until deleted by hand, or not logged into for longer than `tafeladmin.userDeletion.retentionTime` (`UserRetentionService`, 7 years by default) - never for an `ADMINISTRATOR` account, see G13 |
 | `employees` | staff | personnel number, name | until deleted by hand, or referenced by nothing else at all (no user account, household, note, food collection or route stop completion) and untouched for longer than `tafeladmin.employeeDeletion.retentionTime` (`EmployeeRetentionService`, 7 years by default) - see G13 |
@@ -484,6 +485,14 @@ a new `TafelUserDetailsManager.deleteUserById` (the same "keep at least one acti
 guard `UserController.deleteUser` already enforces, re-checked here since this is a second caller of
 `deleteUser` that must not bypass it) - no new erasure logic, matching §6's own prediction that
 household erasure (and now staff erasure) "already exists in part" for a future feature to reuse.
+One exception: a `USER_ACCOUNT` match's deletion also deletes the linked `employees` row once it's
+no longer referenced by anything other than the just-deleted `users` row itself (issue #3423) -
+`UserEntity.employee` deliberately isn't cascade-`REMOVE`d (see its KDoc), so without this a staff
+erasure would otherwise leave personnel number and name behind until `EmployeeRetentionService`'s
+own age-gated sweep, up to `tafeladmin.employeeDeletion.retentionTime` (7 years by default) later -
+too long for an Art. 17 request. An employee still referenced elsewhere (household issuer, note
+author, food collection driver/co-driver, route stop completion) is left alone, same as that sweep,
+since those are still-live records rather than abandoned personal data.
 
 No separate audit entry for the search itself - only the eventual export/delete stays audited, the
 same as before (§5's `AuditOperation.READ`/writes tracked per entity, not per screen).
@@ -493,7 +502,29 @@ itself caps at 20 best matches per area (a lookup for one specific person, not a
 that hit that cap in any area comes back with `truncated: true` so the screen can tell the caller to
 narrow the search rather than trust an incomplete list silently.
 
-### G16 A deleted account's username no longer outlives it on every other table
+### G16 A document upload is now checked against what the file actually is, not just its declared type
+
+**Art. 32(1)(b).** `HouseholdDocumentService`'s allow-list of `application/pdf`, `image/jpeg`,
+`image/png` was only ever checked against the `Content-Type` the caller declared - for a browser
+upload, that is the client's own claim, with nothing behind it confirming the bytes sent actually
+match. The scanner-import path derived its content type from the file extension instead
+(`ScannerFileService.resolveContentType`), which the browser path did not check at all, and neither
+path looked at the file's own content.
+
+`validateContentType` now checks three things for every upload, browser and scanner-import alike:
+the declared/resolved content type is still allow-listed, the file name's extension matches that
+content type (`ALLOWED_EXTENSIONS_BY_CONTENT_TYPE`), and the file's own magic bytes match it too
+(`%PDF`, the JPEG `FF D8 FF` marker, the PNG signature) - so a renamed file, or a browser sending a
+content type that doesn't match what it actually uploaded, is rejected with the same 400 the size
+check already used, on both paths.
+
+What remains open: no malware scanning exists anywhere in either upload path. Running something like
+ClamAV over an uploaded ID scan or proof of income is an infrastructure decision with its own cost
+and failure modes (a scan daemon to run and keep signatures current, a slower upload path, a rejected
+false positive), and this repository cannot make that call - it is the operator's risk decision to
+take and record, not a gap this fix closes.
+
+### G17 A deleted account's username no longer outlives it on every other table
 
 **Art. 17(1).** `created_by`/`updated_by` (`R__00092_change_tracking_actor.sql:5-7,20-49`, plus
 `R__00096`/`R__00102`) are deliberately not a foreign key to `users(id)` - the value has to stay
@@ -569,9 +600,9 @@ number here.
 | 12 | [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) no breach detection | [#3184](https://github.com/wrk-tafel/admin/issues/3184) | done | `ExcessiveReadAccessDetectionService`, a fixed hourly read-count threshold |
 | 13 | [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too) no single entry point spanning G5/G12/G14 | [#3396](https://github.com/wrk-tafel/admin/issues/3396) | done | `DataSubjectRequestController`/`DataSubjectRequestService`, `DATA_SUBJECT_REQUESTS` |
 | 14 | [G10](#g10-copies-survive-an-erasure-and-nobody-can-say-for-how-long) erasure timeline undocumented | [#3183](https://github.com/wrk-tafel/admin/issues/3183) | done | `docs/userguide/datenauskunft.md`; backup-restore propagation stays with §6/#3185 |
-| 15 | [G16](#g16-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table) `created_by`/`updated_by` outlive a deleted account | [#3426](https://github.com/wrk-tafel/admin/issues/3426) | hours | `ChangeTrackingActorAnonymizationService`, called from `TafelUserDetailsManager.deleteUser` |
+| 15 | [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table) `created_by`/`updated_by` outlive a deleted account | [#3426](https://github.com/wrk-tafel/admin/issues/3426) | hours | `ChangeTrackingActorAnonymizationService`, called from `TafelUserDetailsManager.deleteUser` |
 
 G3, G4 and G9 are the only gaps still open, and none of them needs an operator answer first. G2, G1,
-G13, G5, G6, G7, G8, G11, G12, G15, G10 and G16 are done — the operator has now answered every
+G13, G5, G6, G7, G8, G11, G12, G15, G10 and G17 are done — the operator has now answered every
 question in #3185's coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no
 gap number and no PR closes it; it stays open until the operator writes those answers down.

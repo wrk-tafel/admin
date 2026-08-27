@@ -201,9 +201,31 @@ class TafelUserDetailsManagerTest {
                 withArg {
                     assertThat(it.password).isEqualTo(newPasswordEncoded)
                     assertThat(it.passwordChangeRequired).isFalse()
+                    assertThat(it.tokenInvalidatedAt).isNotNull()
                 },
             )
         }
+    }
+
+    @Test
+    fun `invalidateTokens sets tokenInvalidatedAt and saves`() {
+        every { userRepository.findByUsername(testUserEntity.username) } returns testUserEntity
+        every { userRepository.save(any()) } returns testUserEntity
+
+        manager.invalidateTokens(testUserEntity.username)
+
+        verify(exactly = 1) {
+            userRepository.save(withArg { assertThat(it.tokenInvalidatedAt).isNotNull() })
+        }
+    }
+
+    @Test
+    fun `invalidateTokens for an unknown user does nothing`() {
+        every { userRepository.findByUsername("unknown") } returns null
+
+        manager.invalidateTokens("unknown")
+
+        verify(exactly = 0) { userRepository.save(any()) }
     }
 
     @Test
@@ -583,6 +605,8 @@ class TafelUserDetailsManagerTest {
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
         assertThat(updatedUser.authorities).hasSize(1)
         assertThat(updatedUser.authorities.first().name).isEqualTo(UserPermissions.CHECKIN.key)
+        // No password field on this update - no reason to invalidate the user's existing sessions.
+        assertThat(updatedUser.tokenInvalidatedAt).isNull()
     }
 
     @Test
@@ -635,6 +659,7 @@ class TafelUserDetailsManagerTest {
         val updatedUser = updatedUserSlot.captured
         assertThat(updatedUser.password).isEqualTo(encodedPassword)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
+        assertThat(updatedUser.tokenInvalidatedAt).isNotNull()
     }
 
     @Test

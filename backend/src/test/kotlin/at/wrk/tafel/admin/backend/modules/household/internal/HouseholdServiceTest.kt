@@ -3,8 +3,10 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -54,9 +56,15 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.transaction.support.TransactionSynchronizationUtils
 import java.math.BigDecimal
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -98,6 +106,14 @@ class HouseholdServiceTest {
     @RelaxedMockK
     private lateinit var auditLogWriter: AuditLogWriter
 
+    @RelaxedMockK
+    private lateinit var auditLogRepository: AuditLogRepository
+
+    @RelaxedMockK
+    private lateinit var auditActorProvider: AuditActorProvider
+
+    private val clock: Clock = Clock.fixed(Instant.parse("2026-08-27T10:00:00Z"), ZoneId.of("UTC"))
+
     @InjectMockKs
     private lateinit var service: HouseholdService
 
@@ -108,6 +124,7 @@ class HouseholdServiceTest {
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
             TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
+        every { auditActorProvider.currentUsername() } returns null
 
         every { countryRepository.findById(testCountry1.id!!) } returns Optional.of(testCountry1)
         every { userRepository.findByUsername(testUserEntity.username!!) } returns testUserEntity
@@ -303,6 +320,57 @@ class HouseholdServiceTest {
         val household = service.findByHouseholdId(1)
 
         assertThat(household).isEqualTo(testHousehold)
+        // No authenticated actor for this call (default from beforeEach) - nothing to attribute a
+        // read to, so no entry is recorded.
+        verify(exactly = 0) { auditLogWriter.record(any()) }
+    }
+
+    @Test
+    fun `findByHouseholdId - records a READ for breach detection when not already recorded recently`() {
+        val testHouseholdEntity = testHouseholdEntityWithMainPerson().apply { id = 42 }
+        every { householdRepository.findByHouseholdId(100) } returns testHouseholdEntity
+        every { auditActorProvider.currentUsername() } returns "test-user"
+        every { tafelAdminProperties.audit.readDedupeWindow } returns Duration.ofMinutes(5)
+        every {
+            auditLogRepository.existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+                "Household",
+                "100",
+                AuditOperation.READ,
+                "test-user",
+                LocalDateTime.now(clock).minusMinutes(5),
+            )
+        } returns false
+
+        service.findByHouseholdId(100)
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo("Household")
+        assertThat(entrySlot.captured.entityId).isEqualTo(42L)
+        assertThat(entrySlot.captured.businessKey).isEqualTo("100")
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
+    }
+
+    @Test
+    fun `findByHouseholdId - does not record a second READ within the dedupe window`() {
+        val testHouseholdEntity = testHouseholdEntityWithMainPerson().apply { id = 42 }
+        every { householdRepository.findByHouseholdId(100) } returns testHouseholdEntity
+        every { auditActorProvider.currentUsername() } returns "test-user"
+        every { tafelAdminProperties.audit.readDedupeWindow } returns Duration.ofMinutes(5)
+        every {
+            auditLogRepository.existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns true
+
+        service.findByHouseholdId(100)
+
+        verify(exactly = 0) { auditLogWriter.record(any()) }
     }
 
     @Test
@@ -1376,6 +1444,42 @@ class HouseholdServiceTest {
 
         verify(exactly = 1) { documentStorageService.delete("/documents/123/doc1.pdf") }
         verify(exactly = 1) { documentStorageService.delete("/documents/123/doc2.png") }
+    }
+
+    /**
+     * Inside a real (Spring-managed) transaction, deleting the document files must wait for the
+     * commit - see [HouseholdService.deleteDocumentFilesAfterCommit]'s KDoc for why. A rolled-back
+     * transaction (`afterCommit` never invoked here) must leave the files untouched, since the
+     * database side of the deletion never happened either - see issue #3427.
+     */
+    @Test
+    fun `delete household by householdId defers document file deletion until the transaction commits`() {
+        val householdId = 123L
+        val testHouseholdEntity = testHouseholdEntityWithMainPerson()
+        val document = DocumentEntity(
+            household = testHouseholdEntity,
+            documentType = DocumentType.OTHER,
+            fileName = "doc1.pdf",
+            contentType = "application/pdf",
+            storagePath = "/documents/123/doc1.pdf",
+        )
+        testHouseholdEntity.documents = mutableListOf(document)
+        every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+
+        TransactionSynchronizationManager.initSynchronization()
+        try {
+            service.deleteHouseholdByHouseholdId(householdId)
+
+            // still on disk - the transaction hasn't committed yet
+            verify(exactly = 0) { documentStorageService.delete(any()) }
+
+            TransactionSynchronizationUtils.invokeAfterCommit(TransactionSynchronizationManager.getSynchronizations())
+
+            verify(exactly = 1) { documentStorageService.delete("/documents/123/doc1.pdf") }
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization()
+        }
     }
 
     @Test

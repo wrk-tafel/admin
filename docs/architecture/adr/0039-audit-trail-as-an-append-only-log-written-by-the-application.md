@@ -95,6 +95,15 @@ is behind the request.
   kept longer than the `users` table.
 - Every write now costs one extra insert per changed row within the same transaction. Excluding the
   distribution tables is what keeps that off the hot path of a distribution day.
+- **`AUDIT_LOG` alone is not enough to read a household-scoped entry's field values.** The log
+  spanning users and settings too is why `AUDIT_LOG` was kept separate from `CUSTOMER` in the first
+  place, but that separation originally extended to the values themselves - an `AUDIT_LOG`-only
+  account could read every household's names, addresses and income out of `changed_fields`. Fixed by
+  requiring `CUSTOMER` as well: outright on the per-household "Verlauf" endpoint
+  (`AuditController.getHouseholdHistory`), and by redacting `changes` to an empty list on the mixed
+  `search`/`filter-options` screen (`AuditService.isRedactedForCaller`) rather than hiding the whole
+  entry - *that* a household/person/note/document changed, by whom and when, still needs no more than
+  `AUDIT_LOG` to see.
 
 ## Alternatives considered
 

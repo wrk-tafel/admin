@@ -119,11 +119,15 @@ Everything is behind the `AUDIT_LOG` permission (ADMINISTRATION group), separate
 seeing a household's current data and seeing every change ever made to it are different levels of
 access, and the log spans users and settings too.
 
+That separation does not extend to household-scoped field values (names, addresses, income —
+`AuditScope.householdScopedEntityTypes`): those need `CUSTOMER` as well, so an `AUDIT_LOG`-only
+caller cannot read them by either endpoint below.
+
 | Endpoint | Serves |
 |---|---|
-| `GET /api/audit` | the administration screen — the whole log, newest first, optionally filtered by entity type, operation, actor, business key and date range |
+| `GET /api/audit` | the administration screen — the whole log, newest first, optionally filtered by entity type, operation, actor, business key and date range. `AuditService.mapEntry` returns an empty `changes` list for a household-scoped entry when the caller lacks `CUSTOMER` — the entry itself (who/what/when) still shows, only the field values are withheld |
 | `GET /api/audit/filter-options` | what the filters offer: the entity types and operations, so adding an entity to `AuditScope` shows up in the UI without a frontend edit, plus the users the log holds entries for |
-| `GET /api/audit/households/{householdId}` | the customer detail screen's "Verlauf" tab |
+| `GET /api/audit/households/{householdId}` | the customer detail screen's "Verlauf" tab. Requires `CUSTOMER` in addition to `AUDIT_LOG` (method-level `@PreAuthorize`) rather than redacting, since every entry it returns is household-scoped by definition |
 
 The household endpoint sits under `/api/audit` rather than under `/api/households/...` so the whole
 feature stays behind one permission and one controller, and the household module keeps knowing

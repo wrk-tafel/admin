@@ -32,6 +32,7 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
+import java.time.LocalDateTime
 
 class TafelUserDetailsManager(
     private val userRepository: UserRepository,
@@ -171,8 +172,31 @@ class TafelUserDetailsManager(
         if (isPasswordValid(storedUser.username, newPassword)) {
             storedUser.password = passwordEncoder.encode(newPassword)!!
             storedUser.passwordChangeRequired = false
+            markTokensInvalidated(storedUser)
             userRepository.save(storedUser)
         }
+    }
+
+    /**
+     * Bumps [UserEntity.tokenInvalidatedAt] to now, so [TafelJwtAuthProvider] rejects every JWT
+     * issued for this user before this moment on their very next request. Called wherever a
+     * password is changed - here and from [mapToUserEntity] - and, separately, from
+     * [invalidateTokens] on logout. Does not save; callers already persist [userEntity] themselves.
+     */
+    private fun markTokensInvalidated(userEntity: UserEntity) {
+        userEntity.tokenInvalidatedAt = LocalDateTime.now()
+    }
+
+    /**
+     * Logout only ever clears the cookie client-side otherwise, so the JWT it carried - and any
+     * other still-live token for the same user, since a JWT carries no session id to invalidate just
+     * the one - would keep authenticating for the rest of its lifetime. Called from
+     * `UserController.logout`.
+     */
+    fun invalidateTokens(username: String) {
+        val userEntity = userRepository.findByUsername(username) ?: return
+        markTokensInvalidated(userEntity)
+        userRepository.save(userEntity)
     }
 
     private fun isPasswordValid(username: String, newPassword: String): Boolean {
@@ -267,6 +291,7 @@ class TafelUserDetailsManager(
         val newPassword = tafelUser.password
         if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
             userEntity.password = passwordEncoder.encode(newPassword)!!
+            markTokensInvalidated(userEntity)
         }
         userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
 
