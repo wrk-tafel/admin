@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
@@ -53,7 +54,7 @@ class ExcessiveReadAccessDetectionService(
         offenders.forEach { offender ->
             logger.warn(
                 "User '{}' read {} sensitive records in the last hour (threshold {}) - notifying administrators",
-                offender.username,
+                sanitizeForLog(offender.username),
                 offender.readCount,
                 threshold,
             )
