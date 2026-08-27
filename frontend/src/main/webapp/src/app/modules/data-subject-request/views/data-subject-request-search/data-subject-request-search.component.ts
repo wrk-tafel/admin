@@ -26,6 +26,7 @@ import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import {
   DataSubjectRequestDeleteConfirmDialogComponent,
@@ -228,8 +229,7 @@ export class DataSubjectRequestSearchComponent {
   }
 
   private processFileResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 }

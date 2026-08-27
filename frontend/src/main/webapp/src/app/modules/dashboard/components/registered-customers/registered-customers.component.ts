@@ -2,6 +2,7 @@ import {Component, inject, input} from '@angular/core';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
 import {MatCard, MatCardContent, MatCardFooter} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
@@ -34,8 +35,7 @@ export class RegisteredCustomersComponent {
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 }
