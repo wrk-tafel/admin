@@ -34,7 +34,22 @@ class HouseholdDocumentService(
 
     companion object {
         private val ALLOWED_CONTENT_TYPES = setOf(MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE)
+        private val ALLOWED_EXTENSIONS_BY_CONTENT_TYPE = mapOf(
+            MediaType.APPLICATION_PDF_VALUE to setOf("pdf"),
+            MediaType.IMAGE_JPEG_VALUE to setOf("jpg", "jpeg"),
+            MediaType.IMAGE_PNG_VALUE to setOf("png"),
+        )
+
+        // Magic bytes for the types above, checked against the actual file content so a client's
+        // declared Content-Type (the browser upload path has nothing else to go on) or a renamed
+        // extension can't smuggle a different kind of file past the allow-list above.
+        private val PDF_MAGIC_BYTES = byteArrayOf(0x25, 0x50, 0x44, 0x46) // "%PDF"
+        private val JPEG_MAGIC_BYTES = byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte())
+        private val PNG_MAGIC_BYTES = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
+
         private val IMPORT_FILE_NAME_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmm")
+
+        private const val UNSUPPORTED_FILE_TYPE_MESSAGE = "Dateityp wird nicht unterstützt!"
     }
 
     @Transactional
@@ -51,18 +66,20 @@ class HouseholdDocumentService(
             throw BusinessRuleException("Datei ist leer!")
         }
         validateSize(file.size)
-        validateContentType(file.contentType)
+        val bytes = file.bytes
+        val fileName = file.originalFilename ?: "dokument"
+        validateContentType(file.contentType, fileName, bytes)
 
         val storagePath = documentStorageService.store(
             householdId = householdId,
-            originalFileName = file.originalFilename ?: "dokument",
-            bytes = file.bytes,
+            originalFileName = fileName,
+            bytes = bytes,
         )
 
         val entity = DocumentEntity(
             household = household,
             documentType = DocumentTypeEntity.valueOf(documentType.name),
-            fileName = file.originalFilename ?: "dokument",
+            fileName = fileName,
             contentType = file.contentType!!,
             storagePath = storagePath,
         ).apply {
@@ -86,7 +103,7 @@ class HouseholdDocumentService(
         val bytes = scannerFileService.read(fileName)
         val contentType = scannerFileService.resolveContentType(fileName)
         validateSize(bytes.size.toLong())
-        validateContentType(contentType)
+        validateContentType(contentType, fileName, bytes)
 
         // Scanner-generated filenames (e.g. "document_20260802_143022.pdf") are generic and, once
         // imported, would sit in the household's document list indistinguishable from any other
@@ -181,11 +198,35 @@ class HouseholdDocumentService(
         }
     }
 
-    private fun validateContentType(contentType: String?) {
-        if (contentType !in ALLOWED_CONTENT_TYPES) {
-            throw BusinessRuleException("Dateityp wird nicht unterstützt!")
+    /**
+     * The declared content type alone is never trusted - it is the client's own claim on the browser
+     * upload path, with nothing enforcing it matches the bytes actually sent. Checked against the
+     * file name's extension and, since a renamed file passes that too, against the file's own magic
+     * bytes.
+     */
+    private fun validateContentType(contentType: String?, fileName: String, bytes: ByteArray) {
+        if (contentType == null || contentType !in ALLOWED_CONTENT_TYPES) {
+            throw BusinessRuleException(UNSUPPORTED_FILE_TYPE_MESSAGE)
+        }
+
+        val extension = fileName.substringAfterLast('.', missingDelimiterValue = "").lowercase()
+        if (extension !in ALLOWED_EXTENSIONS_BY_CONTENT_TYPE.getValue(contentType)) {
+            throw BusinessRuleException(UNSUPPORTED_FILE_TYPE_MESSAGE)
+        }
+
+        if (!matchesMagicBytes(contentType, bytes)) {
+            throw BusinessRuleException(UNSUPPORTED_FILE_TYPE_MESSAGE)
         }
     }
+
+    private fun matchesMagicBytes(contentType: String, bytes: ByteArray): Boolean = when (contentType) {
+        MediaType.APPLICATION_PDF_VALUE -> bytes.startsWithBytes(PDF_MAGIC_BYTES)
+        MediaType.IMAGE_JPEG_VALUE -> bytes.startsWithBytes(JPEG_MAGIC_BYTES)
+        MediaType.IMAGE_PNG_VALUE -> bytes.startsWithBytes(PNG_MAGIC_BYTES)
+        else -> false
+    }
+
+    private fun ByteArray.startsWithBytes(prefix: ByteArray): Boolean = this.size >= prefix.size && prefix.indices.all { this[it] == prefix[it] }
 
     private fun currentUser() = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username
         ?.let { userRepository.findByUsername(it) }
