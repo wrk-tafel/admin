@@ -597,7 +597,10 @@ class HouseholdService(
         household.documents.forEach { documentStorageService.delete(it.storagePath) }
 
         householdRepository.delete(household)
-        log.info("Deleted household {}", householdId)
+        // DEBUG, not INFO: HouseholdRetentionService already logs an aggregate count for its
+        // nightly run, and the audit trail already records the delete itself - an INFO line per
+        // household number here would only repeat that, once per row, for every deletion.
+        log.debug("Deleted household {}", householdId)
     }
 
     private fun mapToValidationPersons(mainPerson: Person?, additionalPersons: List<Person>): List<IncomeValidatorPerson> {
