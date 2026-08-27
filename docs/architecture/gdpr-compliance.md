@@ -529,10 +529,12 @@ since those are still-live records rather than abandoned personal data.
 No separate audit entry for the search itself - only the eventual export/delete stays audited, the
 same as before (§5's `AuditOperation.READ`/writes tracked per entity, not per screen).
 
-What remains open: same as G5/G12/G14, `audit_log` entries are excluded from the export; the search
-itself caps at 20 best matches per area (a lookup for one specific person, not a report), and a search
-that hit that cap in any area comes back with `truncated: true` so the screen can tell the caller to
-narrow the search rather than trust an incomplete list silently.
+What remains open: same as G5/G12/G14, `audit_log` entries about the matched record stay excluded from
+the export - except a `USER_ACCOUNT` match's own login history, which is included because it delegates
+to G12's `UserExportService` unchanged (see G12's "What remains open" for why that one entity type is
+different). The search itself caps at 20 best matches per area (a lookup for one specific person, not
+a report), and a search that hit that cap in any area comes back with `truncated: true` so the screen
+can tell the caller to narrow the search rather than trust an incomplete list silently.
 
 ### G16 A document upload is now checked against what the file actually is, not just its declared type
 
