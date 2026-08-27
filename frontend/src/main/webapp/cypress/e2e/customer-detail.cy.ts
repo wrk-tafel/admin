@@ -1057,8 +1057,11 @@ describe('Customer Detail', () => {
         cy.visit('/kunden/detail/' + customer.id);
         cy.byTestId('history-tab-label').scrollIntoView().click();
 
-        cy.byTestId('audit-entry-0-changes').should('contain.text', 'Telefon');
-        cy.byTestId('audit-entry-0-changes').should('contain.text', '0699333444');
+        // Opening this very detail view just wrote its own "Abgerufen" (READ) entry, newer than
+        // the update above, so that's what sits on top - the edit is the entry right behind it.
+        cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+        cy.byTestId('audit-entry-1-changes').should('contain.text', 'Telefon');
+        cy.byTestId('audit-entry-1-changes').should('contain.text', '0699333444');
       });
     });
 

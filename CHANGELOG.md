@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Ändern des eigenen Passworts sowie das Zurücksetzen eines Passworts durch eine Administration entziehen jetzt sofort allen bereits ausgestellten Anmeldungen dieses Benutzerkontos die Gültigkeit; ebenso macht ein Abmelden das dabei verwendete Anmeldeticket sofort ungültig, statt es nur im Browser zu entfernen.
+- Das Änderungsprotokoll erfasst jetzt zusätzlich das Öffnen der Kunden-Detailansicht als Zugriff auf sensible Kundendaten, damit die Warnung bei ungewöhnlich vielen Zugriffen auch dieses Aufrufen erkennt.
 - Der Hinweis auf eine neue verfügbare Version wird jetzt nicht mehr als Warnung, sondern als neutral-positive Meldung angezeigt.
 - Beim Zusammenführen von Kunden werden verschobene Notizen und Dokumente im Änderungsprotokoll jetzt einzeln erfasst statt nur als Gesamtanzahl.
 - Das Anliegen einer Support-Anfrage und der Text einer Kundennotiz sind jetzt auf eine maximale Länge begrenzt.
