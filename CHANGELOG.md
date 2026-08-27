@@ -5,7 +5,22 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Das Änderungsprotokoll zeigt Feldwerte (z. B. Adresse, Einkommen) aus Haushalts-, Personen-, Notiz- und Dokumenten-Einträgen jetzt nur noch mit zusätzlicher Berechtigung "Kundenverwaltung" an; der "Verlauf"-Tab in der Kundenansicht benötigt diese Berechtigung jetzt ebenfalls.
+- Beim Löschen eines Benutzerkontos über die Seite "Datenauskunft" wird der verknüpfte Mitarbeiter-Datensatz jetzt sofort mitgelöscht, sofern er nicht noch anderswo verwendet wird (vorher blieb er bis zu 7 Jahre bestehen).
+- Beim Hochladen eines Dokuments wird jetzt zusätzlich zur Dateiendung auch der tatsächliche Dateiinhalt geprüft, damit eine falsch deklarierte oder umbenannte Datei nicht mehr als Ausweis oder Einkommensnachweis akzeptiert wird.
+- Ändern des eigenen Passworts sowie das Zurücksetzen eines Passworts durch eine Administration entziehen jetzt sofort allen bereits ausgestellten Anmeldungen dieses Benutzerkontos die Gültigkeit; ebenso macht ein Abmelden das dabei verwendete Anmeldeticket sofort ungültig, statt es nur im Browser zu entfernen.
+- Das Änderungsprotokoll erfasst jetzt zusätzlich das Öffnen der Kunden-Detailansicht als Zugriff auf sensible Kundendaten, damit die Warnung bei ungewöhnlich vielen Zugriffen auch dieses Aufrufen erkennt.
+- Der Hinweis auf eine neue verfügbare Version wird jetzt nicht mehr als Warnung, sondern als neutral-positive Meldung angezeigt.
+- Beim Zusammenführen von Kunden werden verschobene Notizen und Dokumente im Änderungsprotokoll jetzt einzeln erfasst statt nur als Gesamtanzahl.
+- Das Anliegen einer Support-Anfrage und der Text einer Kundennotiz sind jetzt auf eine maximale Länge begrenzt.
+- Die Suche auf der Seite "Datenauskunft" durchsucht jetzt nur noch die Bereiche (Kunden, Benutzerkonten, Mitarbeiter ohne Konto), für die auch die jeweilige Fachbereichs-Berechtigung vorliegt, statt immer alle drei zu durchsuchen.
+- Die Suche auf der Seite "Datenauskunft" zeigt jetzt einen Hinweis an, wenn in einem der drei Bereiche mehr als 20 Treffer vorliegen und daher nicht alle angezeigt werden.
+- Beim Löschen mehrerer Treffer auf der Seite "Datenauskunft" wird jetzt namentlich aufgelistet, welcher Treffer bereits gelöscht war, statt nur eine Anzahl anzuzeigen.
+- Fehlermeldungen bei fehlerhaft empfangenen Live-Aktualisierungen (SSE) enthalten jetzt keine Nutzdaten mehr, damit über die Support-Anfrage keine personenbezogenen Daten (z. B. Haushalts- oder Ticketnummern) versehentlich mitgeschickt werden.
+
+## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).
+- Der Bestätigungsdialog beim Löschen eines Kunden weist jetzt darauf hin, wenn der Kunde noch ein Ticket in der laufenden Ausgabe hat, das dadurch aus der Warteschlange entfernt wird.
 
 ## [1.13.0] - 2026-08-26
 - Im Benutzermenü kann jetzt unter "Meine Daten exportieren" eine DSGVO-Auskunft zum eigenen Benutzerkonto (Benutzername, Mitarbeiter-Stammdaten, Berechtigungen, Aktiv-Status, letzter Login) als PDF-Datei heruntergeladen werden; auf der Benutzerdetailseite steht derselbe Export für andere Benutzer:innen zur Verfügung.

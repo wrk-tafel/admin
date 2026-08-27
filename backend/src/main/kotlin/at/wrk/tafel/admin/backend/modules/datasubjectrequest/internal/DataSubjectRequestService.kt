@@ -22,6 +22,7 @@ import at.wrk.tafel.admin.backend.modules.datasubjectrequest.DataSubjectMatchIte
 import at.wrk.tafel.admin.backend.modules.datasubjectrequest.DataSubjectMatchListResponse
 import at.wrk.tafel.admin.backend.modules.datasubjectrequest.DataSubjectMatchType
 import at.wrk.tafel.admin.backend.modules.household.HouseholdDataSubjectFacade
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.http.HttpStatus
@@ -50,6 +51,8 @@ class DataSubjectRequestService(
 ) {
 
     companion object {
+        private val logger = LoggerFactory.getLogger(DataSubjectRequestService::class.java)
+
         // A search box picking one specific person, not a report - a handful of best matches per
         // area is what someone scanning the results by eye can actually use.
         private const val MAX_RESULTS_PER_TYPE = 20
@@ -66,12 +69,25 @@ class DataSubjectRequestService(
         )
     }
 
+    /**
+     * Additive with the export/delete permission re-check below: a caller only sees matches from an
+     * area they hold the permission for, so `DATA_SUBJECT_REQUESTS` alone never surfaces a name,
+     * household number or username the caller couldn't otherwise reach (issue #3428).
+     */
     fun search(searchInput: String): DataSubjectMatchListResponse {
         val searchTerm = SearchTextSpecs.normalize(searchInput)
             ?: return DataSubjectMatchListResponse(items = emptyList())
 
-        val items = searchHouseholds(searchTerm) + searchUsers(searchTerm) + searchEmployeesWithoutAccount(searchTerm)
-        return DataSubjectMatchListResponse(items = items)
+        val results = listOfNotNull(
+            if (hasAreaPermission(DataSubjectMatchType.CUSTOMER)) searchHouseholds(searchTerm) else null,
+            if (hasAreaPermission(DataSubjectMatchType.USER_ACCOUNT)) searchUsers(searchTerm) else null,
+            if (hasAreaPermission(DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT)) searchEmployeesWithoutAccount(searchTerm) else null,
+        )
+
+        return DataSubjectMatchListResponse(
+            items = results.flatMap { it.items },
+            truncated = results.any { it.truncated },
+        )
     }
 
     /**
@@ -124,58 +140,74 @@ class DataSubjectRequestService(
         return DataSubjectDeleteResponse(results = results)
     }
 
-    private fun searchHouseholds(searchTerm: String): List<DataSubjectMatchItem> {
+    /** [truncated] is true when the area held more matches than [MAX_RESULTS_PER_TYPE] could show. */
+    private data class SearchResult(val items: List<DataSubjectMatchItem>, val truncated: Boolean)
+
+    private fun searchHouseholds(searchTerm: String): SearchResult {
         val spec = orderHouseholdsBySearchRelevance(
             searchTerm,
             where(householdSearchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold)!!),
         )
-        return householdRepository.findAll(spec, PageRequest.of(0, MAX_RESULTS_PER_TYPE)).content.map {
-            DataSubjectMatchItem(
-                type = DataSubjectMatchType.CUSTOMER,
-                id = it.householdId,
-                businessKey = it.householdId.toString(),
-                name = it.mainPerson?.let { person -> listOfNotNull(person.lastname, person.firstname).joinToString(" ") } ?: "-",
-            )
-        }
+        val page = householdRepository.findAll(spec, PageRequest.of(0, MAX_RESULTS_PER_TYPE))
+        return SearchResult(
+            items = page.content.map {
+                DataSubjectMatchItem(
+                    type = DataSubjectMatchType.CUSTOMER,
+                    id = it.householdId,
+                    businessKey = it.householdId.toString(),
+                    name = it.mainPerson?.let { person -> listOfNotNull(person.lastname, person.firstname).joinToString(" ") } ?: "-",
+                )
+            },
+            truncated = page.hasNext(),
+        )
     }
 
-    private fun searchUsers(searchTerm: String): List<DataSubjectMatchItem> {
+    private fun searchUsers(searchTerm: String): SearchResult {
         val spec = orderUsersBySearchRelevance(
             searchTerm,
             where(userSearchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold)!!),
         )
-        return userRepository.findAll(spec, PageRequest.of(0, MAX_RESULTS_PER_TYPE)).content.map {
-            DataSubjectMatchItem(
-                type = DataSubjectMatchType.USER_ACCOUNT,
-                id = it.id!!,
-                businessKey = it.username,
-                name = "${it.employee.lastname} ${it.employee.firstname}",
-            )
-        }
+        val page = userRepository.findAll(spec, PageRequest.of(0, MAX_RESULTS_PER_TYPE))
+        return SearchResult(
+            items = page.content.map {
+                DataSubjectMatchItem(
+                    type = DataSubjectMatchType.USER_ACCOUNT,
+                    id = it.id!!,
+                    businessKey = it.username,
+                    name = "${it.employee.lastname} ${it.employee.firstname}",
+                )
+            },
+            truncated = page.hasNext(),
+        )
     }
 
     /**
      * Excludes an employee already referenced by a `users` row - that person is exported/deleted
      * through their USER_ACCOUNT match instead, mirroring `EmployeeExportService`'s own refusal.
+     * [SearchResult.truncated] covers both ways this can be cut short: the candidate batch itself
+     * held more rows than [EMPLOYEE_CANDIDATE_BATCH_SIZE], or filtering out linked employees still
+     * left more than [MAX_RESULTS_PER_TYPE] candidates.
      */
-    private fun searchEmployeesWithoutAccount(searchTerm: String): List<DataSubjectMatchItem> {
-        val candidates: List<EmployeeEntity> = employeeRepository.findBySearchInput(searchTerm, PageRequest.of(0, EMPLOYEE_CANDIDATE_BATCH_SIZE)).content
+    private fun searchEmployeesWithoutAccount(searchTerm: String): SearchResult {
+        val candidatesPage = employeeRepository.findBySearchInput(searchTerm, PageRequest.of(0, EMPLOYEE_CANDIDATE_BATCH_SIZE))
+        val candidates: List<EmployeeEntity> = candidatesPage.content
         if (candidates.isEmpty()) {
-            return emptyList()
+            return SearchResult(items = emptyList(), truncated = false)
         }
 
         val linkedEmployeeIds = userRepository.findAccountsByEmployeeIds(candidates.mapNotNull { it.id }).map { it.employeeId }.toSet()
-        return candidates
-            .filterNot { linkedEmployeeIds.contains(it.id) }
-            .take(MAX_RESULTS_PER_TYPE)
-            .map {
+        val withoutAccount = candidates.filterNot { linkedEmployeeIds.contains(it.id) }
+        return SearchResult(
+            items = withoutAccount.take(MAX_RESULTS_PER_TYPE).map {
                 DataSubjectMatchItem(
                     type = DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT,
                     id = it.id!!,
                     businessKey = it.personnelNumber,
                     name = "${it.lastname} ${it.firstname}",
                 )
-            }
+            },
+            truncated = candidatesPage.hasNext() || withoutAccount.size > MAX_RESULTS_PER_TYPE,
+        )
     }
 
     private fun exportMatch(match: DataSubjectMatch): ExportFileResult = when (match.type) {
@@ -193,7 +225,7 @@ class DataSubjectRequestService(
     private fun deleteMatch(match: DataSubjectMatch): Boolean = when (match.type) {
         DataSubjectMatchType.CUSTOMER -> householdFacade.delete(match.id)
 
-        DataSubjectMatchType.USER_ACCOUNT -> userDetailsManager.deleteUserById(match.id)
+        DataSubjectMatchType.USER_ACCOUNT -> deleteUserAndLinkedEmployee(match.id)
 
         DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT -> if (employeeRepository.existsById(match.id)) {
             employeeFacade.delete(match.id)
@@ -201,6 +233,29 @@ class DataSubjectRequestService(
         } else {
             false
         }
+    }
+
+    /**
+     * `UserEntity.employee` is deliberately not cascade-`REMOVE`d (see its KDoc), so deleting a user
+     * account alone leaves personnel number and full name in `employees` until
+     * `EmployeeRetentionService` finds it unreferenced, up to `tafeladmin.employeeDeletion.retentionTime`
+     * (7 years by default) later - too long for a GDPR Art. 17 erasure request (issue #3423). The
+     * employee record is deleted here too, but only once nothing other than the just-deleted `users`
+     * row still points at it - a household issuer, a household note's author, a food collection's
+     * driver/co-driver, or a route stop completion's recorder are still-live records, not abandoned
+     * personal data, so cascading into those is left to `EmployeeRetentionService`'s own age-gated
+     * sweep rather than forced here.
+     */
+    private fun deleteUserAndLinkedEmployee(userId: Long): Boolean {
+        val employeeId = userRepository.findById(userId).map { it.employee.id }.orElse(null)
+        val userDeleted = userDetailsManager.deleteUserById(userId)
+
+        if (userDeleted && employeeId != null && !employeeRepository.isReferencedOutsideUserAccounts(employeeId)) {
+            employeeFacade.delete(employeeId)
+            logger.info("Deleted employee {} linked to user account {} as part of a data-subject-request erasure", employeeId, userId)
+        }
+
+        return userDeleted
     }
 
     private fun folderName(type: DataSubjectMatchType): String = when (type) {
@@ -240,6 +295,12 @@ class DataSubjectRequestService(
         return matches.distinct()
     }
 
+    private fun hasAreaPermission(type: DataSubjectMatchType): Boolean {
+        val requiredAuthority = PERMISSION_BY_TYPE.getValue(type)
+        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        return authentication.authorities.any { it.authority == requiredAuthority }
+    }
+
     /**
      * `DATA_SUBJECT_REQUESTS` (checked at the controller) only grants reaching the search and
      * picking a match - the actual export/delete still needs that area's own permission, same as
@@ -247,12 +308,10 @@ class DataSubjectRequestService(
      * issue #3396).
      */
     private fun requireAreaPermission(type: DataSubjectMatchType) {
-        val requiredAuthority = PERMISSION_BY_TYPE.getValue(type)
-        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-        if (authentication.authorities.none { it.authority == requiredAuthority }) {
+        if (!hasAreaPermission(type)) {
             throw TafelApiException(
                 HttpStatus.FORBIDDEN,
-                "Für \"${type.title}\" ist die Berechtigung \"$requiredAuthority\" erforderlich!",
+                "Für \"${type.title}\" ist die Berechtigung \"${PERMISSION_BY_TYPE.getValue(type)}\" erforderlich!",
             )
         }
     }

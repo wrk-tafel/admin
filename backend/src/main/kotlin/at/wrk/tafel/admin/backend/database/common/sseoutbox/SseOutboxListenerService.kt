@@ -237,7 +237,13 @@ class SseOutboxListenerService(
                     )
 
                     dispatchToCallbacks(event.notificationName, event.payload)
-                }.onFailure { logger.error("Failed to process notification: ${notification.parameter}", it) }
+                }.onFailure {
+                    // The payload can carry personal data (e.g. a household's fields), so it goes
+                    // to the logs at DEBUG only - the ERROR line on its own is enough to notice and
+                    // act on the failure.
+                    logger.error("Failed to process notification", it)
+                    logger.debug("Failed notification payload: {}", notification.parameter)
+                }
             }
         }
     }

@@ -115,9 +115,12 @@ internal class DataSubjectRequestServiceTest {
 
     @Test
     fun `search - blank input returns no matches without querying`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
+
         val result = service.search("   ")
 
         assertThat(result.items).isEmpty()
+        assertThat(result.truncated).isFalse()
         verify(exactly = 0) { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) }
         verify(exactly = 0) { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) }
         verify(exactly = 0) { employeeRepository.findBySearchInput(any(), any()) }
@@ -125,6 +128,8 @@ internal class DataSubjectRequestServiceTest {
 
     @Test
     fun `search - combines household, user and employee-without-account matches`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
+
         val household = HouseholdEntity(householdId = 1234, validUntil = LocalDate.now(), locked = false)
         household.mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
             firstname = "Max"
@@ -149,6 +154,7 @@ internal class DataSubjectRequestServiceTest {
 
         val result = service.search(" Muster ")
 
+        assertThat(result.truncated).isFalse()
         assertThat(result.items).containsExactlyInAnyOrder(
             DataSubjectMatchItem(
                 type = DataSubjectMatchType.CUSTOMER,
@@ -173,6 +179,8 @@ internal class DataSubjectRequestServiceTest {
 
     @Test
     fun `search - no employee candidates match`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
+
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
         every { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
         every { employeeRepository.findBySearchInput("nobody", any<PageRequest>()) } returns PageImpl(emptyList())
@@ -181,6 +189,33 @@ internal class DataSubjectRequestServiceTest {
 
         assertThat(result.items).isEmpty()
         verify(exactly = 0) { userRepository.findAccountsByEmployeeIds(any()) }
+    }
+
+    @Test
+    fun `search - only queries areas the caller holds the permission for`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER")
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
+
+        val result = service.search("muster")
+
+        assertThat(result.items).isEmpty()
+        verify(exactly = 0) { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) }
+        verify(exactly = 0) { employeeRepository.findBySearchInput(any(), any()) }
+    }
+
+    @Test
+    fun `search - reports truncation when an area holds more matches than the per-area cap`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
+
+        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) } returns
+            PageImpl(emptyList(), PageRequest.of(0, 20), 21)
+        every { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
+        every { employeeRepository.findBySearchInput("muster", any<PageRequest>()) } returns PageImpl(emptyList())
+
+        val result = service.search("muster")
+
+        assertThat(result.truncated).isTrue()
     }
 
     @Test
@@ -283,6 +318,7 @@ internal class DataSubjectRequestServiceTest {
         authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
 
         every { householdFacade.delete(1) } returns true
+        every { userRepository.findById(2) } returns java.util.Optional.empty()
         every { userDetailsManager.deleteUserById(2) } returns false
         every { employeeRepository.existsById(3) } returns true
 
@@ -317,6 +353,50 @@ internal class DataSubjectRequestServiceTest {
         every { employeeRepository.existsById(99) } returns false
 
         val result = service.delete(listOf(DataSubjectMatch(type = DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT, id = 99)))
+
+        assertThat(result.results.single().outcome).isEqualTo(DataSubjectDeleteOutcome.NOT_FOUND)
+        verify(exactly = 0) { employeeFacade.delete(any()) }
+    }
+
+    @Test
+    fun `delete - user account deletion also deletes an unreferenced linked employee`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "USER_MANAGEMENT")
+
+        val employee = EmployeeEntity(personnelNumber = "00001", firstname = "Erika", lastname = "Musterfrau").apply { id = 10 }
+        val userEntity = UserEntity(username = "emusterfrau", password = "hash", employee = employee, enabled = true).apply { id = 42 }
+        every { userRepository.findById(42) } returns java.util.Optional.of(userEntity)
+        every { userDetailsManager.deleteUserById(42) } returns true
+        every { employeeRepository.isReferencedOutsideUserAccounts(10) } returns false
+
+        val result = service.delete(listOf(DataSubjectMatch(type = DataSubjectMatchType.USER_ACCOUNT, id = 42)))
+
+        assertThat(result.results.single().outcome).isEqualTo(DataSubjectDeleteOutcome.DELETED)
+        verify { employeeFacade.delete(10) }
+    }
+
+    @Test
+    fun `delete - user account deletion keeps a linked employee still referenced elsewhere`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "USER_MANAGEMENT")
+
+        val employee = EmployeeEntity(personnelNumber = "00001", firstname = "Erika", lastname = "Musterfrau").apply { id = 10 }
+        val userEntity = UserEntity(username = "emusterfrau", password = "hash", employee = employee, enabled = true).apply { id = 42 }
+        every { userRepository.findById(42) } returns java.util.Optional.of(userEntity)
+        every { userDetailsManager.deleteUserById(42) } returns true
+        every { employeeRepository.isReferencedOutsideUserAccounts(10) } returns true
+
+        val result = service.delete(listOf(DataSubjectMatch(type = DataSubjectMatchType.USER_ACCOUNT, id = 42)))
+
+        assertThat(result.results.single().outcome).isEqualTo(DataSubjectDeleteOutcome.DELETED)
+        verify(exactly = 0) { employeeFacade.delete(any()) }
+    }
+
+    @Test
+    fun `delete - unknown user account match leaves any linked employee alone`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "USER_MANAGEMENT")
+        every { userRepository.findById(42) } returns java.util.Optional.empty()
+        every { userDetailsManager.deleteUserById(42) } returns false
+
+        val result = service.delete(listOf(DataSubjectMatch(type = DataSubjectMatchType.USER_ACCOUNT, id = 42)))
 
         assertThat(result.results.single().outcome).isEqualTo(DataSubjectDeleteOutcome.NOT_FOUND)
         verify(exactly = 0) { employeeFacade.delete(any()) }

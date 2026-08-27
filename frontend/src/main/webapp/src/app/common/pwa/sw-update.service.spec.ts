@@ -11,7 +11,7 @@ describe('SwUpdateService', () => {
   let service: SwUpdateService;
   let versionUpdates: Subject<VersionEvent>;
   let mockSwUpdate: { isEnabled: boolean; versionUpdates: Subject<VersionEvent> };
-  let mockToastr: { warning: ReturnType<typeof vi.fn> };
+  let mockToastr: { success: ReturnType<typeof vi.fn> };
   let mockSnackBarRef: { onAction: ReturnType<typeof vi.fn> };
   let onActionSubject: Subject<void>;
   let mockWindow: { location: { reload: ReturnType<typeof vi.fn> } };
@@ -21,7 +21,7 @@ describe('SwUpdateService', () => {
     onActionSubject = new Subject<void>();
     mockSwUpdate = {isEnabled: true, versionUpdates};
     mockSnackBarRef = {onAction: vi.fn().mockReturnValue(onActionSubject)};
-    mockToastr = {warning: vi.fn().mockReturnValue(mockSnackBarRef as unknown as MatSnackBarRef<TafelSnackbarComponent>)};
+    mockToastr = {success: vi.fn().mockReturnValue(mockSnackBarRef as unknown as MatSnackBarRef<TafelSnackbarComponent>)};
 
     mockWindow = {location: {reload: vi.fn()}};
 
@@ -41,7 +41,7 @@ describe('SwUpdateService', () => {
     service.init();
     versionUpdates.next({type: 'VERSION_READY'} as VersionEvent);
 
-    expect(mockToastr.warning).not.toHaveBeenCalled();
+    expect(mockToastr.success).not.toHaveBeenCalled();
   });
 
   it('shows a reload prompt once a new version is ready', () => {
@@ -49,7 +49,7 @@ describe('SwUpdateService', () => {
 
     versionUpdates.next({type: 'VERSION_READY'} as VersionEvent);
 
-    expect(mockToastr.warning).toHaveBeenCalledWith(
+    expect(mockToastr.success).toHaveBeenCalledWith(
       'Eine neue Version ist verfügbar.',
       undefined,
       {action: 'Neu laden', durationMs: 0}
@@ -61,7 +61,7 @@ describe('SwUpdateService', () => {
 
     versionUpdates.next({type: 'VERSION_DETECTED'} as VersionEvent);
 
-    expect(mockToastr.warning).not.toHaveBeenCalled();
+    expect(mockToastr.success).not.toHaveBeenCalled();
   });
 
   it('reloads the page when the reload action is triggered', () => {

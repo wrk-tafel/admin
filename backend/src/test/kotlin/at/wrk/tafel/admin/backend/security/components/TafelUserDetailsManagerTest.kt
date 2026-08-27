@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
@@ -66,6 +67,9 @@ class TafelUserDetailsManagerTest {
 
     @SpyK
     private var tafelAdminProperties: TafelAdminProperties = TafelAdminProperties()
+
+    @RelaxedMockK
+    private lateinit var loginAttemptService: LoginAttemptService
 
     @InjectMockKs
     private lateinit var manager: TafelUserDetailsManager
@@ -193,9 +197,31 @@ class TafelUserDetailsManagerTest {
                 withArg {
                     assertThat(it.password).isEqualTo(newPasswordEncoded)
                     assertThat(it.passwordChangeRequired).isFalse()
+                    assertThat(it.tokenInvalidatedAt).isNotNull()
                 },
             )
         }
+    }
+
+    @Test
+    fun `invalidateTokens sets tokenInvalidatedAt and saves`() {
+        every { userRepository.findByUsername(testUserEntity.username) } returns testUserEntity
+        every { userRepository.save(any()) } returns testUserEntity
+
+        manager.invalidateTokens(testUserEntity.username)
+
+        verify(exactly = 1) {
+            userRepository.save(withArg { assertThat(it.tokenInvalidatedAt).isNotNull() })
+        }
+    }
+
+    @Test
+    fun `invalidateTokens for an unknown user does nothing`() {
+        every { userRepository.findByUsername("unknown") } returns null
+
+        manager.invalidateTokens("unknown")
+
+        verify(exactly = 0) { userRepository.save(any()) }
     }
 
     @Test
@@ -575,6 +601,8 @@ class TafelUserDetailsManagerTest {
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
         assertThat(updatedUser.authorities).hasSize(1)
         assertThat(updatedUser.authorities.first().name).isEqualTo(UserPermissions.CHECKIN.key)
+        // No password field on this update - no reason to invalidate the user's existing sessions.
+        assertThat(updatedUser.tokenInvalidatedAt).isNull()
     }
 
     @Test
@@ -627,6 +655,7 @@ class TafelUserDetailsManagerTest {
         val updatedUser = updatedUserSlot.captured
         assertThat(updatedUser.password).isEqualTo(encodedPassword)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
+        assertThat(updatedUser.tokenInvalidatedAt).isNotNull()
     }
 
     @Test
@@ -715,6 +744,7 @@ class TafelUserDetailsManagerTest {
         manager.deleteUser(testUserEntity.username)
 
         verify { userRepository.delete(testUserEntity) }
+        verify(exactly = 1) { loginAttemptService.deleteAttempts(testUserEntity.username) }
     }
 
     @Test

@@ -471,26 +471,58 @@ would be a worse experience than one of them simply staying (`DataSubjectDeleteR
 `DELETED`/`NOT_FOUND` per match, not a single pass/fail).
 
 Behind a new `DATA_SUBJECT_REQUESTS` permission, additive rather than a replacement: holding it only
-grants reaching the search and picking a match - the export/delete action on a specific match still
-requires that area's own permission (`CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`), enforced again inside
+grants reaching the search and picking a match - the search itself only returns matches from an area
+the caller also holds the area permission for, and the export/delete action on a specific match still
+requires that same permission (`CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`), enforced again inside
 `DataSubjectRequestService` since the class-level `@PreAuthorize` alone can't express a check that
-depends on which match a request body names. This is the permission-model question the takeout
-plan's §6 left for "the future ticket to confirm" - answered here as additive so today's screens
-keep meaning what they already meant, rather than `DATA_SUBJECT_REQUESTS` alone becoming a fourth way
-to reach the same data.
+depends on which area a search result or a request body names. This is the permission-model question
+the takeout plan's §6 left for "the future ticket to confirm" - answered here as additive so today's
+screens keep meaning what they already meant, rather than `DATA_SUBJECT_REQUESTS` alone becoming a
+fourth way to reach the same data.
 
 Deletion reuses `HouseholdService.deleteHouseholdByHouseholdId`, `EmployeeService.deleteEmployee` and
 a new `TafelUserDetailsManager.deleteUserById` (the same "keep at least one active administrator"
 guard `UserController.deleteUser` already enforces, re-checked here since this is a second caller of
 `deleteUser` that must not bypass it) - no new erasure logic, matching §6's own prediction that
 household erasure (and now staff erasure) "already exists in part" for a future feature to reuse.
+One exception: a `USER_ACCOUNT` match's deletion also deletes the linked `employees` row once it's
+no longer referenced by anything other than the just-deleted `users` row itself (issue #3423) -
+`UserEntity.employee` deliberately isn't cascade-`REMOVE`d (see its KDoc), so without this a staff
+erasure would otherwise leave personnel number and name behind until `EmployeeRetentionService`'s
+own age-gated sweep, up to `tafeladmin.employeeDeletion.retentionTime` (7 years by default) later -
+too long for an Art. 17 request. An employee still referenced elsewhere (household issuer, note
+author, food collection driver/co-driver, route stop completion) is left alone, same as that sweep,
+since those are still-live records rather than abandoned personal data.
 
 No separate audit entry for the search itself - only the eventual export/delete stays audited, the
 same as before (§5's `AuditOperation.READ`/writes tracked per entity, not per screen).
 
 What remains open: same as G5/G12/G14, `audit_log` entries are excluded from the export; the search
-itself caps at 20 best matches per area (a lookup for one specific person, not a report), and nothing
-reports if it silently drops a match past that.
+itself caps at 20 best matches per area (a lookup for one specific person, not a report), and a search
+that hit that cap in any area comes back with `truncated: true` so the screen can tell the caller to
+narrow the search rather than trust an incomplete list silently.
+
+### G16 A document upload is now checked against what the file actually is, not just its declared type
+
+**Art. 32(1)(b).** `HouseholdDocumentService`'s allow-list of `application/pdf`, `image/jpeg`,
+`image/png` was only ever checked against the `Content-Type` the caller declared - for a browser
+upload, that is the client's own claim, with nothing behind it confirming the bytes sent actually
+match. The scanner-import path derived its content type from the file extension instead
+(`ScannerFileService.resolveContentType`), which the browser path did not check at all, and neither
+path looked at the file's own content.
+
+`validateContentType` now checks three things for every upload, browser and scanner-import alike:
+the declared/resolved content type is still allow-listed, the file name's extension matches that
+content type (`ALLOWED_EXTENSIONS_BY_CONTENT_TYPE`), and the file's own magic bytes match it too
+(`%PDF`, the JPEG `FF D8 FF` marker, the PNG signature) - so a renamed file, or a browser sending a
+content type that doesn't match what it actually uploaded, is rejected with the same 400 the size
+check already used, on both paths.
+
+What remains open: no malware scanning exists anywhere in either upload path. Running something like
+ClamAV over an uploaded ID scan or proof of income is an infrastructure decision with its own cost
+and failure modes (a scan daemon to run and keep signatures current, a slower upload path, a rejected
+false positive), and this repository cannot make that call - it is the operator's risk decision to
+take and record, not a gap this fix closes.
 
 ## 5. Checked and found fine
 

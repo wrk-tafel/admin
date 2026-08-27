@@ -21,6 +21,14 @@ logging:
     org.apache: WARN
   file:
     name: ${user.dir}/logs/app.log
+  # Spring Boot's own defaults (10MB per file, 7 files kept, no total cap) match what is set here -
+  # made explicit so app.log's rollover is a decision rather than whatever the framework happens to
+  # default to.
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+      total-size-cap: 100MB
   pattern:
     file: "%d{ISO8601} %-5level [%t] %C: %msg%n%throwable"
 
@@ -46,6 +54,8 @@ server:
       buffered: false
       prefix: access
       suffix: .log
+      # Tomcat itself never rotates access.log - rotation/retention for it is handled host-side
+      # (e.g. logrotate on the deployment host), outside this application's configuration.
       rotate: false
 
 spring:
@@ -177,10 +187,15 @@ tafeladmin:
   # push. Read per use, so it can be tuned on a running deployment; 0 or less switches the check off.
   # breachDetectionCron - how often that check runs, default hourly - is startup-only for the same
   # reason cleanupCron is.
+  #
+  # readDedupeWindow - how long the same actor's READ of the same household is considered "already
+  # recorded" (HouseholdService.findByHouseholdId), so reloading the customer detail screen doesn't
+  # write a fresh entry every time. Read per use.
   audit:
     enabled: true
     retentionDays: 30
     cleanupCron: "0 0 5 * * *"
+    readDedupeWindow: 5m
     breachDetection:
       readThreshold: 20
     breachDetectionCron: "0 0 * * * *"
