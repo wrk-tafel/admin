@@ -18,7 +18,8 @@ describe('DataSubjectRequestSearchComponent', () => {
     items: [
       {type: 'CUSTOMER', id: 1234, businessKey: '1234', name: 'Mustermann Max'},
       {type: 'USER_ACCOUNT', id: 42, businessKey: 'mmustermann', name: 'Mustermann Max'}
-    ]
+    ],
+    truncated: false
   };
 
   let apiMock: Partial<DataSubjectRequestApiService>;
@@ -142,6 +143,41 @@ describe('DataSubjectRequestSearchComponent', () => {
     expect(apiMock.deleteMatches).toHaveBeenCalledWith([{type: 'CUSTOMER', id: 1234}]);
     expect(component['matches']()).toEqual([searchResponse.items[1]]);
     expect(toastrMock.success).toHaveBeenCalled();
+  });
+
+  it('flags a truncated search result', () => {
+    (apiMock.search as any).mockReturnValue(of<DataSubjectMatchListResponse>({...searchResponse, truncated: true}));
+
+    const component = createComponent().componentInstance;
+    component['onSearchInput']('Muster');
+    vi.advanceTimersByTime(400);
+
+    expect(component['truncated']()).toBe(true);
+    expect(component['searchAnnouncement']()).toContain('weitere Treffer werden nicht angezeigt');
+  });
+
+  it('reports a not-found match by name rather than only a count', () => {
+    const deleteResponse: DataSubjectDeleteResponse = {
+      results: [
+        {match: {type: 'CUSTOMER', id: 1234}, outcome: 'DELETED'},
+        {match: {type: 'USER_ACCOUNT', id: 42}, outcome: 'NOT_FOUND'}
+      ]
+    };
+    (apiMock.deleteMatches as any).mockReturnValue(of(deleteResponse));
+    (dialogMock.open as any).mockReturnValue({afterClosed: () => of(true)});
+
+    const component = createComponent().componentInstance;
+    component['onSearchInput']('Muster');
+    vi.advanceTimersByTime(400);
+    component['toggleSelection'](searchResponse.items[0]);
+    component['toggleSelection'](searchResponse.items[1]);
+
+    component['deleteSelected']();
+
+    expect(toastrMock.error).toHaveBeenCalledWith(
+      expect.stringContaining('Mustermann Max (mmustermann)'),
+      'Hinweis'
+    );
   });
 
   it('does not delete anything when the confirmation is cancelled', () => {

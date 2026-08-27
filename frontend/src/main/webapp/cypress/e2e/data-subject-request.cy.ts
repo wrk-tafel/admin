@@ -84,6 +84,38 @@ describe('Data Subject Request', () => {
     cy.contains('[testid="data-subject-request-match"]', 'e2etest').should('be.visible');
   });
 
+  it('shows a hint when an area\'s results were truncated at the per-area cap', () => {
+    cy.intercept('GET', '/api/data-subject-requests/search*', {
+      items: [{type: 'CUSTOMER', id: 1, businessKey: '1', name: 'Truncated Example'}],
+      truncated: true
+    }).as('truncatedSearch');
+
+    cy.byTestId('data-subject-request-search-input').type('anything');
+    cy.wait('@truncatedSearch');
+
+    cy.byTestId('data-subject-request-truncated-hint').should('be.visible');
+    cy.byTestId('data-subject-request-search-announcement').should('contain.text', 'weitere Treffer werden nicht angezeigt');
+  });
+
+  it('reports a not-found match by name rather than only a count on delete', () => {
+    cy.intercept('GET', '/api/data-subject-requests/search*', {
+      items: [{type: 'EMPLOYEE_WITHOUT_ACCOUNT', id: 1, businessKey: 'DSR-GONE', name: 'Already Gone'}],
+      truncated: false
+    }).as('search');
+    cy.intercept('POST', '/api/data-subject-requests/delete', {
+      results: [{match: {type: 'EMPLOYEE_WITHOUT_ACCOUNT', id: 1}, outcome: 'NOT_FOUND'}]
+    }).as('delete');
+
+    cy.byTestId('data-subject-request-search-input').type('DSR-GONE');
+    cy.wait('@search');
+    selectMatch('DSR-GONE');
+    cy.byTestId('data-subject-request-delete').click();
+    cy.byTestId('okButton').click();
+    cy.wait('@delete');
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'Already Gone (DSR-GONE)');
+  });
+
   it('keeps a match listed when the delete confirmation is cancelled', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       const personnelNumber = 'DSR-CANCEL-' + randomId;

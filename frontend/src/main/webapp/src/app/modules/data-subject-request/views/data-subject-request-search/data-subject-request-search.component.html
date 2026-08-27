@@ -25,6 +25,11 @@
       @if (items.length === 0) {
         <div class="mt-4 text-center" testid="data-subject-request-empty">Keine Treffer gefunden.</div>
       } @else {
+        @if (truncated()) {
+          <div class="mt-4 text-sm text-slate-600" testid="data-subject-request-truncated-hint">
+            Es werden nicht alle Treffer angezeigt - Suchbegriff weiter eingrenzen, um die gesuchte Person sicher zu finden.
+          </div>
+        }
         <div class="mt-4 flex flex-col gap-4" testid="data-subject-request-results">
           @for (group of groupedMatches(); track group.type) {
             <div>
