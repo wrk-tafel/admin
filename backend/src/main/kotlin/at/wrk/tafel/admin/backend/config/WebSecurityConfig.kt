@@ -54,7 +54,7 @@ class WebSecurityConfig(
         // permits the request, and it excludes the path from TafelJwtAuthenticationFilter below -
         // which matters because TafelJwtAuthConverter rejects a cookie-less request outright
         // instead of letting it through unauthenticated.
-        private val publicEndpoints = listOf("/api/login", "/api/logout", "/api/config/public")
+        private val publicEndpoints = listOf("/api/login", "/api/config/public")
 
         val passwordLengthRule = LengthRule(8, 50)
         val passwordValidator = DefaultPasswordValidator(
