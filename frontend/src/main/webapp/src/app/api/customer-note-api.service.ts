@@ -41,6 +41,7 @@ export interface CustomerNoteItem {
   author?: string;
   timestamp: Date;
   note: string;
+  editable: boolean;
 }
 
 export interface CreateCustomerNoteRequest {

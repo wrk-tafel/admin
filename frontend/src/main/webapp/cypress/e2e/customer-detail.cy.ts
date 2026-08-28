@@ -269,6 +269,40 @@ describe('Customer Detail', () => {
     });
   });
 
+  it('hides and refuses edit/delete for a note written by someone else', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+      cy.createCustomerNote(customerId, 'note written by e2etest').then((noteResponse) => {
+        const noteId = noteResponse.body.id;
+
+        // e2etest2 holds CUSTOMER like the note's author, but is a different employee - it may
+        // read the note but not correct or erase what someone else wrote (GDPR gap G21).
+        cy.loginE2ETest2();
+        cy.visit('/kunden/detail/' + customerId);
+        cy.byTestId('showall-notes-button').click();
+        cy.get('mat-dialog-content').within(() => {
+          cy.byTestId('note-text').should('have.text', 'note written by e2etest');
+          cy.byTestId('note-editButton').should('not.exist');
+          cy.byTestId('note-deleteButton').should('not.exist');
+        });
+        cy.byTestId('cancelButton').click();
+
+        cy.request({
+          method: 'PUT',
+          url: `/api/households/${customerId}/notes/${noteId}`,
+          body: {note: 'hijacked'},
+          failOnStatusCode: false
+        }).its('status').should('eq', 403);
+
+        cy.request({
+          method: 'DELETE',
+          url: `/api/households/${customerId}/notes/${noteId}`,
+          failOnStatusCode: false
+        }).its('status').should('eq', 403);
+      });
+    });
+  });
+
   it('renders responsively on phone (content before actions) and still allows locking/unlocking', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.visit('/kunden/detail/101');

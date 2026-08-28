@@ -120,13 +120,15 @@ describe('CustomerDetailComponent', () => {
         id: 118,
         author: 'author1',
         timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
-        note: 'note from author 2'
+        note: 'note from author 2',
+        editable: true
       },
       {
         id: 123,
         author: 'author2',
         timestamp: dayjs('2023-03-20T19:45:25.615477+01:00').toDate(),
-        note: 'note from author 1'
+        note: 'note from author 1',
+        editable: false
       }
     ],
     totalCount: 1,
@@ -351,7 +353,8 @@ describe('CustomerDetailComponent', () => {
           id: 500,
           author: 'author1',
           timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
-          note: 'Zeile eins\nZeile zwei <b>fett</b>'
+          note: 'Zeile eins\nZeile zwei <b>fett</b>',
+          editable: true
         }
       ]
     };
@@ -703,7 +706,8 @@ describe('CustomerDetailComponent', () => {
       id: 627,
       author: 'author1',
       timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
-      note: noteText
+      note: noteText,
+      editable: true
     };
     customerNoteApiService.createNewNote.mockReturnValue(of(resultNote));
 
@@ -729,7 +733,8 @@ describe('CustomerDetailComponent', () => {
       id: 652,
       author: 'newAuthor',
       timestamp: dayjs('2024-01-15T10:00:00.000+01:00').toDate(),
-      note: noteText
+      note: noteText,
+      editable: true
     };
     customerNoteApiService.createNewNote.mockReturnValue(of(resultNote));
 

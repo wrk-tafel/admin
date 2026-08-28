@@ -366,10 +366,13 @@ is likewise omitted entirely, not shown blank, when `householdId` is empty.
 ### `HouseholdNoteController` / `HouseholdNoteService` (`internal/note`)
 Free-text notes attached to a household (`household_notes` table,
 [`HouseholdNoteEntity`](../../database/model/household/HouseholdNoteEntity.kt)), each stamped with
-the authoring employee and a timestamp. Simple create/list (paginated, 5 per page, newest first);
-no update or delete endpoint exists. `HouseholdNoteItem` exposes the note's `id` because the
-timestamp does not identify a note - notes written in one batch share it to the microsecond, so the
-frontend needs the id as a stable list key.
+the authoring employee and a timestamp. Create/list (paginated, 5 per page, newest first), plus
+`PUT`/`DELETE` by id (GDPR gap G21) - both scoped to the note's own author, so a note can only be
+corrected or erased by the employee who wrote it, not by anyone else holding `CUSTOMER`.
+`HouseholdNoteItem` exposes the note's `id` because the timestamp does not identify a note - notes
+written in one batch share it to the microsecond, so the frontend needs the id as a stable list
+key - and an `editable` flag mirroring that authorship check, so the "Alle Notizen anzeigen" dialog
+can hide the pencil/bin for a note it may not touch instead of only failing after the fact.
 
 ### `HouseholdExportService` (`internal`)
 The GDPR Art. 15/20 data takeout (G5, issue #3179, see

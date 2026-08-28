@@ -15,16 +15,18 @@
           </div>
           <div class="whitespace-pre-line" testid="note-text">{{noteItem.note}}</div>
         </div>
-        <div class="flex gap-2 shrink-0">
-          <button type="button" testid="note-editButton" matButton="filled" (click)="editNote(noteItem)"
-                  matTooltip="Notiz bearbeiten" aria-label="Notiz bearbeiten">
-            <mat-icon svgIcon="edit"></mat-icon>
-          </button>
-          <button type="button" testid="note-deleteButton" matButton="filled" class="button-danger" (click)="deleteNote(noteItem)"
-                  matTooltip="Notiz löschen" aria-label="Notiz löschen">
-            <mat-icon svgIcon="delete"></mat-icon>
-          </button>
-        </div>
+        @if (noteItem.editable) {
+          <div class="flex gap-2 shrink-0">
+            <button type="button" testid="note-editButton" matButton="filled" (click)="editNote(noteItem)"
+                    matTooltip="Notiz bearbeiten" aria-label="Notiz bearbeiten">
+              <mat-icon svgIcon="edit"></mat-icon>
+            </button>
+            <button type="button" testid="note-deleteButton" matButton="filled" class="button-danger" (click)="deleteNote(noteItem)"
+                    matTooltip="Notiz löschen" aria-label="Notiz löschen">
+              <mat-icon svgIcon="delete"></mat-icon>
+            </button>
+          </div>
+        }
       </div>
     }
     <mat-paginator class="tafel-paginator-center mt-6" [length]="notesResponse().totalCount" [pageSize]="notesResponse().pageSize"
