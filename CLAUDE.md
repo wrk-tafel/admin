@@ -329,7 +329,6 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - `distributions`: Food distribution events
 - `distributions_households`: household participation in distributions
 - `distributions_statistics`: Statistics per distribution
-- `customers`, `customers_addpersons`: legacy tables, superseded by `households`/`persons` above. Kept read-only/unused for a production observation window before a separate cleanup migration drops them — do not write to these, do not build new features against them
 - `routes`, `route_stops`, `shops`: Logistics route management
 - `food_categories`, `food_collections`, `food_collection_items`: Food recording
 - `shelters`, `shelter_contacts`: Shelter management

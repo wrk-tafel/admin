@@ -25,22 +25,25 @@ Two things to be clear about before reading on:
 | `household_notes` | customers | free text written by staff, no restriction on content | same as `households` (cascades on delete) |
 | `household_documents` + the files under `tafeladmin.storage.documentsPath` | customers | uploaded ID scans and proofs of income, as plain files (`DocumentStorageService`) | same as `households` (cascades on delete, files removed from disk too) |
 | `distributions_households` | customers | which household collected food on which date, ticket number, whether the cost contribution was paid | same as `households` (cascades on delete) |
-| `household_duplicate_dismissals` | customers | pairs of household numbers a reviewer judged not to be duplicates, plus the reviewer's username | same as `households` (cascades on delete, via a foreign key on the business `household_id` rather than the surrogate `id` the other rows here use) |
+| `household_duplicate_dismissals` | customers | pairs of household numbers a reviewer judged not to be duplicates, plus the reviewer's account (`created_by`, a user-id FK cleared when that account is deleted) | same as `households` (cascades on delete, via a foreign key on the business `household_id` rather than the surrogate `id` the other rows here use) |
 | `audit_log` | customers and staff | before/after values of every audited change, including names, addresses and income, plus who made it | `tafeladmin.audit.retentionDays`, 30 by default (`AuditRetentionService`) |
-| `users`, `user_authorities` | staff | username, Argon2 password hash, permissions | until deleted by hand, or not logged into for longer than `tafeladmin.userDeletion.retentionTime` (`UserRetentionService`, 7 years by default) - never for an `ADMINISTRATOR` account, see G13 |
+| `users`, `user_authorities` | staff | username, Argon2 password hash, permissions, `last_login`, `token_invalidated_at` (the logout/password-change cut-off for issued JWTs, `R__00109`) | until deleted by hand, or not logged into for longer than `tafeladmin.userDeletion.retentionTime` (`UserRetentionService`, 7 years by default) - never for an `ADMINISTRATOR` account, see G13 |
 | `employees` | staff | personnel number, name | until deleted by hand, or referenced by nothing else at all (no user account, household, note, food collection or route stop completion) and untouched for longer than `tafeladmin.employeeDeletion.retentionTime` (`EmployeeRetentionService`, 7 years by default) - see G13 |
 | `login_attempts` | staff (anyone who typed a username) | username, failure count, lockout window | cleaned hourly (`LoginAttemptService`) |
+| `login_attempts_ip` (`R__00112`) | anyone who reached the login endpoint | client IP address, failure count, lockout window — an IP address is personal data on its own | cleaned hourly (`LoginAttemptIpService.cleanupStaleEntries`); the per-IP request-rate buckets of `RateLimiterIpService` (G23) are the in-memory counterpart, keyed by IP too and swept hourly, never persisted |
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
+| `push_preferences`, `push_type_preferences` | staff | per-user notification opt-in and per-type opt-outs | as long as the user account lives |
+| `food_collections` (`driver_employee_id`, `co_driver_employee_id`), `routes_stops_completions` (`employee_id`) | staff | which employee drove or recorded which collection/stop | no retention job of their own; the employee reference is `on delete set null` (`R__00106`), and the employee row itself stays until nothing references it any more — see G13 |
 | `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
 | `mail_outbox` | customers and staff | every mail this installation sends, as the finished MIME message — report PDFs, and a support request's free text plus its screenshot of whatever screen it was written on | `tafeladmin.mailOutbox.sentRetention`, 14 days after sending; a row parked as `FAILED` gets `tafeladmin.mailOutbox.failedRetention`, 30 days after queuing (`MailOutboxService.cleanupOldMails`, ADR-0046) |
 | the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | `tafeladmin.storage.scannerFileRetention`, 7 days by default (`ScannerFileCleanupService`), or until a user imports or deletes it first |
-| `logs/app.log` | staff | usernames on login/logout/distribution start; no customer names were found in any log statement | Spring Boot's rolling default, 7 files |
-| `logs/access.log` | customers, pseudonymously | one line per request, including `/api/households/{id}` paths | **never** — `rotate: false` in `application.yml` |
-| PDFs and CSVs generated on demand | customers | Stammdatenblatt and ID card per household; the Kundenliste PDF is a distribution's attendance list — ticket number, household number, person and infant counts, no names | outside the application the moment they are downloaded or printed |
+| `logs/app.log` | staff, and anyone who reached the login endpoint | usernames on login/logout/distribution start, the client IP when a locked-out IP is rejected (`TafelLoginProvider`, WARN); at DEBUG, which is off in production, `MailOutboxService` also logs a queued mail's recipient addresses. No customer names were found in any log statement | Spring Boot's rolling default, 7 files |
+| `logs/access.log` | customers — pseudonymously by path, by name through the query string | one line per request, including `/api/households/{id}` paths and, with Tomcat's default pattern, the full query string — so a search's `?searchInput=<name>` too, see [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail) | **never** — `rotate: false` in `application.yml` |
+| PDFs and CSVs generated on demand | customers | Stammdatenblatt and ID card per household; the Kundenliste PDF is a distribution's attendance list — ticket number, household number, person and infant counts, no names; the above-limit and overview CSVs (`HouseholdService.generateAboveLimitCsv`/`generateHouseholdsOverviewCsv`) are per-household rows *with* name and address — see [G24](#g24-the-name-bearing-csv-downloads-are-not-recorded-and-not-inventoried) | outside the application the moment they are downloaded or printed |
 | `shelters_contacts` | shelter contacts (not staff, not customers) | name, phone | manual only — no retention job; cascades when its shelter is deleted |
 | `shops` (`contact_person`, `phone`, `note`) | shop contacts (not staff, not customers) | contact name, phone, a free-text note | manual only — no retention job |
 | `mail_recipients` | whoever an operator configured as a mail recipient | an e-mail address, which may identify a named individual | manual only — no retention job |
-| `created_by`/`updated_by` (26 tables — `R__00092`/`R__00096`/`R__00102`, see [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table)) | staff | which account last touched a row | as long as the row lives, unless that account is deleted — then cleared immediately (`on delete set null`). Several of those tables (`shops`, `shelters`, `cars`, `routes`, `food_categories`, `distributions`, `food_collections`, `distributions_statistics`, `routes_stops_completions`, among others) have no retention job of their own, so a still-live row keeps its actor indefinitely |
+| `created_by`/`updated_by` (27 tables — `R__00092`/`R__00096`/`R__00102`/`R__00112`, made a user-id FK by `R__00111`, see [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table)) | staff | which account last touched a row | as long as the row lives, unless that account is deleted — then cleared immediately (`on delete set null`). Several of those tables (`shops`, `shelters`, `cars`, `routes`, `food_categories`, `distributions`, `food_collections`, `distributions_statistics`, `routes_stops_completions`, among others) have no retention job of their own, so a still-live row keeps its actor indefinitely |
 
 `persons.country` (nationality) is not an Art. 9 category on its own, and the schema has no field for
 health, religion or convictions. But `household_notes` and the document upload accept anything a
@@ -72,9 +75,17 @@ Worth recording, because it is the part that does not need work:
 
 - **Authentication and session handling.** Argon2 password hashing, JWT in an `HttpOnly` cookie with
   `Secure` derived from the request (`TafelLoginFilter.createTokenCookie`), stateless sessions,
-  CSRF with a session-bound token and `SameSite=Strict`, lockout after repeated failures.
-- **A tight public surface.** Exactly three endpoints are reachable without a session:
-  `/api/login`, `/api/logout`, `/api/config/public` (`WebSecurityConfig.publicEndpoints`).
+  CSRF with a session-bound token and `SameSite=Strict`, lockout after repeated failures — per
+  username and, since G23, per client IP.
+- **A tight public surface.** Exactly two API endpoints are reachable without a session:
+  `/api/login` and `/api/config/public` (`WebSecurityConfig.publicEndpoints`); everything else under
+  `/api/**` — `/api/logout` included — is `authenticated()`. Paths outside `/api/**` are
+  `permitAll()`, which is the static frontend and `/error`; the actuator (`health`, `prometheus`) is
+  on the separate management port 8081, which the container never publishes — only the image's own
+  healthcheck reaches it.
+- **A session ends when it is ended.** The JWT is stateless, but `users.token_invalidated_at`
+  (`R__00109`) is bumped on logout and on every password change, and `TafelJwtAuthProvider` rejects
+  a token issued before it — so a cookie copied out of a browser does not outlive the logout.
 - **No third parties loaded by the application.** The CSP is `'self'` throughout, with no analytics,
   no fonts and no CDN. The only cookies are the JWT and the CSRF token — both strictly necessary, so
   no consent banner is owed and none is present. A staff member can still *click through* to Google
@@ -180,7 +191,8 @@ small screen; the hint still states that a screenshot is attached.
 
 What remains open: a retention rule on the support mailbox is the operator's to set, not the
 application's, and once a request is sent the free text and screenshot are as uncontrolled as any
-other mail the organisation receives.
+other mail the organisation receives. The mail's `page` field also carries the current URL verbatim,
+query string included — see [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail).
 
 ### G4 A hint now keeps special-category data out of notes and documents
 
@@ -222,7 +234,7 @@ is recorded in the audit trail as a single `AuditOperation.READ` entry against t
 (G6/#3180), the same way `generatePdf` already was.
 
 What remains open: `audit_log` entries about the household are deliberately excluded from the export —
-left as an unanswered permission-boundary question in the takeout plan's §4 rather than folded in by
+left as an unanswered permission-boundary question in ADR-0051's consequences rather than folded in by
 omission. [G12](#g12-a-staff-data-subject-request-can-now-be-answered-from-the-application), the
 same question for staff instead of customers, leaves the same question open for the same reason.
 
@@ -235,13 +247,25 @@ trace — so "did somebody look up their neighbour's income" was a question the 
 answer, in an organisation where volunteers and the customers can live in the same district.
 Auditing every read would be noise for an application this size; the sensitive handful is not.
 
-`AuditOperation.READ` entries are now written for exactly that handful: document download
-(`HouseholdDocumentService.getDocumentFile`), viewing a not-yet-imported scanner file
-(`DocumentScannerController`), Stammdatenblatt/Ausweis generation (`HouseholdService.generatePdf`),
-Kundenliste generation for a distribution (`DistributionService`), and the G5 data-subject export
-(`HouseholdExportService`). They land in the same `audit_log` table and retention window as writes,
-and show up on the existing Zugriffsprotokoll screen and a household's "Verlauf" tab like any other
-entry.
+`AuditOperation.READ` entries are written for exactly that handful, which has grown since the
+first version of this section: opening a household's detail view (`HouseholdService.findByHouseholdId`,
+issue #3430) and a user account's detail view (`TafelUserDetailsManager.recordUserRead`, #3493) —
+both de-duplicated per actor and record within `tafeladmin.audit.readDedupeWindow` (5 minutes) so a
+page reload isn't a second entry; document download (`HouseholdDocumentService.getDocumentFile`);
+viewing a not-yet-imported scanner file (`DocumentScannerController`); Stammdatenblatt/Ausweis
+generation (`HouseholdService.generatePdf`); Kundenliste generation for a distribution
+(`DistributionService`); the three data-subject exports (`HouseholdExportService`,
+`UserExportService`, `EmployeeExportService`); and reading the audit trail itself — a household's
+"Verlauf", a Zugriffsprotokoll search with its filter, and the filter options (`AuditService`,
+#3474). They land in the same `audit_log` table and retention window as writes, and show up on the
+Zugriffsprotokoll screen and a household's "Verlauf" tab like any other entry.
+
+Deliberately *not* recorded, because a per-row entry would be noise rather than a signal: the
+paginated list and search endpoints (`GET /api/households`, `GET /api/users`, `GET /api/employees`,
+a household's note and document *lists*), the Datenauskunft search (see G15), and the blank
+privacy-notice templates, which carry no subject's data at all. A list shows what the search screen
+shows; the trail records the moment someone reaches into one record. The bulk CSV downloads are a
+different matter — see [G24](#g24-the-name-bearing-csv-downloads-are-not-recorded-and-not-inventoried).
 
 What remains open: [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) is the detection
 this made possible, not this gap itself.
@@ -308,7 +332,8 @@ files, 100MB total cap) is likewise made explicit rather than left as whatever t
 to default to.
 
 What remains open: the retention this hand-off relies on lives in the deployment host's own logrotate
-configuration, outside this repository — the same operator-side gap [§6](#6-what-this-repository-cannot-answer)
+configuration, outside this repository — and what the file *contains* turned out to be more than
+paths, see [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail) — the same operator-side gap [§6](#6-what-this-repository-cannot-answer)
 already tracks for backups and processor agreements.
 
 ### G10 Copies survive an erasure, and nobody can say for how long
@@ -325,17 +350,17 @@ nothing propagates the erasure into it.
 Almost every copy inside the application now has a clock on it, which was not true of a
 `mail_outbox` row parked as `FAILED`: it kept its full MIME message — report PDF or support
 screenshot included — until somebody removed the row by hand, which no screen ever prompted anyone to
-do (ADR-0046). Two exceptions still run past 30 days, and are documented as such rather than folded
+do (ADR-0046). One exception still runs past 30 days, and is documented as such rather than folded
 into that figure: deleting a *user* account's linked `employees` row can take up to 7 years if that
 employee is still referenced elsewhere (household issuer, note author, food collection driver, route
-stop completion recorder — see [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1)),
-and a household's `household_duplicate_dismissals` row (a reviewer's "kein Duplikat" verdict against
-another household, holding only the two household numbers, deliberately not cascaded — see the
-migration's own comment) is never removed at all once the household behind it is deleted.
+stop completion recorder — see [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1)).
+A household's `household_duplicate_dismissals` rows (a reviewer's "kein Duplikat" verdict against
+another household, holding only the two household numbers) go with the household itself:
+`R__00110_household_duplicate_dismissals_fk.sql` cascades both foreign keys on delete.
 
 The actual erasure timeline is now written down where an administrator handling a request reads it —
-`docs/userguide/datenauskunft.md`'s "Technische Spuren nach der Löschung" section, including the two
-exceptions above — instead of only existing spread across ADRs, so a request can be answered honestly
+`docs/userguide/datenauskunft.md`'s "Technische Spuren nach der Löschung" section, including the
+exception above — instead of only existing spread across ADRs, so a request can be answered honestly
 rather than with a single blanket figure.
 
 What is left is outside the application: a printed or mailed PDF, and the operator's backups. How a
@@ -354,9 +379,11 @@ document in sequence, an export run at an odd hour, or a database dump. With no 
 would have left nothing behind to detect or reconstruct — which also made the 72-hour notification
 duty impossible to discharge with any accuracy.
 
-`ExcessiveReadAccessDetectionService` (`modules/push/internal`) now runs hourly and pushes a
+`ExcessiveReadAccessDetectionService` (`modules/push/internal`) now runs hourly
+(`tafeladmin.audit.breachDetectionCron`, under a ShedLock) and pushes a
 notification to administrators when one user's `AuditOperation.READ` count in the trailing hour
-exceeds `tafeladmin.audit.breachDetection.readThreshold` (default 20). Deliberately just a fixed
+exceeds `tafeladmin.audit.breachDetection.readThreshold` (default 20; 0 or less switches the check
+off). Deliberately just a fixed
 threshold rather than anomaly detection: an application this size has no learned "normal" to compare
 against, and a detector nobody understands is a detector nobody trusts.
 
@@ -395,14 +422,14 @@ the customer side.
 
 What remains open: same as G5, `audit_log` entries *about* the user (a household they issued, a note
 they authored, a food collection they drove) are still excluded — left as an unanswered
-permission-boundary question in the takeout plan's §4. Settled, not open: `audit_log`'s
+permission-boundary question in ADR-0051's consequences. Settled, not open: `audit_log`'s
 `UserLogin`-typed entries are the one exception (issue #3446) — a login event's subject and actor are
 the same person, so unlike the rest of the trail it is this user's own data rather than another
 record's, and the export now includes it (`buildLoginRows`, retention-bounded the same way the
 Zugriffsprotokoll screen is). The export also does not follow references *into* other tables either -
 a household this person issued, a note they authored, a food collection they drove - since that data
 is substantively the referenced record's own, with this person's name attached only as attribution.
-See the takeout plan's §1 "Scope" note.
+See ADR-0051's "Scope stays per-area" decision.
 
 ### G13 A system user or employee account now expires too, mirroring G1
 
@@ -481,7 +508,7 @@ What remains open: same as G5/G12, `audit_log` entries about the employee are ex
 export. Settled, not open, same as G12: this export is master data about the employee themselves
 only - it does not follow the reverse references above (issuer/author/driver) back into the
 household, note or food collection rows that name them, since those rows are substantively that
-other record's own data. See the takeout plan's §1 "Scope" note.
+other record's own data. See ADR-0051's "Scope stays per-area" decision.
 
 ### G15 A central screen now ties the three GDPR exports together, and can erase what it finds too
 
@@ -513,7 +540,7 @@ the caller also holds the area permission for, and the export/delete action on a
 requires that same permission (`CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`), enforced again inside
 `DataSubjectRequestService` since the class-level `@PreAuthorize` alone can't express a check that
 depends on which area a search result or a request body names. This is the permission-model question
-the takeout plan's §6 left for "the future ticket to confirm" - answered here as additive so today's
+the takeout design's alternatives left for "the future ticket to confirm" (ADR-0051) - answered here as additive so today's
 screens keep meaning what they already meant, rather than `DATA_SUBJECT_REQUESTS` alone becoming a
 fourth way to reach the same data.
 
@@ -581,6 +608,11 @@ level, the same moment the account row goes - there is no sweep left for the app
 every caller of `TafelUserDetailsManager.deleteUser` (`UserController.deleteUser`, `deleteUserById`
 via G15's data-subject-request delete, and G13's `UserRetentionService`) is covered without having
 to remember to call anything extra.
+
+Two usernames are still stored as plain text, both bounded and both on purpose: `audit_log`'s
+`actor_username`/`actor_firstname`/`actor_lastname` (`R__00093`/`R__00094`) are denormalised so an
+entry keeps saying who acted after the account is gone — for the trail's own 30-day retention, not
+longer — and `login_attempts.username` holds whatever was typed at the login form, cleaned hourly.
 
 ### G18 The scanner share now expires files too, with a warning before it does
 
@@ -780,7 +812,97 @@ The rest of the originating issue's findings (tracked separately in
   generated password is already built from (`generatedPasswordCharactersRules`), so a user-chosen
   password can no longer fall below what one guarantees.
 
-### G24 A signed privacy notice can now be flagged when its printed retention figure has drifted from the live config
+### G24 The name-bearing CSV downloads are not recorded, and not inventoried
+
+**Art. 5(2), Art. 32, Art. 33.** Found in a re-audit of the code against this document (2026-08-29),
+issue [#3507](https://github.com/wrk-tafel/admin/issues/3507).
+
+Two CSV downloads list households row by row with name and address —
+`HouseholdService.generateAboveLimitCsv` (Nr., name, address, income total, limit) and
+`generateHouseholdsOverviewCsv` (name, address, persons, validity) — and the JSON lists behind them
+(`/above-limit`, `/overview`), `/duplicates` and `/{id}/merge-preview` embed the full household
+record per row. None of them writes an `AuditOperation.READ`. [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded)
+records the moment someone reaches into *one* record, and [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access)
+counts those — so one request that pulls every household above the limit, or every household renewed
+this month, into a file is invisible to both, which is the exact shape of a bulk extraction the read
+log exists to catch. Until this re-audit, §1 also claimed the only CSVs were aggregates and the
+name-less Kundenliste.
+
+What to do: one `READ` per bulk download (entity type per report, business key the filter — the same
+shape `AuditService.search` uses for a Zugriffsprotokoll query), counted in the breach detection with
+more weight than a single detail view, not less.
+
+### G25 A search term is a name, and it travels into the access log, the URL and the support mail
+
+**Art. 5(1)(c), Art. 5(1)(e), Art. 32.** Found in the same re-audit, issue
+[#3506](https://github.com/wrk-tafel/admin/issues/3506).
+
+The customer, user, employee and Datenauskunft searches all send the free-text query as a `GET`
+query parameter (`?searchInput=...`), and a search term is, in practice, a customer's name. It then
+lands in three places this document described as name-free: `logs/access.log`, whose Tomcat default
+pattern logs the full request line, query string included, into the one file that is never rotated
+([G9](#g9-the-access-logs-lack-of-rotation-is-now-a-deliberate-documented-operator-hand-off) settled
+*where* it is kept, not *what* it holds); the browser's history, because the search screens mirror
+the term into the SPA URL and "Kunden anlegen" from an empty search carries `?vorname=&nachname=`;
+and the support mail, whose `page` field is `window.location.href` verbatim — so a name in the search
+box reaches `mail_outbox` and the support mailbox from a direction [G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name)'s
+hint cannot cover.
+
+What to do, smallest first: an access-log pattern without the query string, which also covers any
+future parameter; strip the query from the support context's `page` before it leaves the browser;
+then decide whether a search term belongs in the URL at all.
+
+### G26 Three report permissions reach the whole household record without CUSTOMER
+
+**Art. 25, Art. 32.** Found in the same re-audit, issue
+[#3508](https://github.com/wrk-tafel/admin/issues/3508).
+
+`/above-limit`, `/overview`, `/duplicates` and the merge endpoints require only
+`CUSTOMERS_ABOVE_LIMIT`, `CUSTOMERS_OVERVIEW` or `CUSTOMER_DUPLICATES` — but their responses embed
+the complete `HouseholdResponse`, every person's birth date, nationality, employer and income
+included. The frontend gates the whole `kunden` subtree on `CUSTOMER`, so no screen shows this; the
+API does not, so an account holding only one of those three can read every household through it.
+`UserPermissions.kt` never declares them additive to `CUSTOMER` the way it does for
+`DATA_SUBJECT_REQUESTS` ([G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too)),
+and [G7](#g7-the-documents-tab-now-requires-its-own-permission-separate-from-customer) went the
+other way for documents.
+
+What to do: either enforce the additivity the frontend already assumes (`CUSTOMER and
+CUSTOMERS_ABOVE_LIMIT`, server-side), or return only what each report screen shows.
+
+### G27 The notices omit the IP address (staff) and the audit trail (customers)
+
+**Art. 13(1)(c), Art. 13(2)(a).** Found in the same re-audit, issue
+[#3509](https://github.com/wrk-tafel/admin/issues/3509).
+
+[G22](#g22-staff-now-get-an-art-13-notice-too-and-the-customer-notices-own-gaps-are-closed) completed
+both notices against what §1 recorded at the time — and §1 was itself incomplete. The staff notice
+lists master data, permissions, login timestamps and push devices, but not that the client IP address
+is stored on failed logins (`login_attempts_ip`, [G23](#g23-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked))
+and counted in memory for rate limiting — a category that applies to anyone who reaches the login
+endpoint. The customer notice never mentions the audit trail: that before/after copies of name,
+address and income are kept for `tafeladmin.audit.retentionDays` after every change, and that reads
+of the record are logged ([G6](#g6-a-small-targeted-set-of-reads-is-now-recorded)). Both figures
+belong in the template as parameters read from the live configuration, the way `retentionText`
+already is.
+
+### G28 Two smaller confidentiality leaks: opportunistic SMTP TLS, and a mail subject on a lock screen
+
+**Art. 32(1)(a), Art. 5(1)(c).** Found in the same re-audit, issues
+[#3510](https://github.com/wrk-tafel/admin/issues/3510) and
+[#3511](https://github.com/wrk-tafel/admin/issues/3511).
+
+`spring.mail`'s `starttls.enable: true` without `starttls.required: true` is opportunistic: a relay
+that does not offer STARTTLS — or a path that strips the capability — gets the report PDFs and the
+support screenshots in plaintext. Requiring it is one line, but an operator-facing one, since a relay
+without TLS would then park every mail as `FAILED` (visibly, per ADR-0046) rather than send it.
+Separately, `MailDeliveryFailedPushListener` names a failed mail by its *subject* in the push body,
+and a support request's subject is the reporter's own title — which [G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name)
+already accepts may hold a customer's name; the payload is encrypted for the push provider, but the
+notification is rendered on administrators' lock screens. Naming the mail by type and outbox id is
+enough.
+
+### G29 A signed privacy notice can now be flagged when its printed retention figure has drifted from the live config
 
 Follow-up from G22's own "what remains open" (issue #3500): a customer notice already signed and
 filed as a `DocumentType.PRIVACY_NOTICE` document is a snapshot of the retention figure that was
@@ -809,6 +931,7 @@ changed and changed back to its original value, since the operator/DPO answer th
 ([#3496](https://github.com/wrk-tafel/admin/issues/3496)) has not landed. A document uploaded before
 this change has no stamped value and can never match the filter - it predates the ability to tell.
 
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -821,11 +944,22 @@ Recorded so the next reader does not re-investigate them:
 - **Cookies** are limited to the session JWT and the CSRF token, both strictly necessary, so no
   consent mechanism is owed.
 - **Art. 22 (automated decisions)** is not engaged: `IncomeValidatorService` computes a limit and
-  shows the result; a member of staff makes the decision, and the outcome is visibly overridable
-  (`CUSTOMERS_ABOVE_LIMIT`).
+  shows the result; a member of staff makes the decision, and saving a household above the limit is
+  never blocked — the `CUSTOMERS_ABOVE_LIMIT` permission only gates the *report* of such households.
 - **Legacy customer tables** are gone — `R__00068_household_person_cleanup.sql` drops `customers`
   and `customers_addpersons` after verifying every row migrated, so no duplicate copy of the master
   data survives.
+- **Client-side storage holds nothing personal** (re-audit 2026-08-29): `localStorage` carries the
+  sidebar state, camera/scanner ids, the selected route and the offline queues of food-collection
+  amounts and stop completions — ids and numbers, no names; `ngsw-config.json` has asset groups only,
+  so the service worker never caches an API response. Page titles are route titles, never a name.
+- **Error responses and the support context carry no record data**: `include-stacktrace: never`,
+  `GenericExceptionHandler` replaces raw JPA/Jackson messages, and the browser's `recentErrors` keep
+  status, method and path only — no request or response bodies.
+- **Test data is synthetic** — `testdata.sql`, the `_http-calls/` samples, the Cypress fixtures and the
+  user-guide screenshots use Mustermann/Musterfrau-style names and dummy addresses.
+- **No telemetry**: `angular.json` has `analytics: false`, and there is no Sentry or analytics
+  dependency anywhere in the frontend.
 
 ## 6. What this repository cannot answer
 
@@ -844,7 +978,7 @@ picture:
 - the incident process behind Art. 33's 72 hours;
 - whether a customer/staff privacy notice already signed and filed needs re-notification or
   re-consent once the operator later changes the retention window it states — detecting *that* the
-  drift happened is now closed (see G24), but what to do about it is not — see G22's own note and
+  drift happened is now closed (see G29), but what to do about it is not — see G22's own note and
   [#3496](https://github.com/wrk-tafel/admin/issues/3496).
 
 ## 7. Where to start
@@ -878,8 +1012,16 @@ number here.
 | 20 | [G21](#g21-a-household-note-can-now-be-corrected-or-erased-not-only-appended) notes were append-only, no Art. 16/17 path | [#3417](https://github.com/wrk-tafel/admin/issues/3417) | done | `PUT`/`DELETE` on `HouseholdNoteController`, edit/delete in the "Alle Notizen anzeigen" dialog, restricted to the note's own author |
 | 21 | [G22](#g22-staff-now-get-an-art-13-notice-too-and-the-customer-notices-own-gaps-are-closed) no Art. 13 notice for staff; customer notice incomplete/hard-coded | [#3429](https://github.com/wrk-tafel/admin/issues/3429) | done | `retentionTime`/footer as template params, four added paragraphs, new `staff-pdf` notice; re-signing after a retention change stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 | 22 | [G23](#g23-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked) no rate limiting, username-only lockout, lockout oracle, no password complexity | [#3432](https://github.com/wrk-tafel/admin/issues/3432), [#3484](https://github.com/wrk-tafel/admin/issues/3484) | done | `RateLimitFilter`/`RateLimiterIpService` (IP-scoped token bucket), `LoginAttemptIpService` (IP-scoped lockout), a unified `403` for wrong credentials and a lockout alike, a character-class rule for user-chosen passwords |
-| 23 | [G24](#g24-a-signed-privacy-notice-can-now-be-flagged-when-its-printed-retention-figure-has-drifted-from-the-live-config) a signed privacy notice can silently drift from a later-changed retention window | [#3500](https://github.com/wrk-tafel/admin/issues/3500) | done | `DocumentEntity.retentionPeriodAtUpload` stamped at upload, a "Datenschutzerklärung veraltet" customer-search filter; whether to act on a drift stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
+| 23 | [G24](#g24-the-name-bearing-csv-downloads-are-not-recorded-and-not-inventoried) bulk CSV/list downloads unrecorded | [#3507](https://github.com/wrk-tafel/admin/issues/3507) | small | one `READ` per bulk download, weighted in `ExcessiveReadAccessDetectionService` |
+| 24 | [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail) search terms in `access.log`, the URL and the support mail | [#3506](https://github.com/wrk-tafel/admin/issues/3506) | small | access-log pattern without the query string; strip the query from the support context's `page` |
+| 25 | [G26](#g26-three-report-permissions-reach-the-whole-household-record-without-customer) report permissions reach the full household record | [#3508](https://github.com/wrk-tafel/admin/issues/3508) | small | enforce `CUSTOMER and <report permission>` server-side, or slim the list items |
+| 26 | [G27](#g27-the-notices-omit-the-ip-address-staff-and-the-audit-trail-customers) notices omit the IP address / the audit trail | [#3509](https://github.com/wrk-tafel/admin/issues/3509) | small | two paragraphs, figures as template parameters, golden PDFs regenerated |
+| 27 | [G28](#g28-two-smaller-confidentiality-leaks-opportunistic-smtp-tls-and-a-mail-subject-on-a-lock-screen) opportunistic SMTP TLS; mail subject in a push body | [#3510](https://github.com/wrk-tafel/admin/issues/3510), [#3511](https://github.com/wrk-tafel/admin/issues/3511) | trivial | `starttls.required: true` after confirming the relay; name a failed mail by type and id |
+| 28 | [G29](#g29-a-signed-privacy-notice-can-now-be-flagged-when-its-printed-retention-figure-has-drifted-from-the-live-config) a signed privacy notice can silently drift from a later-changed retention window | [#3500](https://github.com/wrk-tafel/admin/issues/3500) | done | `DocumentEntity.retentionPeriodAtUpload` stamped at upload, a "Datenschutzerklärung veraltet" customer-search filter; whether to act on a drift stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 
-Every gap in this table is done — the operator has now answered every question in #3185's
-coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
+G1–G23 and G29 are done — the operator has answered every question in #3185's coded-work table,
+and G29 closes the detection half of #3500 (the "what to do about a drift" question stays open, see
+G29's own "what remains open" and [#3496](https://github.com/wrk-tafel/admin/issues/3496)). G24–G28
+were found by the 2026-08-29 re-audit of this document against the code and are open, each with its
+issue above. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
 closes it; it stays open until the operator writes those answers down.

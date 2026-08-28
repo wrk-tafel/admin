@@ -33,16 +33,15 @@ Anders als beim Export wirkt die Löschung auf jeden ausgewählten Treffer einze
 
 ## Technische Spuren nach der Löschung
 
-Nach einer endgültigen Löschung sind Haushalt bzw. Personen, Notizen und Dokumente sofort aus der Anwendung verschwunden. Ein paar technische Kopien bleiben im Hintergrund jedoch noch begrenzte Zeit bestehen, bis sie automatisch entfernt werden – für die meisten Fälle lässt sich eine Anfrage also mit "gelöscht, letzte technische Spuren spätestens nach 30 Tagen" beantworten, mit zwei Ausnahmen (siehe unten):
+Nach einer endgültigen Löschung sind Haushalt bzw. Personen, Notizen und Dokumente sofort aus der Anwendung verschwunden. Ein paar technische Kopien bleiben im Hintergrund jedoch noch begrenzte Zeit bestehen, bis sie automatisch entfernt werden – für die meisten Fälle lässt sich eine Anfrage also mit "gelöscht, letzte technische Spuren spätestens nach 30 Tagen" beantworten, mit einer Ausnahme (siehe unten):
 
 - **Zugriffsprotokoll** (siehe [Zugriffsprotokoll](zugriffsprotokoll.md)), inklusive des Lösch-Eintrags mit dem zuletzt bekannten Stand: bis zu 30 Tage.
 - Noch nicht ausgelieferte Echtzeit-Benachrichtigungen: bis zu 14 Tage.
 - Bereits versendete E-Mails (z. B. Tagesberichte), die den Datensatz betrafen: bis zu 14 Tage nach dem Versand.
 - E-Mails, deren Zustellung nach mehreren Versuchen aufgegeben wurde: bis zu 30 Tage nach der Einreihung in die Warteschlange.
 
-Zwei Ausnahmen laufen länger als 30 Tage:
+Eine Ausnahme läuft länger als 30 Tage:
 
 - Bei der Löschung eines Benutzerkontos wird der verknüpfte Mitarbeiter-Datensatz (Personalnummer, Name) sofort mitgelöscht, sofern er nicht noch anderswo referenziert ist – etwa als Erfasser:in eines Haushalts oder einer Notiz, oder als Fahrer:in einer Warenerfassung. Ist das der Fall, bleibt der Mitarbeiter-Datensatz bestehen, bis diese Verknüpfung endet, und wird spätestens 7 Jahre danach automatisch entfernt (siehe [Mitarbeiter](einstellungen.md#mitarbeiter)).
-- War ein gelöschter Haushalt zuvor auf der Duplikate-Seite als "kein Duplikat" mit einem anderen Haushalt eingestuft worden, bleibt diese Einstufung (nur die beiden Haushaltsnummern, keine Namen) unbegrenzt bestehen – sie wird durch die Löschung nicht wirkungslos, aber auch durch nichts automatisch entfernt.
 
 Bereits gedruckte oder per Post versendete Dokumente (z. B. Kundenliste, Stammdatenblatt) sowie Datensicherungen liegen außerhalb der Anwendung – für sie gilt diese Frist nicht.
