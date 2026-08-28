@@ -11,10 +11,18 @@ data class HouseholdNoteItem(
     val author: String? = null,
     val timestamp: LocalDateTime,
     val note: String,
+    val editable: Boolean = false,
 )
 
 @ExcludeFromTestCoverage
 data class CreateHouseholdNoteRequest(
+    @field:NotBlank
+    @field:Size(max = 2000)
+    val note: String,
+)
+
+@ExcludeFromTestCoverage
+data class UpdateHouseholdNoteRequest(
     @field:NotBlank
     @field:Size(max = 2000)
     val note: String,

@@ -35,7 +35,7 @@ Anders als beim Export wirkt die Löschung auf jeden ausgewählten Treffer einze
 
 Nach einer endgültigen Löschung sind Haushalt bzw. Personen, Notizen und Dokumente sofort aus der Anwendung verschwunden. Ein paar technische Kopien bleiben im Hintergrund jedoch noch begrenzte Zeit bestehen, bis sie automatisch entfernt werden – für die meisten Fälle lässt sich eine Anfrage also mit "gelöscht, letzte technische Spuren spätestens nach 30 Tagen" beantworten, mit zwei Ausnahmen (siehe unten):
 
-- **Änderungsprotokoll** (siehe [Änderungsprotokoll](aenderungsprotokoll.md)), inklusive des Lösch-Eintrags mit dem zuletzt bekannten Stand: bis zu 30 Tage.
+- **Zugriffsprotokoll** (siehe [Zugriffsprotokoll](zugriffsprotokoll.md)), inklusive des Lösch-Eintrags mit dem zuletzt bekannten Stand: bis zu 30 Tage.
 - Noch nicht ausgelieferte Echtzeit-Benachrichtigungen: bis zu 14 Tage.
 - Bereits versendete E-Mails (z. B. Tagesberichte), die den Datensatz betrafen: bis zu 14 Tage nach dem Versand.
 - E-Mails, deren Zustellung nach mehreren Versuchen aufgegeben wurde: bis zu 30 Tage nach der Einreihung in die Warteschlange.

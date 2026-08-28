@@ -23,6 +23,15 @@ export class CustomerNoteApiService {
     return this.http.post<CustomerNoteItem>(`/households/${customerId}/notes`, request);
   }
 
+  updateNote(customerId: number, noteId: number, note: string): Observable<CustomerNoteItem> {
+    const request: UpdateCustomerNoteRequest = {note: note};
+    return this.http.put<CustomerNoteItem>(`/households/${customerId}/notes/${noteId}`, request);
+  }
+
+  deleteNote(customerId: number, noteId: number): Observable<void> {
+    return this.http.delete<void>(`/households/${customerId}/notes/${noteId}`);
+  }
+
 }
 
 export type CustomerNotesResponse = PagedResponse<CustomerNoteItem>;
@@ -32,8 +41,13 @@ export interface CustomerNoteItem {
   author?: string;
   timestamp: Date;
   note: string;
+  editable: boolean;
 }
 
 export interface CreateCustomerNoteRequest {
+  note: string;
+}
+
+export interface UpdateCustomerNoteRequest {
   note: string;
 }

@@ -213,8 +213,10 @@ customer-detail's "Weitere Aktionen" menu: `GET /households/{householdId}/export
 unpaged `HouseholdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc`, so a
 page-size cap can't silently truncate the record), each of those three's `updatedBy`, distribution
 attendance history and the list of uploaded documents — including the document's linked person and
-uploader — as a PDF, plus every uploaded document itself. One combined archive rather than several
-separate downloads: a data-subject request normally wants "everything you have on me" in one piece.
+uploader — as both a PDF and a machine-readable JSON file
+([G20](#g20-the-three-gdpr-exports-are-now-machine-readable-too-not-just-pdf), issue #3418), plus
+every uploaded document itself. One combined archive rather than several separate downloads: a
+data-subject request normally wants "everything you have on me" in one piece.
 The endpoint stores nothing; the archive is built on request and never written to disk or a table. It
 is recorded in the audit trail as a single `AuditOperation.READ` entry against the household
 (G6/#3180), the same way `generatePdf` already was.
@@ -238,7 +240,7 @@ Auditing every read would be noise for an application this size; the sensitive h
 (`DocumentScannerController`), Stammdatenblatt/Ausweis generation (`HouseholdService.generatePdf`),
 Kundenliste generation for a distribution (`DistributionService`), and the G5 data-subject export
 (`HouseholdExportService`). They land in the same `audit_log` table and retention window as writes,
-and show up on the existing Änderungsprotokoll screen and a household's "Verlauf" tab like any other
+and show up on the existing Zugriffsprotokoll screen and a household's "Verlauf" tab like any other
 entry.
 
 What remains open: [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) is the detection
@@ -374,16 +376,18 @@ and permissions, for the shell) and password/push-device management; nothing sur
 number, the full authority list or login history in one place, and there was no export.
 
 `UserExportService` (issue #3363, see [ADR-0051](adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md))
-serves a PDF - the same `PDFService`/XSL-FO pipeline as the household export - with master data
-(username, employee personnel number/name, `enabled`, account creation date, `lastLogin`, whether
-push notifications are enabled), every assigned permission (with when and by whom it was granted),
-registered push devices, any push-notification-type opt-outs, the current failed-login state
-(`login_attempts`) and the login history of the retention window (see below). Never the password
-hash. Recorded in the audit trail as a single `AuditOperation.READ` entry against the user (G6/#3180),
-the same way G5's export is. Reachable two ways: `GET /api/users/export` behind `isAuthenticated()`
-(matching `/api/users/info`'s self-only pattern), from the user menu's "Meine Daten exportieren"
-entry; and `GET /api/users/{userId}/export` behind `USER_MANAGEMENT`, from a user's detail screen's
-"Daten exportieren (PDF)" button, for a request made on someone's behalf.
+serves a ZIP - a PDF via the same `PDFService`/XSL-FO pipeline as the household export, plus a
+machine-readable JSON file
+([G20](#g20-the-three-gdpr-exports-are-now-machine-readable-too-not-just-pdf), issue #3418) - with
+master data (username, employee personnel number/name, `enabled`, account creation date, `lastLogin`,
+whether push notifications are enabled), every assigned permission (with when and by whom it was
+granted), registered push devices, any push-notification-type opt-outs, the current failed-login
+state (`login_attempts`) and the login history of the retention window (see below). Never the
+password hash. Recorded in the audit trail as a single `AuditOperation.READ` entry against the user
+(G6/#3180), the same way G5's export is. Reachable two ways: `GET /api/users/export` behind
+`isAuthenticated()` (matching `/api/users/info`'s self-only pattern), from the user menu's "Meine
+Daten exportieren" entry; and `GET /api/users/{userId}/export` behind `USER_MANAGEMENT`, from a
+user's detail screen's "Daten exportieren (ZIP)" button, for a request made on someone's behalf.
 
 Added alongside [#3362](https://github.com/wrk-tafel/admin/issues/3362), which asked for a takeout
 plan covering "either customers or internal employees" — the original review (#3124) only considered
@@ -395,7 +399,7 @@ permission-boundary question in the takeout plan's §4. Settled, not open: `audi
 `UserLogin`-typed entries are the one exception (issue #3446) — a login event's subject and actor are
 the same person, so unlike the rest of the trail it is this user's own data rather than another
 record's, and the export now includes it (`buildLoginRows`, retention-bounded the same way the
-Änderungsprotokoll screen is). The export also does not follow references *into* other tables either -
+Zugriffsprotokoll screen is). The export also does not follow references *into* other tables either -
 a household this person issued, a note they authored, a food collection they drove - since that data
 is substantively the referenced record's own, with this person's name attached only as attribution.
 See the takeout plan's §1 "Scope" note.
@@ -455,20 +459,22 @@ either, since `UserController.exportUserById` is keyed by a `userId` such an emp
 the Mitarbeiter settings screen (`SettingsEmployeesComponent`) had no detail view to hang an export
 action off of.
 
-Found while implementing G12 (issue #3394). `EmployeeExportService` closes it with the same
-`PDFService`/XSL-FO pipeline as G12's own export, master data only (personnel number, name, created
-date) - an `EmployeeEntity` holds nothing else, so there is no permissions table the way G12's export
-has one. Recorded in the audit trail as a single `AuditOperation.READ` entry (G6/#3180), the same way
-G5's and G12's exports are, sharing its `AuditScope` entity type with the insert/update/delete
-entries `EmployeeEntity`'s own writes produce. Reachable from
-`GET /api/employees/{employeeId}/export`, an export action in the Mitarbeiter table's row actions,
-behind `SETTINGS` rather than `USER_MANAGEMENT` - the permission `EmployeeController` itself already
-requires, since there is no self-service angle for an employee with no account of their own.
+Found while implementing G12 (issue #3394). `EmployeeExportService` closes it with a ZIP - a PDF via
+the same `PDFService`/XSL-FO pipeline as G12's own export, plus a machine-readable JSON file
+([G20](#g20-the-three-gdpr-exports-are-now-machine-readable-too-not-just-pdf), issue #3418) - master
+data only (personnel number, name, created date) - an `EmployeeEntity` holds nothing else, so there
+is no permissions table the way G12's export has one. Recorded in the audit trail as a single
+`AuditOperation.READ` entry (G6/#3180), the same way G5's and G12's exports are, sharing its
+`AuditScope` entity type with the insert/update/delete entries `EmployeeEntity`'s own writes produce.
+Reachable from `GET /api/employees/{employeeId}/export`, an export action in the Mitarbeiter table's
+row actions, behind `SETTINGS` rather than `USER_MANAGEMENT` - the permission `EmployeeController`
+itself already requires, since there is no self-service angle for an employee with no account of
+their own.
 
 Refuses (409) an employee a `users` row already references - one person is meant to have exactly one
 takeout document, and `UserExportService`'s own master data already carries the linked employee's
-personnel number and name, so a second, less complete PDF here would be a duplicate rather than a
-second useful export. The frontend hides the button for exactly that case, and the linked account's
+personnel number and name, so a second, less complete document here would be a duplicate rather than
+a second useful export. The frontend hides the button for exactly that case, and the linked account's
 own detail page is where the complete export for that person already lives.
 
 What remains open: same as G5/G12, `audit_log` entries about the employee are excluded from the
@@ -493,8 +499,9 @@ employee already covered by G14's own refusal), grouped by which of the three ar
 Export and delete both trigger the existing per-area service through a thin cross-module facade
 (`HouseholdDataSubjectFacade`/`EmployeeDataSubjectFacade` - Spring Modulith never exposes an
 `.internal` type across a module boundary, named interface or not) rather than a new pipeline:
-exporting one or more selected matches always returns one ZIP (a household's own export unpacked
-into a `kunde-<id>/` folder, a user's or employee's PDF added under its own folder, so a customer and
+exporting one or more selected matches always returns one ZIP (each area's own export - itself
+already a ZIP, see [G20](#g20-the-three-gdpr-exports-are-now-machine-readable-too-not-just-pdf) -
+unpacked into its own `kunde-<id>`/`benutzerkonto-<id>`/`mitarbeiter-<id>` folder, so a customer and
 a staff match selected together - the same person, holding both - come back as one archive);
 deleting runs per match independently since, unlike export, two unrelated records failing together
 would be a worse experience than one of them simply staying (`DataSubjectDeleteResultItem` reports
@@ -635,6 +642,51 @@ What remains open: the ceilings are fixed defaults an operator has to actively t
 size, same caveat as G11's read-access threshold; and the alert only ever reaches someone already
 holding `ADMINISTRATOR` and push notifications on their device.
 
+### G20 The three GDPR exports are now machine-readable too, not just PDF
+
+**Art. 20.** Found in a re-audit of the code against this document (2026-08-27), independent of the
+original G5/G12/G14 reviews. Art. 15 ("access") was satisfied by a PDF; Art. 20 ("data portability")
+additionally requires a "structured, commonly used and machine-readable format", which a PDF - laid
+out for a human to read, with German labels and locale-formatted currency - is not, strictly read.
+
+All three exports (`HouseholdExportService`, `UserExportService`, `EmployeeExportService`) already
+built their PDF from a plain Kotlin object tree (`HouseholdExportPdfData`/`UserExportPdfData`/
+`EmployeeExportPdfData`) before handing it to the XSL-FO pipeline, so issue #3418 added a
+same-shaped JSON sibling (`HouseholdExportJsonData`/`UserExportJsonData`/`EmployeeExportJsonData` -
+every field but the logo, serialised as-is via `tools.jackson.databind.json.JsonMapper`) rather than
+a new export path. `HouseholdExportService`'s export was already a ZIP, so this only meant adding a
+`daten.json` entry alongside `datenexport.pdf`. `UserExportService`/`EmployeeExportService` previously
+returned a bare PDF; both now return a ZIP the same shape as the household export's, and their
+controllers (`UserController`, `EmployeeController`) serve `application/zip` instead of
+`application/pdf`. [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too)'s
+combined `datenauskunft.zip` needed no change: it already unpacked a nested ZIP's entries flat into
+the match's own folder, so a user's/employee's export unpacks the same way a household's already did.
+
+What remains open: nothing new - this closes a gap in G5/G12/G14 without opening one of its own.
+
+### G21 A household note can now be corrected or erased, not only appended
+
+**Art. 16, Art. 17.**
+
+`HouseholdNoteController` used to expose only `GET` (list) and `POST` (create). A note with a
+factual error, or one that captured special-category data despite the G4 hint, could not be
+corrected or removed except by deleting the whole household — the sharpest Art. 16 gap in the
+application, and the one that made G4's residual risk unremediable: the hint mitigates entry, but
+there was no path back once something was in.
+
+`PUT /api/households/{householdId}/notes/{noteId}` and `DELETE .../{noteId}` are now both behind
+`CUSTOMER`, scoped by `findByIdAndHouseholdHouseholdId` the same way document access already is —
+a note ID from a different household 404s rather than leaking or editing across households — and
+further restricted to the note's own author, so staff can correct or erase what they wrote
+themselves but not each other's notes.
+`HouseholdNoteEntity` was already in `AuditScope`, so the correction/deletion itself lands in the
+audit trail for free, the same as any other write. The "Alle Notizen anzeigen" dialog (now offered
+from a single note onward, not only once there are several) gets a pencil and a bin per note on the
+current user's own notes, the bin behind its own confirmation dialog.
+
+What remains open: nothing new — this closes the gap G4 left open rather than opening one of its
+own.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -696,6 +748,8 @@ number here.
 | 16 | [G16](#g16-a-document-upload-is-now-checked-against-what-the-file-actually-is-not-just-its-declared-type) uploads trusted the declared content type | [#3420](https://github.com/wrk-tafel/admin/issues/3420) | done | `validateContentType` checks extension and magic bytes too, on both upload paths |
 | 17 | [G18](#g18-the-scanner-share-now-expires-files-too-with-a-warning-before-it-does) scanner share unbounded | [#3443](https://github.com/wrk-tafel/admin/issues/3443) | done | nightly job modelled on `HouseholdRetentionService`, `tafeladmin.storage.scannerFileRetention*`, plus a push warning before deletion |
 | 18 | [G19](#g19-a-retention-job-now-reports-itself-instead-of-only-logging-one-aggregate-line) retention jobs had no preview, no failure alert, no upper bound | [#3437](https://github.com/wrk-tafel/admin/issues/3437) | done | `RetentionRunAlertEvent`/`RETENTION_RUN` push, per-job `maxDeletionsPerRun` ceilings, `tafeladmin.audit.cleanupEnabled`, the "wird bald gelöscht" search filter |
+| 19 | [G20](#g20-the-three-gdpr-exports-are-now-machine-readable-too-not-just-pdf) exports were PDF-only, not strictly Art. 20 machine-readable | [#3418](https://github.com/wrk-tafel/admin/issues/3418) | done | `daten.json` alongside `datenexport.pdf` in all three export ZIPs |
+| 20 | [G21](#g21-a-household-note-can-now-be-corrected-or-erased-not-only-appended) notes were append-only, no Art. 16/17 path | [#3417](https://github.com/wrk-tafel/admin/issues/3417) | done | `PUT`/`DELETE` on `HouseholdNoteController`, edit/delete in the "Alle Notizen anzeigen" dialog, restricted to the note's own author |
 
 Every gap in this table is done — the operator has now answered every question in #3185's
 coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR

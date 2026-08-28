@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.UserExportField
+import at.wrk.tafel.admin.backend.common.auth.model.UserExportJsonData
 import at.wrk.tafel.admin.backend.common.auth.model.UserExportLoginRow
 import at.wrk.tafel.admin.backend.common.auth.model.UserExportPdfData
 import at.wrk.tafel.admin.backend.common.auth.model.UserExportPermissionRow
@@ -26,20 +27,25 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.MimeTypeUtils
+import tools.jackson.databind.json.JsonMapper
+import java.io.ByteArrayOutputStream
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 /**
  * The GDPR Art. 15/20 data takeout for a staff member (issue #3363, see
  * `docs/architecture/adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md`)
- * - a PDF with the account's master data, its permissions, registered push devices/preferences and
- * failed-login/login history, mirroring the household export's own PDF (`HouseholdExportService`).
- * Reachable two ways: self-service from the user menu ([exportUserByUsername]), and admin-triggered
- * from a user's detail screen ([exportUserById], behind `USER_MANAGEMENT`) for a request made on
- * someone's behalf. Never the password hash.
+ * - a ZIP with the account's master data, its permissions, registered push devices/preferences and
+ * failed-login/login history, as both a PDF and a machine-readable `daten.json` (issue #3418),
+ * mirroring the household export's own ZIP (`HouseholdExportService`). Reachable two ways:
+ * self-service from the user menu ([exportUserByUsername]), and admin-triggered from a user's detail
+ * screen ([exportUserById], behind `USER_MANAGEMENT`) for a request made on someone's behalf. Never
+ * the password hash.
  *
- * Stores nothing - the PDF is built on request and never written to disk or a table.
+ * Stores nothing - the ZIP is built on request and never written to disk or a table.
  *
  * Every other module's `audit_log` entry is excluded from this export (see
  * [AuditScope.USER_LOGIN_ENTITY_TYPE]'s siblings, and ADR-0051's Consequences) - a write this user
@@ -59,10 +65,13 @@ class UserExportService(
     private val auditLogRepository: AuditLogRepository,
     private val auditLogWriter: AuditLogWriter,
     private val pdfService: PDFService,
+    private val jsonMapper: JsonMapper,
     private val clock: Clock,
 ) {
 
     companion object {
+        private const val PDF_ENTRY_NAME = "datenexport.pdf"
+        private const val JSON_ENTRY_NAME = "daten.json"
         private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
         private const val PDF_STYLESHEET_PATH = "/pdf-templates/user-export/export-document.xsl"
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
@@ -100,21 +109,49 @@ class UserExportService(
         val userId = userEntity.id!!
         val actorNames = resolveActorNames(userEntity.authorities.map { it.createdBy })
 
-        val data = UserExportPdfData(
+        val exportedAt = LocalDateTime.now(clock).format(DATE_TIME_FORMATTER)
+        val masterData = buildMasterData(userEntity)
+        val permissions = buildPermissionRows(userEntity, actorNames)
+        val pushDevices = buildPushDeviceRows(userId)
+        val pushTypePreferences = buildPushTypePreferenceRows(userId)
+        val loginAttempt = buildLoginAttemptFields(userEntity.username)
+        val logins = buildLoginRows(userEntity.username)
+
+        val pdfData = UserExportPdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = loadLogoBytes(),
-            exportedAt = LocalDateTime.now(clock).format(DATE_TIME_FORMATTER),
-            masterData = buildMasterData(userEntity),
-            permissions = buildPermissionRows(userEntity, actorNames),
-            pushDevices = buildPushDeviceRows(userId),
-            pushTypePreferences = buildPushTypePreferenceRows(userId),
-            loginAttempt = buildLoginAttemptFields(userEntity.username),
-            logins = buildLoginRows(userEntity.username),
+            exportedAt = exportedAt,
+            masterData = masterData,
+            permissions = permissions,
+            pushDevices = pushDevices,
+            pushTypePreferences = pushTypePreferences,
+            loginAttempt = loginAttempt,
+            logins = logins,
         )
+        val jsonData = UserExportJsonData(
+            exportedAt = exportedAt,
+            masterData = masterData,
+            permissions = permissions,
+            pushDevices = pushDevices,
+            pushTypePreferences = pushTypePreferences,
+            loginAttempt = loginAttempt,
+            logins = logins,
+        )
+
+        val buffer = ByteArrayOutputStream()
+        ZipOutputStream(buffer).use { zip ->
+            zip.putNextEntry(ZipEntry(PDF_ENTRY_NAME))
+            zip.write(pdfService.generatePdf(pdfData, PDF_STYLESHEET_PATH))
+            zip.closeEntry()
+
+            zip.putNextEntry(ZipEntry(JSON_ENTRY_NAME))
+            zip.write(jsonMapper.writeValueAsBytes(jsonData))
+            zip.closeEntry()
+        }
 
         return UserExportFileResult(
             filename = buildFilename(userEntity),
-            bytes = pdfService.generatePdf(data, PDF_STYLESHEET_PATH),
+            bytes = buffer.toByteArray(),
         )
     }
 
@@ -178,7 +215,7 @@ class UserExportService(
 
     /**
      * A login's audit entry is this user's own data (see the class KDoc), bounded the same way the
-     * "Änderungsprotokoll" screen is - by `tafeladmin.audit.retentionDays` (30 days by default), since
+     * "Zugriffsprotokoll" screen is - by `tafeladmin.audit.retentionDays` (30 days by default), since
      * `AuditRetentionService` deletes anything older regardless of entity type.
      */
     private fun buildLoginRows(username: String): List<UserExportLoginRow> = auditLogRepository
@@ -209,14 +246,14 @@ class UserExportService(
     private fun Boolean.yesNo(): String = if (this) "Ja" else "Nein"
 
     /**
-     * "<prefix>-<username>.pdf" - a username is already the ASCII-safe identifier the rest of the
+     * "<prefix>-<username>.zip" - a username is already the ASCII-safe identifier the rest of the
      * application addresses a user by, so unlike `buildHouseholdFilename` this needs no
      * name-composition, only the same accent-stripping/lowercasing safety net.
      */
     private fun buildFilename(userEntity: UserEntity): String = StringUtils.stripAccents("benutzerdaten-${userEntity.username}")
         .lowercase()
         .replace("ß", "ss")
-        .replace("[^a-z0-9]".toRegex(), "-") + ".pdf"
+        .replace("[^a-z0-9]".toRegex(), "-") + ".zip"
 
     private fun recordExportRead(userEntity: UserEntity) {
         auditLogWriter.record(

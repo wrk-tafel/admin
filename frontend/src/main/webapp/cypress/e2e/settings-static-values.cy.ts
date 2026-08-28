@@ -51,10 +51,10 @@ describe('Settings - Static Values', () => {
     cy.byTestId('static-values-description-COST_CONTRIBUTION').should('not.be.empty');
   });
 
-  it('links to the customers above the limit and to the change log of these values', () => {
+  it('links to the customers above the limit and to the access log of these values', () => {
     cy.byTestId('static-values-above-limit-link').should('have.attr', 'href', '/kunden/ueber-limit');
     cy.byTestId('static-values-audit-link')
-      .should('have.attr', 'href', '/aenderungsprotokoll?art=StaticValue');
+      .should('have.attr', 'href', '/zugriffsprotokoll?art=StaticValue');
   });
 
   it('has no button to add a new static value', () => {

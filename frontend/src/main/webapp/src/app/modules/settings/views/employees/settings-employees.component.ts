@@ -187,7 +187,7 @@ export class SettingsEmployeesComponent {
       tap({
         next: data => {
           this._employees.set(data);
-          // No singular/plural split, unlike the change log's "Eintrag"/"Einträge": "Mitarbeiter"
+          // No singular/plural split, unlike the access log's "Eintrag"/"Einträge": "Mitarbeiter"
           // reads the same either way.
           this.searchAnnouncement.set(`${data.totalCount} Mitarbeiter gefunden`);
         },
@@ -282,18 +282,18 @@ export class SettingsEmployeesComponent {
   }
 
   /**
-   * The GDPR Art. 15/20 data takeout (issue #3394) for this employee - the only export path for
-   * someone with no linked user account, since they have no `users` row for `UserApiService`'s
-   * export endpoints to key off.
+   * The GDPR Art. 15/20 data takeout (issue #3394) for this employee, as a ZIP (PDF plus a
+   * machine-readable JSON file) - the only export path for someone with no linked user account,
+   * since they have no `users` row for `UserApiService`'s export endpoints to key off.
    */
   protected exportEmployee(employee: EmployeeData) {
     this.employeeApiService.exportEmployee(employee.id).subscribe({
-      next: (response) => this.processPdfResponse(response),
+      next: (response) => this.processFileResponse(response),
       error: () => this.toastr.error('Datenexport fehlgeschlagen!')
     });
   }
 
-  private processPdfResponse(response: HttpResponse<Blob>) {
+  private processFileResponse(response: HttpResponse<Blob>) {
     const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }

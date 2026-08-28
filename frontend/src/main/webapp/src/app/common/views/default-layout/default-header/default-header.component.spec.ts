@@ -182,10 +182,10 @@ describe('DefaultHeaderComponent', () => {
         expect(authenticationService.logout).toHaveBeenCalled();
     });
 
-    it('exports the caller\'s own data as a downloadable PDF', () => {
+    it('exports the caller\'s own data as a downloadable ZIP', () => {
         const response = new HttpResponse({
             status: 200,
-            headers: new HttpHeaders({'Content-Disposition': 'inline; filename=benutzerdaten-mmuster.pdf'}),
+            headers: new HttpHeaders({'Content-Disposition': 'inline; filename=benutzerdaten-mmuster.zip'}),
             body: new Blob()
         });
         userApiService.exportUser.mockReturnValueOnce(of(response));
@@ -195,7 +195,7 @@ describe('DefaultHeaderComponent', () => {
 
         component.exportUserData();
 
-        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('benutzerdaten-mmuster.pdf', response.body);
+        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('benutzerdaten-mmuster.zip', response.body);
     });
 
     it('shows an error toast when the data export fails', () => {

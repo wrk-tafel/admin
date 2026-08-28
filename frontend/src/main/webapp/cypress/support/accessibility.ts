@@ -104,7 +104,11 @@ function expectFadedIn($elements: JQuery<HTMLElement>): void {
 // later. Waiting on every *finite* animation in the audited subtree covers that without naming any
 // of them; an indefinite one (a spinner, an indeterminate progress bar) is deliberately not waited
 // on, because it never ends.
-function expectAnimationsSettled($elements: JQuery<HTMLElement>): void {
+//
+// Exported so a spec that cannot use `checkDialogAccessibility()` itself - because it needs to
+// scope to one stacked dialog rather than every open `mat-dialog-container` - can still wait on
+// this before its own `checkAccessibility()` call (see customer-detail.cy.ts's note dialogs).
+export function expectAnimationsSettled($elements: JQuery<HTMLElement>): void {
   $elements.each((_, element) => {
     const running = element
       .getAnimations({subtree: true})

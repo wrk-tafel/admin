@@ -170,13 +170,13 @@ describe('UserDetailComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/benutzer/bearbeiten', mockUser.id]);
     });
 
-    it('exports this user\'s data (GDPR takeout) as a downloadable PDF', () => {
+    it('exports this user\'s data (GDPR takeout) as a downloadable ZIP', () => {
         const fixture = createFixture();
         const component = fixture.componentInstance;
 
         const response = new HttpResponse({
             status: 200,
-            headers: new HttpHeaders({'Content-Disposition': 'inline; filename=benutzerdaten-username.pdf'}),
+            headers: new HttpHeaders({'Content-Disposition': 'inline; filename=benutzerdaten-username.zip'}),
             body: new Blob()
         });
         userApiService.exportUserById.mockReturnValueOnce(of(response));
@@ -184,7 +184,7 @@ describe('UserDetailComponent', () => {
         component.exportUserData();
 
         expect(userApiService.exportUserById).toHaveBeenCalledWith(mockUser.id);
-        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('benutzerdaten-username.pdf', response.body);
+        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('benutzerdaten-username.zip', response.body);
     });
 
     it('shows an error toast when the export fails', () => {

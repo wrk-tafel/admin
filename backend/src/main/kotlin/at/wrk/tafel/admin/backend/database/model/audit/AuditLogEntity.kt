@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
 
 /**
- * One recorded change. Append-only: rows are written by
+ * One recorded audit entry - a change, a login or a tracked read. Append-only: rows are written by
  * `database.common.audit.AuditLogWriter` and removed only by `AuditRetentionService` once they age
  * out - nothing ever updates one.
  *
