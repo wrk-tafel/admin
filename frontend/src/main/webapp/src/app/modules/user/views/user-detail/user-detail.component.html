@@ -8,7 +8,7 @@
     </button>
     <!-- The GDPR Art. 15/20 data takeout (issue #3363), admin-triggered on this user's behalf. -->
     <button testid="exportUserButton" matButton="filled" (click)="exportUserData()">
-      Daten exportieren (PDF)
+      Daten exportieren (ZIP)
     </button>
     <mat-menu #userStateMenu="matMenu">
       @if (currentUserData().enabled) {

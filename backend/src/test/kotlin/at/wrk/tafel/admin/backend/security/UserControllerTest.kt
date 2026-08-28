@@ -111,7 +111,7 @@ class UserControllerTest {
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
-        val testFilename = "benutzerdaten-${testUser.username}.pdf"
+        val testFilename = "benutzerdaten-${testUser.username}.zip"
         every { userExportService.exportUserByUsername(testUser.username) } returns UserExportFileResult(
             filename = testFilename,
             bytes = testFilename.toByteArray(),
@@ -120,7 +120,7 @@ class UserControllerTest {
         val response = controller.exportUser()
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/zip")
         assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
         assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
 
@@ -147,7 +147,7 @@ class UserControllerTest {
 
     @Test
     fun `export user by id`() {
-        val testFilename = "benutzerdaten-${testUser.username}.pdf"
+        val testFilename = "benutzerdaten-${testUser.username}.zip"
         every { userExportService.exportUserById(1) } returns UserExportFileResult(
             filename = testFilename,
             bytes = testFilename.toByteArray(),
@@ -156,7 +156,7 @@ class UserControllerTest {
         val response = controller.exportUserById(1)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/zip")
         assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
         assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
     }

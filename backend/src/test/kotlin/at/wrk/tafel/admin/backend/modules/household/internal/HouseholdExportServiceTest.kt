@@ -33,6 +33,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import tools.jackson.databind.json.JsonMapper
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -73,6 +74,8 @@ internal class HouseholdExportServiceTest {
     // only checking that some byte array was returned.
     private val pdfService = PDFService()
 
+    private val jsonMapper: JsonMapper = JsonMapper.builder().build()
+
     @InjectMockKs
     private lateinit var service: HouseholdExportService
 
@@ -103,7 +106,7 @@ internal class HouseholdExportServiceTest {
     }
 
     @Test
-    fun `export household - zips the data pdf and every uploaded file, deduplicating identical filenames`() {
+    fun `export household - zips the data pdf, the data json and every uploaded file, deduplicating identical filenames`() {
         val household = testHouseholdEntityWithMainPerson()
         val householdResponse = HouseholdResponse(
             id = 100,
@@ -181,13 +184,21 @@ internal class HouseholdExportServiceTest {
                 entry = zip.nextEntry
             }
         }
-        assertThat(entries).hasSize(3)
+        assertThat(entries).hasSize(4)
         assertThat(entries["ausweis.jpg"]).isEqualTo("content-1".toByteArray())
         assertThat(entries["ausweis_2.jpg"]).isEqualTo("content-2".toByteArray())
 
         val pdf = entries["datenexport.pdf"]
         assertThat(pdf).isNotNull
         assertThat(String(pdf!!.copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
+
+        val json = entries["daten.json"]
+        assertThat(json).isNotNull
+        val jsonNode = jsonMapper.readTree(json)
+        assertThat(jsonNode.get("householdId").asLong()).isEqualTo(100)
+        assertThat(jsonNode.get("persons").get(0).get("name").asString()).isEqualTo("mustermann max")
+        assertThat(jsonNode.get("notes").get(0).get("note").asString()).isEqualTo("note")
+        assertThat(jsonNode.get("attendances").get(0).get("ticketNumber").asInt()).isEqualTo(7)
 
         val entrySlot = slot<AuditLogWriter.PendingEntry>()
         verify { auditLogWriter.record(capture(entrySlot)) }
@@ -199,7 +210,7 @@ internal class HouseholdExportServiceTest {
     }
 
     @Test
-    fun `export household - no documents zips only the data pdf`() {
+    fun `export household - no documents zips only the data pdf and json`() {
         val household = testHouseholdEntityWithMainPerson()
         val householdResponse = HouseholdResponse(
             id = 100,
@@ -224,6 +235,6 @@ internal class HouseholdExportServiceTest {
                 entry = zip.nextEntry
             }
         }
-        assertThat(entries).containsExactly("datenexport.pdf")
+        assertThat(entries).containsExactlyInAnyOrder("datenexport.pdf", "daten.json")
     }
 }

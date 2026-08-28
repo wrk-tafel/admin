@@ -134,7 +134,7 @@
               <mat-icon svgIcon="delete"></mat-icon>
             </button>
             @if (!employee.userAccount) {
-              <button matButton="outlined" class="ml-2" [attr.testid]="'exportEmployeeButton-' + i" matTooltip="Daten exportieren (PDF)"
+              <button matButton="outlined" class="ml-2" [attr.testid]="'exportEmployeeButton-' + i" matTooltip="Daten exportieren (ZIP)"
                       (click)="exportEmployee(employee)" [attr.aria-label]="'Daten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' exportieren'">
                 <mat-icon svgIcon="download"></mat-icon>
               </button>
@@ -230,7 +230,7 @@
                   <mat-icon svgIcon="delete"></mat-icon>
                 </button>
                 @if (!employee.userAccount) {
-                  <button matButton="outlined" [attr.testid]="'exportEmployeeButtonMobile-' + i" matTooltip="Daten exportieren (PDF)"
+                  <button matButton="outlined" [attr.testid]="'exportEmployeeButtonMobile-' + i" matTooltip="Daten exportieren (ZIP)"
                           (click)="exportEmployee(employee)" [attr.aria-label]="'Daten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' exportieren'">
                     <mat-icon svgIcon="download"></mat-icon>
                   </button>
