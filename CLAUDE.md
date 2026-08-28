@@ -132,9 +132,10 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 The backend uses **Spring Modulith** architecture with 12 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
 
-- **audit**: read access to the audit trail — "who changed what, and what did it look like before".
-  Only reads: the listener that fills `audit_log` lives in `database/common/audit/` because it has to
-  see every module's writes. See ADR-0039 and the module README
+- **audit**: read access to the audit trail — "who changed or accessed what, and what a change
+  looked like before". Only reads: the listener that fills `audit_log` lives in
+  `database/common/audit/` because it has to see every module's writes. See ADR-0039 and the module
+  README
 - **household**: Household/person management (business package still called `household`, DB tables `households`/`persons`) with income validation, duplicate detection, PDF generation (ID cards, master data). A household is the case record (business number, address, contact, validity/lock/cost-contribution state); it has one or more persons, exactly one of which is flagged as the main person. Note: the frontend module is still named `customer` and its DTOs still use the old flat "customer + additionalPersons" shape on purpose (see Frontend Architecture and API Structure below) — only `customer-api.service.ts` knows about the household/person split.
 - **distribution**: Food distribution events with ticket management and statistics; publishes `DistributionClosedEvent` on close for other modules (e.g. `reporting`) to react to
 - **logistics**: Routes, food collections, shelters, shops, cars, and food category management

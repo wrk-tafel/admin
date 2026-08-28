@@ -328,7 +328,7 @@ that reflect the domain:
   is no "Suchen" button: the search is server-side either way, and a name
   lookup is refined by typing rather than by pressing a button after every
   correction — same reasoning, and the same `sr-only role="status"`
-  result-count announcement, as the `audit` module's change log.
+  result-count announcement, as the `audit` module's access log.
   `EmployeeController`/`EmployeeService` (in
   `modules/base/employee`, pre-existing, shared with the `logistics` module's
   create-employee flow) implement `GET /api/employees?searchInput=&page=&pageSize=`

@@ -46,7 +46,7 @@ const DEFAULT_RANGE_MONTHS = 1;
  */
 const FILTER_QUERY_PARAMS = {
   entityType: 'art',
-  operation: 'aenderung',
+  operation: 'zugriff',
   actorUsername: 'benutzer',
   businessKey: 'nummer',
   from: 'von',
@@ -67,8 +67,9 @@ const DATE_PRESETS = [
 ];
 
 /**
- * The administration-wide change log: every recorded change across households, users and settings,
- * newest first, narrowable by record type, kind of change, acting user, record number and date.
+ * The administration-wide access log: every recorded change and access across households, users and
+ * settings, newest first, narrowable by record type, kind of access, acting user, record number and
+ * date.
  *
  * Every filter applies itself - the log is read by refining a question ("who touched this?", "what
  * happened yesterday?"), and a separate confirmation step in between only costs a click per

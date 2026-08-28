@@ -167,7 +167,7 @@ describe('Zugriffsprotokoll', () => {
         cy.url().should('include', `nummer=${customerId}`);
 
         // What a colleague opening the link gets: the same filter, not the screen's defaults.
-        cy.visit(`/zugriffsprotokoll?art=Person&aenderung=&benutzer=&nummer=${customerId}&von=&bis=`);
+        cy.visit(`/zugriffsprotokoll?art=Person&zugriff=&benutzer=&nummer=${customerId}&von=&bis=`);
 
         cy.byTestId('audit-filter-entityType').should('contain.text', 'Person');
         cy.byTestId('audit-filter-businessKey').should('have.value', String(customerId));

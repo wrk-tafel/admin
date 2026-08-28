@@ -6,9 +6,10 @@
   </mat-card-header>
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600">
-      Jede erfasste Änderung an Kunden, Benutzern und Einstellungen — mit dem Benutzer, der sie
-      vorgenommen hat, und den Werten davor. Einträge können nicht bearbeitet oder gelöscht werden;
-      sie werden nach Ablauf der Aufbewahrungsfrist automatisch entfernt.
+      Jede erfasste Änderung an Kunden, Benutzern und Einstellungen sowie jeder Zugriff auf
+      sensible Kundendaten — mit dem Benutzer, der sie/ihn vorgenommen hat, und den Werten davor.
+      Einträge können nicht bearbeitet oder gelöscht werden; sie werden nach Ablauf der
+      Aufbewahrungsfrist automatisch entfernt.
     </p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4" testid="audit-filter">
@@ -24,7 +25,7 @@
       </mat-form-field>
 
       <mat-form-field subscriptSizing="dynamic">
-        <mat-label>Art der Änderung</mat-label>
+        <mat-label>Art des Zugriffs</mat-label>
         <mat-select testid="audit-filter-operation" [ngModel]="operation()"
                     (ngModelChange)="operation.set($event); applyFilter()">
           <mat-option [value]="null">Alle</mat-option>

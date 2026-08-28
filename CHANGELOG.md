@@ -5,7 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
-- Der Menüpunkt "Änderungsprotokoll" heißt jetzt "Zugriffsprotokoll", da er neben Änderungen auch Zugriffe auf sensible Daten erfasst; die Benutzerhandbuch-Beschreibung des Öffnens der Kunden-Detailseite als Zugriff wurde dabei korrigiert.
+- Der Menüpunkt "Änderungsprotokoll" heißt jetzt "Zugriffsprotokoll", da er neben Änderungen auch Zugriffe auf sensible Daten erfasst; die Benutzerhandbuch-Beschreibung des Öffnens der Kunden-Detailseite als Zugriff wurde dabei korrigiert. Der Filter "Art der Änderung" heißt aus demselben Grund jetzt "Art des Zugriffs".
 - Die Kunden-Detailansicht zeigt die Stammdaten des Hauptbeziehers im Tab "Allgemeine Daten" jetzt zweispaltig über die volle Breite; ein neuer Tab "Notizen" nach "Weitere Personen" zeigt zusätzlich zur weiterhin dort sichtbaren aktuellsten Notiz (die sich jetzt auch direkt dort korrigieren oder löschen lässt) die vollständige, paginierte Liste aller Notizen statt eines Dialogs.
 - Auf der Kunden-Annahme-Seite haben die Hinweise "Unkostenbeitrag offen" und "Datenschutzerklärung fehlt" jetzt einen sichtbaren Abstand zueinander, statt bei gleichzeitiger Anzeige direkt aneinanderzustoßen.
 - Die Markierung nicht zum Haushalt zählender Personen heißt jetzt "Nicht im selben Haushalt" statt "Nicht im Haushalt".

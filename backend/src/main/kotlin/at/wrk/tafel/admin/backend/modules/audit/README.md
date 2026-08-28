@@ -1,6 +1,7 @@
 # Module: audit
 
-Read access to the audit trail — "who changed what, and what did it look like before".
+Read access to the audit trail — "who changed or accessed what, and what a change looked like
+before".
 
 The decision behind it, including the options that lost, is ADR-0039
 (`docs/architecture/adr/0039-audit-trail-as-an-append-only-log-written-by-the-application.md`).
@@ -116,8 +117,8 @@ created, so changing it needs a restart — which is why it is a plain placehold
 ## API
 
 Everything is behind the `AUDIT_LOG` permission (ADMINISTRATION group), separate from `CUSTOMER`:
-seeing a household's current data and seeing every change ever made to it are different levels of
-access, and the log spans users and settings too.
+seeing a household's current data and seeing every change or tracked access ever made to it are
+different levels of access, and the log spans users and settings too.
 
 That separation does not extend to household-scoped field values (names, addresses, income —
 `AuditScope.householdScopedEntityTypes`): those need `CUSTOMER` as well, so an `AUDIT_LOG`-only

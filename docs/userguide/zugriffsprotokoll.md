@@ -29,7 +29,7 @@ Die Einträge sind nach Tagen gruppiert: Über jedem Tag steht eine Überschrift
 
 Jeder Eintrag besteht aus:
 
-- **Art der Änderung**: *Angelegt* (grün), *Geändert* (grau), *Gelöscht* (rot), *Angemeldet* (blau) oder *Abgerufen* (orange) – letzteres für die oben beschriebenen Zugriffe
+- **Art des Zugriffs**: *Angelegt* (grün), *Geändert* (grau), *Gelöscht* (rot), *Angemeldet* (blau) oder *Abgerufen* (orange) – letzteres für die oben beschriebenen Zugriffe
 - **Datensatz-Art**: Kunde, Person, Notiz, Dokument, Benutzer, Berechtigung, Grenzwert, E-Mail-Empfänger, Login, Scanner-Datei oder Kundenliste (Ausgabe)
 - **Nummer bzw. Benutzername**: bei Kunden, Personen, Notizen und Dokumenten die Kundennummer ("Nr. 1234"), bei Benutzern, Berechtigungen und Logins der Benutzername selbst, ohne "Nr." davor – eine Nummer ist ein Benutzername nicht. Bei einer Scanner-Datei steht dort ihr Dateiname, bei der Kundenliste einer Ausgabe deren Datum – auch hier ohne "Nr." davor. Diese Angabe bleibt auch dann aussagekräftig, wenn der Datensatz selbst nicht mehr existiert – etwa nach einer Löschung oder einer Zusammenführung. Wo der Datensatz noch geöffnet werden kann und die nötige Berechtigung vorhanden ist, führt die Angabe direkt zum Kunden bzw. Benutzer – ein Login-Eintrag verlinkt genauso zum angemeldeten Benutzer. Eine Scanner-Datei und die Kundenliste einer Ausgabe verlinken nirgendwohin, da sie keiner eigenen Detailseite zugeordnet sind.
 - **Zeitpunkt und Benutzer**: wann die Änderung bzw. der Zugriff passiert ist und wer sie/ihn vorgenommen hat – der Benutzername und in Klammern der Vor- und Nachname dazu, z. B. `e2etest (E2E Test)`. Bei sehr alten Einträgen steht nur der Benutzername, weil der Name damals noch nicht mitprotokolliert wurde. Steht dort *System*, war kein angemeldeter Benutzer beteiligt (z. B. bei automatischen Abläufen).
@@ -44,7 +44,7 @@ Aus Sicherheitsgründen wird das Passwort eines Benutzers zwar als geändert pro
 | Filter | Bedeutung |
 | --- | --- |
 | Datensatz-Art | Nur Änderungen bzw. Zugriffe an z. B. Kunden oder Benutzern |
-| Art der Änderung | Nur angelegte, geänderte, gelöschte, angemeldete oder abgerufene Datensätze |
+| Art des Zugriffs | Nur angelegte, geänderte, gelöschte, angemeldete oder abgerufene Datensätze |
 | Benutzer | Nur Änderungen bzw. Zugriffe eines bestimmten Benutzers – zur Auswahl stehen genau jene Benutzer, zu denen das Protokoll auch Einträge enthält |
 | Kunden-/Benutzernummer | Alle Änderungen bzw. Zugriffe rund um eine bestimmte Kunden- oder Benutzernummer |
 | Von / Bis | Nur Änderungen bzw. Zugriffe in einem Zeitraum (der Bis-Tag ist eingeschlossen) |

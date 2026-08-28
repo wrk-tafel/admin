@@ -187,7 +187,7 @@ export class SettingsEmployeesComponent {
       tap({
         next: data => {
           this._employees.set(data);
-          // No singular/plural split, unlike the change log's "Eintrag"/"Einträge": "Mitarbeiter"
+          // No singular/plural split, unlike the access log's "Eintrag"/"Einträge": "Mitarbeiter"
           // reads the same either way.
           this.searchAnnouncement.set(`${data.totalCount} Mitarbeiter gefunden`);
         },
