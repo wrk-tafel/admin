@@ -44,14 +44,18 @@ class StaffPrivacyNoticeServiceTest {
 
         // The footer's page number/generation-date stamp (issue #3429 follow-up) - fo:static-content
         // repeats it on every page, so this checks each page individually rather than just somewhere
-        // in the whole extracted text.
+        // in the whole extracted text. It's a two-column table ("Erstellt am" flush left, "Seite x
+        // von y" flush right), so the two are asserted separately rather than as one string joined
+        // by a fixed separator.
         val pageCount = document.numberOfPages
         for (page in 1..pageCount) {
             val stripper = PDFTextStripper().apply {
                 startPage = page
                 endPage = page
             }
-            assertThat(stripper.getText(document)).contains("Erstellt am 28.08.2026 · Seite $page von $pageCount")
+            val pageText = stripper.getText(document)
+            assertThat(pageText).contains("Erstellt am 28.08.2026")
+            assertThat(pageText).contains("Seite $page von $pageCount")
         }
         document.close()
     }
