@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Kunden-Detailansicht zeigt die Stammdaten des Hauptbeziehers im Tab "Allgemeine Daten" jetzt zweispaltig über die volle Breite; ein neuer Tab "Notizen" nach "Weitere Personen" zeigt zusätzlich zur weiterhin dort sichtbaren aktuellsten Notiz (die sich jetzt auch direkt dort korrigieren oder löschen lässt) die vollständige, paginierte Liste aller Notizen statt eines Dialogs.
+- Auf der Kunden-Annahme-Seite haben die Hinweise "Unkostenbeitrag offen" und "Datenschutzerklärung fehlt" jetzt einen sichtbaren Abstand zueinander, statt bei gleichzeitiger Anzeige direkt aneinanderzustoßen.
+- Die Markierung nicht zum Haushalt zählender Personen heißt jetzt "Nicht im selben Haushalt" statt "Nicht im Haushalt".
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Wird in den nächsten 30 Tagen gelöscht", der Kunden zeigt, deren Daten wegen Ablaufs der Aufbewahrungsfrist bald automatisch entfernt werden.
 - Eine neue Benachrichtigungsart "Bereinigungsjob auffällig" informiert Administrator:innen jetzt per Push, wenn eine automatische Lösch-Bereinigung (Haushalte, Benutzerkonten, Mitarbeiter oder Änderungsprotokoll) fehlschlägt oder mehr Datensätze als konfiguriert löschen würde - in letzterem Fall wird die Löschung dieses Durchlaufs abgebrochen, statt durchzuführen.
 - Dateien im Scanner-Ordner, die nicht importiert oder gelöscht werden, werden jetzt nach 7 Tagen automatisch entfernt; Benutzer:innen mit der Berechtigung "Kunden-Dokumente" erhalten vorher eine Push-Benachrichtigung, damit die Datei rechtzeitig importiert oder bewusst gelöscht werden kann.
@@ -27,6 +30,8 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Live-Aktualisierung der Scanner-Dateiliste im Dokumente-Tab der Kundenansicht benötigt jetzt ebenfalls die Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung.
 - Der Download von Kundendokumenten sowie von DSGVO-Exporten (Benutzer, Mitarbeiter, Datenauskunft, Ausgabe-Kundenliste) schlägt nicht mehr fehl, wenn der Dateiname Sonderzeichen, Anführungszeichen oder Umlaute enthält.
 - Der Download von Kunden-Stammdatenblatt/Ausweis, Kunden-ZIP-Export, Datenschutzerklärung-Vorlage, Auswertungen (über Limit, Kundenübersicht, Statistik-CSVs) sowie Scanner-Dateien schlägt jetzt ebenfalls nicht mehr fehl, wenn der Dateiname Sonderzeichen, Anführungszeichen oder Umlaute enthält.
+- Kundennotizen können jetzt im Dialog "Alle Notizen anzeigen" von der Person, die sie verfasst hat, nachträglich korrigiert oder endgültig gelöscht werden, statt nur unveränderlich angelegt werden zu können.
+- Eine neu erfasste Kundennotiz mit mehreren Zeilen zeigt nicht mehr fälschlich das Zeichen "<br/>" anstelle eines Zeilenumbruchs an.
 - Die DSGVO-Datenexporte für Benutzerkonten und Mitarbeiter ohne Konto sind jetzt jeweils eine ZIP-Datei statt einer einzelnen PDF-Datei und enthalten zusätzlich zur PDF-Datei dieselben Daten maschinenlesbar als JSON-Datei; der Kunden-Datenexport enthält diese JSON-Datei jetzt ebenfalls zusätzlich zur bestehenden PDF-Datei.
 
 ## [1.13.1] - 2026-08-26

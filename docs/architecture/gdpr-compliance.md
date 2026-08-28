@@ -664,6 +664,29 @@ the match's own folder, so a user's/employee's export unpacks the same way a hou
 
 What remains open: nothing new - this closes a gap in G5/G12/G14 without opening one of its own.
 
+### G21 A household note can now be corrected or erased, not only appended
+
+**Art. 16, Art. 17.**
+
+`HouseholdNoteController` used to expose only `GET` (list) and `POST` (create). A note with a
+factual error, or one that captured special-category data despite the G4 hint, could not be
+corrected or removed except by deleting the whole household — the sharpest Art. 16 gap in the
+application, and the one that made G4's residual risk unremediable: the hint mitigates entry, but
+there was no path back once something was in.
+
+`PUT /api/households/{householdId}/notes/{noteId}` and `DELETE .../{noteId}` are now both behind
+`CUSTOMER`, scoped by `findByIdAndHouseholdHouseholdId` the same way document access already is —
+a note ID from a different household 404s rather than leaking or editing across households — and
+further restricted to the note's own author, so staff can correct or erase what they wrote
+themselves but not each other's notes.
+`HouseholdNoteEntity` was already in `AuditScope`, so the correction/deletion itself lands in the
+audit trail for free, the same as any other write. The "Alle Notizen anzeigen" dialog (now offered
+from a single note onward, not only once there are several) gets a pencil and a bin per note on the
+current user's own notes, the bin behind its own confirmation dialog.
+
+What remains open: nothing new — this closes the gap G4 left open rather than opening one of its
+own.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -726,6 +749,7 @@ number here.
 | 17 | [G18](#g18-the-scanner-share-now-expires-files-too-with-a-warning-before-it-does) scanner share unbounded | [#3443](https://github.com/wrk-tafel/admin/issues/3443) | done | nightly job modelled on `HouseholdRetentionService`, `tafeladmin.storage.scannerFileRetention*`, plus a push warning before deletion |
 | 18 | [G19](#g19-a-retention-job-now-reports-itself-instead-of-only-logging-one-aggregate-line) retention jobs had no preview, no failure alert, no upper bound | [#3437](https://github.com/wrk-tafel/admin/issues/3437) | done | `RetentionRunAlertEvent`/`RETENTION_RUN` push, per-job `maxDeletionsPerRun` ceilings, `tafeladmin.audit.cleanupEnabled`, the "wird bald gelöscht" search filter |
 | 19 | [G20](#g20-the-three-gdpr-exports-are-now-machine-readable-too-not-just-pdf) exports were PDF-only, not strictly Art. 20 machine-readable | [#3418](https://github.com/wrk-tafel/admin/issues/3418) | done | `daten.json` alongside `datenexport.pdf` in all three export ZIPs |
+| 20 | [G21](#g21-a-household-note-can-now-be-corrected-or-erased-not-only-appended) notes were append-only, no Art. 16/17 path | [#3417](https://github.com/wrk-tafel/admin/issues/3417) | done | `PUT`/`DELETE` on `HouseholdNoteController`, edit/delete in the "Alle Notizen anzeigen" dialog, restricted to the note's own author |
 
 Every gap in this table is done — the operator has now answered every question in #3185's
 coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
