@@ -55,6 +55,22 @@ data class HouseholdExportDocumentRow(
 )
 
 /**
+ * The GDPR Art. 20 machine-readable counterpart to [HouseholdExportPdfData] - the same rows behind
+ * [HouseholdExportService]'s `daten.json`, serialised as-is via [tools.jackson.databind.json.JsonMapper]
+ * rather than through the XSL-FO pipeline. No logo: that field only exists for the PDF's letterhead.
+ */
+@ExcludeFromTestCoverage
+data class HouseholdExportJsonData(
+    val householdId: Long,
+    val exportedAt: String,
+    val masterData: List<HouseholdExportField>,
+    val persons: List<HouseholdExportPersonRow>,
+    val notes: List<HouseholdExportNoteRow>,
+    val attendances: List<HouseholdExportAttendanceRow>,
+    val documents: List<HouseholdExportDocumentRow>,
+)
+
+/**
  * The XML payload behind [HouseholdExportService]'s `datenexport.pdf` - every field pre-formatted to
  * a display string in Kotlin, same as [at.wrk.tafel.admin.backend.modules.household.internal.masterdata.PdfData],
  * so the XSL stylesheet only ever does `xsl:value-of`.

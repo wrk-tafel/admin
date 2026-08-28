@@ -134,15 +134,18 @@ export class DefaultHeaderComponent {
     this.authenticationService.logout().subscribe();
   }
 
-  /** The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363), as a downloadable PDF. */
+  /**
+   * The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363), as a downloadable
+   * ZIP (PDF plus a machine-readable JSON file).
+   */
   public exportUserData() {
     this.userApiService.exportUser().subscribe({
-      next: (response) => this.processPdfResponse(response),
+      next: (response) => this.processFileResponse(response),
       error: () => this.toastr.error('Datenexport fehlgeschlagen!')
     });
   }
 
-  private processPdfResponse(response: HttpResponse<Blob>) {
+  private processFileResponse(response: HttpResponse<Blob>) {
     const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }

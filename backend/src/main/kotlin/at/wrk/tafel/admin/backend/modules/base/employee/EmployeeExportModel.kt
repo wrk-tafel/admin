@@ -14,6 +14,17 @@ data class EmployeeExportField(
 )
 
 /**
+ * The GDPR Art. 20 machine-readable counterpart to [EmployeeExportPdfData] - the same rows behind
+ * `EmployeeExportService`'s `daten.json`, serialised as-is via `tools.jackson.databind.json.JsonMapper`
+ * rather than through the XSL-FO pipeline. No logo: that field only exists for the PDF's letterhead.
+ */
+@ExcludeFromTestCoverage
+data class EmployeeExportJsonData(
+    val exportedAt: String,
+    val masterData: List<EmployeeExportField>,
+)
+
+/**
  * The XML payload behind `EmployeeExportService`'s data-export PDF - every field pre-formatted to a
  * display string in Kotlin, same convention as `UserExportPdfData`/`HouseholdExportPdfData`, so the
  * XSL stylesheet only ever does `xsl:value-of`. No permissions section: an employee with no linked

@@ -91,17 +91,17 @@ export class UserDetailComponent {
 
   /**
    * The GDPR Art. 15/20 data takeout for this user's account (issue #3363), admin-triggered on
-   * their behalf - e.g. an HR-style request, or one made after they've left. Same PDF as the
-   * self-service export in the user menu.
+   * their behalf - e.g. an HR-style request, or one made after they've left. Same ZIP (PDF plus a
+   * machine-readable JSON file) as the self-service export in the user menu.
    */
   exportUserData() {
     this.userApiService.exportUserById(this.currentUserData().id!).subscribe({
-      next: (response) => this.processPdfResponse(response),
+      next: (response) => this.processFileResponse(response),
       error: () => this.toastr.error('Datenexport fehlgeschlagen!')
     });
   }
 
-  private processPdfResponse(response: HttpResponse<Blob>) {
+  private processFileResponse(response: HttpResponse<Blob>) {
     const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
