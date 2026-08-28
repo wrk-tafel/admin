@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
+import at.wrk.tafel.admin.backend.common.auth.components.StaffPrivacyNoticeService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
@@ -47,6 +48,7 @@ class UserController(
     private val applicationProperties: ApplicationProperties,
     private val loginAttemptService: LoginAttemptService,
     private val userExportService: UserExportService,
+    private val staffPrivacyNoticeService: StaffPrivacyNoticeService,
     private val jwtTokenService: JwtTokenService,
 ) {
 
@@ -69,10 +71,11 @@ class UserController(
     /**
      * The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363, see
      * `docs/architecture/adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md`)
-     * - a PDF, same shape as the household export. Self-service, same as [getUserInfo] - no
-     * `USER_MANAGEMENT` needed, since the class-level `isAuthenticated()` already covers it.
+     * - a ZIP (`datenexport.pdf` plus a machine-readable `daten.json`, issue #3418), same shape as the
+     * household export. Self-service, same as [getUserInfo] - no `USER_MANAGEMENT` needed, since the
+     * class-level `isAuthenticated()` already covers it.
      */
-    @GetMapping("/export", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @GetMapping("/export", produces = ["application/zip"])
     fun exportUser(): ResponseEntity<InputStreamResource> {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val result = userExportService.exportUserByUsername(authenticatedUser.username!!)
@@ -85,12 +88,31 @@ class UserController(
      * request made on a staff member's behalf, or after they've left. Behind `USER_MANAGEMENT`,
      * reachable from a user's detail screen.
      */
-    @GetMapping("/{userId}/export", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @GetMapping("/{userId}/export", produces = ["application/zip"])
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun exportUserById(@PathVariable userId: Long): ResponseEntity<InputStreamResource> {
         val result = userExportService.exportUserById(userId)
             ?: throw NotFoundException("Benutzer (ID: $userId) nicht gefunden!")
         return exportResponse(result)
+    }
+
+    /**
+     * The Art. 13 GDPR privacy notice for staff (GDPR gap G20, issue #3429) - what data is processed
+     * about a staff member, and why, not the Art. 15/20 takeout [exportUser] already answers.
+     * Generic and reference-less, same as `/households/privacy-notice-template`: `isAuthenticated()`
+     * is enough, since nobody's personal data is involved. Reachable from the user menu (self-service)
+     * and from the Mitarbeiter settings screen (for an admin to hand it to someone with no account).
+     */
+    @GetMapping("/privacy-notice-template", produces = [MediaType.APPLICATION_PDF_VALUE])
+    fun generatePrivacyNoticeTemplate(): ResponseEntity<InputStreamResource> {
+        val bytes = staffPrivacyNoticeService.generatePrivacyNoticePdf()
+        val headers = ContentDispositionUtil.inline("datenschutzerklaerung-mitarbeiter.pdf")
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(InputStreamResource(ByteArrayInputStream(bytes)))
     }
 
     private fun exportResponse(result: UserExportFileResult): ResponseEntity<InputStreamResource> {
@@ -99,7 +121,7 @@ class UserController(
         return ResponseEntity
             .ok()
             .headers(headers)
-            .contentType(MediaType.APPLICATION_PDF)
+            .contentType(MediaType.valueOf("application/zip"))
             .body(InputStreamResource(ByteArrayInputStream(result.bytes)))
     }
 
@@ -154,20 +176,31 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
+    /**
+     * A user-detail view (`GET /api/users/{id}`), read one account at a time - recorded as an
+     * `AuditOperation.READ` for the same GDPR gap G11 breach detection as
+     * `HouseholdService.findByHouseholdId` (issue #3430), now closed for a staff member's own
+     * account data too (issue #3493). See `TafelUserDetailsManager.recordUserRead`.
+     */
     @GetMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional
     fun getUser(@PathVariable userId: Long): ResponseEntity<UserResponse> {
         val userDetails = userDetailsManager.loadUserById(userId)
             ?: throw NotFoundException("Benutzer (ID: $userId) nicht gefunden!")
+        userDetailsManager.recordUserRead(userDetails)
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
     }
 
+    /** Same detail-view read as [getUser], reached by personnel number instead of id. */
     @GetMapping("/personnel-number/{personnelNumber}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional
     fun getUserByPersonnelNumber(@PathVariable personnelNumber: String): ResponseEntity<UserResponse> {
         val userDetails = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
             ?: throw NotFoundException("Benutzer (Personalnummer: $personnelNumber) nicht gefunden!")
+        userDetailsManager.recordUserRead(userDetails)
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
     }

@@ -132,9 +132,10 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 The backend uses **Spring Modulith** architecture with 12 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
 
-- **audit**: read access to the audit trail — "who changed what, and what did it look like before".
-  Only reads: the listener that fills `audit_log` lives in `database/common/audit/` because it has to
-  see every module's writes. See ADR-0039 and the module README
+- **audit**: read access to the audit trail — "who changed or accessed what, and what a change
+  looked like before". Only reads: the listener that fills `audit_log` lives in
+  `database/common/audit/` because it has to see every module's writes. See ADR-0039 and the module
+  README
 - **household**: Household/person management (business package still called `household`, DB tables `households`/`persons`) with income validation, duplicate detection, PDF generation (ID cards, master data). A household is the case record (business number, address, contact, validity/lock/cost-contribution state); it has one or more persons, exactly one of which is flagged as the main person. Note: the frontend module is still named `customer` and its DTOs still use the old flat "customer + additionalPersons" shape on purpose (see Frontend Architecture and API Structure below) — only `customer-api.service.ts` knows about the household/person split.
 - **distribution**: Food distribution events with ticket management and statistics; publishes `DistributionClosedEvent` on close for other modules (e.g. `reporting`) to react to
 - **logistics**: Routes, food collections, shelters, shops, cars, and food category management
@@ -268,7 +269,7 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **user**: User search, create, edit with password change functionality, plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking
 - **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a list of expandable cards with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded body instead of a separate details dialog — see the settings module README before restyling them back into a table
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
-- **audit**: the `aenderungsprotokoll` screen — the whole audit trail, filterable. The per-household
+- **audit**: the `zugriffsprotokoll` screen — the whole audit trail, filterable. The per-household
   view of the same data is the customer detail screen's "Verlauf" tab; both render the shared
   `common/components/audit-entry-list` component
 

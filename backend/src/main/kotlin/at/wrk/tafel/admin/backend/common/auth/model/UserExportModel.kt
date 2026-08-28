@@ -40,6 +40,22 @@ data class UserExportLoginRow(
 )
 
 /**
+ * The GDPR Art. 20 machine-readable counterpart to [UserExportPdfData] - the same rows behind
+ * `UserExportService`'s `daten.json`, serialised as-is via `tools.jackson.databind.json.JsonMapper`
+ * rather than through the XSL-FO pipeline. No logo: that field only exists for the PDF's letterhead.
+ */
+@ExcludeFromTestCoverage
+data class UserExportJsonData(
+    val exportedAt: String,
+    val masterData: List<UserExportField>,
+    val permissions: List<UserExportPermissionRow>,
+    val pushDevices: List<UserExportPushDeviceRow>,
+    val pushTypePreferences: List<UserExportPushTypePreferenceRow>,
+    val loginAttempt: List<UserExportField>,
+    val logins: List<UserExportLoginRow>,
+)
+
+/**
  * The XML payload behind `UserExportService`'s data-export PDF - every field pre-formatted to a
  * display string in Kotlin, same as `HouseholdExportPdfData`, so the XSL stylesheet only ever does
  * `xsl:value-of`.

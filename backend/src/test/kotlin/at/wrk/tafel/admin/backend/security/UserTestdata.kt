@@ -20,7 +20,7 @@ val testUserEntity = UserEntity(
         personnelNumber = "test-personnelnumber",
         firstname = "test-firstname",
         lastname = "test-lastname",
-    ),
+    ).apply { id = 1 },
     enabled = true,
     passwordChangeRequired = false,
 ).apply {

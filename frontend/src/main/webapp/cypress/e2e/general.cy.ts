@@ -253,6 +253,22 @@ describe('Accessibility', () => {
       .and('not.have.attr', 'target');
   });
 
+  // The Art. 13 GDPR privacy notice for staff (issue #3429) - self-service from the user menu,
+  // generic and no account reference needed.
+  it('downloads the staff privacy notice from the user menu', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('usermenu').click();
+    cy.byTestId('usermenu-privacy-notice').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, 'datenschutzerklaerung-mitarbeiter.pdf');
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string) => expect(buffer.length).to.be.gt(1000));
+  });
+
   it('lets the keyboard reach and expand a collapsible nav group', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');
@@ -481,14 +497,14 @@ describe('Shell', () => {
     cy.byTestId('usermenu-export').should('contain.text', 'Meine Daten exportieren').click();
 
     const downloadsFolder = Cypress.config('downloadsFolder');
-    const downloadedFilename = path.join(downloadsFolder, 'benutzerdaten-e2etest.pdf');
+    const downloadedFilename = path.join(downloadsFolder, 'benutzerdaten-e2etest.zip');
 
     cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
       .should((buffer: string) => expect(buffer.length).to.be.gt(1000));
 
     // The export is one of the GDPR-sensitive reads recorded in the audit trail (issue #3180) -
     // proven here against the real backend, not just a mocked unit test.
-    cy.visit('/aenderungsprotokoll');
+    cy.visit('/zugriffsprotokoll');
     cy.byTestId('audit-filter-entityType').click();
     cy.get('mat-option').contains('Benutzer').click();
 

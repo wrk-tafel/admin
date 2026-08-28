@@ -43,6 +43,7 @@ import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity-fill.svg';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -50,6 +51,8 @@ import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
+import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
+import {UserApiService} from '../../../../api/user-api.service';
 
 /** Long enough not to search on every keystroke of a name, short enough to feel immediate. */
 const SEARCH_DEBOUNCE_MS = 400;
@@ -93,7 +96,8 @@ const AVAILABLE: PersonnelNumberAvailabilityResponse = {available: true};
     MatFormFieldModule,
     MatInputModule,
     MatTooltipModule,
-    RouterLink
+    RouterLink,
+    TafelInfoTooltipComponent
   ]
 })
 export class SettingsEmployeesComponent {
@@ -103,14 +107,19 @@ export class SettingsEmployeesComponent {
     close: closeIcon,
     delete: deleteIcon,
     download: downloadIcon,
-    edit: editIcon
+    edit: editIcon,
+    progress_activity: progressActivityIcon
   });
 
   private readonly employeeApiService = inject(EmployeeApiService);
+  private readonly userApiService = inject(UserApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
   private readonly authenticationService = inject(AuthenticationService);
   private readonly fileHelperService = inject(FileHelperService);
+
+  /** Loading state for {@link downloadStaffPrivacyNotice}. */
+  protected readonly downloadingPrivacyNotice = signal(false);
 
   private _employees = signal<EmployeeListResponse | null>(null);
   protected employees = this._employees;
@@ -187,7 +196,7 @@ export class SettingsEmployeesComponent {
       tap({
         next: data => {
           this._employees.set(data);
-          // No singular/plural split, unlike the change log's "Eintrag"/"Einträge": "Mitarbeiter"
+          // No singular/plural split, unlike the access log's "Eintrag"/"Einträge": "Mitarbeiter"
           // reads the same either way.
           this.searchAnnouncement.set(`${data.totalCount} Mitarbeiter gefunden`);
         },
@@ -282,18 +291,33 @@ export class SettingsEmployeesComponent {
   }
 
   /**
-   * The GDPR Art. 15/20 data takeout (issue #3394) for this employee - the only export path for
-   * someone with no linked user account, since they have no `users` row for `UserApiService`'s
-   * export endpoints to key off.
+   * The GDPR Art. 15/20 data takeout (issue #3394) for this employee, as a ZIP (PDF plus a
+   * machine-readable JSON file) - the only export path for someone with no linked user account,
+   * since they have no `users` row for `UserApiService`'s export endpoints to key off.
    */
   protected exportEmployee(employee: EmployeeData) {
     this.employeeApiService.exportEmployee(employee.id).subscribe({
-      next: (response) => this.processPdfResponse(response),
+      next: (response) => this.processFileResponse(response),
       error: () => this.toastr.error('Datenexport fehlgeschlagen!')
     });
   }
 
-  private processPdfResponse(response: HttpResponse<Blob>) {
+  /**
+   * The Art. 13 GDPR privacy notice for staff (issue #3429) - what is processed about an employee
+   * and why, not the Art. 15/20 takeout {@link exportEmployee} already answers. Generic, no employee
+   * reference needed - for an admin to hand it to someone with no user account of their own, the
+   * only staff member the user menu's own self-service download can't reach.
+   */
+  protected downloadStaffPrivacyNotice() {
+    this.downloadingPrivacyNotice.set(true);
+    this.userApiService.generatePrivacyNoticeTemplate().subscribe({
+      next: (response) => this.processFileResponse(response),
+      error: () => this.downloadingPrivacyNotice.set(false),
+      complete: () => this.downloadingPrivacyNotice.set(false)
+    });
+  }
+
+  private processFileResponse(response: HttpResponse<Blob>) {
     const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }

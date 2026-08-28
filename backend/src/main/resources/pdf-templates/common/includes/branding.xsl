@@ -129,4 +129,37 @@
         </fo:table>
     </xsl:template>
 
+    <!--
+        The xsl-region-after footer for every multi-page document (the household/user/employee
+        GDPR exports, the customer list, and both privacy notices): a two-column table so
+        "Erstellt am" stays flush left and "Seite x von y" flush right instead of crowding
+        together at one edge. generatedAt is omitted (defaults to '') by the documents that only
+        ever show the page count. Callers must give their body flow's outermost block id="main" -
+        that is what page-number-citation-last targets.
+    -->
+    <xsl:template name="page-footer">
+        <xsl:param name="generatedAt" select="''"/>
+        <fo:table table-layout="fixed" width="100%">
+            <fo:table-column column-width="50%"/>
+            <fo:table-column column-width="50%"/>
+            <fo:table-body>
+                <fo:table-row>
+                    <fo:table-cell>
+                        <fo:block font-size="10pt" color="{$tafelMuted}" padding-top="0.25cm">
+                            <xsl:if test="$generatedAt != ''">
+                                <xsl:text>Erstellt am </xsl:text>
+                                <xsl:value-of select="$generatedAt"/>
+                            </xsl:if>
+                        </fo:block>
+                    </fo:table-cell>
+                    <fo:table-cell text-align="right">
+                        <fo:block font-size="10pt" color="{$tafelMuted}" padding-top="0.25cm">
+                            Seite <fo:page-number/> von <fo:page-number-citation-last ref-id="main"/>
+                        </fo:block>
+                    </fo:table-cell>
+                </fo:table-row>
+            </fo:table-body>
+        </fo:table>
+    </xsl:template>
+
 </xsl:stylesheet>

@@ -18,10 +18,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
+import tools.jackson.databind.json.JsonMapper
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.zip.ZipInputStream
 
 @ExtendWith(MockKExtension::class)
 internal class EmployeeExportServiceTest {
@@ -41,8 +43,22 @@ internal class EmployeeExportServiceTest {
     // only checking that some byte array was returned.
     private val pdfService = PDFService()
 
+    private val jsonMapper: JsonMapper = JsonMapper.builder().build()
+
     @InjectMockKs
     private lateinit var service: EmployeeExportService
+
+    private fun zipEntries(bytes: ByteArray): Map<String, ByteArray> {
+        val entries = mutableMapOf<String, ByteArray>()
+        ZipInputStream(bytes.inputStream()).use { zip ->
+            var entry = zip.nextEntry
+            while (entry != null) {
+                entries[entry.name] = zip.readBytes()
+                entry = zip.nextEntry
+            }
+        }
+        return entries
+    }
 
     @Test
     fun `export employee by id`() {
@@ -55,8 +71,14 @@ internal class EmployeeExportServiceTest {
         val result = service.exportEmployeeById(5)
 
         assertThat(result).isNotNull
-        assertThat(result?.filename).isEqualTo("mitarbeiterdaten-02000.pdf")
-        assertThat(String(result!!.bytes.copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
+        assertThat(result?.filename).isEqualTo("mitarbeiterdaten-02000.zip")
+
+        val entries = zipEntries(result!!.bytes)
+        assertThat(entries).containsOnlyKeys("datenexport.pdf", "daten.json")
+        assertThat(String(entries.getValue("datenexport.pdf").copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
+
+        val jsonNode = jsonMapper.readTree(entries.getValue("daten.json"))
+        assertThat(jsonNode.get("masterData").get(0).get("value").asString()).isEqualTo("02000")
 
         val entrySlot = slot<AuditLogWriter.PendingEntry>()
         verify { auditLogWriter.record(capture(entrySlot)) }

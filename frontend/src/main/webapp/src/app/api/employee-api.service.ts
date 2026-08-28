@@ -48,8 +48,8 @@ export class EmployeeApiService {
 
   /**
    * The GDPR Art. 15/20 data takeout (issue #3394) for an employee with no linked user account, as
-   * a PDF - the counterpart to `UserApiService.exportUserById` for someone who has no `userId` to
-   * key an export off of.
+   * a ZIP (PDF plus a machine-readable JSON file) - the counterpart to `UserApiService.exportUserById`
+   * for someone who has no `userId` to key an export off of.
    */
   exportEmployee(employeeId: number): Observable<HttpResponse<Blob>> {
     return this.http.get(`/employees/${employeeId}/export`, {responseType: 'blob', observe: 'response'});

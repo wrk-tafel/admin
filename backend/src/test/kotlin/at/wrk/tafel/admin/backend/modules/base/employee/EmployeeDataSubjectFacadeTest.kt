@@ -28,13 +28,13 @@ internal class EmployeeDataSubjectFacadeTest {
     @Test
     fun `export maps the employee export result`() {
         every { employeeExportService.exportEmployeeById(5) } returns EmployeeExportFileResult(
-            filename = "mitarbeiterdaten-00002.pdf",
-            bytes = "pdf-bytes".toByteArray(),
+            filename = "mitarbeiterdaten-00002.zip",
+            bytes = "zip-bytes".toByteArray(),
         )
 
         val result = facade.export(5)
 
-        assertThat(result).isEqualTo(ExportFileResult(filename = "mitarbeiterdaten-00002.pdf", bytes = "pdf-bytes".toByteArray()))
+        assertThat(result).isEqualTo(ExportFileResult(filename = "mitarbeiterdaten-00002.zip", bytes = "zip-bytes".toByteArray()))
     }
 
     @Test

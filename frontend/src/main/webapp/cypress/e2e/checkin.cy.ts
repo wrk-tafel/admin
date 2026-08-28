@@ -38,7 +38,7 @@ describe('CheckIn', () => {
   });
 
   it('persons of the household counted on the dashboard, excluded persons left out', () => {
-    // household 101: main person + 3 additional persons, one of them excluded ("Nicht im Haushalt")
+    // household 101: main person + 3 additional persons, one of them excluded ("Nicht im selben Haushalt")
     searchCustomer(101);
     cy.byTestId('customerDetailPanel').should('be.visible');
 
@@ -266,7 +266,7 @@ describe('CheckIn', () => {
           .should('contain.text', 'excluded-lastname-' + randomNumber);
         cy.byTestId('personsPanel').find('[testid$="-excludeFromHouseholdText"]')
           .should('have.length', 1)
-          .should('be.visible').should('contain.text', 'Nicht im Haushalt');
+          .should('be.visible').should('contain.text', 'Nicht im selben Haushalt');
       });
     });
   });

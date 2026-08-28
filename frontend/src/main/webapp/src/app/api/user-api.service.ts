@@ -15,7 +15,7 @@ export class UserApiService {
     return this.http.get<UserData>('/users/' + userId);
   }
 
-  /** The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363), as a PDF. */
+  /** The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363), as a ZIP (PDF plus a machine-readable JSON file). */
   exportUser(): Observable<HttpResponse<Blob>> {
     return this.http.get('/users/export', {responseType: 'blob', observe: 'response'});
   }
@@ -23,6 +23,15 @@ export class UserApiService {
   /** The same takeout as {@link exportUser}, admin-triggered for someone else's account. */
   exportUserById(userId: number): Observable<HttpResponse<Blob>> {
     return this.http.get('/users/' + userId + '/export', {responseType: 'blob', observe: 'response'});
+  }
+
+  /**
+   * The Art. 13 GDPR privacy notice for staff (issue #3429) - what data is processed about a staff
+   * member and why, not the Art. 15/20 takeout {@link exportUser} already answers. Generic, no
+   * account reference needed.
+   */
+  generatePrivacyNoticeTemplate(): Observable<HttpResponse<Blob>> {
+    return this.http.get('/users/privacy-notice-template', {responseType: 'blob', observe: 'response'});
   }
 
   getUserForPersonnelNumber(personnelNumber: string, context?: HttpContext): Observable<UserData> {

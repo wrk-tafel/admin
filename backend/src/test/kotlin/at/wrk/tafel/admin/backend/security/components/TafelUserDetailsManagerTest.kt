@@ -9,6 +9,10 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.WebSecurityConfig
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -47,6 +51,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -71,6 +80,17 @@ class TafelUserDetailsManagerTest {
     @RelaxedMockK
     private lateinit var loginAttemptService: LoginAttemptService
 
+    @RelaxedMockK
+    private lateinit var auditLogWriter: AuditLogWriter
+
+    @RelaxedMockK
+    private lateinit var auditLogRepository: AuditLogRepository
+
+    @RelaxedMockK
+    private lateinit var auditActorProvider: AuditActorProvider
+
+    private val clock: Clock = Clock.fixed(Instant.parse("2026-08-28T10:00:00Z"), ZoneId.of("UTC"))
+
     @InjectMockKs
     private lateinit var manager: TafelUserDetailsManager
 
@@ -82,6 +102,15 @@ class TafelUserDetailsManagerTest {
             TafelJwtAuthentication(tokenValue = "TOKEN", testUser.username)
         every { userRepository.findByUsername(testUser.username) } returns testUserEntity
         testUserEntityPassword = testUserEntity.password
+    }
+
+    /**
+     * No authenticated actor by default (mirrors `HouseholdServiceTest`) - only the
+     * `recordUserRead` tests below override this.
+     */
+    @BeforeEach
+    fun stubNoAuditActorByDefault() {
+        every { auditActorProvider.currentUsername() } returns null
     }
 
     @AfterEach
@@ -844,5 +873,60 @@ class TafelUserDetailsManagerTest {
 
         assertThat(result).isTrue
         verify { userRepository.delete(administratorEntity) }
+    }
+
+    /**
+     * No authenticated actor (default from `stubNoAuditActorByDefault`) means nothing to attribute
+     * a read to, so no entry is recorded - mirrors `HouseholdServiceTest`'s equivalent case.
+     */
+    @Test
+    fun `recordUserRead does not record without an authenticated actor`() {
+        manager.recordUserRead(testUser)
+
+        verify(exactly = 0) { auditLogWriter.record(any()) }
+    }
+
+    @Test
+    fun `recordUserRead records a READ for breach detection when not already recorded recently`() {
+        every { auditActorProvider.currentUsername() } returns "test-actor"
+        every { tafelAdminProperties.audit.readDedupeWindow } returns Duration.ofMinutes(5)
+        every {
+            auditLogRepository.existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+                "User",
+                testUser.username,
+                AuditOperation.READ,
+                "test-actor",
+                LocalDateTime.now(clock).minusMinutes(5),
+            )
+        } returns false
+
+        manager.recordUserRead(testUser)
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo("User")
+        assertThat(entrySlot.captured.entityId).isEqualTo(testUser.id)
+        assertThat(entrySlot.captured.businessKey).isEqualTo(testUser.username)
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
+    }
+
+    @Test
+    fun `recordUserRead does not record a second READ within the dedupe window`() {
+        every { auditActorProvider.currentUsername() } returns "test-actor"
+        every { tafelAdminProperties.audit.readDedupeWindow } returns Duration.ofMinutes(5)
+        every {
+            auditLogRepository.existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns true
+
+        manager.recordUserRead(testUser)
+
+        verify(exactly = 0) { auditLogWriter.record(any()) }
     }
 }
