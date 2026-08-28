@@ -110,6 +110,7 @@ class HouseholdController(
         @RequestParam locked: Boolean? = null,
         @RequestParam missingPrivacyNotice: Boolean? = null,
         @RequestParam willBeDeletedSoon: Boolean? = null,
+        @RequestParam privacyNoticeOutdated: Boolean? = null,
         @RequestParam pageSize: Int? = null,
     ): PagedResponse<HouseholdResponse> {
         val householdSearchResult = householdService.getHouseholds(
@@ -122,6 +123,7 @@ class HouseholdController(
                 locked = locked,
                 missingPrivacyNotice = missingPrivacyNotice,
                 willBeDeletedSoon = willBeDeletedSoon,
+                privacyNoticeOutdated = privacyNoticeOutdated,
             ),
             pageSize = pageSize,
         )

@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.
 - Das Benutzerhandbuch (Datenauskunft, "Technische Spuren nach der Löschung") nennt die "Kein Duplikat"-Einstufung nicht mehr als dauerhaft verbleibende Spur - sie wird seit der Umstellung auf Fremdschlüssel gemeinsam mit dem Haushalt gelöscht.
 - Die Konfiguration für die Aufbewahrungsfrist von Haushalten (`tafeladmin.householdDeletion.retentionYears`) heißt jetzt `retentionTime` und wird wie bei Benutzerkonten/Mitarbeitern als Zeitraum (z. B. `7y`) statt als reine Jahreszahl angegeben.
 - Der Menüpunkt "Änderungsprotokoll" heißt jetzt "Zugriffsprotokoll", da er neben Änderungen auch Zugriffe auf sensible Daten erfasst; die Benutzerhandbuch-Beschreibung des Öffnens der Kunden-Detailseite als Zugriff wurde dabei korrigiert. Der Filter "Art der Änderung" heißt aus demselben Grund jetzt "Art des Zugriffs".

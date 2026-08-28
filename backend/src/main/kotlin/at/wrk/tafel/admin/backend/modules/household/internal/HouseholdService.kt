@@ -18,6 +18,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.orderBySearchRelevance
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.pendingCostContribution
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.postProcessingNecessary
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.privacyNoticeRetentionDrift
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.searchTextMatches
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.validHousehold
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.willBeDeletedSoon
@@ -316,6 +317,11 @@ class HouseholdService(
                     if (filters.missingPrivacyNotice != null) missingPrivacyNoticeDocument() else null,
                     if (filters.willBeDeletedSoon != null) {
                         willBeDeletedSoon(tafelAdminProperties.householdDeletion.retentionTime, DELETION_PREVIEW_WINDOW_DAYS)
+                    } else {
+                        null
+                    },
+                    if (filters.privacyNoticeOutdated != null) {
+                        privacyNoticeRetentionDrift(tafelAdminProperties.householdDeletion.retentionTime)
                     } else {
                         null
                     },
@@ -791,6 +797,7 @@ data class HouseholdSearchFilters(
     val locked: Boolean? = null,
     val missingPrivacyNotice: Boolean? = null,
     val willBeDeletedSoon: Boolean? = null,
+    val privacyNoticeOutdated: Boolean? = null,
 )
 
 @ExcludeFromTestCoverage

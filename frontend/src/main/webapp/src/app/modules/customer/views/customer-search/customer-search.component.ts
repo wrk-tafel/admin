@@ -51,6 +51,7 @@ const QUERY_PARAMS = {
   locked: 'gesperrt',
   missingPrivacyNotice: 'ohne-datenschutzerklaerung',
   willBeDeletedSoon: 'wird-bald-geloescht',
+  privacyNoticeOutdated: 'datenschutzerklaerung-veraltet',
   page: 'seite',
   pageSize: 'anzahl',
 } as const;
@@ -108,6 +109,7 @@ export class CustomerSearchComponent {
   locked = signal(false);
   missingPrivacyNotice = signal(false);
   willBeDeletedSoon = signal(false);
+  privacyNoticeOutdated = signal(false);
 
   // Use a signal so the template-sugar (@if / @for) reacts immediately when updated
   searchResult = signal<CustomerSearchResult | undefined>(undefined);
@@ -220,6 +222,7 @@ export class CustomerSearchComponent {
       this.locked() || undefined,
       this.missingPrivacyNotice() || undefined,
       this.willBeDeletedSoon() || undefined,
+      this.privacyNoticeOutdated() || undefined,
       request.page,
       request.pageSize,
     ).pipe(
@@ -323,6 +326,7 @@ export class CustomerSearchComponent {
     this.locked.set(params.get(QUERY_PARAMS.locked) === 'true');
     this.missingPrivacyNotice.set(params.get(QUERY_PARAMS.missingPrivacyNotice) === 'true');
     this.willBeDeletedSoon.set(params.get(QUERY_PARAMS.willBeDeletedSoon) === 'true');
+    this.privacyNoticeOutdated.set(params.get(QUERY_PARAMS.privacyNoticeOutdated) === 'true');
 
     const page = Number(params.get(QUERY_PARAMS.page));
     const pageSize = Number(params.get(QUERY_PARAMS.pageSize));
@@ -345,6 +349,7 @@ export class CustomerSearchComponent {
         [QUERY_PARAMS.locked]: this.locked() ? 'true' : null,
         [QUERY_PARAMS.missingPrivacyNotice]: this.missingPrivacyNotice() ? 'true' : null,
         [QUERY_PARAMS.willBeDeletedSoon]: this.willBeDeletedSoon() ? 'true' : null,
+        [QUERY_PARAMS.privacyNoticeOutdated]: this.privacyNoticeOutdated() ? 'true' : null,
         [QUERY_PARAMS.page]: response.currentPage > 1 ? response.currentPage : null,
         [QUERY_PARAMS.pageSize]: response.pageSize !== DEFAULT_PAGE_SIZE ? response.pageSize : null,
       }

@@ -265,6 +265,42 @@ class HouseholdEntity(
                     )
                 }
             }
+
+            /**
+             * Matches households with an uploaded `PRIVACY_NOTICE` document whose stamped
+             * [DocumentEntity.retentionPeriodAtUpload] no longer matches [currentRetentionTime] - the
+             * live config has moved since the document was printed and signed (issue #3500, follow-up
+             * to GDPR gap G22). Compared as [Period.toString]'s canonical ISO-8601 text, same as the
+             * value is stamped with - a raw text comparison, not a semantic "same duration" one, same
+             * as every other retention comparison in this application takes the configured value as-is
+             * rather than normalizing it. A document uploaded before that field existed has a `null`
+             * stamp and never matches - it predates the ability to tell. A zero or negative
+             * [currentRetentionTime] means the retention job is disabled, so there is no live window to
+             * have drifted from and nothing matches, same short-circuit as [willBeDeletedSoon].
+             */
+            fun privacyNoticeRetentionDrift(currentRetentionTime: Period): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                if (currentRetentionTime.isZero || currentRetentionTime.isNegative) {
+                    cb.disjunction()
+                } else {
+                    val subQuery: Subquery<Long> = cq!!.subquery(Long::class.java)
+                    val subRoot: Root<DocumentEntity> = subQuery.from(DocumentEntity::class.java)
+                    val subHousehold: Join<DocumentEntity, HouseholdEntity> = subRoot.join("household")
+                    val documentType: Expression<DocumentType> = subRoot["documentType"]
+                    val retentionPeriodAtUpload: Expression<String> = subRoot["retentionPeriodAtUpload"]
+
+                    subQuery.select(subHousehold["id"]).distinct(true)
+                        .where(
+                            cb.and(
+                                cb.equal(documentType, DocumentType.PRIVACY_NOTICE),
+                                cb.isNotNull(retentionPeriodAtUpload),
+                                cb.notEqual(retentionPeriodAtUpload, currentRetentionTime.toString()),
+                            ),
+                        )
+
+                    val id: Expression<Long> = root["id"]
+                    id.`in`(subQuery)
+                }
+            }
         }
     }
 }

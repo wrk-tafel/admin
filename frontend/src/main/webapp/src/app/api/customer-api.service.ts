@@ -102,6 +102,7 @@ export class CustomerApiService {
     locked?: boolean | null,
     missingPrivacyNotice?: boolean | null,
     willBeDeletedSoon?: boolean | null,
+    privacyNoticeOutdated?: boolean | null,
     page?: number,
     pageSize?: number
   ): Observable<CustomerSearchResult> {
@@ -126,6 +127,9 @@ export class CustomerApiService {
     }
     if (willBeDeletedSoon) {
       queryParams = queryParams.set('willBeDeletedSoon', willBeDeletedSoon);
+    }
+    if (privacyNoticeOutdated) {
+      queryParams = queryParams.set('privacyNoticeOutdated', privacyNoticeOutdated);
     }
     if (page) {
       queryParams = queryParams.set('page', page);
