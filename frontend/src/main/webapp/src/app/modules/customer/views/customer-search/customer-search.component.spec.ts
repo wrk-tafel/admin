@@ -130,7 +130,7 @@ describe('CustomerSearchComponent', () => {
     const {component} = createComponent();
 
     expect(apiService.searchCustomer)
-      .toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
     expect(component.searchResult()).toEqual(searchCustomerMockResponse);
     expect(toastr.warning).not.toHaveBeenCalled();
     expect(component.searchAnnouncement()).toBe('');
@@ -147,7 +147,7 @@ describe('CustomerSearchComponent', () => {
     expect(component.query()).toBe('Muster');
     expect(component.postProcessing()).toBe(true);
     expect(apiService.searchCustomer)
-      .toHaveBeenCalledWith('Muster', true, undefined, undefined, undefined, undefined, undefined, 2, undefined);
+      .toHaveBeenCalledWith('Muster', true, undefined, undefined, undefined, undefined, undefined, undefined, 2, undefined);
     // A restore must not rewrite the URL that was just used to arrive here.
     expect(router.navigate).not.toHaveBeenCalled();
   });
@@ -162,7 +162,20 @@ describe('CustomerSearchComponent', () => {
 
     expect(component.willBeDeletedSoon()).toBe(true);
     expect(apiService.searchCustomer)
-      .toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined, undefined, true, undefined, undefined);
+      .toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined, undefined, true, undefined, undefined, undefined);
+  });
+
+  it('restores the privacyNoticeOutdated filter from the URL when returning to the screen', () => {
+    queryParams = {'datenschutzerklaerung-veraltet': 'true'};
+    TestBed.resetTestingModule();
+    configureTestBed();
+    apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+
+    const {component} = createComponent();
+
+    expect(component.privacyNoticeOutdated()).toBe(true);
+    expect(apiService.searchCustomer)
+      .toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined, undefined, undefined, true, undefined, undefined);
   });
 
   describe('the omnibox', () => {
@@ -187,7 +200,7 @@ describe('CustomerSearchComponent', () => {
       component.search();
 
       expect(apiService.searchCustomer)
-        .toHaveBeenCalledWith('999', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+        .toHaveBeenCalledWith('999', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
       expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', 999]);
     });
 
@@ -211,7 +224,7 @@ describe('CustomerSearchComponent', () => {
       component.search();
 
       expect(apiService.searchCustomer)
-        .toHaveBeenCalledWith('muster', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+        .toHaveBeenCalledWith('muster', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
       expect(apiService.getCustomer).not.toHaveBeenCalled();
     });
 
@@ -231,7 +244,7 @@ describe('CustomerSearchComponent', () => {
       vi.advanceTimersByTime(1);
       expect(apiService.searchCustomer).toHaveBeenCalledTimes(2);
       expect(apiService.searchCustomer)
-        .toHaveBeenLastCalledWith('mu', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+        .toHaveBeenLastCalledWith('mu', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('lets the explicit search bypass the debounce and the two-character threshold', () => {
@@ -242,7 +255,7 @@ describe('CustomerSearchComponent', () => {
       component.search();
 
       expect(apiService.searchCustomer)
-        .toHaveBeenLastCalledWith('m', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+        .toHaveBeenLastCalledWith('m', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('an explicit search absorbs the debounced search still pending for the same input', () => {
@@ -273,7 +286,7 @@ describe('CustomerSearchComponent', () => {
 
       expect(apiService.getCustomer).not.toHaveBeenCalled();
       expect(apiService.searchCustomer)
-        .toHaveBeenLastCalledWith('42', undefined, true, undefined, undefined, undefined, undefined, undefined, undefined);
+        .toHaveBeenLastCalledWith('42', undefined, true, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('search with postProcessing enabled', () => {
@@ -283,7 +296,7 @@ describe('CustomerSearchComponent', () => {
       component.toggleFilter(component.postProcessing, true);
 
       expect(apiService.searchCustomer)
-        .toHaveBeenLastCalledWith(undefined, true, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+        .toHaveBeenLastCalledWith(undefined, true, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('search with valid enabled', () => {
@@ -293,7 +306,7 @@ describe('CustomerSearchComponent', () => {
       component.toggleFilter(component.valid, true);
 
       expect(apiService.searchCustomer)
-        .toHaveBeenLastCalledWith(undefined, undefined, undefined, true, undefined, undefined, undefined, undefined, undefined);
+        .toHaveBeenLastCalledWith(undefined, undefined, undefined, true, undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('search with locked enabled', () => {
@@ -303,7 +316,7 @@ describe('CustomerSearchComponent', () => {
       component.toggleFilter(component.locked, true);
 
       expect(apiService.searchCustomer)
-        .toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, true, undefined, undefined, undefined, undefined);
+        .toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, true, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('search with missingPrivacyNotice enabled', () => {
@@ -313,7 +326,7 @@ describe('CustomerSearchComponent', () => {
       component.toggleFilter(component.missingPrivacyNotice, true);
 
       expect(apiService.searchCustomer)
-        .toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, undefined, true, undefined, undefined, undefined);
+        .toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, undefined, true, undefined, undefined, undefined, undefined);
     });
 
     it('search with willBeDeletedSoon enabled', () => {
@@ -323,7 +336,17 @@ describe('CustomerSearchComponent', () => {
       component.toggleFilter(component.willBeDeletedSoon, true);
 
       expect(apiService.searchCustomer)
-        .toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, undefined, undefined, true, undefined, undefined);
+        .toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, undefined, undefined, true, undefined, undefined, undefined);
+    });
+
+    it('search with privacyNoticeOutdated enabled', () => {
+      apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+      const {component} = createComponent();
+
+      component.toggleFilter(component.privacyNoticeOutdated, true);
+
+      expect(apiService.searchCustomer)
+        .toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, undefined, undefined, undefined, true, undefined, undefined);
     });
   });
 

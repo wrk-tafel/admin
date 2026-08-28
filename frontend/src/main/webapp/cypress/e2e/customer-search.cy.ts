@@ -302,6 +302,44 @@ describe('Customer Search', () => {
     });
   });
 
+  // A privacy notice document is stamped with whatever tafeladmin.householdDeletion.retentionTime
+  // is live at upload time - to make it drift, the config genuinely has to change afterwards, the
+  // same operator-edits-the-config-file mechanism customer-detail.cy.ts's scanner-folder hot-reload
+  // test uses, not a fabricated database row.
+  it('search by privacy notice outdated filter', () => {
+    cy.task('clearBackendConfig');
+
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+      const customerId = customer.id!;
+
+      cy.visit('/kunden/detail/' + customerId);
+      cy.byTestId('documents-tab-label').click();
+      cy.byTestId('upload-document-panel').should('be.visible');
+      cy.byTestId('documentTypeInput').click();
+      cy.byTestId('documentTypeInput-option-PRIVACY_NOTICE').click();
+      cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+      cy.byTestId('okButton').click();
+      cy.byTestId('document-0-fileNameText').should('be.visible');
+
+      cy.task('writeBackendConfig', ['tafeladmin:', '  householdDeletion:', '    retentionTime: 5y'].join('\n'));
+      // configReload.cron polls once a second under the e2e profile - give the edit time to land
+      // before the search below runs against it.
+      cy.wait(1500);
+
+      cy.visit('/kunden/suchen');
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+      cy.intercept('GET', /\/api\/households(\?|$)/).as('privacyNoticeOutdatedFilterSearch');
+      cy.byTestId('filter-privacyNoticeOutdated').click();
+      cy.wait('@privacyNoticeOutdatedFilterSearch');
+
+      clickSearchAndOpenExpectedResult(customerId, {alreadySearched: true});
+    });
+
+    cy.task('clearBackendConfig');
+  });
+
   it('keeps query, filters and page after returning from a customer via the back button', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;

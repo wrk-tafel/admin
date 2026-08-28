@@ -51,6 +51,8 @@
                           (selectionChange)="toggleFilter(missingPrivacyNotice, $event.selected)">Datenschutzerklärung fehlt</mat-chip-option>
         <mat-chip-option testid="filter-willBeDeletedSoon" [selected]="willBeDeletedSoon()"
                           (selectionChange)="toggleFilter(willBeDeletedSoon, $event.selected)">Wird in den nächsten 30 Tagen gelöscht</mat-chip-option>
+        <mat-chip-option testid="filter-privacyNoticeOutdated" [selected]="privacyNoticeOutdated()"
+                          (selectionChange)="toggleFilter(privacyNoticeOutdated, $event.selected)">Datenschutzerklärung veraltet</mat-chip-option>
       </mat-chip-listbox>
     </div>
 
