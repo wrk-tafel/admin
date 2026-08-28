@@ -394,6 +394,9 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
                      country_id, exclude_household, receives_family_allowance)
 values (1103, NOW(), NOW(), 110, false, 'Tom', 'Vielverdiener', CURRENT_DATE - interval '5 year', 'MALE', 1, false, false);
 UPDATE households SET main_person_id = 110 WHERE id = 110;
+INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+VALUES (1051, NOW(), NOW(), 110, 100,
+        'Einkommen anhand aktueller Lohnzettel beider Elternteile neu geprüft - Haushalt bleibt über dem Limit, Ausnahmegenehmigung derzeit nicht vorgesehen.');
 
 -- household above the income limit (single adult) - complete master data, shows up in
 -- "Kunden über Limit": income 2200 vs. limit 1827.00 (+100.00 tolerance) for 1 adult/0 children
@@ -465,6 +468,11 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
                      country_id, exclude_household, receives_family_allowance)
 values (1142, NOW(), NOW(), 114, false, 'Ben', 'Beihilfenknapp', CURRENT_DATE - interval '7 year', 'MALE', 2, false, true);
 UPDATE households SET main_person_id = 114 WHERE id = 114;
+INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+VALUES (1052, NOW(), NOW(), 114, 100, 'Familienbeihilfe-Bescheid für beide Kinder liegt vor, Kopie im Dokumente-Tab hinterlegt.');
+INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+VALUES (1053, NOW(), NOW(), 114, 200,
+        'Rückfrage der Kundin wegen Fahrtkosten zur Ausgabestelle - auf die nähergelegene Ausgabestelle in Favoriten hingewiesen.');
 
 -- household above the income limit (couple, income 2700+1900=4600 comfortably clears the limit on
 -- its own regardless of the exact family-allowance credit) and, since it's also "Großfamilie", the
@@ -528,6 +536,10 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
                      country_id, employer, exclude_household, receives_family_allowance)
 values (1164, NOW(), NOW(), 115, false, 'Ben', 'Großfamilie', CURRENT_DATE - interval '17 year', 'MALE', 1, 'BHAK Simmering', true, true);
 UPDATE households SET main_person_id = 115 WHERE id = 115;
+INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+VALUES (1054, NOW(), NOW(), 115, 100, 'Schulbestätigungen für die schulpflichtigen Kinder (Noah, Julia, Ben) wurden vorgelegt und geprüft.');
+INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+VALUES (1055, NOW(), NOW(), 115, 100, 'Bezug läuft in Kürze aus - Verlängerung beim nächsten Besuch besprechen.');
 
 -- customer duplicates - fuzzy name/address matches for the "Kunden-Duplikate" screen
 -- (see HouseholdDuplicationService: soundex + levenshtein tolerance on name and address)
@@ -542,6 +554,9 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
                      country_id, exclude_household, receives_family_allowance)
 values (120, NOW(), NOW(), 120, true, 'Maria', 'Huber', '1982-04-12', 'FEMALE', 1, false, false);
 UPDATE households SET main_person_id = 120 WHERE id = 120;
+INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+VALUES (1056, NOW(), NOW(), 120, 100,
+        'Mögliches Duplikat mit Kundennummer 121 (Marie Huber, gleiche Adresse) geprüft - unterschiedliche Person, kein Duplikat.');
 
 INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
@@ -1294,7 +1309,7 @@ INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count,
 VALUES (3, NOW(), NOW(), 'testuser', 1, NOW() + interval '2 years', NULL);
 
 
--- 100 recorded changes, so the Änderungsprotokoll screen has something to show and its filters
+-- 100 recorded changes, so the Zugriffsprotokoll screen has something to show and its filters
 -- something to filter. Written directly rather than by exercising the application, which is the
 -- only way to get a spread of dates out of a fixture that loads in one moment - and the reason
 -- these rows carry no matching change in the data itself: they describe edits that never happened.

@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.database.common.audit
 
 /**
- * What kind of change an audit entry records.
+ * What kind of operation an audit entry records - a change, a login or a tracked read.
  *
  * Lives next to the audit machinery rather than beside `AuditLogEntity` because it is also part of
  * the read API: the controller accepts it as a filter and returns it, and controllers may not depend

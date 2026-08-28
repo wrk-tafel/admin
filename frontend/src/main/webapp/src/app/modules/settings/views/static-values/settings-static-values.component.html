@@ -4,7 +4,7 @@
       <div class="flex flex-wrap items-center justify-between gap-3">
         <h2 class="tafel-h5 mb-0 mt-1">Grenzwerte</h2>
         <a *tafelIfPermission="'AUDIT_LOG'" matButton="outlined" testid="static-values-audit-link"
-           routerLink="/aenderungsprotokoll" [queryParams]="auditLogQueryParams">
+           routerLink="/zugriffsprotokoll" [queryParams]="auditLogQueryParams">
           <mat-icon svgIcon="history" class="me-2"></mat-icon>
           Wer hat zuletzt geändert?
         </a>

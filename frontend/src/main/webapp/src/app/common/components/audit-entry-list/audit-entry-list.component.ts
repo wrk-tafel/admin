@@ -38,7 +38,7 @@ interface AuditEntryDayGroup {
 /**
  * Renders a list of audit entries, grouped by the day they happened on. Purely presentational -
  * loading and paging belong to whoever uses it, which is both the customer detail screen's
- * "Verlauf" tab and the administration-wide "Änderungsprotokoll", so the two can never drift into
+ * "Verlauf" tab and the administration-wide "Zugriffsprotokoll", so the two can never drift into
  * showing a change differently.
  */
 @Component({

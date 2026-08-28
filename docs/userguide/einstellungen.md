@@ -70,7 +70,7 @@ Beim Speichern wird die Änderung zunächst mit altem und neuem Betrag zur Best�
 
 ![Grenzwert ändern](images/einstellungen-statische-werte-bestaetigung.jpg)
 
-Über **Kunden über Limit ansehen** gelangt man direkt zu [Kunden über Limit](kunden.md#kunden-über-limit), also zu jenen Kunden, die mit diesen Werten aktuell über dem Limit liegen. **Wer hat zuletzt geändert?** öffnet das [Änderungsprotokoll](aenderungsprotokoll.md), gefiltert auf die Änderungen an diesen Werten. Beide Links sind nur mit der jeweiligen Berechtigung sichtbar.
+Über **Kunden über Limit ansehen** gelangt man direkt zu [Kunden über Limit](kunden.md#kunden-über-limit), also zu jenen Kunden, die mit diesen Werten aktuell über dem Limit liegen. **Wer hat zuletzt geändert?** öffnet das [Zugriffsprotokoll](zugriffsprotokoll.md), gefiltert auf die Änderungen an diesen Werten. Beide Links sind nur mit der jeweiligen Berechtigung sichtbar.
 
 <a id="lebensmittelkategorien"></a>
 
@@ -182,4 +182,4 @@ Beim Anlegen sind Personalnummer, Vorname und Nachname Pflichtfelder (max. 50 Ze
 
 ![Mitarbeiter löschen](images/einstellungen-mitarbeiter-loeschen.jpg)
 
-Über den Download-Button lässt sich pro Mitarbeiter eine DSGVO-Datenauskunft (Art. 15/20) als PDF-Datei herunterladen – Personalnummer, Name und Anlagedatum. Dieser Button erscheint nur bei Mitarbeitern ohne Benutzerkonto (z. B. reinen Fahrern): sie haben kein Konto, über das sie sich selbst anmelden könnten, und sind daher sonst über keinen Weg auskunftsfähig. Ist ein Benutzerkonto verknüpft, entfällt der Button hier - die Auskunft zu diesem Mitarbeiter ist dann bereits vollständig über den Export auf der [Benutzer-Detailseite](benutzer.md) verfügbar (der auch die verknüpfte Personalnummer und den Namen enthält), sodass hier kein zweites, unvollständiges Dokument für dieselbe Person entstehen soll. Ist die Personalnummer nicht bekannt, hilft stattdessen die Suche unter [Datenauskunft](datenauskunft.md).
+Über den Download-Button lässt sich pro Mitarbeiter eine DSGVO-Datenauskunft (Art. 15/20) als ZIP-Datei herunterladen – Personalnummer, Name und Anlagedatum, sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei. Dieser Button erscheint nur bei Mitarbeitern ohne Benutzerkonto (z. B. reinen Fahrern): sie haben kein Konto, über das sie sich selbst anmelden könnten, und sind daher sonst über keinen Weg auskunftsfähig. Ist ein Benutzerkonto verknüpft, entfällt der Button hier - die Auskunft zu diesem Mitarbeiter ist dann bereits vollständig über den Export auf der [Benutzer-Detailseite](benutzer.md) verfügbar (der auch die verknüpfte Personalnummer und den Namen enthält), sodass hier kein zweites, unvollständiges Dokument für dieselbe Person entstehen soll. Ist die Personalnummer nicht bekannt, hilft stattdessen die Suche unter [Datenauskunft](datenauskunft.md).

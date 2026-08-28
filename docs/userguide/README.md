@@ -11,7 +11,7 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | [Logistik](logistik.md) | Routen-Navi auf der Route, Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
 | [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Mitarbeiter |
-| [Änderungsprotokoll](aenderungsprotokoll.md) | Wer hat wann was geändert, und wie war der Wert davor |
+| [Zugriffsprotokoll](zugriffsprotokoll.md) | Wer hat wann was geändert oder auf sensible Daten zugegriffen, und wie war der Wert davor |
 | [Datenauskunft](datenauskunft.md) | Kunden, Benutzerkonten und Mitarbeiter ohne Konto durchsuchen, DSGVO-Datenexport und -Löschung |
 | [Statistiken](statistiken.md) | Allgemeine Statistik, Auswertung Kinder |
 
@@ -122,7 +122,7 @@ Die Menüstruktur gliedert sich in folgende Bereiche:
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
 - **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, sowie unter der aufklappbaren Gruppe "Auswertungen": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
 - **Logistik**: Routen-Navi, Waren-Eingabe
-- **Verwaltung**: Benutzer, Statistiken, Änderungsprotokoll, Einstellungen
+- **Verwaltung**: Benutzer, Statistiken, Zugriffsprotokoll, Einstellungen
 
 Innerhalb von "Einstellungen" sind die neun Menüpunkte zusätzlich in zwei Gruppen unterteilt: **Stammdaten** (Fahrzeuge, Filialen, Notschlafstellen, Routen, Waren-Kategorien, Retour-Kategorien) für logistische Stammdaten und **Systemverwaltung** (E-Mail, Grenzwerte, Mitarbeiter) für allgemeine Systemeinstellungen.
 
@@ -209,7 +209,7 @@ Darunter zeigt die Übersicht, solange keine Ausgabe läuft, zusätzlich organis
 Sobald eine Ausgabe läuft, zeigt die Übersicht stattdessen die folgenden tagesbezogenen Kennzahlen:
 
 - **Kunden angemeldet**: Anzahl der für den heutigen Tag angemeldeten Kunden. Über **Kundenliste** kann die Liste der angemeldeten Kunden heruntergeladen werden.
-- **Personen angemeldet**: Anzahl aller Personen, für die die angemeldeten Kunden Waren erhalten — die Hauptperson jedes Haushalts plus die weiteren Personen im Haushalt. Als "Nicht im Haushalt" markierte Personen zählen nicht mit.
+- **Personen angemeldet**: Anzahl aller Personen, für die die angemeldeten Kunden Waren erhalten — die Hauptperson jedes Haushalts plus die weiteren Personen im Haushalt. Als "Nicht im selben Haushalt" markierte Personen zählen nicht mit.
 - **Tickets abgearbeitet**: Fortschritt der Ticket-Bearbeitung (verarbeitete / gesamt) als Zahl und als Balken darunter.
 - **Erfasste Routen**: Fortschritt der Warenerfassung aus der Logistik (siehe [Logistik](logistik.md)) – als Zahl mit Balken sowie daneben alle heute zu fahrenden Routen als kleine Kacheln (Chips). Bereits vollständig erfasste Routen sind grün mit Häkchen markiert, die übrigen sind neutral. So ist auf einen Blick erkennbar, welche Routen noch fehlen, statt die erfassten gegen die Gesamtzahl abzuzählen.
 - **Erfasste Warenmenge**: Gesamtgewicht der bisher erfassten Warenmengen.

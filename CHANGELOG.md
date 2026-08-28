@@ -5,6 +5,10 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Der Menüpunkt "Änderungsprotokoll" heißt jetzt "Zugriffsprotokoll", da er neben Änderungen auch Zugriffe auf sensible Daten erfasst; die Benutzerhandbuch-Beschreibung des Öffnens der Kunden-Detailseite als Zugriff wurde dabei korrigiert. Der Filter "Art der Änderung" heißt aus demselben Grund jetzt "Art des Zugriffs".
+- Die Kunden-Detailansicht zeigt die Stammdaten des Hauptbeziehers im Tab "Allgemeine Daten" jetzt zweispaltig über die volle Breite; ein neuer Tab "Notizen" nach "Weitere Personen" zeigt zusätzlich zur weiterhin dort sichtbaren aktuellsten Notiz (die sich jetzt auch direkt dort korrigieren oder löschen lässt) die vollständige, paginierte Liste aller Notizen statt eines Dialogs.
+- Auf der Kunden-Annahme-Seite haben die Hinweise "Unkostenbeitrag offen" und "Datenschutzerklärung fehlt" jetzt einen sichtbaren Abstand zueinander, statt bei gleichzeitiger Anzeige direkt aneinanderzustoßen.
+- Die Markierung nicht zum Haushalt zählender Personen heißt jetzt "Nicht im selben Haushalt" statt "Nicht im Haushalt".
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Wird in den nächsten 30 Tagen gelöscht", der Kunden zeigt, deren Daten wegen Ablaufs der Aufbewahrungsfrist bald automatisch entfernt werden.
 - Eine neue Benachrichtigungsart "Bereinigungsjob auffällig" informiert Administrator:innen jetzt per Push, wenn eine automatische Lösch-Bereinigung (Haushalte, Benutzerkonten, Mitarbeiter oder Änderungsprotokoll) fehlschlägt oder mehr Datensätze als konfiguriert löschen würde - in letzterem Fall wird die Löschung dieses Durchlaufs abgebrochen, statt durchzuführen.
 - Dateien im Scanner-Ordner, die nicht importiert oder gelöscht werden, werden jetzt nach 7 Tagen automatisch entfernt; Benutzer:innen mit der Berechtigung "Kunden-Dokumente" erhalten vorher eine Push-Benachrichtigung, damit die Datei rechtzeitig importiert oder bewusst gelöscht werden kann.
@@ -30,6 +34,10 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Datenschutzerklärung für Kund:innen enthält jetzt zusätzlich Angaben zu Empfänger:innen, Datenübermittlung in Drittländer, Pflichtangaben/Folgen der Nichtbereitstellung sowie automatisierter Entscheidungsfindung; die genannte Aufbewahrungsfrist wird nicht mehr fest eingetragen, sondern aus der aktuellen Konfiguration übernommen.
 - Mitarbeiter:innen können sich über das Benutzermenü jetzt eine eigene Datenschutzerklärung herunterladen; für Mitarbeiter:innen ohne eigenes Benutzerkonto steht dieselbe Datenschutzerklärung auch auf der Seite "Mitarbeiter" zum Download bereit.
 - Die Datenschutzerklärung für Kund:innen und für Mitarbeiter:innen zeigt jetzt in der Fußzeile das Erstellungsdatum sowie die Seitenzahl an.
+- Kundennotizen können jetzt im Dialog "Alle Notizen anzeigen" von der Person, die sie verfasst hat, nachträglich korrigiert oder endgültig gelöscht werden, statt nur unveränderlich angelegt werden zu können.
+- Eine neu erfasste Kundennotiz mit mehreren Zeilen zeigt nicht mehr fälschlich das Zeichen "<br/>" anstelle eines Zeilenumbruchs an.
+- Die DSGVO-Datenexporte für Benutzerkonten und Mitarbeiter ohne Konto sind jetzt jeweils eine ZIP-Datei statt einer einzelnen PDF-Datei und enthalten zusätzlich zur PDF-Datei dieselben Daten maschinenlesbar als JSON-Datei; der Kunden-Datenexport enthält diese JSON-Datei jetzt ebenfalls zusätzlich zur bestehenden PDF-Datei.
+- Das Änderungsprotokoll erfasst jetzt zusätzlich das Öffnen der Detailansicht eines Benutzerkontos als Zugriff auf sensible Daten, damit die Warnung bei ungewöhnlich vielen Zugriffen auch dieses Aufrufen erkennt.
 
 ## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).

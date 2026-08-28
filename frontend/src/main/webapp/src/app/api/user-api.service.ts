@@ -15,7 +15,7 @@ export class UserApiService {
     return this.http.get<UserData>('/users/' + userId);
   }
 
-  /** The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363), as a PDF. */
+  /** The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363), as a ZIP (PDF plus a machine-readable JSON file). */
   exportUser(): Observable<HttpResponse<Blob>> {
     return this.http.get('/users/export', {responseType: 'blob', observe: 'response'});
   }

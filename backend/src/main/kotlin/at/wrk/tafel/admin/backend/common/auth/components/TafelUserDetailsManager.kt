@@ -6,7 +6,11 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.enabledEquals
@@ -32,6 +36,7 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
+import java.time.Clock
 import java.time.LocalDateTime
 
 class TafelUserDetailsManager(
@@ -41,6 +46,10 @@ class TafelUserDetailsManager(
     private val passwordValidator: PasswordValidator,
     private val tafelAdminProperties: TafelAdminProperties,
     private val loginAttemptService: LoginAttemptService,
+    private val auditLogWriter: AuditLogWriter,
+    private val auditLogRepository: AuditLogRepository,
+    private val auditActorProvider: AuditActorProvider,
+    private val clock: Clock,
 ) : UserDetailsManager {
 
     fun loadUserById(userId: Long): TafelUser? = userRepository.findById(userId)
@@ -55,6 +64,43 @@ class TafelUserDetailsManager(
     fun loadUserByPersonnelNumber(personnelNumber: String): TafelUser? {
         val user = userRepository.findByEmployeePersonnelNumber(personnelNumber)
         return user?.let { mapToUserDetails(user) }
+    }
+
+    /**
+     * A user-detail view (`UserController.getUser`/`getUserByPersonnelNumber`) being read one
+     * account at a time - recorded as an `AuditOperation.READ` for the same GDPR gap G11 breach
+     * detection as `HouseholdService.findByHouseholdId` (issue #3430), now closed for a staff
+     * member's own account data too (issue #3493). Mirrors `recordHouseholdRead` there: entity type
+     * `"User"` (the same type `UserEntity`'s own insert/update/delete entries use) and `businessKey`
+     * the viewed username, de-duplicated per actor+user within `tafeladmin.audit.readDedupeWindow`
+     * so reloading the same screen isn't counted as a fresh read. Deliberately not folded into
+     * [loadUserById]/[loadUserByPersonnelNumber] themselves - those are also called by write flows
+     * (update/delete/export) that must not each count as a read.
+     */
+    fun recordUserRead(user: TafelUser) {
+        val actorUsername = auditActorProvider.currentUsername() ?: return
+        val businessKey = user.username
+        val since = LocalDateTime.now(clock).minus(tafelAdminProperties.audit.readDedupeWindow)
+        val alreadyRecorded = auditLogRepository.existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+            "User",
+            businessKey,
+            AuditOperation.READ,
+            actorUsername,
+            since,
+        )
+        if (alreadyRecorded) {
+            return
+        }
+
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = "User",
+                entityId = user.id,
+                businessKey = businessKey,
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
     }
 
     /**

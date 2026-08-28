@@ -22,6 +22,8 @@ interface HouseholdNoteRepository : JpaRepository<HouseholdNoteEntity, Long> {
      */
     fun findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId: Long): List<HouseholdNoteEntity>
 
+    fun findByIdAndHouseholdHouseholdId(id: Long, householdId: Long): HouseholdNoteEntity?
+
     @Query("select count(n) from HouseholdNote n where n.household.id in :sourceEntityIds")
     fun countByHouseholdEntityIdIn(@Param("sourceEntityIds") sourceEntityIds: Collection<Long>): Int
 

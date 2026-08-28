@@ -114,7 +114,7 @@ class UserControllerTest {
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
-        val testFilename = "benutzerdaten-${testUser.username}.pdf"
+        val testFilename = "benutzerdaten-${testUser.username}.zip"
         every { userExportService.exportUserByUsername(testUser.username) } returns UserExportFileResult(
             filename = testFilename,
             bytes = testFilename.toByteArray(),
@@ -123,7 +123,7 @@ class UserControllerTest {
         val response = controller.exportUser()
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/zip")
         assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
         assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
 
@@ -150,7 +150,7 @@ class UserControllerTest {
 
     @Test
     fun `export user by id`() {
-        val testFilename = "benutzerdaten-${testUser.username}.pdf"
+        val testFilename = "benutzerdaten-${testUser.username}.zip"
         every { userExportService.exportUserById(1) } returns UserExportFileResult(
             filename = testFilename,
             bytes = testFilename.toByteArray(),
@@ -159,7 +159,7 @@ class UserControllerTest {
         val response = controller.exportUserById(1)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/zip")
         assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
         assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
     }
@@ -314,6 +314,30 @@ class UserControllerTest {
         val response = controller.getUser(1)
 
         assertThat(response.body?.lockedUntil).isEqualTo(lockedUntil)
+    }
+
+    /**
+     * The actual `AuditOperation.READ` recording (dedupe window, actor resolution) is
+     * `TafelUserDetailsManager.recordUserRead`'s own concern, covered by
+     * `TafelUserDetailsManagerTest` - this only pins down that the detail-view endpoint hands the
+     * loaded user to it (issue #3493).
+     */
+    @Test
+    fun `get user records a READ via TafelUserDetailsManager`() {
+        every { userDetailsManager.loadUserById(1) } returns testUser
+
+        controller.getUser(1)
+
+        verify(exactly = 1) { userDetailsManager.recordUserRead(testUser) }
+    }
+
+    @Test
+    fun `get user by personnel number records a READ via TafelUserDetailsManager`() {
+        every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns testUser
+
+        controller.getUserByPersonnelNumber(testUser.personnelNumber)
+
+        verify(exactly = 1) { userDetailsManager.recordUserRead(testUser) }
     }
 
     @Test
