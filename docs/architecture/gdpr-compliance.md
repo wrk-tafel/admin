@@ -892,10 +892,12 @@ already is.
 [#3510](https://github.com/wrk-tafel/admin/issues/3510) and
 [#3511](https://github.com/wrk-tafel/admin/issues/3511).
 
-`spring.mail`'s `starttls.enable: true` without `starttls.required: true` is opportunistic: a relay
-that does not offer STARTTLS — or a path that strips the capability — gets the report PDFs and the
-support screenshots in plaintext. Requiring it is one line, but an operator-facing one, since a relay
-without TLS would then park every mail as `FAILED` (visibly, per ADR-0046) rather than send it.
+`spring.mail`'s `starttls.enable: true` without `starttls.required: true` was opportunistic: a relay
+that does not offer STARTTLS — or a path that strips the capability — got the report PDFs and the
+support screenshots in plaintext. `starttls.required: true` closes this (#3510); a relay without TLS
+now parks every mail as `FAILED` (visibly, per ADR-0046) instead of sending it in the clear —
+`application-local.yml` overrides it back to `false` for the local Mailpit container, which has no
+TLS cert configured.
 Separately, `MailDeliveryFailedPushListener` names a failed mail by its *subject* in the push body,
 and a support request's subject is the reporter's own title — which [G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name)
 already accepts may hold a customer's name; the payload is encrypted for the push provider, but the
@@ -1016,7 +1018,7 @@ number here.
 | 24 | [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail) search terms in `access.log`, the URL and the support mail | [#3506](https://github.com/wrk-tafel/admin/issues/3506) | small | access-log pattern without the query string; strip the query from the support context's `page` |
 | 25 | [G26](#g26-three-report-permissions-reach-the-whole-household-record-without-customer) report permissions reach the full household record | [#3508](https://github.com/wrk-tafel/admin/issues/3508) | small | enforce `CUSTOMER and <report permission>` server-side, or slim the list items |
 | 26 | [G27](#g27-the-notices-omit-the-ip-address-staff-and-the-audit-trail-customers) notices omit the IP address / the audit trail | [#3509](https://github.com/wrk-tafel/admin/issues/3509) | small | two paragraphs, figures as template parameters, golden PDFs regenerated |
-| 27 | [G28](#g28-two-smaller-confidentiality-leaks-opportunistic-smtp-tls-and-a-mail-subject-on-a-lock-screen) opportunistic SMTP TLS; mail subject in a push body | [#3510](https://github.com/wrk-tafel/admin/issues/3510), [#3511](https://github.com/wrk-tafel/admin/issues/3511) | trivial | `starttls.required: true` after confirming the relay; name a failed mail by type and id |
+| 27 | [G28](#g28-two-smaller-confidentiality-leaks-opportunistic-smtp-tls-and-a-mail-subject-on-a-lock-screen) opportunistic SMTP TLS (done); mail subject in a push body (open) | [#3510](https://github.com/wrk-tafel/admin/issues/3510), [#3511](https://github.com/wrk-tafel/admin/issues/3511) | trivial | `starttls.required: true` set — confirm the production relay supports STARTTLS; name a failed mail by type and id |
 | 28 | [G29](#g29-a-signed-privacy-notice-can-now-be-flagged-when-its-printed-retention-figure-has-drifted-from-the-live-config) a signed privacy notice can silently drift from a later-changed retention window | [#3500](https://github.com/wrk-tafel/admin/issues/3500) | done | `DocumentEntity.retentionPeriodAtUpload` stamped at upload, a "Datenschutzerklärung veraltet" customer-search filter; whether to act on a drift stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 
 G1–G23 and G29 are done — the operator has answered every question in #3185's coded-work table,
