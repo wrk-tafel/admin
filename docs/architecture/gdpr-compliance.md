@@ -635,6 +635,28 @@ What remains open: the ceilings are fixed defaults an operator has to actively t
 size, same caveat as G11's read-access threshold; and the alert only ever reaches someone already
 holding `ADMINISTRATOR` and push notifications on their device.
 
+### G20 A household's consent can now be withdrawn, not just granted
+
+**Art. 7(3), Art. 17(1)(b).**
+
+G2 settled on consent as the household's collection basis, a signed paper form with its upload as
+the whole record, deliberately with no stored consent field anywhere to go stale. That also meant a
+withdrawal had no path a member of staff could act through except deleting the household by hand,
+indistinguishable in the audit trail from a retention sweep, a merge, or any other kind of delete.
+
+`DELETE /api/households/{householdId}/consent-withdrawal` (`HouseholdController.withdrawConsent`)
+performs the identical erasure as the plain delete endpoint, with one addition:
+`HouseholdService.deleteHouseholdByConsentWithdrawal` records an extra audit entry first, under
+`AuditScope.CONSENT_WITHDRAWAL_ENTITY_TYPE` ("HouseholdConsentWithdrawal") rather than the
+"Household" type the Hibernate listener's own row already uses for every deletion path — so a
+withdrawal is now distinguishable from a retention deletion, a merge, or a plain staff-initiated
+delete. Offered from customer-detail's "Weitere Aktionen" menu, next to "Kunde löschen", behind a
+confirmation dialog naming the same irreversibility.
+
+What remains open: whether a withdrawn household should also be "tombstoned" — remembered as
+ineligible for re-registration — is an operator decision, not answered here; nothing in the
+application currently prevents the same person registering again after a withdrawal.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -696,6 +718,7 @@ number here.
 | 16 | [G16](#g16-a-document-upload-is-now-checked-against-what-the-file-actually-is-not-just-its-declared-type) uploads trusted the declared content type | [#3420](https://github.com/wrk-tafel/admin/issues/3420) | done | `validateContentType` checks extension and magic bytes too, on both upload paths |
 | 17 | [G18](#g18-the-scanner-share-now-expires-files-too-with-a-warning-before-it-does) scanner share unbounded | [#3443](https://github.com/wrk-tafel/admin/issues/3443) | done | nightly job modelled on `HouseholdRetentionService`, `tafeladmin.storage.scannerFileRetention*`, plus a push warning before deletion |
 | 18 | [G19](#g19-a-retention-job-now-reports-itself-instead-of-only-logging-one-aggregate-line) retention jobs had no preview, no failure alert, no upper bound | [#3437](https://github.com/wrk-tafel/admin/issues/3437) | done | `RetentionRunAlertEvent`/`RETENTION_RUN` push, per-job `maxDeletionsPerRun` ceilings, `tafeladmin.audit.cleanupEnabled`, the "wird bald gelöscht" search filter |
+| 19 | [G20](#g20-a-households-consent-can-now-be-withdrawn-not-just-granted) no path to honour a withdrawn consent | [#3416](https://github.com/wrk-tafel/admin/issues/3416) | done | `DELETE /api/households/{householdId}/consent-withdrawal`, audited under `HouseholdConsentWithdrawal` |
 
 Every gap in this table is done — the operator has now answered every question in #3185's
 coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR

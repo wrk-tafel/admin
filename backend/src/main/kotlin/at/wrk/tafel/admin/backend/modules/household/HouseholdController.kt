@@ -145,6 +145,22 @@ class HouseholdController(
         return ResponseEntity.noContent().build()
     }
 
+    /**
+     * The GDPR Art. 7(3)/17(1)(b) consent-withdrawal path (issue #3416) - the same erasure as plain
+     * [deleteHousehold], but audited under a distinct entity type recording that this delete was a
+     * withdrawal rather than a retention sweep, a duplicate, or any other reason.
+     */
+    @DeleteMapping("/{householdId}/consent-withdrawal")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun withdrawConsent(@PathVariable householdId: Long): ResponseEntity<Unit> {
+        if (!householdService.existsByHouseholdId(householdId)) {
+            throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+        }
+
+        householdService.deleteHouseholdByConsentWithdrawal(householdId)
+        return ResponseEntity.noContent().build()
+    }
+
     @GetMapping("/{householdId}/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun generatePdf(

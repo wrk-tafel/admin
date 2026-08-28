@@ -120,7 +120,8 @@ export const auditEntityTypeLabel: Record<string, string> = {
   UserLogin: 'Login',
   ScannerFile: 'Scanner-Datei',
   DistributionHouseholdList: 'Kundenliste (Ausgabe)',
-  Employee: 'Mitarbeiter'
+  Employee: 'Mitarbeiter',
+  HouseholdConsentWithdrawal: 'Einwilligung widerrufen'
 };
 
 export const auditOperationLabel: Record<AuditOperation, string> = {

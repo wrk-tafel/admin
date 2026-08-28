@@ -104,6 +104,38 @@ describe('Customer Detail', () => {
     });
   });
 
+  it('withdraw consent', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id;
+      cy.visit('/kunden/detail/' + customerId);
+
+      openEditMenu();
+      cy.byTestId('withdrawConsentButton').click();
+
+      cy.byTestId('withdrawconsent-dialog').should('be.visible');
+      cy.byTestId('withdrawconsent-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+
+      cy.wait(6000);
+      cy.byTestId('withdrawconsent-dialog').should('not.exist');
+
+      openEditMenu();
+      cy.byTestId('withdrawConsentButton').click();
+      cy.byTestId('withdrawconsent-dialog').within(() => {
+        cy.byTestId('okButton').click();
+      });
+
+      cy.url({timeout: 10000}).should('include', '/kunden/suchen');
+
+      // The withdrawal is recorded under its own distinct entity type (issue #3416), not just as
+      // the plain "Household"/DELETE row every other deletion path also produces.
+      cy.visit(`/aenderungsprotokoll?art=HouseholdConsentWithdrawal&aenderung=&benutzer=&nummer=${customerId}&von=&bis=`);
+      cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Einwilligung widerrufen');
+      cy.byTestId('audit-entry-0-operation').should('contain.text', 'Gelöscht');
+    });
+  });
+
   it('prolong customer', () => {
     cy.visit('/kunden/detail/100');
 
@@ -1147,6 +1179,14 @@ describe('Customer Detail', () => {
         cy.byTestId('editCustomerToggleButton').click();
         cy.byTestId('deleteCustomerButton').click();
         cy.byTestId('deletecustomer-dialog').should('be.visible');
+        cy.checkDialogAccessibility();
+        cy.byTestId('deletecustomer-dialog').within(() => {
+          cy.byTestId('cancelButton').click();
+        });
+
+        cy.byTestId('editCustomerToggleButton').click();
+        cy.byTestId('withdrawConsentButton').click();
+        cy.byTestId('withdrawconsent-dialog').should('be.visible');
         cy.checkDialogAccessibility();
       });
     });

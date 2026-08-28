@@ -61,6 +61,14 @@ export class CustomerApiService {
     return this.http.delete<void>(`/households/${customerId}`, {context});
   }
 
+  /**
+   * The GDPR Art. 7(3)/17(1)(b) consent-withdrawal path (issue #3416) - the same erasure as
+   * {@link deleteCustomer}, audited under a distinct reason.
+   */
+  withdrawConsent(customerId: number, context?: HttpContext): Observable<void> {
+    return this.http.delete<void>(`/households/${customerId}/consent-withdrawal`, {context});
+  }
+
   getCustomer(id: number, context?: HttpContext): Observable<CustomerData> {
     return this.http.get<HouseholdData>('/households/' + id, {context}).pipe(map(mapHouseholdToCustomer));
   }

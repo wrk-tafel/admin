@@ -422,6 +422,29 @@ class HouseholdControllerTest {
     }
 
     @Test
+    fun `withdraw consent - doesnt exist`() {
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns false
+
+        val exception =
+            assertThrows<NotFoundException> { controller.withdrawConsent(testHouseholdRequest.id!!) }
+
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        verify { householdService.existsByHouseholdId(testHouseholdRequest.id!!) }
+    }
+
+    @Test
+    fun `withdraw consent - exists`() {
+        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns true
+
+        val response = controller.withdrawConsent(testHouseholdRequest.id!!)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        verify { householdService.existsByHouseholdId(testHouseholdRequest.id!!) }
+        verify { householdService.deleteHouseholdByConsentWithdrawal(testHouseholdRequest.id!!) }
+    }
+
+    @Test
     fun `get households - mapped correctly`() {
         val testSearchResult = HouseholdSearchResult(
             items = listOf(testHouseholdResponse),

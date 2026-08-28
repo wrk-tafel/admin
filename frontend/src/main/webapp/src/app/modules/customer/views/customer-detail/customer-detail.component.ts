@@ -25,6 +25,7 @@ import {
   documentTypeLabel
 } from '../../../../api/customer-document-api.service';
 import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.component';
+import {WithdrawConsentDialogComponent} from './dialogs/withdraw-consent-dialog.component';
 import {AllNotesDialogComponent} from './dialogs/all-notes-dialog.component';
 import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
 import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.component';
@@ -319,6 +320,30 @@ export class CustomerDetailComponent {
           },
           error: (error: HttpErrorResponse) => {
             this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen!');
+          },
+        });
+      }
+    });
+  }
+
+  /**
+   * The GDPR Art. 7(3)/17(1)(b) consent-withdrawal path (issue #3416) - the same erasure as
+   * {@link openDeleteCustomerDialog}, audited under a distinct reason.
+   */
+  openWithdrawConsentDialog() {
+    const customer = this.customerData();
+    this.dialog.open(WithdrawConsentDialogComponent, {
+      data: {customerName: `${customer.lastname} ${customer.firstname}`, ticketNumber: this.ticketNumber()}
+    })
+      .afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.customerApiService.withdrawConsent(this.customerData().id!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+          next: async () => {
+            this.toastr.success('Einwilligung wurde widerrufen, Kunde wurde gelöscht!');
+            await this.router.navigate(['/kunden/suchen']);
+          },
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Widerruf fehlgeschlagen!');
           },
         });
       }

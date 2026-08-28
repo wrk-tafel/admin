@@ -64,6 +64,18 @@ object AuditScope {
     const val EMPLOYEE_EXPORT_ENTITY_TYPE = "Employee"
 
     /**
+     * A household deleted because its consent was withdrawn (Art. 7(3)/17(1)(b)) rather than for
+     * retention, a duplicate, or any other reason - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.deleteHouseholdByConsentWithdrawal].
+     * Recorded as an extra entry alongside, not instead of, the [HouseholdEntity] listener's own
+     * "Household"/DELETE row: that row already exists for every deletion path and carries no reason,
+     * so it cannot be repurposed to mean "withdrawn" without also meaning every other kind of delete.
+     * By the time this is recorded the household is already gone, so - like [USER_LOGIN_ENTITY_TYPE] -
+     * it has no [auditedEntities] map entry.
+     */
+    const val CONSENT_WITHDRAWAL_ENTITY_TYPE = "HouseholdConsentWithdrawal"
+
+    /**
      * @param entityType the label stored in `audit_log.entity_type`. Kept as a stable string rather
      * than the class name so renaming a Kotlin class doesn't split one entity's history in two.
      * @param householdScoped whether [businessKey] yields a household number, i.e. whether entries
@@ -148,7 +160,13 @@ object AuditScope {
 
     val allEntityTypes: List<String> = (
         auditedEntities.values.map { it.entityType } +
-            listOf(USER_LOGIN_ENTITY_TYPE, SCANNER_FILE_ENTITY_TYPE, DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE, EMPLOYEE_EXPORT_ENTITY_TYPE)
+            listOf(
+                USER_LOGIN_ENTITY_TYPE,
+                SCANNER_FILE_ENTITY_TYPE,
+                DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE,
+                EMPLOYEE_EXPORT_ENTITY_TYPE,
+                CONSENT_WITHDRAWAL_ENTITY_TYPE,
+            )
         ).distinct().sorted()
 
     /**

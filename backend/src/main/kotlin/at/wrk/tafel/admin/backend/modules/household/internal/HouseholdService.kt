@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -633,6 +634,32 @@ class HouseholdService(
         filename = "datenschutzerklaerung-vorlage.pdf",
         bytes = householdPdfService.generatePrivacyNoticeTemplatePdf(),
     )
+
+    /**
+     * The GDPR Art. 7(3)/17(1)(b) consent-withdrawal path (issue #3416): the same erasure as
+     * [deleteHouseholdByHouseholdId], plus one extra, distinctly-typed audit entry recording *why* -
+     * the plain delete's own listener-recorded "Household"/DELETE row exists for every deletion path
+     * and carries no reason, so it cannot double as "this one was a withdrawal". No consent field
+     * exists anywhere to clear (see `docs/architecture/gdpr-compliance.md`'s G2 - consent is a signed
+     * paper form, not a stored value), so recording the withdrawal and erasing the household is the
+     * whole of what honouring it means.
+     */
+    @Transactional
+    fun deleteHouseholdByConsentWithdrawal(householdId: Long) {
+        val household = householdRepository.findByHouseholdId(householdId) ?: return
+
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = AuditScope.CONSENT_WITHDRAWAL_ENTITY_TYPE,
+                entityId = household.id,
+                businessKey = household.householdId.toString(),
+                operation = AuditOperation.DELETE,
+                changedFields = emptyMap(),
+            ),
+        )
+
+        deleteHouseholdByHouseholdId(householdId)
+    }
 
     @Transactional
     fun deleteHouseholdByHouseholdId(householdId: Long) {

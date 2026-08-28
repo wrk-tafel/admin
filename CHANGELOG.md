@@ -27,6 +27,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Live-Aktualisierung der Scanner-Dateiliste im Dokumente-Tab der Kundenansicht benötigt jetzt ebenfalls die Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung.
 - Der Download von Kundendokumenten sowie von DSGVO-Exporten (Benutzer, Mitarbeiter, Datenauskunft, Ausgabe-Kundenliste) schlägt nicht mehr fehl, wenn der Dateiname Sonderzeichen, Anführungszeichen oder Umlaute enthält.
 - Der Download von Kunden-Stammdatenblatt/Ausweis, Kunden-ZIP-Export, Datenschutzerklärung-Vorlage, Auswertungen (über Limit, Kundenübersicht, Statistik-CSVs) sowie Scanner-Dateien schlägt jetzt ebenfalls nicht mehr fehl, wenn der Dateiname Sonderzeichen, Anführungszeichen oder Umlaute enthält.
+- In der Kundenansicht kann unter "Weitere Aktionen" jetzt gezielt eine "Einwilligung widerrufen" werden - der Kunde wird dabei wie gewohnt gelöscht, der Widerruf wird im Änderungsprotokoll aber gesondert vom Grund einer gewöhnlichen Löschung vermerkt.
 
 ## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).

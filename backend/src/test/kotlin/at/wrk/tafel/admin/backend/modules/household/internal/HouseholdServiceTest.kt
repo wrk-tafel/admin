@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
@@ -1489,6 +1490,37 @@ class HouseholdServiceTest {
 
         service.deleteHouseholdByHouseholdId(999L)
 
+        verify(exactly = 0) { householdRepository.delete(any<HouseholdEntity>()) }
+    }
+
+    @Test
+    fun `delete household by consent withdrawal - records a distinct audit entry and deletes the household`() {
+        val householdId = 123L
+        val testHouseholdEntity = testHouseholdEntityWithMainPerson().apply { id = 42 }
+        every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+
+        service.deleteHouseholdByConsentWithdrawal(householdId)
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo(AuditScope.CONSENT_WITHDRAWAL_ENTITY_TYPE)
+        assertThat(entrySlot.captured.entityId).isEqualTo(42L)
+        assertThat(entrySlot.captured.businessKey).isEqualTo("100")
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.DELETE)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
+
+        assertThat(testHouseholdEntity.mainPerson).isNull()
+        verify(exactly = 1) { householdRepository.delete(testHouseholdEntity) }
+    }
+
+    @Test
+    fun `delete household by consent withdrawal - unknown household is ignored`() {
+        every { householdRepository.findByHouseholdId(any()) } returns null
+
+        service.deleteHouseholdByConsentWithdrawal(999L)
+
+        verify(exactly = 0) { auditLogWriter.record(any()) }
         verify(exactly = 0) { householdRepository.delete(any<HouseholdEntity>()) }
     }
 

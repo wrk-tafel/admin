@@ -173,6 +173,11 @@
       <button mat-menu-item testid="deleteCustomerButton" (click)="openDeleteCustomerDialog()"
               [disabled]="!customerData() || customerData()?.locked">Kunde löschen
       </button>
+      <!-- The GDPR Art. 7(3)/17(1)(b) consent-withdrawal path (issue #3416) - same erasure as
+           "Kunde löschen", audited under a distinct reason. -->
+      <button mat-menu-item testid="withdrawConsentButton" (click)="openWithdrawConsentDialog()"
+              [disabled]="!customerData() || customerData()?.locked">Einwilligung widerrufen
+      </button>
     </mat-menu>
   </div>
 </ng-template>

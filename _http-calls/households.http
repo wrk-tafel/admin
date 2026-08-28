@@ -183,6 +183,10 @@ Content-Type: application/json
 DELETE {{baseApiPath}}/households/100
 Content-Type: application/json
 
+### Withdraw consent for household 100 (deletes it, audited as a withdrawal rather than a plain delete)
+DELETE {{baseApiPath}}/households/100/consent-withdrawal
+Content-Type: application/json
+
 ### Get masterdata pdf
 GET {{baseApiPath}}/households/100/generate-pdf?type=MASTERDATA
 Content-Type: application/json

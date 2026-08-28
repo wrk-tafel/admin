@@ -58,6 +58,13 @@ everything else, filterable like any other entry. It has no `AuditScope.auditedE
 (a login is never loaded or saved through the persistence context, so no Hibernate event exists to
 key one off) and carries no field diff, only that it happened.
 
+A household deleted because its consent was withdrawn gets the same kind of manually-recorded extra
+entry: `HouseholdService.deleteHouseholdByConsentWithdrawal` (GDPR G20, issue #3416) records one under
+`entityType` `HouseholdConsentWithdrawal` (`AuditScope.CONSENT_WITHDRAWAL_ENTITY_TYPE`) *before*
+calling the same erasure `deleteHouseholdByHouseholdId` performs for any other delete — so the
+household's own listener-recorded "Household"/`DELETE` entry still exists exactly as it always did,
+and the withdrawal reason lives in its own, separately filterable entry instead of overloading it.
+
 ## The gap to know about
 
 **Bulk `@Modifying` queries and native SQL never reach a Hibernate event.** Those callers have to

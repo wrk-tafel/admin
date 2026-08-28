@@ -1,0 +1,13 @@
+<tafel-dialog testId="withdrawconsent-dialog" type="warning" title="Einwilligung widerrufen">
+  <div tafel-dialog-content>
+    <div class="mb-2">Die Einwilligung von <strong testid="withdrawconsent-name">{{data.customerName}}</strong> wird widerrufen. Der Kunde wird dabei unwiderruflich gelöscht.</div>
+    @if (data.ticketNumber) {
+      <div class="mb-2" testid="withdrawconsent-ticket-warning">Ticket Nr. {{data.ticketNumber}} wird aus der laufenden Ausgabe entfernt.</div>
+    }
+    <div class="font-bold mt-6">Sicher?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(true)">Widerrufen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

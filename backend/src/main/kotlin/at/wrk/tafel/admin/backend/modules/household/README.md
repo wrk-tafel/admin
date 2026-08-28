@@ -109,6 +109,10 @@ a row that's about to be orphan-removed on the same flush.
 REST endpoint for household CRUD, validation, PDF generation, the GDPR data takeout, above-cost-limit
 listing, duplicate search and duplicate merging. All endpoints require `CUSTOMER` (or
 `CUSTOMER_DUPLICATES` / `CUSTOMERS_ABOVE_LIMIT` for the respective sub-features). Notable behavior:
+- `DELETE /{householdId}/consent-withdrawal` (`withdrawConsent`) is the same erasure as the plain
+  `DELETE /{householdId}`, plus one extra audit entry recording that this delete was a consent
+  withdrawal (GDPR G20, issue #3416) - see `HouseholdService.deleteHouseholdByConsentWithdrawal`
+  below.
 - `createHousehold`/`updateHousehold` take a `force: Boolean` query param and check
   `isSupervisor` (role `SUPERVISOR`) from the JWT - see "Income validation" below for what that
   gates.
@@ -130,7 +134,9 @@ subquery over `household_documents` for `documentType = PRIVACY_NOTICE` - it rea
 `DocumentType.PRIVACY_NOTICE` uploads write (GDPR G2, issue #3177), not a stored consent flag; there
 still is none. `getHouseholdsAboveLimit`,
 `getHouseholdsOverview`, `generatePdf`,
-`deleteHouseholdByHouseholdId`. Owns the `saveWithMainPerson` save-order logic described above.
+`deleteHouseholdByHouseholdId`, `deleteHouseholdByConsentWithdrawal` (the same erasure, plus an
+extra audit entry under `AuditScope.CONSENT_WITHDRAWAL_ENTITY_TYPE` recording *why* - GDPR G20,
+issue #3416). Owns the `saveWithMainPerson` save-order logic described above.
 Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see
 below.
 
@@ -348,7 +354,9 @@ in-process via the `qrcode` library, with the Tafel logo overlaid.
 deliberately less than `PdfData`, since the notice sheet is a static text plus a signature line, not
 a data export. There is no stored consent field anywhere in the application: the printed, signed
 sheet handed to the customer at intake and filed outside the app is the whole record (GDPR G2,
-issue #3177). The notice text in `includes/privacy-notice.xsl` - purpose, legal basis, retention,
+issue #3177). Withdrawing that consent has nothing to clear either - it means erasing the household,
+which `HouseholdController.withdrawConsent`/`HouseholdService.deleteHouseholdByConsentWithdrawal`
+do (GDPR G20, issue #3416). The notice text in `includes/privacy-notice.xsl` - purpose, legal basis, retention,
 rights and contact - is written for this intake flow; controller identity, DPO contact and the
 rights/complaints wording come from the organisation's own published privacy notice (see the file's
 own header comment for the source and date checked), since that page has no section covering

@@ -156,6 +156,7 @@ describe('CustomerDetailComponent', () => {
       generatePdf: vi.fn().mockName('CustomerApiService.generatePdf'),
       exportHousehold: vi.fn().mockName('CustomerApiService.exportHousehold'),
       deleteCustomer: vi.fn().mockReturnValue(of(undefined)).mockName('CustomerApiService.deleteCustomer'),
+      withdrawConsent: vi.fn().mockReturnValue(of(undefined)).mockName('CustomerApiService.withdrawConsent'),
       updateCustomer: vi.fn().mockImplementation((customerData: CustomerData) => of({
         data: customerData,
         errorMsg: null
@@ -569,6 +570,50 @@ describe('CustomerDetailComponent', () => {
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
     expect(location.path()).not.toBe('/kunden/suchen');
     expect(toastr.error).toHaveBeenCalledWith('Es ist ein unerwarteter Fehler aufgetreten.', 'Löschen fehlgeschlagen!');
+  });
+
+  it('withdraw consent successful', async () => {
+    const location = TestBed.inject(Location);
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    customerApiService.withdrawConsent.mockReturnValue(of(undefined));
+
+    component.openWithdrawConsentDialog();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(customerApiService.withdrawConsent).toHaveBeenCalled();
+    expect(location.path()).toBe('/kunden/suchen');
+    expect(toastr.success).toHaveBeenCalledWith('Einwilligung wurde widerrufen, Kunde wurde gelöscht!');
+  });
+
+  it('withdraw consent failed', () => {
+    const location = TestBed.inject(Location);
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    customerApiService.withdrawConsent.mockReturnValue(throwError(() => ({status: 404})));
+
+    component.openWithdrawConsentDialog();
+
+    expect(customerApiService.withdrawConsent).toHaveBeenCalled();
+    expect(location.path()).not.toBe('/kunden/suchen');
+    expect(toastr.error).toHaveBeenCalledWith('Es ist ein unerwarteter Fehler aufgetreten.', 'Widerruf fehlgeschlagen!');
   });
 
   it('prolong customer', () => {
