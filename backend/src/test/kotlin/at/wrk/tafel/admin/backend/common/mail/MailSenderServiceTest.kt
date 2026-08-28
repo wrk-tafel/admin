@@ -54,7 +54,7 @@ internal class MailSenderServiceTest {
 
         service.sendTextMail(MailType.DAILY_REPORT, "subject", "text", emptyList())
 
-        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any()) }
+        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any(), any()) }
     }
 
     @Test
@@ -85,7 +85,7 @@ internal class MailSenderServiceTest {
         service.sendTextMail(MailType.DAILY_REPORT, subject, text, listOf(attachment))
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
@@ -127,7 +127,7 @@ internal class MailSenderServiceTest {
         service.sendTextMail(MailType.DAILY_REPORT, subject, text)
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage.subject).isEqualTo(subject)
@@ -150,7 +150,7 @@ internal class MailSenderServiceTest {
         service.sendTextMail(MailType.DAILY_REPORT, subject, "txt")
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         // Regression guard: an unset prefix must not leave a stray leading space in the subject.
         assertThat(mailMessageSlot.captured.subject).isEqualTo(subject)
@@ -168,7 +168,7 @@ internal class MailSenderServiceTest {
             context = Context(),
         )
 
-        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any()) }
+        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any(), any()) }
     }
 
     @Test
@@ -207,7 +207,7 @@ internal class MailSenderServiceTest {
         assertThat(context.getVariable("subTemplate")).isEqualTo(subTemplateName)
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
@@ -257,6 +257,7 @@ internal class MailSenderServiceTest {
 
         val context = Context()
         service.sendHtmlMailTo(
+            mailType = "Support-Anfrage",
             recipients = listOf("support1@localhost", "support2@localhost"),
             subject = "subj",
             templateName = "mails/support-request-mail",
@@ -270,7 +271,7 @@ internal class MailSenderServiceTest {
         verify(exactly = 0) { mailRecipientRepository.findAllByMailType(any()) }
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage.subject).isEqualTo("[PREFIX] subj")
@@ -280,10 +281,11 @@ internal class MailSenderServiceTest {
         assertThat(mailMessage.getRecipients(Message.RecipientType.BCC).map { it.toString() })
             .containsExactly("archive@localhost")
 
-        // subject and recipients are handed over separately so the queue can be read without MIME
+        // mail type, subject and recipients are handed over separately so the queue can be read without MIME
         verify {
             mailOutboxService.enqueue(
                 any(),
+                "Support-Anfrage",
                 "[PREFIX] subj",
                 listOf("support1@localhost", "support2@localhost"),
             )
@@ -309,7 +311,7 @@ internal class MailSenderServiceTest {
         service.sendTextMail(MailType.DAILY_REPORT, "", "")
 
         val mailMessageSlot = slot<MimeMessage>()
-        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any()) }
+        verify { mailOutboxService.enqueue(capture(mailMessageSlot), any(), any(), any()) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
@@ -327,6 +329,30 @@ internal class MailSenderServiceTest {
 
         val bccRecipients = mailMessage.getRecipients(Message.RecipientType.BCC)
         assertThat(bccRecipients.map { it.toString() }).hasSameElementsAs(defaultRecipients)
+    }
+
+    /**
+     * The outbox queues each mail with a human label of what produced it - see
+     * `MailOutboxService.enqueue`'s `mailType` parameter - so a mail given up on can be named without
+     * quoting its subject (issue #3511). This is what the outbox itself has no way to derive.
+     */
+    @Test
+    fun `sendTextMail and sendHtmlMail label the mail by its MailType, for a failed-delivery notification to name it by`() {
+        every { properties.mail!!.from } returns "from-address"
+        every { mailRecipientRepository.findAllByMailType(any()) } returns emptyList()
+        every { templateEngine.process(any<String>(), any<Context>()) } returns "rendered content"
+
+        listOf(
+            MailType.DAILY_REPORT to "Tagesreport",
+            MailType.STATISTICS to "Statistiken",
+            MailType.RETURN_BOXES to "Retourkisten",
+        ).forEach { (mailType, expectedLabel) ->
+            service.sendTextMail(mailType, "subject", "text")
+            verify { mailOutboxService.enqueue(any(), expectedLabel, "subject", any()) }
+
+            service.sendHtmlMail(mailType, "subject", templateName = "templateName", context = Context())
+            verify { mailOutboxService.enqueue(any(), expectedLabel, "subject", any()) }
+        }
     }
 
     private fun findPartByMimeType(part: Part, mimeType: String): Part? {

@@ -70,10 +70,11 @@ class MailOutboxServiceIT : TafelBaseIntegrationTest() {
         }
         val expectedMessage = mimeMessage.toByteArray()
 
-        mailOutboxService.enqueue(mimeMessage, "Support: Login geht nicht", listOf("support@localhost"))
+        mailOutboxService.enqueue(mimeMessage, "Support-Anfrage", "Support: Login geht nicht", listOf("support@localhost"))
 
         val storedMail = mailOutboxRepository.findAll().single { it.recipients == "support@localhost" }
         assertThat(storedMail.id).isNotNull()
+        assertThat(storedMail.mailType).isEqualTo("Support-Anfrage")
         assertThat(storedMail.subject).isEqualTo("Support: Login geht nicht")
         assertThat(storedMail.status).isEqualTo(MailOutboxStatus.PENDING)
         assertThat(storedMail.attempts).isZero()

@@ -898,11 +898,14 @@ support screenshots in plaintext. `starttls.required: true` closes this (#3510);
 now parks every mail as `FAILED` (visibly, per ADR-0046) instead of sending it in the clear —
 `application-local.yml` overrides it back to `false` for the local Mailpit container, which has no
 TLS cert configured.
-Separately, `MailDeliveryFailedPushListener` names a failed mail by its *subject* in the push body,
-and a support request's subject is the reporter's own title — which [G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name)
-already accepts may hold a customer's name; the payload is encrypted for the push provider, but the
-notification is rendered on administrators' lock screens. Naming the mail by type and outbox id is
-enough.
+
+The other half is closed too: `MailDeliveryFailedPushListener` used to name a failed mail by its
+*subject* in the push body, and a support request's subject is the reporter's own title — which
+[G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name) already accepts
+may hold a customer's name; the payload is encrypted for the push provider, but the notification is
+rendered on administrators' lock screens. It now names the mail by its type and the outbox row's id
+instead (e.g. "Support-Anfrage #123 konnte nicht versendet werden"), which `mail_outbox` carries as
+its new `mail_type` column ([#3511](https://github.com/wrk-tafel/admin/issues/3511)).
 
 ### G29 A signed privacy notice can now be flagged when its printed retention figure has drifted from the live config
 
@@ -1018,12 +1021,12 @@ number here.
 | 24 | [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail) search terms in `access.log`, the URL and the support mail | [#3506](https://github.com/wrk-tafel/admin/issues/3506) | small | access-log pattern without the query string; strip the query from the support context's `page` |
 | 25 | [G26](#g26-three-report-permissions-reach-the-whole-household-record-without-customer) report permissions reach the full household record | [#3508](https://github.com/wrk-tafel/admin/issues/3508) | small | enforce `CUSTOMER and <report permission>` server-side, or slim the list items |
 | 26 | [G27](#g27-the-notices-omit-the-ip-address-staff-and-the-audit-trail-customers) notices omit the IP address / the audit trail | [#3509](https://github.com/wrk-tafel/admin/issues/3509) | small | two paragraphs, figures as template parameters, golden PDFs regenerated |
-| 27 | [G28](#g28-two-smaller-confidentiality-leaks-opportunistic-smtp-tls-and-a-mail-subject-on-a-lock-screen) opportunistic SMTP TLS (done); mail subject in a push body (open) | [#3510](https://github.com/wrk-tafel/admin/issues/3510), [#3511](https://github.com/wrk-tafel/admin/issues/3511) | trivial | `starttls.required: true` set — confirm the production relay supports STARTTLS; name a failed mail by type and id |
+| 27 | [G28](#g28-two-smaller-confidentiality-leaks-opportunistic-smtp-tls-and-a-mail-subject-on-a-lock-screen) opportunistic SMTP TLS; mail subject in a push body | [#3510](https://github.com/wrk-tafel/admin/issues/3510), [#3511](https://github.com/wrk-tafel/admin/issues/3511) | done | `starttls.required: true` set, named a failed mail by type and outbox id instead of its subject |
 | 28 | [G29](#g29-a-signed-privacy-notice-can-now-be-flagged-when-its-printed-retention-figure-has-drifted-from-the-live-config) a signed privacy notice can silently drift from a later-changed retention window | [#3500](https://github.com/wrk-tafel/admin/issues/3500) | done | `DocumentEntity.retentionPeriodAtUpload` stamped at upload, a "Datenschutzerklärung veraltet" customer-search filter; whether to act on a drift stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 
-G1–G23 and G29 are done — the operator has answered every question in #3185's coded-work table,
+G1–G23, G28 and G29 are done — the operator has answered every question in #3185's coded-work table,
 and G29 closes the detection half of #3500 (the "what to do about a drift" question stays open, see
-G29's own "what remains open" and [#3496](https://github.com/wrk-tafel/admin/issues/3496)). G24–G28
-were found by the 2026-08-29 re-audit of this document against the code and are open, each with its
-issue above. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
+G29's own "what remains open" and [#3496](https://github.com/wrk-tafel/admin/issues/3496)). G24–G27
+were found by the 2026-08-29 re-audit of this document against the code and are still open, each with
+its issue above. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
 closes it; it stays open until the operator writes those answers down.
