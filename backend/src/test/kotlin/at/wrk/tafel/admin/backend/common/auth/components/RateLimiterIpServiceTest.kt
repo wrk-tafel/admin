@@ -13,7 +13,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneOffset
 
-internal class IpRateLimiterServiceTest {
+internal class RateLimiterIpServiceTest {
 
     private class MutableClock(private var instant: Instant) : Clock() {
         override fun getZone(): ZoneOffset = ZoneOffset.UTC
@@ -33,7 +33,7 @@ internal class IpRateLimiterServiceTest {
         refillPeriodInSeconds = 60,
     )
     private lateinit var applicationProperties: ApplicationProperties
-    private lateinit var service: IpRateLimiterService
+    private lateinit var service: RateLimiterIpService
 
     @BeforeEach
     fun setUp() {
@@ -49,7 +49,7 @@ internal class IpRateLimiterServiceTest {
                 rateLimit = rateLimitProperties,
             ),
         )
-        service = IpRateLimiterService(applicationProperties, clock)
+        service = RateLimiterIpService(applicationProperties, clock)
     }
 
     @Test
@@ -132,7 +132,7 @@ internal class IpRateLimiterServiceTest {
 
     @Suppress("UNCHECKED_CAST")
     private fun bucketCount(): Int {
-        val field = IpRateLimiterService::class.java.getDeclaredField("buckets")
+        val field = RateLimiterIpService::class.java.getDeclaredField("buckets")
         field.isAccessible = true
         return (field.get(service) as Map<String, Any>).size
     }

@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
  * [SecurityRateLimitProperties] for the limits themselves.
  */
 @Service
-class IpRateLimiterService(
+class RateLimiterIpService(
     private val applicationProperties: ApplicationProperties,
     clock: Clock,
 ) {

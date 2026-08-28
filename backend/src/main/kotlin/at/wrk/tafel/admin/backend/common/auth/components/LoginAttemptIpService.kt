@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
  * [at.wrk.tafel.admin.backend.config.properties.SecurityLoginAttemptsIpProperties.maxFailures] is
  * reached - closing the gap a purely per-username counter leaves open for a distributed guesser.
  * State is database-backed like [LoginAttemptService], for the same reason: the limit has to apply
- * cluster-wide, not per instance (unlike [IpRateLimiterService], which only throttles request rate
+ * cluster-wide, not per instance (unlike [RateLimiterIpService], which only throttles request rate
  * and needs no such coordination).
  */
 @Service

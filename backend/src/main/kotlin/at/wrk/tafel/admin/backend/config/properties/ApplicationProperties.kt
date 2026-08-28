@@ -54,7 +54,7 @@ data class SecurityLoginAttemptsIpProperties(
  * `refillTokens` every `refillPeriodInSeconds`. Unlike [SecurityLoginAttemptsProperties], which tracks
  * failures per *username* in the database and therefore applies cluster-wide, this counts *every*
  * request (successful or not) per *IP* and lives only in the process's own memory
- * ([IpRateLimiterService]) - deliberately so, since blunting credential stuffing needs no cross-instance
+ * ([RateLimiterIpService]) - deliberately so, since blunting credential stuffing needs no cross-instance
  * coordination, so a small in-process servlet filter is enough.
  */
 data class SecurityRateLimitProperties(

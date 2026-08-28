@@ -152,7 +152,7 @@ security:
   loginAttemptsIp:
     maxFailures: 30
     lockoutDurationInSeconds: 900 # 15 minutes
-  # A token bucket per client IP (IpRateLimiterService), separately for /api/login and /api/support -
+  # A token bucket per client IP (RateLimiterIpService), separately for /api/login and /api/support -
   # capacity is the burst an IP may spend at once, refilling by refillTokens every
   # refillPeriodInSeconds. Unlike loginAttempts above this counts every request (not just failures)
   # and lives only in this instance's memory, not the database - see RateLimitFilter.

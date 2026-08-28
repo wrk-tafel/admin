@@ -20,7 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 class RateLimitFilter(
     private val requestMatcher: RequestMatcher,
     private val scope: String,
-    private val rateLimiterService: IpRateLimiterService,
+    private val rateLimiterService: RateLimiterIpService,
 ) : OncePerRequestFilter() {
 
     companion object {

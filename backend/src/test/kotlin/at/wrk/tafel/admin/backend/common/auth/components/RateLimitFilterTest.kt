@@ -28,7 +28,7 @@ class RateLimitFilterTest {
     private lateinit var requestMatcher: RequestMatcher
 
     @RelaxedMockK
-    private lateinit var rateLimiterService: IpRateLimiterService
+    private lateinit var rateLimiterService: RateLimiterIpService
 
     private lateinit var filter: RateLimitFilter
 

@@ -102,7 +102,7 @@ qrcode-kotlin-jvm = { module = "io.github.g0dkar:qrcode-kotlin-jvm", version.ref
 
 # Utilities
 passay = { module = "org.passay:passay", version.ref = "passay" }
-# In-memory token-bucket rate limiting (IpRateLimiterService) - _jdk17, matching this project's JDK
+# In-memory token-bucket rate limiting (RateLimiterIpService) - _jdk17, matching this project's JDK
 # 26 toolchain being well above the artifact's JDK 17 baseline.
 bucket4j-core = { module = "com.bucket4j:bucket4j_jdk17-core", version.ref = "bucket4j" }
 apache-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "apache-commons-csv" }
