@@ -118,7 +118,7 @@ describe('AuditLogComponent', () => {
 
     expect(routerMock.navigate).toHaveBeenCalledWith([], expect.objectContaining({
       replaceUrl: true,
-      queryParams: {art: 'User', aenderung: '', benutzer: '', nummer: '', von: defaultFilter.from, bis: defaultFilter.to}
+      queryParams: {art: 'User', zugriff: '', benutzer: '', nummer: '', von: defaultFilter.from, bis: defaultFilter.to}
     }));
   });
 
@@ -138,7 +138,7 @@ describe('AuditLogComponent', () => {
             snapshot: {
               queryParamMap: convertToParamMap({
                 art: 'User',
-                aenderung: 'DELETE',
+                zugriff: 'DELETE',
                 benutzer: 'test-user',
                 nummer: '1234',
                 von: '2026-01-01',

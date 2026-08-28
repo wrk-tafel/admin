@@ -215,7 +215,7 @@ class UserExportService(
 
     /**
      * A login's audit entry is this user's own data (see the class KDoc), bounded the same way the
-     * "Änderungsprotokoll" screen is - by `tafeladmin.audit.retentionDays` (30 days by default), since
+     * "Zugriffsprotokoll" screen is - by `tafeladmin.audit.retentionDays` (30 days by default), since
      * `AuditRetentionService` deletes anything older regardless of entity type.
      */
     private fun buildLoginRows(username: String): List<UserExportLoginRow> = auditLogRepository

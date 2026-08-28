@@ -488,7 +488,7 @@ describe('Shell', () => {
 
     // The export is one of the GDPR-sensitive reads recorded in the audit trail (issue #3180) -
     // proven here against the real backend, not just a mocked unit test.
-    cy.visit('/aenderungsprotokoll');
+    cy.visit('/zugriffsprotokoll');
     cy.byTestId('audit-filter-entityType').click();
     cy.get('mat-option').contains('Benutzer').click();
 

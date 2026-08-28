@@ -240,7 +240,7 @@ Auditing every read would be noise for an application this size; the sensitive h
 (`DocumentScannerController`), Stammdatenblatt/Ausweis generation (`HouseholdService.generatePdf`),
 Kundenliste generation for a distribution (`DistributionService`), and the G5 data-subject export
 (`HouseholdExportService`). They land in the same `audit_log` table and retention window as writes,
-and show up on the existing Änderungsprotokoll screen and a household's "Verlauf" tab like any other
+and show up on the existing Zugriffsprotokoll screen and a household's "Verlauf" tab like any other
 entry.
 
 What remains open: [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) is the detection
@@ -399,7 +399,7 @@ permission-boundary question in the takeout plan's §4. Settled, not open: `audi
 `UserLogin`-typed entries are the one exception (issue #3446) — a login event's subject and actor are
 the same person, so unlike the rest of the trail it is this user's own data rather than another
 record's, and the export now includes it (`buildLoginRows`, retention-bounded the same way the
-Änderungsprotokoll screen is). The export also does not follow references *into* other tables either -
+Zugriffsprotokoll screen is). The export also does not follow references *into* other tables either -
 a household this person issued, a note they authored, a food collection they drove - since that data
 is substantively the referenced record's own, with this person's name attached only as attribution.
 See the takeout plan's §1 "Scope" note.

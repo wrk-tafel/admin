@@ -701,7 +701,7 @@ describe('Customer Detail', () => {
       cy.byTestId('scannerFilePreview-' + scannerFileName, {timeout: 10000}).should('be.visible');
       cy.byTestId('scannerFilePreview-' + scannerFileName).invoke('attr', 'href').then((href) => cy.request(href as string));
 
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
       cy.byTestId('audit-filter-entityType').click();
       cy.get('mat-option').contains('Scanner-Datei').click();
 

@@ -4,7 +4,7 @@ import {Observable} from 'rxjs';
 import {PagedResponse} from '../common/api/paged-response';
 
 /**
- * Reads the audit trail ("Änderungsprotokoll"). There is deliberately no write method - entries
+ * Reads the audit trail ("Zugriffsprotokoll"). There is deliberately no write method - entries
  * appear as a side effect of the changes they describe and are removed only by the backend's
  * retention job.
  */

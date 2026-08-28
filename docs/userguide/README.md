@@ -11,7 +11,7 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | [Logistik](logistik.md) | Routen-Navi auf der Route, Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
 | [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Mitarbeiter |
-| [Änderungsprotokoll](aenderungsprotokoll.md) | Wer hat wann was geändert, und wie war der Wert davor |
+| [Zugriffsprotokoll](zugriffsprotokoll.md) | Wer hat wann was geändert oder auf sensible Daten zugegriffen, und wie war der Wert davor |
 | [Datenauskunft](datenauskunft.md) | Kunden, Benutzerkonten und Mitarbeiter ohne Konto durchsuchen, DSGVO-Datenexport und -Löschung |
 | [Statistiken](statistiken.md) | Allgemeine Statistik, Auswertung Kinder |
 
@@ -120,7 +120,7 @@ Die Menüstruktur gliedert sich in folgende Bereiche:
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
 - **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, sowie unter der aufklappbaren Gruppe "Auswertungen": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
 - **Logistik**: Routen-Navi, Waren-Eingabe
-- **Verwaltung**: Benutzer, Statistiken, Änderungsprotokoll, Einstellungen
+- **Verwaltung**: Benutzer, Statistiken, Zugriffsprotokoll, Einstellungen
 
 Innerhalb von "Einstellungen" sind die neun Menüpunkte zusätzlich in zwei Gruppen unterteilt: **Stammdaten** (Fahrzeuge, Filialen, Notschlafstellen, Routen, Waren-Kategorien, Retour-Kategorien) für logistische Stammdaten und **Systemverwaltung** (E-Mail, Grenzwerte, Mitarbeiter) für allgemeine Systemeinstellungen.
 
