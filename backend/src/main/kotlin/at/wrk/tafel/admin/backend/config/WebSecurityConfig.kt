@@ -57,7 +57,8 @@ class WebSecurityConfig(
         // permits the request, and it excludes the path from TafelJwtAuthenticationFilter below -
         // which matters because TafelJwtAuthConverter rejects a cookie-less request outright
         // instead of letting it through unauthenticated.
-        private val publicEndpoints = listOf("/api/login", "/api/config/public")
+        private const val LOGIN_ENDPOINT = "/api/login"
+        private val publicEndpoints = listOf(LOGIN_ENDPOINT, "/api/config/public")
 
         val passwordLengthRule = LengthRule(8, 50)
 
@@ -111,7 +112,7 @@ class WebSecurityConfig(
         http
             .addFilterBefore(
                 RateLimitFilter(
-                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/login"),
+                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, LOGIN_ENDPOINT),
                     scope = "login",
                     rateLimiterService = ipRateLimiterService,
                 ),
@@ -167,7 +168,7 @@ class WebSecurityConfig(
                 csrf.csrfTokenRequestHandler(SpaCsrfTokenRequestHandler())
                 // login authenticates via the Authorization header, which cross-site requests
                 // cannot set - and the client has no token yet at that point
-                csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern("/api/login"))
+                csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(LOGIN_ENDPOINT))
             }
             .headers { headers ->
                 headers.contentSecurityPolicy {
