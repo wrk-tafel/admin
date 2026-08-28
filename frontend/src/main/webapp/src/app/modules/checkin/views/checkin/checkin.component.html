@@ -177,7 +177,7 @@
                     <span [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}</span>
                     @if (addPerson?.excludeFromHousehold === true) {
                       <span class="badge badge-danger"
-                            [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">Nicht im Haushalt</span>
+                            [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">Nicht im selben Haushalt</span>
                     }
                   </div>
                 }
