@@ -130,7 +130,7 @@ describe('Customer Detail', () => {
 
       // The withdrawal is recorded under its own distinct entity type (issue #3416), not just as
       // the plain "Household"/DELETE row every other deletion path also produces.
-      cy.visit(`/aenderungsprotokoll?art=HouseholdConsentWithdrawal&aenderung=&benutzer=&nummer=${customerId}&von=&bis=`);
+      cy.visit(`/zugriffsprotokoll?art=HouseholdConsentWithdrawal&zugriff=&benutzer=&nummer=${customerId}&von=&bis=`);
       cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Einwilligung widerrufen');
       cy.byTestId('audit-entry-0-operation').should('contain.text', 'Gelöscht');
     });
