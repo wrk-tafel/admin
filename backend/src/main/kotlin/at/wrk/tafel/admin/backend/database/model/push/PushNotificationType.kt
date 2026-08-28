@@ -55,4 +55,11 @@ enum class PushNotificationType {
      * see `ScannerFileExpiryReminderService`.
      */
     SCANNER_FILES_EXPIRING,
+
+    /**
+     * A retention job (household/user/employee/audit) either failed or refused to run because it
+     * would have deleted more rows than its configured ceiling - GDPR gap G19, see
+     * `at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent`.
+     */
+    RETENTION_RUN,
 }

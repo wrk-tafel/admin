@@ -70,6 +70,16 @@ interface AuditLogRepository :
     fun deleteAllByOccurredAtBeforeSkipLocked(@Param("cutoff") cutoff: LocalDateTime): Int
 
     /**
+     * A preview of what [deleteAllByOccurredAtBeforeSkipLocked] would delete this run, for
+     * `AuditRetentionService`'s ceiling check (GDPR gap G19) - a plain count rather than a locking
+     * `SELECT ... FOR UPDATE`, since it only has to decide whether to proceed, not claim rows. A
+     * concurrent instance may delete some of what this counted before the delete itself runs, which
+     * only ever makes the actual run smaller than this preview, never larger - the ceiling this
+     * guards is a sanity bound, not a precise quota.
+     */
+    fun countByOccurredAtBefore(cutoff: LocalDateTime): Long
+
+    /**
      * Who read more than [threshold] entries of [operation] since [since] - the query behind GDPR
      * gap G11's breach-detection threshold (`ExcessiveReadAccessDetectionService`). Grouped rather
      * than fetched row-by-row: a session downloading hundreds of documents in an hour must cost one

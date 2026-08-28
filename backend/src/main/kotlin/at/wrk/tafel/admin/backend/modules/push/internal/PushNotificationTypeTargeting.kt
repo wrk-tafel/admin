@@ -31,6 +31,7 @@ object PushNotificationTypeTargeting {
         PushNotificationType.REPORT_MAIL_FAILED to setOf(UserPermissions.ADMINISTRATOR),
         PushNotificationType.EXCESSIVE_READ_ACCESS to setOf(UserPermissions.ADMINISTRATOR),
         PushNotificationType.SCANNER_FILES_EXPIRING to setOf(UserPermissions.CUSTOMER_DOCUMENTS),
+        PushNotificationType.RETENTION_RUN to setOf(UserPermissions.ADMINISTRATOR),
     )
 
     /**
@@ -57,6 +58,8 @@ object PushNotificationTypeTargeting {
         // No standalone scanner-file screen exists - the picker lives inside a household's own
         // documents tab, so the closest actionable screen is customer search.
         PushNotificationType.SCANNER_FILES_EXPIRING to "kunden/suchen",
+        // a retention job's deletions are themselves recorded there, same as any other delete
+        PushNotificationType.RETENTION_RUN to "aenderungsprotokoll",
     )
 
     /**

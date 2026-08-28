@@ -735,6 +735,7 @@ class HouseholdServiceTest {
                     valid = true,
                     locked = true,
                     missingPrivacyNotice = true,
+                    willBeDeletedSoon = true,
                 ),
             )
 

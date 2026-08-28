@@ -3,7 +3,7 @@
 Every `@Scheduled` method in the backend, in one place, so a new job can be timed sensibly against
 the others and an existing one's schedule or coordination mechanism can be found without grepping
 the codebase. This is a reference, not a decision record — **why** a job coordinates the way it does
-is [ADR-0047](adr/0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md); this page only
+is [ADR-0047](architecture/adr/0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md); this page only
 tracks the current, concrete list. Keep it in sync when a scheduled job is added, removed, retimed or
 reclassified.
 
@@ -24,12 +24,12 @@ checked at a glance.
 
 | Time | Job | Coordination | Purpose |
 |---|---|---|---|
-| 05:00 | `AuditRetentionService.cleanupExpiredEntries` (`tafeladmin.audit.cleanupCron`) | Row-claim | Deletes `audit_log` rows older than `tafeladmin.audit.retentionDays` (30d default) — GDPR gap G6/G11's retention half |
+| 05:00 | `AuditRetentionService.cleanupExpiredEntries` (`tafeladmin.audit.cleanupCron`) | Row-claim | Deletes `audit_log` rows older than `tafeladmin.audit.retentionDays` (30d default) — GDPR gap G6/G11's retention half; refuses and alerts above `tafeladmin.audit.maxDeletionsPerRun`, alerts on failure — G19 |
 | 05:00 | `DocumentStorageCleanupService.cleanupOrphanedFiles` | `@SchedulerLock` | Reconciles `tafeladmin.storage.documentsPath` against `household_documents`, deletes files with no DB row older than `tafeladmin.storage.orphanedFileMinAge` |
 | 05:05 | `ScannerFileCleanupService.cleanupExpiredScannerFiles` | `@SchedulerLock` | Deletes files on `tafeladmin.storage.scannerPath` older than `tafeladmin.storage.scannerFileRetention` (7d default) — GDPR gap G18 |
-| 06:00 | `HouseholdRetentionService.cleanupExpiredHouseholds` (`tafeladmin.householdDeletion.cleanupCron`) | Row-claim | Deletes households whose `validUntil` is older than `tafeladmin.householdDeletion.retentionYears` (7y default) — GDPR gap G1 |
-| 06:15 | `UserRetentionService.cleanupExpiredUsers` (`tafeladmin.userDeletion.cleanupCron`) | Row-claim | Deletes user accounts unused for longer than `tafeladmin.userDeletion.retentionTime` (7y default), never an `ADMINISTRATOR` — GDPR gap G13 |
-| 06:30 | `EmployeeRetentionService.cleanupExpiredEmployees` (`tafeladmin.employeeDeletion.cleanupCron`) | Row-claim | Deletes employees referenced by nothing else, untouched for longer than `tafeladmin.employeeDeletion.retentionTime` (7y default) — GDPR gap G13 |
+| 06:00 | `HouseholdRetentionService.cleanupExpiredHouseholds` (`tafeladmin.householdDeletion.cleanupCron`) | Row-claim | Deletes households whose `validUntil` is older than `tafeladmin.householdDeletion.retentionYears` (7y default) — GDPR gap G1; refuses and alerts above `tafeladmin.householdDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
+| 06:15 | `UserRetentionService.cleanupExpiredUsers` (`tafeladmin.userDeletion.cleanupCron`) | Row-claim | Deletes user accounts unused for longer than `tafeladmin.userDeletion.retentionTime` (7y default), never an `ADMINISTRATOR` — GDPR gap G13; refuses and alerts above `tafeladmin.userDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
+| 06:30 | `EmployeeRetentionService.cleanupExpiredEmployees` (`tafeladmin.employeeDeletion.cleanupCron`) | Row-claim | Deletes employees referenced by nothing else, untouched for longer than `tafeladmin.employeeDeletion.retentionTime` (7y default) — GDPR gap G13; refuses and alerts above `tafeladmin.employeeDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
 
 ## Daily, other times
 

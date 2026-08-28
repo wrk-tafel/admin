@@ -440,7 +440,11 @@ selected and locked with `FOR UPDATE SKIP LOCKED`
 deletes each of them through `HouseholdService.deleteHouseholdByHouseholdId` - the same method a
 staff member's manual delete uses - so a second instance's run skips a household this one already
 claimed (ADR-0047) instead of racing it. `tafeladmin.householdDeletion.enabled` is a kill switch
-independent of the retention window. Modelled directly on `AuditRetentionService`.
+independent of the retention window. Modelled directly on `AuditRetentionService`. GDPR gap G19: a
+run above `tafeladmin.householdDeletion.maxDeletionsPerRun` refuses to delete anything and alerts
+administrators (`RETENTION_RUN` push notification) instead of proceeding, same for a run that
+throws; the customer search screen's "Wird in den nächsten 30 Tagen gelöscht" filter chip
+(`HouseholdEntity.Specs.willBeDeletedSoon`) previews what the job is about to sweep.
 
 ## Gotchas / best practices
 

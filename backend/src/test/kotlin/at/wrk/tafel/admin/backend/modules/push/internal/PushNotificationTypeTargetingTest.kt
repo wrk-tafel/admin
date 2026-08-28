@@ -85,6 +85,7 @@ internal class PushNotificationTypeTargetingTest {
             PushNotificationType.USER_LOCKED_OUT,
             PushNotificationType.REPORT_MAIL_FAILED,
             PushNotificationType.EXCESSIVE_READ_ACCESS,
+            PushNotificationType.RETENTION_RUN,
         )
 
         technicalTypes.forEach { type ->

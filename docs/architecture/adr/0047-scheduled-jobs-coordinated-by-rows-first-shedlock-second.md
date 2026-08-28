@@ -134,6 +134,6 @@ the three jobs and needs a migration and a column of its own.
 - [ADR-0003](0003-postgresql-as-the-only-infrastructure-dependency.md),
   [ADR-0045](0045-one-mail-per-transaction-taken-with-skip-locked.md),
   [ADR-0011](0011-configuration-hot-reload-instead-of-restarts.md)
-- [`scheduled-jobs.md`](../scheduled-jobs.md) — the current list of every scheduled job, kept up to
+- [`scheduled-jobs.md`](../../scheduled-jobs.md) — the current list of every scheduled job, kept up to
   date as jobs are added
 - `backend/src/main/kotlin/at/wrk/tafel/admin/backend/database/common/lock/README.md`

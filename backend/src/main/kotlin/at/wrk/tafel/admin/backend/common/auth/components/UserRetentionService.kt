@@ -1,9 +1,12 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertReason
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -27,6 +30,11 @@ import java.time.LocalDateTime
  *
  * Runs once a night, at 06:15 - after `HouseholdRetentionService` (06:00), before
  * `EmployeeRetentionService` (06:30).
+ *
+ * A run that throws, or that would delete more than [TafelAdminUserRetentionProperties.maxDeletionsPerRun],
+ * publishes `RetentionRunAlertEvent` instead of proceeding silently - GDPR gap G19. See
+ * `HouseholdRetentionService`'s KDoc for why the ceiling check after the candidates are already
+ * claimed is safe.
  */
 @Service
 class UserRetentionService(
@@ -34,10 +42,12 @@ class UserRetentionService(
     private val userDetailsManager: TafelUserDetailsManager,
     private val properties: TafelAdminProperties,
     private val clock: Clock,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(UserRetentionService::class.java)
+        private const val JOB_NAME = "Benutzer-Bereinigung"
     }
 
     @Scheduled(cron = "\${tafeladmin.userDeletion.cleanupCron:0 15 6 * * *}")
@@ -54,18 +64,47 @@ class UserRetentionService(
             return
         }
 
-        val cutoff = LocalDateTime.now(clock).minus(retentionTime)
-        val expiredUserIds = userRepository.findExpiredUserIdsSkipLocked(cutoff, UserPermissions.ADMINISTRATOR.key)
-        if (expiredUserIds.isEmpty()) {
-            return
-        }
+        try {
+            val cutoff = LocalDateTime.now(clock).minus(retentionTime)
+            val expiredUserIds = userRepository.findExpiredUserIdsSkipLocked(cutoff, UserPermissions.ADMINISTRATOR.key)
+            if (expiredUserIds.isEmpty()) {
+                return
+            }
 
-        userRepository.findAllById(expiredUserIds).forEach { userDetailsManager.deleteUser(it.username) }
-        logger.info(
-            "Deleted {} user account(s) not logged into since before {} ({} retention)",
-            expiredUserIds.size,
-            cutoff,
-            retentionTime,
-        )
+            val ceiling = properties.userDeletion.maxDeletionsPerRun
+            if (ceiling > 0 && expiredUserIds.size > ceiling) {
+                logger.warn(
+                    "User retention would delete {} account(s), above the configured ceiling of {} - refusing this run",
+                    expiredUserIds.size,
+                    ceiling,
+                )
+                eventPublisher.publishEvent(
+                    RetentionRunAlertEvent(
+                        jobName = JOB_NAME,
+                        reason = RetentionRunAlertReason.CEILING_EXCEEDED,
+                        detail = "${expiredUserIds.size} Benutzer betroffen, Limit liegt bei $ceiling.",
+                    ),
+                )
+                return
+            }
+
+            userRepository.findAllById(expiredUserIds).forEach { userDetailsManager.deleteUser(it.username) }
+            logger.info(
+                "Deleted {} user account(s) not logged into since before {} ({} retention)",
+                expiredUserIds.size,
+                cutoff,
+                retentionTime,
+            )
+        } catch (e: Exception) {
+            logger.error("User retention run failed", e)
+            eventPublisher.publishEvent(
+                RetentionRunAlertEvent(
+                    jobName = JOB_NAME,
+                    reason = RetentionRunAlertReason.FAILED,
+                    detail = "${e.javaClass.simpleName}: ${e.message}",
+                ),
+            )
+            throw e
+        }
     }
 }
