@@ -217,7 +217,8 @@ describe('User Create', () => {
   it('password rules are shown next to the password fields', () => {
     cy.visit('/benutzer/erstellen');
 
-    cy.byTestId('password-rules').should('be.visible').and('contain.text', 'Mindestens 8 Zeichen');
+    cy.byTestId('password-rules').should('be.visible').and('contain.text', 'Mindestens 8 Zeichen')
+      .and('contain.text', 'Klein- und Großbuchstaben sowie eine Ziffer');
   });
 
   it('remains usable on mobile viewports', () => {

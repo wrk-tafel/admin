@@ -23,6 +23,9 @@ import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.ValidationResult
+import org.passay.data.EnglishCharacterData
+import org.passay.data.GermanCharacterData
+import org.passay.rule.CharacterCharacteristicsRule
 import org.passay.rule.DictionarySubstringRule
 import org.passay.rule.LengthRule
 import org.passay.rule.UsernameRule
@@ -259,6 +262,12 @@ class TafelUserDetailsManager(
             WhitespaceRule.ERROR_CODE -> """Leerzeichen sind nicht erlaubt"""
             UsernameRule.ERROR_CODE, UsernameRule.ERROR_CODE_REVERSED -> "Der Benutzername darf nicht Teil des Passworts sein"
             DictionarySubstringRule.ERROR_CODE, DictionarySubstringRule.ERROR_CODE_REVERSED -> "Folgende Wörter dürfen nicht enhalten sein: ${it.parameters["matchingWord"]}"
+            GermanCharacterData.LowerCase.errorCode -> "Muss mindestens einen Kleinbuchstaben enthalten"
+            GermanCharacterData.UpperCase.errorCode -> "Muss mindestens einen Großbuchstaben enthalten"
+            EnglishCharacterData.Digit.errorCode -> "Muss mindestens eine Ziffer enthalten"
+            // the individual character-class messages above already say what's missing - this
+            // aggregate detail (CharacterCharacteristicsRule always reports both) would only repeat it
+            CharacterCharacteristicsRule.ERROR_CODE -> null
             else -> null
         }
     }

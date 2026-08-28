@@ -98,4 +98,6 @@ In beiden Fällen wird der Eintrag aus der Liste entfernt – die gezählten Feh
 
 ![Anmelde-Versuche](images/benutzer-anmeldeversuche.jpg)
 
+Zusätzlich zur Sperre pro Benutzerkonto gibt es eine zweite, unabhängige Sperre pro Internetadresse: Kommen von derselben Adresse zu viele fehlgeschlagene Anmeldeversuche über verschiedene Benutzernamen hinweg, wird diese Adresse selbst vorübergehend gesperrt. Das betrifft üblicherweise mehrere Personen gemeinsam (z. B. ein ganzer Standort hinter derselben Internetadresse) und ist deutlich großzügiger bemessen als die Sperre pro Konto, damit einzelne Tippfehler nicht ausreichen. Diese Sperre erscheint nicht in der Liste oben und kann nicht manuell aufgehoben werden – sie läuft nach der konfigurierten Dauer von selbst ab.
+
 Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).

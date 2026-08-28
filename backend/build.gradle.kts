@@ -99,6 +99,7 @@ dependencies {
     implementation(libs.apache.fop)
     implementation(libs.qrcode.kotlin.jvm)
     implementation(libs.passay)
+    implementation(libs.bucket4j.core)
     implementation(libs.apache.commons.csv)
     implementation(libs.apache.commons.lang3)
     implementation(libs.springdoc.openapi.starter.webmvc.ui)

@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse
 import org.apache.commons.io.IOUtils
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.LockedException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
@@ -101,13 +100,10 @@ class TafelLoginFilter(
         response: HttpServletResponse,
         failed: AuthenticationException,
     ) {
-        // distinguishes a rate-limit lockout from wrong credentials so the SPA can tell the
-        // user to wait it out, rather than showing the generic "login failed" message
-        response.status = if (failed is LockedException) {
-            HttpStatus.LOCKED.value()
-        } else {
-            HttpStatus.FORBIDDEN.value()
-        }
+        // Deliberately the same status for a locked-out account/IP (LockedException) as for wrong
+        // credentials: distinguishing them here would tell a caller which usernames/IPs are already
+        // locked out, before they've even proven who they are.
+        response.status = HttpStatus.FORBIDDEN.value()
         logger.info("Login failed - ${failed.message}")
     }
 }

@@ -642,6 +642,51 @@ What remains open: the ceilings are fixed defaults an operator has to actively t
 size, same caveat as G11's read-access threshold; and the alert only ever reaches someone already
 holding `ADMINISTRATOR` and push notifications on their device.
 
+### G20 The three GDPR exports are now machine-readable too, not just PDF
+
+**Art. 20.** Found in a re-audit of the code against this document (2026-08-27), independent of the
+original G5/G12/G14 reviews. Art. 15 ("access") was satisfied by a PDF; Art. 20 ("data portability")
+additionally requires a "structured, commonly used and machine-readable format", which a PDF - laid
+out for a human to read, with German labels and locale-formatted currency - is not, strictly read.
+
+All three exports (`HouseholdExportService`, `UserExportService`, `EmployeeExportService`) already
+built their PDF from a plain Kotlin object tree (`HouseholdExportPdfData`/`UserExportPdfData`/
+`EmployeeExportPdfData`) before handing it to the XSL-FO pipeline, so issue #3418 added a
+same-shaped JSON sibling (`HouseholdExportJsonData`/`UserExportJsonData`/`EmployeeExportJsonData` -
+every field but the logo, serialised as-is via `tools.jackson.databind.json.JsonMapper`) rather than
+a new export path. `HouseholdExportService`'s export was already a ZIP, so this only meant adding a
+`daten.json` entry alongside `datenexport.pdf`. `UserExportService`/`EmployeeExportService` previously
+returned a bare PDF; both now return a ZIP the same shape as the household export's, and their
+controllers (`UserController`, `EmployeeController`) serve `application/zip` instead of
+`application/pdf`. [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too)'s
+combined `datenauskunft.zip` needed no change: it already unpacked a nested ZIP's entries flat into
+the match's own folder, so a user's/employee's export unpacks the same way a household's already did.
+
+What remains open: nothing new - this closes a gap in G5/G12/G14 without opening one of its own.
+
+### G21 A household note can now be corrected or erased, not only appended
+
+**Art. 16, Art. 17.**
+
+`HouseholdNoteController` used to expose only `GET` (list) and `POST` (create). A note with a
+factual error, or one that captured special-category data despite the G4 hint, could not be
+corrected or removed except by deleting the whole household — the sharpest Art. 16 gap in the
+application, and the one that made G4's residual risk unremediable: the hint mitigates entry, but
+there was no path back once something was in.
+
+`PUT /api/households/{householdId}/notes/{noteId}` and `DELETE .../{noteId}` are now both behind
+`CUSTOMER`, scoped by `findByIdAndHouseholdHouseholdId` the same way document access already is —
+a note ID from a different household 404s rather than leaking or editing across households — and
+further restricted to the note's own author, so staff can correct or erase what they wrote
+themselves but not each other's notes.
+`HouseholdNoteEntity` was already in `AuditScope`, so the correction/deletion itself lands in the
+audit trail for free, the same as any other write. The "Alle Notizen anzeigen" dialog (now offered
+from a single note onward, not only once there are several) gets a pencil and a bin per note on the
+current user's own notes, the bin behind its own confirmation dialog.
+
+What remains open: nothing new — this closes the gap G4 left open rather than opening one of its
+own.
+
 ### G22 Staff now get an Art. 13 notice too, and the customer notice's own gaps are closed
 
 **Art. 13.** A privacy notice must cover recipients, third-country transfers, the consequences of
@@ -697,50 +742,43 @@ re-consent step is a question for the operator/DPO, not something either the ori
 text or this fix could have answered - tracked as [issue #3496](https://github.com/wrk-tafel/admin/issues/3496)
 since it surfaced only while fixing this gap, not something #3429 itself asked for.
 
-### G20 The three GDPR exports are now machine-readable too, not just PDF
+### G23 Login is now rate-limited and IP-lockout-protected, and no longer confirms which accounts are locked
 
-**Art. 20.** Found in a re-audit of the code against this document (2026-08-27), independent of the
-original G5/G12/G14 reviews. Art. 15 ("access") was satisfied by a PDF; Art. 20 ("data portability")
-additionally requires a "structured, commonly used and machine-readable format", which a PDF - laid
-out for a human to read, with German labels and locale-formatted currency - is not, strictly read.
+**Art. 32.** Neither `/api/login` nor `/api/support` had any request-rate defence: `LoginAttemptService`
+locks a *username* after repeated failures, but nothing stopped one IP from spraying failed logins
+across many different usernames at ~120 guesses/hour/account each, indefinitely, and nothing bounded
+how often the same IP could queue an authenticated `/api/support` request either (up to a 3 MB mail
+per call).
 
-All three exports (`HouseholdExportService`, `UserExportService`, `EmployeeExportService`) already
-built their PDF from a plain Kotlin object tree (`HouseholdExportPdfData`/`UserExportPdfData`/
-`EmployeeExportPdfData`) before handing it to the XSL-FO pipeline, so issue #3418 added a
-same-shaped JSON sibling (`HouseholdExportJsonData`/`UserExportJsonData`/`EmployeeExportJsonData` -
-every field but the logo, serialised as-is via `tools.jackson.databind.json.JsonMapper`) rather than
-a new export path. `HouseholdExportService`'s export was already a ZIP, so this only meant adding a
-`daten.json` entry alongside `datenexport.pdf`. `UserExportService`/`EmployeeExportService` previously
-returned a bare PDF; both now return a ZIP the same shape as the household export's, and their
-controllers (`UserController`, `EmployeeController`) serve `application/zip` instead of
-`application/pdf`. [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too)'s
-combined `datenauskunft.zip` needed no change: it already unpacked a nested ZIP's entries flat into
-the match's own folder, so a user's/employee's export unpacks the same way a household's already did.
+`RateLimitFilter`, registered in `WebSecurityConfig` in front of both endpoints, now rejects a request
+with `429` once `RateLimiterIpService` (a Bucket4j token bucket per `(scope, ip)`) says the calling IP
+has spent its budget for that endpoint (`security.rateLimit`, capacity/refill both
+configurable, 30 requests/minute by default) - `/api/login` and `/api/support` get independent budgets
+per IP, so exhausting one never blocks the other. Unlike `login_attempts`, this counts every request
+(not just failures) and lives only in the process's own memory rather than the database: blunting a
+single IP's request rate needs no cross-instance coordination, so a small servlet filter checking
+`request.remoteAddr` (trustworthy here since `server.forward-headers-strategy: framework` is already
+set) is enough.
 
-What remains open: nothing new - this closes a gap in G5/G12/G14 without opening one of its own.
+The rest of the originating issue's findings (tracked separately in
+[#3484](https://github.com/wrk-tafel/admin/issues/3484)) are closed alongside this one:
 
-### G21 A household note can now be corrected or erased, not only appended
-
-**Art. 16, Art. 17.**
-
-`HouseholdNoteController` used to expose only `GET` (list) and `POST` (create). A note with a
-factual error, or one that captured special-category data despite the G4 hint, could not be
-corrected or removed except by deleting the whole household — the sharpest Art. 16 gap in the
-application, and the one that made G4's residual risk unremediable: the hint mitigates entry, but
-there was no path back once something was in.
-
-`PUT /api/households/{householdId}/notes/{noteId}` and `DELETE .../{noteId}` are now both behind
-`CUSTOMER`, scoped by `findByIdAndHouseholdHouseholdId` the same way document access already is —
-a note ID from a different household 404s rather than leaking or editing across households — and
-further restricted to the note's own author, so staff can correct or erase what they wrote
-themselves but not each other's notes.
-`HouseholdNoteEntity` was already in `AuditScope`, so the correction/deletion itself lands in the
-audit trail for free, the same as any other write. The "Alle Notizen anzeigen" dialog (now offered
-from a single note onward, not only once there are several) gets a pencil and a bin per note on the
-current user's own notes, the bin behind its own confirmation dialog.
-
-What remains open: nothing new — this closes the gap G4 left open rather than opening one of its
-own.
+- **`login_attempts` staying username-only, with no IP dimension.** `LoginAttemptIpService` now locks
+  out an IP itself (`login_attempts_ip`, mirroring `login_attempts`) after
+  `security.loginAttemptsIp.maxFailures` (30 by default, well above the per-username
+  threshold) failed logins across however many different usernames were tried from it -
+  `TafelLoginProvider.authenticate` checks and records both dimensions, reading the calling IP off the
+  `WebAuthenticationDetails` Spring's login filter already attaches to the authentication request.
+- **The 423-vs-403 lockout oracle.** `TafelLoginFilter.unsuccessfulAuthentication` no longer
+  special-cases `LockedException` - every failed login, whether from wrong credentials or a lockout,
+  now answers with the same `403` a caller can't tell apart, trading the login page's old "account
+  locked, try again in N minutes" message for not confirming which usernames/IPs are already locked
+  out. `PublicConfigResponse.accountLockoutDurationInSeconds` is gone with it - nothing reads a lockout
+  duration before login anymore.
+- **No character-class requirement for a user-chosen password.** `WebSecurityConfig.passwordValidator`
+  now runs a `CharacterCharacteristicsRule` requiring the same lowercase/uppercase/digit mix a
+  generated password is already built from (`generatedPasswordCharactersRules`), so a user-chosen
+  password can no longer fall below what one guarantees.
 
 ## 5. Checked and found fine
 
@@ -774,7 +812,10 @@ picture:
 - backup retention, encryption and how erasure is propagated into restores;
 - what happens to printed Kundenlisten and Stammdatenblätter after a distribution;
 - who holds which account and permission today, and when that was last reviewed;
-- the incident process behind Art. 33's 72 hours.
+- the incident process behind Art. 33's 72 hours;
+- whether a customer/staff privacy notice already signed and filed needs re-notification or
+  re-consent once the operator later changes the retention window it states — see G22's own note
+  and [#3496](https://github.com/wrk-tafel/admin/issues/3496).
 
 ## 7. Where to start
 
@@ -806,6 +847,7 @@ number here.
 | 19 | [G20](#g20-the-three-gdpr-exports-are-now-machine-readable-too-not-just-pdf) exports were PDF-only, not strictly Art. 20 machine-readable | [#3418](https://github.com/wrk-tafel/admin/issues/3418) | done | `daten.json` alongside `datenexport.pdf` in all three export ZIPs |
 | 20 | [G21](#g21-a-household-note-can-now-be-corrected-or-erased-not-only-appended) notes were append-only, no Art. 16/17 path | [#3417](https://github.com/wrk-tafel/admin/issues/3417) | done | `PUT`/`DELETE` on `HouseholdNoteController`, edit/delete in the "Alle Notizen anzeigen" dialog, restricted to the note's own author |
 | 21 | [G22](#g22-staff-now-get-an-art-13-notice-too-and-the-customer-notices-own-gaps-are-closed) no Art. 13 notice for staff; customer notice incomplete/hard-coded | [#3429](https://github.com/wrk-tafel/admin/issues/3429) | done | `retentionYears`/footer as template params, four added paragraphs, new `staff-pdf` notice; re-signing after a retention change stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
+| 22 | [G23](#g23-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked) no rate limiting, username-only lockout, lockout oracle, no password complexity | [#3432](https://github.com/wrk-tafel/admin/issues/3432), [#3484](https://github.com/wrk-tafel/admin/issues/3484) | done | `RateLimitFilter`/`RateLimiterIpService` (IP-scoped token bucket), `LoginAttemptIpService` (IP-scoped lockout), a unified `403` for wrong credentials and a lockout alike, a character-class rule for user-chosen passwords |
 
 Every gap in this table is done — the operator has now answered every question in #3185's
 coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
