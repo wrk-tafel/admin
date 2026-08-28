@@ -775,6 +775,7 @@ describe('CustomerDetailComponent', () => {
     fixture.detectChanges();
 
     component.openAllNotesDialog();
+    fixture.detectChanges();
 
     expect(customerNoteApiService.getNotesForCustomer).toHaveBeenCalledWith(mockCustomer.id);
     expect(component.customerNotesResponse()).toEqual(refreshedResponse);

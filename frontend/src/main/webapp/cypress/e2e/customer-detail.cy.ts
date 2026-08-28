@@ -2,7 +2,7 @@ import * as path from 'path';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
-import {MAIN_CONTENT} from '../support/accessibility';
+import {MAIN_CONTENT, expectAnimationsSettled} from '../support/accessibility';
 
 dayjs.extend(customParseFormat);
 
@@ -216,6 +216,9 @@ describe('Customer Detail', () => {
       cy.get('textarea').clear().type('corrected note text');
       cy.byTestId('okButton').click();
 
+      // Wait for the edit dialog's own close animation to finish and remove it from the DOM -
+      // otherwise `mat-dialog-content` below still matches its (fading, but present) content too.
+      cy.byTestId('editnote-dialog').should('not.exist');
       cy.get('mat-dialog-content').within(() => {
         cy.byTestId('note-text').should('have.text', 'corrected note text');
       });
@@ -244,6 +247,9 @@ describe('Customer Detail', () => {
         cy.byTestId('deletenote-dialog').should('be.visible');
         cy.byTestId('okButton').click();
 
+        // Wait for the delete-confirm dialog's own close animation to finish and remove it from
+        // the DOM - otherwise `mat-dialog-content` below still matches its (fading) content too.
+        cy.byTestId('deletenote-dialog').should('not.exist');
         cy.get('mat-dialog-content').within(() => {
           cy.byTestId('note-title').should('have.length', 1);
         });
@@ -1178,6 +1184,9 @@ describe('Customer Detail', () => {
       cy.byTestId('noteHint').should('be.visible');
       cy.checkDialogAccessibility();
       cy.byTestId('cancelButton').click();
+      // Wait for its close animation to finish and remove it from the DOM - otherwise the
+      // `mat-dialog-content` lookup below can still catch its (fading, but present) content too.
+      cy.get('tafel-add-note-dialog').should('not.exist');
 
       cy.byTestId('showall-notes-button').click();
       cy.checkDialogAccessibility();
@@ -1192,16 +1201,23 @@ describe('Customer Detail', () => {
       });
       cy.byTestId('editnote-dialog').should('be.visible');
       cy.get('mat-dialog-container:last-of-type .mat-mdc-dialog-inner-container').should('have.css', 'opacity', '1');
+      // Also wait for the form field's own label/notch animation to settle - a colour read mid
+      // transition is a false color-contrast violation (see expectAnimationsSettled's doc).
+      cy.get('mat-dialog-container:last-of-type').should(expectAnimationsSettled);
       cy.checkAccessibility('mat-dialog-container:last-of-type');
       cy.byTestId('editnote-dialog').within(() => {
         cy.byTestId('cancelButton').click();
       });
+      // Wait for the edit dialog's own close animation to finish and remove it from the DOM -
+      // otherwise the `mat-dialog-content` lookup below still catches its (fading) content too.
+      cy.byTestId('editnote-dialog').should('not.exist');
 
       cy.get('mat-dialog-content').within(() => {
         cy.byTestId('note-deleteButton').first().click();
       });
       cy.byTestId('deletenote-dialog').should('be.visible');
       cy.get('mat-dialog-container:last-of-type .mat-mdc-dialog-inner-container').should('have.css', 'opacity', '1');
+      cy.get('mat-dialog-container:last-of-type').should(expectAnimationsSettled);
       cy.checkAccessibility('mat-dialog-container:last-of-type');
       cy.byTestId('deletenote-dialog').within(() => {
         cy.byTestId('cancelButton').click();
