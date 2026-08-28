@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.MimeTypeUtils
+import tools.jackson.databind.json.JsonMapper
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -42,6 +43,10 @@ import java.util.zip.ZipOutputStream
  *
  * Stores nothing - the archive is built on request and never written to disk or a table.
  *
+ * Alongside the PDF, the same rows are serialised as `daten.json` (GDPR Art. 20's "structured,
+ * commonly used and machine-readable format", issue #3418) - the PDF alone satisfies Art. 15 but not
+ * a strict reading of Art. 20.
+ *
  * Deliberately excludes `audit_log` entries - left as an open question; see ADR-0051's Consequences.
  */
 @Service
@@ -55,11 +60,13 @@ class HouseholdExportService(
     private val userRepository: UserRepository,
     private val auditLogWriter: AuditLogWriter,
     private val pdfService: PDFService,
+    private val jsonMapper: JsonMapper,
     private val clock: Clock,
 ) {
 
     companion object {
         private const val PDF_ENTRY_NAME = "datenexport.pdf"
+        private const val JSON_ENTRY_NAME = "daten.json"
         private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
         private const val PDF_STYLESHEET_PATH = "/pdf-templates/household-export/export-document.xsl"
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -116,13 +123,29 @@ class HouseholdExportService(
 
         val buffer = ByteArrayOutputStream()
         ZipOutputStream(buffer).use { zip ->
-            // Reserving the export's own file name first means an actual "datenexport.pdf" upload
-            // gets renamed instead of silently overwriting the export's own data file - same dedup
-            // mechanism as the documents below.
-            val usedEntryNames = mutableSetOf(PDF_ENTRY_NAME)
+            // Reserving the export's own file names first means an actual "datenexport.pdf"/"daten.json"
+            // upload gets renamed instead of silently overwriting the export's own data files - same
+            // dedup mechanism as the documents below.
+            val usedEntryNames = mutableSetOf(PDF_ENTRY_NAME, JSON_ENTRY_NAME)
 
             zip.putNextEntry(ZipEntry(PDF_ENTRY_NAME))
             zip.write(buildHouseholdPdf(householdResponse.id, exportedAt, masterDataFields, personRows, noteRows, attendanceRows, documentRows))
+            zip.closeEntry()
+
+            zip.putNextEntry(ZipEntry(JSON_ENTRY_NAME))
+            zip.write(
+                jsonMapper.writeValueAsBytes(
+                    HouseholdExportJsonData(
+                        householdId = householdResponse.id ?: 0,
+                        exportedAt = exportedAt,
+                        masterData = masterDataFields,
+                        persons = personRows,
+                        notes = noteRows,
+                        attendances = attendanceRows,
+                        documents = documentRows,
+                    ),
+                ),
+            )
             zip.closeEntry()
 
             // Two documents can legitimately share a fileName (e.g. two "Einkommensnachweis.pdf"

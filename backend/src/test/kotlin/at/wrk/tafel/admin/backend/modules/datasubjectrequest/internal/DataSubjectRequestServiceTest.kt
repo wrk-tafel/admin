@@ -266,20 +266,20 @@ internal class DataSubjectRequestServiceTest {
     }
 
     @Test
-    fun `export - combines a household zip, a user pdf and an employee pdf into one archive`() {
+    fun `export - combines a household, a user and an employee zip into one flat archive`() {
         authenticateWith("DATA_SUBJECT_REQUESTS", "CUSTOMER", "USER_MANAGEMENT", "SETTINGS")
 
         every { householdFacade.export(1) } returns ExportFileResult(
             filename = "datenexport-mustermann-max-1.zip",
-            bytes = zipOf("datenexport.pdf" to "household-pdf"),
+            bytes = zipOf("datenexport.pdf" to "household-pdf", "daten.json" to "household-json"),
         )
         every { userExportService.exportUserById(2) } returns UserExportFileResult(
-            filename = "benutzerdaten-emusterfrau.pdf",
-            bytes = "user-pdf".toByteArray(),
+            filename = "benutzerdaten-emusterfrau.zip",
+            bytes = zipOf("datenexport.pdf" to "user-pdf", "daten.json" to "user-json"),
         )
         every { employeeFacade.export(3) } returns ExportFileResult(
-            filename = "mitarbeiterdaten-00002.pdf",
-            bytes = "employee-pdf".toByteArray(),
+            filename = "mitarbeiterdaten-00002.zip",
+            bytes = zipOf("datenexport.pdf" to "employee-pdf", "daten.json" to "employee-json"),
         )
 
         val result = service.export(
@@ -293,8 +293,11 @@ internal class DataSubjectRequestServiceTest {
         assertThat(result.filename).isEqualTo("datenauskunft.zip")
         assertThat(zipEntryNames(result.bytes)).containsExactlyInAnyOrder(
             "kunde-1/datenexport.pdf",
-            "benutzerkonto-2/benutzerdaten-emusterfrau.pdf",
-            "mitarbeiter-3/mitarbeiterdaten-00002.pdf",
+            "kunde-1/daten.json",
+            "benutzerkonto-2/datenexport.pdf",
+            "benutzerkonto-2/daten.json",
+            "mitarbeiter-3/datenexport.pdf",
+            "mitarbeiter-3/daten.json",
         )
     }
 

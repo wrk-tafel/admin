@@ -481,7 +481,7 @@ describe('Shell', () => {
     cy.byTestId('usermenu-export').should('contain.text', 'Meine Daten exportieren').click();
 
     const downloadsFolder = Cypress.config('downloadsFolder');
-    const downloadedFilename = path.join(downloadsFolder, 'benutzerdaten-e2etest.pdf');
+    const downloadedFilename = path.join(downloadsFolder, 'benutzerdaten-e2etest.zip');
 
     cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
       .should((buffer: string) => expect(buffer.length).to.be.gt(1000));

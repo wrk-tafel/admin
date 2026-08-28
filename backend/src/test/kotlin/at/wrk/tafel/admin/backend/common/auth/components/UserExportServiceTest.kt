@@ -28,11 +28,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.PageImpl
+import tools.jackson.databind.json.JsonMapper
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Optional
+import java.util.zip.ZipInputStream
 
 @ExtendWith(MockKExtension::class)
 internal class UserExportServiceTest {
@@ -64,8 +66,22 @@ internal class UserExportServiceTest {
     // only checking that some byte array was returned.
     private val pdfService = PDFService()
 
+    private val jsonMapper: JsonMapper = JsonMapper.builder().build()
+
     @InjectMockKs
     private lateinit var service: UserExportService
+
+    private fun zipEntries(bytes: ByteArray): Map<String, ByteArray> {
+        val entries = mutableMapOf<String, ByteArray>()
+        ZipInputStream(bytes.inputStream()).use { zip ->
+            var entry = zip.nextEntry
+            while (entry != null) {
+                entries[entry.name] = zip.readBytes()
+                entry = zip.nextEntry
+            }
+        }
+        return entries
+    }
 
     @BeforeEach
     fun setup() {
@@ -86,8 +102,11 @@ internal class UserExportServiceTest {
         val result = service.exportUserByUsername("test-username")
 
         assertThat(result).isNotNull
-        assertThat(result?.filename).isEqualTo("benutzerdaten-test-username.pdf")
-        assertThat(String(result!!.bytes.copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
+        assertThat(result?.filename).isEqualTo("benutzerdaten-test-username.zip")
+
+        val entries = zipEntries(result!!.bytes)
+        assertThat(entries).containsOnlyKeys("datenexport.pdf", "daten.json")
+        assertThat(String(entries.getValue("datenexport.pdf").copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
 
         val entrySlot = slot<AuditLogWriter.PendingEntry>()
         verify { auditLogWriter.record(capture(entrySlot)) }
@@ -137,7 +156,15 @@ internal class UserExportServiceTest {
         val result = service.exportUserByUsername("test-username")
 
         assertThat(result).isNotNull
-        assertThat(String(result!!.bytes.copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
+        val entries = zipEntries(result!!.bytes)
+        assertThat(entries).containsOnlyKeys("datenexport.pdf", "daten.json")
+        assertThat(String(entries.getValue("datenexport.pdf").copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
+
+        val jsonNode = jsonMapper.readTree(entries.getValue("daten.json"))
+        assertThat(jsonNode.get("pushDevices").get(0).get("label").asString()).isEqualTo("Diensthandy")
+        assertThat(jsonNode.get("pushTypePreferences").get(0).get("enabled").asString()).isEqualTo("Nein")
+        assertThat(jsonNode.get("loginAttempt").size()).isGreaterThan(0)
+        assertThat(jsonNode.get("logins").size()).isGreaterThan(0)
     }
 
     @Test
@@ -158,7 +185,10 @@ internal class UserExportServiceTest {
         val result = service.exportUserById(0)
 
         assertThat(result).isNotNull
-        assertThat(String(result!!.bytes.copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
+        assertThat(result?.filename).isEqualTo("benutzerdaten-${userEntity.username}.zip")
+        val entries = zipEntries(result!!.bytes)
+        assertThat(entries).containsOnlyKeys("datenexport.pdf", "daten.json")
+        assertThat(String(entries.getValue("datenexport.pdf").copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
         verify { auditLogWriter.record(any()) }
     }
 

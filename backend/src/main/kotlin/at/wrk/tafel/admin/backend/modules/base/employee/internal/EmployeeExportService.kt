@@ -9,6 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeExportField
+import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeExportJsonData
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeExportPdfData
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import org.apache.commons.io.IOUtils
@@ -17,9 +18,13 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.MimeTypeUtils
+import tools.jackson.databind.json.JsonMapper
+import java.io.ByteArrayOutputStream
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 /**
  * The GDPR Art. 15/20 data takeout for an employee record that has no linked `users` account -
@@ -34,7 +39,11 @@ import java.time.format.DateTimeFormatter
  * (`UserExportService.buildMasterData`), so a person is meant to have exactly one takeout document,
  * not a second, less complete one alongside it.
  *
- * Stores nothing - the PDF is built on request and never written to disk or a table.
+ * A ZIP, not a bare PDF: alongside `datenexport.pdf` it carries the same master data as a
+ * machine-readable `daten.json` (GDPR Art. 20, issue #3418), same shape as the household/user
+ * exports.
+ *
+ * Stores nothing - the ZIP is built on request and never written to disk or a table.
  */
 @Service
 class EmployeeExportService(
@@ -42,10 +51,13 @@ class EmployeeExportService(
     private val userRepository: UserRepository,
     private val auditLogWriter: AuditLogWriter,
     private val pdfService: PDFService,
+    private val jsonMapper: JsonMapper,
     private val clock: Clock,
 ) {
 
     companion object {
+        private const val PDF_ENTRY_NAME = "datenexport.pdf"
+        private const val JSON_ENTRY_NAME = "daten.json"
         private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
         private const val PDF_STYLESHEET_PATH = "/pdf-templates/employee-export/export-document.xsl"
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
@@ -64,16 +76,34 @@ class EmployeeExportService(
         }
         recordExportRead(employeeEntity)
 
-        val data = EmployeeExportPdfData(
+        val exportedAt = LocalDateTime.now(clock).format(DATE_TIME_FORMATTER)
+        val masterData = buildMasterData(employeeEntity)
+
+        val pdfData = EmployeeExportPdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = loadLogoBytes(),
-            exportedAt = LocalDateTime.now(clock).format(DATE_TIME_FORMATTER),
-            masterData = buildMasterData(employeeEntity),
+            exportedAt = exportedAt,
+            masterData = masterData,
         )
+        val jsonData = EmployeeExportJsonData(
+            exportedAt = exportedAt,
+            masterData = masterData,
+        )
+
+        val buffer = ByteArrayOutputStream()
+        ZipOutputStream(buffer).use { zip ->
+            zip.putNextEntry(ZipEntry(PDF_ENTRY_NAME))
+            zip.write(pdfService.generatePdf(pdfData, PDF_STYLESHEET_PATH))
+            zip.closeEntry()
+
+            zip.putNextEntry(ZipEntry(JSON_ENTRY_NAME))
+            zip.write(jsonMapper.writeValueAsBytes(jsonData))
+            zip.closeEntry()
+        }
 
         return EmployeeExportFileResult(
             filename = buildFilename(employeeEntity),
-            bytes = pdfService.generatePdf(data, PDF_STYLESHEET_PATH),
+            bytes = buffer.toByteArray(),
         )
     }
 
@@ -86,14 +116,14 @@ class EmployeeExportService(
     private fun loadLogoBytes(): ByteArray = IOUtils.toByteArray(javaClass.getResourceAsStream(LOGO_RESOURCE_PATH))
 
     /**
-     * "<prefix>-<personnelNumber>.pdf" - same accent-stripping/lowercasing safety net as
+     * "<prefix>-<personnelNumber>.zip" - same accent-stripping/lowercasing safety net as
      * `UserExportService.buildFilename`, since a personnel number is free text rather than a
      * guaranteed-ASCII identifier.
      */
     private fun buildFilename(employeeEntity: EmployeeEntity): String = StringUtils.stripAccents("mitarbeiterdaten-${employeeEntity.personnelNumber}")
         .lowercase()
         .replace("ß", "ss")
-        .replace("[^a-z0-9]".toRegex(), "-") + ".pdf"
+        .replace("[^a-z0-9]".toRegex(), "-") + ".zip"
 
     private fun recordExportRead(employeeEntity: EmployeeEntity) {
         auditLogWriter.record(
