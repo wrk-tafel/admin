@@ -196,13 +196,17 @@ class HouseholdPdfServiceTest {
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
         // The footer's page number/generation-date stamp (issue #3429 follow-up) - fo:static-content
-        // repeats it on every page, so this checks each page individually.
+        // repeats it on every page, so this checks each page individually. It's a two-column table
+        // ("Erstellt am" flush left, "Seite x von y" flush right), so the two are asserted
+        // separately rather than as one string joined by a fixed separator.
         for (page in 1..document.numberOfPages) {
             val stripper = PDFTextStripper().apply {
                 startPage = page
                 endPage = page
             }
-            assertThat(stripper.getText(document)).contains("Erstellt am 15.01.2026 · Seite $page von 2")
+            val pageText = stripper.getText(document)
+            assertThat(pageText).contains("Erstellt am 15.01.2026")
+            assertThat(pageText).contains("Seite $page von 2")
         }
 
         document.close()
@@ -254,13 +258,17 @@ class HouseholdPdfServiceTest {
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
         // Blank template or not, the footer stamp is always populated (issue #3429 follow-up) - see
-        // PrivacyNoticePdfData.generatedAt's KDoc for why it's separate from issuedAtDate here.
+        // PrivacyNoticePdfData.generatedAt's KDoc for why it's separate from issuedAtDate here. The
+        // footer is a two-column table ("Erstellt am" flush left, "Seite x von y" flush right), so
+        // the two are asserted separately rather than as one string joined by a fixed separator.
         for (page in 1..document.numberOfPages) {
             val stripper = PDFTextStripper().apply {
                 startPage = page
                 endPage = page
             }
-            assertThat(stripper.getText(document)).contains("Erstellt am 15.01.2026 · Seite $page von 2")
+            val pageText = stripper.getText(document)
+            assertThat(pageText).contains("Erstellt am 15.01.2026")
+            assertThat(pageText).contains("Seite $page von 2")
         }
 
         document.close()
