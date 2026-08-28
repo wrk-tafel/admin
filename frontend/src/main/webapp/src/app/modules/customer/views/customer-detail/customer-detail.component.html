@@ -360,7 +360,7 @@
                     </div>
                   }
                 </mat-card-content>
-                @if (customerNotes()?.length > 1) {
+                @if (customerNotes()?.length > 0) {
                   <mat-card-actions>
                     <button testid="showall-notes-button" matButton="filled" (click)="openAllNotesDialog()">Alle Notizen
                       anzeigen

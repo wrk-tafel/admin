@@ -21,6 +21,13 @@ data class CreateHouseholdNoteRequest(
 )
 
 @ExcludeFromTestCoverage
+data class UpdateHouseholdNoteRequest(
+    @field:NotBlank
+    @field:Size(max = 2000)
+    val note: String,
+)
+
+@ExcludeFromTestCoverage
 data class HouseholdNoteSearchResult(
     val items: List<HouseholdNoteItem>,
     val totalCount: Long,

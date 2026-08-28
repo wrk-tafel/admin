@@ -1,0 +1,10 @@
+<tafel-dialog testId="deletenote-dialog" type="warning" title="Notiz löschen">
+  <div tafel-dialog-content>
+    <div class="mb-2">Die Notiz wird unwiderruflich gelöscht.</div>
+    <div class="font-bold mt-6">Sicher?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(true)">Löschen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

@@ -67,4 +67,20 @@ class HouseholdNoteService(
         val savedEntity = householdNoteRepository.save(noteEntity)
         return mapNote(savedEntity)
     }
+
+    fun updateNote(householdId: Long, noteId: Long, note: String): HouseholdNoteItem {
+        val noteEntity = findNote(householdId, noteId)
+        noteEntity.note = note
+
+        val savedEntity = householdNoteRepository.save(noteEntity)
+        return mapNote(savedEntity)
+    }
+
+    fun deleteNote(householdId: Long, noteId: Long) {
+        val noteEntity = findNote(householdId, noteId)
+        householdNoteRepository.delete(noteEntity)
+    }
+
+    private fun findNote(householdId: Long, noteId: Long) = householdNoteRepository.findByIdAndHouseholdHouseholdId(noteId, householdId)
+        ?: throw NotFoundException("Notiz Nr. $noteId nicht vorhanden!")
 }

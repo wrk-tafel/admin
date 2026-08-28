@@ -9,6 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteReposito
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
+import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
@@ -20,6 +21,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -251,6 +253,60 @@ internal class HouseholdNoteServiceTest {
                     assertThat(it.note).isEqualTo(note)
                 },
             )
+        }
+    }
+
+    @Test
+    fun `update note - successful`() {
+        val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = "old text").apply {
+            id = 42
+            employee = testUserEntity.employee
+            createdAt = LocalDateTime.now()
+        }
+        every {
+            householdNoteRepository.findByIdAndHouseholdHouseholdId(42L, testHouseholdEntity1.householdId)
+        } returns noteEntity
+        every { householdNoteRepository.save(noteEntity) } returns noteEntity
+
+        val noteItem = service.updateNote(householdId = testHouseholdEntity1.householdId, noteId = 42L, note = "new text")
+
+        assertThat(noteEntity.note).isEqualTo("new text")
+        assertThat(noteItem.id).isEqualTo(42)
+        assertThat(noteItem.note).isEqualTo("new text")
+        verify { householdNoteRepository.save(noteEntity) }
+    }
+
+    @Test
+    fun `update note - not found`() {
+        every { householdNoteRepository.findByIdAndHouseholdHouseholdId(any(), any()) } returns null
+
+        assertThrows<NotFoundException> {
+            service.updateNote(householdId = 100L, noteId = 999L, note = "new text")
+        }
+    }
+
+    @Test
+    fun `delete note - successful`() {
+        val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = "text").apply {
+            id = 42
+            employee = testUserEntity.employee
+            createdAt = LocalDateTime.now()
+        }
+        every {
+            householdNoteRepository.findByIdAndHouseholdHouseholdId(42L, testHouseholdEntity1.householdId)
+        } returns noteEntity
+
+        service.deleteNote(householdId = testHouseholdEntity1.householdId, noteId = 42L)
+
+        verify { householdNoteRepository.delete(noteEntity) }
+    }
+
+    @Test
+    fun `delete note - not found`() {
+        every { householdNoteRepository.findByIdAndHouseholdHouseholdId(any(), any()) } returns null
+
+        assertThrows<NotFoundException> {
+            service.deleteNote(householdId = 100L, noteId = 999L)
         }
     }
 }

@@ -461,8 +461,7 @@ export class CustomerDetailComponent {
   openAddNoteDialog() {
     this.dialog.open(AddNoteDialogComponent).afterClosed().subscribe(noteText => {
       if (noteText) {
-        const sanitizedText = noteText.replace(/\n/g, '<br/>');
-        this.customerNoteApiService.createNewNote(this.customerData().id!, sanitizedText).subscribe(newNoteItem => {
+        this.customerNoteApiService.createNewNote(this.customerData().id!, noteText).subscribe(newNoteItem => {
           this.customerNotes.update(notes => [newNoteItem, ...notes]);
           const currentResponse = this.customerNotesResponse();
           this.customerNotesResponse.set({
@@ -476,11 +475,18 @@ export class CustomerDetailComponent {
   }
 
   openAllNotesDialog() {
+    // Notes can be edited/deleted from within the dialog, so the "latest note" panel behind it
+    // (and its count) may be stale by the time the dialog closes - re-fetch page 1 unconditionally
+    // rather than tracking what changed inside the dialog.
     this.dialog.open(AllNotesDialogComponent, {
       data: {
         customerId: this.customerData().id,
         initialNotesResponse: this.customerNotesResponse()
       }
+    }).afterClosed().subscribe(() => {
+      this.customerNoteApiService.getNotesForCustomer(this.customerData().id!).subscribe(response => {
+        this.customerNotesResponse.set(response);
+      });
     });
   }
 

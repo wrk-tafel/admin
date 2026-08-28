@@ -27,6 +27,8 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Live-Aktualisierung der Scanner-Dateiliste im Dokumente-Tab der Kundenansicht benötigt jetzt ebenfalls die Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung.
 - Der Download von Kundendokumenten sowie von DSGVO-Exporten (Benutzer, Mitarbeiter, Datenauskunft, Ausgabe-Kundenliste) schlägt nicht mehr fehl, wenn der Dateiname Sonderzeichen, Anführungszeichen oder Umlaute enthält.
 - Der Download von Kunden-Stammdatenblatt/Ausweis, Kunden-ZIP-Export, Datenschutzerklärung-Vorlage, Auswertungen (über Limit, Kundenübersicht, Statistik-CSVs) sowie Scanner-Dateien schlägt jetzt ebenfalls nicht mehr fehl, wenn der Dateiname Sonderzeichen, Anführungszeichen oder Umlaute enthält.
+- Kundennotizen können jetzt im Dialog "Alle Notizen anzeigen" nachträglich korrigiert oder endgültig gelöscht werden, statt nur unveränderlich angelegt werden zu können.
+- Eine neu erfasste Kundennotiz mit mehreren Zeilen zeigt nicht mehr fälschlich das Zeichen "<br/>" anstelle eines Zeilenumbruchs an.
 
 ## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).

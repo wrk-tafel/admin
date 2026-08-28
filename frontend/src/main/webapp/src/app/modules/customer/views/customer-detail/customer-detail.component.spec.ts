@@ -165,7 +165,9 @@ describe('CustomerDetailComponent', () => {
     };
     const customerNoteApiServiceSpy = {
       createNewNote: vi.fn().mockName('CustomerNoteApiService.createNewNote'),
-      getNotesForCustomer: vi.fn().mockName('CustomerNoteApiService.getNotesForCustomer')
+      updateNote: vi.fn().mockName('CustomerNoteApiService.updateNote'),
+      deleteNote: vi.fn().mockName('CustomerNoteApiService.deleteNote'),
+      getNotesForCustomer: vi.fn().mockReturnValue(of(mockCustomerNotesResponse)).mockName('CustomerNoteApiService.getNotesForCustomer')
     };
     const customerDocumentApiServiceSpy = {
       getDocumentsForCustomer: vi.fn().mockName('CustomerDocumentApiService.getDocumentsForCustomer'),
@@ -697,18 +699,17 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    const sanitizedNoteText = 'new note<br/>text';
     const resultNote: CustomerNoteItem = {
       id: 627,
       author: 'author1',
       timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
-      note: sanitizedNoteText
+      note: noteText
     };
     customerNoteApiService.createNewNote.mockReturnValue(of(resultNote));
 
     component.openAddNoteDialog();
 
-    expect(customerNoteApiService.createNewNote).toHaveBeenCalledWith(mockCustomer.id, sanitizedNoteText);
+    expect(customerNoteApiService.createNewNote).toHaveBeenCalledWith(mockCustomer.id, noteText);
     expect(component.customerNotes()[0]).toEqual(resultNote);
   });
 
@@ -738,6 +739,46 @@ describe('CustomerDetailComponent', () => {
     expect(updatedResponse.items[0]).toEqual(resultNote);
     expect(updatedResponse.items).toContain(resultNote);
     expect(updatedResponse.totalCount).toBe(mockCustomerNotesResponse.totalCount + 1);
+  });
+
+  it('shows "Alle Notizen anzeigen" for a single note too, so it can be edited/deleted', () => {
+    const singleNoteResponse: CustomerNotesResponse = {
+      ...mockCustomerNotesResponse,
+      items: [mockCustomerNotesResponse.items[0]]
+    };
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', singleNoteResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="showall-notes-button"]'))).not.toBeNull();
+  });
+
+  it('opening the all-notes dialog re-fetches notes once it closes, so edits/deletes made inside are reflected', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(undefined)} as any);
+
+    const refreshedResponse: CustomerNotesResponse = {
+      ...mockCustomerNotesResponse,
+      items: [mockCustomerNotesResponse.items[0]],
+      totalCount: 1
+    };
+    customerNoteApiService.getNotesForCustomer.mockReturnValue(of(refreshedResponse));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.openAllNotesDialog();
+
+    expect(customerNoteApiService.getNotesForCustomer).toHaveBeenCalledWith(mockCustomer.id);
+    expect(component.customerNotesResponse()).toEqual(refreshedResponse);
+    expect(component.customerNotes()).toEqual(refreshedResponse.items);
   });
 
   it('ticket section not shown when distribution is inactive', async () => {

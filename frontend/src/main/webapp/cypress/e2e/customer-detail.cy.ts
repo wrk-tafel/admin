@@ -201,6 +201,59 @@ describe('Customer Detail', () => {
     });
   });
 
+  it('edits a note and sees the correction in the dialog and the "latest note" panel', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+      cy.createCustomerNote(customerId, 'original note text');
+      cy.visit('/kunden/detail/' + customerId);
+
+      cy.byTestId('showall-notes-button').click();
+      cy.get('mat-dialog-content').within(() => {
+        cy.byTestId('note-editButton').click();
+      });
+
+      cy.byTestId('editnote-dialog').should('be.visible');
+      cy.get('textarea').clear().type('corrected note text');
+      cy.byTestId('okButton').click();
+
+      cy.get('mat-dialog-content').within(() => {
+        cy.byTestId('note-text').should('have.text', 'corrected note text');
+      });
+      cy.byTestId('cancelButton').click();
+
+      // the all-notes dialog re-fetches on close, so the panel behind it reflects the correction too
+      cy.byTestId('note-text').should('have.text', 'corrected note text');
+    });
+  });
+
+  it('deletes a note, removing it from the dialog and updating the note count', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+      cy.createCustomerNote(customerId, 'first note');
+      cy.createCustomerNote(customerId, 'second note').then(() => {
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('notes-count').should('contain.text', '2');
+        cy.byTestId('showall-notes-button').click();
+
+        cy.get('mat-dialog-content').within(() => {
+          cy.byTestId('note-title').should('have.length', 2);
+          cy.byTestId('note-deleteButton').first().click();
+        });
+
+        cy.byTestId('deletenote-dialog').should('be.visible');
+        cy.byTestId('okButton').click();
+
+        cy.get('mat-dialog-content').within(() => {
+          cy.byTestId('note-title').should('have.length', 1);
+        });
+        cy.byTestId('cancelButton').click();
+
+        cy.byTestId('notes-count').should('contain.text', '1');
+      });
+    });
+  });
+
   it('renders responsively on phone (content before actions) and still allows locking/unlocking', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.visit('/kunden/detail/101');
@@ -1128,6 +1181,31 @@ describe('Customer Detail', () => {
 
       cy.byTestId('showall-notes-button').click();
       cy.checkDialogAccessibility();
+
+      // Both the edit and delete note dialogs stack on top of the still-open "all notes" dialog,
+      // so `checkDialogAccessibility()` (which targets every `mat-dialog-container` at once) can't
+      // be reused here - it would also assert on the covered dialog behind it. Scope to the topmost
+      // container instead, and to the stacked dialog's own "cancelButton" (the "all notes" dialog's
+      // OK button underneath shares that testid).
+      cy.get('mat-dialog-content').within(() => {
+        cy.byTestId('note-editButton').first().click();
+      });
+      cy.byTestId('editnote-dialog').should('be.visible');
+      cy.get('mat-dialog-container:last-of-type .mat-mdc-dialog-inner-container').should('have.css', 'opacity', '1');
+      cy.checkAccessibility('mat-dialog-container:last-of-type');
+      cy.byTestId('editnote-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+
+      cy.get('mat-dialog-content').within(() => {
+        cy.byTestId('note-deleteButton').first().click();
+      });
+      cy.byTestId('deletenote-dialog').should('be.visible');
+      cy.get('mat-dialog-container:last-of-type .mat-mdc-dialog-inner-container').should('have.css', 'opacity', '1');
+      cy.checkAccessibility('mat-dialog-container:last-of-type');
+      cy.byTestId('deletenote-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
     });
 
     it('has no violations in the overflow menu and its dialogs', () => {
