@@ -151,7 +151,9 @@ describe('Customer Detail', () => {
   it('customer note shown', () => {
     cy.visit('/kunden/detail/101');
 
-    cy.byTestId('latest-customer-note').should('be.visible');
+    // the "Aktuellste Notiz" card sits below the wider two-column Hauptbezieher card now, below
+    // the fold at the default viewport height - scroll to it the way a user would
+    cy.byTestId('latest-customer-note').scrollIntoView().should('be.visible');
     cy.byTestId('latest-customer-note-none').should('not.exist');
   });
 
@@ -159,7 +161,7 @@ describe('Customer Detail', () => {
     cy.visit('/kunden/detail/100');
 
     cy.byTestId('latest-customer-note').should('not.exist');
-    cy.byTestId('latest-customer-note-none').should('be.visible');
+    cy.byTestId('latest-customer-note-none').scrollIntoView().should('be.visible');
   });
 
   // Customer 103's notes are all inserted in one testdata transaction, so they share a single
@@ -1028,7 +1030,7 @@ describe('Customer Detail', () => {
     it('shows a note count and relative time on the "Aktuellste Notiz" card', () => {
       cy.visit('/kunden/detail/103');
 
-      cy.byTestId('notes-count').should('be.visible');
+      cy.byTestId('notes-count').scrollIntoView().should('be.visible');
       cy.byTestId('note-relative-time').should('be.visible');
     });
 
