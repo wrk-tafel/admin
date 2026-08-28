@@ -54,12 +54,12 @@ object PushNotificationTypeTargeting {
         PushNotificationType.FOOD_COLLECTION_COMPLETED to "logistik/warenerfassung",
         PushNotificationType.USER_LOCKED_OUT to "benutzer/anmelde-versuche",
         PushNotificationType.REPORT_MAIL_FAILED to "einstellungen/email",
-        PushNotificationType.EXCESSIVE_READ_ACCESS to "aenderungsprotokoll",
+        PushNotificationType.EXCESSIVE_READ_ACCESS to "zugriffsprotokoll",
         // No standalone scanner-file screen exists - the picker lives inside a household's own
         // documents tab, so the closest actionable screen is customer search.
         PushNotificationType.SCANNER_FILES_EXPIRING to "kunden/suchen",
         // a retention job's deletions are themselves recorded there, same as any other delete
-        PushNotificationType.RETENTION_RUN to "aenderungsprotokoll",
+        PushNotificationType.RETENTION_RUN to "zugriffsprotokoll",
     )
 
     /**

@@ -87,7 +87,8 @@ describe('DefaultHeaderComponent', () => {
                 {
                     provide: UserApiService,
                     useValue: {
-                        exportUser: vi.fn().mockName('UserApiService.exportUser')
+                        exportUser: vi.fn().mockName('UserApiService.exportUser'),
+                        generatePrivacyNoticeTemplate: vi.fn().mockName('UserApiService.generatePrivacyNoticeTemplate')
                     }
                 },
                 {
@@ -182,10 +183,10 @@ describe('DefaultHeaderComponent', () => {
         expect(authenticationService.logout).toHaveBeenCalled();
     });
 
-    it('exports the caller\'s own data as a downloadable PDF', () => {
+    it('exports the caller\'s own data as a downloadable ZIP', () => {
         const response = new HttpResponse({
             status: 200,
-            headers: new HttpHeaders({'Content-Disposition': 'inline; filename=benutzerdaten-mmuster.pdf'}),
+            headers: new HttpHeaders({'Content-Disposition': 'inline; filename=benutzerdaten-mmuster.zip'}),
             body: new Blob()
         });
         userApiService.exportUser.mockReturnValueOnce(of(response));
@@ -195,7 +196,7 @@ describe('DefaultHeaderComponent', () => {
 
         component.exportUserData();
 
-        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('benutzerdaten-mmuster.pdf', response.body);
+        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('benutzerdaten-mmuster.zip', response.body);
     });
 
     it('shows an error toast when the data export fails', () => {
@@ -205,6 +206,34 @@ describe('DefaultHeaderComponent', () => {
         const component = fixture.componentInstance;
 
         component.exportUserData();
+
+        expect(fileHelperService.downloadFile).not.toHaveBeenCalled();
+        expect(toastrService.error).toHaveBeenCalled();
+    });
+
+    it('downloads the staff privacy notice as a PDF', () => {
+        const response = new HttpResponse({
+            status: 200,
+            headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenschutzerklaerung-mitarbeiter.pdf'}),
+            body: new Blob()
+        });
+        userApiService.generatePrivacyNoticeTemplate.mockReturnValueOnce(of(response));
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        const component = fixture.componentInstance;
+
+        component.downloadStaffPrivacyNotice();
+
+        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-mitarbeiter.pdf', response.body);
+    });
+
+    it('shows an error toast when the staff privacy notice download fails', () => {
+        userApiService.generatePrivacyNoticeTemplate.mockReturnValueOnce(throwError(() => new Error('failed')));
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        const component = fixture.componentInstance;
+
+        component.downloadStaffPrivacyNotice();
 
         expect(fileHelperService.downloadFile).not.toHaveBeenCalled();
         expect(toastrService.error).toHaveBeenCalled();

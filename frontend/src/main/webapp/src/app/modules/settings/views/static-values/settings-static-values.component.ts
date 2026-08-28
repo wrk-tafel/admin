@@ -82,7 +82,7 @@ export interface StaticValueGroupView {
   sections: StaticValueSectionView[];
 }
 
-/** Opens the change log on this screen's records, with no other filter narrowing them. */
+/** Opens the access log on this screen's records, with no other filter narrowing them. */
 export const AUDIT_LOG_QUERY_PARAMS = {art: 'StaticValue'};
 
 /**

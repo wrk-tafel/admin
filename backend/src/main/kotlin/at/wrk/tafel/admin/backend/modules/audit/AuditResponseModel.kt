@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * One recorded change, as the frontend renders it.
+ * One recorded audit entry, as the frontend renders it - a change, a login or a tracked read.
  *
  * [changes] is the `changed_fields` document expanded into a list so the UI can lay it out as a
  * table without knowing the JSON shape; [oldValue]/[newValue] are already strings because a value's

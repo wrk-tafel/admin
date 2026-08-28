@@ -111,7 +111,7 @@ listing, duplicate search and duplicate merging. All endpoints require `CUSTOMER
 `CUSTOMER_DUPLICATES` / `CUSTOMERS_ABOVE_LIMIT` for the respective sub-features). Notable behavior:
 - `DELETE /{householdId}/consent-withdrawal` (`withdrawConsent`) is the same erasure as the plain
   `DELETE /{householdId}`, plus one extra audit entry recording that this delete was a consent
-  withdrawal (GDPR G20, issue #3416) - see `HouseholdService.deleteHouseholdByConsentWithdrawal`
+  withdrawal (GDPR G23, issue #3416) - see `HouseholdService.deleteHouseholdByConsentWithdrawal`
   below.
 - `createHousehold`/`updateHousehold` take a `force: Boolean` query param and check
   `isSupervisor` (role `SUPERVISOR`) from the JWT - see "Income validation" below for what that
@@ -135,7 +135,7 @@ subquery over `household_documents` for `documentType = PRIVACY_NOTICE` - it rea
 still is none. `getHouseholdsAboveLimit`,
 `getHouseholdsOverview`, `generatePdf`,
 `deleteHouseholdByHouseholdId`, `deleteHouseholdByConsentWithdrawal` (the same erasure, plus an
-extra audit entry under `AuditScope.CONSENT_WITHDRAWAL_ENTITY_TYPE` recording *why* - GDPR G20,
+extra audit entry under `AuditScope.CONSENT_WITHDRAWAL_ENTITY_TYPE` recording *why* - GDPR G23,
 issue #3416). Owns the `saveWithMainPerson` save-order logic described above.
 Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see
 below.
@@ -356,7 +356,7 @@ a data export. There is no stored consent field anywhere in the application: the
 sheet handed to the customer at intake and filed outside the app is the whole record (GDPR G2,
 issue #3177). Withdrawing that consent has nothing to clear either - it means erasing the household,
 which `HouseholdController.withdrawConsent`/`HouseholdService.deleteHouseholdByConsentWithdrawal`
-do (GDPR G20, issue #3416). The notice text in `includes/privacy-notice.xsl` - purpose, legal basis, retention,
+do (GDPR G23, issue #3416). The notice text in `includes/privacy-notice.xsl` - purpose, legal basis, retention,
 rights and contact - is written for this intake flow; controller identity, DPO contact and the
 rights/complaints wording come from the organisation's own published privacy notice (see the file's
 own header comment for the source and date checked), since that page has no section covering
@@ -374,10 +374,13 @@ is likewise omitted entirely, not shown blank, when `householdId` is empty.
 ### `HouseholdNoteController` / `HouseholdNoteService` (`internal/note`)
 Free-text notes attached to a household (`household_notes` table,
 [`HouseholdNoteEntity`](../../database/model/household/HouseholdNoteEntity.kt)), each stamped with
-the authoring employee and a timestamp. Simple create/list (paginated, 5 per page, newest first);
-no update or delete endpoint exists. `HouseholdNoteItem` exposes the note's `id` because the
-timestamp does not identify a note - notes written in one batch share it to the microsecond, so the
-frontend needs the id as a stable list key.
+the authoring employee and a timestamp. Create/list (paginated, 5 per page, newest first), plus
+`PUT`/`DELETE` by id (GDPR gap G21) - both scoped to the note's own author, so a note can only be
+corrected or erased by the employee who wrote it, not by anyone else holding `CUSTOMER`.
+`HouseholdNoteItem` exposes the note's `id` because the timestamp does not identify a note - notes
+written in one batch share it to the microsecond, so the frontend needs the id as a stable list
+key - and an `editable` flag mirroring that authorship check, so the "Alle Notizen anzeigen" dialog
+can hide the pencil/bin for a note it may not touch instead of only failing after the fact.
 
 ### `HouseholdExportService` (`internal`)
 The GDPR Art. 15/20 data takeout (G5, issue #3179, see
@@ -391,19 +394,20 @@ mirroring `generatePdf`'s `InputStreamResource`/`Content-Disposition` shape:
   carries who last changed it, resolved from `updatedBy`'s plain user id via one batched
   `UserRepository.findAllById` lookup), distribution attendance history
   (`DistributionHouseholdRepository.findAllByHouseholdEntityIds`) and the list of uploaded documents -
-  including each document's linked person and uploader - as `datenexport.pdf` (rendered through the
-  same `PDFService`/XSL-FO pipeline as every other PDF in the app, see
+  including each document's linked person and uploader - as both `datenexport.pdf` (rendered through
+  the same `PDFService`/XSL-FO pipeline as every other PDF in the app, see
   `pdf-templates/household-export/export-document.xsl` and
-  `docs/architecture/adr/0009-server-side-document-generation-with-xsl-fo.md`), plus every uploaded
-  document itself, read via `DocumentStorageService`. Deduplicates same-named documents so a second
-  `ausweis.jpg` doesn't silently overwrite the first inside the archive, and reserves the PDF's own
-  file name first so an actual upload named `datenexport.pdf` gets renamed the same way instead of
-  colliding with it.
+  `docs/architecture/adr/0009-server-side-document-generation-with-xsl-fo.md`) and a machine-readable
+  `daten.json` (GDPR Art. 20, issue #3418, `HouseholdExportJsonData`), plus every uploaded document
+  itself, read via `DocumentStorageService`. Deduplicates same-named documents so a second
+  `ausweis.jpg` doesn't silently overwrite the first inside the archive, and reserves the PDF's and
+  JSON's own file names first so an actual upload named `datenexport.pdf`/`daten.json` gets renamed
+  the same way instead of colliding with them.
 
 One combined archive rather than several separate downloads: a data-subject request normally wants
-"everything you have on me" in one piece. The PDF's rows (`HouseholdExportModel.kt`) are built once
-per request from the same household/notes entities. The service stores nothing - the archive is built
-on request and never written to disk or a table. It records one `AuditOperation.READ` entry
+"everything you have on me" in one piece. The PDF's and JSON's rows (`HouseholdExportModel.kt`) are
+built once per request from the same household/notes entities. The service stores nothing - the
+archive is built on request and never written to disk or a table. It records one `AuditOperation.READ` entry
 (`entityType = "Household"`, see issue #3180) the same way `generatePdf` does, and is deliberately not
 a `readOnly` transaction for the same reason: `AuditLogWriter.record`'s write only takes effect for a
 transaction that actually commits. Deliberately excludes `audit_log` entries - see the takeout plan's

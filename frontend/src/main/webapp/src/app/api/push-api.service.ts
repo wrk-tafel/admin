@@ -86,7 +86,7 @@ export const pushNotificationTypeDescription: { [key in PushNotificationType]: s
   [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ein Benutzer hat innerhalb einer Stunde mehr sensible Datensätze abgerufen als üblich.',
   [PushNotificationType.SCANNER_FILES_EXPIRING]: 'Eine Datei im Scanner-Ordner wird bald gelöscht, falls sie nicht importiert wird.',
   [PushNotificationType.RETENTION_RUN]: 'Ein Bereinigungsjob (Haushalte, Benutzer, Mitarbeiter, ' +
-    'Änderungsprotokoll) ist fehlgeschlagen oder hätte mehr Datensätze gelöscht als konfiguriert.'
+    'Zugriffsprotokoll) ist fehlgeschlagen oder hätte mehr Datensätze gelöscht als konfiguriert.'
 };
 
 /**

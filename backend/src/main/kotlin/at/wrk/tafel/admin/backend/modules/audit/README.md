@@ -1,6 +1,7 @@
 # Module: audit
 
-Read access to the audit trail — "who changed what, and what did it look like before".
+Read access to the audit trail — "who changed or accessed what, and what a change looked like
+before".
 
 The decision behind it, including the options that lost, is ADR-0039
 (`docs/architecture/adr/0039-audit-trail-as-an-append-only-log-written-by-the-application.md`).
@@ -53,13 +54,13 @@ Deliberately left out, and worth leaving out:
 A successful login is the one exception written on purpose despite not being an entity change:
 `LoginAuditService` records it as one entry per login, `entityType` `UserLogin`
 (`AuditScope.USER_LOGIN_ENTITY_TYPE`), `operation` `LOGIN`, `businessKey` the username — so "who
-logged in, and when" is answered from the same log and the same "Änderungsprotokoll" screen as
+logged in, and when" is answered from the same log and the same "Zugriffsprotokoll" screen as
 everything else, filterable like any other entry. It has no `AuditScope.auditedEntities` map entry
 (a login is never loaded or saved through the persistence context, so no Hibernate event exists to
 key one off) and carries no field diff, only that it happened.
 
 A household deleted because its consent was withdrawn gets the same kind of manually-recorded extra
-entry: `HouseholdService.deleteHouseholdByConsentWithdrawal` (GDPR G20, issue #3416) records one under
+entry: `HouseholdService.deleteHouseholdByConsentWithdrawal` (GDPR G23, issue #3416) records one under
 `entityType` `HouseholdConsentWithdrawal` (`AuditScope.CONSENT_WITHDRAWAL_ENTITY_TYPE`) *before*
 calling the same erasure `deleteHouseholdByHouseholdId` performs for any other delete — so the
 household's own listener-recorded "Household"/`DELETE` entry still exists exactly as it always did,
@@ -123,8 +124,8 @@ created, so changing it needs a restart — which is why it is a plain placehold
 ## API
 
 Everything is behind the `AUDIT_LOG` permission (ADMINISTRATION group), separate from `CUSTOMER`:
-seeing a household's current data and seeing every change ever made to it are different levels of
-access, and the log spans users and settings too.
+seeing a household's current data and seeing every change or tracked access ever made to it are
+different levels of access, and the log spans users and settings too.
 
 That separation does not extend to household-scoped field values (names, addresses, income —
 `AuditScope.householdScopedEntityTypes`): those need `CUSTOMER` as well, so an `AUDIT_LOG`-only

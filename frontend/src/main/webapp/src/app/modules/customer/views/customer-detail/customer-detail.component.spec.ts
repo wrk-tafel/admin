@@ -120,13 +120,15 @@ describe('CustomerDetailComponent', () => {
         id: 118,
         author: 'author1',
         timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
-        note: 'note from author 2'
+        note: 'note from author 2',
+        editable: true
       },
       {
         id: 123,
         author: 'author2',
         timestamp: dayjs('2023-03-20T19:45:25.615477+01:00').toDate(),
-        note: 'note from author 1'
+        note: 'note from author 1',
+        editable: false
       }
     ],
     totalCount: 1,
@@ -166,7 +168,9 @@ describe('CustomerDetailComponent', () => {
     };
     const customerNoteApiServiceSpy = {
       createNewNote: vi.fn().mockName('CustomerNoteApiService.createNewNote'),
-      getNotesForCustomer: vi.fn().mockName('CustomerNoteApiService.getNotesForCustomer')
+      updateNote: vi.fn().mockName('CustomerNoteApiService.updateNote'),
+      deleteNote: vi.fn().mockName('CustomerNoteApiService.deleteNote'),
+      getNotesForCustomer: vi.fn().mockReturnValue(of(mockCustomerNotesResponse)).mockName('CustomerNoteApiService.getNotesForCustomer')
     };
     const customerDocumentApiServiceSpy = {
       getDocumentsForCustomer: vi.fn().mockName('CustomerDocumentApiService.getDocumentsForCustomer'),
@@ -350,7 +354,8 @@ describe('CustomerDetailComponent', () => {
           id: 500,
           author: 'author1',
           timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
-          note: 'Zeile eins\nZeile zwei <b>fett</b>'
+          note: 'Zeile eins\nZeile zwei <b>fett</b>',
+          editable: true
         }
       ]
     };
@@ -742,18 +747,18 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    const sanitizedNoteText = 'new note<br/>text';
     const resultNote: CustomerNoteItem = {
       id: 627,
       author: 'author1',
       timestamp: dayjs('2023-03-22T19:45:25.615477+01:00').toDate(),
-      note: sanitizedNoteText
+      note: noteText,
+      editable: true
     };
     customerNoteApiService.createNewNote.mockReturnValue(of(resultNote));
 
     component.openAddNoteDialog();
 
-    expect(customerNoteApiService.createNewNote).toHaveBeenCalledWith(mockCustomer.id, sanitizedNoteText);
+    expect(customerNoteApiService.createNewNote).toHaveBeenCalledWith(mockCustomer.id, noteText);
     expect(component.customerNotes()[0]).toEqual(resultNote);
   });
 
@@ -773,7 +778,8 @@ describe('CustomerDetailComponent', () => {
       id: 652,
       author: 'newAuthor',
       timestamp: dayjs('2024-01-15T10:00:00.000+01:00').toDate(),
-      note: noteText
+      note: noteText,
+      editable: true
     };
     customerNoteApiService.createNewNote.mockReturnValue(of(resultNote));
 
@@ -783,6 +789,156 @@ describe('CustomerDetailComponent', () => {
     expect(updatedResponse.items[0]).toEqual(resultNote);
     expect(updatedResponse.items).toContain(resultNote);
     expect(updatedResponse.totalCount).toBe(mockCustomerNotesResponse.totalCount + 1);
+  });
+
+  it('shows "Alle Notizen anzeigen" for a single note too, so it can be edited/deleted', () => {
+    const singleNoteResponse: CustomerNotesResponse = {
+      ...mockCustomerNotesResponse,
+      items: [mockCustomerNotesResponse.items[0]]
+    };
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', singleNoteResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="showall-notes-button"]'))).not.toBeNull();
+  });
+
+  it('shows edit/delete buttons on the "Aktuellste Notiz" preview when the latest note is editable', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    // mockCustomerNotesResponse.items[0].editable is true
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="note-editButton"]'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('[testid="note-deleteButton"]'))).not.toBeNull();
+  });
+
+  it('hides edit/delete buttons on the "Aktuellste Notiz" preview when the latest note is not editable', () => {
+    const notEditableResponse: CustomerNotesResponse = {
+      ...mockCustomerNotesResponse,
+      items: [{...mockCustomerNotesResponse.items[0], editable: false}]
+    };
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', notEditableResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testid="note-editButton"]'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('[testid="note-deleteButton"]'))).toBeNull();
+  });
+
+  it('showAllNotes switches to the Notizen tab, which shows every note', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.selectedTabIndex()).toBe(0);
+
+    component.showAllNotes();
+
+    expect(component.selectedTabIndex()).toBe(2);
+  });
+
+  it('getAllNotesPage fetches the requested page into the Notizen tab\'s own list', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const page2Response: CustomerNotesResponse = {...mockCustomerNotesResponse, currentPage: 2};
+    customerNoteApiService.getNotesForCustomer.mockReturnValue(of(page2Response));
+
+    component.getAllNotesPage(2, 5);
+
+    expect(customerNoteApiService.getNotesForCustomer).toHaveBeenCalledWith(mockCustomer.id, 2, 5);
+    expect(component.allNotesResponse()).toEqual(page2Response);
+    // paging through the tab's own list must never touch the "Aktuellste Notiz" preview's data
+    expect(component.customerNotesResponse()).toEqual(mockCustomerNotesResponse);
+  });
+
+  it('editNote updates the note and refreshes both the tab list and the latest-note preview', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of('corrected text')} as any);
+    customerNoteApiService.updateNote.mockReturnValue(of(mockCustomerNotesResponse.items[0]));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.editNote(mockCustomerNotesResponse.items[0]);
+
+    expect(customerNoteApiService.updateNote)
+      .toHaveBeenCalledWith(mockCustomer.id, mockCustomerNotesResponse.items[0].id, 'corrected text');
+    // once for the tab's current page, once more for the "Aktuellste Notiz" preview (page 1)
+    expect(customerNoteApiService.getNotesForCustomer).toHaveBeenCalledTimes(2);
+    expect(toastr.success).toHaveBeenCalledWith('Notiz wurde aktualisiert!');
+  });
+
+  it('editNote does nothing when the edit dialog is cancelled', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(undefined)} as any);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.editNote(mockCustomerNotesResponse.items[0]);
+
+    expect(customerNoteApiService.updateNote).not.toHaveBeenCalled();
+  });
+
+  it('deleteNote deletes the note and refreshes both the tab list and the latest-note preview', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
+    customerNoteApiService.deleteNote.mockReturnValue(of(undefined));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.deleteNote(mockCustomerNotesResponse.items[0]);
+
+    expect(customerNoteApiService.deleteNote).toHaveBeenCalledWith(mockCustomer.id, mockCustomerNotesResponse.items[0].id);
+    // once for the tab's current page, once more for the "Aktuellste Notiz" preview (page 1)
+    expect(customerNoteApiService.getNotesForCustomer).toHaveBeenCalledTimes(2);
+    expect(toastr.success).toHaveBeenCalledWith('Notiz wurde gelöscht!');
+  });
+
+  it('deleteNote does nothing when the confirmation is cancelled', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.deleteNote(mockCustomerNotesResponse.items[0]);
+
+    expect(customerNoteApiService.deleteNote).not.toHaveBeenCalled();
   });
 
   it('ticket section not shown when distribution is inactive', async () => {

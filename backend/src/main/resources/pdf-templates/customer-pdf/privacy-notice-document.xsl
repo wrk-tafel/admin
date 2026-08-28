@@ -7,10 +7,25 @@
             <fo:layout-master-set>
                 <fo:simple-page-master master-name="simpleA4" page-height="29.7cm" page-width="21cm"
                                        margin-top="1cm" margin-bottom="1cm" margin-left="1cm" margin-right="1cm">
-                    <fo:region-body/>
+                    <!--
+                        margin-bottom reserves the region-after's own 1cm so the flowed body never
+                        renders into the same space as the footer - fo:region-body does not do this
+                        on its own (XSL-FO 1.1 §6.4.13 leaves region-body's margins at 0 by default).
+                    -->
+                    <fo:region-body margin-bottom="1cm"/>
+                    <fo:region-after extent="1cm"/>
                 </fo:simple-page-master>
             </fo:layout-master-set>
             <fo:page-sequence master-reference="simpleA4">
+                <!--
+                    The full Art. 13 disclosure set (GDPR gap G20, issue #3429) no longer fits on one
+                    page - a page number lets a printed/signed copy be checked for a missing sheet.
+                -->
+                <fo:static-content flow-name="xsl-region-after">
+                    <xsl:call-template name="page-footer">
+                        <xsl:with-param name="generatedAt" select="generatedAt"/>
+                    </xsl:call-template>
+                </fo:static-content>
                 <fo:flow flow-name="xsl-region-body">
                     <xsl:call-template name="privacy-notice"/>
                 </fo:flow>

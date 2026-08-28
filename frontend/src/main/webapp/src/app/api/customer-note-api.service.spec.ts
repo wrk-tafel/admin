@@ -48,7 +48,8 @@ describe('CustomerNoteApiService', () => {
       id: 47,
       author: 'author1',
       timestamp: dayjs().subtract(1, 'hour').toDate(),
-      note: 'note from author 1'
+      note: 'note from author 1',
+      editable: true
     };
 
     apiService.createNewNote(1, note).subscribe((noteItem) => {
