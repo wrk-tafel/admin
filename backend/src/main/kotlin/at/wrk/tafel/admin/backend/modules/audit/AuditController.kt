@@ -13,9 +13,12 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 
 /**
- * Read-only by design - there is no endpoint that writes, edits or deletes an entry, and adding one
- * would make the trail worth less than not having it. Entries appear as a side effect of the changes
- * they describe, and leave only by ageing out (`AuditRetentionService`).
+ * Read-only by design - there is no endpoint that lets a caller write, edit or delete an entry, and
+ * adding one would make the trail worth less than not having it. Entries otherwise appear only as a
+ * side effect of the changes they describe, and leave only by ageing out (`AuditRetentionService`).
+ *
+ * The one exception is every endpoint here itself: reading the audit trail is sensitive enough to be
+ * recorded as its own `AuditOperation.READ` entry - see [AuditService].
  */
 @RestController
 @RequestMapping("/api/audit")

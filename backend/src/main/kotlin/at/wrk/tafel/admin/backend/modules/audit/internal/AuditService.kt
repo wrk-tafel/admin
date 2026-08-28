@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.audit.internal
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
@@ -26,6 +27,7 @@ import tools.jackson.databind.json.JsonMapper
 class AuditService(
     private val auditLogRepository: AuditLogRepository,
     private val jsonMapper: JsonMapper,
+    private val auditLogWriter: AuditLogWriter,
 ) {
 
     companion object {
@@ -36,8 +38,15 @@ class AuditService(
      * One household's history, across every entity type that belongs to it - the household row
      * itself, its persons, notes and documents. Filtering on the type set as well as the key is what
      * keeps a user account whose username happens to be a number out of a household's history.
+     *
+     * Not read-only: viewing a household's history is itself one of the sensitive-handful reads
+     * recorded in `audit_log` (see issue #3474), and [AuditLogWriter.record]'s write only takes
+     * effect for a transaction that actually commits as one - see [AuditLogWriter]'s `beforeCommit`.
+     * Recorded under the same "Household" entity type and business key its own entries use, so this
+     * read shows up on the very screen it describes, the same way [AuditScope.EMPLOYEE_EXPORT_ENTITY_TYPE]
+     * reuses the "Employee" type for a data takeout.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun getHouseholdHistory(householdId: Long, page: Int?, pageSize: Int?): PagedResponse<AuditEntryItem> {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
         val result = auditLogRepository.findAllByBusinessKeyAndEntityTypeInOrderByOccurredAtDescIdDesc(
@@ -45,6 +54,7 @@ class AuditService(
             entityTypes = AuditScope.householdScopedEntityTypes,
             pageable = pageRequest,
         )
+        recordRead(entityType = "Household", businessKey = householdId.toString())
         return toPagedResponse(result, page)
     }
 
@@ -52,21 +62,33 @@ class AuditService(
      * What the administration screen's filters offer. The entity types and operations are the
      * complete sets the log can ever hold; the actors are only those it actually does - see
      * [AuditLogRepository.findDistinctActors].
+     *
+     * Not read-only, for the same reason [getHouseholdHistory] isn't: this also hands back the
+     * actors the log holds entries for, first and last name included, and is recorded like any other
+     * sensitive read (issue #3474).
      */
-    @Transactional(readOnly = true)
-    fun getFilterOptions(): AuditFilterOptionsResponse = AuditFilterOptionsResponse(
-        entityTypes = AuditScope.allEntityTypes,
-        operations = AuditOperation.entries,
-        actors = auditLogRepository.findDistinctActors()
-            .distinctBy { it.username }
-            .map { AuditActorItem(username = it.username, firstname = it.firstname, lastname = it.lastname) },
-    )
+    @Transactional
+    fun getFilterOptions(): AuditFilterOptionsResponse {
+        recordRead(entityType = AuditScope.AUDIT_LOG_QUERY_ENTITY_TYPE, businessKey = null)
+        return AuditFilterOptionsResponse(
+            entityTypes = AuditScope.allEntityTypes,
+            operations = AuditOperation.entries,
+            actors = auditLogRepository.findDistinctActors()
+                .distinctBy { it.username }
+                .map { AuditActorItem(username = it.username, firstname = it.firstname, lastname = it.lastname) },
+        )
+    }
 
     /**
      * The administration screen. Every filter is optional; with none given this is simply the whole
      * log, newest first.
+     *
+     * Not read-only, for the same reason [getHouseholdHistory] isn't (issue #3474). The applied
+     * filter is the closest thing a query over the whole log has to a business key - see
+     * [filterToBusinessKey] - and is recorded as one so a completely unfiltered search ("show me
+     * everything") is distinguishable from a narrow one.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun search(filter: AuditSearchFilter, page: Int?, pageSize: Int?): PagedResponse<AuditEntryItem> {
         val pageRequest = PageRequest.of(
             page?.minus(1) ?: 0,
@@ -90,7 +112,37 @@ class AuditService(
             ),
         )
 
-        return toPagedResponse(auditLogRepository.findAll(specification, pageRequest), page)
+        val result = auditLogRepository.findAll(specification, pageRequest)
+        recordRead(entityType = AuditScope.AUDIT_LOG_QUERY_ENTITY_TYPE, businessKey = filterToBusinessKey(filter))
+        return toPagedResponse(result, page)
+    }
+
+    private fun recordRead(entityType: String, businessKey: String?) {
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = entityType,
+                entityId = null,
+                businessKey = businessKey,
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
+    }
+
+    /**
+     * Renders only the filters actually given, so an unfiltered search records no business key
+     * rather than an empty one.
+     */
+    private fun filterToBusinessKey(filter: AuditSearchFilter): String? {
+        val parts = listOfNotNull(
+            filter.entityType?.let { "entityType=$it" },
+            filter.operation?.let { "operation=$it" },
+            filter.actorUsername?.let { "actorUsername=$it" },
+            filter.businessKey?.let { "businessKey=$it" },
+            filter.from?.let { "from=$it" },
+            filter.to?.let { "to=$it" },
+        )
+        return parts.takeIf { it.isNotEmpty() }?.joinToString(separator = ";")
     }
 
     private fun toPagedResponse(result: Page<AuditLogEntity>, page: Int?) = PagedResponse(
