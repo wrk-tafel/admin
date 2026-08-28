@@ -103,8 +103,9 @@ class TafelLoginFilterTest {
         }
 
         verify {
-            // createTokenCookie() already sets .secure = request.isSecure (true behind TLS via forward-headers-strategy)
-            // codeql[java/insecure-cookie] -- verifies a mock invocation, not a real cookie emission
+            // createTokenCookie() already sets .secure = request.isSecure (true behind TLS via forward-headers-strategy).
+            // False-positive java/insecure-cookie alert excluded via .github/codeql/codeql-config.yml (Kotlin has no
+            // AlertSuppression.ql, so an inline codeql[...] comment here would have no effect).
             response.addCookie(
                 withArg {
                     assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
@@ -140,8 +141,9 @@ class TafelLoginFilterTest {
         }
 
         verify {
-            // createTokenCookie() already sets .secure = request.isSecure (true behind TLS via forward-headers-strategy)
-            // codeql[java/insecure-cookie] -- verifies a mock invocation, not a real cookie emission
+            // createTokenCookie() already sets .secure = request.isSecure (true behind TLS via forward-headers-strategy).
+            // False-positive java/insecure-cookie alert excluded via .github/codeql/codeql-config.yml (Kotlin has no
+            // AlertSuppression.ql, so an inline codeql[...] comment here would have no effect).
             response.addCookie(
                 withArg {
                     assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
