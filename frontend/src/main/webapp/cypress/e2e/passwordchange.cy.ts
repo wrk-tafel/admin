@@ -73,10 +73,11 @@ describe('PasswordChange', () => {
     cy.byTestId('passwordStrength').should('not.exist');
     cy.byTestId('passwordRule-0').should('contain.text', 'Noch nicht erfüllt');
 
-    // Too short and equal to the logged-in username ("e2etest") - two rules stay unmet.
+    // Too short, equal to the logged-in username ("e2etest") and lowercase-only - three rules stay unmet.
     cy.byTestId('newPasswordText').type('e2etest');
     cy.byTestId('passwordRule-0').should('contain.text', 'Noch nicht erfüllt'); // min. 8 characters
     cy.byTestId('passwordRule-1').should('contain.text', 'Noch nicht erfüllt'); // contains the username
+    cy.byTestId('passwordRule-4').should('contain.text', 'Noch nicht erfüllt'); // character variety
     cy.byTestId('passwordStrength').should('be.visible');
     cy.byTestId('passwordStrengthLabel').should('not.be.empty');
 
@@ -100,6 +101,7 @@ describe('PasswordChange', () => {
     cy.byTestId('passwordRule-1').should('contain.text', 'Erfüllt:');
     cy.byTestId('passwordRule-2').should('contain.text', 'Erfüllt:');
     cy.byTestId('passwordRule-3').should('contain.text', 'Erfüllt:');
+    cy.byTestId('passwordRule-4').should('contain.text', 'Erfüllt:');
 
     // ... and the bar to the success green.
     cy.byTestId('passwordStrengthLabel').should('have.text', 'Stark');
@@ -111,6 +113,7 @@ describe('PasswordChange', () => {
     cy.byTestId('newPasswordText').find('input').clear().type('tafelverein99');
     cy.byTestId('passwordRule-0').should('contain.text', 'Erfüllt:');
     cy.byTestId('passwordRule-3').should('contain.text', 'Noch nicht erfüllt');
+    cy.byTestId('passwordRule-4').should('contain.text', 'Noch nicht erfüllt'); // no uppercase letter
   });
 
   it('remains usable on mobile viewports', () => {

@@ -40,10 +40,7 @@ class ConfigControllerIT : TafelBaseIntegrationTest() {
         val response = get("/api/config/public")
 
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
-        // security.loginAttempts.lockoutDurationInSeconds isn't overridden in
-        // src/test/resources/application.yml, so this is SecurityLoginAttemptsProperties' own
-        // default (900s) rather than production's configured 300s.
-        assertThat(response.body()).isEqualTo("""{"environmentLabel":"DEV","accountLockoutDurationInSeconds":900}""")
+        assertThat(response.body()).isEqualTo("""{"environmentLabel":"DEV"}""")
     }
 
     @Test

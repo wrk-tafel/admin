@@ -40,12 +40,8 @@ data class ConfigResponse(
  * empty on production and set per deployment elsewhere ("DEV", "TEST"), which is what the login
  * page shows beneath its title so it's obvious which environment is being logged into - the same
  * value [ConfigResponse.environmentLabel] carries on for an already-authenticated session.
- * [accountLockoutDurationInSeconds] mirrors `security.loginAttempts.lockoutDurationInSeconds`
- * (`ApplicationProperties`, fixed at startup) so the login page's lockout message can tell a locked-
- * out user how long to wait without hardcoding a number that could drift from the actual setting.
  */
 @ExcludeFromTestCoverage
 data class PublicConfigResponse(
     val environmentLabel: String,
-    val accountLockoutDurationInSeconds: Long,
 )

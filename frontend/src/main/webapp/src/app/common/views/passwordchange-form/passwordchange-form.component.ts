@@ -128,6 +128,7 @@ export class PasswordChangeFormComponent {
       lowerPassword.includes(username) || lowerPassword.includes([...username].reverse().join(''))
     );
     const containsBannedWord = BANNED_PASSWORD_WORDS.some(word => lowerPassword.includes(word));
+    const hasCharacterVariety = /[a-zäöüß]/.test(newPassword) && /[A-ZÄÖÜẞ]/.test(newPassword) && /[0-9]/.test(newPassword);
 
     return [
       {
@@ -145,6 +146,10 @@ export class PasswordChangeFormComponent {
       {
         label: 'Enthält keines der gesperrten Wörter (wrk, örk, oerk, tafel, roteskreuz, toet, töt, 1030)',
         met: hasValue && !containsBannedWord
+      },
+      {
+        label: 'Enthält Klein- und Großbuchstaben sowie eine Ziffer',
+        met: hasValue && hasCharacterVariety
       }
     ];
   });

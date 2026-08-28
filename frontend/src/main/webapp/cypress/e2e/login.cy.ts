@@ -86,6 +86,17 @@ describe('Login', () => {
     cy.byTestId('errorMessage').should('exist').and('contain.text', 'Server nicht erreichbar');
   });
 
+  // A rate-limited response used to read exactly like a typo too, giving no hint that waiting a
+  // moment (rather than re-entering the password) is what actually helps.
+  it('login shows a distinct message when the request rate was exceeded', () => {
+    cy.intercept('POST', '/api/login', {statusCode: 429}).as('loginRequest');
+
+    enterLoginData('e2etest', 'e2etest');
+    cy.wait('@loginRequest');
+
+    cy.byTestId('errorMessage').should('exist').and('contain.text', 'Zu viele Anmeldeversuche');
+  });
+
   // Shared terminals and external keyboards make an active Caps Lock a frequent, silent cause of a
   // "wrong" password.
   it('shows a Caps Lock warning next to the password field while it is active', () => {
@@ -171,8 +182,8 @@ describe('Login', () => {
       cy.url().should('contain', '/login/passwortaendern');
 
       cy.byTestId('currentPasswordText').type(testUser.password!);
-      cy.byTestId('newPasswordText').type('11111111');
-      cy.byTestId('newRepeatedPasswordText').type('11111111');
+      cy.byTestId('newPasswordText').type('Neu12345');
+      cy.byTestId('newRepeatedPasswordText').type('Neu12345');
 
       cy.byTestId('saveButton').click();
       cy.url().should('contain', '/uebersicht');
@@ -187,8 +198,8 @@ describe('Login', () => {
       cy.url().should('contain', '/login/passwortaendern');
 
       cy.byTestId('currentPasswordText').type(testUser.password!);
-      cy.byTestId('newPasswordText').type('11111111');
-      cy.byTestId('newRepeatedPasswordText').type('11111111');
+      cy.byTestId('newPasswordText').type('Neu12345');
+      cy.byTestId('newRepeatedPasswordText').type('Neu12345');
 
       // Slow the silent re-login down so the "Anmeldung läuft…" progress state (#3209) is actually
       // observable instead of flashing past before the redirect to /uebersicht.
@@ -208,9 +219,13 @@ describe('Login', () => {
     });
   });
 
-  it('login blocked after too many failed attempts shows the account-locked message', () => {
+  // The response used to be a distinguishable 423 with a dedicated "account locked" message -
+  // deliberately unified with a plain wrong-credentials 403 (see TafelLoginFilter) so a caller can no
+  // longer tell an account/IP is already locked out from the response alone. What's left to verify
+  // end-to-end is that the lockout still actually blocks a login, even with the correct password.
+  it('a locked-out account rejects even the correct password, with the same generic message as wrong credentials', () => {
     createTestUser().then(({user, testUser}) => {
-      // Exhaust the failed-attempt threshold via the API (fast) - the backend locks the account
+      // Exhausts the failed-attempt threshold via the API (fast) - the backend locks the account
       // once the configured max (10, see application.yml security.loginAttempts.maxFailures) is
       // reached, regardless of the credentials on the attempt that tips it over.
       for (let i = 0; i < 10; i++) {
@@ -221,13 +236,7 @@ describe('Login', () => {
       enterLoginData(user.username, testUser.password!);
 
       cy.url().should('contain', '/login');
-      // The message names the actual configured wait (5 minutes, see application.yml
-      // security.loginAttempts.lockoutDurationInSeconds) and what to do instead of leaving the
-      // user to guess.
-      cy.byTestId('errorMessage').should('exist')
-        .and('contain.text', 'gesperrt')
-        .and('contain.text', '5 Minuten')
-        .and('contain.text', 'Administrator');
+      cy.byTestId('errorMessage').should('exist').and('have.text', 'Anmeldung fehlgeschlagen!');
     });
   });
 

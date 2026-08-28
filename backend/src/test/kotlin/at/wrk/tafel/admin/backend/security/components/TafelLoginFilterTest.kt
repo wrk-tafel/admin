@@ -162,9 +162,9 @@ class TafelLoginFilterTest {
     }
 
     @Test
-    fun `unsuccessfulAuthentication with locked account responds with 423`() {
+    fun `unsuccessfulAuthentication with a locked account responds with the same 403 as wrong credentials`() {
         tafelLoginFilter.unsuccessfulAuthentication(request, response, LockedException("account locked"))
 
-        verify { response.status = HttpStatus.LOCKED.value() }
+        verify { response.status = HttpStatus.FORBIDDEN.value() }
     }
 }
