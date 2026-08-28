@@ -15,6 +15,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {EmployeeCreateDialogResult} from './dialogs/employee-create-dialog.component';
+import {UserApiService} from '../../../../api/user-api.service';
 
 describe('SettingsEmployeesComponent', () => {
   const testEmployee1: EmployeeData = {
@@ -39,6 +40,7 @@ describe('SettingsEmployeesComponent', () => {
   };
 
   let employeeApiMock: Partial<EmployeeApiService>;
+  let userApiMock: Partial<UserApiService>;
   let toastrMock: Partial<TafelToastrService>;
   let fileHelperMock: Partial<FileHelperService>;
   let permissions: string[];
@@ -54,6 +56,10 @@ describe('SettingsEmployeesComponent', () => {
       deleteEmployee: vi.fn(() => of(undefined)),
       checkPersonnelNumberAvailability: vi.fn(() => of<PersonnelNumberAvailabilityResponse>({available: true})),
       exportEmployee: vi.fn(),
+    };
+
+    userApiMock = {
+      generatePrivacyNoticeTemplate: vi.fn(),
     };
 
     toastrMock = {
@@ -75,6 +81,7 @@ describe('SettingsEmployeesComponent', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         {provide: EmployeeApiService, useValue: employeeApiMock},
+        {provide: UserApiService, useValue: userApiMock},
         {provide: TafelToastrService, useValue: toastrMock},
         {provide: MatDialog, useValue: matDialogMock},
         {provide: FileHelperService, useValue: fileHelperMock},
@@ -332,5 +339,37 @@ describe('SettingsEmployeesComponent', () => {
 
     expect(element.querySelector('[testid="exportEmployeeButton-0"]')).toBeNull();
     expect(element.querySelector('[testid="exportEmployeeButton-1"]')).not.toBeNull();
+  });
+
+  it('downloadStaffPrivacyNotice() downloads the staff privacy notice PDF', () => {
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenschutzerklaerung-mitarbeiter.pdf'}),
+      body: new Blob()
+    });
+    (userApiMock.generatePrivacyNoticeTemplate as any).mockReturnValue(of(response));
+
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['downloadStaffPrivacyNotice']();
+
+    expect(userApiMock.generatePrivacyNoticeTemplate).toHaveBeenCalled();
+    expect(fileHelperMock.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-mitarbeiter.pdf', response.body);
+    expect(component['downloadingPrivacyNotice']()).toBe(false);
+  });
+
+  it('downloadStaffPrivacyNotice() resets the loading state on error', () => {
+    (userApiMock.generatePrivacyNoticeTemplate as any).mockReturnValue(throwError(() => new Error('failed')));
+
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['downloadStaffPrivacyNotice']();
+
+    expect(fileHelperMock.downloadFile).not.toHaveBeenCalled();
+    expect(component['downloadingPrivacyNotice']()).toBe(false);
   });
 });

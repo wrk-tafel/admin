@@ -87,7 +87,8 @@ describe('DefaultHeaderComponent', () => {
                 {
                     provide: UserApiService,
                     useValue: {
-                        exportUser: vi.fn().mockName('UserApiService.exportUser')
+                        exportUser: vi.fn().mockName('UserApiService.exportUser'),
+                        generatePrivacyNoticeTemplate: vi.fn().mockName('UserApiService.generatePrivacyNoticeTemplate')
                     }
                 },
                 {
@@ -205,6 +206,34 @@ describe('DefaultHeaderComponent', () => {
         const component = fixture.componentInstance;
 
         component.exportUserData();
+
+        expect(fileHelperService.downloadFile).not.toHaveBeenCalled();
+        expect(toastrService.error).toHaveBeenCalled();
+    });
+
+    it('downloads the staff privacy notice as a PDF', () => {
+        const response = new HttpResponse({
+            status: 200,
+            headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenschutzerklaerung-mitarbeiter.pdf'}),
+            body: new Blob()
+        });
+        userApiService.generatePrivacyNoticeTemplate.mockReturnValueOnce(of(response));
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        const component = fixture.componentInstance;
+
+        component.downloadStaffPrivacyNotice();
+
+        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-mitarbeiter.pdf', response.body);
+    });
+
+    it('shows an error toast when the staff privacy notice download fails', () => {
+        userApiService.generatePrivacyNoticeTemplate.mockReturnValueOnce(throwError(() => new Error('failed')));
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        const component = fixture.componentInstance;
+
+        component.downloadStaffPrivacyNotice();
 
         expect(fileHelperService.downloadFile).not.toHaveBeenCalled();
         expect(toastrService.error).toHaveBeenCalled();

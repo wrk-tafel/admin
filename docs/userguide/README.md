@@ -27,7 +27,7 @@ Auf Test- und Entwicklungsumgebungen wird oberhalb der Anmeldemaske zusätzlich 
 
 Dieselbe Umgebungskennzeichnung bleibt nach der Anmeldung als schmales Banner oben in der Kopfzeile der Anwendung sichtbar, damit auch eine bereits geöffnete Sitzung auf einer Test- oder Entwicklungsumgebung nicht mit der Produktivumgebung verwechselt werden kann.
 
-Über das Benutzer-Icon oben rechts kann das eigene Passwort geändert, die Push-Benachrichtigungen für das aktuelle Gerät verwaltet, die eigenen Daten exportiert, dieses Benutzerhandbuch (immer die aktuellste Version, als PDF-Download) geöffnet oder man kann sich abmelden.
+Über das Benutzer-Icon oben rechts kann das eigene Passwort geändert, die Push-Benachrichtigungen für das aktuelle Gerät verwaltet, die eigenen Daten exportiert, die eigene Datenschutzerklärung heruntergeladen, dieses Benutzerhandbuch (immer die aktuellste Version, als PDF-Download) geöffnet oder man kann sich abmelden.
 
 ![Benutzermenü](images/benutzermenue.jpg)
 
@@ -38,6 +38,8 @@ Dieselbe Umgebungskennzeichnung bleibt nach der Anmeldung als schmales Banner ob
 Nach dem Speichern bleibt man mit dem neuen Passwort angemeldet – ein neuerlicher Login ist nicht nötig. Die Anwendung kehrt dabei automatisch auf jene Seite zurück, von der aus das Benutzermenü geöffnet wurde, und bestätigt die Änderung mit einem kurzen Hinweis. Über **Abbrechen** kommt man ohne Änderung wieder auf dieselbe Seite zurück.
 
 Über **Meine Daten exportieren** lädt man eine DSGVO-Datenauskunft (Art. 15/20) zum eigenen Benutzerkonto als PDF-Datei herunter: Benutzername, die verknüpften Mitarbeiter-Stammdaten (Personalnummer, Name), die zugewiesenen Berechtigungen, der Aktiv-Status sowie der letzte Login-Zeitpunkt. Das gespeicherte Passwort ist darin nie enthalten. Für eine andere Person kann dieselbe Auskunft auch von einem Benutzer mit Benutzerverwaltungs-Berechtigung über dessen Benutzerdetailseite abgerufen werden, siehe [Benutzer](benutzer.md).
+
+Über **Datenschutzerklärung (Mitarbeiter)** lädt man eine allgemeine, personenunabhängige Datenschutzerklärung für Mitarbeiter:innen und Freiwillige als PDF herunter: welche Daten über Mitarbeiter:innen verarbeitet werden, auf welcher Grundlage, wie lange und mit welchen Rechten. Dasselbe Dokument steht auch ohne eigenes Benutzerkonto zur Verfügung, siehe [Mitarbeiter](einstellungen.md#mitarbeiter).
 
 <a id="benachrichtigungen"></a>
 

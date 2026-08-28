@@ -58,6 +58,9 @@ class UserControllerTest {
     private lateinit var userExportService: UserExportService
 
     @RelaxedMockK
+    private lateinit var staffPrivacyNoticeService: StaffPrivacyNoticeService
+
+    @RelaxedMockK
     private lateinit var jwtTokenService: JwtTokenService
 
     @RelaxedMockK
@@ -168,6 +171,19 @@ class UserControllerTest {
         val exception = assertThrows<NotFoundException> { controller.exportUserById(1) }
         assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(exception.body.detail).isEqualTo("Benutzer (ID: 1) nicht gefunden!")
+    }
+
+    @Test
+    fun `generate staff privacy notice template`() {
+        val pdfBytes = "pdf-bytes".toByteArray()
+        every { staffPrivacyNoticeService.generatePrivacyNoticePdf() } returns pdfBytes
+
+        val response = controller.generatePrivacyNoticeTemplate()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo("datenschutzerklaerung-mitarbeiter.pdf")
+        assertThat(response.body!!.inputStream.readAllBytes()).isEqualTo(pdfBytes)
     }
 
     @Test

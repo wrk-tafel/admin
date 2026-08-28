@@ -102,7 +102,7 @@ Worth recording, because it is the part that does not need work:
 
 ## 4. Gaps
 
-Ordered by how exposed they leave the operator, not by how hard they are to fix. G12 and G13 are the
+Ordered by how exposed they leave the operator, not by how hard they are to fix. G12 onward are the
 exception — appended after the original review rather than re-ranked into it, so the existing G1–G11
 numbering (and the issues already filed against it) stays stable.
 
@@ -642,6 +642,61 @@ What remains open: the ceilings are fixed defaults an operator has to actively t
 size, same caveat as G11's read-access threshold; and the alert only ever reaches someone already
 holding `ADMINISTRATOR` and push notifications on their device.
 
+### G22 Staff now get an Art. 13 notice too, and the customer notice's own gaps are closed
+
+**Art. 13.** A privacy notice must cover recipients, third-country transfers, the consequences of
+not providing data, and whether Art. 22 automated decision-making applies - not just controller,
+purpose, legal basis, retention and rights.
+
+Found in a re-audit of G2 (issue #3429): the customer notice (`pdf-templates/customer-pdf/includes/
+privacy-notice.xsl`) had controller, DPO, purpose, legal basis, retention and rights, but no
+recipients/categories of recipients, no third-country statement, no mandatory/voluntary-with-
+consequences paragraph and no Art. 13(2)(f) line - and its "7 Jahre" retention figure was
+hard-coded text rather than `tafeladmin.householdDeletion.retentionYears`, so an operator changing
+the property silently desynchronised the printed sheet from what the application actually does.
+Staff (`users`/`employees`) had no Art. 13 notice anywhere - an export (G12/G14) and a retention job
+(G13) exist, but nobody is *informed*, the "informed" half of the same obligation the customer
+notice answers.
+
+Both are closed the same way as G2 originally was, by the same reasoning and with the same caveat:
+
+- The customer notice's `retentionYears`, and the new `generatedAt` footer stamp below, are now
+  passed into the template as parameters (`HouseholdPdfService`, `PrivacyNoticePdfData`) instead of
+  being literal text, so both are read from the live configuration at generation time rather than
+  frozen at the point someone last edited the XSL.
+- The four missing paragraphs (recipients, third-country transfer, mandatory/voluntary and
+  consequences, no Art. 22 automated decision-making) are added to the customer notice, grounded in
+  what [§1](#1-what-personal-data-the-application-holds)/[§2](#2-where-personal-data-leaves-the-system)/[§5](#5-checked-and-found-fine)
+  of this document record the application actually does (hosting and mail-sending processors, no
+  customer data reaching a third country, `IncomeValidatorService` never deciding on its own).
+- A new one-page staff notice (`pdf-templates/staff-pdf/`, `StaffPrivacyNoticeService`) covers the
+  same ground for `users`/`employees`/push subscriptions - including the one *real* third-country
+  transfer in this application, Web Push's device endpoints at Google/Mozilla/Apple (see
+  [§2](#2-where-personal-data-leaves-the-system)). Generic and reference-less, the same shape as the
+  customer notice's own blank counterpart (no household/user/employee to look up, so nothing here is
+  audited or wrapped in a transaction): reachable from the user menu for self-service
+  (`GET /api/users/privacy-notice-template`, `isAuthenticated()` only) and from the Mitarbeiter
+  settings screen for an admin to hand it to someone with no account of their own.
+- Both documents' `retentionYears`/`retentionTime` text is read per generation, same as the
+  retention jobs themselves read it - an operator's config change is reflected the next time either
+  PDF is generated, with no restart needed.
+- Both documents now carry a page-number-and-generation-date footer (`fo:static-content` bound to
+  `xsl-region-after`, the same pattern `household-export`/`user-export`/`employee-export` already
+  use) - the fuller disclosure set no longer fits on one page for either document, and a stray page
+  found later needs the date to be matched back to the right printing.
+
+What remains open, same as G2's own "what remains open": this was drafted against what the codebase
+and [§1](#1-what-personal-data-the-application-holds)/[§2](#2-where-personal-data-leaves-the-system)
+of this document record, not routed through a documented legal/DPO sign-off process, and nothing in
+the application tracks *whether* that sign-off happened - see issue #3185. A closer question G2
+never had to answer: **fixing the hard-coded retention text only helps a notice generated from now
+on** - a customer notice already signed and filed as a scanned PDF (`DocumentType.PRIVACY_NOTICE`)
+is a snapshot of what was printed at intake, the same as any signed paper document, and stays that
+way if the operator later changes the retention window. Whether that ever needs a re-notification or
+re-consent step is a question for the operator/DPO, not something either the original hard-coded
+text or this fix could have answered - tracked as [issue #3496](https://github.com/wrk-tafel/admin/issues/3496)
+since it surfaced only while fixing this gap, not something #3429 itself asked for.
+
 ### G20 The three GDPR exports are now machine-readable too, not just PDF
 
 **Art. 20.** Found in a re-audit of the code against this document (2026-08-27), independent of the
@@ -750,6 +805,7 @@ number here.
 | 18 | [G19](#g19-a-retention-job-now-reports-itself-instead-of-only-logging-one-aggregate-line) retention jobs had no preview, no failure alert, no upper bound | [#3437](https://github.com/wrk-tafel/admin/issues/3437) | done | `RetentionRunAlertEvent`/`RETENTION_RUN` push, per-job `maxDeletionsPerRun` ceilings, `tafeladmin.audit.cleanupEnabled`, the "wird bald gelöscht" search filter |
 | 19 | [G20](#g20-the-three-gdpr-exports-are-now-machine-readable-too-not-just-pdf) exports were PDF-only, not strictly Art. 20 machine-readable | [#3418](https://github.com/wrk-tafel/admin/issues/3418) | done | `daten.json` alongside `datenexport.pdf` in all three export ZIPs |
 | 20 | [G21](#g21-a-household-note-can-now-be-corrected-or-erased-not-only-appended) notes were append-only, no Art. 16/17 path | [#3417](https://github.com/wrk-tafel/admin/issues/3417) | done | `PUT`/`DELETE` on `HouseholdNoteController`, edit/delete in the "Alle Notizen anzeigen" dialog, restricted to the note's own author |
+| 21 | [G22](#g22-staff-now-get-an-art-13-notice-too-and-the-customer-notices-own-gaps-are-closed) no Art. 13 notice for staff; customer notice incomplete/hard-coded | [#3429](https://github.com/wrk-tafel/admin/issues/3429) | done | `retentionYears`/footer as template params, four added paragraphs, new `staff-pdf` notice; re-signing after a retention change stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 
 Every gap in this table is done — the operator has now answered every question in #3185's
 coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR

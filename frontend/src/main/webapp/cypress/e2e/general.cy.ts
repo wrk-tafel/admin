@@ -253,6 +253,22 @@ describe('Accessibility', () => {
       .and('not.have.attr', 'target');
   });
 
+  // The Art. 13 GDPR privacy notice for staff (issue #3429) - self-service from the user menu,
+  // generic and no account reference needed.
+  it('downloads the staff privacy notice from the user menu', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('usermenu').click();
+    cy.byTestId('usermenu-privacy-notice').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, 'datenschutzerklaerung-mitarbeiter.pdf');
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string) => expect(buffer.length).to.be.gt(1000));
+  });
+
   it('lets the keyboard reach and expand a collapsible nav group', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');
