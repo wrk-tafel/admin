@@ -3,11 +3,13 @@ package at.wrk.tafel.admin.backend.common.auth.components
 import at.wrk.tafel.admin.backend.common.auth.model.StaffPrivacyNoticePdfData
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.common.retention.RetentionPeriodFormatter
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils
 import java.time.Clock
+import java.time.Duration
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -30,6 +32,7 @@ import java.time.format.DateTimeFormatter
 class StaffPrivacyNoticeService(
     private val pdfService: PDFService,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val applicationProperties: ApplicationProperties,
     private val clock: Clock,
 ) {
 
@@ -47,6 +50,9 @@ class StaffPrivacyNoticeService(
             userRetentionText = RetentionPeriodFormatter.format(tafelAdminProperties.userDeletion.retentionTime),
             employeeRetentionText = RetentionPeriodFormatter.format(tafelAdminProperties.employeeDeletion.retentionTime),
             auditRetentionDays = tafelAdminProperties.audit.retentionDays.toString(),
+            ipLockoutDurationText = RetentionPeriodFormatter.format(
+                Duration.ofSeconds(applicationProperties.security.loginAttemptsIp.lockoutDurationInSeconds),
+            ),
         )
         return pdfService.generatePdf(data, PDF_STYLESHEET_PATH)
     }

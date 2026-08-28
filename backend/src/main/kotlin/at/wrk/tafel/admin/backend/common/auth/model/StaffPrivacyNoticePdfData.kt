@@ -17,6 +17,13 @@ data class StaffPrivacyNoticePdfData(
     val userRetentionText: String,
     val employeeRetentionText: String,
     val auditRetentionDays: String,
+    /**
+     * `security.loginAttemptsIp.lockoutDurationInSeconds` as display text (GDPR gap G27, issue
+     * #3509) - the client IP address stored on a failed login is kept for this long before the next
+     * hourly cleanup removes it (`LoginAttemptIpService`), which the notice used not to mention at
+     * all.
+     */
+    val ipLockoutDurationText: String,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -30,6 +37,7 @@ data class StaffPrivacyNoticePdfData(
         if (userRetentionText != other.userRetentionText) return false
         if (employeeRetentionText != other.employeeRetentionText) return false
         if (auditRetentionDays != other.auditRetentionDays) return false
+        if (ipLockoutDurationText != other.ipLockoutDurationText) return false
 
         return true
     }
@@ -41,6 +49,7 @@ data class StaffPrivacyNoticePdfData(
         result = 31 * result + userRetentionText.hashCode()
         result = 31 * result + employeeRetentionText.hashCode()
         result = 31 * result + auditRetentionDays.hashCode()
+        result = 31 * result + ipLockoutDurationText.hashCode()
         return result
     }
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    The Art. 13 GDPR privacy notice for staff (GDPR gap G20, issue #3429) - unlike the customer
+    The Art. 13 GDPR privacy notice for staff (GDPR gap G20, issue #3429; the client-IP paragraph
+    and its ipLockoutDurationText parameter added for gap G27, issue #3509) - unlike the customer
     notice (customer-pdf/includes/privacy-notice.xsl), this is purely informational rather than a
     consent form: legal basis here is legitimate interest/the underlying service or volunteer
     relationship, not consent, so there is nothing to sign. Generic, not per-person - reachable
@@ -41,11 +42,13 @@
         <fo:block font-size="10pt" color="{$tafelInk}" space-after="4mm" line-height="1.5">
             Wir verarbeiten Ihre Stammdaten (Name, Personalnummer, Benutzername), Ihre
             Zugriffsberechtigungen, Anmeldedaten (Zeitpunkt erfolgreicher und fehlgeschlagener
-            Anmeldungen) sowie - sofern Sie diese Funktion aktivieren - Ihre für
-            Push-Benachrichtigungen registrierten Geräte, um Ihnen den Zugang zur Anwendung „Tafel
-            Admin" zu ermöglichen, Ihnen Zugriffsrechte entsprechend Ihrer Tätigkeit zu vergeben,
-            Änderungen an Kunden- und Stammdaten nachvollziehbar Ihrem Konto zuzuordnen
-            (Änderungsprotokoll) und Sie bei Bedarf über wichtige Ereignisse zu benachrichtigen.
+            Anmeldungen sowie bei einer fehlgeschlagenen Anmeldung die IP-Adresse, von der aus die
+            Anmeldung erfolgte, auch zur Begrenzung der Anfragehäufigkeit) sowie - sofern Sie diese
+            Funktion aktivieren - Ihre für Push-Benachrichtigungen registrierten Geräte, um Ihnen den
+            Zugang zur Anwendung „Tafel Admin" zu ermöglichen, Ihnen Zugriffsrechte entsprechend
+            Ihrer Tätigkeit zu vergeben, Änderungen an Kunden- und Stammdaten nachvollziehbar Ihrem
+            Konto zuzuordnen (Änderungsprotokoll), missbräuchliche Anmeldeversuche zu erkennen und
+            abzuwehren und Sie bei Bedarf über wichtige Ereignisse zu benachrichtigen.
         </fo:block>
         <xsl:call-template name="section-title">
             <xsl:with-param name="text" select="'Rechtsgrundlage'"/>
@@ -90,7 +93,10 @@
             als Fahrer:in einer Warenerfassung), und wird danach spätestens nach
             <xsl:value-of select="./employeeRetentionText"/> automatisch entfernt. Einträge im
             Änderungsprotokoll, die Ihr Konto betreffen, werden nach
-            <xsl:value-of select="./auditRetentionDays"/> Tagen gelöscht.
+            <xsl:value-of select="./auditRetentionDays"/> Tagen gelöscht. Die bei einer
+            fehlgeschlagenen Anmeldung gespeicherte IP-Adresse wird spätestens
+            <xsl:value-of select="./ipLockoutDurationText"/> nach dem letzten fehlgeschlagenen
+            Anmeldeversuch, jedenfalls aber innerhalb der folgenden Stunde, automatisch gelöscht.
         </fo:block>
         <xsl:call-template name="section-title">
             <xsl:with-param name="text" select="'Pflichtangaben und Folgen der Nichtbereitstellung'"/>

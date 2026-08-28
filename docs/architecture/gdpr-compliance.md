@@ -870,21 +870,27 @@ other way for documents.
 What to do: either enforce the additivity the frontend already assumes (`CUSTOMER and
 CUSTOMERS_ABOVE_LIMIT`, server-side), or return only what each report screen shows.
 
-### G27 The notices omit the IP address (staff) and the audit trail (customers)
+### G27 The notices now cover the IP address (staff) and the audit trail (customers)
 
 **Art. 13(1)(c), Art. 13(2)(a).** Found in the same re-audit, issue
 [#3509](https://github.com/wrk-tafel/admin/issues/3509).
 
 [G22](#g22-staff-now-get-an-art-13-notice-too-and-the-customer-notices-own-gaps-are-closed) completed
 both notices against what §1 recorded at the time — and §1 was itself incomplete. The staff notice
-lists master data, permissions, login timestamps and push devices, but not that the client IP address
-is stored on failed logins (`login_attempts_ip`, [G23](#g23-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked))
+listed master data, permissions, login timestamps and push devices, but not that the client IP
+address is stored on failed logins (`login_attempts_ip`, [G23](#g23-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked))
 and counted in memory for rate limiting — a category that applies to anyone who reaches the login
-endpoint. The customer notice never mentions the audit trail: that before/after copies of name,
-address and income are kept for `tafeladmin.audit.retentionDays` after every change, and that reads
-of the record are logged ([G6](#g6-a-small-targeted-set-of-reads-is-now-recorded)). Both figures
-belong in the template as parameters read from the live configuration, the way `retentionText`
-already is.
+endpoint, not just staff. The customer notice never mentioned the audit trail: that before/after
+copies of name, address and income are kept for `tafeladmin.audit.retentionDays` after every
+change, and that reads of the record are logged ([G6](#g6-a-small-targeted-set-of-reads-is-now-recorded)).
+
+Both notices now say so. The staff notice's data-categories and Speicherdauer paragraphs cover the
+client IP address, with the lockout window itself read as `ipLockoutDurationText`
+(`StaffPrivacyNoticeService`, from `security.loginAttemptsIp.lockoutDurationInSeconds`) rather than
+hard-coded; `RetentionPeriodFormatter` gained a `Duration` overload for that. The customer notice's
+data-categories and Speicherdauer paragraphs cover the Änderungsprotokoll, with the day count read
+as `auditRetentionDays` (`HouseholdPdfService`, from `tafeladmin.audit.retentionDays`) the same way
+`retentionText` already was. Both golden PDF references were regenerated to match.
 
 ### G28 Two smaller confidentiality leaks: opportunistic SMTP TLS, and a mail subject on a lock screen
 
@@ -1020,13 +1026,13 @@ number here.
 | 23 | [G24](#g24-the-name-bearing-csv-downloads-are-not-recorded-and-not-inventoried) bulk CSV/list downloads unrecorded | [#3507](https://github.com/wrk-tafel/admin/issues/3507) | small | one `READ` per bulk download, weighted in `ExcessiveReadAccessDetectionService` |
 | 24 | [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail) search terms in `access.log`, the URL and the support mail | [#3506](https://github.com/wrk-tafel/admin/issues/3506) | small | access-log pattern without the query string; strip the query from the support context's `page` |
 | 25 | [G26](#g26-three-report-permissions-reach-the-whole-household-record-without-customer) report permissions reach the full household record | [#3508](https://github.com/wrk-tafel/admin/issues/3508) | small | enforce `CUSTOMER and <report permission>` server-side, or slim the list items |
-| 26 | [G27](#g27-the-notices-omit-the-ip-address-staff-and-the-audit-trail-customers) notices omit the IP address / the audit trail | [#3509](https://github.com/wrk-tafel/admin/issues/3509) | small | two paragraphs, figures as template parameters, golden PDFs regenerated |
+| 26 | [G27](#g27-the-notices-now-cover-the-ip-address-staff-and-the-audit-trail-customers) notices omitted the IP address / the audit trail | [#3509](https://github.com/wrk-tafel/admin/issues/3509) | done | two paragraphs per notice, figures as template parameters (`ipLockoutDurationText`/`auditRetentionDays`), golden PDFs regenerated |
 | 27 | [G28](#g28-two-smaller-confidentiality-leaks-opportunistic-smtp-tls-and-a-mail-subject-on-a-lock-screen) opportunistic SMTP TLS; mail subject in a push body | [#3510](https://github.com/wrk-tafel/admin/issues/3510), [#3511](https://github.com/wrk-tafel/admin/issues/3511) | done | `starttls.required: true` set, named a failed mail by type and outbox id instead of its subject |
 | 28 | [G29](#g29-a-signed-privacy-notice-can-now-be-flagged-when-its-printed-retention-figure-has-drifted-from-the-live-config) a signed privacy notice can silently drift from a later-changed retention window | [#3500](https://github.com/wrk-tafel/admin/issues/3500) | done | `DocumentEntity.retentionPeriodAtUpload` stamped at upload, a "Datenschutzerklärung veraltet" customer-search filter; whether to act on a drift stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 
-G1–G23, G28 and G29 are done — the operator has answered every question in #3185's coded-work table,
+G1–G23 and G27–G29 are done — the operator has answered every question in #3185's coded-work table,
 and G29 closes the detection half of #3500 (the "what to do about a drift" question stays open, see
-G29's own "what remains open" and [#3496](https://github.com/wrk-tafel/admin/issues/3496)). G24–G27
-were found by the 2026-08-29 re-audit of this document against the code and are still open, each with
+G29's own "what remains open" and [#3496](https://github.com/wrk-tafel/admin/issues/3496)). G24–G26
+were found by the 2026-08-29 re-audit of this document against the code and remain open, each with
 its issue above. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
 closes it; it stays open until the operator writes those answers down.

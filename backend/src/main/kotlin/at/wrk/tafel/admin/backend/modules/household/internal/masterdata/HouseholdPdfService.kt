@@ -56,6 +56,7 @@ class HouseholdPdfService(
             issuedAtDate = LocalDate.now(clock).format(DATE_FORMATTER),
             retentionText = RetentionPeriodFormatter.format(tafelAdminProperties.householdDeletion.retentionTime),
             generatedAt = LocalDate.now(clock).format(DATE_FORMATTER),
+            auditRetentionDays = tafelAdminProperties.audit.retentionDays.toString(),
         )
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")
     }
@@ -75,6 +76,7 @@ class HouseholdPdfService(
             issuedAtDate = "",
             retentionText = RetentionPeriodFormatter.format(tafelAdminProperties.householdDeletion.retentionTime),
             generatedAt = LocalDate.now(clock).format(DATE_FORMATTER),
+            auditRetentionDays = tafelAdminProperties.audit.retentionDays.toString(),
         )
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")
     }
