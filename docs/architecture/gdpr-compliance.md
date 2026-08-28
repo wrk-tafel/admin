@@ -774,7 +774,10 @@ picture:
 - backup retention, encryption and how erasure is propagated into restores;
 - what happens to printed Kundenlisten and Stammdatenblätter after a distribution;
 - who holds which account and permission today, and when that was last reviewed;
-- the incident process behind Art. 33's 72 hours.
+- the incident process behind Art. 33's 72 hours;
+- whether a customer/staff privacy notice already signed and filed needs re-notification or
+  re-consent once the operator later changes the retention window it states — see G22's own note
+  and [#3496](https://github.com/wrk-tafel/admin/issues/3496).
 
 ## 7. Where to start
 
