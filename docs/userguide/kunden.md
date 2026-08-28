@@ -32,7 +32,7 @@ Findet die Suche keinen Kunden, erscheint statt des Ergebnisses der Hinweis "Kei
 
 ## Kunden-Detail
 
-Die Detailansicht eines Kunden beginnt mit einem Kopfbereich, der Name und Kundennummer groß darstellt sowie den Status auf einen Blick zeigt: die Gültigkeit als grüne/gelbe/rote Markierung (gelb ab 8 Wochen vor Ablauf), ob der Kunde gesperrt ist, ein offener Unkostenbeitrag samt Betrag, und die Haushaltsgröße. Darunter folgen im Tab "Allgemeine Daten" die Stammdaten des Hauptbeziehers.
+Die Detailansicht eines Kunden beginnt mit einem Kopfbereich, der Name und Kundennummer groß darstellt sowie den Status auf einen Blick zeigt: die Gültigkeit als grüne/gelbe/rote Markierung (gelb ab 8 Wochen vor Ablauf), ob der Kunde gesperrt ist, ein offener Unkostenbeitrag samt Betrag, und die Haushaltsgröße. Darunter folgen im Tab "Allgemeine Daten" die Stammdaten des Hauptbeziehers (zweispaltig: links die Identität und Kontaktdaten, rechts Arbeitgeber, Einkommen und Status) sowie darunter die zuletzt erfasste Notiz.
 
 ![Kunden-Detail](images/kunden-detail.jpg)
 
@@ -44,6 +44,7 @@ Rechts oben im Kopfbereich stehen die Aktionen zur Verfügung, gereiht nach ihre
 - **Unkostenbeitrag**: Ist noch ein Betrag offen, wird er als roter Hinweis direkt am Button angezeigt; im Menü stehen dann zusätzlich "Alles bezahlt" und "Betrag eintragen" zur Verfügung. Unabhängig davon kann über "Betrag bearbeiten" (unterhalb einer Trennlinie) der Betrag jederzeit manuell korrigiert werden.
 - **Weitere Aktionen**: Sammelt die selteneren bzw. sicherheitskritischen Aktionen **Kunde deaktivieren**, **Kunde sperren**/**entsperren**, **Daten exportieren (ZIP)** und **Kunde löschen** (jeweils mit Sicherheitsabfrage bzw. Download) in einem Menü. **Daten exportieren (ZIP)** liefert die vollständige Datenauskunft zu einem Kunden für eine DSGVO-Anfrage in einer einzigen ZIP-Datei: die Stammdaten, weiteren Personen, Notizen, Teilnahme-Historie an Ausgabetagen und die Liste der hochgeladenen Dokumente sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei, sowie alle hochgeladenen Dokumente selbst. Funktioniert unabhängig vom Sperrstatus, da ein gesperrter Kunde dieselben Auskunftsrechte behält. Ist die betroffene Person nicht anhand der Kundennummer bekannt, oder soll sie zugleich als Kunde und als Mitarbeiter:in gesucht werden, bietet sich stattdessen [Datenauskunft](datenauskunft.md) an.
 - Ist gerade ein Ausgabetag aktiv, kann dem Kunden rechts oben eine **Ticketnummer** zugewiesen werden; ist bereits ein Ticket zugewiesen, wird es stattdessen angezeigt und kann über den Papierkorb-Button wieder entfernt werden. Ist der Kunde gesperrt, ist die Zuweisung deaktiviert; ein Tooltip erklärt warum.
+- Über den grünen **+**-Button bei "Aktuellste Notiz" (die Kartenüberschrift zeigt zusätzlich die Gesamtanzahl an Notizen) kann eine neue Notiz erfasst werden. Die neueste Notiz zeigt zusätzlich eine relative Zeitangabe ("vor 3 Tagen") mit dem genauen Zeitpunkt als Tooltip. **Alle Notizen anzeigen** springt zum Tab "[Notizen](#notizen)" mit der vollständigen Liste.
 
 Telefonnummer und E-Mail-Adresse sind als Links hinterlegt (öffnen die Telefon- bzw. Mail-App); über den Kopieren-Button neben "Adresse" lässt sich die Adresse in die Zwischenablage kopieren, etwa um sie in ein anderes System einzutragen.
 
@@ -59,11 +60,13 @@ Der Tab "Weitere Personen" listet alle zusätzlichen Haushaltsmitglieder (z. B. 
 
 ![Weitere Personen](images/kunden-detail-weitere-personen.jpg)
 
+<a id="notizen"></a>
+
 ### Notizen
 
-Der Tab "Notizen" (die Beschriftung zeigt zusätzlich die Gesamtanzahl an Notizen) zeigt die zuletzt erfasste Notiz. Über den grünen **+**-Button daneben kann eine neue Notiz erfasst werden; sobald mindestens eine Notiz vorhanden ist, öffnet **Alle Notizen anzeigen** einen Dialog mit allen bisherigen Notizen. Die neueste Notiz zeigt zusätzlich eine relative Zeitangabe ("vor 3 Tagen") mit dem genauen Zeitpunkt als Tooltip. Im Dialog weist ein Hinweis darauf hin, nur für die Prüfung des Anspruchs notwendige Angaben festzuhalten – keine Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten. Jede selbst verfasste Notiz im Dialog lässt sich über den Stift-Button korrigieren oder über den Papierkorb-Button endgültig löschen (jeweils mit Sicherheitsabfrage beim Löschen) – etwa wenn sich eine Angabe im Nachhinein als falsch herausstellt oder doch besonders schützenswerte Daten enthält. Bei Notizen anderer Mitarbeiter:innen fehlen diese beiden Buttons, da eine Notiz nur von der Person korrigiert oder gelöscht werden kann, die sie ursprünglich erfasst hat.
+Der Tab "Notizen" (die Beschriftung zeigt zusätzlich die Gesamtanzahl an Notizen) zeigt alle bisherigen Notizen, nicht nur die aktuellste, mit Seitennavigation bei vielen Einträgen. Ein Hinweis beim Erfassen weist darauf hin, nur für die Prüfung des Anspruchs notwendige Angaben festzuhalten – keine Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten. Jede selbst verfasste Notiz lässt sich über den Stift-Button korrigieren oder über den Papierkorb-Button endgültig löschen (jeweils mit Sicherheitsabfrage beim Löschen) – etwa wenn sich eine Angabe im Nachhinein als falsch herausstellt oder doch besonders schützenswerte Daten enthält. Bei Notizen anderer Mitarbeiter:innen fehlen diese beiden Buttons, da eine Notiz nur von der Person korrigiert oder gelöscht werden kann, die sie ursprünglich erfasst hat.
 
-![Alle Notizen](images/kunden-alle-notizen.jpg)
+![Notizen](images/kunden-notizen.jpg)
 
 <a id="dokumente"></a>
 

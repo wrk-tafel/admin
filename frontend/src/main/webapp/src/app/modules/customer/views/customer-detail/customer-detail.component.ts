@@ -25,7 +25,8 @@ import {
   documentTypeLabel
 } from '../../../../api/customer-document-api.service';
 import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.component';
-import {AllNotesDialogComponent} from './dialogs/all-notes-dialog.component';
+import {EditNoteDialogComponent} from './dialogs/edit-note-dialog.component';
+import {DeleteNoteDialogComponent} from './dialogs/delete-note-dialog.component';
 import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
 import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.component';
 import {
@@ -48,6 +49,7 @@ import {MatTabsModule} from '@angular/material/tabs';
 import {MatDialog} from '@angular/material/dialog';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {ClipboardModule} from '@angular/cdk/clipboard';
 import {CommonModule} from '@angular/common';
@@ -63,6 +65,7 @@ import {
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
+import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {CustomerHistoryComponent} from '../../components/customer-history/customer-history.component';
@@ -78,6 +81,7 @@ import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import contentCopyIcon from '@material-symbols/svg-400/outlined/content_copy-fill.svg';
 import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
+import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
 import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity-fill.svg';
 import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import groupIcon from '@material-symbols/svg-400/outlined/group-fill.svg';
@@ -109,6 +113,7 @@ const DESKTOP_BREAKPOINT = '(min-width: 1024px)';
     MatFormFieldModule,
     MatInputModule,
     UploadDocumentPanelComponent,
+    MatPaginatorModule,
     MatTooltipModule,
     TafelInfoTooltipComponent,
     CustomerHistoryComponent,
@@ -121,6 +126,7 @@ export class CustomerDetailComponent {
     content_copy: contentCopyIcon,
     download: downloadIcon,
     add: addIcon,
+    edit: editIcon,
     progress_activity: progressActivityIcon,
     delete: deleteIcon,
     group: groupIcon,
@@ -143,6 +149,21 @@ export class CustomerDetailComponent {
   readonly customerData = linkedSignal(() => this.customerDataInput());
   readonly customerNotesResponse = linkedSignal(() => this.customerNotesResponseInput());
   readonly customerDocumentsResponse = linkedSignal(() => this.customerDocumentsResponseInput());
+
+  /**
+   * The Notizen tab's own paginated view of every note - deliberately independent from
+   * `customerNotesResponse` (which stays page-1-only and feeds the "Aktuellste Notiz" preview on
+   * Allgemeine Daten plus both tabs' badge counts). Sharing one signal would mean paging through the
+   * full list here made that preview show the wrong ("page N's first") note instead of the true
+   * latest one.
+   */
+  readonly allNotesResponse = linkedSignal(() => this.customerNotesResponseInput());
+  protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
+
+  /** Allgemeine Daten=0, Weitere Personen=1, Notizen=2 - stable since Dokumente/Verlauf (conditional
+   * on permission) always come after it. Drives "Alle Notizen anzeigen" jumping to the Notizen tab. */
+  private readonly notesTabIndex = 2;
+  selectedTabIndex = signal(0);
 
   // Other signals
   customerNotes = signal<CustomerNoteItem[]>([]);
@@ -477,24 +498,69 @@ export class CustomerDetailComponent {
             items: [newNoteItem, ...currentResponse.items],
             totalCount: currentResponse.totalCount + 1
           });
+          // The new note sorts first (newest-first) - jump the Notizen tab's own list back to page 1
+          // so it shows up there too, rather than leaving it on whatever page was last viewed.
+          this.getAllNotesPage(1, this.allNotesResponse().pageSize);
         });
       }
     });
   }
 
-  openAllNotesDialog() {
-    // Notes can be edited/deleted from within the dialog, so the "latest note" panel behind it
-    // (and its count) may be stale by the time the dialog closes - re-fetch page 1 unconditionally
-    // rather than tracking what changed inside the dialog.
-    this.dialog.open(AllNotesDialogComponent, {
-      data: {
-        customerId: this.customerData().id,
-        initialNotesResponse: this.customerNotesResponse()
+  /** Switches to the Notizen tab, which shows every note (not just the latest). */
+  showAllNotes() {
+    this.selectedTabIndex.set(this.notesTabIndex);
+  }
+
+  getAllNotesPage(page: number, pageSize?: number) {
+    this.customerNoteApiService.getNotesForCustomer(this.customerData().id!, page, pageSize).subscribe((response) => {
+      this.allNotesResponse.set(response);
+    });
+  }
+
+  editNoteInTab(noteItem: CustomerNoteItem) {
+    this.dialog.open(EditNoteDialogComponent, {
+      data: {initialText: noteItem.note}
+    }).afterClosed().subscribe((newText) => {
+      if (newText) {
+        this.customerNoteApiService.updateNote(this.customerData().id!, noteItem.id, newText).subscribe({
+          next: () => {
+            this.getAllNotesPage(this.allNotesResponse().currentPage, this.allNotesResponse().pageSize);
+            this.refreshLatestNote();
+            this.toastr.success('Notiz wurde aktualisiert!');
+          },
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Aktualisierung fehlgeschlagen!');
+          }
+        });
       }
-    }).afterClosed().subscribe(() => {
-      this.customerNoteApiService.getNotesForCustomer(this.customerData().id!).subscribe(response => {
-        this.customerNotesResponse.set(response);
-      });
+    });
+  }
+
+  deleteNoteInTab(noteItem: CustomerNoteItem) {
+    this.dialog.open(DeleteNoteDialogComponent).afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.customerNoteApiService.deleteNote(this.customerData().id!, noteItem.id).subscribe({
+          next: () => {
+            this.getAllNotesPage(this.allNotesResponse().currentPage, this.allNotesResponse().pageSize);
+            this.refreshLatestNote();
+            this.toastr.success('Notiz wurde gelöscht!');
+          },
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen!');
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Keeps the "Aktuellste Notiz" preview and both tabs' badge counts in sync after a mutation made
+   * from within the Notizen tab's own full list - which otherwise only ever touches
+   * `allNotesResponse`, never `customerNotesResponse`.
+   */
+  private refreshLatestNote() {
+    this.customerNoteApiService.getNotesForCustomer(this.customerData().id!, 1).subscribe((response) => {
+      this.customerNotesResponse.set(response);
     });
   }
 

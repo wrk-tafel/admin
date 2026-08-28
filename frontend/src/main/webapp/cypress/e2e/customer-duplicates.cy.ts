@@ -402,7 +402,6 @@ describe('Customer Merge', () => {
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'zusammengeführt');
       cy.url().should('include', '/kunden/detail/' + target.id);
-      cy.byTestId('notes-tab-label').click();
       cy.byTestId('note-text').should('contain.text', 'note from the merged-away source');
     });
   });

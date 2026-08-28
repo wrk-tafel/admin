@@ -2,7 +2,7 @@ import * as path from 'path';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
-import {MAIN_CONTENT, expectAnimationsSettled} from '../support/accessibility';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 dayjs.extend(customParseFormat);
 
@@ -150,7 +150,6 @@ describe('Customer Detail', () => {
 
   it('customer note shown', () => {
     cy.visit('/kunden/detail/101');
-    cy.byTestId('notes-tab-label').click();
 
     cy.byTestId('latest-customer-note').should('be.visible');
     cy.byTestId('latest-customer-note-none').should('not.exist');
@@ -158,7 +157,6 @@ describe('Customer Detail', () => {
 
   it('customer note not shown', () => {
     cy.visit('/kunden/detail/100');
-    cy.byTestId('notes-tab-label').click();
 
     cy.byTestId('latest-customer-note').should('not.exist');
     cy.byTestId('latest-customer-note-none').should('be.visible');
@@ -167,62 +165,43 @@ describe('Customer Detail', () => {
   // Customer 103's notes are all inserted in one testdata transaction, so they share a single
   // created_at to the microsecond. Tracking the list by that timestamp collapsed every row onto
   // one key (NG0955) - only a real render over real data shows all ten actually surviving.
-  it('all notes dialog lists every note of a customer whose notes share a timestamp', () => {
+  it('Notizen tab lists every note of a customer whose notes share a timestamp', () => {
     cy.visit('/kunden/detail/103');
+
     cy.byTestId('notes-tab-label').click();
 
-    cy.byTestId('showall-notes-button').click();
-
-    // Wait for the dialog's own open transition (scale 0.8 -> 1) to finish before scrolling
-    // inside it - Chrome's hit-testing for `.should('be.visible')` is unreliable while an
-    // ancestor is still mid-transform, which intermittently reported the scrolled-to note as
-    // covered by the (stationary) action bar. Cypress's own retries don't save this: the
-    // transform is well settled again within its 10s command timeout, but a stale
-    // elementFromPoint() read taken once mid-transition can still fail on it.
-    cy.get('mat-dialog-container').should('have.class', 'mdc-dialog--open');
-    cy.get('mat-dialog-container .mat-mdc-dialog-inner-container').should('have.css', 'opacity', '1');
-
-    // Scoped to the dialog - the "latest note" panel behind it carries the same testid.
-    cy.get('mat-dialog-content').within(() => {
+    // Scoped to the tab panel - the "Aktuellste Notiz" preview on Allgemeine Daten carries the
+    // same testids and stays mounted (just hidden) once that tab has been left.
+    cy.get('[testid="notes-tab-panel"]').within(() => {
       cy.byTestId('note-title').should('have.length', 10);
-      // Newest first, so note 10 is at the top and note 1 sits below the dialog's scroll fold.
+      // Newest first, so note 10 is at the top and note 1 sits below the paginator fold.
       cy.contains('Testnotiz 10.').should('be.visible');
       cy.contains('Testnotiz 1.').scrollIntoView().should('be.visible');
     });
   });
 
-  // The panel and the dialog render the same note text and used to disagree about it: the panel
-  // interpreted it as HTML, the dialog escaped it. Both now show plain text with real newlines.
-  it('note text renders identically as plain text in the panel and the dialog', () => {
+  // The preview and the tab render the same note text and used to disagree about it: the preview
+  // interpreted it as HTML, the tab escaped it. Both now show plain text with real newlines.
+  it('note text renders identically as plain text on Allgemeine Daten and in the Notizen tab', () => {
     cy.visit('/kunden/detail/103');
-    cy.byTestId('notes-tab-label').click();
 
     // The testdata note carries a real newline; it has to survive as one instead of collapsing.
-    const assertPlainTextWithNewline = () => {
-      cy.byTestId('note-text')
-        .filterDisplayed()
-        .first()
-        .invoke('text')
-        .should('contain', 'Testnotiz 10.\nLorem ipsum');
-    };
+    cy.byTestId('note-text').invoke('text').should('contain', 'Testnotiz 10.\nLorem ipsum');
 
-    assertPlainTextWithNewline();
-
-    cy.byTestId('showall-notes-button').click();
-    cy.get('mat-dialog-content').within(() => {
-      assertPlainTextWithNewline();
+    cy.byTestId('notes-tab-label').click();
+    cy.get('[testid="notes-tab-panel"]').within(() => {
+      cy.byTestId('note-text').first().invoke('text').should('contain', 'Testnotiz 10.\nLorem ipsum');
     });
   });
 
-  it('edits a note and sees the correction in the dialog and the "latest note" panel', () => {
+  it('edits a note and sees the correction in the Notizen tab and the "Aktuellste Notiz" panel', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id!;
       cy.createCustomerNote(customerId, 'original note text');
       cy.visit('/kunden/detail/' + customerId);
-      cy.byTestId('notes-tab-label').click();
 
-      cy.byTestId('showall-notes-button').click();
-      cy.get('mat-dialog-content').within(() => {
+      cy.byTestId('notes-tab-label').click();
+      cy.get('[testid="notes-tab-panel"]').within(() => {
         cy.byTestId('note-editButton').click();
       });
 
@@ -231,30 +210,29 @@ describe('Customer Detail', () => {
       cy.byTestId('okButton').click();
 
       // Wait for the edit dialog's own close animation to finish and remove it from the DOM -
-      // otherwise `mat-dialog-content` below still matches its (fading, but present) content too.
+      // otherwise `notes-tab-panel` below still matches its (fading, but present) content too.
       cy.byTestId('editnote-dialog').should('not.exist');
-      cy.get('mat-dialog-content').within(() => {
+      cy.get('[testid="notes-tab-panel"]').within(() => {
         cy.byTestId('note-text').should('have.text', 'corrected note text');
       });
-      cy.byTestId('cancelButton').click();
 
-      // the all-notes dialog re-fetches on close, so the panel behind it reflects the correction too
+      // editing also refreshes the "Aktuellste Notiz" panel on Allgemeine Daten
+      cy.byTestId('generaldata-tab-label').click();
       cy.byTestId('note-text').should('have.text', 'corrected note text');
     });
   });
 
-  it('deletes a note, removing it from the dialog and updating the note count', () => {
+  it('deletes a note, removing it from the Notizen tab and updating the note count', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id!;
       cy.createCustomerNote(customerId, 'first note');
       cy.createCustomerNote(customerId, 'second note').then(() => {
         cy.visit('/kunden/detail/' + customerId);
-        cy.byTestId('notes-tab-label').click();
 
         cy.byTestId('notes-count').should('contain.text', '2');
-        cy.byTestId('showall-notes-button').click();
+        cy.byTestId('notes-tab-label').click();
 
-        cy.get('mat-dialog-content').within(() => {
+        cy.get('[testid="notes-tab-panel"]').within(() => {
           cy.byTestId('note-title').should('have.length', 2);
           cy.byTestId('note-deleteButton').first().click();
         });
@@ -263,13 +241,14 @@ describe('Customer Detail', () => {
         cy.byTestId('okButton').click();
 
         // Wait for the delete-confirm dialog's own close animation to finish and remove it from
-        // the DOM - otherwise `mat-dialog-content` below still matches its (fading) content too.
+        // the DOM - otherwise `notes-tab-panel` below still matches its (fading) content too.
         cy.byTestId('deletenote-dialog').should('not.exist');
-        cy.get('mat-dialog-content').within(() => {
+        cy.get('[testid="notes-tab-panel"]').within(() => {
           cy.byTestId('note-title').should('have.length', 1);
         });
-        cy.byTestId('cancelButton').click();
 
+        // deleting also refreshes the "Aktuellste Notiz" panel's count on Allgemeine Daten
+        cy.byTestId('generaldata-tab-label').click();
         cy.byTestId('notes-count').should('contain.text', '1');
       });
     });
@@ -286,13 +265,11 @@ describe('Customer Detail', () => {
         cy.loginE2ETest2();
         cy.visit('/kunden/detail/' + customerId);
         cy.byTestId('notes-tab-label').click();
-        cy.byTestId('showall-notes-button').click();
-        cy.get('mat-dialog-content').within(() => {
+        cy.get('[testid="notes-tab-panel"]').within(() => {
           cy.byTestId('note-text').should('have.text', 'note written by e2etest');
           cy.byTestId('note-editButton').should('not.exist');
           cy.byTestId('note-deleteButton').should('not.exist');
         });
-        cy.byTestId('cancelButton').click();
 
         cy.request({
           method: 'PUT',
@@ -329,7 +306,6 @@ describe('Customer Detail', () => {
     // ...and the actions leave the identity header, which keeps them on desktop only
     cy.byTestId('customer-identity-header').find('[testid="editCustomerButton"]').should('not.exist');
 
-    cy.byTestId('notes-tab-label').scrollIntoView().click();
     cy.byTestId('latest-customer-note').scrollIntoView().should('be.visible');
 
     cy.byTestId('lock-info-banner').should('not.exist');
@@ -399,7 +375,6 @@ describe('Customer Detail', () => {
     cy.visit('/kunden/detail/100');
 
     cy.byTestId('customerIdText').should('be.visible');
-    cy.byTestId('notes-tab-label').click();
     cy.byTestId('latest-customer-note-none').scrollIntoView().should('be.visible');
 
     let validDateString;
@@ -1023,7 +998,6 @@ describe('Customer Detail', () => {
 
     it('shows a note count and relative time on the "Aktuellste Notiz" card', () => {
       cy.visit('/kunden/detail/103');
-      cy.byTestId('notes-tab-label').click();
 
       cy.byTestId('notes-count').should('be.visible');
       cy.byTestId('note-relative-time').should('be.visible');
@@ -1233,49 +1207,38 @@ describe('Customer Detail', () => {
     });
 
     it('has no violations in the note dialogs', () => {
-      // 103 is the testdata customer with more than one note, so the "all notes" dialog exists
+      // 103 is the testdata customer with more than one note, so the Notizen tab has content
       cy.visit('/kunden/detail/103');
-      cy.byTestId('notes-tab-label').click();
 
       cy.byTestId('addnote-button').click();
       cy.byTestId('noteHint').should('be.visible');
       cy.checkDialogAccessibility();
       cy.byTestId('cancelButton').click();
-      // Wait for its close animation to finish and remove it from the DOM - otherwise the
-      // `mat-dialog-content` lookup below can still catch its (fading, but present) content too.
+      // Wait for its close animation to finish and remove it from the DOM.
       cy.get('tafel-add-note-dialog').should('not.exist');
 
-      cy.byTestId('showall-notes-button').click();
-      cy.checkDialogAccessibility();
-
-      // Both the edit and delete note dialogs stack on top of the still-open "all notes" dialog,
-      // so `checkDialogAccessibility()` (which targets every `mat-dialog-container` at once) can't
-      // be reused here - it would also assert on the covered dialog behind it. Scope to the topmost
-      // container instead, and to the stacked dialog's own "cancelButton" (the "all notes" dialog's
-      // OK button underneath shares that testid).
-      cy.get('mat-dialog-content').within(() => {
+      // Unlike the old "all notes" dialog, the edit/delete-note dialogs no longer stack on top of
+      // another open dialog - the Notizen tab they're opened from is a page tab, not a dialog - so
+      // `checkDialogAccessibility()` (which targets every open `mat-dialog-container`) applies
+      // directly instead of needing to scope to the topmost one.
+      cy.byTestId('notes-tab-label').click();
+      cy.get('[testid="notes-tab-panel"]').within(() => {
         cy.byTestId('note-editButton').first().click();
       });
       cy.byTestId('editnote-dialog').should('be.visible');
-      cy.get('mat-dialog-container:last-of-type .mat-mdc-dialog-inner-container').should('have.css', 'opacity', '1');
-      // Also wait for the form field's own label/notch animation to settle - a colour read mid
-      // transition is a false color-contrast violation (see expectAnimationsSettled's doc).
-      cy.get('mat-dialog-container:last-of-type').should(expectAnimationsSettled);
-      cy.checkAccessibility('mat-dialog-container:last-of-type');
+      cy.checkDialogAccessibility();
       cy.byTestId('editnote-dialog').within(() => {
         cy.byTestId('cancelButton').click();
       });
       // Wait for the edit dialog's own close animation to finish and remove it from the DOM -
-      // otherwise the `mat-dialog-content` lookup below still catches its (fading) content too.
+      // otherwise the `notes-tab-panel` lookup below could still catch its (fading) content too.
       cy.byTestId('editnote-dialog').should('not.exist');
 
-      cy.get('mat-dialog-content').within(() => {
+      cy.get('[testid="notes-tab-panel"]').within(() => {
         cy.byTestId('note-deleteButton').first().click();
       });
       cy.byTestId('deletenote-dialog').should('be.visible');
-      cy.get('mat-dialog-container:last-of-type .mat-mdc-dialog-inner-container').should('have.css', 'opacity', '1');
-      cy.get('mat-dialog-container:last-of-type').should(expectAnimationsSettled);
-      cy.checkAccessibility('mat-dialog-container:last-of-type');
+      cy.checkDialogAccessibility();
       cy.byTestId('deletenote-dialog').within(() => {
         cy.byTestId('cancelButton').click();
       });
