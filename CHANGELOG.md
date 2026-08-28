@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Die Kunden-Detailansicht zeigt die Stammdaten des Hauptbeziehers im Tab "Allgemeine Daten" jetzt zweispaltig über die volle Breite; ein neuer Tab "Notizen" nach "Weitere Personen" zeigt zusätzlich zur weiterhin dort sichtbaren aktuellsten Notiz (die sich jetzt auch direkt dort korrigieren oder löschen lässt) die vollständige, paginierte Liste aller Notizen statt eines Dialogs.
+- Auf der Kunden-Annahme-Seite haben die Hinweise "Unkostenbeitrag offen" und "Datenschutzerklärung fehlt" jetzt einen sichtbaren Abstand zueinander, statt bei gleichzeitiger Anzeige direkt aneinanderzustoßen.
 - Die Markierung nicht zum Haushalt zählender Personen heißt jetzt "Nicht im selben Haushalt" statt "Nicht im Haushalt".
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Wird in den nächsten 30 Tagen gelöscht", der Kunden zeigt, deren Daten wegen Ablaufs der Aufbewahrungsfrist bald automatisch entfernt werden.
 - Eine neue Benachrichtigungsart "Bereinigungsjob auffällig" informiert Administrator:innen jetzt per Push, wenn eine automatische Lösch-Bereinigung (Haushalte, Benutzerkonten, Mitarbeiter oder Änderungsprotokoll) fehlschlägt oder mehr Datensätze als konfiguriert löschen würde - in letzterem Fall wird die Löschung dieses Durchlaufs abgebrochen, statt durchzuführen.

@@ -83,18 +83,26 @@
         @if (customerState() === 0 && customer()?.lockReason) {
           <div class="text-base tall:text-lg mt-0.5 tall:mt-1" testid="verdictLockReason">Grund: {{ customer()!.lockReason }}</div>
         }
-        @if ((customer()?.pendingCostContribution ?? 0) > 0) {
-          <div class="inline-flex items-center gap-2 bg-white font-bold px-3 py-1 tall:py-1.5 rounded mt-2 tall:mt-3"
-               style="color: var(--tafel-severity-danger);" testid="pendingCostContributionChip">
-            <mat-icon svgIcon="warning" class="!w-5 !h-5"></mat-icon>
-            Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
-          </div>
-        }
-        @if (customer()?.hasPrivacyNotice === false) {
-          <div class="inline-flex items-center gap-2 bg-white font-bold px-3 py-1 tall:py-1.5 rounded mt-2 tall:mt-3"
-               style="color: var(--tafel-severity-danger);" testid="missingPrivacyNoticeChip">
-            <mat-icon svgIcon="warning" class="!w-5 !h-5"></mat-icon>
-            Datenschutzerklärung fehlt
+        <!-- flex-col wrapper rather than relying on the chips' own top margin to separate them: both
+             chips are `inline-flex` (inline-level) with no block-formatting parent between them, so
+             with just the two of them as siblings, they sit on the same line touching each other -
+             this stacks them with a guaranteed gap regardless of chip count or viewport width. -->
+        @if (((customer()?.pendingCostContribution ?? 0) > 0) || customer()?.hasPrivacyNotice === false) {
+          <div class="flex flex-col items-start gap-2 mt-2 tall:mt-3">
+            @if ((customer()?.pendingCostContribution ?? 0) > 0) {
+              <div class="inline-flex items-center gap-2 bg-white font-bold px-3 py-1 tall:py-1.5 rounded"
+                   style="color: var(--tafel-severity-danger);" testid="pendingCostContributionChip">
+                <mat-icon svgIcon="warning" class="!w-5 !h-5"></mat-icon>
+                Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
+              </div>
+            }
+            @if (customer()?.hasPrivacyNotice === false) {
+              <div class="inline-flex items-center gap-2 bg-white font-bold px-3 py-1 tall:py-1.5 rounded"
+                   style="color: var(--tafel-severity-danger);" testid="missingPrivacyNoticeChip">
+                <mat-icon svgIcon="warning" class="!w-5 !h-5"></mat-icon>
+                Datenschutzerklärung fehlt
+              </div>
+            }
           </div>
         }
       </div>
