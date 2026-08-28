@@ -112,6 +112,10 @@ spring:
     properties.mail.smtp:
       auth: true
       starttls.enable: true
+      # required, not just enable: without it, a relay that doesn't advertise STARTTLS (or a
+      # man-in-the-middle stripping the capability) makes JavaMail fall back to plaintext instead
+      # of failing - see GDPR compliance doc G28.
+      starttls.required: true
   jpa:
     open-in-view: false
   thymeleaf:

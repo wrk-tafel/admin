@@ -20,6 +20,10 @@ spring:
     port: 1025
     username: test
     password: test
+    properties.mail.smtp:
+      # Mailpit (docker-compose.yml) has no TLS cert configured, so it never advertises STARTTLS -
+      # requiring it here (application.yml's production default) would fail every local send.
+      starttls.required: false
 
 security:
   jwtToken:
