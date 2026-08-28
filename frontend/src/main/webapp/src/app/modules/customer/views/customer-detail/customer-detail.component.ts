@@ -517,7 +517,8 @@ export class CustomerDetailComponent {
     });
   }
 
-  editNoteInTab(noteItem: CustomerNoteItem) {
+  /** Used both by the "Aktuellste Notiz" preview on Allgemeine Daten and the Notizen tab's own list. */
+  editNote(noteItem: CustomerNoteItem) {
     this.dialog.open(EditNoteDialogComponent, {
       data: {initialText: noteItem.note}
     }).afterClosed().subscribe((newText) => {
@@ -536,7 +537,8 @@ export class CustomerDetailComponent {
     });
   }
 
-  deleteNoteInTab(noteItem: CustomerNoteItem) {
+  /** Used both by the "Aktuellste Notiz" preview on Allgemeine Daten and the Notizen tab's own list. */
+  deleteNote(noteItem: CustomerNoteItem) {
     this.dialog.open(DeleteNoteDialogComponent).afterClosed().subscribe((confirmed) => {
       if (confirmed) {
         this.customerNoteApiService.deleteNote(this.customerData().id!, noteItem.id).subscribe({
@@ -554,9 +556,8 @@ export class CustomerDetailComponent {
   }
 
   /**
-   * Keeps the "Aktuellste Notiz" preview and both tabs' badge counts in sync after a mutation made
-   * from within the Notizen tab's own full list - which otherwise only ever touches
-   * `allNotesResponse`, never `customerNotesResponse`.
+   * Keeps the "Aktuellste Notiz" preview and both tabs' badge counts in sync after `editNote`/
+   * `deleteNote`, which otherwise only ever touch `allNotesResponse`, never `customerNotesResponse`.
    */
   private refreshLatestNote() {
     this.customerNoteApiService.getNotesForCustomer(this.customerData().id!, 1).subscribe((response) => {

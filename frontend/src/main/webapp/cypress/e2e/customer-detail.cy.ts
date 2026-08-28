@@ -194,35 +194,30 @@ describe('Customer Detail', () => {
     });
   });
 
-  it('edits a note and sees the correction in the Notizen tab and the "Aktuellste Notiz" panel', () => {
+  it('edits a note directly from the "Aktuellste Notiz" panel and sees the correction in the Notizen tab too', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id!;
       cy.createCustomerNote(customerId, 'original note text');
       cy.visit('/kunden/detail/' + customerId);
 
-      cy.byTestId('notes-tab-label').click();
-      cy.get('[testid="notes-tab-panel"]').within(() => {
-        cy.byTestId('note-editButton').click();
-      });
-
+      cy.byTestId('note-editButton').click();
       cy.byTestId('editnote-dialog').should('be.visible');
       cy.get('textarea').clear().type('corrected note text');
       cy.byTestId('okButton').click();
 
-      // Wait for the edit dialog's own close animation to finish and remove it from the DOM -
-      // otherwise `notes-tab-panel` below still matches its (fading, but present) content too.
+      // Wait for the edit dialog's own close animation to finish and remove it from the DOM.
       cy.byTestId('editnote-dialog').should('not.exist');
+      cy.byTestId('note-text').should('have.text', 'corrected note text');
+
+      // editing from the preview also refreshes the Notizen tab's own list
+      cy.byTestId('notes-tab-label').click();
       cy.get('[testid="notes-tab-panel"]').within(() => {
         cy.byTestId('note-text').should('have.text', 'corrected note text');
       });
-
-      // editing also refreshes the "Aktuellste Notiz" panel on Allgemeine Daten
-      cy.byTestId('generaldata-tab-label').click();
-      cy.byTestId('note-text').should('have.text', 'corrected note text');
     });
   });
 
-  it('deletes a note, removing it from the Notizen tab and updating the note count', () => {
+  it('deletes a note directly from the "Aktuellste Notiz" panel, updating the preview and the note count', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id!;
       cy.createCustomerNote(customerId, 'first note');
@@ -230,26 +225,53 @@ describe('Customer Detail', () => {
         cy.visit('/kunden/detail/' + customerId);
 
         cy.byTestId('notes-count').should('contain.text', '2');
-        cy.byTestId('notes-tab-label').click();
+        cy.byTestId('note-text').should('have.text', 'second note');
 
-        cy.get('[testid="notes-tab-panel"]').within(() => {
-          cy.byTestId('note-title').should('have.length', 2);
-          cy.byTestId('note-deleteButton').first().click();
-        });
-
+        cy.byTestId('note-deleteButton').click();
         cy.byTestId('deletenote-dialog').should('be.visible');
         cy.byTestId('okButton').click();
 
         // Wait for the delete-confirm dialog's own close animation to finish and remove it from
-        // the DOM - otherwise `notes-tab-panel` below still matches its (fading) content too.
+        // the DOM - otherwise `note-text` below could still match its (fading) content too.
         cy.byTestId('deletenote-dialog').should('not.exist');
+        cy.byTestId('notes-count').should('contain.text', '1');
+        cy.byTestId('note-text').should('have.text', 'first note');
+
+        // deleting from the preview also refreshes the Notizen tab's own list
+        cy.byTestId('notes-tab-label').click();
         cy.get('[testid="notes-tab-panel"]').within(() => {
           cy.byTestId('note-title').should('have.length', 1);
         });
+      });
+    });
+  });
 
-        // deleting also refreshes the "Aktuellste Notiz" panel's count on Allgemeine Daten
+  it('edits an older note from within the Notizen tab, not shown on the "Aktuellste Notiz" panel', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+      cy.createCustomerNote(customerId, 'older note');
+      cy.createCustomerNote(customerId, 'newest note').then(() => {
+        cy.visit('/kunden/detail/' + customerId);
+        cy.byTestId('notes-tab-label').click();
+
+        // newest first, so the older note is the second one
+        cy.get('[testid="notes-tab-panel"]').within(() => {
+          cy.byTestId('note-title').should('have.length', 2);
+          cy.byTestId('note-editButton').last().click();
+        });
+
+        cy.byTestId('editnote-dialog').should('be.visible');
+        cy.get('textarea').clear().type('corrected older note');
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('editnote-dialog').should('not.exist');
+        cy.get('[testid="notes-tab-panel"]').within(() => {
+          cy.contains('corrected older note').should('be.visible');
+        });
+
+        // the "Aktuellste Notiz" preview still shows the untouched newest note
         cy.byTestId('generaldata-tab-label').click();
-        cy.byTestId('notes-count').should('contain.text', '1');
+        cy.byTestId('note-text').should('have.text', 'newest note');
       });
     });
   });
@@ -264,6 +286,13 @@ describe('Customer Detail', () => {
         // read the note but not correct or erase what someone else wrote (GDPR gap G21).
         cy.loginE2ETest2();
         cy.visit('/kunden/detail/' + customerId);
+
+        // hidden both on the "Aktuellste Notiz" preview...
+        cy.byTestId('note-text').should('have.text', 'note written by e2etest');
+        cy.byTestId('note-editButton').should('not.exist');
+        cy.byTestId('note-deleteButton').should('not.exist');
+
+        // ...and in the Notizen tab's own full list
         cy.byTestId('notes-tab-label').click();
         cy.get('[testid="notes-tab-panel"]').within(() => {
           cy.byTestId('note-text').should('have.text', 'note written by e2etest');
