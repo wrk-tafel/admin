@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.audit.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditActorProjection
@@ -35,11 +36,14 @@ class AuditServiceTest {
     @RelaxedMockK
     private lateinit var auditLogRepository: AuditLogRepository
 
+    @RelaxedMockK
+    private lateinit var auditLogWriter: AuditLogWriter
+
     private lateinit var service: AuditService
 
     @BeforeEach
     fun beforeEach() {
-        service = AuditService(auditLogRepository, JsonMapper.builder().build())
+        service = AuditService(auditLogRepository, JsonMapper.builder().build(), auditLogWriter)
     }
 
     @AfterEach
@@ -126,6 +130,23 @@ class AuditServiceTest {
         assertThat(pageable.captured.pageSize).isEqualTo(25)
     }
 
+    // Reading the audit trail is itself never recorded before issue #3474 - see the module README.
+    @Test
+    fun `household history records a read of the household it serves`() {
+        every {
+            auditLogRepository.findAllByBusinessKeyAndEntityTypeInOrderByOccurredAtDescIdDesc(any(), any(), any())
+        } returns PageImpl(emptyList())
+
+        service.getHouseholdHistory(householdId = 1234, page = null, pageSize = null)
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo("Household")
+        assertThat(entrySlot.captured.businessKey).isEqualTo("1234")
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
+    }
+
     @Test
     fun `an unparseable diff still yields the entry, just without field changes`() {
         authenticateWith("AUDIT_LOG", "CUSTOMER")
@@ -149,6 +170,45 @@ class AuditServiceTest {
         verify { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), capture(pageable)) }
         assertThat(pageable.captured.sort.map { "${it.property}:${it.direction}" })
             .containsExactly("occurredAt:DESC", "id:DESC")
+    }
+
+    // Reading the audit trail is itself never recorded before issue #3474 - see the module README.
+    @Test
+    fun `search records a read with no business key when no filter was applied`() {
+        every { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), any<Pageable>()) } returns PageImpl(emptyList())
+
+        service.search(AuditSearchFilter(), page = null, pageSize = null)
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo(AuditScope.AUDIT_LOG_QUERY_ENTITY_TYPE)
+        assertThat(entrySlot.captured.businessKey).isNull()
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
+    }
+
+    @Test
+    fun `search records a read with the applied filter as its business key`() {
+        every { auditLogRepository.findAll(any<Specification<AuditLogEntity>>(), any<Pageable>()) } returns PageImpl(emptyList())
+
+        service.search(
+            AuditSearchFilter(
+                entityType = "Household",
+                operation = AuditOperation.UPDATE,
+                actorUsername = "test-user",
+                businessKey = "1234",
+                from = LocalDate.of(2026, 1, 1),
+                to = LocalDate.of(2026, 1, 31),
+            ),
+            page = null,
+            pageSize = null,
+        )
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.businessKey).isEqualTo(
+            "entityType=Household;operation=UPDATE;actorUsername=test-user;businessKey=1234;from=2026-01-01;to=2026-01-31",
+        )
     }
 
     @Test
@@ -247,6 +307,21 @@ class AuditServiceTest {
 
         assertThat(result.actors).hasSize(1)
         assertThat(result.actors.single().lastname).isEqualTo("Mustermann")
+    }
+
+    // Reading the audit trail is itself never recorded before issue #3474 - see the module README.
+    @Test
+    fun `filter options record a read with no business key`() {
+        every { auditLogRepository.findDistinctActors() } returns emptyList()
+
+        service.getFilterOptions()
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo(AuditScope.AUDIT_LOG_QUERY_ENTITY_TYPE)
+        assertThat(entrySlot.captured.businessKey).isNull()
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
     }
 
     private fun actor(name: String, first: String?, last: String?) = object : AuditActorProjection {

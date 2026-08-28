@@ -1,0 +1,13 @@
+name: "Tafel Admin CodeQL config"
+
+# Kotlin has no AlertSuppression.ql query (unlike Java, C++, C#, Go, JavaScript, Python, Ruby,
+# Swift), so `// codeql[rule-id]` inline suppression comments are silently ignored in .kt files -
+# see https://github.com/github/codeql/issues/21637. These two files verify MockK invocations of
+# `HttpServletResponse.addCookie(...)`; the mocked cookie argument never has `.setSecure(true)`
+# called on it in the test itself (that happens in TafelLoginFilter.createTokenCookie(), which sets
+# `cookie.secure = request.isSecure`), so java/insecure-cookie's dataflow always flags the
+# verification call as if it were a real, insecure cookie emission. Excluded here rather than left
+# as permanently-open false-positive alerts.
+paths-ignore:
+  - backend/src/test/kotlin/at/wrk/tafel/admin/backend/security/UserControllerTest.kt
+  - backend/src/test/kotlin/at/wrk/tafel/admin/backend/security/components/TafelLoginFilterTest.kt
