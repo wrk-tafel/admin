@@ -42,6 +42,7 @@ jobs:
         with:
           languages: java-kotlin
           build-mode: manual
+          config-file: ./.github/codeql/codeql-config.yml
       - name: Build backend
         # Compiles main and test sources without running the test suite itself (that's
         # subflow_test.yml's job) - CodeQL only needs the compiled bytecode to extract from.
