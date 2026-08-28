@@ -71,15 +71,16 @@ class MailOutboxServiceTest {
     }
 
     @Test
-    fun `enqueue stores the composed message, its subject and its recipients as pending`() {
+    fun `enqueue stores the composed message, its mail type, its subject and its recipients as pending`() {
         val service = service()
 
-        service.enqueue(mimeMessage("subject"), "subject", listOf("to1@localhost", "to2@localhost"))
+        service.enqueue(mimeMessage("subject"), "Support-Anfrage", "subject", listOf("to1@localhost", "to2@localhost"))
 
         val entitySlot = slot<MailOutboxEntity>()
         verify { mailOutboxRepository.save(capture(entitySlot)) }
 
         val entity = entitySlot.captured
+        assertThat(entity.mailType).isEqualTo("Support-Anfrage")
         assertThat(entity.subject).isEqualTo("subject")
         assertThat(entity.recipients).isEqualTo("to1@localhost, to2@localhost")
         assertThat(entity.status).isEqualTo(MailOutboxStatus.PENDING)
@@ -152,7 +153,8 @@ class MailOutboxServiceTest {
 
         val eventSlot = slot<MailDeliveryFailedEvent>()
         verify { eventPublisher.publishEvent(capture(eventSlot)) }
-        assertThat(eventSlot.captured.subject).isEqualTo("subject")
+        assertThat(eventSlot.captured.id).isEqualTo(dueMail.id)
+        assertThat(eventSlot.captured.mailType).isEqualTo("Support-Anfrage")
         assertThat(eventSlot.captured.recipients).isEqualTo("to@localhost")
         assertThat(eventSlot.captured.lastError).contains("smtp is down")
     }
@@ -181,7 +183,7 @@ class MailOutboxServiceTest {
         TransactionSynchronizationManager.setCurrentTransactionReadOnly(true)
 
         try {
-            assertThatThrownBy { service.enqueue(mimeMessage("subject"), "subject", listOf("to@localhost")) }
+            assertThatThrownBy { service.enqueue(mimeMessage("subject"), "Support-Anfrage", "subject", listOf("to@localhost")) }
                 .isInstanceOf(IllegalStateException::class.java)
                 .hasMessageContaining("read-only")
 
@@ -216,7 +218,7 @@ class MailOutboxServiceTest {
     fun `nothing is queued when no mail server is configured`() {
         val service = service(mailSender = null)
 
-        service.enqueue(mimeMessage("subject"), "subject", listOf("to@localhost"))
+        service.enqueue(mimeMessage("subject"), "Support-Anfrage", "subject", listOf("to@localhost"))
 
         verify(exactly = 0) { mailOutboxRepository.save(any<MailOutboxEntity>()) }
     }
@@ -388,6 +390,7 @@ class MailOutboxServiceTest {
     private fun dueMail() = MailOutboxEntity().apply {
         id = nextId++
         createdAt = now
+        mailType = "Support-Anfrage"
         subject = "subject"
         recipients = "to@localhost"
         message = "raw message".toByteArray()

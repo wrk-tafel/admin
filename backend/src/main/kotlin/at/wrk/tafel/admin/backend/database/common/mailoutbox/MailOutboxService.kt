@@ -74,7 +74,7 @@ class MailOutboxService(
      * server exists.
      */
     @Transactional
-    fun enqueue(mimeMessage: MimeMessage, subject: String, recipients: List<String>) {
+    fun enqueue(mimeMessage: MimeMessage, mailType: String, subject: String, recipients: List<String>) {
         if (mailSender == null) {
             logger.debug("Mail '{}' not queued - no mail server configured", subject)
             return
@@ -87,6 +87,7 @@ class MailOutboxService(
 
         val entity = MailOutboxEntity().apply {
             this.createdAt = LocalDateTime.now(clock)
+            this.mailType = mailType
             this.subject = subject.take(500)
             this.recipients = recipients.joinToString(", ")
             this.message = mimeMessage.toByteArray()
@@ -216,9 +217,10 @@ class MailOutboxService(
             if (givenUp) {
                 eventPublisher.publishEvent(
                     MailDeliveryFailedEvent(
-                        // Both are always set by enqueue; the columns are nullable only because the
-                        // entity mirrors the table, which allows it.
-                        subject = mail.subject.orEmpty(),
+                        id = mail.id!!,
+                        mailType = mail.mailType,
+                        // Always set by enqueue; the column is nullable only because the entity
+                        // mirrors the table, which allows it.
                         recipients = mail.recipients.orEmpty(),
                         lastError = mail.lastError,
                     ),

@@ -895,12 +895,16 @@ already is.
 `spring.mail`'s `starttls.enable: true` without `starttls.required: true` is opportunistic: a relay
 that does not offer STARTTLS — or a path that strips the capability — gets the report PDFs and the
 support screenshots in plaintext. Requiring it is one line, but an operator-facing one, since a relay
-without TLS would then park every mail as `FAILED` (visibly, per ADR-0046) rather than send it.
-Separately, `MailDeliveryFailedPushListener` names a failed mail by its *subject* in the push body,
-and a support request's subject is the reporter's own title — which [G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name)
-already accepts may hold a customer's name; the payload is encrypted for the push provider, but the
-notification is rendered on administrators' lock screens. Naming the mail by type and outbox id is
-enough.
+without TLS would then park every mail as `FAILED` (visibly, per ADR-0046) rather than send it. This
+half of the gap is still open, tracked in [#3510](https://github.com/wrk-tafel/admin/issues/3510).
+
+The other half is closed: `MailDeliveryFailedPushListener` used to name a failed mail by its
+*subject* in the push body, and a support request's subject is the reporter's own title — which
+[G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name) already accepts
+may hold a customer's name; the payload is encrypted for the push provider, but the notification is
+rendered on administrators' lock screens. It now names the mail by its type and the outbox row's id
+instead (e.g. "Support-Anfrage #123 konnte nicht versendet werden"), which `mail_outbox` carries as
+its new `mail_type` column ([#3511](https://github.com/wrk-tafel/admin/issues/3511)).
 
 ## 5. Checked and found fine
 
@@ -985,7 +989,7 @@ number here.
 | 24 | [G26](#g26-three-report-permissions-reach-the-whole-household-record-without-customer) report permissions reach the full household record | [#3508](https://github.com/wrk-tafel/admin/issues/3508) | small | enforce `CUSTOMER and <report permission>` server-side, or slim the list items |
 | 25 | [G24](#g24-the-name-bearing-csv-downloads-are-not-recorded-and-not-inventoried) bulk CSV/list downloads unrecorded | [#3507](https://github.com/wrk-tafel/admin/issues/3507) | small | one `READ` per bulk download, weighted in `ExcessiveReadAccessDetectionService` |
 | 26 | [G27](#g27-the-notices-omit-the-ip-address-staff-and-the-audit-trail-customers) notices omit the IP address / the audit trail | [#3509](https://github.com/wrk-tafel/admin/issues/3509) | small | two paragraphs, figures as template parameters, golden PDFs regenerated |
-| 27 | [G28](#g28-two-smaller-confidentiality-leaks-opportunistic-smtp-tls-and-a-mail-subject-on-a-lock-screen) opportunistic SMTP TLS; mail subject in a push body | [#3510](https://github.com/wrk-tafel/admin/issues/3510), [#3511](https://github.com/wrk-tafel/admin/issues/3511) | trivial | `starttls.required: true` after confirming the relay; name a failed mail by type and id |
+| 27 | [G28](#g28-two-smaller-confidentiality-leaks-opportunistic-smtp-tls-and-a-mail-subject-on-a-lock-screen) opportunistic SMTP TLS; mail subject in a push body | [#3510](https://github.com/wrk-tafel/admin/issues/3510), [#3511](https://github.com/wrk-tafel/admin/issues/3511) | trivial | mail-subject-in-push-body done, named by type and outbox id instead; `starttls.required: true` after confirming the relay stays open |
 
 G1–G23 are done — the operator has answered every question in #3185's coded-work table. G24–G28
 were found by the 2026-08-29 re-audit of this document against the code and are open, each with its

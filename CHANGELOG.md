@@ -46,6 +46,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die DSGVO-Datenexporte für Benutzerkonten und Mitarbeiter ohne Konto sind jetzt jeweils eine ZIP-Datei statt einer einzelnen PDF-Datei und enthalten zusätzlich zur PDF-Datei dieselben Daten maschinenlesbar als JSON-Datei; der Kunden-Datenexport enthält diese JSON-Datei jetzt ebenfalls zusätzlich zur bestehenden PDF-Datei.
 - Das Änderungsprotokoll erfasst jetzt zusätzlich das Öffnen der Detailansicht eines Benutzerkontos als Zugriff auf sensible Daten, damit die Warnung bei ungewöhnlich vielen Zugriffen auch dieses Aufrufen erkennt.
 - Das Zugriffsprotokoll erfasst jetzt zusätzlich das eigene Durchsuchen sowie den Aufruf des Verlauf-Tabs einer Kundin/eines Kunden als Zugriff, damit auch das Lesen des Protokolls selbst nachvollziehbar bleibt.
+- Die Push-Benachrichtigung bei einer endgültig fehlgeschlagenen E-Mail-Zustellung nennt die E-Mail jetzt nach ihrer Art und laufenden Nummer (z. B. "Support-Anfrage #123") statt nach ihrem Betreff, da dieser bei einer Support-Anfrage den von der meldenden Person frei gewählten Titel enthält.
 
 ## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).

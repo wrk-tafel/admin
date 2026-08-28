@@ -76,6 +76,7 @@ class SupportServiceTest {
         val contextSlot = slot<Context>()
         verify(exactly = 1) {
             mailSenderService.sendHtmlMailTo(
+                mailType = "Support-Anfrage",
                 recipients = capture(recipientsSlot),
                 subject = capture(subjectSlot),
                 attachments = emptyList(),
@@ -97,7 +98,7 @@ class SupportServiceTest {
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
         val subjectSlot = slot<String>()
-        verify { mailSenderService.sendHtmlMailTo(any(), capture(subjectSlot), any(), any(), any()) }
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), capture(subjectSlot), any(), any(), any()) }
 
         assertThat(subjectSlot.captured).isEqualTo("Support: Something is broken")
     }
@@ -109,7 +110,7 @@ class SupportServiceTest {
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
         val subjectSlot = slot<String>()
-        verify { mailSenderService.sendHtmlMailTo(any(), capture(subjectSlot), any(), any(), any()) }
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), capture(subjectSlot), any(), any(), any()) }
 
         assertThat(subjectSlot.captured).isEqualTo("Something is broken")
     }
@@ -142,7 +143,7 @@ class SupportServiceTest {
         )
 
         val contextSlot = slot<Context>()
-        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), capture(contextSlot)) }
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any(), capture(contextSlot)) }
 
         val diagnostics = contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics
         assertThat(diagnostics).isEqualTo(
@@ -173,7 +174,7 @@ class SupportServiceTest {
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
         val contextSlot = slot<Context>()
-        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), capture(contextSlot)) }
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any(), capture(contextSlot)) }
 
         val diagnostics = contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics
         assertThat(diagnostics.reportedBy).isEqualTo("test-user (Max Mustermann)")
@@ -193,7 +194,7 @@ class SupportServiceTest {
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
         val contextSlot = slot<Context>()
-        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), capture(contextSlot)) }
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any(), capture(contextSlot)) }
 
         assertThat((contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics).reportedBy)
             .isEqualTo("unbekannt")
@@ -207,7 +208,7 @@ class SupportServiceTest {
         service.sendSupportRequest(SupportRequest(title = "Something is broken", text = "more details"))
 
         val contextSlot = slot<Context>()
-        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), capture(contextSlot)) }
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any(), capture(contextSlot)) }
 
         assertThat((contextSlot.captured.getVariable("diagnostics") as SupportDiagnostics).reportedBy)
             .isEqualTo("test-user")
@@ -230,7 +231,7 @@ class SupportServiceTest {
 
         val attachmentsSlot = slot<List<MailAttachment>>()
         val contextSlot = slot<Context>()
-        verify { mailSenderService.sendHtmlMailTo(any(), any(), capture(attachmentsSlot), any(), capture(contextSlot)) }
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), capture(attachmentsSlot), any(), capture(contextSlot)) }
 
         val attachment = attachmentsSlot.captured.single()
         assertThat(attachment.filename).isEqualTo("screenshot.jpg")
@@ -245,7 +246,7 @@ class SupportServiceTest {
 
         service.sendSupportRequest(SupportRequest(title = "title", text = "text"))
 
-        verify { mailSenderService.sendHtmlMailTo(any(), any(), emptyList(), any(), any()) }
+        verify { mailSenderService.sendHtmlMailTo(any(), any(), any(), emptyList(), any(), any()) }
     }
 
     @Test
@@ -265,7 +266,7 @@ class SupportServiceTest {
 
         val contextSlot = mutableListOf<Context>()
         verify(exactly = 2) {
-            mailSenderService.sendHtmlMailTo(any(), any(), emptyList(), any(), capture(contextSlot))
+            mailSenderService.sendHtmlMailTo(any(), any(), any(), emptyList(), any(), capture(contextSlot))
         }
         assertThat(contextSlot).allSatisfy { context ->
             assertThat((context.getVariable("diagnostics") as SupportDiagnostics).screenshotAttached).isFalse()
@@ -283,7 +284,7 @@ class SupportServiceTest {
                 assertThat((ex as TafelApiException).statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
             })
 
-        verify(exactly = 0) { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any()) }
+        verify(exactly = 0) { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -293,7 +294,7 @@ class SupportServiceTest {
         assertThatThrownBy { service.sendSupportRequest(SupportRequest(title = "title", text = "text")) }
             .isInstanceOf(TafelApiException::class.java)
 
-        verify(exactly = 0) { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any()) }
+        verify(exactly = 0) { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -306,7 +307,7 @@ class SupportServiceTest {
                 assertThat((ex as TafelApiException).statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
             })
 
-        verify(exactly = 0) { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any()) }
+        verify(exactly = 0) { mailSenderService.sendHtmlMailTo(any(), any(), any(), any(), any(), any()) }
     }
 
     private fun propertiesWithRecipients(vararg recipients: String, subjectPrefix: String = "") = TafelAdminProperties().apply {

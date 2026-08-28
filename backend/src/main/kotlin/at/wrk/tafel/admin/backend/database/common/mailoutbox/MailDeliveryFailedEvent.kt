@@ -13,12 +13,15 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
  * notices the mail is missing either, and the people waiting for it cannot tell "not sent" from
  * "not sent yet".
  *
- * [subject] and [recipients] rather than the row's id, because the consumers of this are people, not
- * code: what a notification has to say is which mail did not arrive.
+ * [id] and [mailType] rather than the mail's subject: the subject of a support request is the
+ * reporter's own title, which may hold a customer's name (see G3 in the GDPR compliance doc), and
+ * the only consumer of this event renders it on administrators' lock screens. The subject stays one
+ * click away in the outbox row for whoever follows up.
  */
 @ExcludeFromTestCoverage
 data class MailDeliveryFailedEvent(
-    val subject: String,
+    val id: Long,
+    val mailType: String?,
     val recipients: String,
     val lastError: String?,
 )

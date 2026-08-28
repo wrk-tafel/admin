@@ -29,6 +29,12 @@ class MailOutboxEntity : BaseEntity() {
     @Column(name = "subject")
     var subject: String? = null
 
+    // A human label of what produced the mail (e.g. "Tagesreport", "Support-Anfrage") - the outbox
+    // still doesn't interpret the message it stores, this is the caller telling it what to call the
+    // mail if it ever has to be named without quoting the subject. See MailDeliveryFailedEvent.
+    @Column(name = "mail_type")
+    var mailType: String? = null
+
     @Column(name = "recipients")
     var recipients: String? = null
 
