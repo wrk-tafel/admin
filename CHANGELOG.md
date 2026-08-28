@@ -34,6 +34,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Kundennotizen können jetzt im Dialog "Alle Notizen anzeigen" von der Person, die sie verfasst hat, nachträglich korrigiert oder endgültig gelöscht werden, statt nur unveränderlich angelegt werden zu können.
 - Eine neu erfasste Kundennotiz mit mehreren Zeilen zeigt nicht mehr fälschlich das Zeichen "<br/>" anstelle eines Zeilenumbruchs an.
 - Die DSGVO-Datenexporte für Benutzerkonten und Mitarbeiter ohne Konto sind jetzt jeweils eine ZIP-Datei statt einer einzelnen PDF-Datei und enthalten zusätzlich zur PDF-Datei dieselben Daten maschinenlesbar als JSON-Datei; der Kunden-Datenexport enthält diese JSON-Datei jetzt ebenfalls zusätzlich zur bestehenden PDF-Datei.
+- Das Änderungsprotokoll erfasst jetzt zusätzlich das Öffnen der Detailansicht eines Benutzerkontos als Zugriff auf sensible Daten, damit die Warnung bei ungewöhnlich vielen Zugriffen auch dieses Aufrufen erkennt.
 
 ## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).

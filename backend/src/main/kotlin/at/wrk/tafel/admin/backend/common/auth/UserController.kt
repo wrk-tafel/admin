@@ -155,20 +155,31 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
+    /**
+     * A user-detail view (`GET /api/users/{id}`), read one account at a time - recorded as an
+     * `AuditOperation.READ` for the same GDPR gap G11 breach detection as
+     * `HouseholdService.findByHouseholdId` (issue #3430), now closed for a staff member's own
+     * account data too (issue #3493). See `TafelUserDetailsManager.recordUserRead`.
+     */
     @GetMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional
     fun getUser(@PathVariable userId: Long): ResponseEntity<UserResponse> {
         val userDetails = userDetailsManager.loadUserById(userId)
             ?: throw NotFoundException("Benutzer (ID: $userId) nicht gefunden!")
+        userDetailsManager.recordUserRead(userDetails)
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
     }
 
+    /** Same detail-view read as [getUser], reached by personnel number instead of id. */
     @GetMapping("/personnel-number/{personnelNumber}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional
     fun getUserByPersonnelNumber(@PathVariable personnelNumber: String): ResponseEntity<UserResponse> {
         val userDetails = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
             ?: throw NotFoundException("Benutzer (Personalnummer: $personnelNumber) nicht gefunden!")
+        userDetailsManager.recordUserRead(userDetails)
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
     }

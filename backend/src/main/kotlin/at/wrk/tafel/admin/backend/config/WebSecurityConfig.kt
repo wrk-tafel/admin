@@ -4,6 +4,9 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import jakarta.servlet.DispatcherType
@@ -33,6 +36,7 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 import org.springframework.security.web.util.matcher.OrRequestMatcher
 import tools.jackson.databind.json.JsonMapper
+import java.time.Clock
 
 @Configuration
 @EnableWebSecurity
@@ -47,6 +51,10 @@ class WebSecurityConfig(
     private val jsonMapper: JsonMapper,
     private val loginAttemptService: LoginAttemptService,
     private val loginAuditService: LoginAuditService,
+    private val auditLogWriter: AuditLogWriter,
+    private val auditLogRepository: AuditLogRepository,
+    private val auditActorProvider: AuditActorProvider,
+    private val clock: Clock,
 ) {
 
     companion object {
@@ -202,7 +210,18 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator, tafelAdminProperties, loginAttemptService)
+    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(
+        userRepository,
+        employeeRepository,
+        passwordEncoder(),
+        passwordValidator,
+        tafelAdminProperties,
+        loginAttemptService,
+        auditLogWriter,
+        auditLogRepository,
+        auditActorProvider,
+        clock,
+    )
 
     @Bean
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
