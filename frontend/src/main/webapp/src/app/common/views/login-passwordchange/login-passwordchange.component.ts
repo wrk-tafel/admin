@@ -50,8 +50,8 @@ export class LoginPasswordChangeComponent {
       return;
     }
 
-    formComponent.changePassword().subscribe(successful => {
-      if (successful) {
+    formComponent.changePassword().subscribe({
+      next: () => {
         this.reLoginInProgress.set(true);
         const username = this.authenticationService.getUsername()!;
         const password = formComponent.passwordForm.newPassword().value();
@@ -64,7 +64,11 @@ export class LoginPasswordChangeComponent {
             this.reLoginInProgress.set(false);
           }
         });
-      }
+      },
+      // The form renders the server's rejection itself (errorMessage/errorMessageDetails) -
+      // nothing to add here, the handler only keeps the failure from surfacing as an unhandled
+      // error (changePassword() rejects rather than resolving to false on failure).
+      error: () => undefined
     });
   }
 

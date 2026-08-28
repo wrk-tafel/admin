@@ -182,8 +182,8 @@ describe('Login', () => {
       cy.url().should('contain', '/login/passwortaendern');
 
       cy.byTestId('currentPasswordText').type(testUser.password!);
-      cy.byTestId('newPasswordText').type('11111111');
-      cy.byTestId('newRepeatedPasswordText').type('11111111');
+      cy.byTestId('newPasswordText').type('Neu12345');
+      cy.byTestId('newRepeatedPasswordText').type('Neu12345');
 
       cy.byTestId('saveButton').click();
       cy.url().should('contain', '/uebersicht');
@@ -198,8 +198,8 @@ describe('Login', () => {
       cy.url().should('contain', '/login/passwortaendern');
 
       cy.byTestId('currentPasswordText').type(testUser.password!);
-      cy.byTestId('newPasswordText').type('11111111');
-      cy.byTestId('newRepeatedPasswordText').type('11111111');
+      cy.byTestId('newPasswordText').type('Neu12345');
+      cy.byTestId('newRepeatedPasswordText').type('Neu12345');
 
       // Slow the silent re-login down so the "Anmeldung läuft…" progress state (#3209) is actually
       // observable instead of flashing past before the redirect to /uebersicht.
