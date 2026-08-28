@@ -140,7 +140,7 @@ class AuditService(
             filter.actorUsername?.let { "actorUsername=$it" },
             filter.businessKey?.let { "businessKey=$it" },
             filter.from?.let { "from=$it" },
-            filter.to?.let { "to=$it" },
+            filter.to?.let { "to=$it" }, // NOSONAR - kotlin:S6619 false positive, see comment above
         )
         return parts.takeIf { it.isNotEmpty() }?.joinToString(separator = ";")
     }
