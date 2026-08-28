@@ -42,11 +42,9 @@ module, and named interfaces gate service/DTO access only (see
   /`@NotNull` on `HouseholdAddress` and `Person`. `HouseholdRequiredFieldsIT` locks the decision
   down. `telephone_number` is not enforced anywhere on the backend — only the frontend form treats
   it as mandatory.
-- Legacy: the old `customers` / `customers_addpersons` tables (see
-  `R__00067_household_person_refactor.sql`) were superseded by `households`/`persons`. They are kept
-  read-only for a production observation window before a separate cleanup migration
-  (`R__00068_household_person_cleanup.sql`) drops them. Do not read/write those tables or build new
-  features against them — they are not part of this module's persistence.
+- There are no legacy customer tables: `R__00068_household_person_cleanup.sql` drops the old
+  `customers`/`customers_addpersons` tables after verifying every row migrated, so `households`/
+  `persons` are the only copy of the master data.
 
 ## The `main_person_id` chicken-and-egg problem
 
@@ -463,8 +461,6 @@ throws; the customer search screen's "Wird in den nächsten 30 Tagen gelöscht" 
 4. **Duplicate detection reads `persons` via `households.main_person_id`, not `households` directly**
    - if you add new duplicate-matching criteria, remember firstname/lastname/address for comparison
    live partly on `persons` (name) and partly on `households` (address).
-5. **`customers`/`customers_addpersons` are legacy and read-only.** Don't add new reads or writes
-   against them; they exist only for a transitional observation window.
-6. This module can only see `base::country` and `base::exception` (per
+5. This module can only see `base::country` and `base::exception` (per
    `package-info.java`) - if you need employee data, go through `UserEntity.employee` /
    `HouseholdEntity.issuer`, not a direct `base::employee` dependency.
