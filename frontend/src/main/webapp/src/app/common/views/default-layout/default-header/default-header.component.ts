@@ -142,6 +142,14 @@ export class DefaultHeaderComponent {
     });
   }
 
+  /** The Art. 13 GDPR privacy notice for staff (issue #3429), as a downloadable PDF. */
+  public downloadStaffPrivacyNotice() {
+    this.userApiService.generatePrivacyNoticeTemplate().subscribe({
+      next: (response) => this.processPdfResponse(response),
+      error: () => this.toastr.error('Herunterladen fehlgeschlagen!')
+    });
+  }
+
   private processPdfResponse(response: HttpResponse<Blob>) {
     const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);

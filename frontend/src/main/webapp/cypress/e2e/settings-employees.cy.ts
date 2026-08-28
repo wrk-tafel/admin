@@ -277,6 +277,18 @@ describe('Settings - Employees', () => {
     cy.byTestId('exportEmployeeButton-0').should('not.exist');
   });
 
+  // The Art. 13 GDPR privacy notice for staff (issue #3429) - a generic download, no employee
+  // reference needed, so an admin can hand it to someone with no user account of their own.
+  it('downloads the staff privacy notice as a PDF', () => {
+    cy.byTestId('downloadStaffPrivacyNoticeButton').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, 'datenschutzerklaerung-mitarbeiter.pdf');
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string) => expect(buffer.length).to.be.gt(1000));
+  });
+
   it('renders as a card list on phone and stays usable', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.reload();

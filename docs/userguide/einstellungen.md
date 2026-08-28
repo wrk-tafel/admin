@@ -170,6 +170,8 @@ Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Person
 
 Die Spalte **Benutzerkonto** zeigt, ob ein [Benutzerkonto](benutzer.md) auf die Personalnummer verweist. Mit der Berechtigung "Benutzerverwaltung" ist der Kontoname ein Link direkt auf die Benutzer-Details; ohne diese Berechtigung steht dort nur "Benutzerkonto vorhanden". Mitarbeiter ohne Konto sind als "Kein Benutzerkonto" gekennzeichnet.
 
+Über den Button **Datenschutzerklärung (Mitarbeiter)** neben "Neuen Mitarbeiter anlegen" lässt sich eine allgemeine, personenunabhängige Datenschutzerklärung für Mitarbeiter:innen und Freiwillige als PDF herunterladen und ausdrucken — gedacht für Mitarbeiter:innen ohne eigenes Benutzerkonto, die sich sonst nicht selbst über das Benutzermenü informieren können. Sie erklärt, welche Daten über Mitarbeiter:innen verarbeitet werden, auf welcher Grundlage, wie lange und mit welchen Rechten — dasselbe Dokument ist auch im Benutzermenü unter "Datenschutzerklärung (Mitarbeiter)" für die eigene Ansicht verlinkt.
+
 ![Mitarbeiter](images/einstellungen-mitarbeiter.jpg)
 
 Beim Anlegen sind Personalnummer, Vorname und Nachname Pflichtfelder (max. 50 Zeichen). Ist die eingegebene Personalnummer bereits vergeben, wird das noch während der Eingabe gemeldet ("Personalnummer bereits vergeben") — samt Namen des bestehenden Mitarbeiters und dem Button **Mitarbeiter öffnen**, der den Dialog schließt, die Liste auf diesen Mitarbeiter filtert und ihn zum Bearbeiten öffnet. Dieselbe Prüfung läuft beim Bearbeiten einer Zeile; solange die Nummer vergeben ist, lässt sich nicht speichern. Fahrer und Beifahrer können auch direkt in der [Warenerfassung](logistik.md) angelegt werden — mit denselben Feldern und Regeln, es entsteht derselbe Mitarbeiter-Datensatz.

@@ -27,6 +27,9 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Live-Aktualisierung der Scanner-Dateiliste im Dokumente-Tab der Kundenansicht benötigt jetzt ebenfalls die Berechtigung "Kunden-Dokumente" statt der allgemeinen Kundenverwaltung.
 - Der Download von Kundendokumenten sowie von DSGVO-Exporten (Benutzer, Mitarbeiter, Datenauskunft, Ausgabe-Kundenliste) schlägt nicht mehr fehl, wenn der Dateiname Sonderzeichen, Anführungszeichen oder Umlaute enthält.
 - Der Download von Kunden-Stammdatenblatt/Ausweis, Kunden-ZIP-Export, Datenschutzerklärung-Vorlage, Auswertungen (über Limit, Kundenübersicht, Statistik-CSVs) sowie Scanner-Dateien schlägt jetzt ebenfalls nicht mehr fehl, wenn der Dateiname Sonderzeichen, Anführungszeichen oder Umlaute enthält.
+- Die Datenschutzerklärung für Kund:innen enthält jetzt zusätzlich Angaben zu Empfänger:innen, Datenübermittlung in Drittländer, Pflichtangaben/Folgen der Nichtbereitstellung sowie automatisierter Entscheidungsfindung; die genannte Aufbewahrungsfrist wird nicht mehr fest eingetragen, sondern aus der aktuellen Konfiguration übernommen.
+- Mitarbeiter:innen können sich über das Benutzermenü jetzt eine eigene Datenschutzerklärung herunterladen; für Mitarbeiter:innen ohne eigenes Benutzerkonto steht dieselbe Datenschutzerklärung auch auf der Seite "Mitarbeiter" zum Download bereit.
+- Die Datenschutzerklärung für Kund:innen und für Mitarbeiter:innen zeigt jetzt in der Fußzeile das Erstellungsdatum sowie die Seitenzahl an.
 
 ## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).

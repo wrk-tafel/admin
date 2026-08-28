@@ -25,6 +25,15 @@ export class UserApiService {
     return this.http.get('/users/' + userId + '/export', {responseType: 'blob', observe: 'response'});
   }
 
+  /**
+   * The Art. 13 GDPR privacy notice for staff (issue #3429) - what data is processed about a staff
+   * member and why, not the Art. 15/20 takeout {@link exportUser} already answers. Generic, no
+   * account reference needed.
+   */
+  generatePrivacyNoticeTemplate(): Observable<HttpResponse<Blob>> {
+    return this.http.get('/users/privacy-notice-template', {responseType: 'blob', observe: 'response'});
+  }
+
   getUserForPersonnelNumber(personnelNumber: string, context?: HttpContext): Observable<UserData> {
     return this.http.get<UserData>('/users/personnel-number/' + personnelNumber, {context});
   }

@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
+import at.wrk.tafel.admin.backend.common.auth.components.StaffPrivacyNoticeService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
@@ -47,6 +48,7 @@ class UserController(
     private val applicationProperties: ApplicationProperties,
     private val loginAttemptService: LoginAttemptService,
     private val userExportService: UserExportService,
+    private val staffPrivacyNoticeService: StaffPrivacyNoticeService,
     private val jwtTokenService: JwtTokenService,
 ) {
 
@@ -91,6 +93,25 @@ class UserController(
         val result = userExportService.exportUserById(userId)
             ?: throw NotFoundException("Benutzer (ID: $userId) nicht gefunden!")
         return exportResponse(result)
+    }
+
+    /**
+     * The Art. 13 GDPR privacy notice for staff (GDPR gap G20, issue #3429) - what data is processed
+     * about a staff member, and why, not the Art. 15/20 takeout [exportUser] already answers.
+     * Generic and reference-less, same as `/households/privacy-notice-template`: `isAuthenticated()`
+     * is enough, since nobody's personal data is involved. Reachable from the user menu (self-service)
+     * and from the Mitarbeiter settings screen (for an admin to hand it to someone with no account).
+     */
+    @GetMapping("/privacy-notice-template", produces = [MediaType.APPLICATION_PDF_VALUE])
+    fun generatePrivacyNoticeTemplate(): ResponseEntity<InputStreamResource> {
+        val bytes = staffPrivacyNoticeService.generatePrivacyNoticePdf()
+        val headers = ContentDispositionUtil.inline("datenschutzerklaerung-mitarbeiter.pdf")
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(InputStreamResource(ByteArrayInputStream(bytes)))
     }
 
     private fun exportResponse(result: UserExportFileResult): ResponseEntity<InputStreamResource> {
