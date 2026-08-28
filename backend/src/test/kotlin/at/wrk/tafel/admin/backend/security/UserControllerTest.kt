@@ -300,6 +300,30 @@ class UserControllerTest {
         assertThat(response.body?.lockedUntil).isEqualTo(lockedUntil)
     }
 
+    /**
+     * The actual `AuditOperation.READ` recording (dedupe window, actor resolution) is
+     * `TafelUserDetailsManager.recordUserRead`'s own concern, covered by
+     * `TafelUserDetailsManagerTest` - this only pins down that the detail-view endpoint hands the
+     * loaded user to it (issue #3493).
+     */
+    @Test
+    fun `get user records a READ via TafelUserDetailsManager`() {
+        every { userDetailsManager.loadUserById(1) } returns testUser
+
+        controller.getUser(1)
+
+        verify(exactly = 1) { userDetailsManager.recordUserRead(testUser) }
+    }
+
+    @Test
+    fun `get user by personnel number records a READ via TafelUserDetailsManager`() {
+        every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns testUser
+
+        controller.getUserByPersonnelNumber(testUser.personnelNumber)
+
+        verify(exactly = 1) { userDetailsManager.recordUserRead(testUser) }
+    }
+
     @Test
     fun `get users found when filtered by personnel number`() {
         every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns testUser
