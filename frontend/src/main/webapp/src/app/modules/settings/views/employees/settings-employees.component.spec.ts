@@ -292,10 +292,10 @@ describe('SettingsEmployeesComponent', () => {
     expect(toastrMock.error).toHaveBeenCalled();
   });
 
-  it('exportEmployee() downloads this employee\'s GDPR data takeout PDF', () => {
+  it('exportEmployee() downloads this employee\'s GDPR data takeout ZIP', () => {
     const response = new HttpResponse({
       status: 200,
-      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=mitarbeiterdaten-00002.pdf'}),
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=mitarbeiterdaten-00002.zip'}),
       body: new Blob()
     });
     (employeeApiMock.exportEmployee as any).mockReturnValue(of(response));
@@ -307,7 +307,7 @@ describe('SettingsEmployeesComponent', () => {
     component['exportEmployee'](testEmployee2);
 
     expect(employeeApiMock.exportEmployee).toHaveBeenCalledWith(testEmployee2.id);
-    expect(fileHelperMock.downloadFile).toHaveBeenCalledWith('mitarbeiterdaten-00002.pdf', response.body);
+    expect(fileHelperMock.downloadFile).toHaveBeenCalledWith('mitarbeiterdaten-00002.zip', response.body);
   });
 
   it('exportEmployee() shows an error toast when the export fails', () => {

@@ -149,7 +149,7 @@ export const auditFieldLabel: Record<string, string> = {
   email: 'E-Mail',
   employer: 'Arbeitgeber',
   enabled: 'Aktiv',
-  excludeFromHousehold: 'Nicht im Haushalt',
+  excludeFromHousehold: 'Nicht im selben Haushalt',
   fileName: 'Dateiname',
   firstname: 'Vorname',
   gender: 'Geschlecht',

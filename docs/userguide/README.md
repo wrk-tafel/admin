@@ -207,7 +207,7 @@ Darunter zeigt die Übersicht, solange keine Ausgabe läuft, zusätzlich organis
 Sobald eine Ausgabe läuft, zeigt die Übersicht stattdessen die folgenden tagesbezogenen Kennzahlen:
 
 - **Kunden angemeldet**: Anzahl der für den heutigen Tag angemeldeten Kunden. Über **Kundenliste** kann die Liste der angemeldeten Kunden heruntergeladen werden.
-- **Personen angemeldet**: Anzahl aller Personen, für die die angemeldeten Kunden Waren erhalten — die Hauptperson jedes Haushalts plus die weiteren Personen im Haushalt. Als "Nicht im Haushalt" markierte Personen zählen nicht mit.
+- **Personen angemeldet**: Anzahl aller Personen, für die die angemeldeten Kunden Waren erhalten — die Hauptperson jedes Haushalts plus die weiteren Personen im Haushalt. Als "Nicht im selben Haushalt" markierte Personen zählen nicht mit.
 - **Tickets abgearbeitet**: Fortschritt der Ticket-Bearbeitung (verarbeitete / gesamt) als Zahl und als Balken darunter.
 - **Erfasste Routen**: Fortschritt der Warenerfassung aus der Logistik (siehe [Logistik](logistik.md)) – als Zahl mit Balken sowie daneben alle heute zu fahrenden Routen als kleine Kacheln (Chips). Bereits vollständig erfasste Routen sind grün mit Häkchen markiert, die übrigen sind neutral. So ist auf einen Blick erkennbar, welche Routen noch fehlen, statt die erfassten gegen die Gesamtzahl abzuzählen.
 - **Erfasste Warenmenge**: Gesamtgewicht der bisher erfassten Warenmengen.

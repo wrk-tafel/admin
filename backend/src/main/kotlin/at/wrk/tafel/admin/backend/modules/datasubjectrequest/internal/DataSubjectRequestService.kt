@@ -271,12 +271,13 @@ class DataSubjectRequestService(
     }
 
     /**
-     * A household's own export is already a ZIP (its master-data PDF plus every uploaded document) -
-     * unpacked here rather than nested as-is, so the combined archive reads as one flat set of
-     * folders instead of a ZIP containing another ZIP. A user's/employee's export is a single PDF,
-     * added directly under its own folder. No name collisions to guard against: [folder] already
-     * carries the match's type and id, so two matches never share one, and a household's own entries
-     * are already unique among themselves (`HouseholdExportService` dedupes those itself).
+     * Every area's own export is already a ZIP - a household's carries its master-data PDF, a
+     * machine-readable `daten.json` and every uploaded document; a user's or employee's carries just
+     * the PDF and `daten.json`. Each is unpacked here rather than nested as-is, so the combined
+     * archive reads as one flat set of folders instead of a ZIP containing another ZIP. No name
+     * collisions to guard against: [folder] already carries the match's type and id, so two matches
+     * never share one, and a household's own entries are already unique among themselves
+     * (`HouseholdExportService` dedupes those itself).
      */
     private fun addToZip(zip: ZipOutputStream, folder: String, result: ExportFileResult) {
         if (result.filename.endsWith(".zip")) {

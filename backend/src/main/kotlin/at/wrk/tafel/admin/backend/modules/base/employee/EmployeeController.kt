@@ -65,10 +65,11 @@ class EmployeeController(
     /**
      * The GDPR Art. 15/20 data takeout (issue #3394) for an employee with no linked `users` account -
      * the gap `UserController.exportUserById` (issue #3363) leaves open, since that one is keyed by a
-     * `userId` that such an employee never has. Behind `SETTINGS` rather than the class-level
-     * `LOGISTICS or SETTINGS`, same override pattern as [deleteEmployee].
+     * `userId` that such an employee never has. A ZIP (`datenexport.pdf` plus a machine-readable
+     * `daten.json`, issue #3418). Behind `SETTINGS` rather than the class-level `LOGISTICS or SETTINGS`,
+     * same override pattern as [deleteEmployee].
      */
-    @GetMapping("/{employeeId}/export", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @GetMapping("/{employeeId}/export", produces = ["application/zip"])
     @PreAuthorize("hasAuthority('SETTINGS')")
     fun exportEmployee(
         @PathVariable employeeId: Long,
@@ -81,7 +82,7 @@ class EmployeeController(
         return ResponseEntity
             .ok()
             .headers(headers)
-            .contentType(MediaType.APPLICATION_PDF)
+            .contentType(MediaType.valueOf("application/zip"))
             .body(InputStreamResource(ByteArrayInputStream(result.bytes)))
     }
 }

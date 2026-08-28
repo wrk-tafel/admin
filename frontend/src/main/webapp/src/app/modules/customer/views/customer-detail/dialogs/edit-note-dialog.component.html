@@ -1,0 +1,18 @@
+<tafel-dialog testId="editnote-dialog" type="info" title="Notiz bearbeiten">
+  <div tafel-dialog-content>
+    <mat-form-field class="w-full">
+      <mat-label>Notiz</mat-label>
+      <textarea matInput rows="9"
+                [ngModel]="noteText()" (ngModelChange)="noteText.set($event)"></textarea>
+    </mat-form-field>
+    <p class="text-sm" testid="noteHint">
+      Nur Angaben festhalten, die für die Prüfung des Anspruchs notwendig sind – keine Angaben zu
+      Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.
+    </p>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(noteText())"
+            [disabled]="!noteText() || noteText()?.trim()?.length === 0">Speichern</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

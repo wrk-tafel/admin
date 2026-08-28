@@ -247,14 +247,14 @@ describe('Settings - Employees', () => {
   // linked user account, since UserApiService's export endpoints have no userId to key off for
   // one. '02000' is a driver with no account of their own (see 'shows which employees a user
   // account references' above).
-  it('exports an employee\'s data (GDPR takeout) and downloads a PDF', () => {
+  it('exports an employee\'s data (GDPR takeout) and downloads a ZIP', () => {
     cy.byTestId('employeeSearchInput').type('02000');
     cy.byTestId('employees-row-0').should('contain.text', 'Fahrer');
 
     cy.byTestId('exportEmployeeButton-0').click();
 
     const downloadsFolder = Cypress.config('downloadsFolder');
-    const downloadedFilename = path.join(downloadsFolder, 'mitarbeiterdaten-02000.pdf');
+    const downloadedFilename = path.join(downloadsFolder, 'mitarbeiterdaten-02000.zip');
 
     cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
       .should((buffer: string) => expect(buffer.length).to.be.gt(1000));
