@@ -64,6 +64,17 @@ object AuditScope {
     const val EMPLOYEE_EXPORT_ENTITY_TYPE = "Employee"
 
     /**
+     * The audit trail's own `search`/`filter-options` queries - see
+     * [at.wrk.tafel.admin.backend.modules.audit.internal.AuditService]. Neither spans one household
+     * nor one user, so - like [SCANNER_FILE_ENTITY_TYPE] and [DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE] -
+     * it has no [auditedEntities] map entry.
+     * [at.wrk.tafel.admin.backend.modules.audit.internal.AuditService.getHouseholdHistory] is the
+     * exception: it already has a natural household business key, so its own read is recorded under
+     * the "Household" entity type instead of this one, and shows up in that household's own history.
+     */
+    const val AUDIT_LOG_QUERY_ENTITY_TYPE = "AuditLogQuery"
+
+    /**
      * @param entityType the label stored in `audit_log.entity_type`. Kept as a stable string rather
      * than the class name so renaming a Kotlin class doesn't split one entity's history in two.
      * @param householdScoped whether [businessKey] yields a household number, i.e. whether entries
@@ -148,7 +159,13 @@ object AuditScope {
 
     val allEntityTypes: List<String> = (
         auditedEntities.values.map { it.entityType } +
-            listOf(USER_LOGIN_ENTITY_TYPE, SCANNER_FILE_ENTITY_TYPE, DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE, EMPLOYEE_EXPORT_ENTITY_TYPE)
+            listOf(
+                USER_LOGIN_ENTITY_TYPE,
+                SCANNER_FILE_ENTITY_TYPE,
+                DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE,
+                EMPLOYEE_EXPORT_ENTITY_TYPE,
+                AUDIT_LOG_QUERY_ENTITY_TYPE,
+            )
         ).distinct().sorted()
 
     /**
