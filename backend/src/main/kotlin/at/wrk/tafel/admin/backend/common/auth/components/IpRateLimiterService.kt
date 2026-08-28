@@ -2,29 +2,37 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityRateLimitProperties
+import io.github.bucket4j.Bucket
+import io.github.bucket4j.TimeMeter
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.Duration
-import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
- * A token bucket per `(scope, ip)`, kept in this process's own memory rather than the database -
- * unlike [LoginAttemptService], nothing here needs to be visible to another instance for it to do its
- * job: it only has to make a single IP's request rate expensive to run up, and each instance limiting
- * its own share of that IP's traffic already does that. See [SecurityRateLimitProperties] for the
- * limits themselves.
+ * A Bucket4j token bucket per `(scope, ip)`, kept in this process's own memory rather than the
+ * database - unlike [LoginAttemptService], nothing here needs to be visible to another instance for
+ * it to do its job: it only has to make a single IP's request rate expensive to run up, and each
+ * instance limiting its own share of that IP's traffic already does that. See
+ * [SecurityRateLimitProperties] for the limits themselves.
  */
 @Service
 class IpRateLimiterService(
     private val applicationProperties: ApplicationProperties,
-    private val clock: Clock,
+    clock: Clock,
 ) {
 
-    private class Bucket(var tokens: Double, var lastRefill: Instant)
+    // Bucket4j's TimeMeter has two abstract methods, so it isn't a SAM Kotlin can turn a lambda
+    // into - this adapts the injected Clock (the same one every other login/lockout service in this
+    // package takes, so tests can drive it with the shared MutableClock pattern) into one.
+    private class ClockTimeMeter(private val clock: Clock) : TimeMeter {
+        override fun currentTimeNanos(): Long = clock.instant().let { it.epochSecond * 1_000_000_000L + it.nano }
+        override fun isWallClockBased(): Boolean = true
+    }
 
+    private val timeMeter = ClockTimeMeter(clock)
     private val buckets = ConcurrentHashMap<String, Bucket>()
 
     fun tryConsume(scope: String, ip: String): Boolean {
@@ -33,17 +41,7 @@ class IpRateLimiterService(
             return true
         }
 
-        val bucket = buckets.computeIfAbsent(key(scope, ip)) { Bucket(settings.capacity.toDouble(), clock.instant()) }
-        synchronized(bucket) {
-            refill(bucket, settings)
-
-            return if (bucket.tokens >= 1.0) {
-                bucket.tokens -= 1.0
-                true
-            } else {
-                false
-            }
-        }
+        return buckets.computeIfAbsent(key(scope, ip)) { newBucket(settings) }.tryConsume(1)
     }
 
     // Buckets for an IP that stopped sending requests would otherwise sit in memory forever - a
@@ -53,26 +51,17 @@ class IpRateLimiterService(
     // rather than being claimed or ShedLocked.
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     fun cleanupStaleEntries() {
-        val settings = applicationProperties.security.rateLimit
-        buckets.entries.removeIf { (_, bucket) ->
-            synchronized(bucket) {
-                refill(bucket, settings)
-                bucket.tokens >= settings.capacity.toDouble()
-            }
-        }
+        val capacity = applicationProperties.security.rateLimit.capacity.toLong()
+        buckets.entries.removeIf { (_, bucket) -> bucket.availableTokens >= capacity }
     }
 
-    private fun refill(bucket: Bucket, settings: SecurityRateLimitProperties) {
-        val now = clock.instant()
-        val elapsedSeconds = Duration.between(bucket.lastRefill, now).toMillis() / 1000.0
-        if (elapsedSeconds <= 0) {
-            return
+    private fun newBucket(settings: SecurityRateLimitProperties): Bucket = Bucket.builder()
+        .withCustomTimePrecision(timeMeter)
+        .addLimit { limit ->
+            limit.capacity(settings.capacity.toLong())
+                .refillGreedy(settings.refillTokens.toLong(), Duration.ofSeconds(settings.refillPeriodInSeconds))
         }
-
-        val refillRatePerSecond = settings.refillTokens.toDouble() / settings.refillPeriodInSeconds.toDouble()
-        bucket.tokens = minOf(settings.capacity.toDouble(), bucket.tokens + elapsedSeconds * refillRatePerSecond)
-        bucket.lastRefill = now
-    }
+        .build()
 
     private fun key(scope: String, ip: String) = "$scope:$ip"
 }

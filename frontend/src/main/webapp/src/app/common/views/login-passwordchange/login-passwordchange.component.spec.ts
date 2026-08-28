@@ -118,7 +118,7 @@ describe('LoginPasswordChangeComponent', () => {
         authServiceSpy.getUsername.mockReturnValue(testUsername);
 
         const loginResult: LoginResult = {
-            successful: true, passwordChangeRequired: false, locked: false, rateLimited: false, serverUnreachable: false
+            successful: true, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
         };
         authServiceSpy.login.mockReturnValue(firstValueFrom(of(loginResult)));
 
@@ -165,7 +165,7 @@ describe('LoginPasswordChangeComponent', () => {
         authServiceSpy.getUsername.mockReturnValue('test-username');
 
         const failedResult: LoginResult = {
-            successful: false, passwordChangeRequired: false, locked: false, rateLimited: false, serverUnreachable: false
+            successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
         };
         authServiceSpy.login.mockReturnValue(firstValueFrom(of(failedResult)));
 

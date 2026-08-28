@@ -24,12 +24,26 @@ data class ApplicationProperties(
 data class SecurityProperties(
     val jwtToken: SecurityJwtTokenProperties,
     val loginAttempts: SecurityLoginAttemptsProperties = SecurityLoginAttemptsProperties(),
+    val loginAttemptsIp: SecurityLoginAttemptsIpProperties = SecurityLoginAttemptsIpProperties(),
     val argon2: SecurityArgon2Properties = SecurityArgon2Properties(),
     val rateLimit: SecurityRateLimitProperties = SecurityRateLimitProperties(),
 )
 
 data class SecurityLoginAttemptsProperties(
     val maxFailures: Int = 5,
+    val lockoutDurationInSeconds: Long = 900,
+)
+
+/**
+ * The IP-scoped counterpart to [SecurityLoginAttemptsProperties] ([LoginAttemptIpService]): failed
+ * logins from one IP, across however many different usernames, lock that IP out the same way a
+ * single username locks out on its own. `maxFailures` sits well above the per-username threshold -
+ * several genuine staff members sharing one NAT'd office IP can each mistype their own password a
+ * few times without tripping this, but a distributed guesser working through many usernames from
+ * that same IP still runs out of budget.
+ */
+data class SecurityLoginAttemptsIpProperties(
+    val maxFailures: Int = 30,
     val lockoutDurationInSeconds: Long = 900,
 )
 

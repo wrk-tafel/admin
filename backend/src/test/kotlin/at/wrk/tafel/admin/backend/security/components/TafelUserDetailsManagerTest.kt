@@ -307,7 +307,8 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - password too short`() {
-        val newPassword = "67890"
+        // otherwise satisfies every rule (incl. character classes) so only the length violation shows up
+        val newPassword = "Ab12345"
 
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
@@ -322,7 +323,8 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - password too long`() {
-        val newPassword = "6789067890678906789067890678906789067890678906789067890"
+        // otherwise satisfies every rule (incl. character classes) so only the length violation shows up
+        val newPassword = "Ab123456".repeat(7)
 
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
@@ -337,7 +339,8 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - contains username`() {
-        val newPassword = "123${testUserEntity.username}123"
+        // otherwise satisfies every rule (incl. character classes) so only the username violation shows up
+        val newPassword = "Ab123${testUserEntity.username}123"
 
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
@@ -352,7 +355,8 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - contains whitespace`() {
-        val newPassword = "1234 1234"
+        // otherwise satisfies every rule (incl. character classes) so only the whitespace violation shows up
+        val newPassword = "Ab12 cd34"
 
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
@@ -367,7 +371,8 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - contains illegal words`() {
-        val newPassword = "123wrk123tafel123"
+        // otherwise satisfies every rule (incl. character classes) so only the illegal-word violation shows up
+        val newPassword = "Z123wrk123tafel123"
 
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
@@ -376,6 +381,37 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
                 "Folgende Wörter dürfen nicht enhalten sein: wrk",
+            ),
+        )
+    }
+
+    @Test
+    fun `changePassword - missing every character class`() {
+        val newPassword = "12345678"
+
+        val exception = assertThrows<PasswordChangeException> {
+            manager.changePassword("12345", newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+        assertThat(exception.validationDetails).hasSameElementsAs(
+            listOf(
+                "Muss mindestens einen Kleinbuchstaben enthalten",
+                "Muss mindestens einen Großbuchstaben enthalten",
+            ),
+        )
+    }
+
+    @Test
+    fun `changePassword - missing only the uppercase character class`() {
+        val newPassword = "abcd1234"
+
+        val exception = assertThrows<PasswordChangeException> {
+            manager.changePassword("12345", newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+        assertThat(exception.validationDetails).hasSameElementsAs(
+            listOf(
+                "Muss mindestens einen Großbuchstaben enthalten",
             ),
         )
     }
@@ -629,7 +665,7 @@ class TafelUserDetailsManagerTest {
         val encodedPassword = "dummy-encoded-pwd"
         every { passwordEncoder.encode(any()) } returns encodedPassword
 
-        val newPassword = "new-pwd1234"
+        val newPassword = "New-Pwd1234"
         val userUpdate = testUser.copy(
             personnelNumber = "new-persnr",
             username = "new-username",

@@ -598,7 +598,7 @@ one publishing an event for the other, the same ambient-config-and-filesystem ac
 `DistributionStillOpenReminderService`/`ExcessiveReadAccessDetectionService` already use for their
 own checks - so `household` gains no dependency on `push` and vice versa.
 
-### G19 Login and support requests are now rate-limited per IP
+### G19 Login is now rate-limited and IP-lockout-protected, and no longer confirms which accounts are locked
 
 **Art. 32.** Neither `/api/login` nor `/api/support` had any request-rate defence: `LoginAttemptService`
 locks a *username* after repeated failures, but nothing stopped one IP from spraying failed logins
@@ -607,19 +607,34 @@ how often the same IP could queue an authenticated `/api/support` request either
 per call).
 
 `RateLimitFilter`, registered in `WebSecurityConfig` in front of both endpoints, now rejects a request
-with `429` once `IpRateLimiterService` says the calling IP has spent its token-bucket budget for that
-endpoint (`tafeladmin.security.rateLimit`, capacity/refill both configurable, 30 requests/minute by
-default) - `/api/login` and `/api/support` get independent budgets per IP, so exhausting one never
-blocks the other. Unlike `login_attempts`, this counts every request (not just failures) and lives
-only in the process's own memory rather than the database: blunting a single IP's request rate needs
-no cross-instance coordination, so a small servlet filter checking `request.remoteAddr` (trustworthy
-here since `server.forward-headers-strategy: framework` is already set) is enough.
+with `429` once `IpRateLimiterService` (a Bucket4j token bucket per `(scope, ip)`) says the calling IP
+has spent its budget for that endpoint (`security.rateLimit`, capacity/refill both
+configurable, 30 requests/minute by default) - `/api/login` and `/api/support` get independent budgets
+per IP, so exhausting one never blocks the other. Unlike `login_attempts`, this counts every request
+(not just failures) and lives only in the process's own memory rather than the database: blunting a
+single IP's request rate needs no cross-instance coordination, so a small servlet filter checking
+`request.remoteAddr` (trustworthy here since `server.forward-headers-strategy: framework` is already
+set) is enough.
 
-What remains open: the rest of the originating issue's findings - `login_attempts`' lockout staying
-username-only with no IP dimension, `TafelLoginFilter` telling a locked account apart from bad
-credentials via its response status (423 vs. 403), and Passay's password rules having no
-character-class requirement for a user-chosen password - are tracked separately in
-[#3484](https://github.com/wrk-tafel/admin/issues/3484) rather than closed here.
+The rest of the originating issue's findings (tracked separately in
+[#3484](https://github.com/wrk-tafel/admin/issues/3484)) are closed alongside this one:
+
+- **`login_attempts` staying username-only, with no IP dimension.** `LoginAttemptIpService` now locks
+  out an IP itself (`login_attempts_ip`, mirroring `login_attempts`) after
+  `security.loginAttemptsIp.maxFailures` (30 by default, well above the per-username
+  threshold) failed logins across however many different usernames were tried from it -
+  `TafelLoginProvider.authenticate` checks and records both dimensions, reading the calling IP off the
+  `WebAuthenticationDetails` Spring's login filter already attaches to the authentication request.
+- **The 423-vs-403 lockout oracle.** `TafelLoginFilter.unsuccessfulAuthentication` no longer
+  special-cases `LockedException` - every failed login, whether from wrong credentials or a lockout,
+  now answers with the same `403` a caller can't tell apart, trading the login page's old "account
+  locked, try again in N minutes" message for not confirming which usernames/IPs are already locked
+  out. `PublicConfigResponse.accountLockoutDurationInSeconds` is gone with it - nothing reads a lockout
+  duration before login anymore.
+- **No character-class requirement for a user-chosen password.** `WebSecurityConfig.passwordValidator`
+  now runs a `CharacterCharacteristicsRule` requiring the same lowercase/uppercase/digit mix a
+  generated password is already built from (`generatedPasswordCharactersRules`), so a user-chosen
+  password can no longer fall below what one guarantees.
 
 ## 5. Checked and found fine
 
@@ -681,9 +696,8 @@ number here.
 | 15 | [G17](#g17-a-deleted-accounts-username-no-longer-outlives-it-on-every-other-table) `created_by`/`updated_by` outlive a deleted account | [#3426](https://github.com/wrk-tafel/admin/issues/3426) | done | `created_by`/`updated_by` as an `on delete set null` FK to `users(id)`, `R__00111_change_tracking_actor_user_fk.sql` |
 | 16 | [G16](#g16-a-document-upload-is-now-checked-against-what-the-file-actually-is-not-just-its-declared-type) uploads trusted the declared content type | [#3420](https://github.com/wrk-tafel/admin/issues/3420) | done | `validateContentType` checks extension and magic bytes too, on both upload paths |
 | 17 | [G18](#g18-the-scanner-share-now-expires-files-too-with-a-warning-before-it-does) scanner share unbounded | [#3443](https://github.com/wrk-tafel/admin/issues/3443) | done | nightly job modelled on `HouseholdRetentionService`, `tafeladmin.storage.scannerFileRetention*`, plus a push warning before deletion |
-| 18 | [G19](#g19-login-and-support-requests-are-now-rate-limited-per-ip) no rate limiting on `/api/login`/`/api/support` | [#3432](https://github.com/wrk-tafel/admin/issues/3432) | partial | `RateLimitFilter`/`IpRateLimiterService`, an IP-scoped token bucket per endpoint; the lockout/oracle/password-rule findings in the same issue continue in [#3484](https://github.com/wrk-tafel/admin/issues/3484) |
+| 18 | [G19](#g19-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked) no rate limiting, username-only lockout, lockout oracle, no password complexity | [#3432](https://github.com/wrk-tafel/admin/issues/3432), [#3484](https://github.com/wrk-tafel/admin/issues/3484) | done | `RateLimitFilter`/`IpRateLimiterService` (IP-scoped token bucket), `LoginAttemptIpService` (IP-scoped lockout), a unified `403` for wrong credentials and a lockout alike, a character-class rule for user-chosen passwords |
 
-Every gap in this table is done, except G19's rate-limiting fix which addresses one part of its
-issue and leaves the rest to a follow-up — the operator has otherwise answered every question in
-#3185's coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number
-and no PR closes it; it stays open until the operator writes those answers down.
+Every gap in this table is done — the operator has now answered every question in #3185's
+coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
+closes it; it stays open until the operator writes those answers down.

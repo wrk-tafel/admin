@@ -146,6 +146,12 @@ security:
   loginAttempts:
     maxFailures: 10
     lockoutDurationInSeconds: 300 # 5 minutes
+  # The IP-scoped counterpart to loginAttempts above (LoginAttemptIpService): failed logins from one
+  # IP across however many different usernames lock that IP out the same way. maxFailures sits well
+  # above the per-username threshold since several staff can share one office's NAT'd IP.
+  loginAttemptsIp:
+    maxFailures: 30
+    lockoutDurationInSeconds: 900 # 15 minutes
   # A token bucket per client IP (IpRateLimiterService), separately for /api/login and /api/support -
   # capacity is the burst an IP may spend at once, refilling by refillTokens every
   # refillPeriodInSeconds. Unlike loginAttempts above this counts every request (not just failures)

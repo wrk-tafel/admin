@@ -47,6 +47,7 @@ checked at a glance.
 | Every 10s (`tafeladmin.mailOutbox.interval`) | `MailOutboxService.sendPendingMails` | Row-claim (`SKIP LOCKED`, one mail per transaction — ADR-0045) | Sends the next queued `mail_outbox` row |
 | Hourly, on the hour (`tafeladmin.audit.breachDetectionCron`) | `ExcessiveReadAccessDetectionService.detectExcessiveReadAccess` | `@SchedulerLock` | Push warning when a user reads more sensitive records in the trailing hour than `tafeladmin.audit.breachDetection.readThreshold` — GDPR gap G11 |
 | Every 1h | `LoginAttemptService.cleanupStaleEntries` | Row-claim | Deletes `login_attempts` rows past the lockout window |
+| Every 1h | `LoginAttemptIpService.cleanupStaleEntries` | Row-claim | Deletes `login_attempts_ip` rows past the lockout window |
 | Every 1h | `IpRateLimiterService.cleanupStaleEntries` | None — local in-memory state per instance | Evicts token buckets that are back at full capacity, so an IP that stopped sending requests doesn't sit in memory forever |
 | Every 1h | `ScannerService.cleanupScannerRegistrations` | Row-claim | Deletes `scanner_registrations` older than `tafeladmin.checkin.scannerRegistrationRetention` (2d default) |
 | Every 1h | `SseOutboxService.cleanupOutbox` | Row-claim | Deletes `sse_outbox` rows older than `tafeladmin.sse.outboxRetention` (14d default) |

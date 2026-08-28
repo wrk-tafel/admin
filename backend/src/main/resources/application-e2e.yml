@@ -46,3 +46,9 @@ security:
   rateLimit:
     capacity: 1000
     refillTokens: 1000
+  # The same shard's specs cumulatively cause well over a dozen genuine bad-credential failures from
+  # the runner's own IP (the two 10-failure username-lockout bursts above, plus a handful of one-off
+  # wrong-password checks) - comfortably under the production default on its own, but close enough
+  # that one more added test could tip it into flaky IP lockouts unrelated to what that test covers.
+  loginAttemptsIp:
+    maxFailures: 1000

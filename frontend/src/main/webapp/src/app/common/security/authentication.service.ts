@@ -14,13 +14,14 @@ export class AuthenticationService {
   /**
    * Logs in and, on success, also loads the user's permissions before resolving - callers can
    * treat a resolved `login()` as "userInfo() is already populated", no separate wait needed.
-   * A `423` (account locked) is not treated as a request failure: it resolves with
-   * `{successful: false, locked: true}` rather than rejecting, so the login form can show a
-   * dedicated "account locked" message instead of a generic error. A `429` (this IP's request rate
-   * exceeded, see RateLimitFilter) resolves with `rateLimited: true` the same way. Likewise a status
-   * of `0` (request never reached a server, e.g. offline/DNS/CORS) or `5xx` resolves with
-   * `serverUnreachable: true` rather than the generic failure message - wrong credentials come back
-   * as `401`, which is none of those, so they are never confused with each other.
+   * A `429` (this IP's request rate exceeded, see RateLimitFilter) is not treated as a request
+   * failure: it resolves with `{successful: false, rateLimited: true}` rather than rejecting, so the
+   * login form can show a dedicated message instead of a generic error. Likewise a status of `0`
+   * (request never reached a server, e.g. offline/DNS/CORS) or `5xx` resolves with
+   * `serverUnreachable: true` rather than the generic failure message - wrong credentials, and a
+   * locked-out account/IP, both come back as a plain `403` (deliberately indistinguishable from each
+   * other server-side - see TafelLoginFilter), which is neither of those, so the two are never
+   * confused.
    */
   public async login(username: string, password: string): Promise<LoginResult> {
     return firstValueFrom(this.executeLoginRequest(username, password)
@@ -29,7 +30,6 @@ export class AuthenticationService {
           return {
             successful: true,
             passwordChangeRequired: response.passwordChangeRequired,
-            locked: false,
             rateLimited: false,
             serverUnreachable: false
           };
@@ -37,10 +37,9 @@ export class AuthenticationService {
 
         catchError((error: HttpErrorResponse) => {
           this.userInfo.set(null);
-          const locked = error.status === 423;
-          const rateLimited = !locked && error.status === 429;
-          const serverUnreachable = !locked && !rateLimited && (error.status === 0 || error.status >= 500);
-          return of({successful: false, passwordChangeRequired: false, locked, rateLimited, serverUnreachable});
+          const rateLimited = error.status === 429;
+          const serverUnreachable = !rateLimited && (error.status === 0 || error.status >= 500);
+          return of({successful: false, passwordChangeRequired: false, rateLimited, serverUnreachable});
         })));
   }
 
@@ -128,7 +127,6 @@ interface LoginResponse {
 export interface LoginResult {
   successful: boolean;
   passwordChangeRequired: boolean;
-  locked: boolean;
   rateLimited: boolean;
   serverUnreachable: boolean;
 }

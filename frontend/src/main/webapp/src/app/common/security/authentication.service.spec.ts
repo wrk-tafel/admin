@@ -43,7 +43,7 @@ describe('AuthenticationService', () => {
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: true, passwordChangeRequired: false, locked: false, rateLimited: false, serverUnreachable: false
+                successful: true, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
             });
             expect(service.userInfo()!.username).toBe(userInfoResponseBody.username);
             expect(service.userInfo()!.permissions).toEqual(userInfoResponseBody.permissions);
@@ -88,7 +88,7 @@ describe('AuthenticationService', () => {
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: true, passwordChangeRequired: true, locked: false, rateLimited: false, serverUnreachable: false
+                successful: true, passwordChangeRequired: true, rateLimited: false, serverUnreachable: false
             });
             expect(service.userInfo()!.username).toBe(userInfoResponseBody.username);
             expect(service.userInfo()!.permissions).toEqual(userInfoResponseBody.permissions);
@@ -115,7 +115,7 @@ describe('AuthenticationService', () => {
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: false, passwordChangeRequired: false, locked: false, rateLimited: false, serverUnreachable: false
+                successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
             });
             // check if it's reset
             expect(service.userInfo()).toBeNull();
@@ -133,35 +133,12 @@ describe('AuthenticationService', () => {
         httpMock.verify();
     });
 
-    it('login failed - account locked', async () => {
-        service.userInfo.set({ username: 'test123', permissions: [] });
-
-        service.login('USER', 'PWD').then(response => {
-            expect(response).toEqual({
-                successful: false, passwordChangeRequired: false, locked: true, rateLimited: false, serverUnreachable: false
-            });
-            // check if it's reset
-            expect(service.userInfo()).toBeNull();
-        });
-
-        const loginMockReq = httpMock.expectOne('/login');
-        expect(loginMockReq.request.method).toBe('POST');
-        expect(loginMockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
-
-        const loginMockResponse = { status: 423, statusText: 'Locked' };
-        loginMockReq.flush(null, loginMockResponse);
-
-        httpMock.expectNone('/users/info');
-
-        httpMock.verify();
-    });
-
     it('login failed - rate limited', async () => {
         service.userInfo.set({ username: 'test123', permissions: [] });
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: false, passwordChangeRequired: false, locked: false, rateLimited: true, serverUnreachable: false
+                successful: false, passwordChangeRequired: false, rateLimited: true, serverUnreachable: false
             });
             // check if it's reset
             expect(service.userInfo()).toBeNull();
@@ -182,7 +159,7 @@ describe('AuthenticationService', () => {
     it('login failed - server error surfaces as unreachable rather than a credentials failure', async () => {
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: false, passwordChangeRequired: false, locked: false, rateLimited: false, serverUnreachable: true
+                successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: true
             });
         });
 
@@ -196,7 +173,7 @@ describe('AuthenticationService', () => {
     it('login failed - network error (status 0) surfaces as unreachable', async () => {
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: false, passwordChangeRequired: false, locked: false, rateLimited: false, serverUnreachable: true
+                successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: true
             });
         });
 

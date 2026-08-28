@@ -26,6 +26,9 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Der Download von Kundendokumenten sowie von DSGVO-Exporten (Benutzer, Mitarbeiter, Datenauskunft, Ausgabe-Kundenliste) schlägt nicht mehr fehl, wenn der Dateiname Sonderzeichen, Anführungszeichen oder Umlaute enthält.
 - Der Download von Kunden-Stammdatenblatt/Ausweis, Kunden-ZIP-Export, Datenschutzerklärung-Vorlage, Auswertungen (über Limit, Kundenübersicht, Statistik-CSVs) sowie Scanner-Dateien schlägt jetzt ebenfalls nicht mehr fehl, wenn der Dateiname Sonderzeichen, Anführungszeichen oder Umlaute enthält.
 - Anmeldungen und Support-Anfragen werden jetzt pro IP-Adresse begrenzt, um wiederholte automatisierte Anmeldeversuche zu erschweren; bei Überschreitung erscheint auf der Anmeldeseite ein eigener Hinweis statt der allgemeinen Fehlermeldung.
+- Neben der Sperre pro Benutzerkonto nach zu vielen Fehlversuchen gibt es jetzt zusätzlich eine Sperre pro Internetadresse, falls von dort über viele verschiedene Benutzernamen hinweg zu viele Anmeldeversuche fehlschlagen.
+- Ein wegen zu vieler Fehlversuche vorübergehend gesperrtes Benutzerkonto zeigt bei der Anmeldung jetzt dieselbe allgemeine Fehlermeldung wie ein falsches Passwort, statt eines eigenen Hinweises - damit von außen nicht erkennbar ist, welche Konten gerade gesperrt sind.
+- Ein neu gewähltes Passwort muss jetzt sowohl Klein- als auch Großbuchstaben sowie eine Ziffer enthalten.
 
 ## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).

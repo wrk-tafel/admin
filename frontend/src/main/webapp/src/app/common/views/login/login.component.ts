@@ -151,9 +151,7 @@ export class LoginComponent {
         return;
       }
 
-      if (loginResult.locked) {
-        this.errorMessage.set(this.buildLockedMessage());
-      } else if (loginResult.rateLimited) {
+      if (loginResult.rateLimited) {
         this.errorMessage.set('Zu viele Anmeldeversuche! Bitte warten Sie einen Moment und versuchen Sie es erneut.');
       } else if (loginResult.serverUnreachable) {
         this.errorMessage.set('Server nicht erreichbar! Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.');
@@ -172,23 +170,5 @@ export class LoginComponent {
     });
   }
 
-  // Tells a locked-out user what to actually do (wait, or ask an administrator) instead of just
-  // naming the state - and, since the wait is however long the backend is actually configured for
-  // (`security.loginAttempts.lockoutDurationInSeconds`, served as accountLockoutDurationInSeconds
-  // on the public config), never quotes a duration that has drifted from the real one.
-  private buildLockedMessage(): string {
-    const durationInSeconds = this.publicConfig()?.accountLockoutDurationInSeconds;
-    const waitHint = durationInSeconds
-      ? `in ca. ${formatDurationInMinutes(durationInSeconds)} erneut`
-      : 'später erneut';
-    return `Konto vorübergehend gesperrt! Bitte versuchen Sie es ${waitHint} oder wenden Sie sich an eine`
-      + ' Administratorin/einen Administrator.';
-  }
-
   protected readonly visibleErrorMessages = visibleErrorMessages;
-}
-
-function formatDurationInMinutes(durationInSeconds: number): string {
-  const minutes = Math.max(1, Math.ceil(durationInSeconds / 60));
-  return minutes === 1 ? '1 Minute' : `${minutes} Minuten`;
 }

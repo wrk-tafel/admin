@@ -47,6 +47,7 @@ class WebSecurityConfig(
     private val tafelAdminProperties: TafelAdminProperties,
     private val jsonMapper: JsonMapper,
     private val loginAttemptService: LoginAttemptService,
+    private val loginAttemptIpService: LoginAttemptIpService,
     private val loginAuditService: LoginAuditService,
     private val ipRateLimiterService: IpRateLimiterService,
 ) {
@@ -59,6 +60,15 @@ class WebSecurityConfig(
         private val publicEndpoints = listOf("/api/login", "/api/config/public")
 
         val passwordLengthRule = LengthRule(8, 50)
+
+        // Same three character classes a generated password is already built from (see
+        // tafelPasswordGenerator below) - required here too via CharacterCharacteristicsRule so a
+        // user-chosen password can't fall below what a generated one always guarantees.
+        val generatedPasswordCharactersRules = listOf(
+            CharacterRule(GermanCharacterData.LowerCase),
+            CharacterRule(GermanCharacterData.UpperCase),
+            CharacterRule(EnglishCharacterData.Digit),
+        )
         val passwordValidator = DefaultPasswordValidator(
             listOf(
                 passwordLengthRule,
@@ -73,12 +83,8 @@ class WebSecurityConfig(
                         ),
                     ),
                 ),
+                CharacterCharacteristicsRule(generatedPasswordCharactersRules.size, generatedPasswordCharactersRules),
             ),
-        )
-        val generatedPasswordCharactersRules = listOf(
-            CharacterRule(GermanCharacterData.LowerCase),
-            CharacterRule(GermanCharacterData.UpperCase),
-            CharacterRule(EnglishCharacterData.Digit),
         )
     }
 
@@ -230,6 +236,7 @@ class WebSecurityConfig(
         tafelUserDetailsManager(),
         passwordEncoder(),
         loginAttemptService,
+        loginAttemptIpService,
         loginAuditService,
         tafelUserDetailsManager()::upgradePasswordHash,
     )
