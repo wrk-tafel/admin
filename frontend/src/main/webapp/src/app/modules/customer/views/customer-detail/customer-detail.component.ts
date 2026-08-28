@@ -81,6 +81,10 @@ import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
 import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity-fill.svg';
 import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import groupIcon from '@material-symbols/svg-400/outlined/group-fill.svg';
+import stickyNote2Icon from '@material-symbols/svg-400/outlined/sticky_note_2-fill.svg';
+import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
+import descriptionIcon from '@material-symbols/svg-400/outlined/description-fill.svg';
+import historyIcon from '@material-symbols/svg-400/outlined/history-fill.svg';
 
 // Matches the Tailwind `lg` breakpoint this template's action/tab layout switches at.
 const DESKTOP_BREAKPOINT = '(min-width: 1024px)';
@@ -119,7 +123,11 @@ export class CustomerDetailComponent {
     add: addIcon,
     progress_activity: progressActivityIcon,
     delete: deleteIcon,
-    group: groupIcon
+    group: groupIcon,
+    sticky_note_2: stickyNote2Icon,
+    person: personIcon,
+    description: descriptionIcon,
+    history: historyIcon
   });
 
   // Input signals - aliased to match the route resolver data keys (see customer.routes.ts) since the

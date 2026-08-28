@@ -150,6 +150,7 @@ describe('Customer Detail', () => {
 
   it('customer note shown', () => {
     cy.visit('/kunden/detail/101');
+    cy.byTestId('notes-tab-label').click();
 
     cy.byTestId('latest-customer-note').should('be.visible');
     cy.byTestId('latest-customer-note-none').should('not.exist');
@@ -157,6 +158,7 @@ describe('Customer Detail', () => {
 
   it('customer note not shown', () => {
     cy.visit('/kunden/detail/100');
+    cy.byTestId('notes-tab-label').click();
 
     cy.byTestId('latest-customer-note').should('not.exist');
     cy.byTestId('latest-customer-note-none').should('be.visible');
@@ -167,6 +169,7 @@ describe('Customer Detail', () => {
   // one key (NG0955) - only a real render over real data shows all ten actually surviving.
   it('all notes dialog lists every note of a customer whose notes share a timestamp', () => {
     cy.visit('/kunden/detail/103');
+    cy.byTestId('notes-tab-label').click();
 
     cy.byTestId('showall-notes-button').click();
 
@@ -192,6 +195,7 @@ describe('Customer Detail', () => {
   // interpreted it as HTML, the dialog escaped it. Both now show plain text with real newlines.
   it('note text renders identically as plain text in the panel and the dialog', () => {
     cy.visit('/kunden/detail/103');
+    cy.byTestId('notes-tab-label').click();
 
     // The testdata note carries a real newline; it has to survive as one instead of collapsing.
     const assertPlainTextWithNewline = () => {
@@ -215,6 +219,7 @@ describe('Customer Detail', () => {
       const customerId = response.body.data.id!;
       cy.createCustomerNote(customerId, 'original note text');
       cy.visit('/kunden/detail/' + customerId);
+      cy.byTestId('notes-tab-label').click();
 
       cy.byTestId('showall-notes-button').click();
       cy.get('mat-dialog-content').within(() => {
@@ -244,6 +249,7 @@ describe('Customer Detail', () => {
       cy.createCustomerNote(customerId, 'first note');
       cy.createCustomerNote(customerId, 'second note').then(() => {
         cy.visit('/kunden/detail/' + customerId);
+        cy.byTestId('notes-tab-label').click();
 
         cy.byTestId('notes-count').should('contain.text', '2');
         cy.byTestId('showall-notes-button').click();
@@ -279,6 +285,7 @@ describe('Customer Detail', () => {
         // read the note but not correct or erase what someone else wrote (GDPR gap G21).
         cy.loginE2ETest2();
         cy.visit('/kunden/detail/' + customerId);
+        cy.byTestId('notes-tab-label').click();
         cy.byTestId('showall-notes-button').click();
         cy.get('mat-dialog-content').within(() => {
           cy.byTestId('note-text').should('have.text', 'note written by e2etest');
@@ -308,7 +315,6 @@ describe('Customer Detail', () => {
     cy.visit('/kunden/detail/101');
 
     cy.byTestId('customerIdText').should('be.visible');
-    cy.byTestId('latest-customer-note').scrollIntoView().should('be.visible');
     cy.byTestId('editCustomerButton').scrollIntoView().should('be.visible');
 
     // below lg: the outer section reverses (flex-col-reverse), so the data tabs render
@@ -322,6 +328,9 @@ describe('Customer Detail', () => {
 
     // ...and the actions leave the identity header, which keeps them on desktop only
     cy.byTestId('customer-identity-header').find('[testid="editCustomerButton"]').should('not.exist');
+
+    cy.byTestId('notes-tab-label').scrollIntoView().click();
+    cy.byTestId('latest-customer-note').scrollIntoView().should('be.visible');
 
     cy.byTestId('lock-info-banner').should('not.exist');
 
@@ -390,7 +399,7 @@ describe('Customer Detail', () => {
     cy.visit('/kunden/detail/100');
 
     cy.byTestId('customerIdText').should('be.visible');
-    // the notes panel sits below the fold at tablet height - scroll to it the way a user would
+    cy.byTestId('notes-tab-label').click();
     cy.byTestId('latest-customer-note-none').scrollIntoView().should('be.visible');
 
     let validDateString;
@@ -960,7 +969,7 @@ describe('Customer Detail', () => {
 
       cy.byTestId('additionalpersons-tab-label').click();
       cy.byTestId('addperson-2-lastnameText').should('have.text', 'Musterfrau');
-      cy.byTestId('addperson-2-excludedChip').should('be.visible').and('contain.text', 'Nicht im Haushalt');
+      cy.byTestId('addperson-2-excludedChip').should('be.visible').and('contain.text', 'Nicht im selben Haushalt');
       cy.byTestId('addperson-0-excludedChip').should('not.exist');
       cy.byTestId('addperson-1-excludedChip').should('not.exist');
     });
@@ -1014,6 +1023,7 @@ describe('Customer Detail', () => {
 
     it('shows a note count and relative time on the "Aktuellste Notiz" card', () => {
       cy.visit('/kunden/detail/103');
+      cy.byTestId('notes-tab-label').click();
 
       cy.byTestId('notes-count').should('be.visible');
       cy.byTestId('note-relative-time').should('be.visible');
@@ -1204,6 +1214,9 @@ describe('Customer Detail', () => {
       cy.byTestId('additionalpersons-tab-label').click();
       cy.checkAccessibility(MAIN_CONTENT);
 
+      cy.byTestId('notes-tab-label').click();
+      cy.checkAccessibility(MAIN_CONTENT);
+
       cy.byTestId('documents-tab-label').click();
       cy.byTestId('upload-document-panel').should('be.visible');
       cy.checkAccessibility(MAIN_CONTENT);
@@ -1222,6 +1235,7 @@ describe('Customer Detail', () => {
     it('has no violations in the note dialogs', () => {
       // 103 is the testdata customer with more than one note, so the "all notes" dialog exists
       cy.visit('/kunden/detail/103');
+      cy.byTestId('notes-tab-label').click();
 
       cy.byTestId('addnote-button').click();
       cy.byTestId('noteHint').should('be.visible');

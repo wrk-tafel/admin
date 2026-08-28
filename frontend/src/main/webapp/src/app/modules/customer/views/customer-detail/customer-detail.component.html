@@ -205,9 +205,15 @@
   </div>
   <div class="mt-0 lg:mt-3 mb-0 lg:mb-3">
     <mat-tab-group animationDuration="0ms">
-      <mat-tab label="Allgemeine Daten">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span testid="generaldata-tab-label" class="inline-flex items-center gap-1">
+            <mat-icon svgIcon="person"></mat-icon>
+            Allgemeine Daten
+          </span>
+        </ng-template>
         <div>
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
+          <div class="grid grid-cols-1 gap-4 mt-2 lg:max-w-xl lg:mx-auto">
             <div>
               <mat-card>
                 <mat-card-header class="justify-center text-center w-full">
@@ -321,61 +327,14 @@
                 </mat-card-content>
               </mat-card>
             </div>
-            <div>
-              <mat-card>
-                <mat-card-header class="w-full">
-                  <div class="flex justify-between items-center w-full">
-                    <h2 class="tafel-h5 m-0">
-                      Aktuellste Notiz
-                      @if ((customerNotesResponse()?.totalCount ?? 0) > 0) {
-                        <span testid="notes-count" class="font-normal text-gray-500">({{ customerNotesResponse()?.totalCount }})</span>
-                      }
-                    </h2>
-                    <button testid="addnote-button" matButton="filled" class="button-success" (click)="openAddNoteDialog()"
-                            matTooltip="Neue Notiz zu diesem Kunden erfassen" aria-label="Neue Notiz zu diesem Kunden erfassen">
-                      <mat-icon svgIcon="add"></mat-icon>
-                    </button>
-                  </div>
-                </mat-card-header>
-                <mat-card-content>
-                  @if (customerNotes()?.length === 0) {
-                    <div class="font-bold" testid="latest-customer-note-none">
-                      <h3 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h3>
-                    </div>
-                  }
-                  @if (customerNotes()?.length !== 0) {
-                    <div testid="latest-customer-note">
-                      <div class="mb-2 flex flex-wrap items-baseline gap-2">
-                        <span class="font-bold"
-                              testid="note-title">{{ customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()[0].author }}</span>
-                        @if (noteRelativeTime(customerNotes()[0].timestamp); as relative) {
-                          <span testid="note-relative-time" class="text-sm text-gray-500"
-                                [matTooltip]="customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm'">({{ relative }})</span>
-                        }
-                      </div>
-                      <!-- Notes are free text, never markup: interpolated (not [innerHtml]) so a
-                           tag stays text, with pre-line so typed newlines still break the line.
-                           The all-notes dialog and the check-in panel render it the same way. -->
-                      <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()[0].note }}</div>
-                    </div>
-                  }
-                </mat-card-content>
-                @if (customerNotes()?.length > 0) {
-                  <mat-card-actions>
-                    <button testid="showall-notes-button" matButton="filled" (click)="openAllNotesDialog()">Alle Notizen
-                      anzeigen
-                    </button>
-                  </mat-card-actions>
-                }
-              </mat-card>
-            </div>
           </div>
         </div>
       </mat-tab>
       <mat-tab>
         <ng-template mat-tab-label>
-          <span testid="additionalpersons-tab-label">
-            <mat-icon svgIcon="group"></mat-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
+          <span testid="additionalpersons-tab-label" class="inline-flex items-center gap-1">
+            <mat-icon svgIcon="group"></mat-icon>
+            Weitere Personen ({{ customerData()?.additionalPersons?.length }})
           </span>
         </ng-template>
         <div>
@@ -408,7 +367,7 @@
                         </div>
                         @if (addPerson?.excludeFromHousehold) {
                           <span class="badge badge-info shrink-0" [attr.testid]="'addperson-' + i + '-excludedChip'">
-                            Nicht im Haushalt
+                            Nicht im selben Haushalt
                           </span>
                         }
                       </div>
@@ -435,13 +394,74 @@
           }
         </div>
       </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span testid="notes-tab-label" class="inline-flex items-center gap-1">
+            <mat-icon svgIcon="sticky_note_2"></mat-icon>
+            Notizen ({{ customerNotesResponse()?.totalCount ?? 0 }})
+          </span>
+        </ng-template>
+        <div class="grid grid-cols-1 gap-4 mt-2 lg:max-w-xl lg:mx-auto">
+          <div>
+            <mat-card>
+              <mat-card-header class="w-full">
+                <div class="flex justify-between items-center w-full">
+                  <h2 class="tafel-h5 m-0">
+                    Aktuellste Notiz
+                    @if ((customerNotesResponse()?.totalCount ?? 0) > 0) {
+                      <span testid="notes-count" class="font-normal text-gray-500">({{ customerNotesResponse()?.totalCount }})</span>
+                    }
+                  </h2>
+                  <button testid="addnote-button" matButton="filled" class="button-success" (click)="openAddNoteDialog()"
+                          matTooltip="Neue Notiz zu diesem Kunden erfassen" aria-label="Neue Notiz zu diesem Kunden erfassen">
+                    <mat-icon svgIcon="add"></mat-icon>
+                  </button>
+                </div>
+              </mat-card-header>
+              <mat-card-content>
+                @if (customerNotes()?.length === 0) {
+                  <div class="font-bold" testid="latest-customer-note-none">
+                    <h3 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h3>
+                  </div>
+                }
+                @if (customerNotes()?.length !== 0) {
+                  <div testid="latest-customer-note">
+                    <div class="mb-2 flex flex-wrap items-baseline gap-2">
+                      <span class="font-bold"
+                            testid="note-title">{{ customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()[0].author }}</span>
+                      @if (noteRelativeTime(customerNotes()[0].timestamp); as relative) {
+                        <span testid="note-relative-time" class="text-sm text-gray-500"
+                              [matTooltip]="customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm'">({{ relative }})</span>
+                      }
+                    </div>
+                    <!-- Notes are free text, never markup: interpolated (not [innerHtml]) so a
+                         tag stays text, with pre-line so typed newlines still break the line.
+                         The all-notes dialog and the check-in panel render it the same way. -->
+                    <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()[0].note }}</div>
+                  </div>
+                }
+              </mat-card-content>
+              @if (customerNotes()?.length > 0) {
+                <mat-card-actions>
+                  <button testid="showall-notes-button" matButton="filled" (click)="openAllNotesDialog()">Alle Notizen
+                    anzeigen
+                  </button>
+                </mat-card-actions>
+              }
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
       <!-- The documents tab holds the most sensitive artefacts on a household (ID scans, proofs of
            income) - separate permission from the rest of this screen on purpose (GDPR G7,
            issue #3181). -->
       @if (hasDocumentsPermission()) {
         <mat-tab>
           <ng-template mat-tab-label>
-            <span testid="documents-tab-label">Dokumente ({{ customerDocuments()?.length }})</span>
+            <span testid="documents-tab-label" class="inline-flex items-center gap-1">
+              <mat-icon svgIcon="description"></mat-icon>
+              Dokumente ({{ customerDocuments()?.length }})
+            </span>
           </ng-template>
           <div>
             <div [class]="(customerDocuments()?.length ?? 0) === 0
@@ -493,7 +513,10 @@
       @if (hasAuditPermission()) {
         <mat-tab>
           <ng-template mat-tab-label>
-            <span testid="history-tab-label">Verlauf</span>
+            <span testid="history-tab-label" class="inline-flex items-center gap-1">
+              <mat-icon svgIcon="history"></mat-icon>
+              Verlauf
+            </span>
           </ng-template>
           <!-- matTabContent, unlike every other tab here: a tab's content is otherwise created with
                the screen even while it is not shown, and this is the only tab that fetches on its
