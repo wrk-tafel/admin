@@ -194,8 +194,8 @@ export const navigationMenuItems: ITafelNavData[] = [
     ]
   },
   {
-    name: 'Änderungsprotokoll',
-    url: '/aenderungsprotokoll',
+    name: 'Zugriffsprotokoll',
+    url: '/zugriffsprotokoll',
     icon: 'history',
     permissions: ['AUDIT_LOG']
   },

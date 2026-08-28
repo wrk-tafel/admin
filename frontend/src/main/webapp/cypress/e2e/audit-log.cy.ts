@@ -10,7 +10,7 @@ const isoLastMonth = () => dayjs().subtract(1, 'month').format('YYYY-MM-DD');
  * here creates the change it then expects to find, which is also the only honest way to prove the
  * trail records anything.
  */
-describe('Änderungsprotokoll', () => {
+describe('Zugriffsprotokoll', () => {
 
   beforeEach(() => {
     cy.loginDefault();
@@ -18,7 +18,7 @@ describe('Änderungsprotokoll', () => {
 
   it('opens preselected on customers over the last month', () => {
     cy.createDummyCustomer().then(() => {
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
 
       cy.byTestId('audit-filter-entityType').should('contain.text', 'Kunde');
       cy.byTestId('audit-filter-to').should('have.value', isoToday());
@@ -33,7 +33,7 @@ describe('Änderungsprotokoll', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id;
 
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
 
       cy.byTestId('audit-filter-businessKey').type(String(customerId));
       // Creating a customer writes an insert and then an update (the main-person pointer can only
@@ -56,7 +56,7 @@ describe('Änderungsprotokoll', () => {
 
       cy.updateCustomer({...customer, telephoneNumber: '0699111222'});
 
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
       cy.byTestId('audit-filter-businessKey').type(String(customer.id));
       cy.byTestId('audit-filter-operation').click();
       cy.get('mat-option').contains('Geändert').click();
@@ -68,7 +68,7 @@ describe('Änderungsprotokoll', () => {
   });
 
   it('records the login the test session itself just made', () => {
-    cy.visit('/aenderungsprotokoll');
+    cy.visit('/zugriffsprotokoll');
 
     cy.byTestId('audit-filter-entityType').click();
     cy.get('mat-option').contains('Login').click();
@@ -81,7 +81,7 @@ describe('Änderungsprotokoll', () => {
 
   it('groups the entries under the day they happened on', () => {
     cy.createDummyCustomer().then(() => {
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
 
       cy.byTestId('audit-day-0-relative').should('have.text', 'Heute');
       cy.byTestId('audit-day-0-date').should('contain.text', dayjs().format('DD.MM.YYYY'));
@@ -92,7 +92,7 @@ describe('Änderungsprotokoll', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id;
 
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
 
       // The newest entry is the customer just created, so no filter is needed to reach it - and
       // clicking through one would mean clicking a link a pending re-render can still replace.
@@ -106,7 +106,7 @@ describe('Änderungsprotokoll', () => {
 
     it('filters by record type without a separate search step, and resetting returns to the defaults', () => {
       cy.createDummyCustomer().then(() => {
-        cy.visit('/aenderungsprotokoll');
+        cy.visit('/zugriffsprotokoll');
 
         cy.byTestId('audit-filter-entityType').click();
         cy.get('mat-option').contains('Person').click();
@@ -121,7 +121,7 @@ describe('Änderungsprotokoll', () => {
 
     it('offers the users the log holds entries for, instead of asking for one to be typed', () => {
       cy.createDummyCustomer().then(() => {
-        cy.visit('/aenderungsprotokoll');
+        cy.visit('/zugriffsprotokoll');
 
         cy.byTestId('audit-filter-actor').click();
         cy.get('mat-option').contains('e2etest (E2E Test)').click();
@@ -136,7 +136,7 @@ describe('Änderungsprotokoll', () => {
     // as "nothing was changed", which is the one wrong answer this screen must not give.
     it('does not filter on a half-typed user', () => {
       cy.createDummyCustomer().then(() => {
-        cy.visit('/aenderungsprotokoll');
+        cy.visit('/zugriffsprotokoll');
 
         cy.byTestId('audit-filter-actor').type('e2e');
 
@@ -147,7 +147,7 @@ describe('Änderungsprotokoll', () => {
 
     it('sets a date range from a preset', () => {
       cy.createDummyCustomer().then(() => {
-        cy.visit('/aenderungsprotokoll');
+        cy.visit('/zugriffsprotokoll');
 
         cy.byTestId('audit-filter-preset-heute').click();
 
@@ -162,12 +162,12 @@ describe('Änderungsprotokoll', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;
 
-        cy.visit('/aenderungsprotokoll');
+        cy.visit('/zugriffsprotokoll');
         cy.byTestId('audit-filter-businessKey').type(String(customerId));
         cy.url().should('include', `nummer=${customerId}`);
 
         // What a colleague opening the link gets: the same filter, not the screen's defaults.
-        cy.visit(`/aenderungsprotokoll?art=Person&aenderung=&benutzer=&nummer=${customerId}&von=&bis=`);
+        cy.visit(`/zugriffsprotokoll?art=Person&aenderung=&benutzer=&nummer=${customerId}&von=&bis=`);
 
         cy.byTestId('audit-filter-entityType').should('contain.text', 'Person');
         cy.byTestId('audit-filter-businessKey').should('have.value', String(customerId));
@@ -177,7 +177,7 @@ describe('Änderungsprotokoll', () => {
     });
 
     it('says so when nothing matches the filter', () => {
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
 
       cy.byTestId('audit-filter-businessKey').type('999999999');
 
@@ -188,7 +188,7 @@ describe('Änderungsprotokoll', () => {
 
   it('shows a paginator once there are entries', () => {
     cy.createDummyCustomer().then(() => {
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
 
       cy.byTestId('audit-log-paginator').should('exist');
     });
@@ -197,7 +197,7 @@ describe('Änderungsprotokoll', () => {
   it('stays usable on a phone', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.createDummyCustomer().then((response) => {
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
 
       cy.byTestId('audit-filter-businessKey').type(String(response.body.data.id));
 
@@ -211,7 +211,7 @@ describe('Änderungsprotokoll', () => {
 
     it('has no violations once entries are listed', () => {
       cy.createDummyCustomer().then(() => {
-        cy.visit('/aenderungsprotokoll');
+        cy.visit('/zugriffsprotokoll');
 
         cy.byTestId('audit-entry-list').should('exist');
         cy.checkAccessibility(MAIN_CONTENT);
@@ -219,7 +219,7 @@ describe('Änderungsprotokoll', () => {
     });
 
     it('has no violations with the filter selects open', () => {
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
 
       cy.byTestId('audit-filter-entityType').click();
       cy.checkSelectAccessibility();
@@ -231,7 +231,7 @@ describe('Änderungsprotokoll', () => {
 
     it('has no violations with the user list open', () => {
       cy.createDummyCustomer().then(() => {
-        cy.visit('/aenderungsprotokoll');
+        cy.visit('/zugriffsprotokoll');
 
         cy.byTestId('audit-filter-actor').click();
         cy.checkAutocompleteAccessibility();
@@ -239,7 +239,7 @@ describe('Änderungsprotokoll', () => {
     });
 
     it('has no violations on the empty result', () => {
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
 
       cy.byTestId('audit-filter-businessKey').type('999999999');
 
@@ -250,7 +250,7 @@ describe('Änderungsprotokoll', () => {
     it('has no violations on a phone, where the change tables scroll sideways', () => {
       cy.viewport(PHONE_VIEWPORT);
       cy.createDummyCustomer().then(() => {
-        cy.visit('/aenderungsprotokoll');
+        cy.visit('/zugriffsprotokoll');
 
         cy.byTestId('audit-entry-list').should('exist');
         cy.checkAccessibility(MAIN_CONTENT);
@@ -262,8 +262,8 @@ describe('Änderungsprotokoll', () => {
   it('is reachable from the navigation menu', () => {
     cy.visit('/uebersicht');
 
-    cy.get('a[href="/aenderungsprotokoll"]').first().click({force: true});
+    cy.get('a[href="/zugriffsprotokoll"]').first().click({force: true});
 
-    cy.url().should('include', '/aenderungsprotokoll');
+    cy.url().should('include', '/zugriffsprotokoll');
   });
 });

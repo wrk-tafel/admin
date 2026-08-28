@@ -1294,7 +1294,7 @@ INSERT INTO login_attempts (id, created_at, updated_at, username, failure_count,
 VALUES (3, NOW(), NOW(), 'testuser', 1, NOW() + interval '2 years', NULL);
 
 
--- 100 recorded changes, so the Änderungsprotokoll screen has something to show and its filters
+-- 100 recorded changes, so the Zugriffsprotokoll screen has something to show and its filters
 -- something to filter. Written directly rather than by exercising the application, which is the
 -- only way to get a spread of dates out of a fixture that loads in one moment - and the reason
 -- these rows carry no matching change in the data itself: they describe edits that never happened.

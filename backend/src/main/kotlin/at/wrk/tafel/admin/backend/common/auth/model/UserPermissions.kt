@@ -22,7 +22,7 @@ enum class UserPermissions(val key: String, val title: String, val category: Per
      * (`AuditService.isRedactedForCaller`) - so `AUDIT_LOG` alone only ever shows *that* a
      * household/person/note/document changed, by whom and when, never to what.
      */
-    AUDIT_LOG("AUDIT_LOG", "Änderungsprotokoll", PermissionCategory.ADMINISTRATION),
+    AUDIT_LOG("AUDIT_LOG", "Zugriffsprotokoll", PermissionCategory.ADMINISTRATION),
     CHECKIN("CHECKIN", "Anmeldung", PermissionCategory.OPERATIONS),
     DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Ablauf", PermissionCategory.OPERATIONS),
     USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung", PermissionCategory.LEADERSHIP),

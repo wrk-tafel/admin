@@ -53,7 +53,7 @@ Deliberately left out, and worth leaving out:
 A successful login is the one exception written on purpose despite not being an entity change:
 `LoginAuditService` records it as one entry per login, `entityType` `UserLogin`
 (`AuditScope.USER_LOGIN_ENTITY_TYPE`), `operation` `LOGIN`, `businessKey` the username — so "who
-logged in, and when" is answered from the same log and the same "Änderungsprotokoll" screen as
+logged in, and when" is answered from the same log and the same "Zugriffsprotokoll" screen as
 everything else, filterable like any other entry. It has no `AuditScope.auditedEntities` map entry
 (a login is never loaded or saved through the persistence context, so no Hibernate event exists to
 key one off) and carries no field diff, only that it happened.

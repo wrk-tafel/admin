@@ -177,7 +177,7 @@ export class AuditLogComponent {
           data.totalCount === 1 ? '1 Eintrag gefunden' : `${data.totalCount} Einträge gefunden`
         );
       },
-      error: () => this.toastr.error('Fehler beim Laden des Änderungsprotokolls', 'Fehler')
+      error: () => this.toastr.error('Fehler beim Laden des Zugriffsprotokolls', 'Fehler')
     });
   }
 

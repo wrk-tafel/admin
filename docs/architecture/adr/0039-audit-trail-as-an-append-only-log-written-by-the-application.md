@@ -59,7 +59,7 @@ is behind the request.
   answer "who last touched this row" without a join; the log answers everything else.
 - **Reading it is its own Spring Modulith module**, `modules/audit`, behind a new `AUDIT_LOG`
   permission: a household's history on the customer detail screen's "Verlauf" tab, and the whole log
-  on the `/aenderungsprotokoll` administration screen. There is no endpoint that writes, edits or
+  on the `/zugriffsprotokoll` administration screen. There is no endpoint that writes, edits or
   deletes an entry.
 - **Entries expire.** `AuditRetentionService` removes entries older than
   `tafeladmin.audit.retentionDays` (default 30) daily at 05:00

@@ -253,7 +253,7 @@ around:
   it was ends the edit without a request, so the audit trail records no
   no-op change.
 - **Cross-links** to `/kunden/ueber-limit` (the direct consumer of these
-  numbers) and to `/aenderungsprotokoll?art=StaticValue` (who changed one last),
+  numbers) and to `/zugriffsprotokoll?art=StaticValue` (who changed one last),
   both behind `*tafelIfPermission`.
 
 Labels, descriptions, group membership and qualifier fields per enum value are

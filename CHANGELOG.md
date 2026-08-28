@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Der Menüpunkt "Änderungsprotokoll" heißt jetzt "Zugriffsprotokoll", da er neben Änderungen auch Zugriffe auf sensible Daten erfasst; die Benutzerhandbuch-Beschreibung des Öffnens der Kunden-Detailseite als Zugriff wurde dabei korrigiert.
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Wird in den nächsten 30 Tagen gelöscht", der Kunden zeigt, deren Daten wegen Ablaufs der Aufbewahrungsfrist bald automatisch entfernt werden.
 - Eine neue Benachrichtigungsart "Bereinigungsjob auffällig" informiert Administrator:innen jetzt per Push, wenn eine automatische Lösch-Bereinigung (Haushalte, Benutzerkonten, Mitarbeiter oder Änderungsprotokoll) fehlschlägt oder mehr Datensätze als konfiguriert löschen würde - in letzterem Fall wird die Löschung dieses Durchlaufs abgebrochen, statt durchzuführen.
 - Dateien im Scanner-Ordner, die nicht importiert oder gelöscht werden, werden jetzt nach 7 Tagen automatisch entfernt; Benutzer:innen mit der Berechtigung "Kunden-Dokumente" erhalten vorher eine Push-Benachrichtigung, damit die Datei rechtzeitig importiert oder bewusst gelöscht werden kann.

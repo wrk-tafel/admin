@@ -268,7 +268,7 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **user**: User search, create, edit with password change functionality, plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking
 - **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a list of expandable cards with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded body instead of a separate details dialog — see the settings module README before restyling them back into a table
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
-- **audit**: the `aenderungsprotokoll` screen — the whole audit trail, filterable. The per-household
+- **audit**: the `zugriffsprotokoll` screen — the whole audit trail, filterable. The per-household
   view of the same data is the customer detail screen's "Verlauf" tab; both render the shared
   `common/components/audit-entry-list` component
 
