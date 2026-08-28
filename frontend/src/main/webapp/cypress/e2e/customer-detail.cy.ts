@@ -170,6 +170,15 @@ describe('Customer Detail', () => {
 
     cy.byTestId('showall-notes-button').click();
 
+    // Wait for the dialog's own open transition (scale 0.8 -> 1) to finish before scrolling
+    // inside it - Chrome's hit-testing for `.should('be.visible')` is unreliable while an
+    // ancestor is still mid-transform, which intermittently reported the scrolled-to note as
+    // covered by the (stationary) action bar. Cypress's own retries don't save this: the
+    // transform is well settled again within its 10s command timeout, but a stale
+    // elementFromPoint() read taken once mid-transition can still fail on it.
+    cy.get('mat-dialog-container').should('have.class', 'mdc-dialog--open');
+    cy.get('mat-dialog-container .mat-mdc-dialog-inner-container').should('have.css', 'opacity', '1');
+
     // Scoped to the dialog - the "latest note" panel behind it carries the same testid.
     cy.get('mat-dialog-content').within(() => {
       cy.byTestId('note-title').should('have.length', 10);
