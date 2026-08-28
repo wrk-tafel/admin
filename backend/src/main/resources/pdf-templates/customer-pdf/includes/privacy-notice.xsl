@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     Printable consent form (GDPR G2, issue #3177; recipients/third-country/mandatory-voluntary/
-    Art. 13(2)(f) paragraphs and the retentionYears parameter added for gap G20, issue #3429): what
+    Art. 13(2)(f) paragraphs and the retentionText parameter added for gap G20, issue #3429): what
     an operator hands the customer at intake to read and sign, filed outside the application - there
     is no stored consent field, this document is the whole record. See
     docs/architecture/gdpr-compliance.md (G2, G20) and issue #3185.
@@ -10,7 +10,7 @@
     organisation's own published privacy notice (https://www.roteskreuz.at/wien/ich-will-mehr-wissen/
     datenschutzerklaerung, checked 2026-08-25) - that page has no section covering Team-Österreich-
     Tafel/aid-recipient data at all, so the purpose, legal-basis, recipients, third-country-transfer,
-    retention (matches HouseholdRetentionService's actual window, passed in as retentionYears rather
+    retention (matches HouseholdRetentionService's actual window, passed in as retentionText rather
     than hard-coded), mandatory/voluntary and automated-decision paragraphs are written specifically
     for this intake flow, grounded in what docs/architecture/gdpr-compliance.md §1/§2/§5 record this
     application actually does, rather than copied from an existing approved Tafel-specific notice,
@@ -94,7 +94,7 @@
         </xsl:call-template>
         <fo:block font-size="10pt" color="{$tafelInk}" space-after="3mm" line-height="1.4">
             Ihre Daten werden gelöscht, sobald Ihre Anspruchsberechtigung seit mehr als
-            <xsl:value-of select="./retentionYears"/> Jahren abgelaufen ist.
+            <xsl:value-of select="./retentionText"/> abgelaufen ist.
         </fo:block>
         <xsl:call-template name="section-title">
             <xsl:with-param name="text" select="'Pflichtangabe und Folgen der Nichtbereitstellung'"/>

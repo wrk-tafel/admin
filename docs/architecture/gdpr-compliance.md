@@ -20,7 +20,7 @@ Two things to be clear about before reading on:
 
 | Store | Whose | What | How long it stays |
 |---|---|---|---|
-| `households` | customers | address, phone, e-mail, validity, lock state and reason, pending cost contribution, single-parent flag | until someone deletes the household by hand, or `validUntil` has been in the past for longer than `tafeladmin.householdDeletion.retentionYears` (`HouseholdRetentionService`, 7 years by default) |
+| `households` | customers | address, phone, e-mail, validity, lock state and reason, pending cost contribution, single-parent flag | until someone deletes the household by hand, or `validUntil` has been in the past for longer than `tafeladmin.householdDeletion.retentionTime` (`HouseholdRetentionService`, 7 years by default) |
 | `persons` | customers and every household member, children included | name, birth date, gender, nationality, employer, monthly income, family-allowance flag | same as `households` (cascades on delete) |
 | `household_notes` | customers | free text written by staff, no restriction on content | same as `households` (cascades on delete) |
 | `household_documents` + the files under `tafeladmin.storage.documentsPath` | customers | uploaded ID scans and proofs of income, as plain files (`DocumentStorageService`) | same as `households` (cascades on delete, files removed from disk too) |
@@ -112,7 +112,7 @@ numbering (and the issues already filed against it) stays stable.
 erased once the purpose is gone.
 
 `HouseholdRetentionService` runs nightly and deletes every household whose `valid_until` is further
-in the past than `tafeladmin.householdDeletion.retentionYears` (7 years by default — the Austrian
+in the past than `tafeladmin.householdDeletion.retentionTime` (7 years by default — the Austrian
 bookkeeping retention period for records touching cost contributions, UGB/BAO Section 132, chosen
 as a defensible floor rather than a final legal-basis answer). Deletion goes through the same
 `HouseholdService.deleteHouseholdByHouseholdId` a staff member's manual delete uses, which cascades
@@ -422,9 +422,9 @@ Unlike a household, neither entity has a field that encodes "no longer relevant"
   is never a candidate, full stop, regardless of `enabled` or age** - stricter than `UserController`'s
   manual safeguards, which only ever protect the *last* enabled one. Deletion goes through
   `TafelUserDetailsManager.deleteUser`, the same method the manual `DELETE /api/users/{userId}`
-  endpoint uses, and defaults to 7 years - unified with `householdDeletion.retentionYears` and
+  endpoint uses, and defaults to 7 years - unified with `householdDeletion.retentionTime` and
   `employeeDeletion.retentionTime` as one consistent retention floor across the application, even
-  though unlike `householdDeletion.retentionYears` (a bookkeeping-law period) there is no single
+  though unlike `householdDeletion.retentionTime` (a bookkeeping-law period) there is no single
   statute this particular window has to clear.
 - **`employees`** (`EmployeeRetentionService`) is deliberately a separate job: an employee is a shared
   record other modules reference by a plain, non-cascading FK (household issuer, household notes, food
@@ -437,7 +437,7 @@ Unlike a household, neither entity has a field that encodes "no longer relevant"
   since silently blanking a reference on a record that is itself well within its own retention window
   would erase part of a still-live case file rather than an abandoned one. Measured from `updated_at`,
   defaulting to 7 years - the same unified floor as `userDeletion.retentionTime` and
-  `householdDeletion.retentionYears`, even though an employee this job ever actually reaches is, by
+  `householdDeletion.retentionTime`, even though an employee this job ever actually reaches is, by
   definition, not the issuer/driver/recorder of anything still on record, so no bookkeeping period
   specifically applies to it.
 
@@ -627,7 +627,7 @@ listened for (see `push`'s `package-info.java`).
 Deletions themselves stay visible before they happen too: the customer search screen's "Wird in den
 nächsten 30 Tagen gelöscht" filter chip (`HouseholdEntity.Specs.willBeDeletedSoon`) previews which
 households `HouseholdRetentionService` will sweep within the next 30 days, at the job's own
-`retentionYears` cutoff — the same way `missingPrivacyNoticeDocument` (G2) already previews a
+`retentionTime` cutoff — the same way `missingPrivacyNoticeDocument` (G2) already previews a
 different upcoming gap.
 
 `AuditRetentionService` additionally gets `tafeladmin.audit.cleanupEnabled` — a kill switch for
@@ -697,7 +697,7 @@ Found in a re-audit of G2 (issue #3429): the customer notice (`pdf-templates/cus
 privacy-notice.xsl`) had controller, DPO, purpose, legal basis, retention and rights, but no
 recipients/categories of recipients, no third-country statement, no mandatory/voluntary-with-
 consequences paragraph and no Art. 13(2)(f) line - and its "7 Jahre" retention figure was
-hard-coded text rather than `tafeladmin.householdDeletion.retentionYears`, so an operator changing
+hard-coded text rather than `tafeladmin.householdDeletion.retentionTime`, so an operator changing
 the property silently desynchronised the printed sheet from what the application actually does.
 Staff (`users`/`employees`) had no Art. 13 notice anywhere - an export (G12/G14) and a retention job
 (G13) exist, but nobody is *informed*, the "informed" half of the same obligation the customer
@@ -705,7 +705,7 @@ notice answers.
 
 Both are closed the same way as G2 originally was, by the same reasoning and with the same caveat:
 
-- The customer notice's `retentionYears`, and the new `generatedAt` footer stamp below, are now
+- The customer notice's `retentionText`, and the new `generatedAt` footer stamp below, are now
   passed into the template as parameters (`HouseholdPdfService`, `PrivacyNoticePdfData`) instead of
   being literal text, so both are read from the live configuration at generation time rather than
   frozen at the point someone last edited the XSL.
@@ -722,7 +722,7 @@ Both are closed the same way as G2 originally was, by the same reasoning and wit
   audited or wrapped in a transaction): reachable from the user menu for self-service
   (`GET /api/users/privacy-notice-template`, `isAuthenticated()` only) and from the Mitarbeiter
   settings screen for an admin to hand it to someone with no account of their own.
-- Both documents' `retentionYears`/`retentionTime` text is read per generation, same as the
+- Both documents' `retentionTime` text is read per generation, same as the
   retention jobs themselves read it - an operator's config change is reflected the next time either
   PDF is generated, with no restart needed.
 - Both documents now carry a page-number-and-generation-date footer (`fo:static-content` bound to
@@ -846,7 +846,7 @@ number here.
 | 18 | [G19](#g19-a-retention-job-now-reports-itself-instead-of-only-logging-one-aggregate-line) retention jobs had no preview, no failure alert, no upper bound | [#3437](https://github.com/wrk-tafel/admin/issues/3437) | done | `RetentionRunAlertEvent`/`RETENTION_RUN` push, per-job `maxDeletionsPerRun` ceilings, `tafeladmin.audit.cleanupEnabled`, the "wird bald gelöscht" search filter |
 | 19 | [G20](#g20-the-three-gdpr-exports-are-now-machine-readable-too-not-just-pdf) exports were PDF-only, not strictly Art. 20 machine-readable | [#3418](https://github.com/wrk-tafel/admin/issues/3418) | done | `daten.json` alongside `datenexport.pdf` in all three export ZIPs |
 | 20 | [G21](#g21-a-household-note-can-now-be-corrected-or-erased-not-only-appended) notes were append-only, no Art. 16/17 path | [#3417](https://github.com/wrk-tafel/admin/issues/3417) | done | `PUT`/`DELETE` on `HouseholdNoteController`, edit/delete in the "Alle Notizen anzeigen" dialog, restricted to the note's own author |
-| 21 | [G22](#g22-staff-now-get-an-art-13-notice-too-and-the-customer-notices-own-gaps-are-closed) no Art. 13 notice for staff; customer notice incomplete/hard-coded | [#3429](https://github.com/wrk-tafel/admin/issues/3429) | done | `retentionYears`/footer as template params, four added paragraphs, new `staff-pdf` notice; re-signing after a retention change stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
+| 21 | [G22](#g22-staff-now-get-an-art-13-notice-too-and-the-customer-notices-own-gaps-are-closed) no Art. 13 notice for staff; customer notice incomplete/hard-coded | [#3429](https://github.com/wrk-tafel/admin/issues/3429) | done | `retentionTime`/footer as template params, four added paragraphs, new `staff-pdf` notice; re-signing after a retention change stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 | 22 | [G23](#g23-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked) no rate limiting, username-only lockout, lockout oracle, no password complexity | [#3432](https://github.com/wrk-tafel/admin/issues/3432), [#3484](https://github.com/wrk-tafel/admin/issues/3484) | done | `RateLimitFilter`/`RateLimiterIpService` (IP-scoped token bucket), `LoginAttemptIpService` (IP-scoped lockout), a unified `403` for wrong credentials and a lockout alike, a character-class rule for user-chosen passwords |
 
 Every gap in this table is done — the operator has now answered every question in #3185's

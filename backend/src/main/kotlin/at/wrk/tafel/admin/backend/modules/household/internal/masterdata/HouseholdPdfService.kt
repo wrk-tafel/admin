@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.masterdata
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.common.retention.RetentionPeriodFormatter
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
@@ -53,7 +54,7 @@ class HouseholdPdfService(
             householdId = household.householdId.toString(),
             fullName = listOfNotNull(mainPerson?.firstname, mainPerson?.lastname).joinToString(" ").ifBlank { "-" },
             issuedAtDate = LocalDate.now(clock).format(DATE_FORMATTER),
-            retentionYears = tafelAdminProperties.householdDeletion.retentionYears.toString(),
+            retentionText = RetentionPeriodFormatter.format(tafelAdminProperties.householdDeletion.retentionTime),
             generatedAt = LocalDate.now(clock).format(DATE_FORMATTER),
         )
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")
@@ -72,7 +73,7 @@ class HouseholdPdfService(
             householdId = "",
             fullName = "",
             issuedAtDate = "",
-            retentionYears = tafelAdminProperties.householdDeletion.retentionYears.toString(),
+            retentionText = RetentionPeriodFormatter.format(tafelAdminProperties.householdDeletion.retentionTime),
             generatedAt = LocalDate.now(clock).format(DATE_FORMATTER),
         )
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")

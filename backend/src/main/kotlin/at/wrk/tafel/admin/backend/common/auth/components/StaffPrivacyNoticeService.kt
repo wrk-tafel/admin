@@ -2,13 +2,13 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.StaffPrivacyNoticePdfData
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.common.retention.RetentionPeriodFormatter
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils
 import java.time.Clock
 import java.time.LocalDate
-import java.time.Period
 import java.time.format.DateTimeFormatter
 
 /**
@@ -44,26 +44,10 @@ class StaffPrivacyNoticeService(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = IOUtils.toByteArray(javaClass.getResourceAsStream(LOGO_RESOURCE_PATH)),
             issuedAtDate = LocalDate.now(clock).format(DATE_FORMATTER),
-            userRetentionText = formatPeriod(tafelAdminProperties.userDeletion.retentionTime),
-            employeeRetentionText = formatPeriod(tafelAdminProperties.employeeDeletion.retentionTime),
+            userRetentionText = RetentionPeriodFormatter.format(tafelAdminProperties.userDeletion.retentionTime),
+            employeeRetentionText = RetentionPeriodFormatter.format(tafelAdminProperties.employeeDeletion.retentionTime),
             auditRetentionDays = tafelAdminProperties.audit.retentionDays.toString(),
         )
         return pdfService.generatePdf(data, PDF_STYLESHEET_PATH)
-    }
-
-    /**
-     * `userDeletion.retentionTime`/`employeeDeletion.retentionTime` are a [Period], read from
-     * config as `7y`/`18m`/`730d`-style values (see [TafelAdminProperties]'s KDoc) rather than a
-     * single number, so this renders whichever of years/months/days an operator actually set rather
-     * than assuming years alone. Dative plural throughout ("Jahren"/"Monaten"/"Tagen") since both
-     * call sites in the template use it after "mehr als"/"nach".
-     */
-    private fun formatPeriod(period: Period): String {
-        val parts = buildList {
-            if (period.years != 0) add("${period.years} Jahren")
-            if (period.months != 0) add("${period.months} Monaten")
-            if (period.days != 0) add("${period.days} Tagen")
-        }
-        return parts.ifEmpty { listOf("0 Tagen") }.joinToString(" ")
     }
 }

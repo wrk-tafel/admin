@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 import java.time.LocalDate
+import java.time.Period
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -50,7 +51,7 @@ class HouseholdRetentionServiceTest {
 
     @Test
     fun `deletes every household expired past the configured retention window`() {
-        properties.householdDeletion.retentionYears = 3
+        properties.householdDeletion.retentionTime = Period.ofYears(3)
         every { householdRepository.findExpiredHouseholdIdsSkipLocked(any()) } returns listOf(1001L, 1002L)
 
         service.cleanupExpiredHouseholds()
@@ -81,7 +82,7 @@ class HouseholdRetentionServiceTest {
 
     @Test
     fun `a non-positive retention keeps every household rather than deleting them all`() {
-        properties.householdDeletion.retentionYears = 0
+        properties.householdDeletion.retentionTime = Period.ZERO
 
         service.cleanupExpiredHouseholds()
 
@@ -90,9 +91,9 @@ class HouseholdRetentionServiceTest {
     }
 
     @Test
-    fun `the enabled switch keeps every household regardless of retentionYears`() {
+    fun `the enabled switch keeps every household regardless of retentionTime`() {
         properties.householdDeletion.enabled = false
-        properties.householdDeletion.retentionYears = 1
+        properties.householdDeletion.retentionTime = Period.ofYears(1)
 
         service.cleanupExpiredHouseholds()
 

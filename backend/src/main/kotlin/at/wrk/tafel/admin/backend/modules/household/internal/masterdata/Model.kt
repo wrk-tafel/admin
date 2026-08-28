@@ -121,12 +121,12 @@ data class PrivacyNoticePdfData(
     val fullName: String,
     val issuedAtDate: String,
     /**
-     * `tafeladmin.householdDeletion.retentionYears` as display text (GDPR gap G2 follow-up, issue
+     * `tafeladmin.householdDeletion.retentionTime` as display text (GDPR gap G2 follow-up, issue
      * #3429) - the printed sheet used to hard-code "7 Jahre", which silently went stale the moment
      * an operator changed the property. Read per generation, same as [HouseholdRetentionService][at.wrk.tafel.admin.backend.modules.household.internal.HouseholdRetentionService]
      * reads it, rather than baked in at compile time.
      */
-    val retentionYears: String,
+    val retentionText: String,
     /**
      * Printed in the footer next to the page number (issue #3429 follow-up) - unlike [issuedAtDate],
      * which stays blank on the reference-less template for a staff member to fill in by hand, this is
@@ -146,7 +146,7 @@ data class PrivacyNoticePdfData(
         if (householdId != other.householdId) return false
         if (fullName != other.fullName) return false
         if (issuedAtDate != other.issuedAtDate) return false
-        if (retentionYears != other.retentionYears) return false
+        if (retentionText != other.retentionText) return false
         if (generatedAt != other.generatedAt) return false
 
         return true
@@ -159,7 +159,7 @@ data class PrivacyNoticePdfData(
         result = 31 * result + fullName.hashCode()
         result = 31 * result + issuedAtDate.hashCode()
         result = 31 * result + generatedAt.hashCode()
-        result = 31 * result + retentionYears.hashCode()
+        result = 31 * result + retentionText.hashCode()
         return result
     }
 }

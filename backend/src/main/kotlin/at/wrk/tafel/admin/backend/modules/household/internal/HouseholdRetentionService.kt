@@ -64,14 +64,14 @@ class HouseholdRetentionService(
             return
         }
 
-        val retentionYears = properties.householdDeletion.retentionYears
-        if (retentionYears <= 0) {
-            logger.debug("Household retention is disabled (retentionYears={}) - keeping every household", retentionYears)
+        val retentionTime = properties.householdDeletion.retentionTime
+        if (retentionTime.isZero || retentionTime.isNegative) {
+            logger.debug("Household retention is disabled (retentionTime={}) - keeping every household", retentionTime)
             return
         }
 
         try {
-            val cutoff = LocalDate.now(clock).minusYears(retentionYears)
+            val cutoff = LocalDate.now(clock).minus(retentionTime)
             val expiredHouseholdIds = householdRepository.findExpiredHouseholdIdsSkipLocked(cutoff)
             if (expiredHouseholdIds.isEmpty()) {
                 return
@@ -96,10 +96,10 @@ class HouseholdRetentionService(
 
             expiredHouseholdIds.forEach { householdService.deleteHouseholdByHouseholdId(it) }
             logger.info(
-                "Deleted {} household(s) whose validUntil was before {} ({} year(s) retention)",
+                "Deleted {} household(s) whose validUntil was before {} ({} retention)",
                 expiredHouseholdIds.size,
                 cutoff,
-                retentionYears,
+                retentionTime,
             )
         } catch (e: Exception) {
             logger.error("Household retention run failed", e)
