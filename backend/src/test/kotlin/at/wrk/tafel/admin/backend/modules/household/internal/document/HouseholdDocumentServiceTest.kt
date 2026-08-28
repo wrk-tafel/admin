@@ -30,6 +30,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.util.unit.DataSize
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Period
 
 @ExtendWith(MockKExtension::class)
 internal class HouseholdDocumentServiceTest {
@@ -134,6 +135,29 @@ internal class HouseholdDocumentServiceTest {
         val result = service.uploadDocument(100L, 5L, DocumentType.OTHER, file)
 
         assertThat(result.personId).isEqualTo(5L)
+    }
+
+    @Test
+    fun `upload document - PRIVACY_NOTICE stamps the live retention period`() {
+        tafelAdminProperties.householdDeletion.retentionTime = Period.ofYears(5)
+        val file = MockMultipartFile("file", "notice.pdf", "application/pdf", PDF_MAGIC_BYTES + "test-content".toByteArray())
+
+        service.uploadDocument(100L, null, DocumentType.PRIVACY_NOTICE, file)
+
+        val entitySlot = slot<DocumentEntity>()
+        verify { documentRepository.saveAndFlush(capture(entitySlot)) }
+        assertThat(entitySlot.captured.retentionPeriodAtUpload).isEqualTo("P5Y")
+    }
+
+    @Test
+    fun `upload document - non-PRIVACY_NOTICE types are never stamped with a retention period`() {
+        val file = MockMultipartFile("file", "proof.pdf", "application/pdf", PDF_MAGIC_BYTES + "test-content".toByteArray())
+
+        service.uploadDocument(100L, null, DocumentType.PROOF_OF_INCOME, file)
+
+        val entitySlot = slot<DocumentEntity>()
+        verify { documentRepository.saveAndFlush(capture(entitySlot)) }
+        assertThat(entitySlot.captured.retentionPeriodAtUpload).isNull()
     }
 
     @Test
@@ -317,13 +341,18 @@ internal class HouseholdDocumentServiceTest {
     }
 
     @Test
-    fun `import from scanner file - PRIVACY_NOTICE type derives ASCII-only filename`() {
+    fun `import from scanner file - PRIVACY_NOTICE type derives ASCII-only filename and stamps the live retention period`() {
+        tafelAdminProperties.householdDeletion.retentionTime = Period.ofYears(5)
         every { scannerFileService.read("scan1.pdf") } returns PDF_MAGIC_BYTES + "scanned-content".toByteArray()
         every { scannerFileService.resolveContentType("scan1.pdf") } returns "application/pdf"
 
         val result = service.importFromScannerFile(100L, "scan1.pdf", null, DocumentType.PRIVACY_NOTICE)
 
         assertThat(result.fileName).matches("Datenschutzerklaerung_\\d{4}-\\d{2}-\\d{2}_\\d{4}\\.pdf")
+
+        val entitySlot = slot<DocumentEntity>()
+        verify { documentRepository.saveAndFlush(capture(entitySlot)) }
+        assertThat(entitySlot.captured.retentionPeriodAtUpload).isEqualTo("P5Y")
     }
 
     /**

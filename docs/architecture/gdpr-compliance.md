@@ -780,6 +780,35 @@ The rest of the originating issue's findings (tracked separately in
   generated password is already built from (`generatedPasswordCharactersRules`), so a user-chosen
   password can no longer fall below what one guarantees.
 
+### G24 A signed privacy notice can now be flagged when its printed retention figure has drifted from the live config
+
+Follow-up from G22's own "what remains open" (issue #3500): a customer notice already signed and
+filed as a `DocumentType.PRIVACY_NOTICE` document is a snapshot of the retention figure that was
+live when it was printed - nothing propagated a later `tafeladmin.householdDeletion.retentionTime`
+change into it. There is still no operator/DPO answer to what such a drift should trigger (re-notify,
+re-collect a signature, or simply accept the printed sheet as stale text on an otherwise-valid
+consent) - see [issue #3496](https://github.com/wrk-tafel/admin/issues/3496), which stays open.
+
+What this closes is narrower and doesn't wait on that answer: **detection**, so the drift is at
+least visible rather than silent.
+
+- Every `PRIVACY_NOTICE` document now stores the `retentionTime` value that was live at upload time
+  (`DocumentEntity.retentionPeriodAtUpload`, stamped once by `HouseholdDocumentService` and never
+  touched again).
+- The customer search screen's existing "Datenschutzerklärung fehlt" filter (G2) gets a sibling,
+  "Datenschutzerklärung veraltet", matching a household whose uploaded notice's stamped value no
+  longer equals the live `tafeladmin.householdDeletion.retentionTime` - the same live-per-use read
+  the retention job and both PDF templates already use, not a cached copy.
+- Deliberately **not** automatic: no re-notify mail, no re-sign prompt, no auto-flag surfaced to the
+  data subject - the filter only helps staff *find* affected households, consistent with how G2 never
+  added a stored consent field for the application to reason about on its own.
+
+What remains open: this flags *that* a printed figure and the live config disagree, not *whether*
+that matters - it does not distinguish a window that got shorter from one that got longer, or one
+changed and changed back to its original value, since the operator/DPO answer this was blocked on
+([#3496](https://github.com/wrk-tafel/admin/issues/3496)) has not landed. A document uploaded before
+this change has no stamped value and can never match the filter - it predates the ability to tell.
+
 ## 5. Checked and found fine
 
 Recorded so the next reader does not re-investigate them:
@@ -814,8 +843,9 @@ picture:
 - who holds which account and permission today, and when that was last reviewed;
 - the incident process behind Art. 33's 72 hours;
 - whether a customer/staff privacy notice already signed and filed needs re-notification or
-  re-consent once the operator later changes the retention window it states — see G22's own note
-  and [#3496](https://github.com/wrk-tafel/admin/issues/3496).
+  re-consent once the operator later changes the retention window it states — detecting *that* the
+  drift happened is now closed (see G24), but what to do about it is not — see G22's own note and
+  [#3496](https://github.com/wrk-tafel/admin/issues/3496).
 
 ## 7. Where to start
 
@@ -848,6 +878,7 @@ number here.
 | 20 | [G21](#g21-a-household-note-can-now-be-corrected-or-erased-not-only-appended) notes were append-only, no Art. 16/17 path | [#3417](https://github.com/wrk-tafel/admin/issues/3417) | done | `PUT`/`DELETE` on `HouseholdNoteController`, edit/delete in the "Alle Notizen anzeigen" dialog, restricted to the note's own author |
 | 21 | [G22](#g22-staff-now-get-an-art-13-notice-too-and-the-customer-notices-own-gaps-are-closed) no Art. 13 notice for staff; customer notice incomplete/hard-coded | [#3429](https://github.com/wrk-tafel/admin/issues/3429) | done | `retentionTime`/footer as template params, four added paragraphs, new `staff-pdf` notice; re-signing after a retention change stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 | 22 | [G23](#g23-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked) no rate limiting, username-only lockout, lockout oracle, no password complexity | [#3432](https://github.com/wrk-tafel/admin/issues/3432), [#3484](https://github.com/wrk-tafel/admin/issues/3484) | done | `RateLimitFilter`/`RateLimiterIpService` (IP-scoped token bucket), `LoginAttemptIpService` (IP-scoped lockout), a unified `403` for wrong credentials and a lockout alike, a character-class rule for user-chosen passwords |
+| 23 | [G24](#g24-a-signed-privacy-notice-can-now-be-flagged-when-its-printed-retention-figure-has-drifted-from-the-live-config) a signed privacy notice can silently drift from a later-changed retention window | [#3500](https://github.com/wrk-tafel/admin/issues/3500) | done | `DocumentEntity.retentionPeriodAtUpload` stamped at upload, a "Datenschutzerklärung veraltet" customer-search filter; whether to act on a drift stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 
 Every gap in this table is done — the operator has now answered every question in #3185's
 coded-work table. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR

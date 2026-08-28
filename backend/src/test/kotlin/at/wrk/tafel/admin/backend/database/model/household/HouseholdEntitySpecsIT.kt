@@ -343,6 +343,73 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `privacyNoticeRetentionDrift matches only a household whose stamped retention period differs from the live one`() {
+        val tag = "Findme${generateRandomLong()}"
+        val drifted = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.persist(
+            DocumentEntity(
+                household = drifted,
+                documentType = DocumentType.PRIVACY_NOTICE,
+                fileName = "signed.pdf",
+                contentType = "application/pdf",
+                storagePath = "/documents/${drifted.householdId}/signed.pdf",
+            ).apply { retentionPeriodAtUpload = Period.ofYears(7).toString() },
+        )
+        val upToDate = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.persist(
+            DocumentEntity(
+                household = upToDate,
+                documentType = DocumentType.PRIVACY_NOTICE,
+                fileName = "signed.pdf",
+                contentType = "application/pdf",
+                storagePath = "/documents/${upToDate.householdId}/signed.pdf",
+            ).apply { retentionPeriodAtUpload = Period.ofYears(5).toString() },
+        )
+        val predatesTheStamp = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.persist(
+            DocumentEntity(
+                household = predatesTheStamp,
+                documentType = DocumentType.PRIVACY_NOTICE,
+                fileName = "signed.pdf",
+                contentType = "application/pdf",
+                storagePath = "/documents/${predatesTheStamp.householdId}/signed.pdf",
+            ),
+        )
+        val withoutNotice = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.privacyNoticeRetentionDrift(Period.ofYears(5)).and(searchSpec(tag)),
+        )
+
+        assertThat(result.map { it.id })
+            .contains(drifted.id)
+            .doesNotContain(upToDate.id, predatesTheStamp.id, withoutNotice.id)
+    }
+
+    @Test
+    fun `privacyNoticeRetentionDrift matches nothing when the retention job itself is disabled`() {
+        val tag = "Findme${generateRandomLong()}"
+        val household = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.persist(
+            DocumentEntity(
+                household = household,
+                documentType = DocumentType.PRIVACY_NOTICE,
+                fileName = "signed.pdf",
+                contentType = "application/pdf",
+                storagePath = "/documents/${household.householdId}/signed.pdf",
+            ).apply { retentionPeriodAtUpload = Period.ofYears(7).toString() },
+        )
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.privacyNoticeRetentionDrift(Period.ZERO).and(searchSpec(tag)),
+        )
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
     fun `orderBySearchRelevance sorts the verbatim match before the merely similar one`() {
         val tag = distinctiveNumber()
         val fuzzyHit = persistHousehold(customizeMainPerson = { lastname = "Findmr$tag" })

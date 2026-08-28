@@ -92,6 +92,7 @@ class HouseholdDocumentService(
         ).apply {
             this.person = person
             this.uploadedByUser = currentUser()
+            this.retentionPeriodAtUpload = retentionPeriodAtUpload(documentType)
         }
 
         return mapToItem(documentRepository.saveAndFlush(entity))
@@ -134,6 +135,7 @@ class HouseholdDocumentService(
         ).apply {
             this.person = person
             this.uploadedByUser = currentUser()
+            this.retentionPeriodAtUpload = retentionPeriodAtUpload(documentType)
         }
 
         val savedEntity = documentRepository.saveAndFlush(entity)
@@ -237,6 +239,18 @@ class HouseholdDocumentService(
 
     private fun currentUser() = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username
         ?.let { userRepository.findByUsername(it) }
+
+    /**
+     * Only a [DocumentType.PRIVACY_NOTICE] document's printed text states a retention figure that
+     * can later drift from the live config (issue #3500) - every other document type stays `null`.
+     * Stored as [java.time.Period.toString]'s canonical ISO-8601 text, same as
+     * [DocumentEntity.retentionPeriodAtUpload]'s own KDoc.
+     */
+    private fun retentionPeriodAtUpload(documentType: DocumentType): String? = if (documentType == DocumentType.PRIVACY_NOTICE) {
+        tafelAdminProperties.householdDeletion.retentionTime.toString()
+    } else {
+        null
+    }
 
     private fun deriveScannerImportFileName(documentType: DocumentType, originalFileName: String): String {
         val extension = originalFileName.substringAfterLast('.', missingDelimiterValue = "")
