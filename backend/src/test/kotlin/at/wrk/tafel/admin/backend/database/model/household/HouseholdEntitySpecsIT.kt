@@ -17,6 +17,7 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.Period
 
 @Transactional
 class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
@@ -291,33 +292,33 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     @Test
     fun `willBeDeletedSoon matches only households whose validUntil falls in the job's cutoff window`() {
         val tag = "Findme${generateRandomLong()}"
-        val retentionYears = 7L
+        val retentionTime = Period.ofYears(7)
 
         // deleted next run already - validUntil is before the cutoff, not "soon"
         val alreadyPastCutoff = persistHousehold(
             customizeMainPerson = { firstname = tag },
-            customize = { validUntil = LocalDate.now().minusYears(retentionYears).minusDays(1) },
+            customize = { validUntil = LocalDate.now().minus(retentionTime).minusDays(1) },
         )
         // exactly at the cutoff - the job's own boundary is exclusive (validUntil < cutoff), so this
         // is still 30 days out at worst
         val atCutoff = persistHousehold(
             customizeMainPerson = { firstname = tag },
-            customize = { validUntil = LocalDate.now().minusYears(retentionYears) },
+            customize = { validUntil = LocalDate.now().minus(retentionTime) },
         )
         // will be swept in 29 days
         val withinWindow = persistHousehold(
             customizeMainPerson = { firstname = tag },
-            customize = { validUntil = LocalDate.now().minusYears(retentionYears).plusDays(29) },
+            customize = { validUntil = LocalDate.now().minus(retentionTime).plusDays(29) },
         )
         // not due for another 31 days
         val outsideWindow = persistHousehold(
             customizeMainPerson = { firstname = tag },
-            customize = { validUntil = LocalDate.now().minusYears(retentionYears).plusDays(31) },
+            customize = { validUntil = LocalDate.now().minus(retentionTime).plusDays(31) },
         )
         testEntityManager.flush()
 
         val result = householdRepository.findAll(
-            HouseholdEntity.Specs.willBeDeletedSoon(retentionYears, 30).and(searchSpec(tag)),
+            HouseholdEntity.Specs.willBeDeletedSoon(retentionTime, 30).and(searchSpec(tag)),
         )
 
         assertThat(result.map { it.id })
@@ -335,7 +336,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val result = householdRepository.findAll(
-            HouseholdEntity.Specs.willBeDeletedSoon(0, 30).and(searchSpec(tag)),
+            HouseholdEntity.Specs.willBeDeletedSoon(Period.ZERO, 30).and(searchSpec(tag)),
         )
 
         assertThat(result).isEmpty()

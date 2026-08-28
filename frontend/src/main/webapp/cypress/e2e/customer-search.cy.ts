@@ -268,7 +268,7 @@ describe('Customer Search', () => {
     });
   });
 
-  // The retention window defaults to 7 years (tafeladmin.householdDeletion.retentionYears, unset
+  // The retention window defaults to 7 years (tafeladmin.householdDeletion.retentionTime, unset
   // in application-e2e.yml) - a validUntil just past that cutoff is inside the 30-day preview the
   // chip shows, without actually being expired long enough for HouseholdRetentionService to sweep
   // it out from under a still-running suite.

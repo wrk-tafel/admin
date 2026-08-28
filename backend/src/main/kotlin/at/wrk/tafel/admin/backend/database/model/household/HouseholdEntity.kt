@@ -27,6 +27,7 @@ import org.springframework.data.jpa.domain.Specification
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Period
 
 /**
  * The "case" record - business number, address, contact data, validity/lock/cost-contribution state
@@ -245,18 +246,18 @@ class HouseholdEntity(
 
             /**
              * Matches households `HouseholdRetentionService` will delete within the next [withinDays]
-             * days at the job's own [retentionYears] window (GDPR gap G1/G18) - the customer-search
+             * days at the job's own [retentionTime] window (GDPR gap G1/G18) - the customer-search
              * counterpart to the job's cutoff, so an upcoming deletion is visible on this screen
-             * before it happens rather than only in the "Verlauf" tab afterwards. A [retentionYears]
-             * of 0 or less means the job is disabled and nothing will ever be swept, so nothing
+             * before it happens rather than only in the "Verlauf" tab afterwards. A zero or negative
+             * [retentionTime] means the job is disabled and nothing will ever be swept, so nothing
              * matches.
              */
-            fun willBeDeletedSoon(retentionYears: Long, withinDays: Long): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                if (retentionYears <= 0) {
+            fun willBeDeletedSoon(retentionTime: Period, withinDays: Long): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                if (retentionTime.isZero || retentionTime.isNegative) {
                     cb.disjunction()
                 } else {
                     val validUntil: Expression<LocalDate> = root["validUntil"]
-                    val cutoff = LocalDate.now().minusYears(retentionYears)
+                    val cutoff = LocalDate.now().minus(retentionTime)
                     cb.and(
                         cb.isNotNull(validUntil),
                         cb.greaterThanOrEqualTo(validUntil, cutoff),

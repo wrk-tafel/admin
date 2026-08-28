@@ -315,7 +315,7 @@ class HouseholdService(
                     if (filters.locked != null) lockedHousehold() else null,
                     if (filters.missingPrivacyNotice != null) missingPrivacyNoticeDocument() else null,
                     if (filters.willBeDeletedSoon != null) {
-                        willBeDeletedSoon(tafelAdminProperties.householdDeletion.retentionYears, DELETION_PREVIEW_WINDOW_DAYS)
+                        willBeDeletedSoon(tafelAdminProperties.householdDeletion.retentionTime, DELETION_PREVIEW_WINDOW_DAYS)
                     } else {
                         null
                     },

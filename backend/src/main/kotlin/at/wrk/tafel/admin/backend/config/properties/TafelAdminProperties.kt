@@ -92,7 +92,7 @@ class TafelAdminFeaturesProperties {
 /**
  * GDPR gap G1 (`docs/architecture/gdpr-compliance.md`) - a household stays in the database in full,
  * including its persons, notes, documents and attendance history, until an operator decides
- * otherwise. `enabled` and `retentionYears` are read per use, so an operator can widen the window or
+ * otherwise. `enabled` and `retentionTime` are read per use, so an operator can widen the window or
  * switch the job off on a running deployment (`ConfigFileReloadService`).
  *
  * The window is measured from [at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.validUntil],
@@ -119,27 +119,31 @@ class TafelAdminFeaturesProperties {
 @ExcludeFromTestCoverage
 class TafelAdminHouseholdRetentionProperties {
     /**
-     * Kill switch for the whole job, independent of [retentionYears] - if the deletion ever needs to
+     * Kill switch for the whole job, independent of [retentionTime] - if the deletion ever needs to
      * be paused (e.g. while the operator is still deciding the right window, or after an incident),
-     * this turns it off without touching the number.
+     * this turns it off without touching the window.
      */
     var enabled: Boolean = true
 
     /**
-     * How many years past `validUntil` a household, and everything attached to it, is kept before
-     * automatic deletion. Defaults to 7 - the Austrian bookkeeping retention period (UGB/BAO Section
-     * 132) for records touching cost contributions - as a defensible floor even though the
-     * application itself does not yet record a legal basis per household (see gap G2). Raise or lower
-     * it per deployment; it is re-read per use, so a change takes effect without a restart. A value of
-     * 0 or less keeps every household instead of deleting them all.
+     * How long past `validUntil` a household, and everything attached to it, is kept before automatic
+     * deletion. A [Period] rather than a plain year count, same as [TafelAdminUserRetentionProperties.retentionTime]
+     * and [TafelAdminEmployeeRetentionProperties.retentionTime] - see the former's KDoc for why
+     * (`y`/`m`/`w`/`d` suffixes via Spring Boot's simple `Period` parsing, since `Duration` has no
+     * year/month unit at all). Defaults to 7 years - the Austrian bookkeeping retention period
+     * (UGB/BAO Section 132) for records touching cost contributions - as a defensible floor even
+     * though the application itself does not yet record a legal basis per household (see gap G2).
+     * Raise or lower it per deployment; it is re-read per use, so a change takes effect without a
+     * restart. A zero or negative period ([Period.isZero]/[Period.isNegative]) keeps every household
+     * instead of deleting them all.
      */
-    var retentionYears: Long = 7
+    var retentionTime: Period = Period.ofYears(7)
 
     /**
      * The most a single run may delete before it refuses to proceed and alerts administrators
-     * instead (`RETENTION_RUN` push notification, GDPR gap G19) - a misconfigured `retentionYears`
+     * instead (`RETENTION_RUN` push notification, GDPR gap G19) - a misconfigured `retentionTime`
      * that would otherwise sweep a database's worth of households looks identical to a normal night
-     * without this. Read per use, same as [retentionYears]. 0 or less switches the ceiling off
+     * without this. Read per use, same as [retentionTime]. 0 or less switches the ceiling off
      * entirely, same convention as `TafelAdminAuditBreachDetectionProperties.readThreshold`.
      */
     var maxDeletionsPerRun: Long = 50
@@ -190,9 +194,10 @@ class TafelAdminUserRetentionProperties {
      * deployment can express it the way an operator actually thinks about it - `7y`, `18m`, `730d` -
      * via Spring Boot's simple `Period` parsing (`y`/`m`/`w`/`d` suffixes); `Duration` has no year/month
      * unit at all, since neither has a fixed length. Defaults to 7 years, the same floor as
-     * `householdDeletion.retentionYears` and [TafelAdminEmployeeRetentionProperties.retentionTime] -
-     * one unified retention window across the application rather than three separately reasoned ones,
-     * even though this one isn't itself tied to that bookkeeping period; widen or shorten it per
+     * [TafelAdminHouseholdRetentionProperties.retentionTime] and
+     * [TafelAdminEmployeeRetentionProperties.retentionTime] - one unified retention window across the
+     * application rather than three separately reasoned ones, even though this one isn't itself tied
+     * to that bookkeeping period; widen or shorten it per
      * deployment. A zero or negative period ([Period.isZero]/[Period.isNegative] - the latter true as
      * soon as *any* field is negative, so don't mix positive and negative fields in one value) keeps
      * every account instead of deleting them all. An account holding `ADMINISTRATOR` is never a
@@ -240,7 +245,7 @@ class TafelAdminEmployeeRetentionProperties {
     /**
      * How long an employee referenced by nothing else is kept before automatic deletion - a [Period]
      * for the same reason as `userDeletion.retentionTime`, see its KDoc. Defaults to 7 years, the
-     * same unified floor as `householdDeletion.retentionYears` and
+     * same unified floor as [TafelAdminHouseholdRetentionProperties.retentionTime] and
      * [TafelAdminUserRetentionProperties.retentionTime], even though an employee this job ever
      * actually reaches is - by definition - not the issuer/driver/recorder of anything still on
      * record, so no bookkeeping period specifically applies to it. A zero or negative period keeps
@@ -627,7 +632,7 @@ class TafelAdminStorageProperties {
      * has no database row and no retention window of its own, so without this it would otherwise
      * stay on the share indefinitely. Read per run, so an operator can widen or shorten it on a
      * running deployment. A value of 0 or less keeps every file instead of deleting them, mirroring
-     * [TafelAdminHouseholdRetentionProperties.retentionYears].
+     * [TafelAdminHouseholdRetentionProperties.retentionTime].
      */
     var scannerFileRetention: Duration = Duration.ofDays(7)
 

@@ -436,7 +436,7 @@ an event this service would have to publish - see that service's KDoc for why.
 ### `HouseholdRetentionService` (`internal`)
 GDPR gap G1 (`docs/architecture/gdpr-compliance.md`): a nightly job (06:00, `@Scheduled`) that
 deletes every household whose `validUntil` is further in the past than
-`tafeladmin.householdDeletion.retentionYears` (default 7 years), and everything attached to it -
+`tafeladmin.householdDeletion.retentionTime` (default 7 years), and everything attached to it -
 persons, notes, documents (rows and files on disk), attendance history and duplicate dismissals
 naming it. Candidate ids are
 selected and locked with `FOR UPDATE SKIP LOCKED`
