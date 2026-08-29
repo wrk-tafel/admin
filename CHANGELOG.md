@@ -6,6 +6,10 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Die Screenshots im Benutzerhandbuch zeigen wieder den aktuellen Stand der Anwendung (u. a. Kunden-Detailansicht mit Notizen-Tab, Kunden-Suche mit den neuen Filtern, Zugriffsprotokoll, Datenauskunft, Benutzerverwaltung und Mitarbeiter-Einstellungen); die Beschreibung des Tabs "Verlauf" nennt jetzt auch die protokollierten Zugriffe.
+- Beim Bearbeiten eines Benutzerkontos wird jetzt immer nur das über die Adresse ausgewählte Konto geändert, auch wenn das Bearbeitungsformular eine davon abweichende Kontokennung übermittelt.
+- Beim Bearbeiten eines Benutzerkontos wird jetzt verhindert, dass eine bereits einem anderen Konto zugeordnete Personalnummer übernommen und dessen Mitarbeiter-Datensatz dadurch überschrieben wird.
+- Beim Löschen mehrerer Treffer auf der Seite "Datenauskunft" schlägt der gesamte Vorgang jetzt nicht mehr fehl, wenn der mit einem gelöschten Benutzerkonto verknüpfte Mitarbeiter-Datensatz noch von einem anderen Benutzerkonto verwendet wird - der Mitarbeiter-Datensatz bleibt in diesem Fall bestehen.
+- Die Ersteinrichtung des Administrator-Kontos schlägt jetzt nicht mehr fehl, wenn die Datenbank zwar noch keine Benutzerkonten, aber bereits einen zur konfigurierten Personalnummer passenden Mitarbeiter-Datensatz enthält.
 
 ## [1.14.0] - 2026-08-29
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.

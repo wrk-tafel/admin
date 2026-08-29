@@ -10,6 +10,7 @@ import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Bootstraps a brand-new installation with one administrator account, so a deployment against an
@@ -43,8 +44,26 @@ class InitialAdminUserService(
         private val logger = LoggerFactory.getLogger(InitialAdminUserService::class.java)
     }
 
+    /**
+     * `@Transactional` here too, not just on [createInitialAdminUserIfMissing] - Spring's
+     * proxy-based transaction advice never intercepts a self-invocation, so without this the
+     * transaction below would be missing precisely on the path that matters, the real
+     * [ApplicationRunner] boot call, which reaches [createInitialAdminUserIfMissing] through `this`
+     * rather than through the proxy.
+     */
+    @Transactional
     override fun run(args: ApplicationArguments) = createInitialAdminUserIfMissing()
 
+    /**
+     * Transactional as a whole: [resolveEmployee][TafelUserDetailsManager] loads any existing
+     * employee for the configured personnel number in one persistence context, and
+     * `userRepository.save` has to cascade onto that same managed instance - without a transaction
+     * spanning both, the employee load commits and detaches on its own, and the save that follows
+     * fails with `PersistentObjectException: detached entity passed to persist`. Triggered by an
+     * installation recovering via ADR-0035's "wipe the users table" path into a database whose
+     * `employees` table already has the configured personnel number.
+     */
+    @Transactional
     fun createInitialAdminUserIfMissing() {
         val properties = tafelAdminProperties.setup.initialAdmin
         if (!properties.enabled) {
