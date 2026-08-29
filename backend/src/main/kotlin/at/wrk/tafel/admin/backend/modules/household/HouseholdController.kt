@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.household
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
@@ -84,6 +85,13 @@ class HouseholdController(
         @RequestParam force: Boolean = false,
         @Valid @RequestBody household: HouseholdRequest,
     ): HouseholdUpdateResponse {
+        // The write always targets the path id, never a body one - this only turns a body/path
+        // mismatch into an explicit error instead of a silent renumbering, since every existing
+        // caller submits the loaded household back and the two always agree.
+        if (household.id != null && household.id != householdId) {
+            throw BusinessRuleException("Die ID im Request stimmt nicht mit der ID im Pfad überein!")
+        }
+
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 

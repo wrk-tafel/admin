@@ -25,6 +25,7 @@ import tools.jackson.databind.json.JsonMapper
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.nio.file.Paths
 import java.text.NumberFormat
 import java.time.Clock
 import java.time.LocalDateTime
@@ -299,12 +300,20 @@ class HouseholdExportService(
 
     private fun BigDecimal.formatCurrency(): String = NumberFormat.getCurrencyInstance().format(setScale(2, RoundingMode.HALF_EVEN))
 
+    /**
+     * `fileName` is stored verbatim from `document.fileName` - documents uploaded before #3438 could
+     * still hold a path (e.g. `../../etc/passwd`) rather than a bare name, which would otherwise let a
+     * ZIP entry escape the archive's own directory on extraction. `Paths.get(...).fileName` strips any
+     * directory component, the same sanitization `HouseholdDocumentService`/`DocumentStorageService`
+     * already apply when a document is uploaded.
+     */
     private fun uniqueZipEntryName(fileName: String, usedEntryNames: MutableSet<String>): String {
-        var candidate = fileName
+        val sanitizedFileName = Paths.get(fileName).fileName.toString()
+        var candidate = sanitizedFileName
         var suffix = 1
         while (!usedEntryNames.add(candidate)) {
-            val extension = fileName.substringAfterLast('.', missingDelimiterValue = "")
-            val base = fileName.substringBeforeLast('.', missingDelimiterValue = fileName)
+            val extension = sanitizedFileName.substringAfterLast('.', missingDelimiterValue = "")
+            val base = sanitizedFileName.substringBeforeLast('.', missingDelimiterValue = sanitizedFileName)
             candidate = if (extension.isBlank()) "${base}_${++suffix}" else "${base}_${++suffix}.$extension"
         }
         return candidate

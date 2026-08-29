@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household
 
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.*
@@ -307,6 +308,20 @@ class HouseholdControllerTest {
         controller.createHousehold(household = testHouseholdRequest)
 
         verify { householdService.createHousehold(testHouseholdRequest, false, false) }
+    }
+
+    @Test
+    fun `update household - rejects a body id that disagrees with the path id`() {
+        val otherHouseholdId = testHouseholdRequest.id!! + 1
+
+        val exception =
+            assertThrows<BusinessRuleException> {
+                controller.updateHousehold(otherHouseholdId, false, testHouseholdRequest)
+            }
+
+        assertThat(exception.body.detail).isEqualTo("Die ID im Request stimmt nicht mit der ID im Pfad überein!")
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        verify(exactly = 0) { householdService.updateHousehold(any(), any(), any(), any()) }
     }
 
     @Test

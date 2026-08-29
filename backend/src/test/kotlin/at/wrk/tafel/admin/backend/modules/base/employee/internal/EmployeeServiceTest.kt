@@ -203,7 +203,7 @@ class EmployeeServiceTest {
         )
         val entity = EmployeeEntity(personnelNumber = "00001", firstname = "first 1", lastname = "last 1").apply { id = 1 }
         every { employeeRepository.save(any()) } returns entity
-        every { employeeRepository.findByPersonnelNumber(employeeCreateRequest.personnelNumber) } returns entity
+        every { employeeRepository.findByPersonnelNumber(employeeCreateRequest.personnelNumber.trim()) } returns entity
 
         employeeService.saveEmployee(employeeCreateRequest)
 
@@ -214,6 +214,17 @@ class EmployeeServiceTest {
         assertThat(savedEntity.personnelNumber).isEqualTo(employeeCreateRequest.personnelNumber.trim())
         assertThat(savedEntity.firstname).isEqualTo(employeeCreateRequest.firstname.trim())
         assertThat(savedEntity.lastname).isEqualTo(employeeCreateRequest.lastname.trim())
+    }
+
+    @Test
+    fun `save employee rejects an untrimmed personnel number that collides after trimming`() {
+        val employeeCreateRequest = EmployeeRequest(personnelNumber = " 123", firstname = "first", lastname = "last")
+        every { employeeRepository.existsByPersonnelNumber("123") } returns true
+
+        val exception = assertThrows<ConflictException> { employeeService.saveEmployee(employeeCreateRequest) }
+
+        assertThat(exception.body.detail).isEqualTo("Mitarbeiter 123 ist bereits vorhanden!")
+        verify(exactly = 0) { employeeRepository.save(any()) }
     }
 
     @Test
@@ -247,6 +258,24 @@ class EmployeeServiceTest {
         assertThat(savedEntity.personnelNumber).isEqualTo("00002")
         assertThat(savedEntity.firstname).isEqualTo("New firstname")
         assertThat(savedEntity.lastname).isEqualTo("New lastname")
+    }
+
+    @Test
+    fun `update employee rejects an untrimmed personnel number that collides with another employee after trimming`() {
+        val employeeId = 1L
+        val existingEntity = EmployeeEntity(personnelNumber = "00001", firstname = "first", lastname = "last").apply { id = employeeId }
+        every { employeeRepository.findByIdOrNull(employeeId) } returns existingEntity
+        every { employeeRepository.existsByPersonnelNumberAndIdNot("00002", employeeId) } returns true
+
+        val exception = assertThrows<ConflictException> {
+            employeeService.updateEmployee(
+                employeeId,
+                EmployeeRequest(personnelNumber = " 00002", firstname = "first", lastname = "last"),
+            )
+        }
+
+        assertThat(exception.body.detail).isEqualTo("Mitarbeiter 00002 ist bereits vorhanden!")
+        verify(exactly = 0) { employeeRepository.save(any()) }
     }
 
     @Test

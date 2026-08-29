@@ -322,6 +322,18 @@ class HouseholdService(
         }
     }
 
+    /**
+     * A chip filter's `Specification` (e.g. [validHousehold]) always tests the *positive* case, so a
+     * `false` selection has to negate it here rather than being applied as-is - without this, `?
+     * valid=false` returned only valid households, same as `?valid=true`, since both merely tested
+     * "was the parameter given at all". `null` means the chip isn't applied.
+     */
+    private fun booleanFilterSpec(value: Boolean?, spec: Specification<HouseholdEntity>): Specification<HouseholdEntity>? = when (value) {
+        true -> spec
+        false -> Specification.not(spec)
+        null -> null
+    }
+
     @Transactional(readOnly = true)
     fun getHouseholds(
         searchInput: String? = null,
@@ -334,24 +346,22 @@ class HouseholdService(
 
         val where = where(
             Specification.allOf(
-                listOf(
+                listOfNotNull(
                     searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold),
-                    if (filters.postProcessing != null) postProcessingNecessary() else null,
-                    if (filters.costContribution != null) pendingCostContribution() else null,
-                    if (filters.valid != null) validHousehold() else null,
-                    if (filters.locked != null) lockedHousehold() else null,
-                    if (filters.missingPrivacyNotice != null) missingPrivacyNoticeDocument() else null,
-                    if (filters.willBeDeletedSoon != null) {
-                        willBeDeletedSoon(tafelAdminProperties.householdDeletion.retentionTime, DELETION_PREVIEW_WINDOW_DAYS)
-                    } else {
-                        null
-                    },
-                    if (filters.privacyNoticeOutdated != null) {
-                        privacyNoticeRetentionDrift(tafelAdminProperties.householdDeletion.retentionTime)
-                    } else {
-                        null
-                    },
-                ).mapNotNull { it },
+                    booleanFilterSpec(filters.postProcessing, postProcessingNecessary()),
+                    booleanFilterSpec(filters.costContribution, pendingCostContribution()),
+                    booleanFilterSpec(filters.valid, validHousehold()),
+                    booleanFilterSpec(filters.locked, lockedHousehold()),
+                    booleanFilterSpec(filters.missingPrivacyNotice, missingPrivacyNoticeDocument()),
+                    booleanFilterSpec(
+                        filters.willBeDeletedSoon,
+                        willBeDeletedSoon(tafelAdminProperties.householdDeletion.retentionTime, DELETION_PREVIEW_WINDOW_DAYS),
+                    ),
+                    booleanFilterSpec(
+                        filters.privacyNoticeOutdated,
+                        privacyNoticeRetentionDrift(tafelAdminProperties.householdDeletion.retentionTime),
+                    ),
+                ),
             ),
         )
 

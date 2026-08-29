@@ -210,6 +210,45 @@ internal class HouseholdExportServiceTest {
     }
 
     @Test
+    fun `export household - a fileName holding a path is written as a bare entry name, not escaping the archive`() {
+        val household = testHouseholdEntityWithMainPerson()
+        val householdResponse = HouseholdResponse(
+            id = 100,
+            address = HouseholdAddress(street = "Teststraße", houseNumber = "1", postalCode = 1010, city = "Wien"),
+        )
+        // documents uploaded before #3438 could still hold a path rather than a bare name (see
+        // HouseholdExportService.uniqueZipEntryName)
+        val document = DocumentEntity(
+            household = household,
+            documentType = DocumentType.ID,
+            fileName = "../../../etc/passwd",
+            contentType = "image/jpeg",
+            storagePath = "/documents/100/ausweis-1.jpg",
+        ).apply { id = 1 }
+
+        every { householdRepository.findByHouseholdId(100) } returns household
+        every { householdConverter.mapEntityToHousehold(household, any()) } returns householdResponse
+        every { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(100) } returns emptyList()
+        every { distributionHouseholdRepository.findAllByHouseholdEntityIds(listOf(42L)) } returns emptyList()
+        every { documentRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(100) } returns listOf(document)
+        every { documentStorageService.read("/documents/100/ausweis-1.jpg") } returns "content".toByteArray()
+        every { userRepository.findAllById(listOf(testUserEntity.id!!)) } returns listOf(testUserEntity)
+
+        val result = service.exportHousehold(100)
+
+        assertThat(result).isNotNull
+        val entries = mutableListOf<String>()
+        ZipInputStream(result!!.bytes.inputStream()).use { zip ->
+            var entry = zip.nextEntry
+            while (entry != null) {
+                entries.add(entry.name)
+                entry = zip.nextEntry
+            }
+        }
+        assertThat(entries).containsExactlyInAnyOrder("datenexport.pdf", "daten.json", "passwd")
+    }
+
+    @Test
     fun `export household - no documents zips only the data pdf and json`() {
         val household = testHouseholdEntityWithMainPerson()
         val householdResponse = HouseholdResponse(

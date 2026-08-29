@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.household
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import jakarta.validation.Valid
+import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
@@ -53,6 +54,15 @@ data class HouseholdRequest(
      * Every household member except the main person.
      */
     fun additionalPersons(): List<Person> = persons.filterNot { it.isMainPerson }
+
+    /**
+     * Without this, zero flagged persons silently persists `households.main_person_id = null` (later
+     * NPEs in `HouseholdPdfService`/`HouseholdMergePlanner`, and the household drops out of both
+     * duplicate-detection SQL joins), and two flagged persons only fails at the database's partial
+     * unique index as an unhandled 500 - both now a 400 here instead.
+     */
+    @AssertTrue(message = "Es muss genau eine Hauptperson vorhanden sein!")
+    fun isMainPersonCountValid(): Boolean = persons.count { it.isMainPerson } == 1
 }
 
 @ExcludeFromTestCoverage

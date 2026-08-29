@@ -131,8 +131,8 @@ class HouseholdPdfService(
     }
 
     private fun mapAdditionalPerson(person: PersonEntity) = PdfAdditionalPersonData(
-        lastname = person.lastname!!,
-        firstname = person.firstname!!,
+        lastname = person.lastname ?: "-",
+        firstname = person.firstname ?: "-",
         birthDate = person.birthDate?.format(DATE_FORMATTER) ?: "-",
         gender = person.gender?.title ?: "-",
         country = person.country.name,
