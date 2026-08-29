@@ -110,14 +110,15 @@ class RouteGuidanceServiceIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `completions are dropped when the route's stops are replaced`() {
+    fun `completions are dropped when a stop's own content actually changes`() {
         val routeId = persistRoute(number = 92.4, shopNumber = 92_004)
         val stopId = routeGuidanceService.getGuidance(routeId).stops.first().stopId
         routeGuidanceService.setCompletion(routeId, stopId, true)
         testEntityManager.flush()
         testEntityManager.clear()
 
-        // a settings edit replaces the stops wholesale - the completion has nothing left to hang off
+        // neither of the new stops matches either existing stop's content, so both are replaced -
+        // the completion has nothing left to hang off
         routeService.updateRoute(
             routeId,
             RouteRequest(
@@ -134,6 +135,38 @@ class RouteGuidanceServiceIT : TafelBaseIntegrationTest() {
 
         assertThat(routeStopCompletionRepository.findAllByRouteStopIdInAndCompletionDate(listOf(stopId), LocalDate.now()))
             .isEmpty()
+    }
+
+    @Test
+    fun `completions survive a route edit that leaves the stops themselves unchanged`() {
+        // Regression test for #3527: a pure metadata edit (here: renaming the route) must not wipe
+        // today's driver-guidance progress just because updateRoute() touches the stops collection.
+        val routeId = persistRoute(number = 92.5, shopNumber = 92_005)
+        val stopId = routeGuidanceService.getGuidance(routeId).stops.first().stopId
+        routeGuidanceService.setCompletion(routeId, stopId, true)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val existingStops = routeService.getAllRoutes().single { it.id == routeId }.stops
+            .map { RouteStopItem(id = null, time = it.time, shopId = it.shopId, description = it.description) }
+
+        routeService.updateRoute(
+            routeId,
+            RouteRequest(
+                id = routeId,
+                number = 92.5,
+                name = "IT Guidance Route (renamed)",
+                note = null,
+                enabled = true,
+                stops = existingStops,
+            ),
+        )
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(routeStopCompletionRepository.findAllByRouteStopIdInAndCompletionDate(listOf(stopId), LocalDate.now()))
+            .hasSize(1)
+        assertThat(routeGuidanceService.getGuidance(routeId).stops.first { it.stopId == stopId }.completed).isTrue()
     }
 
     @Test

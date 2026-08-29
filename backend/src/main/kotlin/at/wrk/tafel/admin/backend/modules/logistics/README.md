@@ -49,11 +49,16 @@ DB level — it only governs `modules`-to-`modules` traffic.
   `description`. The shop is nullable — a stop can be a pause or anything else that isn't a pickup.
   `routes_stops` is unique on both `(route_id, shop_id)` and `(route_id, time)`, so a route visits
   each shop once and has one stop per time.
-- **A route's stops are replaced wholesale on update**, like shelter contacts below — but with an
-  explicit `saveAndFlush()` between clearing and re-adding them. Without that flush the inserts of
-  the new stops can reach the database before the removed ones are deleted, and re-using a shop or
-  a time that a removed stop still occupies then violates one of those unique constraints.
-  `RouteServiceIT` covers exactly that case (swapping two stops' times).
+- **A stop is only replaced when its own content actually changed.** `RouteRequest`'s `RouteStopItem`
+  carries no id the frontend round-trips (the edit dialog's form never had one), so `updateRoute()`
+  diffs by content instead: a stop that comes back with the exact same `time`/`shopId`/`description`
+  as an existing one keeps that existing row untouched — no delete, no insert, its id and driver-
+  guidance completions (see below) survive. A stop whose content genuinely differs is still replaced
+  like shelter contacts below, with an explicit `saveAndFlush()` between removing the changed/dropped
+  stops and re-adding the changed/new ones. Without that flush the inserts can reach the database
+  before the corresponding removals are deleted, and re-using a shop or a time one of the removed
+  stops still occupies then violates one of `routes_stops`' unique constraints. `RouteServiceIT`
+  covers exactly that case (swapping two stops' times, which counts as a genuine change for both).
 - **`time` is the ordering key, there is no `sortOrder`.** Both `RouteService.getAllRoutes()` and
   `ShopService.getShopsForRouteId()` sort a route's stops by `time`; routes and shops themselves
   sort by their `number`. This is the one piece of sortable master data here that is *not* the
@@ -95,10 +100,13 @@ DB level — it only governs `modules`-to-`modules` traffic.
   active distribution on purpose — a driver looks at the route before the day starts — so a
   distribution key would leave it unusable exactly then. The date comes from the server's
   `LocalDate.now()` and is never accepted from the client.
-- **A completion is deleted with its stop** (`on delete cascade` on `route_stop_id`). That is not a
-  rare edge: `RouteService.updateRoute` replaces a route's stops wholesale, so *any* edit of a route
-  in the settings screen drops today's progress for it. `RouteGuidanceServiceIT` pins that behaviour
-  down.
+- **A completion is deleted with its stop** (`on delete cascade` on `route_stop_id`) — so a route
+  edit in the settings screen only drops today's progress for a stop whose own `time`/`shopId`/
+  `description` actually changed. A stop that comes back unchanged keeps its row (see
+  `RouteService.updateRoute` above) and its completions with it, so a purely cosmetic edit like
+  renaming the route no longer wipes a driver's progress for the day. `RouteGuidanceServiceIT` pins
+  down both halves of this: a stop whose content changes still drops its completion, one that
+  doesn't keeps it.
 - Ticking an already-ticked stop is a no-op rather than a re-stamp: the stored `createdAt` is what
   tells a second driver when the stop was actually done.
 - **Arriving at the last stop publishes `RouteAtLastStopEvent`** — every stop but the final one
