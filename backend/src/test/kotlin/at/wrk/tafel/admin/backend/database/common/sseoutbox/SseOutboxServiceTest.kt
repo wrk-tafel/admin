@@ -9,8 +9,6 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.within
@@ -127,13 +125,12 @@ class SseOutboxServiceTest {
     }
 
     @Test
-    fun `forward notification events to sse`() = runBlocking {
+    fun `forward notification events to sse`() {
         service.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
             notificationName = notificationName,
             resultType = TestJsonPayload::class.java,
         )
-        delay(1000)
 
         val callbackSlot = slot<(String?) -> Unit>()
         verify {
@@ -149,7 +146,7 @@ class SseOutboxServiceTest {
     }
 
     @Test
-    fun `forward notification events to sse while result is filtered and nothing gets forwarded`() = runBlocking {
+    fun `forward notification events to sse while result is filtered and nothing gets forwarded`() {
         val acceptFilter: (Any?) -> Boolean = { false }
 
         service.forwardNotificationEventsToSse(
@@ -158,7 +155,6 @@ class SseOutboxServiceTest {
             resultType = TestJsonPayload::class.java,
             acceptFilter = acceptFilter,
         )
-        delay(1000)
 
         val callbackSlot = slot<(String?) -> Unit>()
         verify {
@@ -174,7 +170,7 @@ class SseOutboxServiceTest {
     }
 
     @Test
-    fun `listen for notification events`(): Unit = runBlocking {
+    fun `listen for notification events`() {
         var eventReceived: TestJsonPayload? = null
         service.listenForNotificationEvents(
             sseEmitter = sseEmitter,
@@ -183,7 +179,6 @@ class SseOutboxServiceTest {
         ) { value ->
             eventReceived = value
         }
-        delay(1000)
 
         val callbackSlot = slot<(String?) -> Unit>()
         verify {
@@ -199,7 +194,7 @@ class SseOutboxServiceTest {
     }
 
     @Test
-    fun `listen for notification events without return type`(): Unit = runBlocking {
+    fun `listen for notification events without return type`() {
         var eventReceived: Unit? = null
         service.listenForNotificationEvents<Unit>(
             sseEmitter = sseEmitter,
@@ -208,7 +203,6 @@ class SseOutboxServiceTest {
         ) { value ->
             eventReceived = value
         }
-        delay(1000)
 
         val callbackSlot = slot<(String?) -> Unit>()
         verify {
@@ -238,7 +232,7 @@ class SseOutboxServiceTest {
     }
 
     @Test
-    fun `forward notification events logs error when registering callback fails`() = runBlocking {
+    fun `forward notification events logs error when registering callback fails`() {
         every {
             sseOutboxListenerService.registerCallback(notificationName = notificationName, eventCallback = any())
         } throws IllegalStateException("registration failed")
@@ -248,7 +242,6 @@ class SseOutboxServiceTest {
             notificationName = notificationName,
             resultType = TestJsonPayload::class.java,
         )
-        delay(1000)
 
         verify {
             sseOutboxListenerService.registerCallback(notificationName = notificationName, eventCallback = any())
@@ -256,7 +249,7 @@ class SseOutboxServiceTest {
     }
 
     @Test
-    fun `listen for notification events logs error when registering callback fails`() = runBlocking {
+    fun `listen for notification events logs error when registering callback fails`() {
         every {
             sseOutboxListenerService.registerCallback(notificationName = notificationName, eventCallback = any())
         } throws IllegalStateException("registration failed")
@@ -266,7 +259,6 @@ class SseOutboxServiceTest {
             notificationName = notificationName,
             resultType = null,
         ) { }
-        delay(1000)
 
         verify {
             sseOutboxListenerService.registerCallback(notificationName = notificationName, eventCallback = any())
@@ -310,7 +302,7 @@ class SseOutboxServiceTest {
     }
 
     @Test
-    fun `callback is unregistered on emitter timeout`() = runBlocking {
+    fun `callback is unregistered on emitter timeout`() {
         val onTimeoutSlot = slot<Runnable>()
         every { sseEmitter.onTimeout(capture(onTimeoutSlot)) } returns Unit
         every { sseEmitter.onCompletion(any()) } returns Unit
@@ -321,7 +313,6 @@ class SseOutboxServiceTest {
             notificationName = notificationName,
             resultType = TestJsonPayload::class.java,
         )
-        delay(1000)
 
         val callbackSlot = slot<(String?) -> Unit>()
         verify {
@@ -343,7 +334,7 @@ class SseOutboxServiceTest {
     }
 
     @Test
-    fun `callback is unregistered on emitter completion`() = runBlocking {
+    fun `callback is unregistered on emitter completion`() {
         val onCompletionSlot = slot<Runnable>()
         every { sseEmitter.onTimeout(any()) } returns Unit
         every { sseEmitter.onCompletion(capture(onCompletionSlot)) } returns Unit
@@ -354,7 +345,6 @@ class SseOutboxServiceTest {
             notificationName = notificationName,
             resultType = null,
         ) { }
-        delay(1000)
 
         val callbackSlot = slot<(String?) -> Unit>()
         verify {
@@ -376,7 +366,7 @@ class SseOutboxServiceTest {
     }
 
     @Test
-    fun `callback is unregistered on emitter error`() = runBlocking {
+    fun `callback is unregistered on emitter error`() {
         val onErrorSlot = slot<Consumer<Throwable>>()
         every { sseEmitter.onTimeout(any()) } returns Unit
         every { sseEmitter.onCompletion(any()) } returns Unit
@@ -387,7 +377,6 @@ class SseOutboxServiceTest {
             notificationName = notificationName,
             resultType = TestJsonPayload::class.java,
         )
-        delay(1000)
 
         val callbackSlot = slot<(String?) -> Unit>()
         verify {

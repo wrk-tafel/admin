@@ -1,10 +1,6 @@
 package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -90,16 +86,8 @@ class SseOutboxService(
             }
         }
 
-        val job = CoroutineScope(Dispatchers.IO).launch {
-            try {
-                sseOutboxListenerService.registerCallback(notificationName, callback, replayable)
-                logger.debug("Registered SSE callback for notification: {}", notificationName)
-            } catch (e: Exception) {
-                logger.error("Failed to listen for notification name: $notificationName", e)
-            }
-        }
-
-        finalize(sseEmitter, job, notificationName, callback)
+        registerCallback(notificationName, callback, replayable)
+        finalize(sseEmitter, notificationName, callback)
     }
 
     fun <T> listenForNotificationEvents(
@@ -114,26 +102,37 @@ class SseOutboxService(
             resultCallback(value)
         }
 
-        val job = CoroutineScope(Dispatchers.IO).launch {
-            try {
-                sseOutboxListenerService.registerCallback(notificationName, callback)
-                logger.debug("Registered SSE callback for notification: {}", notificationName)
-            } catch (e: Exception) {
-                logger.error("Failed to listen for notification name: $notificationName", e)
-            }
-        }
+        registerCallback(notificationName, callback)
+        finalize(sseEmitter, notificationName, callback)
+    }
 
-        finalize(sseEmitter, job, notificationName, callback)
+    /**
+     * Registers synchronously, on the calling thread, rather than in a launched coroutine: the
+     * registration itself is a plain in-memory map/list write with nothing to wait on, and a
+     * launched coroutine bought nothing here but a race - `SseEmitter.onCompletion`'s cleanup
+     * (`unregisterCallback`) could run and complete *before* the still-pending coroutine actually
+     * executed `registerCallback`, since a non-suspending coroutine body isn't a cancellation point:
+     * once it started running there was nothing left to cancel it out from under. A client
+     * disconnecting in exactly that window left a callback registered forever, its closure still
+     * holding the now-dead `SseEmitter`. Registering here, before this method returns, means the
+     * `onCompletion`/`onTimeout`/`onError` handlers set up in [finalize] right after can never fire
+     * ahead of it.
+     */
+    private fun registerCallback(notificationName: String, callback: (String?) -> Unit, replayable: Boolean = true) {
+        try {
+            sseOutboxListenerService.registerCallback(notificationName, callback, replayable)
+            logger.debug("Registered SSE callback for notification: {}", notificationName)
+        } catch (e: Exception) {
+            logger.error("Failed to listen for notification name: $notificationName", e)
+        }
     }
 
     private fun finalize(
         sseEmitter: SseEmitter,
-        coroutine: Job,
         notificationName: String,
         callback: (String?) -> Unit,
     ) {
         val cleanup = {
-            coroutine.cancel()
             sseOutboxListenerService.unregisterCallback(notificationName, callback)
             logger.debug("Unregistered SSE callback for notification: {}", notificationName)
         }

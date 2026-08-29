@@ -15,6 +15,8 @@ import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Paths
 import java.time.LocalDateTime
@@ -140,7 +142,10 @@ class HouseholdDocumentService(
 
         val savedEntity = documentRepository.saveAndFlush(entity)
 
-        scannerFileService.delete(fileName)
+        // Deferred to afterCommit (see deleteFileAfterCommit): removing the scanner file immediately
+        // would lose the scan for good if the transaction rolled back afterwards (e.g. a later step
+        // in the same request failing), leaving neither the imported document nor the original file.
+        deleteFileAfterCommit { scannerFileService.delete(fileName) }
         documentScannerWatcherService.publishIfChanged()
 
         return mapToItem(savedEntity)
@@ -179,8 +184,34 @@ class HouseholdDocumentService(
     @Transactional
     fun deleteDocument(householdId: Long, documentId: Long) {
         val document = findDocument(householdId, documentId)
-        documentStorageService.delete(document.storagePath)
+        val storagePath = document.storagePath
         documentRepository.delete(document)
+
+        // Deferred to afterCommit (see deleteFileAfterCommit): deleting the file immediately, ahead
+        // of the row, would leave a rolled-back transaction (e.g. AuditLogWriter's beforeCommit
+        // failing) with the household_documents row still present but its file already gone - every
+        // later download would 404 on a document the UI still lists.
+        deleteFileAfterCommit { documentStorageService.delete(storagePath) }
+    }
+
+    /**
+     * Runs [delete] once the current transaction actually commits, same reasoning and pattern as
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.deleteDocumentFilesAfterCommit]:
+     * a rolled-back transaction must not take a file down with it while the row it belonged to (or,
+     * for a scanner import, the newly-saved document row) survives - or vice versa.
+     */
+    private fun deleteFileAfterCommit(delete: () -> Unit) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            // No transaction to hang the cleanup off (e.g. a caller outside a Spring-managed
+            // transaction) - falling back to an immediate delete is the closest available behavior.
+            delete()
+            return
+        }
+        TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+            override fun afterCommit() {
+                delete()
+            }
+        })
     }
 
     private fun findHousehold(householdId: Long): HouseholdEntity = householdRepository.findByHouseholdId(householdId)

@@ -27,6 +27,8 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.transaction.support.TransactionSynchronizationUtils
 import org.springframework.util.unit.DataSize
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -320,6 +322,39 @@ internal class HouseholdDocumentServiceTest {
         verify { documentRepository.delete(entity) }
     }
 
+    /**
+     * Inside a real (Spring-managed) transaction, deleting the file on disk must wait for the
+     * commit: removing it ahead of the row would leave a rolled-back transaction with the
+     * `household_documents` row still present but its file already gone, breaking every later
+     * download of a document the UI still lists - see issue #3531.
+     */
+    @Test
+    fun `delete document defers the file deletion until the transaction commits`() {
+        val entity = DocumentEntity(
+            household = testHousehold,
+            documentType = at.wrk.tafel.admin.backend.database.model.household.DocumentType.ID,
+            fileName = "ausweis.jpg",
+            contentType = "image/jpeg",
+            storagePath = "/documents/100/ausweis.jpg",
+        ).apply { id = 7 }
+        every { documentRepository.findByIdAndHouseholdHouseholdId(7L, 100L) } returns entity
+
+        TransactionSynchronizationManager.initSynchronization()
+        try {
+            service.deleteDocument(100L, 7L)
+
+            verify { documentRepository.delete(entity) }
+            // still on disk - the transaction hasn't committed yet
+            verify(exactly = 0) { documentStorageService.delete(any()) }
+
+            TransactionSynchronizationUtils.invokeAfterCommit(TransactionSynchronizationManager.getSynchronizations())
+
+            verify(exactly = 1) { documentStorageService.delete("/documents/100/ausweis.jpg") }
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization()
+        }
+    }
+
     @Test
     fun `import from scanner file - successful`() {
         every { scannerFileService.read("scan1.pdf") } returns PDF_MAGIC_BYTES + "scanned-content".toByteArray()
@@ -338,6 +373,31 @@ internal class HouseholdDocumentServiceTest {
 
         verify { scannerFileService.delete("scan1.pdf") }
         verify { documentScannerWatcherService.publishIfChanged() }
+    }
+
+    /**
+     * Inside a real (Spring-managed) transaction, removing the scanner file must wait for the
+     * commit: deleting it ahead of time would lose the scan for good if the transaction then rolled
+     * back, leaving neither the imported document nor the original scanner file - see issue #3531.
+     */
+    @Test
+    fun `import from scanner file defers the scanner file deletion until the transaction commits`() {
+        every { scannerFileService.read("scan1.pdf") } returns PDF_MAGIC_BYTES + "scanned-content".toByteArray()
+        every { scannerFileService.resolveContentType("scan1.pdf") } returns "application/pdf"
+
+        TransactionSynchronizationManager.initSynchronization()
+        try {
+            service.importFromScannerFile(100L, "scan1.pdf", null, DocumentType.OTHER)
+
+            // still on the scanner share - the transaction hasn't committed yet
+            verify(exactly = 0) { scannerFileService.delete(any()) }
+
+            TransactionSynchronizationUtils.invokeAfterCommit(TransactionSynchronizationManager.getSynchronizations())
+
+            verify(exactly = 1) { scannerFileService.delete("scan1.pdf") }
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization()
+        }
     }
 
     @Test

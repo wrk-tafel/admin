@@ -51,6 +51,11 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Beim Bearbeiten eines Benutzerkontos wird ein im wieder eingeklappten Abschnitt "Passwort zurücksetzen" eingegebenes Passwort jetzt nur noch übernommen, wenn der Abschnitt beim Speichern tatsächlich noch geöffnet ist.
 - Die Inline-Bearbeitung des Gewichts pro Einheit einer Lebensmittelkategorie verlangt jetzt wie beim Anlegen einen gültigen, nicht negativen Wert, statt erst beim Speichern mit einem allgemeinen Fehlerhinweis zu scheitern.
 - Größere Datei-Downloads (z. B. DSGVO-Exporte als ZIP) werden jetzt zuverlässiger abgeschlossen, statt in manchen Browsern vorzeitig abgebrochen zu werden.
+- Beim Löschen eines Kunden-Dokuments bzw. beim Importieren einer Scanner-Datei wird die Datei jetzt erst von der Festplatte entfernt, wenn die zugehörige Datenbank-Änderung tatsächlich abgeschlossen ist, statt dass ein anschließend fehlschlagender Vorgang eine bereits gelöschte Datei oder einen verlorenen Scan hinterlässt.
+- Das Bearbeiten eines statischen Werts (z. B. einer Einkommensgrenze) schlägt jetzt mit einem regulären Fehlerhinweis fehl, wenn dieser Wert zwischenzeitlich bereits durch eine andere, gleichzeitige Änderung ersetzt wurde, statt zwei gleichzeitig gültige Einträge für denselben Wert anzulegen.
+- Beim Speichern der E-Mail-Empfänger-Einstellungen wird ein unbekannter Mailtyp jetzt mit einem regulären Fehlerhinweis abgelehnt statt mit einem Serverfehler; eine bestehende Adresse kann dabei außerdem nicht mehr versehentlich einer anderen Mailtyp/Empfänger-Kategorie zugeordnet werden.
+- Das Blättern in einer Liste mit Seitennummerierung (u. a. Zugriffsprotokoll, Benutzerliste, Mitarbeiterliste) liefert bei der Seitenzahl 0 oder einer negativen Seitenzahl jetzt die erste Seite statt eines Serverfehlers.
+- Ein nicht antwortender Mailserver blockiert die geplanten Hintergrund-Jobs der Anwendung (u. a. E-Mail-Versand, Datenbereinigung) jetzt nicht mehr unbegrenzt lange.
 
 ## [1.14.0] - 2026-08-29
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.
