@@ -89,6 +89,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0039](0039-audit-trail-as-an-append-only-log-written-by-the-application.md) | Audit trail as one append-only `audit_log` table, written by the application | accepted |
 | [0052](0052-change-tracking-actor-becomes-a-foreign-key.md) | `created_by`/`updated_by` become a foreign key to `users`, not a stored username | accepted |
 | [0044](0044-support-requests-sent-as-mail.md) | In-app support requests sent as mail, with the browser's context attached | accepted |
+| [0053](0053-client-side-errors-logged-automatically-to-app-log.md) | Client-side errors are logged automatically to `app.log` | accepted |
 | [0033](0033-support-requests-become-github-issues.md) | In-app support requests are filed as GitHub issues | superseded by [0044](0044-support-requests-sent-as-mail.md) |
 | [0028](0028-user-guide-in-repo-published-per-release.md) | User guide in the repository, published as a PDF per release | accepted |
 

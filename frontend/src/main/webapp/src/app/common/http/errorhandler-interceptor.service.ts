@@ -6,6 +6,7 @@ import {AuthenticationService} from '../security/authentication.service';
 import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../api/problem-detail';
 import {SUPPRESS_ERROR_TOAST} from './suppress-error-toast.token';
+import {SUPPRESS_CLIENT_LOG_RECORD} from './suppress-client-log-record.token';
 import {ClientLogService} from '../support/client-log.service';
 
 /**
@@ -24,7 +25,10 @@ import {ClientLogService} from '../support/client-log.service';
  *    support request can carry it, and shows a toast with the backend's error message by default,
  *    unless the request opted out via the {@link SUPPRESS_ERROR_TOAST} context (callers that
  *    fully own presenting the error themselves). The recording happens either way: a request that
- *    presents its own error is no less interesting to whoever reads the support mail.
+ *    presents its own error is no less interesting to whoever reads the support mail - the one
+ *    exception is a request that opted out via {@link SUPPRESS_CLIENT_LOG_RECORD}, which is only
+ *    ever the client-error-reporting request itself (see `ClientErrorApiService`), so that a
+ *    rate-limited or failed report cannot record itself and be reported all over again.
  */
 export const errorHandlerInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
@@ -58,7 +62,9 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
   };
 
   const handleErrorMessage = (error: HttpErrorResponse): Observable<any> => {
-    clientLogService.record(`HTTP ${error.status} - ${request.method} ${request.url}: ${extractErrorMessage(error)}`);
+    if (!request.context.get(SUPPRESS_CLIENT_LOG_RECORD)) {
+      clientLogService.record(`HTTP ${error.status} - ${request.method} ${request.url}: ${extractErrorMessage(error)}`);
+    }
 
     if (!request.context.get(SUPPRESS_ERROR_TOAST)) {
       toastr.error(extractErrorMessage(error), `HTTP ${error.status} - ${error.statusText}`);

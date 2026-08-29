@@ -40,4 +40,15 @@ describe('TafelErrorHandler', () => {
     expect(console.error).toHaveBeenCalled();
   });
 
+  // ClientLogService also records a raw console.error call (see its own spec) - Angular's default
+  // ErrorHandler logs a handled error via console.error internally, so without suppressing capture
+  // around the forwarded call, this would record the same error twice.
+  it('does not record the same error twice, once explicitly and once via the forwarded console.error', () => {
+    clientLogService.captureGlobalErrors();
+
+    errorHandler.handleError(new Error('boom'));
+
+    expect(clientLogService.getEntries().map(entry => entry.message)).toEqual(['Error: boom']);
+  });
+
 });

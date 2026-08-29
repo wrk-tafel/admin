@@ -134,6 +134,14 @@ class WebSecurityConfig(
                 ),
                 TafelLoginFilter::class.java,
             )
+            .addFilterBefore(
+                RateLimitFilter(
+                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/client-errors"),
+                    scope = "clientError",
+                    rateLimiterService = rateLimiterIpService,
+                ),
+                TafelLoginFilter::class.java,
+            )
             .addFilter(
                 TafelLoginFilter(
                     authenticationManager = authenticationManager(),
