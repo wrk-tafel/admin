@@ -9,6 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionReposi
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.logistics.*
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.events.FoodCollectionCompletedEvent
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
@@ -121,6 +122,7 @@ class FoodCollectionService(
         val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
         val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+        validateShopIsRouteStop(foodCollectionEntity.route, shopId)
         val items = foodCollectionEntity.items?.toMutableList() ?: mutableListOf()
         data.items.forEach { item ->
             updateItems(
@@ -160,6 +162,7 @@ class FoodCollectionService(
             val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
             val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+            validateShopIsRouteStop(foodCollectionEntity.route, shopId)
             val otherShopsReturnItems = foodCollectionEntity.returnItems
                 ?.filter { it.shop.id != shopId } ?: emptyList()
             val shopReturnItems = mapReturnItemsToEntity(
@@ -185,6 +188,7 @@ class FoodCollectionService(
             it.route.id == routeId
         }
         collectionForRoute?.let {
+            validateShopIsRouteStop(it.route, shopId)
             val items = it.items?.filter { item ->
                 item.shop.id == shopId
             } ?: emptyList()
@@ -210,6 +214,7 @@ class FoodCollectionService(
             val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
             val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+            validateShopIsRouteStop(foodCollectionEntity.route, data.shopId)
             val items = foodCollectionEntity.items?.toMutableList() ?: mutableListOf()
             updateItems(
                 items = items,
@@ -280,6 +285,19 @@ class FoodCollectionService(
             eventPublisher.publishEvent(
                 FoodCollectionCompletedEvent(distributionId = distributionId, routeCount = enabledRouteIds.size),
             )
+        }
+    }
+
+    /**
+     * A shop-scoped save/read only makes sense for a shop that is actually a stop of the route the
+     * request addresses - without this, a client bug pairing one route's id with another route's
+     * shop (see #3527) would otherwise silently store the return items/amounts under the wrong
+     * route instead of failing loudly.
+     */
+    private fun validateShopIsRouteStop(route: RouteEntity, shopId: Long) {
+        val isRouteStop = route.stops.any { it.shop?.id == shopId }
+        if (!isRouteStop) {
+            throw BusinessRuleException("Filiale ist keine Station dieser Route!")
         }
     }
 

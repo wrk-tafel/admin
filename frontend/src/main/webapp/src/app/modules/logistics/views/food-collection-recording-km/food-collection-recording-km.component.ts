@@ -3,7 +3,7 @@ import {toSignal} from '@angular/core/rxjs-interop';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {FoodCollectionSaveKmRequest, FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 import {Observable} from 'rxjs';
@@ -93,33 +93,53 @@ export class FoodCollectionRecordingKmComponent {
     return this.form.dirty ? 'unsaved' : 'complete';
   });
 
+  private static readonly CROSS_FIELD_ERROR_KEYS = ['kmIncomplete', 'kmValidation'];
+
+  // setErrors() on a sibling control is a manual override that Angular never clears on its own, so a
+  // condition that stops applying (e.g. kmStart is lowered below kmEnd again) would otherwise leave
+  // the previous error stuck on the sibling forever - clear this validator's own error keys upfront
+  // on every run before deciding whether to set a new one.
+  private clearCrossFieldErrors(control: AbstractControl) {
+    if (!control.errors) {
+      return;
+    }
+    const remaining = Object.fromEntries(
+      Object.entries(control.errors).filter(([key]) => !FoodCollectionRecordingKmComponent.CROSS_FIELD_ERROR_KEYS.includes(key))
+    );
+    control.setErrors(Object.keys(remaining).length ? remaining : null);
+  }
+
   private createKmValidation() {
     return (form: FormGroup) => {
       const kmStart = form.get('kmStart');
-      const kmStartValue = kmStart?.value;
       const kmEnd = form.get('kmEnd');
-      const kmEndValue = kmEnd?.value;
 
       if (!kmStart || !kmEnd) {
         return null;
       }
 
+      this.clearCrossFieldErrors(kmStart);
+      this.clearCrossFieldErrors(kmEnd);
+
+      const kmStartValue = kmStart.value;
+      const kmEndValue = kmEnd.value;
+
       // one of the two on its own is never a valid state to store - the route's distance can only
       // be derived from both
       if (kmStartValue > 0 && !kmEndValue) {
         const error = {kmIncomplete: true};
-        kmEnd.setErrors(error);
+        kmEnd.setErrors({...kmEnd.errors, ...error});
         return error;
       }
       if (kmEndValue > 0 && !kmStartValue) {
         const error = {kmIncomplete: true};
-        kmStart.setErrors(error);
+        kmStart.setErrors({...kmStart.errors, ...error});
         return error;
       }
 
       if (kmStartValue > 0 && kmEndValue > 0 && kmStartValue >= kmEndValue) {
         const error = {kmValidation: true};
-        kmEnd.setErrors(error);
+        kmEnd.setErrors({...kmEnd.errors, ...error});
         return error;
       }
 

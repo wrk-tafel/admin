@@ -5,7 +5,15 @@ describe('ScreenWakeLockService', () => {
   function setup(options: {supported?: boolean; requestImpl?: () => Promise<WakeLockSentinel>} = {}) {
     const supported = options.supported ?? true;
     const releaseMock = vi.fn().mockResolvedValue(undefined);
-    const sentinel = {release: releaseMock} as unknown as WakeLockSentinel;
+    const releaseListeners: Array<() => void> = [];
+    const sentinel = {
+      release: releaseMock,
+      addEventListener: vi.fn((type: string, listener: () => void) => {
+        if (type === 'release') {
+          releaseListeners.push(listener);
+        }
+      })
+    } as unknown as WakeLockSentinel;
     const requestMock = vi.fn(options.requestImpl ?? (() => Promise.resolve(sentinel)));
 
     const navigatorMock: Partial<Navigator> = supported ? {wakeLock: {request: requestMock} as unknown as WakeLock} : {};
@@ -17,7 +25,13 @@ describe('ScreenWakeLockService', () => {
       ]
     });
 
-    return {service: TestBed.inject(ScreenWakeLockService), requestMock, releaseMock, sentinel};
+    return {
+      service: TestBed.inject(ScreenWakeLockService),
+      requestMock,
+      releaseMock,
+      sentinel,
+      simulateOsRelease: () => releaseListeners.forEach((listener) => listener())
+    };
   }
 
   it('reports support when the navigator has the API', () => {
@@ -82,6 +96,16 @@ describe('ScreenWakeLockService', () => {
     const {service} = setup({supported: true, requestImpl: () => Promise.reject(new Error('denied'))});
 
     await expect(service.request()).resolves.toBeUndefined();
+  });
+
+  it('allows re-acquiring after the OS releases the lock on its own', async () => {
+    const {service, requestMock, simulateOsRelease} = setup({supported: true});
+    await service.request();
+
+    simulateOsRelease();
+    await service.request();
+
+    expect(requestMock).toHaveBeenCalledTimes(2);
   });
 
   it('swallows a rejected release, e.g. already released by the OS', async () => {

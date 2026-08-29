@@ -79,6 +79,32 @@ describe('FoodCollectionRecordingKmComponent', () => {
     expect(component.kmEnd.errors!['kmValidation']).toBe(true);
   });
 
+  it('clears a stale kmValidation error once the values make sense again', () => {
+    // Regression test for #3527: setErrors() on the sibling control was never cleared, so the
+    // error and the invalid state stuck around even after the condition stopped applying.
+    const component = createComponent({...mockRouteData, foodCollectionData: undefined});
+
+    component.kmStart.setValue(500);
+    component.kmEnd.setValue(400);
+    expect(component.kmEnd.errors!['kmValidation']).toBe(true);
+    expect(component.hasInvalidInput()).toBe(true);
+
+    component.kmStart.setValue(300);
+    expect(component.kmEnd.errors).toBeFalsy();
+    expect(component.hasInvalidInput()).toBe(false);
+  });
+
+  it('clears a stale kmIncomplete error once both values are emptied again', () => {
+    const component = createComponent({...mockRouteData, foodCollectionData: undefined});
+
+    component.kmStart.setValue(100);
+    expect(component.kmEnd.errors!['kmIncomplete']).toBe(true);
+
+    component.kmStart.setValue(null);
+    expect(component.kmEnd.errors).toBeFalsy();
+    expect(component.hasInvalidInput()).toBe(false);
+  });
+
   it('should accept an empty km form as valid but provide no save request', () => {
     const component = createComponent({...mockRouteData, foodCollectionData: undefined});
 
