@@ -81,7 +81,12 @@ describe('Scanner', () => {
       cy.viewport(viewport);
       cy.visit('/anmeldung/scanner');
 
-      cy.byTestId('scanner-id').should('be.visible');
+      // By this point in the spec the fake camera has already negotiated successfully once, so a
+      // repeat visit can decode the still-frame QR code fast enough to flip pairing -> scanning
+      // before this assertion gets its first retry - and that switch is one-way (see
+      // ScannerComponent's `hasStartedScanning`). Accepting either phase confirms the screen
+      // rendered correctly on this viewport without racing which one is still showing.
+      cy.get('[testid="pairing-phase"], [testid="scanning-phase"]').should('be.visible');
       cy.byTestId('state-camera', {timeout: 20000}).should('have.text', 'Bereit');
       cy.byTestId('scanner-id-chip').should('be.visible');
     });
