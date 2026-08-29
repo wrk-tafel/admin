@@ -53,7 +53,7 @@ class EmployeeEntity(
                 val personnelNumber: Expression<String> = root["personnelNumber"]
                 val firstname: Expression<String> = root["firstname"]
                 val lastname: Expression<String> = root["lastname"]
-                val ascending = !"desc".equals(sortDirection, ignoreCase = true)
+                val ascending = "asc".equals(sortDirection, ignoreCase = true)
 
                 fun <T> CriteriaBuilder.orderBy(expression: Expression<T>) = if (ascending) asc(expression) else desc(expression)
 
