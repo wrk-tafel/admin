@@ -693,16 +693,19 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
 
   it('resets to a blank state without an error for a route with no shops', () => {
     // Regression test for #3527: findNextUnfilledShop() returns undefined for an empty route,
-    // which selectShop() used to dereference directly.
+    // which selectShop() used to dereference directly. Calls selectShop() directly (the way
+    // loadEffect() would for an empty route) rather than via detectChanges(), since Angular's
+    // effect scheduler reports an effect's exception to the ErrorHandler instead of letting it
+    // propagate out of detectChanges(), which would make a thrown error invisible to this test.
     const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
 
     componentRef.setInput('foodCategories', mockFoodCategories);
     componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: [], foodCollectionData: {items: []}});
 
-    expect(() => componentRef.setInput('selectedRouteData', {route: mockRoute, shops: [], foodCollectionData: {items: []}})).not.toThrow();
-    fixture.detectChanges();
+    expect(() => component.selectShop(undefined)).not.toThrow();
 
     expect(component.currentShop()).toBeNull();
   });
