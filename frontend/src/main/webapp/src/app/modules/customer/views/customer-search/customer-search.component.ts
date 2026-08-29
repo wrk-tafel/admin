@@ -199,9 +199,14 @@ export class CustomerSearchComponent {
     this.search(undefined, undefined, true, false);
   }
 
-  /** A new sort replaces the current page 1 of the (already fuzzy) result - never the exact-id jump. */
+  /**
+   * A new sort replaces the current page 1 of the (already fuzzy) result - never the exact-id jump.
+   * An empty direction (matSortDisableClear keeps a real click from ever producing one, but the
+   * handler stays defensive) resets the column too - otherwise the backend would receive a sortBy
+   * with no direction instead of falling back to its own default order.
+   */
   onSortChange(sort: Sort) {
-    this.sortActive.set(sort.active);
+    this.sortActive.set(sort.direction ? sort.active : '');
     this.sortDirectionState.set(sort.direction);
     this.search(1, this.searchResult()?.pageSize, true, false);
   }
