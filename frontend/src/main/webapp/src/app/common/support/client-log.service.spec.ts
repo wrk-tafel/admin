@@ -103,13 +103,17 @@ describe('ClientLogService', () => {
   });
 
   it('records a console.warn call and still prints it', () => {
+    // captured before captureGlobalErrors reassigns console.warn to its own wrapper - the wrapper
+    // itself is a plain function, not the spy, so asserting on console.warn after wrapping would
+    // fail with "not a spy" even though the original spy was in fact called underneath it.
+    const warnSpy = console.warn;
     service.captureGlobalErrors();
 
     console.warn('SSE-Verbindung dauerhaft geschlossen, versuche erneut zu verbinden...');
 
     expect(service.getEntries().map(entry => entry.message))
       .toEqual(['SSE-Verbindung dauerhaft geschlossen, versuche erneut zu verbinden...']);
-    expect(console.warn).toHaveBeenCalledWith('SSE-Verbindung dauerhaft geschlossen, versuche erneut zu verbinden...');
+    expect(warnSpy).toHaveBeenCalledWith('SSE-Verbindung dauerhaft geschlossen, versuche erneut zu verbinden...');
   });
 
   it('records a console.warn call with several arguments, an Error among them', () => {
@@ -122,12 +126,14 @@ describe('ClientLogService', () => {
   });
 
   it('records a raw console.error call and still prints it', () => {
+    // same reasoning as the console.warn test above - captured before wrapping.
+    const errorSpy = console.error;
     service.captureGlobalErrors();
 
     console.error('some raw console.error call');
 
     expect(service.getEntries().map(entry => entry.message)).toEqual(['some raw console.error call']);
-    expect(console.error).toHaveBeenCalledWith('some raw console.error call');
+    expect(errorSpy).toHaveBeenCalledWith('some raw console.error call');
   });
 
   it('does not record console.warn/console.error while runWithConsoleCaptureSuppressed runs', () => {
