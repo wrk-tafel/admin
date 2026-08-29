@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Transactional
 class HouseholdRepositoryIT : TafelBaseIntegrationTest() {
@@ -67,6 +68,45 @@ class HouseholdRepositoryIT : TafelBaseIntegrationTest() {
 
     private fun householdIdIn(householdIds: List<Long>): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, _: CriteriaBuilder ->
         root.get<Long>("householdId").`in`(householdIds)
+    }
+
+    /**
+     * A real Postgres run rather than a mocked unit test on purpose: `findIdByUpdatedAtBetween` used
+     * to be a derived-query `List<Long>` projection method, which Spring Data quietly executed as
+     * `select h from Household h ...` instead of an id-only projection - passing every unit test
+     * (mocked away entirely) while failing at runtime with a `ConversionFailedException` the moment a
+     * distribution actually closed. Only exercising the real query against the real entity mapping
+     * catches that class of bug.
+     */
+    @Test
+    fun `findIdByUpdatedAtBetween returns ids, not entities, for households updated in the window`() {
+        val insideWindow = persistHousehold()
+        val outsideWindow = persistHousehold()
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val from = LocalDateTime.now().minusHours(1)
+        val to = LocalDateTime.now().plusHours(1)
+        setUpdatedAt(insideWindow, from.plusMinutes(1))
+        setUpdatedAt(outsideWindow, from.minusDays(1))
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdRepository.findIdByUpdatedAtBetween(from, to)
+
+        assertThat(result).containsExactly(insideWindow.id)
+    }
+
+    /**
+     * `updated_at` is filled by JPA auditing on write, so testing a specific window requires updating
+     * the column afterwards, the same way `StatisticsServiceIT.setRegisteredAt` does for `created_at`.
+     */
+    private fun setUpdatedAt(household: HouseholdEntity, updatedAt: LocalDateTime) {
+        testEntityManager.entityManager
+            .createNativeQuery("UPDATE households SET updated_at = :updatedAt WHERE id = :id")
+            .setParameter("updatedAt", updatedAt)
+            .setParameter("id", household.id)
+            .executeUpdate()
     }
 
     /**

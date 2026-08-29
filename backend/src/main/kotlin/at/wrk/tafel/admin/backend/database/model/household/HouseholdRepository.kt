@@ -48,9 +48,14 @@ interface HouseholdRepository :
     /**
      * Ids only, not entities: the distribution statistic subtracts the households already counted as
      * new/prolonged from this set to avoid double-counting one that is both in the same window - a
-     * plain `count` can't do that set difference.
+     * plain `count` can't do that set difference. An explicit `select h.id` rather than a
+     * `findIdBy...` derived-query projection, which - unlike `findExpiredHouseholdIdsSkipLocked`'s
+     * native `SELECT household_id` - Spring Data does not treat as an id-only projection here: it
+     * still executes as `select h from Household h ...` and then fails converting the fetched
+     * `HouseholdEntity` rows to `Long` when postprocessing the declared `List<Long>` return type.
      */
-    fun findIdByUpdatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<Long>
+    @Query("select h.id from Household h where h.updatedAt between :fromDate and :toDate")
+    fun findIdByUpdatedAtBetween(@Param("fromDate") fromDate: LocalDateTime, @Param("toDate") toDate: LocalDateTime): List<Long>
 
     /**
      * Every household still entitled today and not locked - what the dashboard's "Kunden gesamt"
