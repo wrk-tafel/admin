@@ -213,6 +213,9 @@ describe('Food Collection Recording', () => {
     cy.byTestId('shop-title').should('contain.text', 'Lidl');
 
     cy.byTestId('return-category-11-increment-button').click();
+    // completeRouteViaApi() below fills in base data/km but not items - route 2 needs at least one
+    // recorded amount of its own, or afterEach's closeDistribution() refuses it as unvollständig
+    cy.byTestId('category-1-input').type('1');
 
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains('Route 3').click();
