@@ -32,6 +32,7 @@ data class FoodCollectionSaveRouteRequest(
 )
 
 @ExcludeFromTestCoverage
+@KmEndNotBeforeKmStart
 data class FoodCollectionSaveKmRequest(
     @field:PositiveOrZero
     val kmStart: Int,

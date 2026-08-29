@@ -64,11 +64,16 @@ in the mailed export set without any other wiring change:
 - **`CountryDistributionExporter`** (`TOeT_Verteilung_Nationalitaeten`) – Same idea, grouped by
   `Person.country`, current distribution only.
 - **`HouseholdSizeDistributionExporter`** (`TOeT_Verteilung_Haushaltsgroesse`) – Distribution of household
-  sizes (1..10 persons), current distribution only.
+  sizes, current distribution only. One row per size 1..10, plus an `11+` overflow row for anything larger -
+  without it the percentages wouldn't add up to the household total whenever a larger household exists.
 - **`DailyReportsExporter`** (`TOeT_Tagesreports`) – The odd one out: pulls **every distribution of the
   current calendar year** via `distributionRepository.getDistributionsForYear(...)` and emits one row per
   past distribution plus a row for the current one, i.e. a running year-to-date table, not just a snapshot of
-  today.
+  today. The distribution being closed is already in that repository result (its statistic is saved before
+  this mail is composed), so both exporters filter it out by id from the "previous" set before appending it
+  separately as the current row - otherwise it would appear twice. The year queried is
+  `currentStatistic.distribution.startedAt.year`, not the export run's calendar year, so re-sending a report
+  for a December distribution in January still lists the right year's rows.
 - **`FoodCollectionsExporter`** (`TOeT_Spenden`) – Also year-to-date (same `getDistributionsForYear` pattern).
   Builds one row per shop-per-food-collection-per-distribution, with one column per `FoodCategoryEntity`
   (sorted by name), so the column set changes if food categories are added/removed in the `logistics` module.

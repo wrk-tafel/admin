@@ -42,7 +42,9 @@ class DailyReportsExporter(
             "Anz. MitarbeiterInnen",
         )
 
-        val previousDistributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)
+        val currentDistribution = currentStatistic.distribution
+        val previousDistributions = distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year)
+            .filter { it.id != currentDistribution.id }
             .sortedBy { it.startedAt }
 
         val previousRows = previousDistributions.mapNotNull { distribution ->
@@ -53,7 +55,7 @@ class DailyReportsExporter(
                 null
             }
         }
-        val currentRows = generateStatisticColumns(currentStatistic.distribution, currentStatistic)
+        val currentRows = generateStatisticColumns(currentDistribution, currentStatistic)
 
         val result = mutableListOf(descriptionHeaderRow, columnsHeaderRow)
         if (previousRows.isNotEmpty()) {

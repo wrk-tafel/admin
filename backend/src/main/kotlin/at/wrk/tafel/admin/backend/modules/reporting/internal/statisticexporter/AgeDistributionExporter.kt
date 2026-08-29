@@ -49,7 +49,7 @@ class AgeDistributionExporter : StatisticExporter {
 
         val countCustomers = households.size
         val countPersons = countCustomers + persons.size
-        val averagePersonsPerHousehold = if (countCustomers > 0) countPersons / countCustomers else 0
+        val averagePersonsPerHousehold = if (countCustomers > 0) countPersons.toDouble() / countCustomers else 0.0
 
         val groupedCustomers = countByAgeRange(householdsBirthDates, referenceDate)
         val groupedPersons = countByAgeRange(personsBirthDates, referenceDate)
@@ -60,8 +60,8 @@ class AgeDistributionExporter : StatisticExporter {
             val percentageCustomersPerRange =
                 if (countCustomers > 0) (countCustomersPerRange.toDouble() / countCustomers) * 100 else 0
             val countPersonsPerRange = groupedPersons[ageRange] ?: 0
-            val averagePersonsPerHousehold =
-                if (countCustomersPerRange > 0) countPersonsPerRange / countCustomersPerRange else 0
+            val averagePersonsPerHouseholdPerRange =
+                if (countCustomersPerRange > 0) countPersonsPerRange.toDouble() / countCustomersPerRange else 0.0
 
             rows.add(
                 listOf(
@@ -69,7 +69,7 @@ class AgeDistributionExporter : StatisticExporter {
                     countCustomersPerRange.toString(),
                     String.format("%.2f", percentageCustomersPerRange.toFloat()),
                     countPersonsPerRange.toString(),
-                    averagePersonsPerHousehold.toString(),
+                    String.format("%.2f", averagePersonsPerHouseholdPerRange.toFloat()),
                 ),
             )
         }
@@ -79,7 +79,7 @@ class AgeDistributionExporter : StatisticExporter {
             countCustomers.toString(),
             "100,00",
             countPersons.toString(),
-            averagePersonsPerHousehold.toString(),
+            String.format("%.2f", averagePersonsPerHousehold.toFloat()),
         )
         rows.add(sumRow)
         return rows

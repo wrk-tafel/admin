@@ -6,8 +6,14 @@ import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionReturnItemEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodReturnCategoryRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShopAddress
+import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
 import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
@@ -198,6 +204,55 @@ class DistributionClosedEventListenerTest {
                 ),
             ),
         )
+    }
+
+    @Test
+    fun `return boxes for the same shop on two routes are reported separately, not summed`() {
+        val distributionId = 456L
+        val distributionStartDate = LocalDateTime.now()
+
+        val route1 = RouteEntity(number = 10.0, name = "Route A").apply { id = 910 }
+        val route2 = RouteEntity(number = 11.0, name = "Route B").apply { id = 911 }
+        val sharedShop = ShopEntity(
+            number = 50,
+            name = "Shared Shop",
+            address = ShopAddress(street = "Street", postalCode = 1111, city = "City"),
+        ).apply { id = 950 }
+
+        val foodCollection1 = FoodCollectionEntity(distribution = testDistributionEntity, route = route1).apply {
+            returnItems = listOf(FoodCollectionReturnItemEntity(shop = sharedShop, description = "Kisten", amount = 3))
+        }
+        val foodCollection2 = FoodCollectionEntity(distribution = testDistributionEntity, route = route2).apply {
+            returnItems = listOf(FoodCollectionReturnItemEntity(shop = sharedShop, description = "Kisten", amount = 5))
+        }
+
+        val distributionStatistic = mockk<DistributionStatisticEntity>()
+        val distribution = mockk<DistributionEntity>()
+        every { distribution.id } returns distributionId
+        every { distribution.startedAt } returns distributionStartDate
+        every { distribution.notes } returns null
+        every { distribution.statistic } returns distributionStatistic
+        every { distribution.households } returns emptyList()
+        every { distribution.foodCollections } returns listOf(foodCollection1, foodCollection2)
+
+        every { distributionRepository.findByIdOrNull(distributionId) } returns distribution
+
+        listener.onDistributionClosed(DistributionClosedEvent(distributionId))
+
+        val returnBoxesContextSlot = slot<Context>()
+        verify {
+            mailSenderService.sendHtmlMail(
+                mailType = MailType.RETURN_BOXES,
+                subject = any(),
+                attachments = emptyList(),
+                templateName = "mails/return-boxes-mail",
+                context = capture(returnBoxesContextSlot),
+            )
+        }
+        val returnBoxes = returnBoxesContextSlot.captured.getVariable("returnBoxes") as ReturnBoxesDataModel
+        assertThat(returnBoxes.routes).hasSize(2)
+        assertThat(returnBoxes.routes.first { it.name == "Route A" }.shops.single().returnBoxes).isEqualTo("3x Kisten")
+        assertThat(returnBoxes.routes.first { it.name == "Route B" }.shops.single().returnBoxes).isEqualTo("5x Kisten")
     }
 
     @Test

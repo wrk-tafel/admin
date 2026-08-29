@@ -176,6 +176,34 @@ class StatisticsServiceIT : TafelBaseIntegrationTest() {
         assertThat(result.items).containsExactly(ChildAgeCountItem(age = 8, count = 1))
     }
 
+    @Test
+    fun `countBeneficiaryPersons excludes persons flagged as excluded from the household`() {
+        val household = persistHousehold()
+        addAdditionalPerson(household, age = 8, lastname = "Counted")
+        addAdditionalPerson(household, age = 8, lastname = "Excluded", excludeFromHousehold = true)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val today = LocalDate.now()
+        val result = statisticsService.countBeneficiaryPersons(today, today)
+
+        // main person + the one non-excluded additional person - the excluded one must not add to the count
+        assertThat(result.last().value.toInt()).isEqualTo(2)
+    }
+
+    @Test
+    fun `countBeneficiaryCustomersWithChildren excludes a child flagged as excluded from the household`() {
+        val household = persistHousehold()
+        addAdditionalPerson(household, age = 8, lastname = "Excluded", excludeFromHousehold = true)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val today = LocalDate.now()
+        val result = statisticsService.countBeneficiaryCustomersWithChildren(today, today)
+
+        assertThat(result.last().value.toInt()).isEqualTo(0)
+    }
+
     /**
      * A household counts from the period it was registered in onwards, not for every period the
      * database has ever covered - measured as the difference the household makes to each bucket,
@@ -288,13 +316,14 @@ class StatisticsServiceIT : TafelBaseIntegrationTest() {
         return household
     }
 
-    private fun addAdditionalPerson(household: HouseholdEntity, age: Int, lastname: String): PersonEntity = addAdditionalPerson(household, LocalDate.now().minusYears(age.toLong()), lastname)
+    private fun addAdditionalPerson(household: HouseholdEntity, age: Int, lastname: String, excludeFromHousehold: Boolean = false): PersonEntity = addAdditionalPerson(household, LocalDate.now().minusYears(age.toLong()), lastname, excludeFromHousehold)
 
-    private fun addAdditionalPerson(household: HouseholdEntity, birthDate: LocalDate, lastname: String): PersonEntity {
+    private fun addAdditionalPerson(household: HouseholdEntity, birthDate: LocalDate, lastname: String, excludeFromHousehold: Boolean = false): PersonEntity {
         val person = PersonEntity(household = household, country = testCountry, isMainPerson = false)
         person.firstname = "Kind"
         person.lastname = lastname
         person.birthDate = birthDate
+        person.excludeFromHousehold = excludeFromHousehold
         testEntityManager.persist(person)
         return person
     }

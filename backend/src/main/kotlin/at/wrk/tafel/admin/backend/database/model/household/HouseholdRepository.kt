@@ -45,7 +45,12 @@ interface HouseholdRepository :
     @EntityGraph(attributePaths = ["persons"])
     fun findAllByProlongedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<HouseholdEntity>
 
-    fun countByUpdatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): Int
+    /**
+     * Ids only, not entities: the distribution statistic subtracts the households already counted as
+     * new/prolonged from this set to avoid double-counting one that is both in the same window - a
+     * plain `count` can't do that set difference.
+     */
+    fun findIdByUpdatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<Long>
 
     /**
      * Every household still entitled today and not locked - what the dashboard's "Kunden gesamt"
