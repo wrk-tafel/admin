@@ -123,7 +123,7 @@ internal class DataSubjectRequestServiceTest {
         assertThat(result.truncated).isFalse()
         verify(exactly = 0) { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) }
         verify(exactly = 0) { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) }
-        verify(exactly = 0) { employeeRepository.findBySearchInput(any(), any()) }
+        verify(exactly = 0) { employeeRepository.findAll(any<Specification<EmployeeEntity>>(), any<PageRequest>()) }
     }
 
     @Test
@@ -143,7 +143,7 @@ internal class DataSubjectRequestServiceTest {
 
         val employeeWithAccount = employeeForAccount
         val employeeWithoutAccount = EmployeeEntity(personnelNumber = "00002", firstname = "Fahrer", lastname = "Zwei").apply { id = 11 }
-        every { employeeRepository.findBySearchInput("muster", any<PageRequest>()) } returns
+        every { employeeRepository.findAll(any<Specification<EmployeeEntity>>(), any<PageRequest>()) } returns
             PageImpl(listOf(employeeWithAccount, employeeWithoutAccount))
         every { userRepository.findAccountsByEmployeeIds(listOf(10, 11)) } returns
             listOf(object : EmployeeUserAccountProjection {
@@ -183,7 +183,7 @@ internal class DataSubjectRequestServiceTest {
 
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
         every { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
-        every { employeeRepository.findBySearchInput("nobody", any<PageRequest>()) } returns PageImpl(emptyList())
+        every { employeeRepository.findAll(any<Specification<EmployeeEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
 
         val result = service.search("nobody")
 
@@ -201,7 +201,7 @@ internal class DataSubjectRequestServiceTest {
 
         assertThat(result.items).isEmpty()
         verify(exactly = 0) { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) }
-        verify(exactly = 0) { employeeRepository.findBySearchInput(any(), any()) }
+        verify(exactly = 0) { employeeRepository.findAll(any<Specification<EmployeeEntity>>(), any<PageRequest>()) }
     }
 
     @Test
@@ -211,7 +211,7 @@ internal class DataSubjectRequestServiceTest {
         every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), any<PageRequest>()) } returns
             PageImpl(emptyList(), PageRequest.of(0, 20), 21)
         every { userRepository.findAll(any<Specification<UserEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
-        every { employeeRepository.findBySearchInput("muster", any<PageRequest>()) } returns PageImpl(emptyList())
+        every { employeeRepository.findAll(any<Specification<EmployeeEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
 
         val result = service.search("muster")
 

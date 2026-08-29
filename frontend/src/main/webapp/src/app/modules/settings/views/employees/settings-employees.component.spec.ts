@@ -110,7 +110,7 @@ describe('SettingsEmployeesComponent', () => {
     const component = fixture.componentInstance;
     expect(component['employees']()).toBeDefined();
     expect(component['employees']()?.items.length).toBe(2);
-    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith(undefined, undefined, undefined);
+    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined);
     expect(component['searchAnnouncement']()).toBe('2 Mitarbeiter gefunden');
   });
 
@@ -125,7 +125,7 @@ describe('SettingsEmployeesComponent', () => {
 
     vi.advanceTimersByTime(500);
 
-    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith('00001', 1, listResponse.pageSize);
+    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith('00001', 1, listResponse.pageSize, undefined, undefined);
     expect(employeeApiMock.findEmployees).toHaveBeenCalledTimes(2);
   });
 
@@ -231,7 +231,8 @@ describe('SettingsEmployeesComponent', () => {
     component['openEmployee'](testEmployee2);
 
     expect(component['searchControl'].value).toBe(testEmployee2.personnelNumber);
-    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith(testEmployee2.personnelNumber, 1, listResponse.pageSize);
+    expect(employeeApiMock.findEmployees)
+      .toHaveBeenCalledWith(testEmployee2.personnelNumber, 1, listResponse.pageSize, undefined, undefined);
     expect(component['editingId']()).toBe(testEmployee2.id);
   });
 
@@ -400,5 +401,31 @@ describe('SettingsEmployeesComponent', () => {
 
     expect(fileHelperMock.downloadFile).not.toHaveBeenCalled();
     expect(component['downloadingPrivacyNotice']()).toBe(false);
+  });
+
+  it('clicking a column header sorts and resets to the first page', () => {
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['onSortChange']({active: 'lastname', direction: 'asc'} as any);
+
+    expect(component['sortActive']()).toBe('lastname');
+    expect(component['sortDirectionState']()).toBe('asc');
+    expect(employeeApiMock.findEmployees).toHaveBeenLastCalledWith(undefined, 1, listResponse.pageSize, 'lastname', 'asc');
+  });
+
+  // matSortDisableClear keeps a real click cycling between asc/desc only, but the handler itself
+  // stays defensive about an empty direction (falls back to the backend's default order) in case
+  // that ever changes.
+  it('falls back to the default order when the sort event carries no direction', () => {
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['onSortChange']({active: 'lastname', direction: ''} as any);
+
+    expect(component['sortActive']()).toBe('');
+    expect(employeeApiMock.findEmployees).toHaveBeenLastCalledWith(undefined, 1, listResponse.pageSize, undefined, undefined);
   });
 });

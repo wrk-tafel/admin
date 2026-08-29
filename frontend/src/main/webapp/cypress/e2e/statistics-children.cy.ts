@@ -168,6 +168,17 @@ describe('Statistics Children', () => {
     });
   });
 
+  it('sorts by clicking a column header, replacing the household default', () => {
+    cy.visit('/statistiken/auswertung-kinder');
+
+    cy.intercept('GET', /\/api\/statistics\/children(\?|$)/).as('sortedChildren');
+    cy.contains('th', 'Vorname').click();
+    cy.wait('@sortedChildren').its('request.url').should('include', 'sortBy=firstname').and('include', 'sortDirection=asc');
+
+    cy.contains('th', 'Vorname').click();
+    cy.wait('@sortedChildren').its('request.url').should('include', 'sortBy=firstname').and('include', 'sortDirection=desc');
+  });
+
   it('exports the children report as csv', () => {
     cy.visit('/statistiken/auswertung-kinder');
 

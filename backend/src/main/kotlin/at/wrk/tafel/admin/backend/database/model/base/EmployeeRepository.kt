@@ -1,7 +1,5 @@
 package at.wrk.tafel.admin.backend.database.model.base
 
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
@@ -15,9 +13,6 @@ interface EmployeeRepository :
     fun findByPersonnelNumber(personnelNumber: String): EmployeeEntity?
     fun existsByPersonnelNumber(personnelNumber: String): Boolean
     fun existsByPersonnelNumberAndIdNot(personnelNumber: String, id: Long): Boolean
-
-    @Query("select emp from Employee emp where lower(emp.personnelNumber) like lower(concat('%', :searchInput, '%')) or lower(emp.firstname) like lower(concat('%', :searchInput, '%')) or lower(emp.lastname) like lower(concat('%', :searchInput, '%')) order by emp.id")
-    fun findBySearchInput(searchInput: String, pageRequest: PageRequest): Page<EmployeeEntity>
 
     /**
      * Candidate ids for `EmployeeRetentionService` (GDPR gap G13) - every employee not referenced by

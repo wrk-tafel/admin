@@ -16,6 +16,7 @@ import {
   MatTable
 } from '@angular/material/table';
 import {MatPaginatorModule, PageEvent} from '@angular/material/paginator';
+import {MatSortModule, Sort, SortDirection} from '@angular/material/sort';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators} from '@angular/forms';
@@ -81,6 +82,7 @@ export function ageRangeValidator(group: AbstractControl): ValidationErrors | nu
     MatRowDef,
     MatTable,
     MatPaginatorModule,
+    MatSortModule,
     BaseChartDirective,
     RouterLink
   ]
@@ -110,11 +112,18 @@ export class StatisticsChildrenComponent {
 
   childrenColumns = ['householdId', 'firstname', 'lastname', 'age'];
 
+  // Empty until a column header is clicked - the backend's own default order (by household, so
+  // a household's children stay adjacent) has no single "active" column to reflect here.
+  readonly sortActive = signal('');
+  readonly sortDirectionState = signal<SortDirection>('');
+
   /**
-   * Results come back ordered by household, so a household that sends more than one child appears
-   * as consecutive rows - `firstOfHousehold` is what lets the template group them visually instead
-   * of repeating the same household number down the column. Note a household can still be split
-   * across two pages; the flag then simply marks the first row of the page.
+   * By the default (household) order, a household that sends more than one child appears as
+   * consecutive rows - `firstOfHousehold` is what lets the template group them visually instead of
+   * repeating the same household number down the column. Note a household can still be split
+   * across two pages; the flag then simply marks the first row of the page. Sorting by a different
+   * column (see [onSortChange]) no longer guarantees that adjacency - the comparison here still
+   * works, it just stops finding a run to collapse, so the household number is shown on every row.
    */
   rows = computed(() => {
     const items = this.childrenData()?.items ?? [];
@@ -182,7 +191,13 @@ export class StatisticsChildrenComponent {
   constructor() {
     this.loadRequests
       .pipe(
-        switchMap(request => this.statisticsApiService.getChildrenData(request.filter, request.page, request.pageSize)
+        switchMap(request => this.statisticsApiService.getChildrenData(
+          request.filter,
+          request.page,
+          request.pageSize,
+          this.sortActive() || undefined,
+          this.sortDirectionState() || undefined
+        )
           .pipe(map(response => ({filter: request.filter, response})))),
         takeUntilDestroyed(),
       )
@@ -210,6 +225,16 @@ export class StatisticsChildrenComponent {
 
   onPageChange(event: PageEvent) {
     this.loadChildrenData(event.pageIndex + 1, event.pageSize);
+  }
+
+  /**
+   * A new sort replaces the current page 1 - clicking a column header is a request to see the
+   * result ordered by it, not just to reorder the page already on screen.
+   */
+  onSortChange(sort: Sort) {
+    this.sortActive.set(sort.direction ? sort.active : '');
+    this.sortDirectionState.set(sort.direction);
+    this.loadChildrenData(1, this.childrenData()?.pageSize);
   }
 
   protected generateChildrenCsv() {

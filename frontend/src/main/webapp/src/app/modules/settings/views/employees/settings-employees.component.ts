@@ -24,6 +24,7 @@ import {
   MatTable
 } from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatSortModule, Sort, SortDirection} from '@angular/material/sort';
 import {catchError, debounceTime, distinctUntilChanged, EMPTY, map, Observable, of, Subject, switchMap, tap} from 'rxjs';
 import {
   CreateEmployeeRequest,
@@ -90,6 +91,7 @@ const AVAILABLE: PersonnelNumberAvailabilityResponse = {available: true};
     MatTable,
     MatHeaderCellDef,
     MatPaginatorModule,
+    MatSortModule,
     MatIcon,
     MatButton,
     ReactiveFormsModule,
@@ -124,6 +126,11 @@ export class SettingsEmployeesComponent {
   private _employees = signal<EmployeeListResponse | null>(null);
   protected employees = this._employees;
   displayedColumns = ['personnelNumber', 'firstname', 'lastname', 'userAccount', 'actions'];
+
+  // Empty until a column header is clicked - the backend's own default order (ascending id) has
+  // no single "active" column to reflect here.
+  protected readonly sortActive = signal('');
+  protected readonly sortDirectionState = signal<SortDirection>('');
 
   /**
    * What the role="status" region in the template says. With no "Suchen" button to press, this is
@@ -202,8 +209,24 @@ export class SettingsEmployeesComponent {
     this.loadRequests.next({page, pageSize});
   }
 
+  /**
+   * A new sort replaces the current page 1 - clicking a column header is a request to see the
+   * result ordered by it, not just to reorder the page already on screen.
+   */
+  protected onSortChange(sort: Sort) {
+    this.sortActive.set(sort.direction ? sort.active : '');
+    this.sortDirectionState.set(sort.direction);
+    this.loadEmployees(1, this.employees()?.pageSize);
+  }
+
   private fetchEmployees(page?: number, pageSize?: number): Observable<EmployeeListResponse> {
-    return this.employeeApiService.findEmployees(this.searchControl.value.trim() || undefined, page, pageSize).pipe(
+    return this.employeeApiService.findEmployees(
+      this.searchControl.value.trim() || undefined,
+      page,
+      pageSize,
+      this.sortActive() || undefined,
+      this.sortDirectionState() || undefined
+    ).pipe(
       tap({
         next: data => {
           this._employees.set(data);

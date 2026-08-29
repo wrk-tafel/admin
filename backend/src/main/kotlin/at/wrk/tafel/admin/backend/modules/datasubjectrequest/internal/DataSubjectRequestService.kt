@@ -24,6 +24,7 @@ import at.wrk.tafel.admin.backend.modules.datasubjectrequest.DataSubjectMatchTyp
 import at.wrk.tafel.admin.backend.modules.household.HouseholdDataSubjectFacade
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
@@ -195,7 +196,8 @@ class DataSubjectRequestService(
      * left more than [MAX_RESULTS_PER_TYPE] candidates.
      */
     private fun searchEmployeesWithoutAccount(searchTerm: String): SearchResult {
-        val candidatesPage = employeeRepository.findBySearchInput(searchTerm, PageRequest.of(0, EMPLOYEE_CANDIDATE_BATCH_SIZE))
+        val spec = EmployeeEntity.Specs.orderById(Specification.allOf(listOfNotNull(EmployeeEntity.Specs.searchInputMatches(searchTerm))))
+        val candidatesPage = employeeRepository.findAll(spec, PageRequest.of(0, EMPLOYEE_CANDIDATE_BATCH_SIZE))
         val candidates: List<EmployeeEntity> = candidatesPage.content
         if (candidates.isEmpty()) {
             return SearchResult(items = emptyList(), truncated = false)

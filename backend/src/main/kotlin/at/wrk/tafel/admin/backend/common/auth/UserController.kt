@@ -359,12 +359,16 @@ class UserController(
         @RequestParam lockedOnly: Boolean? = null,
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
+        @RequestParam sortBy: String? = null,
+        @RequestParam sortDirection: String? = null,
     ): PagedResponse<LoginAttemptItem> {
         val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
         val pagedResult = loginAttemptService.findAll(
             pageRequest = pageRequest,
             searchInput = searchInput,
             lockedOnly = lockedOnly ?: false,
+            sortBy = sortBy,
+            sortDirection = sortDirection,
         )
 
         return PagedResponse(

@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Ergebnistabellen der Anmelde-Versuche, der Mitarbeiterliste und der Kinder-Auswertung lassen sich jetzt durch Klick auf eine Spaltenüberschrift auf- oder absteigend sortieren.
 - Der Scanner-Bildschirm zeigt die Kamera-Vorschau nach dem Wechsel von der Kopplungs- in die Scan-Ansicht jetzt zuverlässig an, statt möglicherweise ein eingefrorenes Bild zu zeigen.
 - Beim Verlassen des Scanner-Bildschirms wird die Kamera jetzt auch dann beendet, wenn die Scanner-Registrierung oder die Kamera-Erkennung zu diesem Zeitpunkt noch nicht abgeschlossen war.
 - Bei der Kunden-Annahme zeigt die Scanner-Statusanzeige "AKTIV" jetzt erst an, wenn die Verbindung zum Scanner tatsächlich hergestellt wurde, statt unabhängig vom tatsächlichen Verbindungsstatus.

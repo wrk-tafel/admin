@@ -85,10 +85,11 @@
                        [pageSizeOptions]="pageSizeOptions" [showFirstLastButtons]="true" (page)="onPageChange($event)"></mat-paginator>
 
         <div class="hidden md:block">
-          <table mat-table [dataSource]="rows()" class="w-full mt-4"
+          <table mat-table matSort matSortDisableClear [matSortActive]="sortActive()" [matSortDirection]="sortDirectionState()"
+                 (matSortChange)="onSortChange($event)" [dataSource]="rows()" class="w-full mt-4"
                  testid="children-table">
             <ng-container matColumnDef="householdId">
-              <th mat-header-cell *matHeaderCellDef>Haushalt</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Haushalt</th>
               <!-- Only the first row of a household carries its number: the rows are ordered by
                    household, so repeating it on every sibling would read as separate households. -->
               <td mat-cell *matCellDef="let entry">
@@ -103,15 +104,15 @@
               </td>
             </ng-container>
             <ng-container matColumnDef="firstname">
-              <th mat-header-cell *matHeaderCellDef>Vorname</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Vorname</th>
               <td mat-cell *matCellDef="let entry">{{ entry.firstname }}</td>
             </ng-container>
             <ng-container matColumnDef="lastname">
-              <th mat-header-cell *matHeaderCellDef>Nachname</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Nachname</th>
               <td mat-cell *matCellDef="let entry">{{ entry.lastname }}</td>
             </ng-container>
             <ng-container matColumnDef="age">
-              <th mat-header-cell *matHeaderCellDef>Alter</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Alter</th>
               <td mat-cell *matCellDef="let entry">{{ entry.age }}</td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="childrenColumns"></tr>
