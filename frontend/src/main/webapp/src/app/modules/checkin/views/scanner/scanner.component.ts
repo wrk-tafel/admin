@@ -100,7 +100,13 @@ export class ScannerComponent {
       void this.qrCodeReaderService.stop();
     });
 
-    void this.init();
+    // Triggered via effect(), not called straight from the constructor - the pairing phase's
+    // <video id="qrCodeReaderVideo"> has to exist before startScanning() can bind to it, and
+    // registration/camera enumeration can resolve fast enough that starting it any earlier
+    // occasionally raced ahead of the very first paint (the destroy cleanup above stays
+    // synchronous regardless, so a destroy before this effect ever runs still has nothing left
+    // running). init() reads no signals, so this only ever runs once.
+    effect(() => void this.init());
   }
 
   private async init(): Promise<void> {
