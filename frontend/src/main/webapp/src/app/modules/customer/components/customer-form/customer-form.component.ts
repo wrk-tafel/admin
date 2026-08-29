@@ -1,6 +1,6 @@
 import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
 import {applyEach, form, FormField, maxLength, required, validate} from '@angular/forms/signals';
-import {CountryApiService, CountryData} from '../../../../api/country-api.service';
+import {CountryApiService, CountryData, CountryListResult} from '../../../../api/country-api.service';
 import {CustomerData, Gender, QuickCheckPersonData} from '../../../../api/customer-api.service';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
@@ -10,6 +10,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
+import {MatDividerModule} from '@angular/material/divider';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatIcon} from '@angular/material/icon';
@@ -48,6 +49,7 @@ const MAIN_COUNTRY_KEY = 'main';
     MatInputModule,
     MatSelectModule,
     MatAutocompleteModule,
+    MatDividerModule,
     MatCheckboxModule,
     MatExpansionModule,
     MatIcon,
@@ -168,7 +170,10 @@ export class CustomerFormComponent {
   valid = computed(() => this.customerForm().valid());
   /** Whether the operator has actually typed anything - used for the sticky bar's dirty indicator and the unsaved-changes guard. */
   dirty = computed(() => this.customerForm().dirty());
-  countries = toSignal(this.countryApiService.getCountries(), {initialValue: [] as CountryData[]});
+  private readonly countryList = toSignal(this.countryApiService.getCountries(), {
+    initialValue: {countries: [], frequentlyUsedCount: 0} as CountryListResult
+  });
+  countries = computed(() => this.countryList().countries);
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
 
   /** Keys of the additional-person accordion panels that are currently open. */
@@ -265,7 +270,7 @@ export class CustomerFormComponent {
 
   mainCountryDisplayText = computed(() =>
     this.countryDisplayText(MAIN_COUNTRY_KEY, this.customerForm.country().value()));
-  mainFilteredCountries = computed(() => this.filterCountries(this.mainCountryDisplayText()));
+  mainCountryGroups = computed(() => this.groupCountries(this.mainCountryDisplayText()));
 
   onMainCountryInput(value: string) {
     this.setCountryFilterOverride(MAIN_COUNTRY_KEY, value);
@@ -286,8 +291,8 @@ export class CustomerFormComponent {
     return person ? this.countryDisplayText(person.key, person.country) : '';
   }
 
-  personFilteredCountries(index: number): CountryData[] {
-    return this.filterCountries(this.personCountryDisplayText(index));
+  personCountryGroups(index: number): CountryGroups {
+    return this.groupCountries(this.personCountryDisplayText(index));
   }
 
   onPersonCountryInput(index: number, value: string) {
@@ -319,9 +324,22 @@ export class CustomerFormComponent {
     return this.countryFilterOverrides().get(key) ?? (committed?.name ?? '');
   }
 
-  private filterCountries(text: string): CountryData[] {
+  /**
+   * The unfiltered dropdown groups countries into "frequently used" then the rest, split by a
+   * divider - once the operator has typed a filter query, that split stops meaning anything, so a
+   * matching search just returns a flat list instead.
+   */
+  private groupCountries(text: string): CountryGroups {
     const term = text.trim().toLowerCase();
-    return term ? this.countries().filter(country => country.name.toLowerCase().includes(term)) : this.countries();
+    if (term) {
+      return {frequentlyUsed: [], remaining: this.countries().filter(country => country.name.toLowerCase().includes(term))};
+    }
+    const countries = this.countries();
+    const frequentlyUsedCount = this.countryList().frequentlyUsedCount;
+    return {
+      frequentlyUsed: countries.slice(0, frequentlyUsedCount),
+      remaining: countries.slice(frequentlyUsedCount)
+    };
   }
 
   private setCountryFilterOverride(key: string | number, value: string | null) {
@@ -472,6 +490,15 @@ export class CustomerFormComponent {
   // Expose utility functions for template use
   protected readonly visibleErrorMessages = visibleErrorMessages;
 
+}
+
+/**
+ * A country autocomplete's options, split at the "frequently used" divider - `remaining` is the
+ * whole list once a filter query narrows it.
+ */
+export interface CountryGroups {
+  frequentlyUsed: CountryData[];
+  remaining: CountryData[];
 }
 
 export interface CustomerFormModel {

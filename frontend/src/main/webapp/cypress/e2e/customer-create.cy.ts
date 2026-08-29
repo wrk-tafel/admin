@@ -280,6 +280,20 @@ describe('Customer Creation', () => {
     cy.byTestId('countryInput').should('have.value', 'Deutschland');
   });
 
+  it('groups the unfiltered nationality dropdown into frequently used first, then the rest', () => {
+    cy.byTestId('countryInput').click();
+    cy.byTestId('countryInput-divider').should('exist');
+
+    // the frequently-used group (at most 5 - see CountryService.FREQUENTLY_USED_COUNT) comes before
+    // the divider, with at least one further option after it
+    cy.byTestId('countryInput-divider').prevAll('mat-option').should('have.length.of.at.most', 5);
+    cy.byTestId('countryInput-divider').nextAll('mat-option').its('length').should('be.greaterThan', 0);
+
+    // once a filter is typed, the split stops meaning anything - the divider disappears
+    cy.byTestId('countryInput').type('Deutsch');
+    cy.byTestId('countryInput-divider').should('not.exist');
+  });
+
   it('shows the unsaved-changes indicator once the form is dirty, and Speichern is never styled as danger while merely disabled', () => {
     cy.byTestId('unsaved-changes-indicator').should('not.exist');
     cy.byTestId('save-button').should('be.disabled').and('not.have.class', 'button-danger');

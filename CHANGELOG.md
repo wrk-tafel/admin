@@ -42,6 +42,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Nationalität lässt sich beim Anlegen oder Bearbeiten eines Kunden jetzt durch Eintippen aus der Länderliste suchen, statt nur über eine lange Auswahlliste durchgeblättert zu werden.
 - Die Schnellsuche (Strg+K) nennt jetzt im Suchfeld sowie über einen Kurzhinweis, dass sie auch nach der Kundennummer sucht, und bietet unter "Aktionen" zusätzlich den Download der Datenschutzerklärung für Mitarbeiter:innen an.
 - Der direkte Sprung zu einem Kunden oder Benutzer über eine reine Nummer erfolgt jetzt erst nach Enter oder Klick auf "Suchen", statt bereits während der Eingabe zu greifen und dadurch bei einer noch unvollständigen Nummer fälschlich zu einem anderen, kürzeren Datensatz zu springen.
+- Die Nationalitäts-Suche beim Anlegen oder Bearbeiten eines Kunden zeigt jetzt zuerst die am häufigsten verwendeten Länder, durch einen Trennstrich abgesetzt von der restlichen, alphabetisch sortierten Liste.
 
 ## [1.14.0] - 2026-08-29
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.
