@@ -503,19 +503,22 @@ internal class HouseholdConverterTest {
     }
 
     @Test
-    fun `an additional person id of 0 is treated as not-yet-persisted, not an unresolvable reference`() {
-        // no real stored person ever has id <= 0 (Postgres sequences start at 1) - some callers still
-        // send 0 rather than omitting the id entirely for a brand new additional person
-        val updatedHousehold = testHousehold.copy(
+    fun `create ignores any id carried by the request, even a value that collides with an existing household's person`() {
+        // a household being created has nothing to resolve an id against yet - some callers reuse a
+        // loop index (0, 1, 2, ...) as a placeholder id for each brand-new additional person instead
+        // of omitting it (see e.g. statistics-children.cy.ts's `id: index`), which must not be
+        // rejected, and must never be treated as a reference to an existing person elsewhere either
+        val household = testHouseholdForCreate.copy(
             persons = listOf(
-                testMainPerson,
-                testHousehold.additionalPersons()[0].copy(id = 0),
+                testMainPerson.copy(id = 0),
+                testHousehold.additionalPersons()[0].copy(id = 1),
+                testHousehold.additionalPersons()[1].copy(id = 2),
             ),
         )
 
-        val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1)
+        val result = converter.mapHouseholdToEntity(household)
 
-        assertThat(result.persons).hasSize(2)
-        assertThat(result.persons.first { !it.isMainPerson }.id).isNull()
+        assertThat(result.persons).hasSize(3)
+        assertThat(result.persons).allMatch { it.id == null }
     }
 }

@@ -99,13 +99,15 @@ class HouseholdConverter(
         // id is required to actually belong to this household.
         val storedPersonsById = householdEntity.persons.filter { it.id != null }.associateBy { it.id }
 
-        // Generated ids come from a Postgres sequence starting at 1, so no stored person ever has an
-        // id <= 0 - treated the same as "no id given" rather than an unresolvable reference. Kept for
-        // an as-yet-unpersisted additional person, whose placeholder id a caller may send as `0`
-        // rather than omitting it entirely (see e.g. customer-duplicates.cy.ts).
         val mappedPersons = householdUpdate.persons.map { person ->
+            // A household being created has no stored persons to resolve against at all - any id in
+            // the request is meaningless (there is nothing yet to hijack), so it is ignored rather
+            // than rejected. Some callers reuse a loop index as a placeholder id for a brand-new
+            // person on create (e.g. statistics-children.cy.ts's `id: index`), which would otherwise
+            // 400 for anything past the first entry.
             val existingEntity: PersonEntity? = when {
-                person.id != null && person.id > 0 -> storedPersonsById[person.id]
+                storedEntity == null -> null
+                person.id != null -> storedPersonsById[person.id]
                     ?: throw BusinessRuleException("Person (ID: ${person.id}) gehört nicht zu diesem Kunden!")
                 person.isMainPerson -> storedMainPerson
                 else -> null
