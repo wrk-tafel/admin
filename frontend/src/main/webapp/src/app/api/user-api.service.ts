@@ -42,7 +42,9 @@ export class UserApiService {
     searchInput?: string | null,
     enabled?: boolean | null,
     page?: number,
-    pageSize?: number
+    pageSize?: number,
+    sortBy?: string,
+    sortDirection?: string
   ): Observable<UserSearchResult> {
     let queryParams = new HttpParams();
     if (searchInput) {
@@ -56,6 +58,12 @@ export class UserApiService {
     }
     if (pageSize) {
       queryParams = queryParams.set('pageSize', pageSize);
+    }
+    if (sortBy) {
+      queryParams = queryParams.set('sortBy', sortBy);
+    }
+    if (sortDirection) {
+      queryParams = queryParams.set('sortDirection', sortDirection);
     }
     return this.http.get<UserSearchResult>('/users', {params: queryParams});
   }

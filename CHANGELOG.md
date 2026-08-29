@@ -56,6 +56,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Beim Speichern der E-Mail-Empfänger-Einstellungen wird ein unbekannter Mailtyp jetzt mit einem regulären Fehlerhinweis abgelehnt statt mit einem Serverfehler; eine bestehende Adresse kann dabei außerdem nicht mehr versehentlich einer anderen Mailtyp/Empfänger-Kategorie zugeordnet werden.
 - Das Blättern in einer Liste mit Seitennummerierung (u. a. Zugriffsprotokoll, Benutzerliste, Mitarbeiterliste) liefert bei der Seitenzahl 0 oder einer negativen Seitenzahl jetzt die erste Seite statt eines Serverfehlers.
 - Ein nicht antwortender Mailserver blockiert die geplanten Hintergrund-Jobs der Anwendung (u. a. E-Mail-Versand, Datenbereinigung) jetzt nicht mehr unbegrenzt lange.
+- Die Ergebnistabellen der Kunden- und Benutzer-Suche lassen sich jetzt durch Klick auf eine Spaltenüberschrift (Nr., Name, Geb. Datum, Ausgestellt am, Gültig bis bzw. Personalnummer, Status) auf- oder absteigend sortieren.
 
 ## [1.14.0] - 2026-08-29
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.

@@ -492,6 +492,41 @@ class HouseholdControllerTest {
     }
 
     @Test
+    fun `get households - sortBy and sortDirection are forwarded`() {
+        val testSearchResult = HouseholdSearchResult(
+            items = listOf(testHouseholdResponse),
+            totalCount = 123,
+            currentPage = 1,
+            totalPages = 10,
+            pageSize = 10,
+        )
+        every {
+            householdService.getHouseholds(
+                searchInput = null,
+                page = null,
+                filters = HouseholdSearchFilters(),
+                pageSize = null,
+                sortBy = "name",
+                sortDirection = "asc",
+            )
+        } returns testSearchResult
+
+        val response = controller.getHouseholds(sortBy = "name", sortDirection = "asc")
+
+        verify {
+            householdService.getHouseholds(
+                searchInput = null,
+                page = null,
+                filters = HouseholdSearchFilters(),
+                pageSize = null,
+                sortBy = "name",
+                sortDirection = "asc",
+            )
+        }
+        assertThat(response.items).hasSize(1)
+    }
+
+    @Test
     fun `get households - all filters default when omitted`() {
         val testSearchResult = HouseholdSearchResult(
             items = listOf(testHouseholdResponse),

@@ -212,12 +212,16 @@ class UserController(
         @RequestParam enabled: Boolean? = null,
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
+        @RequestParam sortBy: String? = null,
+        @RequestParam sortDirection: String? = null,
     ): PagedResponse<UserResponse> {
         val userSearchResult = userDetailsManager.loadUsers(
             searchInput = searchInput,
             enabled = enabled,
             page = page,
             pageSize = pageSize,
+            sortBy = sortBy,
+            sortDirection = sortDirection,
         )
         // One query for the whole page's lockout state rather than one per row - see
         // LoginAttemptService.getLockedUntil(Collection<String>).

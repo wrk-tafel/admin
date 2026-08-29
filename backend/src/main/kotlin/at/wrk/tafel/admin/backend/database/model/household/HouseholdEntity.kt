@@ -197,16 +197,57 @@ class HouseholdEntity(
              * Best match first while a search term is given, most recently updated first otherwise
              * (a plain filter-only search has no notion of a better hit). Ordering always ends on the
              * id so paging stays stable when two households score - or were updated - identically.
+             *
+             * A [sortBy]/[sortDirection] pair - a user clicking a sortable `mat-sort-header` column
+             * on the customer search screen - overrides all of that: it is what the user explicitly
+             * asked for, so it takes over as the primary order instead of merely breaking ties within
+             * it. [sortBy] takes the same column ids the frontend's `mat-sort-header`s use (`id`,
+             * `name`, `birthDate`, `issuedAt`, `validUntil`); an unrecognized or missing value falls
+             * back to the relevance/updatedAt default. `id` still closes out the order so paging stays
+             * stable when two households tie on the requested column.
              */
-            fun orderBySearchRelevance(searchTerm: String?, spec: Specification<HouseholdEntity>): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+            fun orderBySearchRelevance(
+                searchTerm: String?,
+                spec: Specification<HouseholdEntity>,
+                sortBy: String? = null,
+                sortDirection: String? = null,
+            ): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 val updatedAt: Expression<LocalDate> = root["updatedAt"]
                 val id: Expression<Long> = root["id"]
+                val ascending = "asc".equals(sortDirection, ignoreCase = true)
+
+                fun <T> CriteriaBuilder.orderBy(expression: Expression<T>) = if (ascending) asc(expression) else desc(expression)
 
                 val orders = buildList {
-                    searchTerm?.let {
-                        add(cb.desc(SearchTextSpecs.score(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], it)))
+                    when (sortBy) {
+                        "id" -> add(cb.orderBy(id))
+                        "birthDate" -> {
+                            val mainPerson = root.join<HouseholdEntity, PersonEntity>("mainPerson", JoinType.LEFT)
+                            val birthDate: Expression<LocalDate> = mainPerson["birthDate"]
+                            add(cb.orderBy(birthDate))
+                        }
+                        "issuedAt" -> {
+                            val createdAt: Expression<LocalDateTime> = root["createdAt"]
+                            add(cb.orderBy(createdAt))
+                        }
+                        "validUntil" -> {
+                            val validUntil: Expression<LocalDate> = root["validUntil"]
+                            add(cb.orderBy(validUntil))
+                        }
+                        "name" -> {
+                            val mainPerson = root.join<HouseholdEntity, PersonEntity>("mainPerson", JoinType.LEFT)
+                            val lastname: Expression<String> = mainPerson["lastname"]
+                            val firstname: Expression<String> = mainPerson["firstname"]
+                            add(cb.orderBy(lastname))
+                            add(cb.orderBy(firstname))
+                        }
+                        else -> {
+                            searchTerm?.let {
+                                add(cb.desc(SearchTextSpecs.score(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], it)))
+                            }
+                            add(cb.desc(updatedAt))
+                        }
                     }
-                    add(cb.desc(updatedAt))
                     add(cb.desc(id))
                 }
                 cq!!.orderBy(orders)

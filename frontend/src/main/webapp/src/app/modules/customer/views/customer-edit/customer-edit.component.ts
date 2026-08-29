@@ -118,7 +118,7 @@ export class CustomerEditComponent implements HasUnsavedChanges {
         }
         return this.customerApiService.searchCustomer(
           `${data!.lastname} ${data!.firstname}`,
-          null, null, null, null, null, null, null, undefined, undefined,
+          null, null, null, null, null, null, null, undefined, undefined, undefined, undefined,
           SUPPRESS_ERROR_TOAST_CONTEXT
         ).pipe(
           map(result => (result.items ?? []).filter(candidate =>

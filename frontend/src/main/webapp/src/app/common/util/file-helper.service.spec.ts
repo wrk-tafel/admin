@@ -26,12 +26,12 @@ describe('FileHelperService', () => {
   });
 
   afterEach(() => {
-    // A test that never advances the fake clock (e.g. because it only asserts on the
-    // synchronous part of downloadFile) would otherwise leave the deferred revokeObjectURL
-    // timer pending. Left unflushed, it fires later as a real callback - after this test's
-    // mocks are gone - and crashes as an unhandled error attributed to whatever spec happens
-    // to be running at that point. Flushing it here, while the mocks are still in place,
-    // guarantees it never outlives this test.
+    // Every test that calls downloadFile() must flush the deferred revokeObjectURL timer
+    // itself (inline, right after the call) - a pending fake timer left for afterEach to
+    // flush has been observed to still fire later as a real callback once the mocks below
+    // are gone, crashing as an unhandled error attributed to whatever spec happens to be
+    // running at that point. This is a backstop for a test that forgets to, not the primary
+    // mechanism.
     vi.runAllTimers();
     vi.useRealTimers();
     vi.restoreAllMocks();
@@ -46,6 +46,9 @@ describe('FileHelperService', () => {
 
     expect(createObjectURL).toHaveBeenCalledWith(data);
     expect(click).toHaveBeenCalledTimes(1);
+
+    // Flushed here, inline, rather than left to afterEach - see the note there.
+    vi.runAllTimers();
   });
 
   it('downloadFile sets the anchor href and download filename before clicking', () => {
@@ -57,6 +60,9 @@ describe('FileHelperService', () => {
     service.downloadFile('report.pdf', new Blob(['file content']));
 
     expect(click).toHaveBeenCalledTimes(1);
+
+    // Flushed here, inline, rather than left to afterEach - see the note there.
+    vi.runAllTimers();
   });
 
   it('downloadFile revokes the object URL only after the click was triggered', () => {
