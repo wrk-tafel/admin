@@ -1,6 +1,6 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {of} from 'rxjs';
+import {of, Subject} from 'rxjs';
 import dayjs from 'dayjs';
 import {provideRouter} from '@angular/router';
 import {provideCharts, withDefaultRegisterables} from 'ng2-charts';
@@ -163,6 +163,30 @@ describe('StatisticsChildrenComponent', () => {
     expect(component.chartLabel()).toBe('Verteilung nach Alter - 6 Jahre: 1, 7 Jahre: 1, 8 Jahre: 1');
     expect(component.chartData().labels).toEqual(['6', '7', '8']);
     expect(component.chartData().datasets[0].data).toEqual([1, 1, 1]);
+  });
+
+  // A fast second edit's response can arrive before the first, slower one's - the older response
+  // must never overwrite what the newer request already applied. See #3530.
+  it('a slower stale response never overwrites a newer one already applied', () => {
+    const firstResponse = new Subject<ChildrenSearchResult>();
+    const secondResult: ChildrenSearchResult = {...mockResult, totalCount: 99};
+
+    statisticsApiService.getChildrenData
+      .mockReturnValueOnce(firstResponse)
+      .mockReturnValueOnce(of(secondResult));
+
+    const fixture = TestBed.createComponent(StatisticsChildrenComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.filterForm.patchValue({ageMin: 0, ageMax: 3});
+    // The second, faster request has already resolved and been applied by the time the first,
+    // slower one finally answers.
+    firstResponse.next(mockResult);
+    firstResponse.complete();
+
+    expect(component.childrenData()).toEqual(secondResult);
+    expect(component.appliedFilter()).toEqual({ageMin: 0, ageMax: 3, referenceDate: today});
   });
 
   it('loads the requested page on paginator page change', () => {

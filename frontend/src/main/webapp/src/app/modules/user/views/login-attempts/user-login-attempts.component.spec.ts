@@ -6,7 +6,7 @@ import {UserLoginAttemptsComponent} from './user-login-attempts.component';
 import {LoginAttemptItem, LoginAttemptSettingsResponse, UserApiService} from '../../../../api/user-api.service';
 import {PagedResponse} from '../../../../common/api/paged-response';
 import {MatDialog} from '@angular/material/dialog';
-import {of, throwError} from 'rxjs';
+import {of, Subject, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('UserLoginAttemptsComponent', () => {
@@ -123,6 +123,32 @@ describe('UserLoginAttemptsComponent', () => {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(1, 10, 'hans', false);
+  });
+
+  // A slower load's response arriving after a faster, more recent one must never overwrite the
+  // list with a result for a page/filter that is no longer current. See #3530.
+  it('a slower stale load response never overwrites a newer one already applied', () => {
+    const firstResponse = new Subject<PagedResponse<LoginAttemptItem>>();
+    const secondResponse: PagedResponse<LoginAttemptItem> = {...pagedResponse, totalCount: 99};
+
+    (userApiMock.getLoginAttempts as any)
+      .mockReturnValueOnce(of(pagedResponse))
+      .mockReturnValueOnce(firstResponse)
+      .mockReturnValueOnce(of(secondResponse));
+
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['loadLoginAttempts'](1);
+    component['loadLoginAttempts'](2);
+
+    // The second, faster load has already resolved and been applied by the time the first,
+    // slower one finally answers.
+    firstResponse.next(pagedResponse);
+    firstResponse.complete();
+
+    expect(component['loginAttempts']()).toEqual(secondResponse);
   });
 
   it('the locked-only filter starts over at the first page', () => {

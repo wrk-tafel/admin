@@ -2,7 +2,7 @@ import {TestBed} from '@angular/core/testing';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {ActivatedRoute, Router, convertToParamMap} from '@angular/router';
-import {of, throwError} from 'rxjs';
+import {of, Subject, throwError} from 'rxjs';
 import {AuditLogComponent} from './audit-log.component';
 import {
   AuditApiService,
@@ -198,6 +198,31 @@ describe('AuditLogComponent', () => {
     component['search'](3);
 
     expect(auditApiMock.searchAuditEntries).toHaveBeenLastCalledWith(expect.anything(), 3, pagedResponse.pageSize);
+  });
+
+  // A slower search's response arriving after a faster, more recent one must never overwrite the
+  // list/announcement with a result that no longer matches the URL's filter params. See #3530.
+  it('a slower stale search response never overwrites a newer one already applied', () => {
+    const firstResponse = new Subject<AuditEntriesResponse>();
+    const secondResponse: AuditEntriesResponse = {...pagedResponse, totalCount: 42};
+
+    (auditApiMock.searchAuditEntries as any)
+      .mockReturnValueOnce(of(pagedResponse))
+      .mockReturnValueOnce(firstResponse)
+      .mockReturnValueOnce(of(secondResponse));
+
+    const component = createComponent().componentInstance;
+
+    component['search'](2);
+    component['search'](3);
+
+    // The second, faster search has already resolved and been applied by the time the first,
+    // slower one finally answers.
+    firstResponse.next(pagedResponse);
+    firstResponse.complete();
+
+    expect(component['entries']()).toEqual(secondResponse);
+    expect(component['searchAnnouncement']()).toBe('42 Einträge gefunden');
   });
 
   describe('applying a filter', () => {
