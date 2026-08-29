@@ -13,6 +13,13 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Ermittlung der Client-IP-Adresse (u. a. für Login-Sperren und die Anfragebegrenzung von Login/Support) vertraut jetzt nur mehr dem unmittelbaren Reverse-Proxy und lässt sich nicht mehr über einen gefälschten X-Forwarded-For-Header umgehen oder gezielt gegen eine fremde IP-Adresse missbrauchen.
 - Beim Registrieren einer Push-Benachrichtigung wird die vom Browser übermittelte Push-Adresse jetzt geprüft; unverschlüsselte oder auf ein internes Netzwerk zeigende Adressen werden abgelehnt.
 - Ein Login-Versuch ohne gültige Basic-Authentifizierung liefert jetzt wie ein fehlgeschlagener Login-Versuch einen regulären Fehlerstatus statt eines internen Serverfehlers.
+- Beim Bearbeiten eines Kunden wird jetzt immer nur der über die Adresse ausgewählte Kunde geändert, auch wenn das Bearbeitungsformular eine davon abweichende Kundennummer übermittelt.
+- Beim Bearbeiten eines Kunden wird jetzt verhindert, dass eine im Formular übermittelte Personen-ID einer Person zugeordnet wird, die nicht zu diesem Kunden gehört, oder dass beim Tausch des Hauptbeziehers mit einer weiteren Person eine der beiden Personen verloren geht.
+- Beim Anlegen oder Bearbeiten eines Kunden wird jetzt sichergestellt, dass genau eine Person als Hauptbezieher markiert ist, statt ohne Hauptbezieher gespeichert zu werden oder erst später mit einem Serverfehler zu scheitern.
+- Die Filter der Kunden-Suche (z. B. "Gültig", "Gesperrt", "Nachbearbeitung nötig") liefern jetzt auch bei einer negativen Auswahl das korrekte Ergebnis, statt in beiden Fällen dieselbe (positive) Trefferliste zu zeigen.
+- Das Stammdatenblatt-PDF eines Kunden mit "Nachbearbeitung nötig" schlägt jetzt nicht mehr mit einem Serverfehler fehl, wenn eine weitere Person keinen Vor- oder Nachnamen hat - stattdessen wird wie bei den übrigen Feldern "-" angezeigt.
+- Der Datenexport (DSGVO) eines Kunden verwendet für jedes enthaltene Dokument jetzt nur mehr den reinen Dateinamen als Eintrag im ZIP-Archiv, auch wenn ein vor längerer Zeit hochgeladenes Dokument noch einen vollständigen Pfad gespeichert hat.
+- Beim Anlegen oder Bearbeiten eines Mitarbeiters wird eine Personalnummer mit führenden oder folgenden Leerzeichen jetzt korrekt auf Duplikate geprüft, statt fälschlich als frei zu gelten oder mit einem Serverfehler zu scheitern.
 
 ## [1.14.0] - 2026-08-29
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.

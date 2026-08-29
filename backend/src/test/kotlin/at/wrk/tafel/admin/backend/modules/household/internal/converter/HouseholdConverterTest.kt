@@ -6,10 +6,10 @@ import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
-import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
 import at.wrk.tafel.admin.backend.modules.household.HouseholdIssuer
 import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
@@ -23,6 +23,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -40,9 +41,6 @@ internal class HouseholdConverterTest {
 
     @RelaxedMockK
     private lateinit var householdRepository: HouseholdRepository
-
-    @RelaxedMockK
-    private lateinit var personRepository: PersonRepository
 
     @RelaxedMockK
     private lateinit var countryRepository: CountryRepository
@@ -122,6 +120,14 @@ internal class HouseholdConverterTest {
             ),
         ),
     )
+
+    /**
+     * Person ids are only ever resolved against a stored household's own persons (see
+     * [HouseholdConverter.mapHouseholdToEntity]), so a create request - which has no stored household
+     * to resolve against - never carries one, same as the real frontend request
+     * (`customer-api.service.ts`'s `mapCustomerToHousehold`).
+     */
+    private val testHouseholdForCreate = testHousehold.copy(persons = testHousehold.persons.map { it.copy(id = null) })
 
     private val testHouseholdEntity1 = run {
         val household = HouseholdEntity(householdId = 100, validUntil = LocalDate.now(), locked = false).apply {
@@ -221,11 +227,6 @@ internal class HouseholdConverterTest {
 
         every { userRepository.findByUsername(testUser.username) } returns testUserEntity
         every { countryRepository.findById(testCountry.id) } returns Optional.of(testCountry1)
-
-        every { personRepository.findById(any()) } returns Optional.empty()
-        testHouseholdEntity1.persons.forEach { person ->
-            every { personRepository.findById(person.id!!) } returns Optional.of(person)
-        }
     }
 
     @AfterEach
@@ -297,7 +298,7 @@ internal class HouseholdConverterTest {
 
     @Test
     fun `map to new entity`() {
-        val result = converter.mapHouseholdToEntity(testHousehold)
+        val result = converter.mapHouseholdToEntity(testHouseholdForCreate)
 
         assertThat(result.householdId).isEqualTo(100)
         assertThat(result.addressStreet).isEqualTo("Test-Straße")
@@ -403,7 +404,7 @@ internal class HouseholdConverterTest {
 
     @Test
     fun `create household has no prolongedAt`() {
-        val result = converter.mapHouseholdToEntity(testHousehold)
+        val result = converter.mapHouseholdToEntity(testHouseholdForCreate)
 
         assertThat(result.prolongedAt).isNull()
     }
@@ -429,6 +430,7 @@ internal class HouseholdConverterTest {
         val updatedHousehold = testHousehold.copy(
             locked = false,
             lockReason = null,
+            persons = listOf(testMainPerson.copy(id = 20)),
         )
 
         val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity2)
@@ -441,11 +443,11 @@ internal class HouseholdConverterTest {
 
     @Test
     fun `create household with income zero is set to null`() {
-        val household = testHousehold.copy(
+        val household = testHouseholdForCreate.copy(
             persons = listOf(
-                testMainPerson.copy(income = BigDecimal.ZERO),
-                testHousehold.additionalPersons()[0].copy(income = BigDecimal.ZERO),
-                testHousehold.additionalPersons()[1],
+                testMainPerson.copy(id = null, income = BigDecimal.ZERO),
+                testHousehold.additionalPersons()[0].copy(id = null, income = BigDecimal.ZERO),
+                testHousehold.additionalPersons()[1].copy(id = null),
             ),
         )
 
@@ -453,5 +455,50 @@ internal class HouseholdConverterTest {
 
         assertThat(result.persons.first { it.isMainPerson }.income).isNull()
         assertThat(result.persons.first { !it.isMainPerson }.income).isNull()
+    }
+
+    @Test
+    fun `update household rejects a person id belonging to another household`() {
+        val updatedHousehold = testHousehold.copy(
+            persons = listOf(
+                testMainPerson,
+                // id 20 belongs to testHouseholdEntity2's main person, not this (testHouseholdEntity1) household
+                testHousehold.additionalPersons()[0].copy(id = 20),
+            ),
+        )
+
+        assertThatThrownBy { converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1) }
+            .isInstanceOf(BusinessRuleException::class.java)
+            .hasMessageContaining("20")
+    }
+
+    @Test
+    fun `update household never renumbers the stored household even when the request carries a different id`() {
+        val updatedHousehold = testHousehold.copy(id = 999)
+
+        val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1)
+
+        assertThat(result.householdId).isEqualTo(testHouseholdEntity1.householdId)
+    }
+
+    @Test
+    fun `update household swaps the main person between two existing persons`() {
+        val newMainPersonId = 2L
+        val oldMainPersonId = 1L
+
+        val updatedHousehold = testHousehold.copy(
+            persons = listOf(
+                testHousehold.additionalPersons()[0].copy(id = newMainPersonId, isMainPerson = true),
+                testMainPerson.copy(id = oldMainPersonId, isMainPerson = false),
+                testHousehold.additionalPersons()[1],
+            ),
+        )
+
+        val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1)
+
+        assertThat(result.persons).hasSize(3)
+        assertThat(result.persons.count { it.isMainPerson }).isEqualTo(1)
+        assertThat(result.persons.first { it.id == newMainPersonId }.isMainPerson).isTrue()
+        assertThat(result.persons.first { it.id == oldMainPersonId }.isMainPerson).isFalse()
     }
 }

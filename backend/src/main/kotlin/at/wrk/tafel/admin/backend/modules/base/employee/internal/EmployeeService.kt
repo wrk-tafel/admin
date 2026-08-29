@@ -80,17 +80,18 @@ class EmployeeService(
 
     @Transactional
     fun saveEmployee(employeeRequest: EmployeeRequest): EmployeeResponse {
-        if (employeeRepository.existsByPersonnelNumber(employeeRequest.personnelNumber)) {
-            throw ConflictException("Mitarbeiter ${employeeRequest.personnelNumber} ist bereits vorhanden!")
+        val personnelNumber = employeeRequest.personnelNumber.trim()
+        if (employeeRepository.existsByPersonnelNumber(personnelNumber)) {
+            throw ConflictException("Mitarbeiter $personnelNumber ist bereits vorhanden!")
         }
 
         val employeeEntity = EmployeeEntity(
-            personnelNumber = employeeRequest.personnelNumber.trim(),
+            personnelNumber = personnelNumber,
             firstname = employeeRequest.firstname.trim(),
             lastname = employeeRequest.lastname.trim(),
         )
         employeeRepository.save(employeeEntity)
-        return mapEntityToEmployee(employeeRepository.findByPersonnelNumber(employeeRequest.personnelNumber)!!)
+        return mapEntityToEmployee(employeeRepository.findByPersonnelNumber(personnelNumber)!!)
     }
 
     @Transactional
@@ -98,11 +99,12 @@ class EmployeeService(
         val employeeEntity = employeeRepository.findByIdOrNull(employeeId)
             ?: throw NotFoundException("Employee with id $employeeId not found")
 
-        if (employeeRepository.existsByPersonnelNumberAndIdNot(employeeRequest.personnelNumber, employeeId)) {
-            throw ConflictException("Mitarbeiter ${employeeRequest.personnelNumber} ist bereits vorhanden!")
+        val personnelNumber = employeeRequest.personnelNumber.trim()
+        if (employeeRepository.existsByPersonnelNumberAndIdNot(personnelNumber, employeeId)) {
+            throw ConflictException("Mitarbeiter $personnelNumber ist bereits vorhanden!")
         }
 
-        employeeEntity.personnelNumber = employeeRequest.personnelNumber.trim()
+        employeeEntity.personnelNumber = personnelNumber
         employeeEntity.firstname = employeeRequest.firstname.trim()
         employeeEntity.lastname = employeeRequest.lastname.trim()
 

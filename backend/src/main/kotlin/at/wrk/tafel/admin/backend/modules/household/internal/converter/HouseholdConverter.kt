@@ -6,17 +6,16 @@ import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
-import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
 import at.wrk.tafel.admin.backend.modules.household.HouseholdIssuer
 import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.PersonGender
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -26,7 +25,6 @@ import java.time.LocalDateTime
 @Component
 class HouseholdConverter(
     private val householdRepository: HouseholdRepository,
-    private val personRepository: PersonRepository,
     private val countryRepository: CountryRepository,
     private val userRepository: UserRepository,
 ) {
@@ -40,13 +38,15 @@ class HouseholdConverter(
     fun mapHouseholdToEntity(householdUpdate: HouseholdRequest, storedEntity: HouseholdEntity? = null): HouseholdEntity {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val userEntity = userRepository.findByUsername(user.username!!)
-        val householdId = householdUpdate.id ?: householdRepository.getNextHouseholdSequenceValue()
+        // A household's business number is immutable once assigned - the update path (storedEntity
+        // given) never touches it, however householdUpdate.id was supplied, so a request body can
+        // never renumber or hijack another household's number (see HouseholdController.updateHousehold,
+        // which also rejects a body id that disagrees with the path id outright).
         val householdEntity = storedEntity ?: HouseholdEntity(
-            householdId = householdId,
+            householdId = householdUpdate.id ?: householdRepository.getNextHouseholdSequenceValue(),
             validUntil = householdUpdate.validUntil ?: LocalDate.now(),
         )
 
-        householdEntity.householdId = householdId
         householdEntity.issuer = householdEntity.issuer ?: userEntity!!.employee
         householdEntity.addressStreet = householdUpdate.address.street?.trim()
         householdEntity.addressHouseNumber = householdUpdate.address.houseNumber?.trim()
@@ -91,12 +91,20 @@ class HouseholdConverter(
         // The main person row is always updated in place (never removed and re-created), so that
         // households.main_person_id never points at a row scheduled for orphan removal.
         val storedMainPerson = householdEntity.persons.firstOrNull { it.isMainPerson }
+        // A person id is only ever resolved against this household's own, already-loaded persons -
+        // never a global lookup - so a request can neither re-parent another household's person onto
+        // this one nor point two request entries at the same stored row. The frontend never sends the
+        // main person's own id (see customer-api.service.ts's mapCustomerToHousehold), so a
+        // main-person entry without one still falls back to the stored main person row; every other
+        // id is required to actually belong to this household.
+        val storedPersonsById = householdEntity.persons.filter { it.id != null }.associateBy { it.id }
 
         val mappedPersons = householdUpdate.persons.map { person ->
-            val existingEntity: PersonEntity? = if (person.isMainPerson) {
-                storedMainPerson ?: person.id?.let { personRepository.findByIdOrNull(it) }
-            } else {
-                person.id?.let { personRepository.findByIdOrNull(it) }
+            val existingEntity: PersonEntity? = when {
+                person.id != null -> storedPersonsById[person.id]
+                    ?: throw BusinessRuleException("Person (ID: ${person.id}) gehört nicht zu diesem Kunden!")
+                person.isMainPerson -> storedMainPerson
+                else -> null
             }
             val personEntity = existingEntity ?: PersonEntity(
                 household = householdEntity,
