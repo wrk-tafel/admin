@@ -413,6 +413,31 @@ internal class DataSubjectRequestServiceTest {
         verify(exactly = 0) { employeeFacade.delete(any()) }
     }
 
+    /**
+     * A pre-existing duplicate link - two `users` rows pointing at the same employee, the defect
+     * issue #3522's [at.wrk.tafel.admin.backend.common.auth.UserController] fix now prevents going
+     * forward - must not make [employeeFacade]'s own [at.wrk.tafel.admin.backend.modules.base.exception.ConflictException]
+     * ("Mitarbeiter hat ein Benutzerkonto...") escape [DataSubjectRequestService.delete]: that method
+     * is one transaction, so an uncaught exception here would roll back every other match in the same
+     * request too, not just this one.
+     */
+    @Test
+    fun `delete - user account deletion keeps a linked employee still referenced by another user account`() {
+        authenticateWith("DATA_SUBJECT_REQUESTS", "USER_MANAGEMENT")
+
+        val employee = EmployeeEntity(personnelNumber = "00001", firstname = "Erika", lastname = "Musterfrau").apply { id = 10 }
+        val userEntity = UserEntity(username = "emusterfrau", password = "hash", employee = employee, enabled = true).apply { id = 42 }
+        every { userRepository.findById(42) } returns java.util.Optional.of(userEntity)
+        every { userDetailsManager.deleteUserById(42) } returns true
+        every { employeeRepository.isReferencedOutsideUserAccounts(10) } returns false
+        every { userRepository.existsByEmployeeId(10) } returns true
+
+        val result = service.delete(listOf(DataSubjectMatch(type = DataSubjectMatchType.USER_ACCOUNT, id = 42)))
+
+        assertThat(result.results.single().outcome).isEqualTo(DataSubjectDeleteOutcome.DELETED)
+        verify(exactly = 0) { employeeFacade.delete(any()) }
+    }
+
     @Test
     fun `delete - unknown user account match leaves any linked employee alone`() {
         authenticateWith("DATA_SUBJECT_REQUESTS", "USER_MANAGEMENT")

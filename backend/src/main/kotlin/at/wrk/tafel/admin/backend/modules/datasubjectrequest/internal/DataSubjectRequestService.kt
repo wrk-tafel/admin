@@ -251,12 +251,23 @@ class DataSubjectRequestService(
      * driver/co-driver, or a route stop completion's recorder are still-live records, not abandoned
      * personal data, so cascading into those is left to `EmployeeRetentionService`'s own age-gated
      * sweep rather than forced here.
+     *
+     * Also checked: whether another, still-existing user account is linked to the same employee.
+     * `users.employee_id` is meant to be one-to-one (see `EmployeeService.deleteEmployee`'s KDoc), but
+     * a pre-existing duplicate link predating that invariant would otherwise make `employeeFacade.delete`
+     * throw a `ConflictException` here, which - this whole method being one transaction (see [delete]'s
+     * KDoc) - would roll back every other match in the request too, not just this one. The employee is
+     * simply kept in that case, exactly as it would be for any other still-live reference.
      */
     private fun deleteUserAndLinkedEmployee(userId: Long): Boolean {
         val employeeId = userRepository.findById(userId).map { it.employee.id }.orElse(null)
         val userDeleted = userDetailsManager.deleteUserById(userId)
 
-        if (userDeleted && employeeId != null && !employeeRepository.isReferencedOutsideUserAccounts(employeeId)) {
+        if (userDeleted &&
+            employeeId != null &&
+            !employeeRepository.isReferencedOutsideUserAccounts(employeeId) &&
+            !userRepository.existsByEmployeeId(employeeId)
+        ) {
             employeeFacade.delete(employeeId)
             logger.info("Deleted employee {} linked to user account {} as part of a data-subject-request erasure", employeeId, userId)
         }
