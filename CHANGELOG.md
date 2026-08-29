@@ -44,6 +44,11 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Schnellsuche (Strg+K) nennt jetzt im Suchfeld sowie über einen Kurzhinweis, dass sie auch nach der Kundennummer sucht, und bietet unter "Aktionen" zusätzlich den Download der Datenschutzerklärung für Mitarbeiter:innen an.
 - Der direkte Sprung zu einem Kunden oder Benutzer über eine reine Nummer erfolgt jetzt erst nach Enter oder Klick auf "Suchen", statt bereits während der Eingabe zu greifen und dadurch bei einer noch unvollständigen Nummer fälschlich zu einem anderen, kürzeren Datensatz zu springen.
 - Die Nationalitäts-Suche beim Anlegen oder Bearbeiten eines Kunden zeigt jetzt zuerst die am häufigsten verwendeten Länder, durch einen Trennstrich abgesetzt von der restlichen, alphabetisch sortierten Liste.
+- Beim Löschen eines Kunden-Dokuments bzw. beim Importieren einer Scanner-Datei wird die Datei jetzt erst von der Festplatte entfernt, wenn die zugehörige Datenbank-Änderung tatsächlich abgeschlossen ist, statt dass ein anschließend fehlschlagender Vorgang eine bereits gelöschte Datei oder einen verlorenen Scan hinterlässt.
+- Das Bearbeiten eines statischen Werts (z. B. einer Einkommensgrenze) schlägt jetzt mit einem regulären Fehlerhinweis fehl, wenn dieser Wert zwischenzeitlich bereits durch eine andere, gleichzeitige Änderung ersetzt wurde, statt zwei gleichzeitig gültige Einträge für denselben Wert anzulegen.
+- Beim Speichern der E-Mail-Empfänger-Einstellungen wird ein unbekannter Mailtyp jetzt mit einem regulären Fehlerhinweis abgelehnt statt mit einem Serverfehler; eine bestehende Adresse kann dabei außerdem nicht mehr versehentlich einer anderen Mailtyp/Empfänger-Kategorie zugeordnet werden.
+- Das Blättern in einer Liste mit Seitennummerierung (u. a. Zugriffsprotokoll, Benutzerliste, Mitarbeiterliste) liefert bei der Seitenzahl 0 oder einer negativen Seitenzahl jetzt die erste Seite statt eines Serverfehlers.
+- Ein nicht antwortender Mailserver blockiert die geplanten Hintergrund-Jobs der Anwendung (u. a. E-Mail-Versand, Datenbereinigung) jetzt nicht mehr unbegrenzt lange.
 - Die Ergebnistabellen der Kunden- und Benutzer-Suche lassen sich jetzt durch Klick auf eine Spaltenüberschrift (Nr., Name, Geb. Datum, Ausgestellt am, Gültig bis bzw. Personalnummer, Status) auf- oder absteigend sortieren.
 
 ## [1.14.0] - 2026-08-29

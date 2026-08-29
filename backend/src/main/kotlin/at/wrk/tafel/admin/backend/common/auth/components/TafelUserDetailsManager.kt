@@ -142,7 +142,7 @@ class TafelUserDetailsManager(
         sortBy: String? = null,
         sortDirection: String? = null,
     ): UserSearchResult {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
         val searchTerm = SearchTextSpecs.normalize(searchInput)
 
         val spec = orderBySearchRelevance(

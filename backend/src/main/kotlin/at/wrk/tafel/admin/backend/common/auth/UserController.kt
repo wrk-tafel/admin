@@ -360,7 +360,7 @@ class UserController(
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
     ): PagedResponse<LoginAttemptItem> {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
         val pagedResult = loginAttemptService.findAll(
             pageRequest = pageRequest,
             searchInput = searchInput,
