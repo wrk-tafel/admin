@@ -137,7 +137,7 @@ Ist die Seitenleiste eingeklappt, sind nur noch die Icons sichtbar. Fährt man m
 Mit der Tastenkombination **Strg+K** (bzw. **Cmd+K** auf macOS) – oder über das Lupen-Symbol oben links in der Kopfzeile – öffnet sich von jeder Seite aus die **Schnellsuche**. Während der Eingabe werden bis zu drei Arten von Treffern angezeigt:
 
 - **Navigation**: alle Menüpunkte, deren Name den Suchbegriff enthält. Ein Klick wechselt direkt auf die jeweilige Seite.
-- **Aktionen**: derzeit die **Datenschutzerklärung (Vorlage) herunterladen** – dieselbe Vorlage ohne Kundenbezug wie bei der [Kunden-Suche](kunden.md#kunden-suchen), von jeder Seite aus erreichbar. Ein Klick lädt die Datei direkt herunter, ohne die aktuelle Seite zu verlassen.
+- **Aktionen**: die **Datenschutzerklärung (Vorlage) herunterladen** – dieselbe Vorlage ohne Kundenbezug wie bei der [Kunden-Suche](kunden.md#kunden-suchen) – sowie die **Datenschutzerklärung (Mitarbeiter) herunterladen** – dieselbe wie im Benutzermenü (siehe oben) –, beide von jeder Seite aus erreichbar. Ein Klick lädt die jeweilige Datei direkt herunter, ohne die aktuelle Seite zu verlassen.
 - **Kunden**: ab zwei Zeichen wird zusätzlich in den Kunden gesucht – nach Kundennummer, Namen (auch der weiteren Personen im Haushalt), Adresse, Telefonnummer oder E-Mail, mit derselben Fehlertoleranz wie die Kunden-Suche (siehe [Kunden](kunden.md)). Ein Klick öffnet direkt die Detailseite des Kunden.
 
 ![Schnellsuche](images/schnellsuche.jpg)

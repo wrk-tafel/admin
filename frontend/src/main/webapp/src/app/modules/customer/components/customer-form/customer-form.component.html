@@ -46,12 +46,18 @@
         </div>
         <mat-form-field class="w-full mb-2">
           <mat-label>Nationalität</mat-label>
-          <mat-select testid="countryInput" [formField]="customerForm.country" [compareWith]="compareCountry">
-            @for (countryItem of countries(); track countryItem.id) {
+          <input matInput testid="countryInput" type="text" autocomplete="off"
+                 [matAutocomplete]="mainCountryAutocomplete"
+                 [ngModel]="mainCountryDisplayText()"
+                 (ngModelChange)="onMainCountryInput($event)"
+                 (blur)="onMainCountryBlur()">
+          <mat-autocomplete #mainCountryAutocomplete="matAutocomplete"
+                            (optionSelected)="onMainCountrySelected($event.option.value)">
+            @for (countryItem of mainFilteredCountries(); track countryItem.id) {
               <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
                 {{countryItem.name}}</mat-option>
             }
-          </mat-select>
+          </mat-autocomplete>
           <mat-icon matPrefix svgIcon="flag" class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
           @for (errorMessage of visibleErrorMessages(customerForm.country()); track $index) {
             <mat-error>{{errorMessage}}</mat-error>
@@ -258,13 +264,18 @@
                     </div>
                     <mat-form-field class="w-full mt-2">
                       <mat-label>Nationalität</mat-label>
-                      <mat-select testid="countryInput" [formField]="personField(i).country"
-                                  [compareWith]="compareCountry">
-                        @for (countryItem of countries(); track countryItem.id) {
+                      <input matInput testid="countryInput" type="text" autocomplete="off"
+                             [matAutocomplete]="personCountryAutocomplete"
+                             [ngModel]="personCountryDisplayText(i)"
+                             (ngModelChange)="onPersonCountryInput(i, $event)"
+                             (blur)="onPersonCountryBlur(i)">
+                      <mat-autocomplete #personCountryAutocomplete="matAutocomplete"
+                                        (optionSelected)="onPersonCountrySelected(i, $event.option.value)">
+                        @for (countryItem of personFilteredCountries(i); track countryItem.id) {
                           <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
                             {{countryItem.name}}</mat-option>
                         }
-                      </mat-select>
+                      </mat-autocomplete>
                       <mat-icon matPrefix svgIcon="flag" class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
                       @for (errorMessage of visibleErrorMessages(personField(i).country()); track $index) {
                         <mat-error>{{errorMessage}}</mat-error>
