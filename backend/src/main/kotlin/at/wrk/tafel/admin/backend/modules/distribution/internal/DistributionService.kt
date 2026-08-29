@@ -158,7 +158,7 @@ class DistributionService(
         val existingTicket = distribution.households.firstOrNull { it.ticketNumber == ticketNumber }
 
         // Can't assign to another household if already assigned but ok if it's the same household (update costContributionPaid flag)
-        if (existingTicket != null && existingHousehold?.household?.id != householdId) {
+        if (existingTicket != null && existingTicket.household.householdId != householdId) {
             throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")
         }
 
@@ -412,7 +412,12 @@ class DistributionService(
             }
 
             val currentDistribution = requiresNewTemplate.execute {
-                val currentDistribution = distributionRepository.getCurrentDistribution()!!
+                // The interceptor's @TafelActiveDistributionRequired check runs before this lock is
+                // acquired, so a second close request can still reach here after a first one already
+                // committed - getCurrentDistribution() is then null. A ConflictException here surfaces
+                // as 409 instead of the NPE an unguarded `!!` would produce.
+                val currentDistribution = distributionRepository.getCurrentDistribution()
+                    ?: throw ConflictException("Ausgabe bereits geschlossen!")
                 currentDistribution.endedAt = LocalDateTime.now()
                 currentDistribution.endedByUser =
                     authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
@@ -483,7 +488,7 @@ class DistributionService(
             .size + 1
         val countInfants = household.additionalPersons()
             .filterNot { it.excludeFromHousehold }
-            .count { Period.between(it.birthDate, referenceDate).years < 3 }
+            .count { it.birthDate != null && Period.between(it.birthDate, referenceDate).years < 3 }
 
         HouseholdListItem(
             ticketNumber = distributionHouseholdEntity.ticketNumber,
@@ -542,16 +547,20 @@ class DistributionService(
      * opens a read-write transaction per mail to queue it (see `DistributionClosedEventListener`). A
      * transaction here would be the one those participate in - and a read-only one, as this method only
      * reads its own data, would make every mail fail on `mail_outbox`'s sequence. Nothing here needs a
-     * transaction of its own anyway: the fetch below is an existence check whose result is discarded,
-     * and no lazy association is touched. Same shape as the automatic path, where
-     * `DistributionEndedEventListener` publishes the event after its transaction has committed.
+     * transaction of its own anyway: `endedAt` is a plain column on the entity just fetched, not a lazy
+     * association. Same shape as the automatic path, where `DistributionEndedEventListener` publishes
+     * the event after its transaction has committed.
      */
     fun sendMails(distributionId: Long) {
-        distributionRepository.findByIdOrNull(distributionId)
+        val distribution = distributionRepository.findByIdOrNull(distributionId)
             ?: throw NotFoundException("Ausgabe nicht gefunden!")
 
+        if (distribution.endedAt == null) {
+            throw ConflictException("Ausgabe ist noch nicht beendet!")
+        }
+
         try {
-            eventPublisher.publishEvent(DistributionClosedEvent(distributionId))
+            eventPublisher.publishEvent(DistributionClosedEvent(distributionId, resend = true))
         } catch (e: Exception) {
             logger.error("Publishing DistributionClosedEvent failed", e)
             throw e

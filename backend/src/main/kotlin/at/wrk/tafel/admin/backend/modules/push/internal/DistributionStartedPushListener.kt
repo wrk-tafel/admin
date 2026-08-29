@@ -18,8 +18,9 @@ import java.time.format.DateTimeFormatter
  * which must not run on the thread that started the distribution: a synchronous listener would keep
  * the caller's request - and its transaction - open across that whole fan-out, and would let a push
  * service that is merely slow or unreachable fail the "Ausgabe starten" request itself. The
- * `DistributionClosedEvent` counterpart, [DistributionClosedPushListener], needs no `@Async` of its
- * own: it is already reached from `distribution`'s async post-processing chain.
+ * `DistributionClosedEvent` counterpart, [DistributionClosedPushListener], is `@Async` for the same
+ * reason - it additionally has to be, since a manual mail resend reaches it synchronously from the
+ * request thread, not just from `distribution`'s async post-processing chain.
  *
  * Being `@Async` on an `@EventListener` works without a self-invocation caveat here, since the
  * publisher (`DistributionService`) and this listener are different beans - Spring's proxy for this

@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 
 interface DistributionRepository : JpaRepository<DistributionEntity, Long> {
 
-    fun findFirstByOrderByIdDesc(): DistributionEntity?
+    fun findFirstByEndedAtIsNullOrderByStartedAtDesc(): DistributionEntity?
 
     fun findFirstByEndedAtIsNotNullOrderByStartedAtDesc(): DistributionEntity?
 
@@ -45,11 +45,13 @@ interface DistributionRepository : JpaRepository<DistributionEntity, Long> {
 }
 
 /**
- * There is no `active` boolean column - a distribution is "current" purely by data shape: the row
- * with the highest id, and only if its `endedAt` is still null. Only one distribution can ever be
- * open at a time; once the latest one is closed, this returns null until a new one is created.
+ * There is no `active` boolean column - a distribution is "current" purely by data shape: the
+ * still-open (`endedAt is null`) row with the latest `startedAt`. Only one distribution can ever be
+ * open at a time; once it is closed, this returns null until a new one is created.
+ *
+ * Deliberately *not* the row with the highest id: `distributions_seq` increments by 50
+ * (`R__00070_migrate_id_sequences.sql`) so each application instance holds its own id block, and two
+ * instances interleave - an id ordering can therefore pick an already-ended distribution from one
+ * instance's block over the actually-open one from another's.
  */
-fun DistributionRepository.getCurrentDistribution(): DistributionEntity? {
-    val latest = findFirstByOrderByIdDesc()
-    return if (latest?.endedAt == null) latest else null
-}
+fun DistributionRepository.getCurrentDistribution(): DistributionEntity? = findFirstByEndedAtIsNullOrderByStartedAtDesc()

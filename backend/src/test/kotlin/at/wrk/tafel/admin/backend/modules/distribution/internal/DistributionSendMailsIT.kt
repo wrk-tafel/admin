@@ -158,10 +158,14 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
             householdRepository.saveAndFlush(household)
             householdId = household.id!!
 
-            // A past distribution rather than today's: that is what the statistics exports bucket
-            // ages against, and re-sending its mails is the flow this test stands in for.
+            // A past, already-closed distribution rather than today's: that is what the statistics
+            // exports bucket ages against, and re-sending its mails - only possible once closed
+            // (sendMails() 409s on an open one) - is the flow this test stands in for.
             val distribution = distributionRepository.saveAndFlush(
-                createDistribution(testUser).apply { startedAt = LocalDateTime.now().minusYears(3) },
+                createDistribution(testUser).apply {
+                    startedAt = LocalDateTime.now().minusYears(3)
+                    endedAt = startedAt.plusHours(2)
+                },
             )
             distribution.statistic = DistributionStatisticEntity(distribution = distribution)
             distributionRepository.saveAndFlush(distribution)

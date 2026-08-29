@@ -72,7 +72,7 @@ class RouteGuidanceServiceTest {
         every { routeStopCompletionRepository.findByRouteStopIdAndCompletionDate(any(), any()) } returns null
         every { routeStopCompletionRepository.saveAndFlush(any()) } answers { firstArg() as RouteStopCompletionEntity }
         every { userRepository.findByUsername(any()) } returns testUserEntity
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
         every {
             foodCollectionRepository.findFirstByRouteIdAndDistributionIdNotOrderByDistributionStartedAtDescIdDesc(any(), any())
         } returns null
@@ -191,7 +191,7 @@ class RouteGuidanceServiceTest {
     @Test
     fun `guidance skips the running distribution when looking for the last trip`() {
         val currentDistribution = distribution(id = 77, startedAt = LocalDateTime.of(2026, 8, 9, 6, 0))
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns currentDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns currentDistribution
 
         service.getGuidance(1)
 

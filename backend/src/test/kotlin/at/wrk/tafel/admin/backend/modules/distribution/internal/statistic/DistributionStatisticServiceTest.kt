@@ -253,6 +253,51 @@ internal class DistributionStatisticServiceTest {
     }
 
     @Test
+    fun `count infants treats a missing birth date as not an infant instead of crashing`() {
+        val startedAt = LocalDateTime.now().minusYears(3)
+        val testDistributionEntity = DistributionEntity(startedAt = startedAt, startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = startedAt.plusHours(2)
+        }
+        testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity)
+
+        val household = HouseholdEntity(householdId = nextHouseholdId(), validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            birthDate = LocalDate.now().minusYears(40)
+        }
+        household.persons.add(mainPerson)
+        household.mainPerson = mainPerson
+        // birth date unknown - HouseholdEntity.Specs.postProcessingNecessary is what surfaces such
+        // households for later correction, they're kept as household members in the meantime
+        household.persons.add(
+            PersonEntity(household = household, country = testCountry1).apply {
+                birthDate = null
+                excludeFromHousehold = false
+            },
+        )
+
+        testDistributionEntity.households = listOf(
+            DistributionHouseholdEntity(
+                distribution = testDistributionEntity,
+                household = household,
+                ticketNumber = 1,
+            ),
+        )
+
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.countByUpdatedAtBetween(any(), any()) } returns 0
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+        every { distributionStatisticRepository.save(any()) } returns mockk()
+
+        service.saveStatistic(testDistributionEntity)
+
+        val savedStatisticSlot = slot<DistributionStatisticEntity>()
+        verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }
+
+        assertThat(savedStatisticSlot.captured.countInfants).isEqualTo(0)
+    }
+
+    @Test
     fun `create and save empty statistic with empty distribution missing statistic`() {
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now().minusHours(2), startedByUser = testUserEntity).apply {
             id = 123
