@@ -15,6 +15,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Expression
+import jakarta.persistence.criteria.JoinType
 import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
@@ -89,16 +90,53 @@ class UserEntity(
              * Best match first while a search term is given, most recently updated first otherwise
              * (a plain filter-only search has no notion of a better hit). Ordering always ends on the
              * id so paging stays stable when two users score - or were updated - identically.
+             *
+             * A [sortBy]/[sortDirection] pair - a user clicking a sortable `mat-sort-header` column on
+             * the user search screen - overrides all of that: it is what the user explicitly asked
+             * for, so it takes over as the primary order instead of merely breaking ties within it.
+             * [sortBy] takes the same column ids the frontend's `mat-sort-header`s use (`id`, `name`,
+             * `personnelNumber`, `status`); an unrecognized or missing value falls back to the
+             * relevance/updatedAt default. `id` still closes out the order so paging stays stable when
+             * two users tie on the requested column.
              */
-            fun orderBySearchRelevance(searchTerm: String?, spec: Specification<UserEntity>): Specification<UserEntity> = Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+            fun orderBySearchRelevance(
+                searchTerm: String?,
+                spec: Specification<UserEntity>,
+                sortBy: String? = null,
+                sortDirection: String? = null,
+            ): Specification<UserEntity> = Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 val updatedAt: Expression<LocalDateTime> = root["updatedAt"]
                 val id: Expression<Long> = root["id"]
+                val ascending = "asc".equals(sortDirection, ignoreCase = true)
+
+                fun <T> CriteriaBuilder.orderBy(expression: Expression<T>) = if (ascending) asc(expression) else desc(expression)
 
                 val orders = buildList {
-                    searchTerm?.let {
-                        add(cb.desc(SearchTextSpecs.score(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], it)))
+                    when (sortBy) {
+                        "id" -> add(cb.orderBy(id))
+                        "status" -> {
+                            val enabled: Expression<Boolean> = root["enabled"]
+                            add(cb.orderBy(enabled))
+                        }
+                        "personnelNumber" -> {
+                            val employee = root.join<UserEntity, EmployeeEntity>("employee", JoinType.LEFT)
+                            val personnelNumber: Expression<String> = employee["personnelNumber"]
+                            add(cb.orderBy(personnelNumber))
+                        }
+                        "name" -> {
+                            val employee = root.join<UserEntity, EmployeeEntity>("employee", JoinType.LEFT)
+                            val lastname: Expression<String> = employee["lastname"]
+                            val firstname: Expression<String> = employee["firstname"]
+                            add(cb.orderBy(lastname))
+                            add(cb.orderBy(firstname))
+                        }
+                        else -> {
+                            searchTerm?.let {
+                                add(cb.desc(SearchTextSpecs.score(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], it)))
+                            }
+                            add(cb.desc(updatedAt))
+                        }
                     }
-                    add(cb.desc(updatedAt))
                     add(cb.desc(id))
                 }
                 cq!!.orderBy(orders)

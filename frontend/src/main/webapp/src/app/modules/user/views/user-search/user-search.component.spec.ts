@@ -105,7 +105,7 @@ describe('UserSearchComponent', () => {
 
     const {component} = createComponent();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith(undefined, true, undefined, undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith(undefined, true, undefined, undefined, undefined, undefined);
     expect(component.searchResult()).toEqual(searchUserMockResponse);
     expect(toastr.warning).not.toHaveBeenCalled();
     expect(component.searchAnnouncement()).toBe('');
@@ -121,7 +121,7 @@ describe('UserSearchComponent', () => {
 
     expect(component.query()).toBe('Muster');
     expect(component.statusFilter()).toBe('deaktiviert');
-    expect(apiService.searchUser).toHaveBeenCalledWith('Muster', false, 2, undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith('Muster', false, 2, undefined, undefined, undefined);
     // A restore must not rewrite the URL that was just used to arrive here.
     expect(router.navigate).not.toHaveBeenCalled();
   });
@@ -151,7 +151,7 @@ describe('UserSearchComponent', () => {
 
       expect(apiService.getUserForPersonnelNumber).not.toHaveBeenCalled();
       expect(router.navigate).not.toHaveBeenCalledWith(['/benutzer/detail', 42]);
-      expect(apiService.searchUser).toHaveBeenLastCalledWith('12345', true, undefined, undefined);
+      expect(apiService.searchUser).toHaveBeenLastCalledWith('12345', true, undefined, undefined, undefined, undefined);
 
       // pressing Enter on the same, now-finished number does attempt the jump
       component.search();
@@ -168,7 +168,7 @@ describe('UserSearchComponent', () => {
       component.query.set('999');
       component.search();
 
-      expect(apiService.searchUser).toHaveBeenCalledWith('999', true, undefined, undefined);
+      expect(apiService.searchUser).toHaveBeenCalledWith('999', true, undefined, undefined, undefined, undefined);
       expect(router.navigate).not.toHaveBeenCalledWith(['/benutzer/detail', 999]);
     });
 
@@ -191,7 +191,7 @@ describe('UserSearchComponent', () => {
       component.query.set('muster');
       component.search();
 
-      expect(apiService.searchUser).toHaveBeenCalledWith('muster', true, undefined, undefined);
+      expect(apiService.searchUser).toHaveBeenCalledWith('muster', true, undefined, undefined, undefined, undefined);
       expect(apiService.getUserForPersonnelNumber).not.toHaveBeenCalled();
     });
 
@@ -210,7 +210,7 @@ describe('UserSearchComponent', () => {
 
       vi.advanceTimersByTime(1);
       expect(apiService.searchUser).toHaveBeenCalledTimes(2);
-      expect(apiService.searchUser).toHaveBeenLastCalledWith('mu', true, undefined, undefined);
+      expect(apiService.searchUser).toHaveBeenLastCalledWith('mu', true, undefined, undefined, undefined, undefined);
     });
 
     it('lets the explicit search bypass the debounce and the two-character threshold', () => {
@@ -220,7 +220,7 @@ describe('UserSearchComponent', () => {
       component.query.set('m');
       component.search();
 
-      expect(apiService.searchUser).toHaveBeenLastCalledWith('m', true, undefined, undefined);
+      expect(apiService.searchUser).toHaveBeenLastCalledWith('m', true, undefined, undefined, undefined, undefined);
     });
 
     it('an explicit search absorbs the debounced search still pending for the same input', () => {
@@ -250,7 +250,7 @@ describe('UserSearchComponent', () => {
       component.onStatusFilterChange('deaktiviert', {selected: true, isUserInput: true} as any);
 
       expect(apiService.getUserForPersonnelNumber).not.toHaveBeenCalled();
-      expect(apiService.searchUser).toHaveBeenLastCalledWith('12345', false, undefined, undefined);
+      expect(apiService.searchUser).toHaveBeenLastCalledWith('12345', false, undefined, undefined, undefined, undefined);
     });
 
     it('maps "Alle" to no enabled filter at all', () => {
@@ -259,7 +259,7 @@ describe('UserSearchComponent', () => {
 
       component.onStatusFilterChange('alle', {selected: true, isUserInput: true} as any);
 
-      expect(apiService.searchUser).toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined);
+      expect(apiService.searchUser).toHaveBeenLastCalledWith(undefined, undefined, undefined, undefined, undefined, undefined);
     });
 
     it('ignores the deselect event fired for the option losing selection', () => {
@@ -288,6 +288,57 @@ describe('UserSearchComponent', () => {
 
       expect(component.statusFilter()).toBe('aktiv');
       expect(apiService.searchUser).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('sorting', () => {
+
+    it('clicking a column header sorts, resets to page 1 and never attempts the exact-match jump', () => {
+      apiService.getUserForPersonnelNumber.mockReturnValue(of(testUser));
+      apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+      const {component} = createComponent();
+      component.query.set('12345');
+
+      component.onSortChange({active: 'name', direction: 'asc'});
+
+      expect(apiService.getUserForPersonnelNumber).not.toHaveBeenCalled();
+      expect(apiService.searchUser).toHaveBeenLastCalledWith('12345', true, 1, 10, 'name', 'asc');
+    });
+
+    // matSortDisableClear keeps a real click cycling between asc/desc only, but the handler itself
+    // stays defensive about an empty direction (falls back to the backend's default order) in case
+    // that ever changes.
+    it('falls back to the default order when the sort event carries no direction', () => {
+      apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+      const {component} = createComponent();
+
+      component.onSortChange({active: 'name', direction: ''});
+
+      expect(apiService.searchUser).toHaveBeenLastCalledWith(undefined, true, 1, 10, undefined, undefined);
+    });
+
+    it('restores the sort column and direction from the URL when returning to the screen', () => {
+      queryParams = {sortierfeld: 'personnelNumber', sortierrichtung: 'desc'};
+      TestBed.resetTestingModule();
+      configureTestBed();
+      apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+
+      const {component} = createComponent();
+
+      expect(component.sortActive()).toBe('personnelNumber');
+      expect(component.sortDirectionState()).toBe('desc');
+      expect(apiService.searchUser).toHaveBeenCalledWith(undefined, true, undefined, undefined, 'personnelNumber', 'desc');
+    });
+
+    it('writes the sort column and direction back into the URL after a search', () => {
+      apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+      const {component} = createComponent();
+
+      component.onSortChange({active: 'name', direction: 'asc'});
+
+      expect(router.navigate).toHaveBeenLastCalledWith([], expect.objectContaining({
+        queryParams: expect.objectContaining({sortierfeld: 'name', sortierrichtung: 'asc'})
+      }));
     });
   });
 

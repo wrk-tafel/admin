@@ -404,6 +404,42 @@ class UserControllerTest {
         }
     }
 
+    @Test
+    fun `get users - sortBy and sortDirection are forwarded`() {
+        val userSearchResult = UserSearchResult(
+            items = listOf(testUser),
+            totalCount = 1,
+            currentPage = 1,
+            totalPages = 1,
+            pageSize = 10,
+        )
+
+        every {
+            userDetailsManager.loadUsers(
+                searchInput = null,
+                enabled = null,
+                page = null,
+                pageSize = null,
+                sortBy = "name",
+                sortDirection = "asc",
+            )
+        } returns userSearchResult
+
+        val response = controller.getUsers(sortBy = "name", sortDirection = "asc")
+
+        assertThat(response.items).hasSize(1)
+        verify(exactly = 1) {
+            userDetailsManager.loadUsers(
+                searchInput = null,
+                enabled = null,
+                page = null,
+                pageSize = null,
+                sortBy = "name",
+                sortDirection = "asc",
+            )
+        }
+    }
+
     /**
      * The page's lockout state is looked up once for the whole page (see
      * LoginAttemptService.getLockedUntil(Collection<String>)) rather than once per row - this pins

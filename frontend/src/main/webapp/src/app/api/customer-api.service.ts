@@ -105,6 +105,8 @@ export class CustomerApiService {
     privacyNoticeOutdated?: boolean | null,
     page?: number,
     pageSize?: number,
+    sortBy?: string,
+    sortDirection?: string,
     context?: HttpContext
   ): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
@@ -137,6 +139,12 @@ export class CustomerApiService {
     }
     if (pageSize) {
       queryParams = queryParams.set('pageSize', pageSize);
+    }
+    if (sortBy) {
+      queryParams = queryParams.set('sortBy', sortBy);
+    }
+    if (sortDirection) {
+      queryParams = queryParams.set('sortDirection', sortDirection);
     }
     return this.http.get<HouseholdSearchResult>('/households', {params: queryParams, context}).pipe(
       map(response => ({...response, items: (response?.items ?? []).map(mapHouseholdToCustomer)}))

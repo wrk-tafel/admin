@@ -340,6 +340,8 @@ class HouseholdService(
         page: Int?,
         filters: HouseholdSearchFilters = HouseholdSearchFilters(),
         pageSize: Int? = null,
+        sortBy: String? = null,
+        sortDirection: String? = null,
     ): HouseholdSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
         val searchTerm = SearchTextSpecs.normalize(searchInput)
@@ -365,7 +367,7 @@ class HouseholdService(
             ),
         )
 
-        val spec = orderBySearchRelevance(searchTerm, where)
+        val spec = orderBySearchRelevance(searchTerm, where, sortBy, sortDirection)
         val pagedResult = householdRepository.findAll(spec, pageRequest)
 
         return HouseholdSearchResult(

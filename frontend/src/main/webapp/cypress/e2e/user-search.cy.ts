@@ -131,6 +131,26 @@ describe('User Search', () => {
     });
   });
 
+  it('sorts by clicking a column header, replacing the default order', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.byTestId('searchInputText').type(user.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.intercept('GET', /\/api\/users(\?|$)/).as('sortedSearch');
+      cy.contains('th', 'Name').click();
+      cy.wait('@sortedSearch').its('request.url').should('include', 'sortBy=name').and('include', 'sortDirection=asc');
+
+      cy.contains('th', 'Name').click();
+      cy.wait('@sortedSearch').its('request.url').should('include', 'sortBy=name').and('include', 'sortDirection=desc');
+
+      // still present after sorting - it is a reorder of the same filtered result, not a new search
+      cy.get(`a[href$="/benutzer/detail/${user.id}"]`).filterDisplayed().should('have.length', 1);
+    });
+  });
+
   it('shows a purposeful empty state with a "Benutzer anlegen" CTA', () => {
     cy.byTestId('searchInputText').type('Zzzzusername Zzzznachname');
     cy.byTestId('search-button').click();

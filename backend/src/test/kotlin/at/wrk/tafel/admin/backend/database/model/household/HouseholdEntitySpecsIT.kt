@@ -445,6 +445,56 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         assertThat(result.map { it.id }).containsExactly(second.id, first.id)
     }
 
+    @Test
+    fun `orderBySearchRelevance sorts by the requested column, overriding the default order`() {
+        val tag = "Findme${generateRandomLong()}"
+        val bravo = persistHousehold(customizeMainPerson = { lastname = "Bravo-$tag" })
+        testEntityManager.flush()
+
+        Thread.sleep(50)
+
+        // persisted later, so it would come first under the default (most-recently-updated) order
+        val alpha = persistHousehold(customizeMainPerson = { lastname = "Alpha-$tag" })
+        testEntityManager.flush()
+
+        val spec = HouseholdEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "name", sortDirection = "asc")
+        val result = householdRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(alpha.id, bravo.id)
+    }
+
+    @Test
+    fun `orderBySearchRelevance sorts descending when no direction or an unrecognized one is given`() {
+        val tag = "Findme${generateRandomLong()}"
+        val alpha = persistHousehold(customizeMainPerson = { lastname = "Alpha-$tag" })
+        val bravo = persistHousehold(customizeMainPerson = { lastname = "Bravo-$tag" })
+        testEntityManager.flush()
+
+        val spec = HouseholdEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "name", sortDirection = null)
+        val result = householdRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(bravo.id, alpha.id)
+    }
+
+    @Test
+    fun `orderBySearchRelevance sorts by validUntil when requested`() {
+        val tag = "Findme${generateRandomLong()}"
+        val earlier = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now().plusDays(1) },
+        )
+        val later = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now().plusDays(10) },
+        )
+        testEntityManager.flush()
+
+        val spec = HouseholdEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "validUntil", sortDirection = "asc")
+        val result = householdRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(earlier.id, later.id)
+    }
+
     /**
      * A number long enough that it cannot accidentally turn up inside another household's search
      * text - which a short one plausibly could, since that text holds postal codes, phone numbers

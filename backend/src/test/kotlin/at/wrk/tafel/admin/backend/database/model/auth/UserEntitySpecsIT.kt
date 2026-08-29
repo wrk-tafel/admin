@@ -150,6 +150,43 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `orderBySearchRelevance sorts by the requested column, overriding the default order`() {
+        val tag = "Findme${generateRandomLong()}"
+        val bUser = persistUser {
+            username = "prefix-$tag-1"
+            employee.lastname = "Bravo-$tag"
+        }
+        testEntityManager.flush()
+
+        Thread.sleep(50)
+
+        // persisted later, so it would come first under the default (most-recently-updated) order
+        val aUser = persistUser {
+            username = "prefix-$tag-2"
+            employee.lastname = "Alpha-$tag"
+        }
+        testEntityManager.flush()
+
+        val spec = UserEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "name", sortDirection = "asc")
+        val result = userRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(aUser.id, bUser.id)
+    }
+
+    @Test
+    fun `orderBySearchRelevance sorts descending when no direction or an unrecognized one is given`() {
+        val tag = "Findme${generateRandomLong()}"
+        val aUser = persistUser { employee.lastname = "Alpha-$tag" }
+        val bUser = persistUser { employee.lastname = "Bravo-$tag" }
+        testEntityManager.flush()
+
+        val spec = UserEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "name", sortDirection = null)
+        val result = userRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(bUser.id, aUser.id)
+    }
+
+    @Test
     fun `deleting a user does not cascade-delete its shared employee`() {
         val user = persistUser()
         val country = createCountry()

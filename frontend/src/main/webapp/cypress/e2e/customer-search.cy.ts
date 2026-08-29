@@ -377,6 +377,26 @@ describe('Customer Search', () => {
     });
   });
 
+  it('sorts by clicking a column header, replacing the default order', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.intercept('GET', /\/api\/households(\?|$)/).as('sortedSearch');
+      cy.contains('th', 'Name').click();
+      cy.wait('@sortedSearch').its('request.url').should('include', 'sortBy=name').and('include', 'sortDirection=asc');
+
+      cy.contains('th', 'Name').click();
+      cy.wait('@sortedSearch').its('request.url').should('include', 'sortBy=name').and('include', 'sortDirection=desc');
+
+      // still present after sorting - it is a reorder of the same filtered result, not a new search
+      cy.get(`a[href$="/kunden/detail/${customer.id}"]`).filterDisplayed().should('have.length', 1);
+    });
+  });
+
   it('shows a purposeful empty state with a prefilled "Kunden anlegen" CTA', () => {
     cy.byTestId('searchInputText').type('Zzzzvorname Zzzznachname');
     cy.byTestId('search-button').click();
