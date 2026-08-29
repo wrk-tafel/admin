@@ -4,12 +4,14 @@ import {Router} from '@angular/router';
 import {firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../http/suppress-error-toast.token';
+import {GlobalStateService} from '../state/global-state.service';
 
 @Service()
 export class AuthenticationService {
   userInfo = signal<UserInfo | null>(null);
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly globalStateService = inject(GlobalStateService);
 
   /**
    * Logs in and, on success, also loads the user's permissions before resolving - callers can
@@ -77,16 +79,28 @@ export class AuthenticationService {
    *
    * A failed request still completes the logout locally - the user asked to leave, and the error
    * interceptor has already surfaced the failure.
+   *
+   * Also drops the last `/sse/distributions` snapshot ({@link GlobalStateService#reset}) - that
+   * stream itself stays open across the logout by design, but without this a re-login in the same
+   * tab would render the previous session's distribution state until the next SSE message arrives.
    */
   public logout(): Observable<void> {
     return this.http.post<void>('/users/logout', null).pipe(
       catchError(() => of(undefined)),
       switchMap(() => this.redirectToLogin()),
-      tap(() => this.userInfo.set(null)),
+      tap(() => {
+        this.userInfo.set(null);
+        this.globalStateService.reset();
+      }),
       map(() => undefined)
     );
   }
 
+  /**
+   * On failure (e.g. an expired/invalid session), also clears `userInfo` rather than leaving the
+   * previous value in place - otherwise {@link isAuthenticated} would keep reporting the old
+   * session as authenticated after this fails.
+   */
   public loadUserInfo(): Promise<UserInfo | null> {
     return firstValueFrom(this.http.get<UserInfo>('/users/info', {context: SUPPRESS_ERROR_TOAST_CONTEXT})
       .pipe(tap(userInfo => {
@@ -94,7 +108,10 @@ export class AuthenticationService {
           return of(userInfo);
         }),
 
-        catchError(_ => of(null))
+        catchError(_ => {
+          this.userInfo.set(null);
+          return of(null);
+        })
       ));
   }
 

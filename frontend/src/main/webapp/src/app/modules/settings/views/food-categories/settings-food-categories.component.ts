@@ -2,7 +2,7 @@ import {Component, computed, effect, ElementRef, inject, signal, viewChild} from
 import {DecimalPipe} from '@angular/common';
 import {MatDialog} from '@angular/material/dialog';
 import {FoodCategoryCreateDialogComponent} from './dialogs/food-category-create-dialog.component';
-import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
@@ -129,7 +129,10 @@ export class SettingsFoodCategoriesComponent {
 
   protected editingId = signal<number | null>(null);
   protected nameControl = new FormControl<string>('', {nonNullable: true});
-  protected weightPerUnitControl = new FormControl<number | null>(null);
+  // Same validators as the create dialog's weightPerUnit field - without them, an invalid value
+  // (empty, or negative) failed only as a bare "Speichern fehlgeschlagen" once the backend rejected
+  // it, rather than as an inline validation error while it is still being edited. See #3530.
+  protected weightPerUnitControl = new FormControl<number | null>(null, [Validators.required, Validators.min(0)]);
   private nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
   private nameInputMobile = viewChild<ElementRef<HTMLInputElement>>('nameInputMobile');
 
@@ -170,6 +173,11 @@ export class SettingsFoodCategoriesComponent {
   }
 
   protected saveEdit(category: FoodCategory) {
+    if (this.weightPerUnitControl.invalid) {
+      this.weightPerUnitControl.markAsTouched();
+      return;
+    }
+
     const updated: FoodCategory = {
       ...category,
       name: this.nameControl.value,

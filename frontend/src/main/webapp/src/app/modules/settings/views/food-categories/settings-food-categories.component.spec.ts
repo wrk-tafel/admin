@@ -112,6 +112,35 @@ describe('SettingsFoodCategoriesComponent', () => {
     expect(component['editingId']()).toBeNull();
   });
 
+  // Same validators as the create dialog - an invalid value must be refused inline rather than
+  // only failing as a bare "Speichern fehlgeschlagen" once the backend rejects it. See #3530.
+  it('saveEdit() refuses an empty weight rather than sending it', () => {
+    const fixture = TestBed.createComponent(SettingsFoodCategoriesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['startEdit'](testCategory);
+    component['weightPerUnitControl'].setValue(null);
+    component['saveEdit'](testCategory);
+
+    expect(foodCategoriesApiMock.updateFoodCategory).not.toHaveBeenCalled();
+    expect(component['weightPerUnitControl'].touched).toBe(true);
+    expect(component['editingId']()).toBe(testCategory.id);
+  });
+
+  it('saveEdit() refuses a negative weight rather than sending it', () => {
+    const fixture = TestBed.createComponent(SettingsFoodCategoriesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['startEdit'](testCategory);
+    component['weightPerUnitControl'].setValue(-1);
+    component['saveEdit'](testCategory);
+
+    expect(foodCategoriesApiMock.updateFoodCategory).not.toHaveBeenCalled();
+    expect(component['editingId']()).toBe(testCategory.id);
+  });
+
   it('toggleFoodCategoryVisibility() updates enabled flag', () => {
     const fixture = TestBed.createComponent(SettingsFoodCategoriesComponent);
     fixture.detectChanges();

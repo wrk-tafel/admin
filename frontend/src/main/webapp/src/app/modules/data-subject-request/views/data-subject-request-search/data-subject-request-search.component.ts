@@ -10,7 +10,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIcon} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {Subject, debounceTime, distinctUntilChanged} from 'rxjs';
+import {catchError, debounceTime, distinctUntilChanged, EMPTY, of, Subject, switchMap, tap} from 'rxjs';
 import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
 import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
@@ -95,9 +95,17 @@ export class DataSubjectRequestSearchComponent {
   private readonly dialog = inject(MatDialog);
 
   constructor() {
+    // switchMap, not a per-call subscribe: a still-in-flight search for a term that has since been
+    // replaced (or cleared) can otherwise arrive after a newer one and overwrite its result list -
+    // see #3530.
     this.searchInput$
-      .pipe(debounceTime(SEARCH_DEBOUNCE_MS), distinctUntilChanged(), takeUntilDestroyed())
-      .subscribe(value => this.runSearch(value));
+      .pipe(
+        debounceTime(SEARCH_DEBOUNCE_MS),
+        distinctUntilChanged(),
+        switchMap(value => this.runSearch$(value)),
+        takeUntilDestroyed()
+      )
+      .subscribe();
   }
 
   protected onSearchInput(value: string) {
@@ -205,27 +213,32 @@ export class DataSubjectRequestSearchComponent {
     return item ? `${item.name} (${item.businessKey})` : `${dataSubjectMatchTypeLabel[match.type]} ${match.id}`;
   }
 
-  private runSearch(value: string) {
+  private runSearch$(value: string) {
     const term = value.trim();
     if (term.length < MIN_SEARCH_CHARS) {
       this.matches.set(null);
       this.truncated.set(false);
       this.selectedKeys.set(new Set());
-      return;
+      return of(undefined);
     }
 
-    this.dataSubjectRequestApiService.search(term).subscribe({
-      next: response => {
-        this.matches.set(response.items);
-        this.truncated.set(response.truncated);
-        this.selectedKeys.set(new Set());
-        const countAnnouncement = response.items.length === 1 ? '1 Treffer gefunden' : `${response.items.length} Treffer gefunden`;
-        this.searchAnnouncement.set(
-          response.truncated ? `${countAnnouncement}, weitere Treffer werden nicht angezeigt` : countAnnouncement
-        );
-      },
-      error: () => this.toastr.error('Suche fehlgeschlagen!')
-    });
+    return this.dataSubjectRequestApiService.search(term).pipe(
+      tap({
+        next: response => {
+          this.matches.set(response.items);
+          this.truncated.set(response.truncated);
+          this.selectedKeys.set(new Set());
+          const countAnnouncement = response.items.length === 1 ? '1 Treffer gefunden' : `${response.items.length} Treffer gefunden`;
+          this.searchAnnouncement.set(
+            response.truncated ? `${countAnnouncement}, weitere Treffer werden nicht angezeigt` : countAnnouncement
+          );
+        },
+        error: () => this.toastr.error('Suche fehlgeschlagen!')
+      }),
+      // Caught here so a failed search ends only itself: the subject's stream stays open for the
+      // next one.
+      catchError(() => EMPTY)
+    );
   }
 
   private processFileResponse(response: HttpResponse<Blob>) {

@@ -1,4 +1,6 @@
 import {Component, computed, inject, signal} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {map, Subject, switchMap} from 'rxjs';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {
@@ -169,7 +171,35 @@ export class StatisticsChildrenComponent {
     }
   };
 
+  /**
+   * Every load goes through this subject instead of subscribing per call, so a still-in-flight
+   * request from a previous keystroke/page can never overwrite what a newer one already applied -
+   * see #3530. One `Subject` feeds both endpoints below so they switchMap off the very same
+   * request, each cancelling only its own prior in-flight call.
+   */
+  private readonly loadRequests = new Subject<LoadChildrenRequest>();
+
   constructor() {
+    this.loadRequests
+      .pipe(
+        switchMap(request => this.statisticsApiService.getChildrenData(request.filter, request.page, request.pageSize)
+          .pipe(map(response => ({filter: request.filter, response})))),
+        takeUntilDestroyed(),
+      )
+      .subscribe(({filter, response}) => {
+        // Set together with the response it actually describes, not at dispatch time - otherwise
+        // the headline could describe a filter whose matching response hasn't arrived yet.
+        this.appliedFilter.set(filter);
+        this.childrenData.set(response);
+      });
+
+    this.loadRequests
+      .pipe(
+        switchMap(request => this.statisticsApiService.getChildrenAgeDistribution(request.filter)),
+        takeUntilDestroyed(),
+      )
+      .subscribe(response => this.ageDistribution.set(response));
+
     this.filterForm.valueChanges.subscribe(() => this.loadChildrenData());
     this.loadChildrenData();
   }
@@ -197,13 +227,7 @@ export class StatisticsChildrenComponent {
       return;
     }
 
-    const filter = this.currentFilter();
-    this.appliedFilter.set(filter);
-
-    this.statisticsApiService.getChildrenData(filter, page, pageSize)
-      .subscribe((response) => this.childrenData.set(response));
-    this.statisticsApiService.getChildrenAgeDistribution(filter)
-      .subscribe((response) => this.ageDistribution.set(response));
+    this.loadRequests.next({filter: this.currentFilter(), page, pageSize});
   }
 
   private currentFilter(): ChildrenFilter {
@@ -224,4 +248,11 @@ export class StatisticsChildrenComponent {
   protected readonly schoolAgePreset = SCHOOL_AGE_PRESET;
   protected readonly minAge = MIN_AGE;
   protected readonly maxAge = MAX_AGE;
+}
+
+/** One queued load - the filter it ran with travels with it rather than being re-read later. */
+interface LoadChildrenRequest {
+  filter: ChildrenFilter;
+  page?: number;
+  pageSize?: number;
 }
