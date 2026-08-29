@@ -10,6 +10,9 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Beim Bearbeiten eines Benutzerkontos wird jetzt verhindert, dass eine bereits einem anderen Konto zugeordnete Personalnummer übernommen und dessen Mitarbeiter-Datensatz dadurch überschrieben wird.
 - Beim Löschen mehrerer Treffer auf der Seite "Datenauskunft" schlägt der gesamte Vorgang jetzt nicht mehr fehl, wenn der mit einem gelöschten Benutzerkonto verknüpfte Mitarbeiter-Datensatz noch von einem anderen Benutzerkonto verwendet wird - der Mitarbeiter-Datensatz bleibt in diesem Fall bestehen.
 - Die Ersteinrichtung des Administrator-Kontos schlägt jetzt nicht mehr fehl, wenn die Datenbank zwar noch keine Benutzerkonten, aber bereits einen zur konfigurierten Personalnummer passenden Mitarbeiter-Datensatz enthält.
+- Die Ermittlung der Client-IP-Adresse (u. a. für Login-Sperren und die Anfragebegrenzung von Login/Support) vertraut jetzt nur mehr dem unmittelbaren Reverse-Proxy und lässt sich nicht mehr über einen gefälschten X-Forwarded-For-Header umgehen oder gezielt gegen eine fremde IP-Adresse missbrauchen.
+- Beim Registrieren einer Push-Benachrichtigung wird die vom Browser übermittelte Push-Adresse jetzt geprüft; unverschlüsselte oder auf ein internes Netzwerk zeigende Adressen werden abgelehnt.
+- Ein Login-Versuch ohne gültige Basic-Authentifizierung liefert jetzt wie ein fehlgeschlagener Login-Versuch einen regulären Fehlerstatus statt eines internen Serverfehlers.
 
 ## [1.14.0] - 2026-08-29
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.

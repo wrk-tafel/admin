@@ -793,8 +793,9 @@ configurable, 30 requests/minute by default) - `/api/login` and `/api/support` g
 per IP, so exhausting one never blocks the other. Unlike `login_attempts`, this counts every request
 (not just failures) and lives only in the process's own memory rather than the database: blunting a
 single IP's request rate needs no cross-instance coordination, so a small servlet filter checking
-`request.remoteAddr` (trustworthy here since `server.forward-headers-strategy: framework` is already
-set) is enough.
+`request.remoteAddr` (trustworthy here since `server.forward-headers-strategy: native` only accepts
+the header from a request whose direct TCP peer is the trusted reverse proxy, see the property's own
+comment in `application.yml`) is enough.
 
 The rest of the originating issue's findings (tracked separately in
 [#3484](https://github.com/wrk-tafel/admin/issues/3484)) are closed alongside this one:
