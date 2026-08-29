@@ -6,7 +6,7 @@ Im Bereich "Benutzer" werden die Zugänge und Berechtigungen der Mitarbeiterinne
 
 ## Benutzer suchen
 
-Unter **Benutzer → Suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Personalnummer entspricht, springt direkt zur Detailansicht (wie früher das Feld "Personalnummer" mit dem Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen); der Button **Suchen** funktioniert weiterhin zusätzlich, etwa bei einer nur einstelligen Eingabe.
+Unter **Benutzer → Suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Personalnummer entspricht, springt nach **Enter** oder einem Klick auf **Suchen** direkt zur Detailansicht (wie früher das Feld "Personalnummer" mit dem Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die normale Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen) und findet dabei auch die Personalnummer; der direkte Sprung selbst wartet dagegen immer auf **Enter** oder **Suchen**, damit eine noch unvollständig eingetippte Nummer nicht zu einem falschen Benutzer springt.
 
 Das Suchfeld durchsucht Benutzername, Personalnummer, Nachname und Vorname in einem. Es genügt ein Teil davon, und Tippfehler werden toleriert – genaue Treffer stehen im Ergebnis oben, ähnliche darunter. Das Info-Symbol (ⓘ) neben dem Suchfeld erklärt dasselbe direkt in der Anwendung.
 

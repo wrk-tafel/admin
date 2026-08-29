@@ -139,6 +139,27 @@ describe('UserSearchComponent', () => {
       expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', 42]);
     });
 
+    // A personnel number is often typed in stages, and the debounce can settle between digits - a
+    // still-incomplete prefix must not silently navigate to a different, shorter user's page.
+    it('does not attempt the exact-match jump for a number entered via search-as-you-type, only on an explicit search', () => {
+      apiService.getUserForPersonnelNumber.mockReturnValue(of(testUser));
+      apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+      const {component} = createComponent();
+
+      component.onQueryInput('12345');
+      vi.advanceTimersByTime(1000);
+
+      expect(apiService.getUserForPersonnelNumber).not.toHaveBeenCalled();
+      expect(router.navigate).not.toHaveBeenCalledWith(['/benutzer/detail', 42]);
+      expect(apiService.searchUser).toHaveBeenLastCalledWith('12345', true, undefined, undefined);
+
+      // pressing Enter on the same, now-finished number does attempt the jump
+      component.search();
+
+      expect(apiService.getUserForPersonnelNumber).toHaveBeenCalledWith('12345', expect.anything());
+      expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', 42]);
+    });
+
     it('falls back to the fuzzy search with the digits as text when no exact personnel number matches', () => {
       apiService.getUserForPersonnelNumber.mockReturnValue(throwError(() => new HttpErrorResponse({status: 404})));
       apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
