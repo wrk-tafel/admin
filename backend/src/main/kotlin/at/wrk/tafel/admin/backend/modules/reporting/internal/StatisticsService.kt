@@ -476,7 +476,7 @@ class StatisticsService(
     ): PagedResponse<ChildItem> {
         validateAgeRange(ageMin, ageMax)
         val ageDate = referenceDate ?: LocalDate.now()
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
         val pagedResult = personRepository.findAll(childrenSpec(ageMin, ageMax, ageDate), pageRequest)
 
         return PagedResponse(

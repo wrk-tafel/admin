@@ -48,7 +48,7 @@ class AuditService(
      */
     @Transactional
     fun getHouseholdHistory(householdId: Long, page: Int?, pageSize: Int?): PagedResponse<AuditEntryItem> {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
         val result = auditLogRepository.findAllByBusinessKeyAndEntityTypeInOrderByOccurredAtDescIdDesc(
             businessKey = householdId.toString(),
             entityTypes = AuditScope.householdScopedEntityTypes,
@@ -91,7 +91,7 @@ class AuditService(
     @Transactional
     fun search(filter: AuditSearchFilter, page: Int?, pageSize: Int?): PagedResponse<AuditEntryItem> {
         val pageRequest = PageRequest.of(
-            page?.minus(1) ?: 0,
+            PaginationDefaults.resolvePageIndex(page),
             PaginationDefaults.resolvePageSize(pageSize),
             // Tie-broken on the id so paging stays stable when two entries share a timestamp -
             // every entry written by one transaction does, since they are stamped together.
