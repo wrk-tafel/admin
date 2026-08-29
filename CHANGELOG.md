@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Beim Bearbeiten eines Kunden wird das Datum "Gültig bis" jetzt nicht mehr allein durch das Öffnen des Formulars anhand von "Einkommen nachgewiesen bis" überschrieben - die automatische Vorbefüllung greift nur noch bei einer tatsächlichen Änderung dieses Felds durch die Bedienperson.
+- Nach dem erzwungenen Speichern einer Bezugsverlängerung trotz Konflikts zeigt die Kundenansicht das neue Gültig-bis-Datum jetzt sofort an, statt bis zu einem Neuladen das alte weiter anzuzeigen.
+- Die Dublettenwarnung beim Anlegen eines Kunden wird jetzt geleert, sobald Name oder Geburtsdatum nicht mehr für eine Prüfung ausreichen, statt die zuletzt gefundene Liste weiter anzuzeigen.
 - Die Screenshots im Benutzerhandbuch zeigen wieder den aktuellen Stand der Anwendung (u. a. Kunden-Detailansicht mit Notizen-Tab, Kunden-Suche mit den neuen Filtern, Zugriffsprotokoll, Datenauskunft, Benutzerverwaltung und Mitarbeiter-Einstellungen); die Beschreibung des Tabs "Verlauf" nennt jetzt auch die protokollierten Zugriffe.
 - Beim Bearbeiten eines Benutzerkontos wird jetzt immer nur das über die Adresse ausgewählte Konto geändert, auch wenn das Bearbeitungsformular eine davon abweichende Kontokennung übermittelt.
 - Beim Bearbeiten eines Benutzerkontos wird jetzt verhindert, dass eine bereits einem anderen Konto zugeordnete Personalnummer übernommen und dessen Mitarbeiter-Datensatz dadurch überschrieben wird.

@@ -231,11 +231,16 @@ export class CustomerFormComponent {
       }
     });
 
-    // Auto-fill validUntil when incomeDue changes
+    // Auto-fill validUntil when the operator changes incomeDue - guarded by the field's own
+    // `dirty()` so populating the form from `customerData` (edit mode) never overwrites the
+    // stored validUntil on open. `endOf('day')` avoids a local-midnight Date that a positive-UTC-
+    // offset timezone would otherwise shift back a day once serialized (see
+    // cypress/support/commands.ts's toLocalDateString for the same pitfall).
     effect(() => {
-      const incomeDue = this.customerForm.incomeDue().value();
-      if (incomeDue) {
-        const validUntilDate = dayjs(incomeDue).add(2, 'months').toDate();
+      const incomeDueField = this.customerForm.incomeDue();
+      const incomeDue = incomeDueField.value();
+      if (incomeDue && incomeDueField.dirty()) {
+        const validUntilDate = dayjs(incomeDue).add(2, 'months').endOf('day').toDate();
         this.customerForm.validUntil().value.set(validUntilDate);
       }
     });
