@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
@@ -242,6 +243,17 @@ class HouseholdMergeServiceTest {
         assertThat(response.sources).hasSize(1)
         verify(exactly = 0) { householdRepository.saveAndFlush(any<HouseholdEntity>()) }
         verify(exactly = 0) { householdService.deleteHouseholdByHouseholdId(any()) }
+        verify {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = AuditScope.HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
+                    entityId = null,
+                    businessKey = "targetHouseholdId=1;sourceHouseholdIds=2",
+                    operation = AuditOperation.READ,
+                    changedFields = emptyMap(),
+                ),
+            )
+        }
     }
 
     @Test

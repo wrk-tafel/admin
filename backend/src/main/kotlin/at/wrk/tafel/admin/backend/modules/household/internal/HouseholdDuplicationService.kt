@@ -1,6 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
@@ -45,6 +48,7 @@ class HouseholdDuplicationService(
     private val householdConverter: HouseholdConverter,
     private val jdbcTemplate: JdbcTemplate,
     private val householdDuplicateDismissalRepository: HouseholdDuplicateDismissalRepository,
+    private val auditLogWriter: AuditLogWriter,
 ) {
 
     companion object {
@@ -206,8 +210,22 @@ class HouseholdDuplicationService(
             .map { HouseholdDuplicateCandidate(householdId = it.householdId, personName = "${it.firstname} ${it.lastname}") }
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * Not read-only: every call records an `AuditOperation.READ` - each page embeds full household
+     * records for the anchor and every similar household, not one (GDPR G24, issue #3507).
+     */
+    @Transactional
     fun findDuplicates(page: Int?): HouseholdDuplicateSearchResult {
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = AuditScope.HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
+                entityId = null,
+                businessKey = page?.let { "page=$it" },
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
+
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 1)
 
         val duplicatesPage = loadDuplicates(pageRequest)

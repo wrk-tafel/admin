@@ -105,8 +105,10 @@ a row that's about to be orphan-removed on the same flush.
 
 ### `HouseholdController` (`/api/households`)
 REST endpoint for household CRUD, validation, PDF generation, the GDPR data takeout, above-cost-limit
-listing, duplicate search and duplicate merging. All endpoints require `CUSTOMER` (or
-`CUSTOMER_DUPLICATES` / `CUSTOMERS_ABOVE_LIMIT` for the respective sub-features). Notable behavior:
+listing, duplicate search and duplicate merging. All endpoints require `CUSTOMER`; the above-limit,
+overview and duplicate/merge endpoints additionally require `CUSTOMERS_ABOVE_LIMIT`,
+`CUSTOMERS_OVERVIEW` or `CUSTOMER_DUPLICATES` respectively - additive, not a substitute for
+`CUSTOMER`, since their responses embed full household records (GDPR G26, issue #3508). Notable behavior:
 - `createHousehold`/`updateHousehold` take a `force: Boolean` query param and check
   `isSupervisor` (role `SUPERVISOR`) from the JWT - see "Income validation" below for what that
   gates.

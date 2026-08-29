@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -148,6 +149,31 @@ class HouseholdService(
             ),
         )
     }
+
+    /**
+     * Records one bulk-report read (the above-limit/overview reports and their CSV exports), the
+     * same shape [at.wrk.tafel.admin.backend.modules.audit.internal.AuditService.search] uses for
+     * its own filter-as-business-key reads: no single `entityId` (the read spans every household the
+     * report returned, not one), [businessKey] rendering the filter that was applied. Not
+     * de-duplicated like [recordHouseholdRead] - unlike reloading one household's detail screen,
+     * every distinct report/CSV pull is its own read worth a row (GDPR G24, issue #3507).
+     */
+    private fun recordReportRead(entityType: String, businessKey: String?) {
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = entityType,
+                entityId = null,
+                businessKey = businessKey,
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
+    }
+
+    private fun reportBusinessKey(vararg parts: Pair<String, Any?>): String? = parts
+        .mapNotNull { (key, value) -> value?.let { "$key=$it" } }
+        .takeIf { it.isNotEmpty() }
+        ?.joinToString(separator = ";")
 
     @Transactional
     fun createHousehold(household: HouseholdRequest, force: Boolean, isSupervisor: Boolean): HouseholdCreationResponse {
@@ -364,14 +390,20 @@ class HouseholdService(
      * (`totalSum`/`limit`/`amountExceededLimit`/`percentageExceededLimit`); anything else, including
      * `null`, sorts by `amountExceededLimit` - descending by default, which is what opens the review
      * queue with its worst cases first.
+     *
+     * Not read-only: every call records an `AuditOperation.READ` ([recordReportRead], GDPR G24,
+     * issue #3507) - the response embeds full household records for everyone above the limit, not
+     * one.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun getHouseholdsAboveLimit(
         page: Int? = null,
         pageSize: Int? = null,
         sortBy: String? = null,
         sortDirection: String? = null,
     ): HouseholdAboveLimitSearchResult {
+        recordReportRead(AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE, reportBusinessKey("sortBy" to sortBy, "sortDirection" to sortDirection))
+
         val entitiesAboveLimit = loadHouseholdsAboveLimit(sortBy, sortDirection)
 
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
@@ -396,12 +428,17 @@ class HouseholdService(
      * the CSV is what gets acted on, the paginated [getHouseholdsAboveLimit] only the on-screen
      * evidence for it. Sorted the same way the list on screen was, so the export matches what a
      * reviewer was looking at.
+     *
+     * Not read-only, same reason as [getHouseholdsAboveLimit]: every export is its own recorded
+     * `AuditOperation.READ` (GDPR G24, issue #3507).
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun generateAboveLimitCsv(
         sortBy: String? = null,
         sortDirection: String? = null,
     ): HouseholdAboveLimitCsvResult {
+        recordReportRead(AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE, reportBusinessKey("sortBy" to sortBy, "sortDirection" to sortDirection))
+
         val items = loadHouseholdsAboveLimit(sortBy, sortDirection).map { it.toItem() }
 
         val rows: List<List<String>> = listOf(
@@ -495,9 +532,18 @@ class HouseholdService(
      * Without a [distributionId] this defaults to the newest *closed* distribution - the first
      * entry of the closed-only list `GET /distributions` serves, so the frontend's default
      * selection and the default response line up.
+     *
+     * Not read-only: every call records an `AuditOperation.READ` ([recordReportRead], GDPR G24,
+     * issue #3507) - the response embeds full household records for everyone new/renewed in the
+     * distribution, not one. [generateHouseholdsOverviewCsv] calls this method directly (a
+     * same-class call Spring's transaction proxy never sees), so its own recording rides along on
+     * whichever transaction is already open - which is exactly why that method is not read-only
+     * either.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun getHouseholdsOverview(distributionId: Long?): HouseholdOverviewResponse {
+        recordReportRead(AuditScope.HOUSEHOLDS_OVERVIEW_ENTITY_TYPE, reportBusinessKey("distributionId" to distributionId))
+
         val distribution = if (distributionId != null) {
             distributionRepository.findById(distributionId).orElse(null)
                 ?: throw NotFoundException("Ausgabe Nr. $distributionId nicht gefunden!")
@@ -536,8 +582,11 @@ class HouseholdService(
      * reporting module's export conventions (`;`-delimited via [CsvUtil], `Content-Disposition:
      * inline` from the controller). One row per household, tagged with its type so the two lists
      * stay distinguishable once merged.
+     *
+     * Not read-only, same reason as [getHouseholdsOverview] - and has to stay that way for that
+     * method's own recorded read to actually commit, since the call below is same-class (see there).
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun generateHouseholdsOverviewCsv(distributionId: Long?): HouseholdOverviewCsvResult {
         val overview = getHouseholdsOverview(distributionId)
 

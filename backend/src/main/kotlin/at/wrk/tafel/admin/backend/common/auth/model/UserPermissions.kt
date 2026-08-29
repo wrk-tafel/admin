@@ -36,8 +36,28 @@ enum class UserPermissions(val key: String, val title: String, val category: Per
      * to see a customer's ID scan (GDPR G7, issue #3181).
      */
     CUSTOMER_DOCUMENTS("CUSTOMER_DOCUMENTS", "Kunden-Dokumente", PermissionCategory.OPERATIONS),
+
+    /**
+     * The duplicate-search screen and household merging - `HouseholdController`'s `/duplicates` and
+     * merge endpoints. Additive to `CUSTOMER`, enforced server-side
+     * (`hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_DUPLICATES')`): the response embeds full
+     * household records (persons, income, address), so this permission alone must not be enough to
+     * read them - it only grants reaching the duplicate-management feature (GDPR G26, issue #3508).
+     */
     CUSTOMER_DUPLICATES("CUSTOMER_DUPLICATES", "Kunden-Duplikate", PermissionCategory.ADMINISTRATION),
+
+    /**
+     * The above-cost-limit report - `HouseholdController`'s `/above-limit` (+ `/csv`). Additive to
+     * `CUSTOMER`, enforced server-side, for the same reason as `CUSTOMER_DUPLICATES` above (GDPR G26,
+     * issue #3508).
+     */
     CUSTOMERS_ABOVE_LIMIT("CUSTOMERS_ABOVE_LIMIT", "Kunden über dem Limit", PermissionCategory.ADMINISTRATION),
+
+    /**
+     * The new-and-renewed households report - `HouseholdController`'s `/overview` (+
+     * `/generate-csv`). Additive to `CUSTOMER`, enforced server-side, for the same reason as
+     * `CUSTOMER_DUPLICATES` above (GDPR G26, issue #3508).
+     */
     CUSTOMERS_OVERVIEW("CUSTOMERS_OVERVIEW", "Kunden-Übersicht (Neu & Verlängert)", PermissionCategory.ADMINISTRATION),
 
     /**

@@ -13,7 +13,7 @@ import {
   QuickCheckPersonData,
   ValidateCustomerResponse
 } from '../../../../api/customer-api.service';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
 import {ValidationResultDialogComponent} from './dialogs/validation-result-dialog.component';
@@ -55,16 +55,23 @@ export class CustomerEditComponent implements HasUnsavedChanges {
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
+
+  /**
+   * The state object of the navigation that opened this route, read once - `quickCheckPersons` (the
+   * Anspruch-Schnellcheck's "Kunden anlegen" link) and `vorname`/`nachname` (the customer search
+   * screen's empty-state CTA) both ride on it rather than on query params, so a searched customer
+   * name never lands in the URL/browser history (GDPR gap G25, issue #3506).
+   */
+  private readonly navigationState = this.router.getCurrentNavigation?.()?.extras?.state as
+    { quickCheckPersons?: QuickCheckPersonData[]; vorname?: string; nachname?: string } | undefined;
 
   /**
    * Persons handed over from the Anspruch-Schnellcheck screen (create mode only), captured from
    * the navigation that opened this route - see the quick-check's "Kunden anlegen" link.
    */
-  private readonly quickCheckPersons =
-    (this.router.getCurrentNavigation?.()?.extras?.state?.['quickCheckPersons'] ?? null) as QuickCheckPersonData[] | null;
+  private readonly quickCheckPersons = (this.navigationState?.quickCheckPersons ?? null) as QuickCheckPersonData[] | null;
 
   /**
    * Live eligibility preview: re-runs the same `/households/validate` call "Anspruch prüfen" uses,
@@ -126,8 +133,7 @@ export class CustomerEditComponent implements HasUnsavedChanges {
       } else {
         // "Kunden anlegen" reached from a search that found nothing prefills the name it was
         // searched for - see the customer search screen's empty-state CTA.
-        const params = this.route.snapshot.queryParamMap;
-        formComponent.prefillNames(params?.get('vorname') ?? null, params?.get('nachname') ?? null);
+        formComponent.prefillNames(this.navigationState?.vorname ?? null, this.navigationState?.nachname ?? null);
         // Reached from the Anspruch-Schnellcheck instead: carry the already-entered birthdates,
         // incomes and family-allowance flags over so they are not typed twice.
         if (this.quickCheckPersons?.length) {

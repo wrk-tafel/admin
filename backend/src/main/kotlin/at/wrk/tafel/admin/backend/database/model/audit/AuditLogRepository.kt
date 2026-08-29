@@ -80,26 +80,36 @@ interface AuditLogRepository :
     fun countByOccurredAtBefore(cutoff: LocalDateTime): Long
 
     /**
-     * Who read more than [threshold] entries of [operation] since [since] - the query behind GDPR
-     * gap G11's breach-detection threshold (`ExcessiveReadAccessDetectionService`). Grouped rather
-     * than fetched row-by-row: a session downloading hundreds of documents in an hour must cost one
-     * query here, not one row loaded per document.
+     * Who read more than [threshold] weighted entries of [operation] since [since] - the query
+     * behind GDPR gap G11's breach-detection threshold (`ExcessiveReadAccessDetectionService`).
+     * Grouped rather than fetched row-by-row: a session downloading hundreds of documents in an
+     * hour must cost one query here, not one row loaded per document.
+     *
+     * Each entry counts as 1 except one whose `entityType` is in [bulkEntityTypes]
+     * ([at.wrk.tafel.admin.backend.database.common.audit.AuditScope.bulkReportEntityTypes]), which
+     * counts as [bulkReadWeight] - a bulk household report/export reveals every household it
+     * returned, not one, so it must weigh into the tally accordingly (GDPR gap G24, issue #3507).
+     * `audit_log` itself stays one row per read event regardless; only this query treats those
+     * entity types specially.
      */
     @Query(
         """
-            SELECT a.actorUsername AS username, COUNT(a) AS readCount
+            SELECT a.actorUsername AS username,
+                   SUM(CASE WHEN a.entityType IN :bulkEntityTypes THEN :bulkReadWeight ELSE 1 END) AS readCount
             FROM AuditLog a
             WHERE a.operation = :operation
               AND a.actorUsername IS NOT NULL
               AND a.occurredAt >= :since
             GROUP BY a.actorUsername
-            HAVING COUNT(a) > :threshold
+            HAVING SUM(CASE WHEN a.entityType IN :bulkEntityTypes THEN :bulkReadWeight ELSE 1 END) > :threshold
         """,
     )
     fun findActorsWithOperationCountAbove(
         @Param("operation") operation: AuditOperation,
         @Param("since") since: LocalDateTime,
         @Param("threshold") threshold: Long,
+        @Param("bulkEntityTypes") bulkEntityTypes: Collection<String>,
+        @Param("bulkReadWeight") bulkReadWeight: Long,
     ): List<AuditActorOperationCountProjection>
 
     /**

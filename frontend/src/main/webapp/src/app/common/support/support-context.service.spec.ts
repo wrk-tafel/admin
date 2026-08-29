@@ -7,7 +7,7 @@ describe('SupportContextService', () => {
   let clientLogService: ClientLogService;
 
   const windowMock = {
-    location: {href: 'http://localhost/kunden/suchen'},
+    location: {origin: 'http://localhost', pathname: '/kunden/suchen'},
     navigator: {userAgent: 'Mozilla/5.0', language: 'de-AT'},
     innerWidth: 1280,
     innerHeight: 800,
@@ -52,6 +52,34 @@ describe('SupportContextService', () => {
 
   it('carries no screenshot when none was taken or the reporter left it out', () => {
     expect(service.collect().screenshot).toBeNull();
+  });
+
+  it('strips a search query string out of the page - it is, in practice, a customer name', () => {
+    // href/search still carry the query string here, to prove the service reads origin+pathname
+    // rather than href - a mock that omitted the query string entirely would pass either way.
+    const windowWithSearch = {
+      location: {
+        origin: 'http://localhost',
+        pathname: '/kunden/suchen',
+        href: 'http://localhost/kunden/suchen?suche=Mustermann',
+        search: '?suche=Mustermann'
+      },
+      navigator: {userAgent: 'Mozilla/5.0', language: 'de-AT'},
+      innerWidth: 1280,
+      innerHeight: 800,
+      screen: {width: 1920, height: 1080}
+    } as unknown as Window;
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        ClientLogService,
+        SupportContextService,
+        {provide: Window, useValue: windowWithSearch}
+      ]
+    });
+    const serviceWithSearch = TestBed.inject(SupportContextService);
+
+    expect(serviceWithSearch.collect().page).toEqual('http://localhost/kunden/suchen');
   });
 
 });
