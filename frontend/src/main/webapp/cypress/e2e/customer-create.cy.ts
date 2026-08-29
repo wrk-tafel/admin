@@ -151,6 +151,14 @@ describe('Customer Creation', () => {
           .and('contain.text', lastname)
           .and('contain.text', firstname);
 
+        // Clearing the name makes the check ineligible again - the warning must disappear along
+        // with it rather than keep showing the last search's results (issue #3528).
+        cy.byTestId('lastnameInput').clear();
+        cy.byTestId('possible-duplicates-warning', {timeout: 8000}).should('not.exist');
+
+        cy.byTestId('lastnameInput').type(lastname);
+        cy.byTestId('possible-duplicates-warning', {timeout: 8000}).should('be.visible');
+
         cy.byTestId('possible-duplicate-' + existingCustomerId).find('a').click();
         // the typed identity fields count as unsaved changes, so the guard asks before leaving
         cy.byTestId('unsavedchanges-dialog').within(() => {

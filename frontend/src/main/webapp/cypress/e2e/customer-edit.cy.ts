@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('Customer Edit', () => {
@@ -12,6 +13,15 @@ describe('Customer Edit', () => {
       cy.visit('/kunden/bearbeiten/' + customerId);
 
       cy.byTestId('save-button').should('be.enabled');
+
+      // The stored validUntil (+1 year) must survive an edit that never touches income/incomeDue -
+      // opening the form must not silently rewrite it from incomeDue (+30 days). Captured up front
+      // and read back inside a `.should()` callback further down - a plain value argument would be
+      // read while the commands below are still being queued, before this `.then()` has run.
+      let expectedValidUntil: string;
+      cy.byTestId('validUntilInput').invoke('val').then((value) => {
+        expectedValidUntil = dayjs(value as string).format('DD.MM.YYYY');
+      });
 
       const updatedLastname = 'UpdatedLastname';
       const updatedFirstname = 'UpdatedFirstname';
@@ -63,6 +73,9 @@ describe('Customer Edit', () => {
       cy.byTestId('employerText').should('have.text', updatedEmployer);
       cy.byTestId('addressLine1Text').should('have.text', updatedStreet + ' ' + updatedHouseNumber);
       cy.byTestId('addressLine2Text').should('have.text', updatedPostalCode + ' ' + updatedCity);
+      cy.byTestId('validUntilText').should(($el) => {
+        expect($el.text()).to.equal(expectedValidUntil);
+      });
     });
   });
 
