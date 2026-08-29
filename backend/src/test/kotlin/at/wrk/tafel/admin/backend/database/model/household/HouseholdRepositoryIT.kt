@@ -92,9 +92,14 @@ class HouseholdRepositoryIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
         testEntityManager.clear()
 
+        // other IT tests in this suite commit their own households via real HTTP-driven service
+        // calls (a separate, actually-committing transaction) against the same shared Postgres
+        // instance, so the window can contain households besides these two - assert containment,
+        // not exclusivity
         val result = householdRepository.findIdByUpdatedAtBetween(from, to)
 
-        assertThat(result).containsExactly(insideWindow.id)
+        assertThat(result).contains(insideWindow.id)
+        assertThat(result).doesNotContain(outsideWindow.id)
     }
 
     /**
