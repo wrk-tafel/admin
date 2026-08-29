@@ -74,7 +74,7 @@ class DistributionStatisticService(
         val referenceDate = distribution.startedAt.toLocalDate()
         val countInfants = distribution.households.flatMap { it.household.additionalPersons() }
             .filterNot { it.excludeFromHousehold }
-            .count { Period.between(it.birthDate, referenceDate).years < 3 }
+            .count { it.birthDate != null && Period.between(it.birthDate, referenceDate).years < 3 }
         statistic.countInfants = countInfants
 
         val averagePersonsPerHousehold = if (countHouseholds > 0) {

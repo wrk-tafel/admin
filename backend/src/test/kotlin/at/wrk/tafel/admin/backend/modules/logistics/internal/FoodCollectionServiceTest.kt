@@ -85,7 +85,7 @@ class FoodCollectionServiceTest {
         val distributionMock = mockk<DistributionEntity>()
         every { distributionMock.foodCollections } returns listOf(testFoodCollectionRoute1Entity)
         every { distributionMock.endedAt } returns null
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionMock
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionMock
 
         val data = service.getFoodCollection(routeId)!!
 
@@ -150,7 +150,7 @@ class FoodCollectionServiceTest {
             )
         }
         distributionEntity.foodCollections = mutableListOf(existingCollection)
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { shopRepository.findByIdOrNull(testShop1.id!!) } returns testShop1
         every { shopRepository.findByIdOrNull(testShop2.id!!) } returns testShop2
         every { foodCollectionRepository.save(any()) } returns mockk()
@@ -179,7 +179,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { shopRepository.findByIdOrNull(999L) } returns null
 
@@ -207,7 +207,7 @@ class FoodCollectionServiceTest {
             )
         }
         distributionEntity.foodCollections = mutableListOf(existingCollection)
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { shopRepository.findByIdOrNull(testShop1.id!!) } returns testShop1
         every { foodCollectionRepository.save(any()) } returns mockk()
 
@@ -236,7 +236,7 @@ class FoodCollectionServiceTest {
             coDriverId = coDriverId,
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
         val exception = assertThrows<NotFoundException> { service.saveRouteData(routeId = routeId, data = data) }
@@ -254,7 +254,7 @@ class FoodCollectionServiceTest {
             coDriverId = coDriverId,
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { employeeRepository.findByIdOrNull(data.driverId) } returns testEmployee1
         every { employeeRepository.findByIdOrNull(data.coDriverId) } returns testEmployee2
@@ -290,7 +290,7 @@ class FoodCollectionServiceTest {
             id = 2
         }
         distributionEntity.foodCollections = mutableListOf(existingCollection)
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { foodCollectionRepository.save(any()) } returns mockk()
 
         service.saveKm(routeId = routeId, data = data)
@@ -312,7 +312,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
 
@@ -332,7 +332,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
         val exception = assertThrows<NotFoundException> { service.saveKm(routeId = routeId, data = data) }
@@ -348,7 +348,7 @@ class FoodCollectionServiceTest {
             coDriverId = testEmployee2.id!!,
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { employeeRepository.findByIdOrNull(data.driverId) } returns testEmployee1
         every { employeeRepository.findByIdOrNull(data.coDriverId) } returns testEmployee2
@@ -381,7 +381,7 @@ class FoodCollectionServiceTest {
             items = emptyList(),
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
         val exception = assertThrows<NotFoundException> { service.saveItems(routeId = routeId, data = data) }
@@ -416,7 +416,7 @@ class FoodCollectionServiceTest {
             ),
         )
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -469,7 +469,7 @@ class FoodCollectionServiceTest {
         )
 
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -517,7 +517,7 @@ class FoodCollectionServiceTest {
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
 
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -591,7 +591,7 @@ class FoodCollectionServiceTest {
             ),
         )
 
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -633,7 +633,7 @@ class FoodCollectionServiceTest {
         }
         distributionEntity.foodCollections = emptyList()
 
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -670,7 +670,7 @@ class FoodCollectionServiceTest {
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
 
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -702,7 +702,7 @@ class FoodCollectionServiceTest {
         )
 
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -750,7 +750,7 @@ class FoodCollectionServiceTest {
             amount = 22,
         )
 
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -805,7 +805,7 @@ class FoodCollectionServiceTest {
             amount = 22,
         )
 
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -840,7 +840,7 @@ class FoodCollectionServiceTest {
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
 
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
 
         val result = service.getItemsPerShop(routeId = routeId, shopId = testShop1.id!!)!!
 
@@ -859,7 +859,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
         val exception = assertThrows<NotFoundException> { service.patchItem(routeId = routeId, data = data) }
@@ -878,7 +878,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(999L) } returns null
 
@@ -898,7 +898,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
         every { shopRepository.findByIdOrNull(999L) } returns null
@@ -927,7 +927,7 @@ class FoodCollectionServiceTest {
             id = 2
         }
         distributionEntity.foodCollections = mutableListOf(otherRouteCollection, existingCollection)
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { employeeRepository.findByIdOrNull(driverId) } returns testEmployee1
         every { employeeRepository.findByIdOrNull(coDriverId) } returns testEmployee2
@@ -953,7 +953,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { carRepository.findByIdOrNull(999L) } returns null
 
@@ -975,7 +975,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { carRepository.findByIdOrNull(testCar1.id!!) } returns testCar1
         every { employeeRepository.findByIdOrNull(999L) } returns null
@@ -998,7 +998,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { carRepository.findByIdOrNull(testCar1.id!!) } returns testCar1
         every { employeeRepository.findByIdOrNull(testEmployee1.id!!) } returns testEmployee1
@@ -1032,7 +1032,7 @@ class FoodCollectionServiceTest {
             id = 2
         }
         distributionEntity.foodCollections = mutableListOf(otherRouteCollection, existingCollection)
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
         every { shopRepository.findByIdOrNull(testShop1.id!!) } returns testShop1
@@ -1061,7 +1061,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(999L) } returns null
 
@@ -1085,7 +1085,7 @@ class FoodCollectionServiceTest {
             endedAt = null
             foodCollections = emptyList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
         every { shopRepository.findByIdOrNull(999L) } returns null
@@ -1104,7 +1104,7 @@ class FoodCollectionServiceTest {
             id = 99
             this.foodCollections = foodCollections.toList()
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distribution
         every { foodCollectionRepository.findAllByDistributionId(99L) } returns foodCollections.toList()
         // saveKm, the save these tests drive the check through, looks the route up to attach it to a
         // newly created collection and then persists it.

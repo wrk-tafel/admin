@@ -41,7 +41,7 @@ internal class DistributionStillOpenReminderServiceTest {
             id = 1
             endedAt = null
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns distribution
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distribution
     }
 
     @Test
@@ -74,14 +74,9 @@ internal class DistributionStillOpenReminderServiceTest {
 
     @Test
     fun `stays quiet when the last distribution is already closed`() {
-        val closed = DistributionEntity(
-            startedAt = LocalDateTime.parse("2024-03-02T13:30:00"),
-            startedByUser = testUserEntity,
-        ).apply {
-            id = 1
-            endedAt = LocalDateTime.parse("2024-03-02T20:00:00")
-        }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns closed
+        // A closed distribution never comes back from findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        // in the first place - the query itself filters on endedAt is null.
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         service.remindAboutStillOpenDistribution()
 
@@ -90,7 +85,7 @@ internal class DistributionStillOpenReminderServiceTest {
 
     @Test
     fun `stays quiet when there is no distribution at all`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         service.remindAboutStillOpenDistribution()
 
