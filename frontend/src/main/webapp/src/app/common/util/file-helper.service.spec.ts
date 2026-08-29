@@ -26,6 +26,13 @@ describe('FileHelperService', () => {
   });
 
   afterEach(() => {
+    // A test that never advances the fake clock (e.g. because it only asserts on the
+    // synchronous part of downloadFile) would otherwise leave the deferred revokeObjectURL
+    // timer pending. Left unflushed, it fires later as a real callback - after this test's
+    // mocks are gone - and crashes as an unhandled error attributed to whatever spec happens
+    // to be running at that point. Flushing it here, while the mocks are still in place,
+    // guarantees it never outlives this test.
+    vi.runAllTimers();
     vi.useRealTimers();
     vi.restoreAllMocks();
     delete (URL as any).createObjectURL;
