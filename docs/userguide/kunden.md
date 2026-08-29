@@ -113,6 +113,8 @@ Die Buttons sitzen wie beim Kundenformular in einer Leiste am unteren Bildschirm
 
 Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein (das Feld weist mit "4-stellig" darauf hin), die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor. Neben dem Datumsfeld "Gültig bis" stehen Schnellauswahl-Buttons (+1/+2/+3/+6/+12 Monate) zur Verfügung, die ausgehend vom aktuell eingetragenen Datum (oder, falls noch keines gesetzt ist, ab heute) weiterrechnen – dieselbe Schnellauswahl wie beim "Bezug verlängern" in der Kunden-Detailansicht.
 
+Das Feld **Nationalität** lässt sich durch Eintippen aus der Länderliste durchsuchen. Ohne Eingabe zeigt die Liste zuerst die am häufigsten erfassten Länder, durch einen Trennstrich abgesetzt von den restlichen, alphabetisch sortierten Ländern; sobald ein Suchbegriff eingetippt wird, erscheint stattdessen eine flache, nach dem Suchbegriff gefilterte Liste. Wird das Feld verlassen, ohne einen Eintrag aus der Liste auszuwählen, bleibt die zuletzt gültige Auswahl bestehen.
+
 Die fachlich weniger selbsterklärenden Felder tragen ein Info-Symbol (ⓘ), das ihre Wirkung erklärt (siehe [Kurzhinweise](README.md#tooltips-und-erklaerungen)):
 
 - **Einkommen (monatl.)**: Die Einkommen aller Personen im Haushalt werden zusammengezählt und gegen die Einkommensgrenze geprüft.

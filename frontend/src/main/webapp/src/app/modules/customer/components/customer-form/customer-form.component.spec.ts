@@ -70,7 +70,8 @@ describe('CustomerFormComponent', () => {
 
   beforeEach(() => {
     const apiServiceSpy = {
-      getCountries: vi.fn().mockName('CountryApiService.getCountries').mockReturnValue(of(mockCountryList))
+      getCountries: vi.fn().mockName('CountryApiService.getCountries')
+        .mockReturnValue(of({countries: mockCountryList, frequentlyUsedCount: 1}))
     } as any;
 
     TestBed.configureTestingModule({
@@ -95,7 +96,7 @@ describe('CustomerFormComponent', () => {
   });
 
   it('data filling works', () => {
-    apiService.getCountries.mockReturnValue(of(mockCountryList));
+    apiService.getCountries.mockReturnValue(of({countries: mockCountryList, frequentlyUsedCount: 1}));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
@@ -153,7 +154,7 @@ describe('CustomerFormComponent', () => {
   });
 
   it('data update works', () => {
-    apiService.getCountries.mockReturnValue(of(mockCountryList));
+    apiService.getCountries.mockReturnValue(of({countries: mockCountryList, frequentlyUsedCount: 1}));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
@@ -194,7 +195,7 @@ describe('CustomerFormComponent', () => {
   });
 
   it('validUntil set when incomeDue is updated', () => {
-    apiService.getCountries.mockReturnValue(of(mockCountryList));
+    apiService.getCountries.mockReturnValue(of({countries: mockCountryList, frequentlyUsedCount: 1}));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
@@ -209,7 +210,7 @@ describe('CustomerFormComponent', () => {
   });
 
   it('validUntil updates as incomeDue changes if not manually changed', () => {
-    apiService.getCountries.mockReturnValue(of(mockCountryList));
+    apiService.getCountries.mockReturnValue(of({countries: mockCountryList, frequentlyUsedCount: 1}));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
@@ -230,7 +231,7 @@ describe('CustomerFormComponent', () => {
   });
 
   it('prefills the persons handed over from the quick-check screen', () => {
-    apiService.getCountries.mockReturnValue(of(mockCountryList));
+    apiService.getCountries.mockReturnValue(of({countries: mockCountryList, frequentlyUsedCount: 1}));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;

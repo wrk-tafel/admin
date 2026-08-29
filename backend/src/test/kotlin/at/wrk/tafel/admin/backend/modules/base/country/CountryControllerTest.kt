@@ -28,7 +28,18 @@ class CountryControllerTest {
         val response = countryController.listCountries()
 
         assertThat(response).isEqualTo(
-            CountryListResponse(items = listOf(country1, country2)),
+            CountryListResponse(items = listOf(country1, country2), frequentlyUsedCount = 2),
         )
+    }
+
+    @Test
+    fun `frequentlyUsedCount is capped at the fixed limit`() {
+        val countries = (1..7).map { CountryItem(id = it.toLong(), code = "C$it", name = "Country $it") }
+
+        every { countryService.listCountries() } returns countries
+
+        val response = countryController.listCountries()
+
+        assertThat(response.frequentlyUsedCount).isEqualTo(CountryService.FREQUENTLY_USED_COUNT)
     }
 }
