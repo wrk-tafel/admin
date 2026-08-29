@@ -132,19 +132,19 @@ class WebPushSenderService(
                     when (val statusCode = response.statusCode.value()) {
                         in 200..299 -> PushSendResult.SENT
                         403, 404, 410 -> {
-                            // Logged with the push service's own explanation: this outcome silently
-                            // removes the subscription (see PushBroadcastService), so without it a
-                            // rejected-by-the-push-service send is indistinguishable from a device that
-                            // was never registered - which is exactly how a broken VAPID setup hides
-                            // itself.
-                            logger.warn(
-                                "Push send to subscription #${subscriptionEntity.id} was rejected as gone with status $statusCode: ${readBody(response)}",
-                            )
+                            // This outcome silently removes the subscription (see PushBroadcastService),
+                            // so without a log a rejected-by-the-push-service send is indistinguishable
+                            // from a device that was never registered - which is exactly how a broken
+                            // VAPID setup hides itself. Deliberately not the response body: `endpoint`
+                            // is caller-supplied (see PushSubscriptionService.validateEndpoint), and
+                            // logging an arbitrary server's response turns "Test" into a way to read
+                            // back whatever that endpoint said, status code only is diagnosis enough.
+                            logger.warn("Push send to subscription #${subscriptionEntity.id} was rejected as gone with status $statusCode")
                             PushSendResult.EXPIRED
                         }
 
                         else -> {
-                            logger.warn("Push send to subscription #${subscriptionEntity.id} failed with status $statusCode: ${readBody(response)}")
+                            logger.warn("Push send to subscription #${subscriptionEntity.id} failed with status $statusCode")
                             PushSendResult.FAILED
                         }
                     }
@@ -154,13 +154,4 @@ class WebPushSenderService(
             PushSendResult.FAILED
         }
     }
-
-    /**
-     * The push service's error body (e.g. FCM's "UnauthorizedRegistration"), best-effort: it's
-     * only ever used for a log line, so a body that can't be read must not turn a handled
-     * rejection into a thrown exception.
-     */
-    private fun readBody(response: RestClient.RequestHeadersSpec.ConvertibleClientHttpResponse): String = runCatching {
-        response.bodyTo(String::class.java)?.trim()?.takeIf { it.isNotEmpty() } ?: "<no response body>"
-    }.getOrElse { "<response body unreadable: ${it.message}>" }
 }
