@@ -75,6 +75,38 @@ object AuditScope {
     const val AUDIT_LOG_QUERY_ENTITY_TYPE = "AuditLogQuery"
 
     /**
+     * The above-cost-limit report (its paginated list and its CSV export alike) - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.getHouseholdsAboveLimit]/
+     * `generateAboveLimitCsv`. Spans every household above the limit rather than one, so - like
+     * [AUDIT_LOG_QUERY_ENTITY_TYPE] - it has no [auditedEntities] map entry (GDPR G24, issue #3507).
+     */
+    const val HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE = "HouseholdsAboveLimit"
+
+    /**
+     * The new-and-renewed-households report (its JSON view and its CSV export alike) - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.getHouseholdsOverview]/
+     * `generateHouseholdsOverviewCsv`. Spans every household new/renewed in the distribution rather
+     * than one, so it has no [auditedEntities] map entry (GDPR G24, issue #3507).
+     */
+    const val HOUSEHOLDS_OVERVIEW_ENTITY_TYPE = "HouseholdsOverview"
+
+    /**
+     * The duplicate-candidates list - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService.findDuplicates].
+     * Each page embeds full household records for both the anchor and its similar households, so it
+     * has no [auditedEntities] map entry (GDPR G24, issue #3507).
+     */
+    const val HOUSEHOLD_DUPLICATES_ENTITY_TYPE = "HouseholdDuplicates"
+
+    /**
+     * A household-merge preview - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService.preview]. Spans
+     * the target and every source household rather than one, so it has no [auditedEntities] map
+     * entry (GDPR G24, issue #3507).
+     */
+    const val HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE = "HouseholdMergePreview"
+
+    /**
      * @param entityType the label stored in `audit_log.entity_type`. Kept as a stable string rather
      * than the class name so renaming a Kotlin class doesn't split one entity's history in two.
      * @param householdScoped whether [businessKey] yields a household number, i.e. whether entries
@@ -157,6 +189,18 @@ object AuditScope {
     val householdScopedEntityTypes: Set<String> =
         auditedEntities.values.filter { it.householdScoped }.map { it.entityType }.toSet()
 
+    /**
+     * The bulk household reports - each entry spans every household the report/export returned,
+     * not one - so `ExcessiveReadAccessDetectionService` weighs a read of one of these more heavily
+     * than the default 1 (`tafeladmin.audit.breachDetection.bulkReadWeight`, GDPR G24, issue #3507).
+     */
+    val bulkReportEntityTypes: Set<String> = setOf(
+        HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE,
+        HOUSEHOLDS_OVERVIEW_ENTITY_TYPE,
+        HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
+        HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
+    )
+
     val allEntityTypes: List<String> = (
         auditedEntities.values.map { it.entityType } +
             listOf(
@@ -165,6 +209,10 @@ object AuditScope {
                 DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE,
                 EMPLOYEE_EXPORT_ENTITY_TYPE,
                 AUDIT_LOG_QUERY_ENTITY_TYPE,
+                HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE,
+                HOUSEHOLDS_OVERVIEW_ENTITY_TYPE,
+                HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
+                HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
             )
         ).distinct().sorted()
 

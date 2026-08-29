@@ -82,7 +82,7 @@
             <h3 class="tafel-h6 font-semibold mb-2">Keine Kunden gefunden</h3>
             <p class="mb-4 text-sm text-slate-600">Für diese Suche gibt es noch keinen Kunden.</p>
             <a matButton="filled" testid="create-customer-cta" [routerLink]="['/kunden/anlegen']"
-               [queryParams]="createCustomerQueryParams()">Kunden anlegen</a>
+               [state]="createCustomerState()">Kunden anlegen</a>
           </div>
         } @else {
           <div class="hidden md:block">

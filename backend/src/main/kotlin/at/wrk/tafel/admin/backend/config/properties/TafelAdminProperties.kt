@@ -353,6 +353,18 @@ class TafelAdminAuditBreachDetectionProperties {
      * one nobody trusts. Set to 0 (or less) to switch the check off entirely.
      */
     var readThreshold: Int = 20
+
+    /**
+     * What one `READ` of a bulk household report (above-limit, overview, duplicates, merge preview -
+     * `AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE` and friends) counts as against [readThreshold],
+     * instead of the 1 every other entity type counts as. One such read pulls every matching household
+     * into the response or a CSV, not one record, so it should weigh into the hourly tally accordingly
+     * (GDPR G24, issue #3507). Kept as its own knob rather than folded into the entries themselves:
+     * `audit_log` stays one row per read event regardless of what it covers, and only this detection
+     * query treats the bulk-report types specially - see
+     * [at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository.findActorsWithOperationCountAbove].
+     */
+    var bulkReadWeight: Long = 10
 }
 
 /**

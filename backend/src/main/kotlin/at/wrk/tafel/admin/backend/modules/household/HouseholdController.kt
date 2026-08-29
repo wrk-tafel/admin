@@ -205,7 +205,7 @@ class HouseholdController(
     }
 
     @GetMapping("/above-limit")
-    @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
     fun getHouseholdsAboveLimit(
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
@@ -223,7 +223,7 @@ class HouseholdController(
     }
 
     @GetMapping("/above-limit/csv", produces = [MediaType.TEXT_PLAIN_VALUE])
-    @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
     fun generateHouseholdsAboveLimitCsv(
         @RequestParam sortBy: String? = null,
         @RequestParam sortDirection: String? = null,
@@ -239,11 +239,11 @@ class HouseholdController(
     }
 
     @GetMapping("/overview")
-    @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_OVERVIEW')")
     fun getHouseholdsOverview(@RequestParam distributionId: Long? = null): HouseholdOverviewResponse = householdService.getHouseholdsOverview(distributionId)
 
     @GetMapping("/overview/generate-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
-    @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_OVERVIEW')")
     fun generateHouseholdsOverviewCsv(@RequestParam distributionId: Long? = null): ResponseEntity<InputStreamResource> {
         val csvResult = householdService.generateHouseholdsOverviewCsv(distributionId)
         val headers = ContentDispositionUtil.inline(csvResult.filename)
@@ -256,7 +256,7 @@ class HouseholdController(
     }
 
     @GetMapping("/duplicates")
-    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_DUPLICATES')")
     fun getDuplicates(
         @RequestParam page: Int? = null,
     ): PagedResponse<HouseholdDuplicationItem> {
@@ -276,20 +276,20 @@ class HouseholdController(
     }
 
     @PostMapping("/duplicates/dismiss")
-    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_DUPLICATES')")
     fun dismissDuplicate(@Valid @RequestBody request: HouseholdDuplicateDismissRequest) {
         householdDuplicationService.dismiss(request.householdId!!, request.otherHouseholdId!!)
     }
 
     @GetMapping("/{householdId}/merge-preview")
-    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_DUPLICATES')")
     fun getMergePreview(
         @PathVariable householdId: Long,
         @RequestParam sourceHouseholdIds: List<Long>,
     ): HouseholdMergePreviewResponse = householdMergeService.preview(householdId, sourceHouseholdIds)
 
     @PostMapping("/{householdId}/merge")
-    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_DUPLICATES')")
     fun mergeIntoHousehold(
         @PathVariable householdId: Long,
         @Valid @RequestBody request: HouseholdMergeRequest,

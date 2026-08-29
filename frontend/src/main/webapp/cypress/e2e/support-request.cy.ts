@@ -42,6 +42,24 @@ describe('Support request', () => {
     cy.byTestId('support-dialog').should('not.exist');
   });
 
+  it('strips a search query string out of the reported page - it is, in practice, a customer name', () => {
+    cy.visit('/kunden/suchen?suche=Mustermann');
+    cy.intercept('POST', '/api/support').as('createSupportRequest');
+
+    cy.byTestId('supportButton').click();
+    cy.byTestId('supportTitle').type('Suche hakt');
+    cy.byTestId('supportText').type('Die Suche liefert seltsame Ergebnisse.');
+    cy.byTestId('okButton').click();
+
+    cy.wait('@createSupportRequest').then(({request}) => {
+      // 'suche' alone would false-positive against the route path itself ('/kunden/suchen'
+      // contains it) - the query string ('?...') is the actual thing being stripped.
+      expect(request.body.clientContext.page).to.contain('/kunden/suchen');
+      expect(request.body.clientContext.page).not.to.contain('?');
+      expect(request.body.clientContext.page).not.to.contain('Mustermann');
+    });
+  });
+
   it('sends nothing when the dialog is cancelled', () => {
     cy.intercept('POST', '/api/support').as('createSupportRequest');
 

@@ -38,8 +38,8 @@ Two things to be clear about before reading on:
 | `mail_outbox` | customers and staff | every mail this installation sends, as the finished MIME message — report PDFs, and a support request's free text plus its screenshot of whatever screen it was written on | `tafeladmin.mailOutbox.sentRetention`, 14 days after sending; a row parked as `FAILED` gets `tafeladmin.mailOutbox.failedRetention`, 30 days after queuing (`MailOutboxService.cleanupOldMails`, ADR-0046) |
 | the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | `tafeladmin.storage.scannerFileRetention`, 7 days by default (`ScannerFileCleanupService`), or until a user imports or deletes it first |
 | `logs/app.log` | staff, and anyone who reached the login endpoint | usernames on login/logout/distribution start, the client IP when a locked-out IP is rejected (`TafelLoginProvider`, WARN); at DEBUG, which is off in production, `MailOutboxService` also logs a queued mail's recipient addresses. No customer names were found in any log statement | Spring Boot's rolling default, 7 files |
-| `logs/access.log` | customers — pseudonymously by path, by name through the query string | one line per request, including `/api/households/{id}` paths and, with Tomcat's default pattern, the full query string — so a search's `?searchInput=<name>` too, see [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail) | **never** — `rotate: false` in `application.yml` |
-| PDFs and CSVs generated on demand | customers | Stammdatenblatt and ID card per household; the Kundenliste PDF is a distribution's attendance list — ticket number, household number, person and infant counts, no names; the above-limit and overview CSVs (`HouseholdService.generateAboveLimitCsv`/`generateHouseholdsOverviewCsv`) are per-household rows *with* name and address — see [G24](#g24-the-name-bearing-csv-downloads-are-not-recorded-and-not-inventoried) | outside the application the moment they are downloaded or printed |
+| `logs/access.log` | customers — pseudonymously by path only | one line per request, including `/api/households/{id}` paths; `server.tomcat.accesslog.pattern` deliberately omits the query string (`%m %U %H`, not Tomcat's default `%r`) so a search's `?searchInput=<name>` never lands here, see [G25](#g25-a-search-term-is-a-name-and-it-no-longer-travels-into-the-access-log-or-the-support-mail) | **never** — `rotate: false` in `application.yml` |
+| PDFs and CSVs generated on demand | customers | Stammdatenblatt and ID card per household; the Kundenliste PDF is a distribution's attendance list — ticket number, household number, person and infant counts, no names; the above-limit and overview CSVs (`HouseholdService.generateAboveLimitCsv`/`generateHouseholdsOverviewCsv`) are per-household rows *with* name and address, and now each recorded as an `AuditOperation.READ` — see [G24](#g24-bulk-household-reports-now-record-their-own-auditoperation-read-weighted-in-breach-detection) | outside the application the moment they are downloaded or printed |
 | `shelters_contacts` | shelter contacts (not staff, not customers) | name, phone | manual only — no retention job; cascades when its shelter is deleted |
 | `shops` (`contact_person`, `phone`, `note`) | shop contacts (not staff, not customers) | contact name, phone, a free-text note | manual only — no retention job |
 | `mail_recipients` | whoever an operator configured as a mail recipient | an e-mail address, which may identify a named individual | manual only — no retention job |
@@ -191,8 +191,9 @@ small screen; the hint still states that a screenshot is attached.
 
 What remains open: a retention rule on the support mailbox is the operator's to set, not the
 application's, and once a request is sent the free text and screenshot are as uncontrolled as any
-other mail the organisation receives. The mail's `page` field also carries the current URL verbatim,
-query string included — see [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail).
+other mail the organisation receives. The mail's `page` field used to carry the current URL verbatim,
+query string included - that channel is closed now, see
+[G25](#g25-a-search-term-is-a-name-and-it-no-longer-travels-into-the-access-log-or-the-support-mail).
 
 ### G4 A hint now keeps special-category data out of notes and documents
 
@@ -264,8 +265,9 @@ Deliberately *not* recorded, because a per-row entry would be noise rather than 
 paginated list and search endpoints (`GET /api/households`, `GET /api/users`, `GET /api/employees`,
 a household's note and document *lists*), the Datenauskunft search (see G15), and the blank
 privacy-notice templates, which carry no subject's data at all. A list shows what the search screen
-shows; the trail records the moment someone reaches into one record. The bulk CSV downloads are a
-different matter — see [G24](#g24-the-name-bearing-csv-downloads-are-not-recorded-and-not-inventoried).
+shows; the trail records the moment someone reaches into one record. The bulk CSV/list downloads
+were a different matter — see
+[G24](#g24-bulk-household-reports-now-record-their-own-auditoperation-read-weighted-in-breach-detection).
 
 What remains open: [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) is the detection
 this made possible, not this gap itself.
@@ -332,9 +334,11 @@ files, 100MB total cap) is likewise made explicit rather than left as whatever t
 to default to.
 
 What remains open: the retention this hand-off relies on lives in the deployment host's own logrotate
-configuration, outside this repository — and what the file *contains* turned out to be more than
-paths, see [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail) — the same operator-side gap [§6](#6-what-this-repository-cannot-answer)
-already tracks for backups and processor agreements.
+configuration, outside this repository — the same operator-side gap [§6](#6-what-this-repository-cannot-answer)
+already tracks for backups and processor agreements. What the file *contains* briefly turned out to
+be more than paths too, until
+[G25](#g25-a-search-term-is-a-name-and-it-no-longer-travels-into-the-access-log-or-the-support-mail)'s
+access-log pattern fix closed that.
 
 ### G10 Copies survive an erasure, and nobody can say for how long
 
@@ -812,7 +816,7 @@ The rest of the originating issue's findings (tracked separately in
   generated password is already built from (`generatedPasswordCharactersRules`), so a user-chosen
   password can no longer fall below what one guarantees.
 
-### G24 The name-bearing CSV downloads are not recorded, and not inventoried
+### G24 Bulk household reports now record their own AuditOperation READ weighted in breach detection
 
 **Art. 5(2), Art. 32, Art. 33.** Found in a re-audit of the code against this document (2026-08-29),
 issue [#3507](https://github.com/wrk-tafel/admin/issues/3507).
@@ -820,55 +824,81 @@ issue [#3507](https://github.com/wrk-tafel/admin/issues/3507).
 Two CSV downloads list households row by row with name and address —
 `HouseholdService.generateAboveLimitCsv` (Nr., name, address, income total, limit) and
 `generateHouseholdsOverviewCsv` (name, address, persons, validity) — and the JSON lists behind them
-(`/above-limit`, `/overview`), `/duplicates` and `/{id}/merge-preview` embed the full household
-record per row. None of them writes an `AuditOperation.READ`. [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded)
+(`/above-limit`, `/overview`), `/duplicates` and `/{id}/merge-preview` embedded the full household
+record per row, none of them writing an `AuditOperation.READ`. [G6](#g6-a-small-targeted-set-of-reads-is-now-recorded)
 records the moment someone reaches into *one* record, and [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access)
-counts those — so one request that pulls every household above the limit, or every household renewed
-this month, into a file is invisible to both, which is the exact shape of a bulk extraction the read
-log exists to catch. Until this re-audit, §1 also claimed the only CSVs were aggregates and the
-name-less Kundenliste.
+counts those — so one request that pulled every household above the limit, or every household renewed
+this month, into a file was invisible to both, the exact shape of a bulk extraction the read log
+exists to catch.
 
-What to do: one `READ` per bulk download (entity type per report, business key the filter — the same
-shape `AuditService.search` uses for a Zugriffsprotokoll query), counted in the breach detection with
-more weight than a single detail view, not less.
+`HouseholdService.getHouseholdsAboveLimit`/`generateAboveLimitCsv`/`getHouseholdsOverview`/
+`generateHouseholdsOverviewCsv`, `HouseholdDuplicationService.findDuplicates` and
+`HouseholdMergeService.preview` now each record one `AuditOperation.READ` per call — no single
+`entityId` (the read spans every household the report returned, not one), a report-specific
+`entityType` (`AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE` and three siblings) and a `businessKey`
+rendering the filter that was applied, the same shape `AuditService.search` already used for its own
+Zugriffsprotokoll-query reads. `ExcessiveReadAccessDetectionService`'s hourly threshold query now
+weighs one of those bulk-report entity types (`AuditScope.bulkReportEntityTypes`) as
+`tafeladmin.audit.breachDetection.bulkReadWeight` (10 by default) instead of the 1 every other entry
+counts as, so a bulk pull correctly outweighs a single detail view instead of counting the same as
+one.
 
-### G25 A search term is a name, and it travels into the access log, the URL and the support mail
+### G25 A search term is a name and it no longer travels into the access log or the support mail
 
 **Art. 5(1)(c), Art. 5(1)(e), Art. 32.** Found in the same re-audit, issue
 [#3506](https://github.com/wrk-tafel/admin/issues/3506).
 
 The customer, user, employee and Datenauskunft searches all send the free-text query as a `GET`
 query parameter (`?searchInput=...`), and a search term is, in practice, a customer's name. It then
-lands in three places this document described as name-free: `logs/access.log`, whose Tomcat default
-pattern logs the full request line, query string included, into the one file that is never rotated
+landed in three places this document described as name-free: `logs/access.log`, whose Tomcat default
+pattern logged the full request line, query string included, into the one file that is never rotated
 ([G9](#g9-the-access-logs-lack-of-rotation-is-now-a-deliberate-documented-operator-hand-off) settled
 *where* it is kept, not *what* it holds); the browser's history, because the search screens mirror
-the term into the SPA URL and "Kunden anlegen" from an empty search carries `?vorname=&nachname=`;
-and the support mail, whose `page` field is `window.location.href` verbatim — so a name in the search
-box reaches `mail_outbox` and the support mailbox from a direction [G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name)'s
-hint cannot cover.
+the term into the SPA URL and "Kunden anlegen" from an empty search carried `?vorname=&nachname=`;
+and the support mail, whose `page` field was `window.location.href` verbatim — so a name in the
+search box reached `mail_outbox` and the support mailbox from a direction
+[G3](#g3-the-support-form-now-hints-at-using-the-household-number-instead-of-a-name)'s hint cannot
+cover.
 
-What to do, smallest first: an access-log pattern without the query string, which also covers any
-future parameter; strip the query from the support context's `page` before it leaves the browser;
-then decide whether a search term belongs in the URL at all.
+Three fixes, smallest first:
+- `server.tomcat.accesslog.pattern` in `application.yml` no longer defaults to Tomcat's `%r` (method,
+  path *and* query string); it is now `%h %l %u %t "%m %U %H" %s %b` — method, path, protocol, no
+  query string, for every request, not just a search.
+- `SupportContextService.collect()` now builds `page` from `location.origin` + `location.pathname`
+  instead of `location.href`, so a search term (or any other query string) never leaves the browser
+  in a support request.
+- The URL mirroring itself got a mixed answer rather than an all-or-nothing one: the search screens'
+  own `?suche=...`/`?suchen=...` state (deep-linkable, restorable on "back") stays — it lives only in
+  the reporting user's own browser history, not a shared or server-side log, and is what makes
+  "search → open a customer → back" return to the same result list. The one leak that had no such
+  purpose is gone: the customer search screen's empty-state "Kunden anlegen" CTA used to carry the
+  searched name as `?vorname=&nachname=` query params purely to prefill the create form one screen
+  later; it now passes them as Angular router navigation `state` instead (the same mechanism the
+  Anspruch-Schnellcheck's own "Kunden anlegen" link already used for `quickCheckPersons`), so that
+  name never touches the URL, and so never the browser history, at all.
 
-### G26 Three report permissions reach the whole household record without CUSTOMER
+### G26 Three report permissions now require CUSTOMER too
 
 **Art. 25, Art. 32.** Found in the same re-audit, issue
 [#3508](https://github.com/wrk-tafel/admin/issues/3508).
 
-`/above-limit`, `/overview`, `/duplicates` and the merge endpoints require only
+`/above-limit`, `/overview`, `/duplicates` and the merge endpoints required only
 `CUSTOMERS_ABOVE_LIMIT`, `CUSTOMERS_OVERVIEW` or `CUSTOMER_DUPLICATES` — but their responses embed
 the complete `HouseholdResponse`, every person's birth date, nationality, employer and income
-included. The frontend gates the whole `kunden` subtree on `CUSTOMER`, so no screen shows this; the
-API does not, so an account holding only one of those three can read every household through it.
-`UserPermissions.kt` never declares them additive to `CUSTOMER` the way it does for
+included. The frontend gates the whole `kunden` subtree on `CUSTOMER`, so no screen showed this; the
+API did not, so an account holding only one of those three could read every household through it.
+`UserPermissions.kt` never declared them additive to `CUSTOMER` the way it does for
 `DATA_SUBJECT_REQUESTS` ([G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too)),
 and [G7](#g7-the-documents-tab-now-requires-its-own-permission-separate-from-customer) went the
 other way for documents.
 
-What to do: either enforce the additivity the frontend already assumes (`CUSTOMER and
-CUSTOMERS_ABOVE_LIMIT`, server-side), or return only what each report screen shows.
+`HouseholdController`'s `/above-limit` (+ `/csv`), `/overview` (+ `/generate-csv`), `/duplicates` (+
+`/dismiss`) and both merge endpoints (`/{id}/merge-preview`, `/{id}/merge`) now carry a compound
+`@PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_ABOVE_LIMIT')")` (and the
+`CUSTOMERS_OVERVIEW`/`CUSTOMER_DUPLICATES` equivalents) — the additivity the frontend already
+assumed, enforced server-side, the smaller and more direct of the two options this document
+originally weighed. `UserPermissions.kt`'s KDoc on all three permissions now says so explicitly, the
+same way it already does for `DATA_SUBJECT_REQUESTS`.
 
 ### G27 The notices now cover the IP address (staff) and the audit trail (customers)
 
@@ -1023,16 +1053,16 @@ number here.
 | 20 | [G21](#g21-a-household-note-can-now-be-corrected-or-erased-not-only-appended) notes were append-only, no Art. 16/17 path | [#3417](https://github.com/wrk-tafel/admin/issues/3417) | done | `PUT`/`DELETE` on `HouseholdNoteController`, edit/delete in the "Alle Notizen anzeigen" dialog, restricted to the note's own author |
 | 21 | [G22](#g22-staff-now-get-an-art-13-notice-too-and-the-customer-notices-own-gaps-are-closed) no Art. 13 notice for staff; customer notice incomplete/hard-coded | [#3429](https://github.com/wrk-tafel/admin/issues/3429) | done | `retentionTime`/footer as template params, four added paragraphs, new `staff-pdf` notice; re-signing after a retention change stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 | 22 | [G23](#g23-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked) no rate limiting, username-only lockout, lockout oracle, no password complexity | [#3432](https://github.com/wrk-tafel/admin/issues/3432), [#3484](https://github.com/wrk-tafel/admin/issues/3484) | done | `RateLimitFilter`/`RateLimiterIpService` (IP-scoped token bucket), `LoginAttemptIpService` (IP-scoped lockout), a unified `403` for wrong credentials and a lockout alike, a character-class rule for user-chosen passwords |
-| 23 | [G24](#g24-the-name-bearing-csv-downloads-are-not-recorded-and-not-inventoried) bulk CSV/list downloads unrecorded | [#3507](https://github.com/wrk-tafel/admin/issues/3507) | small | one `READ` per bulk download, weighted in `ExcessiveReadAccessDetectionService` |
-| 24 | [G25](#g25-a-search-term-is-a-name-and-it-travels-into-the-access-log-the-url-and-the-support-mail) search terms in `access.log`, the URL and the support mail | [#3506](https://github.com/wrk-tafel/admin/issues/3506) | small | access-log pattern without the query string; strip the query from the support context's `page` |
-| 25 | [G26](#g26-three-report-permissions-reach-the-whole-household-record-without-customer) report permissions reach the full household record | [#3508](https://github.com/wrk-tafel/admin/issues/3508) | small | enforce `CUSTOMER and <report permission>` server-side, or slim the list items |
+| 23 | [G24](#g24-bulk-household-reports-now-record-their-own-auditoperation-read-weighted-in-breach-detection) bulk CSV/list downloads unrecorded | [#3507](https://github.com/wrk-tafel/admin/issues/3507) | done | one `AuditOperation.READ` per bulk report/CSV call, weighted in `ExcessiveReadAccessDetectionService` via `tafeladmin.audit.breachDetection.bulkReadWeight` |
+| 24 | [G25](#g25-a-search-term-is-a-name-and-it-no-longer-travels-into-the-access-log-or-the-support-mail) search terms in `access.log`, the URL and the support mail | [#3506](https://github.com/wrk-tafel/admin/issues/3506) | done | access-log pattern without the query string; `SupportContextService` strips it from `page`; the "Kunden anlegen" empty-state CTA now passes the name via router state instead of query params |
+| 25 | [G26](#g26-three-report-permissions-now-require-customer-too) report permissions reach the full household record | [#3508](https://github.com/wrk-tafel/admin/issues/3508) | done | `@PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_ABOVE_LIMIT')")` and its two siblings on `HouseholdController` |
 | 26 | [G27](#g27-the-notices-now-cover-the-ip-address-staff-and-the-audit-trail-customers) notices omitted the IP address / the audit trail | [#3509](https://github.com/wrk-tafel/admin/issues/3509) | done | two paragraphs per notice, figures as template parameters (`ipLockoutDurationText`/`auditRetentionDays`), golden PDFs regenerated |
 | 27 | [G28](#g28-two-smaller-confidentiality-leaks-opportunistic-smtp-tls-and-a-mail-subject-on-a-lock-screen) opportunistic SMTP TLS; mail subject in a push body | [#3510](https://github.com/wrk-tafel/admin/issues/3510), [#3511](https://github.com/wrk-tafel/admin/issues/3511) | done | `starttls.required: true` set, named a failed mail by type and outbox id instead of its subject |
 | 28 | [G29](#g29-a-signed-privacy-notice-can-now-be-flagged-when-its-printed-retention-figure-has-drifted-from-the-live-config) a signed privacy notice can silently drift from a later-changed retention window | [#3500](https://github.com/wrk-tafel/admin/issues/3500) | done | `DocumentEntity.retentionPeriodAtUpload` stamped at upload, a "Datenschutzerklärung veraltet" customer-search filter; whether to act on a drift stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 
-G1–G23 and G27–G29 are done — the operator has answered every question in #3185's coded-work table,
-and G29 closes the detection half of #3500 (the "what to do about a drift" question stays open, see
-G29's own "what remains open" and [#3496](https://github.com/wrk-tafel/admin/issues/3496)). G24–G26
-were found by the 2026-08-29 re-audit of this document against the code and remain open, each with
-its issue above. What [§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR
-closes it; it stays open until the operator writes those answers down.
+G1–G29 are all done — the operator has answered every question in #3185's coded-work table, and G29
+closes the detection half of #3500 (the "what to do about a drift" question stays open, see G29's own
+"what remains open" and [#3496](https://github.com/wrk-tafel/admin/issues/3496)). G24–G27 were found
+by the 2026-08-29 re-audit of this document against the code, each with its issue above. What
+[§6](#6-what-this-repository-cannot-answer) lists has no gap number and no PR closes it; it stays open
+until the operator writes those answers down.

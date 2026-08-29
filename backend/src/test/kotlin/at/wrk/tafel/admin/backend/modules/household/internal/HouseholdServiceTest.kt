@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
@@ -893,6 +894,17 @@ class HouseholdServiceTest {
             BigDecimal("1200"),
             BigDecimal("1300"),
         )
+        verify {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE,
+                    entityId = null,
+                    businessKey = "sortBy=totalSum;sortDirection=asc",
+                    operation = AuditOperation.READ,
+                    changedFields = emptyMap(),
+                ),
+            )
+        }
     }
 
     @Test
@@ -1111,6 +1123,17 @@ class HouseholdServiceTest {
         assertThat(lines).hasSize(31)
         assertThat(lines[0]).isEqualTo("Nr.;Name;Adresse;Gültig bis;Einkommen gesamt;Limit;Über Limit;% über Limit")
         assertThat(lines[1]).contains("Teststraße 1, 1020 Wien").contains("1500").contains("50.0")
+        verify {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE,
+                    entityId = null,
+                    businessKey = null,
+                    operation = AuditOperation.READ,
+                    changedFields = emptyMap(),
+                ),
+            )
+        }
     }
 
     @Test
@@ -1151,6 +1174,17 @@ class HouseholdServiceTest {
         assertThat(result.renewedHouseholds).hasSize(1)
         assertThat(result.renewedHouseholds.first().household).isEqualTo(renewedHousehold)
         assertThat(result.renewedHouseholds.first().date).isEqualTo(renewedHouseholdEntity.prolongedAt)
+        verify {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = AuditScope.HOUSEHOLDS_OVERVIEW_ENTITY_TYPE,
+                    entityId = null,
+                    businessKey = "distributionId=100",
+                    operation = AuditOperation.READ,
+                    changedFields = emptyMap(),
+                ),
+            )
+        }
     }
 
     @Test
@@ -1290,6 +1324,19 @@ class HouseholdServiceTest {
         assertThat(lines[0]).isEqualTo("Typ;Nr.;Name;Adresse;Personen;Gültigkeit;Datum")
         assertThat(lines[1]).isEqualTo("Neu;5;Mustermann Max;Teststraße 12, Stiege 2, Top 5, 1010 Wien;2;Gültig;03.01.2026 09:15")
         assertThat(lines[2]).isEqualTo("Verlängert;20;Beispiel Anna;Beispielweg 3, 1020 Wien;1;Gesperrt;03.01.2026 10:30")
+        // recorded by getHouseholdsOverview, called directly (same-class, so no separate proxy
+        // transaction) from within this CSV export's own transaction - see the KDoc on both methods.
+        verify {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = AuditScope.HOUSEHOLDS_OVERVIEW_ENTITY_TYPE,
+                    entityId = null,
+                    businessKey = "distributionId=100",
+                    operation = AuditOperation.READ,
+                    changedFields = emptyMap(),
+                ),
+            )
+        }
     }
 
     @Test

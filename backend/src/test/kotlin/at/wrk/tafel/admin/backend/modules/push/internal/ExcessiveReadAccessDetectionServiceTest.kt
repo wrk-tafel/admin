@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditActorOperationCountProjection
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
@@ -51,6 +52,8 @@ internal class ExcessiveReadAccessDetectionServiceTest {
                 AuditOperation.READ,
                 LocalDateTime.parse("2024-03-05T08:00:00"),
                 20L,
+                AuditScope.bulkReportEntityTypes,
+                10L,
             )
         } returns listOf(offender("mmuster", 23))
 
@@ -68,7 +71,7 @@ internal class ExcessiveReadAccessDetectionServiceTest {
     @Test
     fun `notifies once per offending user`() {
         every {
-            auditLogRepository.findActorsWithOperationCountAbove(any(), any(), any())
+            auditLogRepository.findActorsWithOperationCountAbove(any(), any(), any(), any(), any())
         } returns listOf(offender("mmuster", 23), offender("jdoe", 45))
 
         service.detectExcessiveReadAccess()
@@ -83,11 +86,31 @@ internal class ExcessiveReadAccessDetectionServiceTest {
 
     @Test
     fun `stays quiet when nobody exceeds the threshold`() {
-        every { auditLogRepository.findActorsWithOperationCountAbove(any(), any(), any()) } returns emptyList()
+        every { auditLogRepository.findActorsWithOperationCountAbove(any(), any(), any(), any(), any()) } returns emptyList()
 
         service.detectExcessiveReadAccess()
 
         verify(exactly = 0) { pushBroadcastService.broadcast(any(), any(), any()) }
+    }
+
+    @Test
+    fun `passes the configured bulk-report weight and entity types through to the repository`() {
+        properties.audit.breachDetection.bulkReadWeight = 7
+        every {
+            auditLogRepository.findActorsWithOperationCountAbove(any(), any(), any(), any(), any())
+        } returns emptyList()
+
+        service.detectExcessiveReadAccess()
+
+        verify {
+            auditLogRepository.findActorsWithOperationCountAbove(
+                AuditOperation.READ,
+                any(),
+                20L,
+                AuditScope.bulkReportEntityTypes,
+                7L,
+            )
+        }
     }
 
     @Test
@@ -96,7 +119,7 @@ internal class ExcessiveReadAccessDetectionServiceTest {
 
         service.detectExcessiveReadAccess()
 
-        verify(exactly = 0) { auditLogRepository.findActorsWithOperationCountAbove(any(), any(), any()) }
+        verify(exactly = 0) { auditLogRepository.findActorsWithOperationCountAbove(any(), any(), any(), any(), any()) }
         verify(exactly = 0) { pushBroadcastService.broadcast(any(), any(), any()) }
     }
 }

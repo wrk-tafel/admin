@@ -22,7 +22,10 @@ export class SupportContextService {
   collect(screenshot: string | null = null): SupportClientContext {
     return {
       screenshot,
-      page: this.window.location.href,
+      // Deliberately not `location.href`: a search screen's query string is, in practice, a
+      // customer's name, and `page` ends up in `mail_outbox` and the support mailbox - see GDPR
+      // gap G25, issue #3506.
+      page: this.window.location.origin + this.window.location.pathname,
       userAgent: this.window.navigator.userAgent,
       viewport: `${this.window.innerWidth}x${this.window.innerHeight}`,
       screen: `${this.window.screen.width}x${this.window.screen.height}`,
