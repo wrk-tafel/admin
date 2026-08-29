@@ -10,17 +10,26 @@ import {catchError, debounceTime, distinctUntilChanged, map, of, switchMap} from
 import {HttpResponse} from '@angular/common/http';
 import {MatIcon} from '@angular/material/icon';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
+import {TafelInfoTooltipComponent} from '../../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {TafelAutofocusDirective} from '../../../../../common/directive/tafel-autofocus.directive';
 import {ITafelNavData, navigationMenuItems, registerNavigationIcons} from '../../navigation-menuItems';
 import {AuthenticationService} from '../../../../../common/security/authentication.service';
 import {GlobalStateService} from '../../../../../common/state/global-state.service';
 import {CustomerApiService, CustomerData} from '../../../../../api/customer-api.service';
+import {UserApiService} from '../../../../../api/user-api.service';
 import {FileHelperService} from '../../../../../common/util/file-helper.service';
 import {parseContentDispositionFilename} from '../../../../../common/util/content-disposition.util';
 import {registerSvgIcons} from '../../../../../common/util/svg-icon.util';
 import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 
 const PRIVACY_NOTICE_TEMPLATE_LABEL = 'Datenschutzerklärung (Vorlage) herunterladen';
+/**
+ * The Art. 13 GDPR privacy notice for staff (issue #3429) - what is processed about the person
+ * using this palette, not a customer document. Surfaced here too since the "Kunden" section below
+ * shows personal customer data as soon as two characters are typed - a reminder belongs where that
+ * data first appears, not only in the user menu.
+ */
+const STAFF_PRIVACY_NOTICE_LABEL = 'Datenschutzerklärung (Mitarbeiter) herunterladen';
 
 export interface QuickOpenNavEntry {
   label: string;
@@ -75,6 +84,7 @@ const CUSTOMER_RESULT_LIMIT = 5;
   selector: 'tafel-quick-open-dialog',
   imports: [
     TafelDialogComponent,
+    TafelInfoTooltipComponent,
     TafelAutofocusDirective,
     MatButtonModule,
     MatFormFieldModule,
@@ -96,6 +106,7 @@ export class QuickOpenDialogComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
   private readonly customerApiService = inject(CustomerApiService);
+  private readonly userApiService = inject(UserApiService);
   private readonly fileHelperService = inject(FileHelperService);
 
   private readonly resultList = viewChild.required<ElementRef<HTMLElement>>('resultList');
@@ -157,10 +168,24 @@ export class QuickOpenDialogComponent {
     return PRIVACY_NOTICE_TEMPLATE_LABEL.toLowerCase().includes(query);
   });
 
+  /**
+   * Not gated on `hasCustomerPermission` like the action above - this is about the staff member's
+   * own account, same as the identical menu entry in the user menu, so every signed-in user can
+   * reach it.
+   */
+  readonly showStaffPrivacyNoticeAction = computed(() => {
+    const query = this.query().trim().toLowerCase();
+    return STAFF_PRIVACY_NOTICE_LABEL.toLowerCase().includes(query);
+  });
+
+  readonly actionCount = computed(() =>
+    (this.showPrivacyNoticeTemplateAction() ? 1 : 0) + (this.showStaffPrivacyNoticeAction() ? 1 : 0));
+
   readonly resultAnnouncement = computed(() => {
     const parts = [`${this.navResults().length} Navigationseinträge`];
-    if (this.showPrivacyNoticeTemplateAction()) {
-      parts.push('1 Aktion');
+    const actionCount = this.actionCount();
+    if (actionCount > 0) {
+      parts.push(actionCount === 1 ? '1 Aktion' : `${actionCount} Aktionen`);
     }
     const customers = this.customerResults();
     if (customers !== null) {
@@ -187,6 +212,12 @@ export class QuickOpenDialogComponent {
   downloadPrivacyNoticeTemplate() {
     this.dialogRef.close();
     this.customerApiService.generatePrivacyNoticeTemplate().subscribe(response => this.processPdfResponse(response));
+  }
+
+  /** Same download as the user menu's "Datenschutzerklärung (Mitarbeiter)" entry, reachable here too. */
+  downloadStaffPrivacyNotice() {
+    this.dialogRef.close();
+    this.userApiService.generatePrivacyNoticeTemplate().subscribe(response => this.processPdfResponse(response));
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {
@@ -234,4 +265,5 @@ export class QuickOpenDialogComponent {
   }
 
   protected readonly privacyNoticeTemplateLabel = PRIVACY_NOTICE_TEMPLATE_LABEL;
+  protected readonly staffPrivacyNoticeLabel = STAFF_PRIVACY_NOTICE_LABEL;
 }

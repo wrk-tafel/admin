@@ -33,7 +33,7 @@
                  (ngModelChange)="onQueryInput($event)" (keydown.enter)="search()" tafelAutofocus>
         </mat-form-field>
         <tafel-info-tooltip [testId]="'search-input-info-tooltip'"
-                            text="Eine reine Zahl springt bei einem exakten Treffer direkt zum Kunden. Sonst wird die Kundennummer, die Namen aller Personen des Haushalts, Adresse, Telefonnummer und E-Mail durchsucht - Tippfehler werden toleriert, genaue Treffer stehen im Ergebnis oben."></tafel-info-tooltip>
+                            text="Eine reine Zahl springt erst nach Enter oder Klick auf 'Suchen' bei einem exakten Treffer direkt zum Kunden - während der Eingabe wird nur gesucht, damit eine noch unvollständige Nummer nicht zu einem falschen Kunden springt. Durchsucht werden Kundennummer, die Namen aller Personen des Haushalts, Adresse, Telefonnummer und E-Mail - Tippfehler werden toleriert, genaue Treffer stehen im Ergebnis oben."></tafel-info-tooltip>
       </div>
     </div>
 

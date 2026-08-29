@@ -151,7 +151,13 @@ export class CustomerSearchComponent {
         filter(value => value.trim() !== this.lastDispatchedQuery),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.search());
+      // tryExactMatch: false - a customer number is very often typed in stages (the debounce can
+      // settle between digits), so live search-as-you-type must never navigate away on what could
+      // still be a mid-typed prefix that happens to already match a different, shorter customer
+      // number. The exact-id jump only fires on an explicit Enter/"Suchen", once the number is
+      // actually finished; until then, live search still finds it - the number is part of
+      // `search_text` too - it just doesn't jump.
+      .subscribe(() => this.search(undefined, undefined, true, false));
 
     // A link into this screen carries its whole state (query, filters, page) - see QUERY_PARAMS.
     // Without any of them present (the plain menu entry), land on the unfiltered first page instead.

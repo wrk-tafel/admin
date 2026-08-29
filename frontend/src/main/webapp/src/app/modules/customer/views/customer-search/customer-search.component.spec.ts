@@ -191,6 +191,28 @@ describe('CustomerSearchComponent', () => {
       expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 42]);
     });
 
+    // A customer number is often typed in stages, and the debounce can settle between digits - a
+    // still-incomplete prefix must not silently navigate to a different, shorter customer's page.
+    it('does not attempt the exact-id jump for a number entered via search-as-you-type, only on an explicit search', () => {
+      apiService.getCustomer.mockReturnValue(of(testCustomer as any));
+      apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+      const {component} = createComponent();
+
+      component.onQueryInput('42');
+      vi.advanceTimersByTime(1000);
+
+      expect(apiService.getCustomer).not.toHaveBeenCalled();
+      expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', 42]);
+      expect(apiService.searchCustomer)
+        .toHaveBeenLastCalledWith('42', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
+      // pressing Enter on the same, now-finished number does attempt the jump
+      component.search();
+
+      expect(apiService.getCustomer).toHaveBeenCalledWith(42, expect.anything());
+      expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 42]);
+    });
+
     it('falls back to the fuzzy search with the digits as text when no exact customer matches', () => {
       apiService.getCustomer.mockReturnValue(throwError(() => new HttpErrorResponse({status: 404})));
       apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));

@@ -55,6 +55,22 @@ describe('Customer Search', () => {
     });
   });
 
+  // The exact-id jump must only ever fire on an explicit search (button/Enter, both covered above) -
+  // never from search-as-you-type alone, since the debounce can settle on a still-incomplete number
+  // that happens to already match a different, shorter customer id (issue #3533).
+  it('does not jump automatically while a customer number is only typed, without an explicit search', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+
+      cy.byTestId('searchInputText').type(customerId.toString());
+      // past the 300ms debounce, with margin
+      cy.wait(600);
+
+      cy.url().should('include', '/kunden/suchen');
+      cy.url().should('not.include', '/kunden/detail/' + customerId);
+    });
+  });
+
   // A number that appears in every dummy customer's phone number but is far larger than any
   // customer id this suite can produce - guaranteed to miss the exact-id jump and fall back to the
   // fuzzy search, which still finds it through `search_text`.
@@ -413,7 +429,7 @@ describe('Customer Search', () => {
 
     cy.get('.mat-mdc-tooltip')
       .should('have.class', 'mat-mdc-tooltip-show')
-      .and('contain.text', 'Eine reine Zahl springt bei einem exakten Treffer direkt zum Kunden');
+      .and('contain.text', 'Eine reine Zahl springt erst nach Enter oder Klick auf \'Suchen\' bei einem exakten Treffer direkt zum Kunden');
   });
 
   it('labels the edit action through its tooltip', () => {

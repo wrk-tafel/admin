@@ -31,6 +31,9 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Der Statistik-Export "Haushaltsgrößen" berücksichtigt Haushalte mit mehr als 10 Personen jetzt in einer eigenen Zeile "11+", statt sie weder zu zählen noch in der Prozentsumme zu berücksichtigen.
 - Die Retourkisten-E-Mail zeigt die Menge einer Filiale, die auf mehreren Routen angefahren wird, jetzt getrennt pro Route, statt sie über alle Routen hinweg zusammenzuzählen.
 - Beim Erfassen der gefahrenen Kilometer einer Route wird jetzt verhindert, dass der Kilometerstand am Ende kleiner als der am Start ist.
+- Die Nationalität lässt sich beim Anlegen oder Bearbeiten eines Kunden jetzt durch Eintippen aus der Länderliste suchen, statt nur über eine lange Auswahlliste durchgeblättert zu werden.
+- Die Schnellsuche (Strg+K) nennt jetzt im Suchfeld sowie über einen Kurzhinweis, dass sie auch nach der Kundennummer sucht, und bietet unter "Aktionen" zusätzlich den Download der Datenschutzerklärung für Mitarbeiter:innen an.
+- Der direkte Sprung zu einem Kunden oder Benutzer über eine reine Nummer erfolgt jetzt erst nach Enter oder Klick auf "Suchen", statt bereits während der Eingabe zu greifen und dadurch bei einer noch unvollständigen Nummer fälschlich zu einem anderen, kürzeren Datensatz zu springen.
 
 ## [1.14.0] - 2026-08-29
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.
