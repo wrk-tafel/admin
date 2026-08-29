@@ -48,7 +48,7 @@
           <mat-label>Nationalität</mat-label>
           <input matInput testid="countryInput" type="text" autocomplete="off"
                  [matAutocomplete]="mainCountryAutocomplete"
-                 [ngModel]="mainCountryDisplayText()"
+                 [ngModel]="mainCountryDisplayText()" [ngModelOptions]="{standalone: true}"
                  (ngModelChange)="onMainCountryInput($event)"
                  (blur)="onMainCountryBlur()">
           <mat-autocomplete #mainCountryAutocomplete="matAutocomplete"
@@ -266,7 +266,7 @@
                       <mat-label>Nationalität</mat-label>
                       <input matInput testid="countryInput" type="text" autocomplete="off"
                              [matAutocomplete]="personCountryAutocomplete"
-                             [ngModel]="personCountryDisplayText(i)"
+                             [ngModel]="personCountryDisplayText(i)" [ngModelOptions]="{standalone: true}"
                              (ngModelChange)="onPersonCountryInput(i, $event)"
                              (blur)="onPersonCountryBlur(i)">
                       <mat-autocomplete #personCountryAutocomplete="matAutocomplete"
