@@ -212,6 +212,7 @@ class StatisticsService(
                     WHERE h.valid_until >= t.start_date
                     AND h.created_at < t.end_date + 1
                     AND h.locked is not true
+                    AND p.exclude_household = false
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -232,6 +233,7 @@ class StatisticsService(
                     AND h.created_at < t.end_date + 1
                     AND h.locked IS NOT TRUE
                     AND p.is_main_person = false
+                    AND p.exclude_household = false
                     -- at least 0, so a member born after this point of the timeline - whose AGE()
                     -- is negative there - is not counted as a child back then
                     AND EXTRACT(YEAR FROM AGE(t.start_date, p.birth_date)) BETWEEN 0 AND 15

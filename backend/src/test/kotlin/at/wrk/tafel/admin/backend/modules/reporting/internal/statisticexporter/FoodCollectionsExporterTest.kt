@@ -73,10 +73,14 @@ class FoodCollectionsExporterTest {
             )
         }
         val currentStatistic = DistributionStatisticEntity(distribution = currentDistribution)
+        currentDistribution.statistic = currentStatistic
 
-        every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
+        // the repository returns every distribution of the year including the one currently being
+        // closed - the exporter has to filter that one out itself, not rely on the repository mock
+        every { distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year) } returns listOf(
             distribution1,
             distribution2,
+            currentDistribution,
         )
 
         val filename = exporter.getName()
@@ -109,7 +113,8 @@ class FoodCollectionsExporterTest {
             id = 123
         }
         val currentStatistic = DistributionStatisticEntity(distribution = currentDistribution)
-        every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
+        currentDistribution.statistic = currentStatistic
+        every { distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year) } returns listOf(
             currentDistribution,
         )
 
@@ -151,8 +156,9 @@ class FoodCollectionsExporterTest {
             id = 502
         }
         val currentStatistic = DistributionStatisticEntity(distribution = currentDistribution)
+        currentDistribution.statistic = currentStatistic
 
-        every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(pastDistribution)
+        every { distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year) } returns listOf(pastDistribution)
 
         // rename everything in the live master data after the collection was already recorded
         category.name = "Renamed Category"

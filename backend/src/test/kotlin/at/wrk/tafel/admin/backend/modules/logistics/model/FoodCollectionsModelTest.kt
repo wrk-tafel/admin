@@ -45,6 +45,25 @@ class FoodCollectionsModelTest {
     }
 
     @Test
+    fun `save km with kmEnd less than kmStart is invalid`() {
+        val data = FoodCollectionSaveKmRequest(kmStart = 120340, kmEnd = 12034)
+
+        val violations = validator.validate(data)
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }
+            .containsExactly("kmEnd")
+    }
+
+    @Test
+    fun `save km with kmEnd equal to kmStart is valid`() {
+        val data = FoodCollectionSaveKmRequest(kmStart = 1000, kmEnd = 1000)
+
+        val violations = validator.validate(data)
+
+        assertThat(violations).isEmpty()
+    }
+
+    @Test
     fun `food collection item with non-positive and negative values is invalid`() {
         val item = FoodCollectionItem(categoryId = 0, shopId = 0, amount = -1)
 

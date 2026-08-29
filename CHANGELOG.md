@@ -24,6 +24,13 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Beim Kunden-Check-in wird die bereits zugewiesene eigene Ticketnummer jetzt akzeptiert, statt fälschlich als "bereits vergeben" abgelehnt zu werden.
 - Bei mehreren gleichzeitig laufenden Anwendungsinstanzen wird die laufende Ausgabe jetzt korrekt anhand ihres Beginns erkannt, statt anhand einer instanzabhängigen internen Kennung - vorher konnte eine bereits beendete Ausgabe fälschlich als laufend gelten und eine tatsächlich laufende als "nicht gestartet".
 - Beim manuellen erneuten Versenden der E-Mails einer Ausgabe wird jetzt kein Serverfehler mehr ausgelöst, wenn parallel bereits eine zweite Ausgabe beendet wurde - stattdessen erscheint ein regulärer Fehlerhinweis; für eine noch nicht beendete Ausgabe wird der Versand jetzt abgelehnt statt E-Mails mit leeren Platzhalterwerten zu verschicken, und Geräte erhalten dabei keine erneute "Ausgabe beendet"-Benachrichtigung mehr.
+- Die jahresübergreifenden Statistik-Exporte "Tagesreports" und "Spenden" führen die soeben beendete Ausgabe jetzt nicht mehr doppelt auf und verwenden dabei das Jahr der jeweiligen Ausgabe statt des aktuellen Datums, auch wenn der Export erst im neuen Jahr für eine Ausgabe des Vorjahres erneut versendet wird.
+- Der Statistik-Export "Altersverteilung" zeigt die Kennzahl "Personen/Haushalt" jetzt mit zwei Nachkommastellen statt auf eine ganze Zahl abgerundet.
+- Die Statistik-Kennzahlen "Bezugsberechtigte Personen" und "Bezugsberechtigte Haushalte mit Kindern" zählen nicht zum Haushalt zählende Personen jetzt nicht mehr mit.
+- Die Kennzahl "Sonstige Aktualisierungen" im Tagesreport zeigt jetzt keinen negativen Wert mehr, wenn ein Kunde im selben Zeitraum sowohl neu angelegt als auch verlängert wurde.
+- Der Statistik-Export "Haushaltsgrößen" berücksichtigt Haushalte mit mehr als 10 Personen jetzt in einer eigenen Zeile "11+", statt sie weder zu zählen noch in der Prozentsumme zu berücksichtigen.
+- Die Retourkisten-E-Mail zeigt die Menge einer Filiale, die auf mehreren Routen angefahren wird, jetzt getrennt pro Route, statt sie über alle Routen hinweg zusammenzuzählen.
+- Beim Erfassen der gefahrenen Kilometer einer Route wird jetzt verhindert, dass der Kilometerstand am Ende kleiner als der am Start ist.
 
 ## [1.14.0] - 2026-08-29
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.

@@ -258,7 +258,9 @@ class DistributionClosedEventListener(
                     .toList()
 
                 val returnBoxes = uniqueDescriptions.mapNotNull { description ->
-                    val amount = distribution.foodCollections.flatMap { it.returnItems ?: emptyList() }
+                    val amount = distribution.foodCollections
+                        .filter { it.route.id == route.id }
+                        .flatMap { it.returnItems ?: emptyList() }
                         .filter { it.shop.id == shop.id }
                         .filter { it.description == description }
                         .sumOf { it.amount }

@@ -28,9 +28,10 @@ class FoodCollectionsExporter(
         val descriptionHeaderRow =
             listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)")
 
-        val distributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)
-            .sortedBy { it.startedAt }
         val currentDistribution = currentStatistic.distribution
+        val distributions = distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year)
+            .filter { it.id != currentDistribution.id }
+            .sortedBy { it.startedAt }
 
         // `food_categories` holds only weighed donation categories now - return boxes are counted
         // by free-text description on the food collection itself and live in their own table, so
