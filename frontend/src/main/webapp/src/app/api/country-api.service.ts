@@ -7,13 +7,21 @@ import {map} from 'rxjs/operators';
 export class CountryApiService {
   private readonly http = inject(HttpClient);
 
-  getCountries(): Observable<CountryData[]> {
-    return this.http.get<CountryListResponse>('/countries').pipe(map(val => val.items));
+  getCountries(): Observable<CountryListResult> {
+    return this.http.get<CountryListResponse>('/countries')
+      .pipe(map(val => ({countries: val.items, frequentlyUsedCount: val.frequentlyUsedCount})));
   }
 }
 
 interface CountryListResponse {
   items: CountryData[];
+  frequentlyUsedCount: number;
+}
+
+/** How many leading `countries` are the "frequently used" group - where the nationality autocomplete puts its divider. */
+export interface CountryListResult {
+  countries: CountryData[];
+  frequentlyUsedCount: number;
 }
 
 export interface CountryData {

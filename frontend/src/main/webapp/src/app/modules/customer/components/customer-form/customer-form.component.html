@@ -53,7 +53,14 @@
                  (blur)="onMainCountryBlur()">
           <mat-autocomplete #mainCountryAutocomplete="matAutocomplete"
                             (optionSelected)="onMainCountrySelected($event.option.value)">
-            @for (countryItem of mainFilteredCountries(); track countryItem.id) {
+            @for (countryItem of mainCountryGroups().frequentlyUsed; track countryItem.id) {
+              <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                {{countryItem.name}}</mat-option>
+            }
+            @if (mainCountryGroups().frequentlyUsed.length && mainCountryGroups().remaining.length) {
+              <mat-divider testid="countryInput-divider"></mat-divider>
+            }
+            @for (countryItem of mainCountryGroups().remaining; track countryItem.id) {
               <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
                 {{countryItem.name}}</mat-option>
             }
@@ -271,7 +278,14 @@
                              (blur)="onPersonCountryBlur(i)">
                       <mat-autocomplete #personCountryAutocomplete="matAutocomplete"
                                         (optionSelected)="onPersonCountrySelected(i, $event.option.value)">
-                        @for (countryItem of personFilteredCountries(i); track countryItem.id) {
+                        @for (countryItem of personCountryGroups(i).frequentlyUsed; track countryItem.id) {
+                          <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                            {{countryItem.name}}</mat-option>
+                        }
+                        @if (personCountryGroups(i).frequentlyUsed.length && personCountryGroups(i).remaining.length) {
+                          <mat-divider testid="countryInput-divider"></mat-divider>
+                        }
+                        @for (countryItem of personCountryGroups(i).remaining; track countryItem.id) {
                           <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
                             {{countryItem.name}}</mat-option>
                         }

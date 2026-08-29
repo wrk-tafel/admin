@@ -14,7 +14,11 @@ class CountryController(
 ) {
 
     @GetMapping
-    fun listCountries(): CountryListResponse = CountryListResponse(
-        items = countryService.listCountries(),
-    )
+    fun listCountries(): CountryListResponse {
+        val countries = countryService.listCountries()
+        return CountryListResponse(
+            items = countries,
+            frequentlyUsedCount = minOf(CountryService.FREQUENTLY_USED_COUNT, countries.size),
+        )
+    }
 }

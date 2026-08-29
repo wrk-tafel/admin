@@ -5,6 +5,8 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 @ExcludeFromTestCoverage
 data class CountryListResponse(
     val items: List<CountryItem> = emptyList(),
+    /** How many leading [items] are the "frequently used" group - where the frontend puts the divider. */
+    val frequentlyUsedCount: Int = 0,
 )
 
 @ExcludeFromTestCoverage
