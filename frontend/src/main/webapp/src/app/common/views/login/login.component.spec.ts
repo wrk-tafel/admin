@@ -79,7 +79,9 @@ describe('LoginComponent', () => {
     });
 
     it('login successful', async () => {
-        const loginResult = { successful: true, passwordChangeRequired: false, locked: false, serverUnreachable: false };
+        const loginResult = {
+            successful: true, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -101,7 +103,9 @@ describe('LoginComponent', () => {
     });
 
     it('login failed', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: false };
+        const loginResult = {
+            successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -118,52 +122,10 @@ describe('LoginComponent', () => {
         expect(component.errorMessage()).toBe('Anmeldung fehlgeschlagen!');
     });
 
-    it('login failed - account locked, no configured duration known', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: true, serverUnreachable: false };
-        authService.login.mockReturnValue(Promise.resolve(loginResult));
-        configApiService.getPublicConfig.mockReturnValue(of(null));
-
-        const fixture = TestBed.createComponent(LoginComponent);
-        const component = fixture.componentInstance;
-        fixture.detectChanges();
-
-        component.loginFormModel.set({
-            username: 'user',
-            password: 'pwd'
-        });
-
-        await component.login();
-
-        expect(component.errorMessage()).toBe(
-            'Konto vorübergehend gesperrt! Bitte versuchen Sie es später erneut oder wenden Sie sich an eine'
-            + ' Administratorin/einen Administrator.'
-        );
-    });
-
-    it('login failed - account locked mentions the configured lockout duration', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: true, serverUnreachable: false };
-        authService.login.mockReturnValue(Promise.resolve(loginResult));
-        configApiService.getPublicConfig.mockReturnValue(of({ environmentLabel: '', accountLockoutDurationInSeconds: 300 }));
-
-        const fixture = TestBed.createComponent(LoginComponent);
-        const component = fixture.componentInstance;
-        fixture.detectChanges();
-
-        component.loginFormModel.set({
-            username: 'user',
-            password: 'pwd'
-        });
-
-        await component.login();
-
-        expect(component.errorMessage()).toBe(
-            'Konto vorübergehend gesperrt! Bitte versuchen Sie es in ca. 5 Minuten erneut oder wenden Sie sich an eine'
-            + ' Administratorin/einen Administrator.'
-        );
-    });
-
     it('login failed - server unreachable shows a distinct message from a plain credentials failure', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: true };
+        const loginResult = {
+            successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: true
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -180,8 +142,30 @@ describe('LoginComponent', () => {
         expect(component.errorMessage()).toContain('Server nicht erreichbar');
     });
 
+    it('login failed - rate limited shows a distinct message from a plain credentials failure', async () => {
+        const loginResult = {
+            successful: false, passwordChangeRequired: false, rateLimited: true, serverUnreachable: false
+        };
+        authService.login.mockReturnValue(Promise.resolve(loginResult));
+
+        const fixture = TestBed.createComponent(LoginComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        component.loginFormModel.set({
+            username: 'user',
+            password: 'pwd'
+        });
+
+        await component.login();
+
+        expect(component.errorMessage()).toContain('Zu viele Anmeldeversuche');
+    });
+
     it('login failure moves focus back to the username field and selects its content', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false, locked: false, serverUnreachable: false };
+        const loginResult = {
+            successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -203,7 +187,7 @@ describe('LoginComponent', () => {
     });
 
     it('login but passwordchange required', async () => {
-        const loginResult = { successful: true, passwordChangeRequired: true, locked: false, serverUnreachable: false };
+        const loginResult = { successful: true, passwordChangeRequired: true, rateLimited: false, serverUnreachable: false };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -230,7 +214,7 @@ describe('LoginComponent', () => {
         });
 
         it('is hidden when the deployment has no environment label', () => {
-            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: '', accountLockoutDurationInSeconds: 300}));
+            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: ''}));
 
             const fixture = TestBed.createComponent(LoginComponent);
             fixture.detectChanges();
@@ -239,7 +223,7 @@ describe('LoginComponent', () => {
         });
 
         it('is read from the public config and shown as a full-width banner above the card', () => {
-            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: 'DEV', accountLockoutDurationInSeconds: 300}));
+            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: 'DEV'}));
 
             const fixture = TestBed.createComponent(LoginComponent);
             const component = fixture.componentInstance;

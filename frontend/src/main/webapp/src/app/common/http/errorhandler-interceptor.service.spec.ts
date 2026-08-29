@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { errorHandlerInterceptor } from './errorhandler-interceptor.service';
 import { SUPPRESS_ERROR_TOAST } from './suppress-error-toast.token';
+import { SUPPRESS_CLIENT_LOG_RECORD } from './suppress-client-log-record.token';
 import { ProblemDetail } from '../api/problem-detail';
 import { AuthenticationService } from '../security/authentication.service';
 import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
@@ -245,6 +246,22 @@ describe('ErrorHandlerInterceptor', () => {
             },
         };
         httpClient.get('/test', { context: new HttpContext().set(SUPPRESS_ERROR_TOAST, true) }).subscribe(observer);
+
+        const mockReq = httpTestingController.expectOne('/test');
+        mockReq.flush(null, { status: 500, statusText: 'Internal Server Error' });
+        httpTestingController.verify();
+    });
+
+    it('does not record a failure when SUPPRESS_CLIENT_LOG_RECORD context is set', () => {
+        authServiceSpy.isAuthenticated.mockReturnValue(false);
+        const clientLogService = TestBed.inject(ClientLogService);
+
+        const observer = {
+            error: (_: any) => {
+                expect(clientLogService.getEntries()).toEqual([]);
+            },
+        };
+        httpClient.get('/test', { context: new HttpContext().set(SUPPRESS_CLIENT_LOG_RECORD, true) }).subscribe(observer);
 
         const mockReq = httpTestingController.expectOne('/test');
         mockReq.flush(null, { status: 500, statusText: 'Internal Server Error' });

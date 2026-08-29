@@ -16,6 +16,7 @@ import {AuthenticationService} from '../../../../../common/security/authenticati
 import {GlobalStateService} from '../../../../../common/state/global-state.service';
 import {CustomerApiService, CustomerData} from '../../../../../api/customer-api.service';
 import {FileHelperService} from '../../../../../common/util/file-helper.service';
+import {parseContentDispositionFilename} from '../../../../../common/util/content-disposition.util';
 import {registerSvgIcons} from '../../../../../common/util/svg-icon.util';
 import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 
@@ -132,7 +133,9 @@ export class QuickOpenDialogComponent {
         if (!this.hasCustomerPermission() || query.length < MIN_CUSTOMER_SEARCH_CHARS) {
           return of(null);
         }
-        return this.customerApiService.searchCustomer(query, null, null, null, null, null, undefined, CUSTOMER_RESULT_LIMIT).pipe(
+        return this.customerApiService.searchCustomer(
+          query, null, null, null, null, null, null, null, undefined, CUSTOMER_RESULT_LIMIT
+        ).pipe(
           map(result => result.items ?? []),
           catchError(() => of<CustomerData[]>([]))
         );
@@ -187,8 +190,7 @@ export class QuickOpenDialogComponent {
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 

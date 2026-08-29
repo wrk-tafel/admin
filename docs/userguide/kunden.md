@@ -12,7 +12,7 @@ Unter **Kunden → Kunden suchen** gibt es ein einziges Suchfeld für beides: Ei
 
 Das Suchfeld durchsucht alles, woran ein Haushalt erkennbar ist: Kundennummer, die Namen **aller** Personen des Haushalts (nicht nur der Hauptperson), Adresse, Telefonnummer und E-Mail-Adresse. Es genügt ein Teil davon – die Eingabe muss nicht vollständig sein und auch nicht am Wortanfang stehen. Tippfehler werden toleriert: Wird "Mustermsnn" statt "Mustermann" eingegeben, wird der Kunde trotzdem gefunden. Genaue Treffer stehen im Ergebnis immer oben, ähnliche darunter.
 
-Zusätzlich lässt sich über die Filter-Chips "Daten unvollständig", "Unkostenbeitrag offen", "Derzeit bezugsberechtigt", "Gesperrt" und "Datenschutzerklärung fehlt" einschränken; die Filter können auch ohne Sucheingabe verwendet werden und wirken sich sofort auf das Ergebnis aus. "Datenschutzerklärung fehlt" zeigt Kunden, bei denen noch keine unterschriebene Datenschutzerklärung im Tab "[Dokumente](#dokumente)" hochgeladen wurde.
+Zusätzlich lässt sich über die Filter-Chips "Daten unvollständig", "Unkostenbeitrag offen", "Derzeit bezugsberechtigt", "Gesperrt", "Datenschutzerklärung fehlt", "Wird in den nächsten 30 Tagen gelöscht" und "Datenschutzerklärung veraltet" einschränken; die Filter können auch ohne Sucheingabe verwendet werden und wirken sich sofort auf das Ergebnis aus. "Datenschutzerklärung fehlt" zeigt Kunden, bei denen noch keine unterschriebene Datenschutzerklärung im Tab "[Dokumente](#dokumente)" hochgeladen wurde. "Wird in den nächsten 30 Tagen gelöscht" zeigt Kunden, deren Daten wegen Ablaufs der Aufbewahrungsfrist innerhalb der nächsten 30 Tage automatisch gelöscht werden. "Datenschutzerklärung veraltet" zeigt Kunden, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde - der aufgedruckte Wert stimmt dann nicht mehr mit der aktuell gültigen Frist überein.
 
 Über den Button **Datenschutzerklärung (Vorlage)** rechts oben lässt sich die Datenschutzerklärung ohne Kundenbezug herunterladen und ausdrucken - etwa um sie einer Person schon vor der Kundenanlage zum Unterschreiben mitzugeben. Die unterschriebene Erklärung wird später am neu angelegten Kunden im Tab "[Dokumente](#dokumente)" hochgeladen.
 
@@ -32,7 +32,7 @@ Findet die Suche keinen Kunden, erscheint statt des Ergebnisses der Hinweis "Kei
 
 ## Kunden-Detail
 
-Die Detailansicht eines Kunden beginnt mit einem Kopfbereich, der Name und Kundennummer groß darstellt sowie den Status auf einen Blick zeigt: die Gültigkeit als grüne/gelbe/rote Markierung (gelb ab 8 Wochen vor Ablauf), ob der Kunde gesperrt ist, ein offener Unkostenbeitrag samt Betrag, und die Haushaltsgröße. Darunter folgen die Stammdaten des Hauptbeziehers sowie die zuletzt erfasste Notiz.
+Die Detailansicht eines Kunden beginnt mit einem Kopfbereich, der Name und Kundennummer groß darstellt sowie den Status auf einen Blick zeigt: die Gültigkeit als grüne/gelbe/rote Markierung (gelb ab 8 Wochen vor Ablauf), ob der Kunde gesperrt ist, ein offener Unkostenbeitrag samt Betrag, und die Haushaltsgröße. Darunter folgen im Tab "Allgemeine Daten" die Stammdaten des Hauptbeziehers (zweispaltig: links die Identität und Kontaktdaten, rechts Arbeitgeber, Einkommen und Status) sowie darunter die zuletzt erfasste Notiz.
 
 ![Kunden-Detail](images/kunden-detail.jpg)
 
@@ -42,9 +42,9 @@ Rechts oben im Kopfbereich stehen die Aktionen zur Verfügung, gereiht nach ihre
 - **Daten ausdrucken**: Druck der Stammdaten, nur des Kundenausweises oder einer Datenschutzerklärung zum Ausdrucken und Unterschreiben durch den Kunden bei der Aufnahme. Während die PDF-Datei erstellt wird, zeigt der Button eine Ladeanimation statt stumm zu warten.
 - **Kunde bearbeiten**: Öffnet die Bearbeitung der Stammdaten (siehe unten).
 - **Unkostenbeitrag**: Ist noch ein Betrag offen, wird er als roter Hinweis direkt am Button angezeigt; im Menü stehen dann zusätzlich "Alles bezahlt" und "Betrag eintragen" zur Verfügung. Unabhängig davon kann über "Betrag bearbeiten" (unterhalb einer Trennlinie) der Betrag jederzeit manuell korrigiert werden.
-- **Weitere Aktionen**: Sammelt die selteneren bzw. sicherheitskritischen Aktionen **Kunde deaktivieren**, **Kunde sperren**/**entsperren**, **Daten exportieren (ZIP)** und **Kunde löschen** (jeweils mit Sicherheitsabfrage bzw. Download) in einem Menü. **Daten exportieren (ZIP)** liefert die vollständige Datenauskunft zu einem Kunden für eine DSGVO-Anfrage in einer einzigen ZIP-Datei: die Stammdaten, weiteren Personen, Notizen, Teilnahme-Historie an Ausgabetagen und die Liste der hochgeladenen Dokumente als PDF-Datei, sowie alle hochgeladenen Dokumente selbst. Funktioniert unabhängig vom Sperrstatus, da ein gesperrter Kunde dieselben Auskunftsrechte behält. Ist die betroffene Person nicht anhand der Kundennummer bekannt, oder soll sie zugleich als Kunde und als Mitarbeiter:in gesucht werden, bietet sich stattdessen [Datenauskunft](datenauskunft.md) an.
+- **Weitere Aktionen**: Sammelt die selteneren bzw. sicherheitskritischen Aktionen **Kunde deaktivieren**, **Kunde sperren**/**entsperren**, **Daten exportieren (ZIP)** und **Kunde löschen** (jeweils mit Sicherheitsabfrage bzw. Download) in einem Menü. **Daten exportieren (ZIP)** liefert die vollständige Datenauskunft zu einem Kunden für eine DSGVO-Anfrage in einer einzigen ZIP-Datei: die Stammdaten, weiteren Personen, Notizen, Teilnahme-Historie an Ausgabetagen und die Liste der hochgeladenen Dokumente sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei, sowie alle hochgeladenen Dokumente selbst. Funktioniert unabhängig vom Sperrstatus, da ein gesperrter Kunde dieselben Auskunftsrechte behält. Ist die betroffene Person nicht anhand der Kundennummer bekannt, oder soll sie zugleich als Kunde und als Mitarbeiter:in gesucht werden, bietet sich stattdessen [Datenauskunft](datenauskunft.md) an.
 - Ist gerade ein Ausgabetag aktiv, kann dem Kunden rechts oben eine **Ticketnummer** zugewiesen werden; ist bereits ein Ticket zugewiesen, wird es stattdessen angezeigt und kann über den Papierkorb-Button wieder entfernt werden. Ist der Kunde gesperrt, ist die Zuweisung deaktiviert; ein Tooltip erklärt warum.
-- Über den grünen **+**-Button bei "Aktuellste Notiz" (die Kartenüberschrift zeigt zusätzlich die Gesamtanzahl an Notizen) kann eine neue Notiz erfasst werden; bei mehreren Notizen können über **Alle Notizen anzeigen** alle bisherigen Notizen eingesehen werden. Die neueste Notiz zeigt zusätzlich eine relative Zeitangabe ("vor 3 Tagen") mit dem genauen Zeitpunkt als Tooltip. Im Dialog weist ein Hinweis darauf hin, nur für die Prüfung des Anspruchs notwendige Angaben festzuhalten – keine Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.
+- Über den grünen **+**-Button bei "Aktuellste Notiz" (die Kartenüberschrift zeigt zusätzlich die Gesamtanzahl an Notizen) kann eine neue Notiz erfasst werden. Die neueste Notiz zeigt zusätzlich eine relative Zeitangabe ("vor 3 Tagen") mit dem genauen Zeitpunkt als Tooltip. Ist sie selbst verfasst, lässt sie sich direkt hier über den Stift-Button korrigieren oder über den Papierkorb-Button endgültig löschen (siehe auch [Notizen](#notizen)); bei Notizen anderer Mitarbeiter:innen fehlen diese beiden Buttons. **Alle Notizen anzeigen** springt zum Tab "[Notizen](#notizen)" mit der vollständigen Liste.
 
 Telefonnummer und E-Mail-Adresse sind als Links hinterlegt (öffnen die Telefon- bzw. Mail-App); über den Kopieren-Button neben "Adresse" lässt sich die Adresse in die Zwischenablage kopieren, etwa um sie in ein anderes System einzutragen.
 
@@ -56,9 +56,17 @@ Wurde bei einem Kunden zwischenzeitlich von anderer Stelle etwas geändert (z. B
 
 ### Weitere Personen
 
-Der Tab "Weitere Personen" listet alle zusätzlichen Haushaltsmitglieder (z. B. Kinder) mit Geburtsdatum, Nationalität, Arbeitgeber, Einkommen und der Angabe "Bezieht Familienbeihilfe". Personen, die nicht zum Haushalt zählen, sind mit einer Markierung "Nicht im Haushalt" gekennzeichnet. Sie bleiben bei der Berechnung vollständig außen vor – weder ihr Einkommen noch ihre Familienbeihilfe zählen mit, und sie erhöhen weder die im Kopfbereich angezeigte Haushaltsgröße noch das Einkommenslimit.
+Der Tab "Weitere Personen" listet alle zusätzlichen Haushaltsmitglieder (z. B. Kinder) mit Geburtsdatum, Nationalität, Arbeitgeber, Einkommen und der Angabe "Bezieht Familienbeihilfe". Personen, die nicht zum Haushalt zählen, sind mit einer Markierung "Nicht im selben Haushalt" gekennzeichnet. Sie bleiben bei der Berechnung vollständig außen vor – weder ihr Einkommen noch ihre Familienbeihilfe zählen mit, und sie erhöhen weder die im Kopfbereich angezeigte Haushaltsgröße noch das Einkommenslimit.
 
 ![Weitere Personen](images/kunden-detail-weitere-personen.jpg)
+
+<a id="notizen"></a>
+
+### Notizen
+
+Der Tab "Notizen" (die Beschriftung zeigt zusätzlich die Gesamtanzahl an Notizen) zeigt alle bisherigen Notizen, nicht nur die aktuellste, mit Seitennavigation bei vielen Einträgen. Ein Hinweis beim Erfassen weist darauf hin, nur für die Prüfung des Anspruchs notwendige Angaben festzuhalten – keine Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten. Jede selbst verfasste Notiz lässt sich über den Stift-Button korrigieren oder über den Papierkorb-Button endgültig löschen (jeweils mit Sicherheitsabfrage beim Löschen) – etwa wenn sich eine Angabe im Nachhinein als falsch herausstellt oder doch besonders schützenswerte Daten enthält. Bei Notizen anderer Mitarbeiter:innen fehlen diese beiden Buttons, da eine Notiz nur von der Person korrigiert oder gelöscht werden kann, die sie ursprünglich erfasst hat.
+
+![Notizen](images/kunden-notizen.jpg)
 
 <a id="dokumente"></a>
 
@@ -77,6 +85,8 @@ Neue Dokumente können über die Quelle-Auswahl auf zwei Arten hochgeladen werde
 
 Der Scanner-Ordner ist optional: Ist er für die aktuelle Installation nicht eingerichtet oder deaktiviert, wird die Quelle-Auswahl gar nicht angezeigt und Dokumente werden ausschließlich vom Gerät hochgeladen. Die Administration kann den Scanner-Ordner auch im laufenden Betrieb ein- oder ausschalten: Die Quelle-Auswahl erscheint bzw. verschwindet dann von selbst, ohne dass die Seite neu geladen werden muss. War gerade **Scanner** ausgewählt, wird automatisch auf **Datei hochladen** zurückgeschaltet.
 
+Eine im Scanner-Ordner abgelegte Datei, die niemand importiert oder löscht, wird nach 7 Tagen automatisch gelöscht (Datum und Uhrzeit der Ablage stehen bei jeder Datei in der Liste). Bevor das passiert, erhalten Personen mit der Berechtigung **Kunden-Dokumente** eine [Push-Benachrichtigung](README.md#benachrichtigungen), damit die Datei rechtzeitig importiert oder bewusst gelöscht werden kann.
+
 Vor dem Hochladen muss der **Dokumenttyp** ausgewählt werden. Ein Hinweis erinnert daran, nur für die Prüfung des Anspruchs notwendige Dokumente hochzuladen – möglichst ohne Angaben zu Gesundheit, Religion oder ähnlichen besonders schützenswerten Daten.
 
 ![Dokumente](images/kunden-detail-dokumente.jpg)
@@ -85,7 +95,7 @@ Vor dem Hochladen muss der **Dokumenttyp** ausgewählt werden. Ein Hinweis erinn
 
 Der Tab "Verlauf" zeigt jede erfasste Änderung an diesem Kunden, seinen weiteren Personen, seinen Notizen und seinen Dokumenten – jeweils mit Zeitpunkt, dem Benutzer, der sie vorgenommen hat, und den Werten davor und danach. Damit lässt sich nachvollziehen, wer z. B. die Adresse korrigiert, das Einkommen angepasst oder den Kunden gesperrt hat.
 
-Der Tab wird nur angezeigt, wenn die Berechtigung **Änderungsprotokoll** vorhanden ist. Dieselben Einträge – gemeinsam mit jenen zu Benutzern und Einstellungen – finden sich im [Änderungsprotokoll](aenderungsprotokoll.md), dort zusätzlich filterbar.
+Der Tab wird nur angezeigt, wenn die Berechtigung **Zugriffsprotokoll** vorhanden ist. Dieselben Einträge – gemeinsam mit jenen zu Benutzern und Einstellungen – finden sich im [Zugriffsprotokoll](zugriffsprotokoll.md), dort zusätzlich filterbar.
 
 ![Verlauf](images/kunden-verlauf.jpg)
 

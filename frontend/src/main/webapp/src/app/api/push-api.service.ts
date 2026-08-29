@@ -47,7 +47,9 @@ export enum PushNotificationType {
   FOOD_COLLECTION_COMPLETED = 'FOOD_COLLECTION_COMPLETED',
   USER_LOCKED_OUT = 'USER_LOCKED_OUT',
   REPORT_MAIL_FAILED = 'REPORT_MAIL_FAILED',
-  EXCESSIVE_READ_ACCESS = 'EXCESSIVE_READ_ACCESS'
+  EXCESSIVE_READ_ACCESS = 'EXCESSIVE_READ_ACCESS',
+  SCANNER_FILES_EXPIRING = 'SCANNER_FILES_EXPIRING',
+  RETENTION_RUN = 'RETENTION_RUN'
 }
 
 export const pushNotificationTypeLabel: { [key in PushNotificationType]: string } = {
@@ -61,7 +63,9 @@ export const pushNotificationTypeLabel: { [key in PushNotificationType]: string 
   [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Warenerfassung abgeschlossen',
   [PushNotificationType.USER_LOCKED_OUT]: 'Benutzer gesperrt',
   [PushNotificationType.REPORT_MAIL_FAILED]: 'E-Mail nicht versendet',
-  [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ungewöhnlich viele Zugriffe'
+  [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ungewöhnlich viele Zugriffe',
+  [PushNotificationType.SCANNER_FILES_EXPIRING]: 'Gescannte Dateien werden bald gelöscht',
+  [PushNotificationType.RETENTION_RUN]: 'Bereinigungsjob auffällig'
 };
 
 /**
@@ -79,7 +83,10 @@ export const pushNotificationTypeDescription: { [key in PushNotificationType]: s
   [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Für alle aktiven Routen wurden die Waren erfasst.',
   [PushNotificationType.USER_LOCKED_OUT]: 'Ein Benutzer wurde nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt.',
   [PushNotificationType.REPORT_MAIL_FAILED]: 'Eine E-Mail konnte auch nach mehreren Versuchen nicht versendet werden.',
-  [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ein Benutzer hat innerhalb einer Stunde mehr sensible Datensätze abgerufen als üblich.'
+  [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ein Benutzer hat innerhalb einer Stunde mehr sensible Datensätze abgerufen als üblich.',
+  [PushNotificationType.SCANNER_FILES_EXPIRING]: 'Eine Datei im Scanner-Ordner wird bald gelöscht, falls sie nicht importiert wird.',
+  [PushNotificationType.RETENTION_RUN]: 'Ein Bereinigungsjob (Haushalte, Benutzer, Mitarbeiter, ' +
+    'Zugriffsprotokoll) ist fehlgeschlagen oder hätte mehr Datensätze gelöscht als konfiguriert.'
 };
 
 /**
@@ -117,7 +124,8 @@ export const pushNotificationTypeGroups: PushNotificationTypeGroup[] = [
   {
     title: 'Erinnerungen',
     types: [
-      PushNotificationType.DISTRIBUTION_STILL_OPEN
+      PushNotificationType.DISTRIBUTION_STILL_OPEN,
+      PushNotificationType.SCANNER_FILES_EXPIRING
     ]
   },
   {
@@ -125,7 +133,8 @@ export const pushNotificationTypeGroups: PushNotificationTypeGroup[] = [
     types: [
       PushNotificationType.REPORT_MAIL_FAILED,
       PushNotificationType.USER_LOCKED_OUT,
-      PushNotificationType.EXCESSIVE_READ_ACCESS
+      PushNotificationType.EXCESSIVE_READ_ACCESS,
+      PushNotificationType.RETENTION_RUN
     ]
   }
 ];

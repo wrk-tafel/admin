@@ -204,147 +204,157 @@
     </div>
   </div>
   <div class="mt-0 lg:mt-3 mb-0 lg:mb-3">
-    <mat-tab-group animationDuration="0ms">
-      <mat-tab label="Allgemeine Daten">
+    <mat-tab-group animationDuration="0ms" [selectedIndex]="selectedTabIndex()" (selectedIndexChange)="selectedTabIndex.set($event)">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span testid="generaldata-tab-label" class="inline-flex items-center gap-1">
+            <mat-icon svgIcon="person"></mat-icon>
+            Allgemeine Daten
+          </span>
+        </ng-template>
         <div>
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
-            <div>
-              <mat-card>
-                <mat-card-header class="justify-center text-center w-full">
-                  <h2 class="tafel-h5">Hauptbezieher</h2>
-                </mat-card-header>
-                <mat-card-content>
-                  <div class="flex justify-between">
-                    <span class="font-bold">Kundennummer</span>
-                    <span testid="customerIdText">{{ customerData()?.id }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="font-bold">Name</span>
-                    <span testid="nameText">{{ customerData() | formatCustomerName }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="font-bold">Geburtsdatum (Alter)</span>
-                    <span testid="birthDateAgeText">{{ customerData()?.birthDate | birthdateAge }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="font-bold">Geschlecht</span>
-                    <span testid="genderText">{{ customerData()?.gender | genderLabel }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="font-bold">Nationalität</span>
-                    <span testid="countryText">{{ customerData()?.country?.name }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="font-bold">Telefon</span>
-                    @if (customerData()?.telephoneNumber) {
-                      <a testid="telephoneNumberText" [href]="'tel:' + customerData()?.telephoneNumber">{{ customerData()?.telephoneNumber }}</a>
-                    } @else {
-                      <span testid="telephoneNumberText">-</span>
-                    }
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="font-bold">E-Mail</span>
-                    @if (customerData()?.email) {
-                      <a testid="emailText" [href]="'mailto:' + customerData()?.email">{{ customerData()?.email }}</a>
-                    } @else {
-                      <span testid="emailText">-</span>
-                    }
-                  </div>
-                  <hr>
+          <div class="grid grid-cols-1 gap-4 mt-2">
+            <mat-card>
+              <mat-card-header class="justify-center text-center w-full">
+                <h2 class="tafel-h5">Hauptbezieher</h2>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12">
                   <div>
-                    <div class="flex justify-between items-center">
-                      <span class="font-bold">Adresse</span>
-                      @if (customerData()?.address) {
-                        <button type="button" testid="copy-address-button" matButton="filled" class="!min-w-0 !px-2 !py-1 !min-h-0"
-                                matTooltip="Adresse in die Zwischenablage kopieren" aria-label="Adresse in die Zwischenablage kopieren"
-                                [cdkCopyToClipboard]="customerData()?.address | formatCustomerAddress"
-                                (cdkCopyToClipboardCopied)="onAddressCopied($event)">
-                          <mat-icon svgIcon="content_copy"></mat-icon>
-                        </button>
+                    <div class="flex justify-between">
+                      <span class="font-bold">Kundennummer</span>
+                      <span testid="customerIdText">{{ customerData()?.id }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="font-bold">Name</span>
+                      <span testid="nameText">{{ customerData() | formatCustomerName }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="font-bold">Geburtsdatum (Alter)</span>
+                      <span testid="birthDateAgeText">{{ customerData()?.birthDate | birthdateAge }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="font-bold">Geschlecht</span>
+                      <span testid="genderText">{{ customerData()?.gender | genderLabel }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="font-bold">Nationalität</span>
+                      <span testid="countryText">{{ customerData()?.country?.name }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="font-bold">Telefon</span>
+                      @if (customerData()?.telephoneNumber) {
+                        <a testid="telephoneNumberText" [href]="'tel:' + customerData()?.telephoneNumber">{{ customerData()?.telephoneNumber }}</a>
+                      } @else {
+                        <span testid="telephoneNumberText">-</span>
                       }
                     </div>
+                    <div class="flex justify-between">
+                      <span class="font-bold">E-Mail</span>
+                      @if (customerData()?.email) {
+                        <a testid="emailText" [href]="'mailto:' + customerData()?.email">{{ customerData()?.email }}</a>
+                      } @else {
+                        <span testid="emailText">-</span>
+                      }
+                    </div>
+                    <hr>
                     <div>
-                      @let address = customerData()?.address;
-                      <div testid="addressLine1Text">{{ address ? formatAddressLine1(address) : '' }}</div>
-                      <div testid="addressLine2Text">{{ address ? formatAddressLine2(address) : '' }}</div>
+                      <div class="flex justify-between items-center">
+                        <span class="font-bold">Adresse</span>
+                        @if (customerData()?.address) {
+                          <button type="button" testid="copy-address-button" matButton="filled" class="!min-w-0 !px-2 !py-1 !min-h-0"
+                                  matTooltip="Adresse in die Zwischenablage kopieren" aria-label="Adresse in die Zwischenablage kopieren"
+                                  [cdkCopyToClipboard]="customerData()?.address | formatCustomerAddress"
+                                  (cdkCopyToClipboardCopied)="onAddressCopied($event)">
+                            <mat-icon svgIcon="content_copy"></mat-icon>
+                          </button>
+                        }
+                      </div>
+                      <div>
+                        @let address = customerData()?.address;
+                        <div testid="addressLine1Text">{{ address ? formatAddressLine1(address) : '' }}</div>
+                        <div testid="addressLine2Text">{{ address ? formatAddressLine2(address) : '' }}</div>
+                      </div>
                     </div>
                   </div>
-                  <hr>
-                  <div class="flex justify-between">
-                    <span class="font-bold">Arbeitgeber</span>
-                    <span testid="employerText">{{ customerData()?.employer ? customerData()?.employer : '-' }}</span>
-                  </div>
-                  <div class="flex justify-between items-end">
-                    <span class="font-bold">Einkommen (monatlich)</span>
-                    <span
-                      testid="incomeText">{{ !customerData()?.income ? '-' : customerData()?.income | currency }}</span>
-                  </div>
-                  <div class="flex justify-between items-end">
-                    <span>nachgewiesen bis:</span>
-                    <span
-                      testid="incomeDueText">{{ !customerData()?.incomeDue ? '-' : customerData()?.incomeDue | date : 'dd.MM.yyyy' }}</span>
-                  </div>
-                  <hr>
-                  <div class="flex justify-between">
-                    <span class="font-bold">Alleinerzieher</span>
-                    <span testid="singleParentText">{{ customerData()?.singleParent === true ? 'Ja' : 'Nein' }}</span>
-                  </div>
-                  <hr>
-                  <div class="flex justify-between">
-                    <span class="font-bold">Angelegt</span>
-                    <span
-                      testid="issuedInformation">am {{ customerData()?.issuedAt | date : 'dd.MM.yyyy' }} {{ customerData()?.issuer | formatIssuer }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="font-bold flex items-center">
-                      <span class="text-white px-2"
-                            [ngClass]="{'bg-green-700': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">
-                        Gültig bis:
+                  <div>
+                    <div class="flex justify-between">
+                      <span class="font-bold">Arbeitgeber</span>
+                      <span testid="employerText">{{ customerData()?.employer ? customerData()?.employer : '-' }}</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                      <span class="font-bold">Einkommen (monatlich)</span>
+                      <span
+                        testid="incomeText">{{ !customerData()?.income ? '-' : customerData()?.income | currency }}</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                      <span>nachgewiesen bis:</span>
+                      <span
+                        testid="incomeDueText">{{ !customerData()?.incomeDue ? '-' : customerData()?.incomeDue | date : 'dd.MM.yyyy' }}</span>
+                    </div>
+                    <hr>
+                    <div class="flex justify-between">
+                      <span class="font-bold">Alleinerzieher</span>
+                      <span testid="singleParentText">{{ customerData()?.singleParent === true ? 'Ja' : 'Nein' }}</span>
+                    </div>
+                    <hr>
+                    <div class="flex justify-between">
+                      <span class="font-bold">Angelegt</span>
+                      <span
+                        testid="issuedInformation">am {{ customerData()?.issuedAt | date : 'dd.MM.yyyy' }} {{ customerData()?.issuer | formatIssuer }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="font-bold flex items-center">
+                        <span class="text-white px-2"
+                              [ngClass]="{'bg-green-700': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">
+                          Gültig bis:
+                        </span>
+                        <tafel-info-tooltip [testId]="'valid-until-info-tooltip'"
+                                            text="Ende der Bezugsberechtigung. Grün bedeutet aufrecht, rot abgelaufen - über 'Bezug verlängern' kann das Datum verlängert werden."></tafel-info-tooltip>
                       </span>
-                      <tafel-info-tooltip [testId]="'valid-until-info-tooltip'"
-                                          text="Ende der Bezugsberechtigung. Grün bedeutet aufrecht, rot abgelaufen - über 'Bezug verlängern' kann das Datum verlängert werden."></tafel-info-tooltip>
-                    </span>
-                    <span testid="validUntilText" class="text-white px-2"
-                          [ngClass]="{'bg-green-700': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">{{ customerData()?.validUntil | date : 'dd.MM.yyyy' }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="font-bold flex items-center">
-                      <span [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">Unkostenbeitrag ausstehend:</span>
-                      <tafel-info-tooltip [testId]="'pending-cost-contribution-info-tooltip'"
-                                          text="Summe der Unkostenbeiträge, die bei früheren Ausgaben nicht bezahlt wurden. Sie wird beim nächsten Besuch eingehoben und kann über 'Unkostenbeitrag' verbucht werden."></tafel-info-tooltip>
-                    </span>
-                    <span testid="pendingCostContributionText"
-                          [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">
-                      {{ customerData()?.pendingCostContribution | currency }}
-                    </span>
-                  </div>
-                </mat-card-content>
-              </mat-card>
-            </div>
-            <div>
-              <mat-card>
-                <mat-card-header class="w-full">
-                  <div class="flex justify-between items-center w-full">
-                    <h2 class="tafel-h5 m-0">
-                      Aktuellste Notiz
-                      @if ((customerNotesResponse()?.totalCount ?? 0) > 0) {
-                        <span testid="notes-count" class="font-normal text-gray-500">({{ customerNotesResponse()?.totalCount }})</span>
-                      }
-                    </h2>
-                    <button testid="addnote-button" matButton="filled" class="button-success" (click)="openAddNoteDialog()"
-                            matTooltip="Neue Notiz zu diesem Kunden erfassen" aria-label="Neue Notiz zu diesem Kunden erfassen">
-                      <mat-icon svgIcon="add"></mat-icon>
-                    </button>
-                  </div>
-                </mat-card-header>
-                <mat-card-content>
-                  @if (customerNotes()?.length === 0) {
-                    <div class="font-bold" testid="latest-customer-note-none">
-                      <h3 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h3>
+                      <span testid="validUntilText" class="text-white px-2"
+                            [ngClass]="{'bg-green-700': customerData()?.validUntil && isValid(), 'bg-red-600': customerData()?.validUntil && !isValid()}">{{ customerData()?.validUntil | date : 'dd.MM.yyyy' }}</span>
                     </div>
-                  }
-                  @if (customerNotes()?.length !== 0) {
-                    <div testid="latest-customer-note">
+                    <div class="flex justify-between">
+                      <span class="font-bold flex items-center">
+                        <span [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">Unkostenbeitrag ausstehend:</span>
+                        <tafel-info-tooltip [testId]="'pending-cost-contribution-info-tooltip'"
+                                            text="Summe der Unkostenbeiträge, die bei früheren Ausgaben nicht bezahlt wurden. Sie wird beim nächsten Besuch eingehoben und kann über 'Unkostenbeitrag' verbucht werden."></tafel-info-tooltip>
+                      </span>
+                      <span testid="pendingCostContributionText"
+                            [ngClass]="{'bg-red-600 text-white px-2': (customerData()?.pendingCostContribution ?? 0) > 0}">
+                        {{ customerData()?.pendingCostContribution | currency }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card>
+              <mat-card-header class="w-full">
+                <div class="flex justify-between items-center w-full">
+                  <h2 class="tafel-h5 m-0">
+                    Aktuellste Notiz
+                    @if ((customerNotesResponse()?.totalCount ?? 0) > 0) {
+                      <span testid="notes-count" class="font-normal text-gray-500">({{ customerNotesResponse()?.totalCount }})</span>
+                    }
+                  </h2>
+                  <button testid="addnote-button" matButton="filled" class="button-success" (click)="openAddNoteDialog()"
+                          matTooltip="Neue Notiz zu diesem Kunden erfassen" aria-label="Neue Notiz zu diesem Kunden erfassen">
+                    <mat-icon svgIcon="add"></mat-icon>
+                  </button>
+                </div>
+              </mat-card-header>
+              <mat-card-content>
+                @if (customerNotes()?.length === 0) {
+                  <div class="font-bold" testid="latest-customer-note-none">
+                    <h3 class="tafel-h6" testid="nonotes-label">Keine Notiz vorhanden</h3>
+                  </div>
+                }
+                @if (customerNotes()?.length !== 0) {
+                  <div testid="latest-customer-note" class="flex justify-between items-start gap-2">
+                    <div class="min-w-0">
                       <div class="mb-2 flex flex-wrap items-baseline gap-2">
                         <span class="font-bold"
                               testid="note-title">{{ customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ customerNotes()[0].author }}</span>
@@ -355,27 +365,40 @@
                       </div>
                       <!-- Notes are free text, never markup: interpolated (not [innerHtml]) so a
                            tag stays text, with pre-line so typed newlines still break the line.
-                           The all-notes dialog and the check-in panel render it the same way. -->
+                           The Notizen tab and the check-in panel render it the same way. -->
                       <div testid="note-text" class="whitespace-pre-line">{{ customerNotes()[0].note }}</div>
                     </div>
-                  }
-                </mat-card-content>
-                @if (customerNotes()?.length > 1) {
-                  <mat-card-actions>
-                    <button testid="showall-notes-button" matButton="filled" (click)="openAllNotesDialog()">Alle Notizen
-                      anzeigen
-                    </button>
-                  </mat-card-actions>
+                    @if (customerNotes()[0].editable) {
+                      <div class="flex gap-2 shrink-0">
+                        <button type="button" testid="note-editButton" matButton="filled" (click)="editNote(customerNotes()[0])"
+                                matTooltip="Notiz bearbeiten" aria-label="Notiz bearbeiten">
+                          <mat-icon svgIcon="edit"></mat-icon>
+                        </button>
+                        <button type="button" testid="note-deleteButton" matButton="filled" class="button-danger" (click)="deleteNote(customerNotes()[0])"
+                                matTooltip="Notiz löschen" aria-label="Notiz löschen">
+                          <mat-icon svgIcon="delete"></mat-icon>
+                        </button>
+                      </div>
+                    }
+                  </div>
                 }
-              </mat-card>
-            </div>
+              </mat-card-content>
+              @if (customerNotes()?.length > 0) {
+                <mat-card-actions>
+                  <button testid="showall-notes-button" matButton="filled" (click)="showAllNotes()">Alle Notizen
+                    anzeigen
+                  </button>
+                </mat-card-actions>
+              }
+            </mat-card>
           </div>
         </div>
       </mat-tab>
       <mat-tab>
         <ng-template mat-tab-label>
-          <span testid="additionalpersons-tab-label">
-            <mat-icon svgIcon="group"></mat-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
+          <span testid="additionalpersons-tab-label" class="inline-flex items-center gap-1">
+            <mat-icon svgIcon="group"></mat-icon>
+            Weitere Personen ({{ customerData()?.additionalPersons?.length }})
           </span>
         </ng-template>
         <div>
@@ -408,7 +431,7 @@
                         </div>
                         @if (addPerson?.excludeFromHousehold) {
                           <span class="badge badge-info shrink-0" [attr.testid]="'addperson-' + i + '-excludedChip'">
-                            Nicht im Haushalt
+                            Nicht im selben Haushalt
                           </span>
                         }
                       </div>
@@ -435,13 +458,63 @@
           }
         </div>
       </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span testid="notes-tab-label" class="inline-flex items-center gap-1">
+            <mat-icon svgIcon="sticky_note_2"></mat-icon>
+            Notizen ({{ allNotesResponse()?.totalCount ?? 0 }})
+          </span>
+        </ng-template>
+        <div testid="notes-tab-panel" class="mt-2">
+          @if ((allNotesResponse()?.items?.length ?? 0) === 0) {
+            <h3 class="tafel-h6" testid="notes-tab-empty-label">Keine Notiz vorhanden</h3>
+          } @else {
+            <mat-paginator class="tafel-paginator-center" [length]="allNotesResponse()?.totalCount" [pageSize]="allNotesResponse()?.pageSize"
+                           [pageSizeOptions]="pageSizeOptions"
+                           [pageIndex]="(allNotesResponse()?.currentPage ?? 1) - 1" [showFirstLastButtons]="true"
+                           (page)="getAllNotesPage($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
+            @for (noteItem of allNotesResponse()?.items; track noteItem.id; let i = $index) {
+              @if (i > 0) {
+                <hr>
+              }
+              <div class="my-2 flex justify-between items-start gap-2">
+                <div class="min-w-0">
+                  <div class="font-bold" testid="note-title">
+                    {{ noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{ noteItem.author }}
+                  </div>
+                  <div class="whitespace-pre-line" testid="note-text">{{ noteItem.note }}</div>
+                </div>
+                @if (noteItem.editable) {
+                  <div class="flex gap-2 shrink-0">
+                    <button type="button" testid="note-editButton" matButton="filled" (click)="editNote(noteItem)"
+                            matTooltip="Notiz bearbeiten" aria-label="Notiz bearbeiten">
+                      <mat-icon svgIcon="edit"></mat-icon>
+                    </button>
+                    <button type="button" testid="note-deleteButton" matButton="filled" class="button-danger" (click)="deleteNote(noteItem)"
+                            matTooltip="Notiz löschen" aria-label="Notiz löschen">
+                      <mat-icon svgIcon="delete"></mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+            <mat-paginator class="tafel-paginator-center mt-6" [length]="allNotesResponse()?.totalCount" [pageSize]="allNotesResponse()?.pageSize"
+                           [pageSizeOptions]="pageSizeOptions"
+                           [pageIndex]="(allNotesResponse()?.currentPage ?? 1) - 1" [showFirstLastButtons]="true"
+                           (page)="getAllNotesPage($event.pageIndex + 1, $event.pageSize)"></mat-paginator>
+          }
+        </div>
+      </mat-tab>
       <!-- The documents tab holds the most sensitive artefacts on a household (ID scans, proofs of
            income) - separate permission from the rest of this screen on purpose (GDPR G7,
            issue #3181). -->
       @if (hasDocumentsPermission()) {
         <mat-tab>
           <ng-template mat-tab-label>
-            <span testid="documents-tab-label">Dokumente ({{ customerDocuments()?.length }})</span>
+            <span testid="documents-tab-label" class="inline-flex items-center gap-1">
+              <mat-icon svgIcon="description"></mat-icon>
+              Dokumente ({{ customerDocuments()?.length }})
+            </span>
           </ng-template>
           <div>
             <div [class]="(customerDocuments()?.length ?? 0) === 0
@@ -493,7 +566,10 @@
       @if (hasAuditPermission()) {
         <mat-tab>
           <ng-template mat-tab-label>
-            <span testid="history-tab-label">Verlauf</span>
+            <span testid="history-tab-label" class="inline-flex items-center gap-1">
+              <mat-icon svgIcon="history"></mat-icon>
+              Verlauf
+            </span>
           </ng-template>
           <!-- matTabContent, unlike every other tab here: a tab's content is otherwise created with
                the screen even while it is not shown, and this is the only tab that fetches on its

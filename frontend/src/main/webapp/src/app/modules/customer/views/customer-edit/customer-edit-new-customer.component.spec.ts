@@ -2,7 +2,7 @@ import type {MockedObject} from 'vitest';
 import {of, throwError} from 'rxjs';
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
-import {ActivatedRoute, convertToParamMap, Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import dayjs from 'dayjs';
 import {
   CustomerApiService,
@@ -92,7 +92,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   let toastr: MockedObject<TafelToastrService>;
   let matDialog: MockedObject<MatDialog>;
 
-  function configureTestBed(queryParams: Record<string, string> = {}, navigationState?: Record<string, unknown>) {
+  function configureTestBed(navigationState?: Record<string, unknown>) {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule
@@ -133,8 +133,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
           provide: ActivatedRoute,
           useValue: {
             snapshot: {
-              data: {},
-              queryParamMap: convertToParamMap(queryParams)
+              data: {}
             }
           }
         }
@@ -159,7 +158,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     expect(component.editMode()).toBe(false);
   });
 
-  it('prefills first/last name from query params (reached from the search screen\'s empty-state CTA)', () => {
+  it('prefills first/last name from navigation state (reached from the search screen\'s empty-state CTA)', () => {
     TestBed.resetTestingModule();
     configureTestBed({vorname: 'Max', nachname: 'Mustermann'});
 
@@ -173,7 +172,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   it('prefills persons handed over from the quick-check screen via navigation state', () => {
     TestBed.resetTestingModule();
     // birthdates arrive as 'YYYY-MM-DD' strings, exactly as the quick-check's native date inputs provide them
-    configureTestBed({}, {
+    configureTestBed({
       quickCheckPersons: [
         {birthDate: '1990-05-12', income: 1000, receivesFamilyAllowance: false},
         {birthDate: '2015-01-01', income: undefined, receivesFamilyAllowance: true}

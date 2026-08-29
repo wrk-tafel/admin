@@ -4,9 +4,12 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentType
@@ -16,8 +19,10 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.orderBySearchRelevance
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.pendingCostContribution
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.postProcessingNecessary
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.privacyNoticeRetentionDrift
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.searchTextMatches
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.validHousehold
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.willBeDeletedSoon
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
@@ -46,8 +51,11 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -64,6 +72,9 @@ class HouseholdService(
     private val tafelAdminProperties: TafelAdminProperties,
     private val householdDuplicationService: HouseholdDuplicationService,
     private val auditLogWriter: AuditLogWriter,
+    private val auditLogRepository: AuditLogRepository,
+    private val auditActorProvider: AuditActorProvider,
+    private val clock: Clock,
 ) {
 
     companion object {
@@ -71,6 +82,9 @@ class HouseholdService(
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val CSV_FILENAME_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         private val CSV_ROW_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+
+        /** How far ahead the "wird bald gelöscht" filter (GDPR gap G19) looks, see [getHouseholds]. */
+        private const val DELETION_PREVIEW_WINDOW_DAYS = 30L
     }
 
     fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
@@ -95,12 +109,71 @@ class HouseholdService(
      * The single-household lookup is the only place [HouseholdResponse.hasPrivacyNotice] gets
      * computed (the checkin screen's missing-privacy-notice warning is what needs it) - a paged
      * listing intentionally leaves it null rather than paying one `exists` query per row.
+     *
+     * Not read-only: this is a household detail view (`GET /api/households/{id}`) being read one
+     * record at a time, so it is recorded as an `AuditOperation.READ` for the same GDPR gap G11
+     * breach detection as [generatePdf] (issue #3430) - and [AuditLogWriter.record]'s write only
+     * takes effect for a transaction that actually commits as one, see [AuditLogWriter]'s
+     * `beforeCommit`. [recordHouseholdRead] de-duplicates per actor+household within
+     * `tafeladmin.audit.readDedupeWindow`, so reloading the same screen isn't counted as a fresh read.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun findByHouseholdId(householdId: Long): HouseholdResponse? = householdRepository.findByHouseholdId(householdId)?.let {
         val hasPrivacyNotice = documentRepository.existsByHouseholdHouseholdIdAndDocumentType(householdId, DocumentType.PRIVACY_NOTICE)
+        recordHouseholdRead(it)
         householdConverter.mapEntityToHousehold(it, hasPrivacyNotice)
     }
+
+    private fun recordHouseholdRead(household: HouseholdEntity) {
+        val actorUsername = auditActorProvider.currentUsername() ?: return
+        val businessKey = household.householdId.toString()
+        val since = LocalDateTime.now(clock).minus(tafelAdminProperties.audit.readDedupeWindow)
+        val alreadyRecorded = auditLogRepository.existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+            "Household",
+            businessKey,
+            AuditOperation.READ,
+            actorUsername,
+            since,
+        )
+        if (alreadyRecorded) {
+            return
+        }
+
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = "Household",
+                entityId = household.id,
+                businessKey = businessKey,
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
+    }
+
+    /**
+     * Records one bulk-report read (the above-limit/overview reports and their CSV exports), the
+     * same shape [at.wrk.tafel.admin.backend.modules.audit.internal.AuditService.search] uses for
+     * its own filter-as-business-key reads: no single `entityId` (the read spans every household the
+     * report returned, not one), [businessKey] rendering the filter that was applied. Not
+     * de-duplicated like [recordHouseholdRead] - unlike reloading one household's detail screen,
+     * every distinct report/CSV pull is its own read worth a row (GDPR G24, issue #3507).
+     */
+    private fun recordReportRead(entityType: String, businessKey: String?) {
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = entityType,
+                entityId = null,
+                businessKey = businessKey,
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
+    }
+
+    private fun reportBusinessKey(vararg parts: Pair<String, Any?>): String? = parts
+        .mapNotNull { (key, value) -> value?.let { "$key=$it" } }
+        .takeIf { it.isNotEmpty() }
+        ?.joinToString(separator = ";")
 
     @Transactional
     fun createHousehold(household: HouseholdRequest, force: Boolean, isSupervisor: Boolean): HouseholdCreationResponse {
@@ -268,6 +341,16 @@ class HouseholdService(
                     if (filters.valid != null) validHousehold() else null,
                     if (filters.locked != null) lockedHousehold() else null,
                     if (filters.missingPrivacyNotice != null) missingPrivacyNoticeDocument() else null,
+                    if (filters.willBeDeletedSoon != null) {
+                        willBeDeletedSoon(tafelAdminProperties.householdDeletion.retentionTime, DELETION_PREVIEW_WINDOW_DAYS)
+                    } else {
+                        null
+                    },
+                    if (filters.privacyNoticeOutdated != null) {
+                        privacyNoticeRetentionDrift(tafelAdminProperties.householdDeletion.retentionTime)
+                    } else {
+                        null
+                    },
                 ).mapNotNull { it },
             ),
         )
@@ -307,14 +390,20 @@ class HouseholdService(
      * (`totalSum`/`limit`/`amountExceededLimit`/`percentageExceededLimit`); anything else, including
      * `null`, sorts by `amountExceededLimit` - descending by default, which is what opens the review
      * queue with its worst cases first.
+     *
+     * Not read-only: every call records an `AuditOperation.READ` ([recordReportRead], GDPR G24,
+     * issue #3507) - the response embeds full household records for everyone above the limit, not
+     * one.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun getHouseholdsAboveLimit(
         page: Int? = null,
         pageSize: Int? = null,
         sortBy: String? = null,
         sortDirection: String? = null,
     ): HouseholdAboveLimitSearchResult {
+        recordReportRead(AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE, reportBusinessKey("sortBy" to sortBy, "sortDirection" to sortDirection))
+
         val entitiesAboveLimit = loadHouseholdsAboveLimit(sortBy, sortDirection)
 
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
@@ -339,12 +428,17 @@ class HouseholdService(
      * the CSV is what gets acted on, the paginated [getHouseholdsAboveLimit] only the on-screen
      * evidence for it. Sorted the same way the list on screen was, so the export matches what a
      * reviewer was looking at.
+     *
+     * Not read-only, same reason as [getHouseholdsAboveLimit]: every export is its own recorded
+     * `AuditOperation.READ` (GDPR G24, issue #3507).
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun generateAboveLimitCsv(
         sortBy: String? = null,
         sortDirection: String? = null,
     ): HouseholdAboveLimitCsvResult {
+        recordReportRead(AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE, reportBusinessKey("sortBy" to sortBy, "sortDirection" to sortDirection))
+
         val items = loadHouseholdsAboveLimit(sortBy, sortDirection).map { it.toItem() }
 
         val rows: List<List<String>> = listOf(
@@ -438,9 +532,18 @@ class HouseholdService(
      * Without a [distributionId] this defaults to the newest *closed* distribution - the first
      * entry of the closed-only list `GET /distributions` serves, so the frontend's default
      * selection and the default response line up.
+     *
+     * Not read-only: every call records an `AuditOperation.READ` ([recordReportRead], GDPR G24,
+     * issue #3507) - the response embeds full household records for everyone new/renewed in the
+     * distribution, not one. [generateHouseholdsOverviewCsv] calls this method directly (a
+     * same-class call Spring's transaction proxy never sees), so its own recording rides along on
+     * whichever transaction is already open - which is exactly why that method is not read-only
+     * either.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun getHouseholdsOverview(distributionId: Long?): HouseholdOverviewResponse {
+        recordReportRead(AuditScope.HOUSEHOLDS_OVERVIEW_ENTITY_TYPE, reportBusinessKey("distributionId" to distributionId))
+
         val distribution = if (distributionId != null) {
             distributionRepository.findById(distributionId).orElse(null)
                 ?: throw NotFoundException("Ausgabe Nr. $distributionId nicht gefunden!")
@@ -479,8 +582,11 @@ class HouseholdService(
      * reporting module's export conventions (`;`-delimited via [CsvUtil], `Content-Disposition:
      * inline` from the controller). One row per household, tagged with its type so the two lists
      * stay distinguishable once merged.
+     *
+     * Not read-only, same reason as [getHouseholdsOverview] - and has to stay that way for that
+     * method's own recorded read to actually commit, since the call below is same-class (see there).
      */
-    @Transactional(readOnly = true)
+    @Transactional
     fun generateHouseholdsOverviewCsv(distributionId: Long?): HouseholdOverviewCsvResult {
         val overview = getHouseholdsOverview(distributionId)
 
@@ -593,11 +699,45 @@ class HouseholdService(
         householdRepository.saveAndFlush(household)
 
         // JPA cascade removes the household_documents rows, but it can't touch the files on disk -
-        // those have to be cleaned up explicitly.
-        household.documents.forEach { documentStorageService.delete(it.storagePath) }
+        // those have to be cleaned up explicitly. Resolved now (the entity is gone after delete
+        // below) but the files themselves are only removed once the transaction actually commits -
+        // see deleteDocumentFilesAfterCommit.
+        val documentStoragePaths = household.documents.map { it.storagePath }
 
+        // household_duplicate_dismissals rows are removed by its FK's `on delete cascade` (see
+        // R__00110_household_duplicate_dismissals_fk.sql), so nothing to do here explicitly.
         householdRepository.delete(household)
-        log.info("Deleted household {}", householdId)
+        // DEBUG, not INFO: HouseholdRetentionService already logs an aggregate count for its
+        // nightly run, and the audit trail already records the delete itself - an INFO line per
+        // household number here would only repeat that, once per row, for every deletion.
+        log.debug("Deleted household {}", householdId)
+
+        deleteDocumentFilesAfterCommit(documentStoragePaths)
+    }
+
+    /**
+     * Deleting a household can be one of several steps in a single transaction - e.g. one match
+     * among several in a GDPR data-subject-request delete (`DataSubjectRequestService.delete`).
+     * Removing the files from disk immediately would mean a later step's failure rolls the database
+     * back while the files stay gone, orphaning `household_documents` rows that point at nothing.
+     * Deferring to `afterCommit` guarantees the files only disappear once the household's deletion
+     * has actually landed.
+     */
+    private fun deleteDocumentFilesAfterCommit(storagePaths: List<String>) {
+        if (storagePaths.isEmpty()) {
+            return
+        }
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            // No transaction to hang the cleanup off (e.g. a caller outside a Spring-managed
+            // transaction) - falling back to an immediate delete is the closest available behavior.
+            storagePaths.forEach { documentStorageService.delete(it) }
+            return
+        }
+        TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+            override fun afterCommit() {
+                storagePaths.forEach { documentStorageService.delete(it) }
+            }
+        })
     }
 
     private fun mapToValidationPersons(mainPerson: Person?, additionalPersons: List<Person>): List<IncomeValidatorPerson> {
@@ -705,6 +845,8 @@ data class HouseholdSearchFilters(
     val valid: Boolean? = null,
     val locked: Boolean? = null,
     val missingPrivacyNotice: Boolean? = null,
+    val willBeDeletedSoon: Boolean? = null,
+    val privacyNoticeOutdated: Boolean? = null,
 )
 
 @ExcludeFromTestCoverage

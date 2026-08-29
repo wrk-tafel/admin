@@ -12,9 +12,10 @@ import org.springframework.stereotype.Component
  * thing that tells anyone the mail never arrived - the alternative is a log line and a row in
  * `mail_outbox` that nobody has a reason to look at.
  *
- * It reports the mail by its subject rather than by what produced it: the outbox deals in finished
- * MIME messages and does not know whether a given mail was a daily report or a support request,
- * and the subject is what someone would search their inbox for anyway.
+ * It reports the mail by its type and the outbox row's id rather than by its subject: a support
+ * request's subject is the reporter's own title, which may hold a customer's name (G3 in the GDPR
+ * compliance doc), and this is rendered on administrators' lock screens - the subject stays one
+ * click away in the outbox row for whoever follows up (issue #3511).
  *
  * Reuses [PushNotificationType.REPORT_MAIL_FAILED] rather than introducing a type of its own - it
  * already means "a mail did not go out", is already restricted to administrators, and already opens
@@ -32,10 +33,11 @@ class MailDeliveryFailedPushListener(
     @Async
     @EventListener
     fun onMailDeliveryFailed(event: MailDeliveryFailedEvent) {
+        val mailType = event.mailType ?: "E-Mail"
         pushBroadcastService.broadcast(
             type = PushNotificationType.REPORT_MAIL_FAILED,
             title = "E-Mail nicht versendet",
-            body = "Die E-Mail '${event.subject}' konnte nicht versendet werden.",
+            body = "$mailType #${event.id} konnte nicht versendet werden.",
         )
     }
 }

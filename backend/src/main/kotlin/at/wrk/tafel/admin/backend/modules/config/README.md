@@ -30,9 +30,9 @@ while this module is the read-only HTTP view of it for the frontend.
   again whenever it changes in the backend. It emits nothing on subscribe — `GET /api/config` is
   what a page load reads, this carries only the deltas after it.
 - [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildTime, scannerFolderEnabled)`
-  and `PublicConfigResponse(environmentLabel, accountLockoutDurationInSeconds)`, plus the one
-  `TafelAdminProperties.toConfigResponse()` mapping both the endpoint and the push side use, so the
-  two can't report different things about the same deployment.
+  and `PublicConfigResponse(environmentLabel)`, plus the one `TafelAdminProperties.toConfigResponse()`
+  mapping both the endpoint and the push side use, so the two can't report different things about the
+  same deployment.
 - [`ConfigChangePublisher`](internal/ConfigChangePublisher.kt): listens for a reloaded configuration
   and writes the new `ConfigResponse` to the SSE outbox — but only when it differs from the last one
   sent, so a reload of settings the frontend never sees (mail, tokens, storage paths) doesn't wake
@@ -57,14 +57,6 @@ with less to an anonymous caller because `TafelJwtAuthConverter` rejects a cooki
 before any controller runs; serving both audiences from one path would mean reworking the
 authentication filter chain. Which release is running and which optional features exist stay
 behind authentication.
-
-The same endpoint also serves `accountLockoutDurationInSeconds`, read from `ApplicationProperties`
-(`security.loginAttempts.lockoutDurationInSeconds`) rather than `TafelAdminProperties` — it is what
-the login page's lockout message tells a locked-out user to wait for, and it has to be readable
-before login for the same reason the environment label does. Unlike everything else this module
-serves, that figure is *not* live: `ApplicationProperties` is constructor-bound and never rebinds
-(see its KDoc), so a changed lockout policy needs a restart, same as it already does for
-`LoginAttemptService` itself.
 
 ## Where the values come from
 

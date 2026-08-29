@@ -5,6 +5,6 @@ export const routes: Routes = [
   {
     path: '',
     component: AuditLogComponent,
-    title: 'Änderungsprotokoll'
+    title: 'Zugriffsprotokoll'
   }
 ];

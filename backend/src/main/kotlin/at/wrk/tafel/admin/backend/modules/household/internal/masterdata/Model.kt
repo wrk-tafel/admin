@@ -120,6 +120,27 @@ data class PrivacyNoticePdfData(
     val householdId: String,
     val fullName: String,
     val issuedAtDate: String,
+    /**
+     * `tafeladmin.householdDeletion.retentionTime` as display text (GDPR gap G2 follow-up, issue
+     * #3429) - the printed sheet used to hard-code "7 Jahre", which silently went stale the moment
+     * an operator changed the property. Read per generation, same as [HouseholdRetentionService][at.wrk.tafel.admin.backend.modules.household.internal.HouseholdRetentionService]
+     * reads it, rather than baked in at compile time.
+     */
+    val retentionText: String,
+    /**
+     * Printed in the footer next to the page number (issue #3429 follow-up) - unlike [issuedAtDate],
+     * which stays blank on the reference-less template for a staff member to fill in by hand, this is
+     * always the actual generation date, so loose pages of a printed multi-page copy can be matched
+     * back up.
+     */
+    val generatedAt: String,
+    /**
+     * `tafeladmin.audit.retentionDays` as display text (GDPR gap G27, issue #3509) - the notice used
+     * to never mention that before/after copies of name, address and income are kept in the audit
+     * trail after every change, and that reads of the record are logged, even though the staff notice
+     * already covers its own Änderungsprotokoll paragraph.
+     */
+    val auditRetentionDays: String,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -132,6 +153,9 @@ data class PrivacyNoticePdfData(
         if (householdId != other.householdId) return false
         if (fullName != other.fullName) return false
         if (issuedAtDate != other.issuedAtDate) return false
+        if (retentionText != other.retentionText) return false
+        if (generatedAt != other.generatedAt) return false
+        if (auditRetentionDays != other.auditRetentionDays) return false
 
         return true
     }
@@ -142,6 +166,9 @@ data class PrivacyNoticePdfData(
         result = 31 * result + householdId.hashCode()
         result = 31 * result + fullName.hashCode()
         result = 31 * result + issuedAtDate.hashCode()
+        result = 31 * result + generatedAt.hashCode()
+        result = 31 * result + retentionText.hashCode()
+        result = 31 * result + auditRetentionDays.hashCode()
         return result
     }
 }

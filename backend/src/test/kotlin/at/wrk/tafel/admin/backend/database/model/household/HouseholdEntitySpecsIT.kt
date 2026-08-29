@@ -17,6 +17,7 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.Period
 
 @Transactional
 class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
@@ -286,6 +287,126 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         assertThat(result.map { it.id })
             .contains(withOtherDocument.id, withoutDocument.id)
             .doesNotContain(withDocument.id)
+    }
+
+    @Test
+    fun `willBeDeletedSoon matches only households whose validUntil falls in the job's cutoff window`() {
+        val tag = "Findme${generateRandomLong()}"
+        val retentionTime = Period.ofYears(7)
+
+        // deleted next run already - validUntil is before the cutoff, not "soon"
+        val alreadyPastCutoff = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now().minus(retentionTime).minusDays(1) },
+        )
+        // exactly at the cutoff - the job's own boundary is exclusive (validUntil < cutoff), so this
+        // is still 30 days out at worst
+        val atCutoff = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now().minus(retentionTime) },
+        )
+        // will be swept in 29 days
+        val withinWindow = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now().minus(retentionTime).plusDays(29) },
+        )
+        // not due for another 31 days
+        val outsideWindow = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now().minus(retentionTime).plusDays(31) },
+        )
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.willBeDeletedSoon(retentionTime, 30).and(searchSpec(tag)),
+        )
+
+        assertThat(result.map { it.id })
+            .contains(atCutoff.id, withinWindow.id)
+            .doesNotContain(alreadyPastCutoff.id, outsideWindow.id)
+    }
+
+    @Test
+    fun `willBeDeletedSoon matches nothing when the retention job itself is disabled`() {
+        val tag = "Findme${generateRandomLong()}"
+        persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = LocalDate.now() },
+        )
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.willBeDeletedSoon(Period.ZERO, 30).and(searchSpec(tag)),
+        )
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `privacyNoticeRetentionDrift matches only a household whose stamped retention period differs from the live one`() {
+        val tag = "Findme${generateRandomLong()}"
+        val drifted = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.persist(
+            DocumentEntity(
+                household = drifted,
+                documentType = DocumentType.PRIVACY_NOTICE,
+                fileName = "signed.pdf",
+                contentType = "application/pdf",
+                storagePath = "/documents/${drifted.householdId}/signed.pdf",
+            ).apply { retentionPeriodAtUpload = Period.ofYears(7).toString() },
+        )
+        val upToDate = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.persist(
+            DocumentEntity(
+                household = upToDate,
+                documentType = DocumentType.PRIVACY_NOTICE,
+                fileName = "signed.pdf",
+                contentType = "application/pdf",
+                storagePath = "/documents/${upToDate.householdId}/signed.pdf",
+            ).apply { retentionPeriodAtUpload = Period.ofYears(5).toString() },
+        )
+        val predatesTheStamp = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.persist(
+            DocumentEntity(
+                household = predatesTheStamp,
+                documentType = DocumentType.PRIVACY_NOTICE,
+                fileName = "signed.pdf",
+                contentType = "application/pdf",
+                storagePath = "/documents/${predatesTheStamp.householdId}/signed.pdf",
+            ),
+        )
+        val withoutNotice = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.privacyNoticeRetentionDrift(Period.ofYears(5)).and(searchSpec(tag)),
+        )
+
+        assertThat(result.map { it.id })
+            .contains(drifted.id)
+            .doesNotContain(upToDate.id, predatesTheStamp.id, withoutNotice.id)
+    }
+
+    @Test
+    fun `privacyNoticeRetentionDrift matches nothing when the retention job itself is disabled`() {
+        val tag = "Findme${generateRandomLong()}"
+        val household = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.persist(
+            DocumentEntity(
+                household = household,
+                documentType = DocumentType.PRIVACY_NOTICE,
+                fileName = "signed.pdf",
+                contentType = "application/pdf",
+                storagePath = "/documents/${household.householdId}/signed.pdf",
+            ).apply { retentionPeriodAtUpload = Period.ofYears(7).toString() },
+        )
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.privacyNoticeRetentionDrift(Period.ZERO).and(searchSpec(tag)),
+        )
+
+        assertThat(result).isEmpty()
     }
 
     @Test

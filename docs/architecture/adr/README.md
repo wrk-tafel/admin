@@ -51,6 +51,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0017](0017-web-push-as-a-second-notification-channel.md) | Web Push (VAPID) as a second, out-of-app channel | accepted |
 | [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
 | [0050](0050-customer-documents-split-into-its-own-permission.md) | The documents tab gets its own permission, separate from CUSTOMER | accepted |
+| [0051](0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md) | Data-subject requests search across areas, then delegate to each area's own export/delete | accepted |
 | [0034](0034-error-contract-problemdetail-to-german-toast.md) | One error contract — RFC 7807 out, a German toast in | accepted |
 | [0009](0009-server-side-document-generation-with-xsl-fo.md) | Server-side documents — XSL-FO/FOP for PDF, Commons CSV | accepted |
 | [0040](0040-route-navigation-by-map-app-deep-link.md) | Navigation along a route is a deep link into the device's map app | accepted |
@@ -86,7 +87,9 @@ instead, so a number's position in a group says nothing about its age.
 | [0037](0037-eager-bundle-bounded-by-its-own-build-check.md) | The eager bundle bounded by a build check of its own | accepted |
 | [0038](0038-axe-assertions-in-the-e2e-suite.md) | Post-interaction accessibility asserted by axe inside the e2e suite | accepted |
 | [0039](0039-audit-trail-as-an-append-only-log-written-by-the-application.md) | Audit trail as one append-only `audit_log` table, written by the application | accepted |
+| [0052](0052-change-tracking-actor-becomes-a-foreign-key.md) | `created_by`/`updated_by` become a foreign key to `users`, not a stored username | accepted |
 | [0044](0044-support-requests-sent-as-mail.md) | In-app support requests sent as mail, with the browser's context attached | accepted |
+| [0053](0053-client-side-errors-logged-automatically-to-app-log.md) | Client-side errors are logged automatically to `app.log` | accepted |
 | [0033](0033-support-requests-become-github-issues.md) | In-app support requests are filed as GitHub issues | superseded by [0044](0044-support-requests-sent-as-mail.md) |
 | [0028](0028-user-guide-in-repo-published-per-release.md) | User guide in the repository, published as a PDF per release | accepted |
 
@@ -98,10 +101,16 @@ decided. They live one level up, in `docs/architecture/`:
 | Document | Subject |
 |---|---|
 | [`gdpr-compliance.md`](../gdpr-compliance.md) | What the application does with personal data, and where that falls short of the GDPR ([#3124](https://github.com/wrk-tafel/admin/issues/3124)) |
-| [`gdpr-data-takeout-plan.md`](../gdpr-data-takeout-plan.md) | A concrete design for a customer/staff data-takeout export, covering gaps G5 and G12 of the GDPR review ([#3362](https://github.com/wrk-tafel/admin/issues/3362)) |
-| [`push-outbox-evaluation.md`](../push-outbox-evaluation.md) | Whether push notifications should be sent through an outbox like mails and SSE events ([#3155](https://github.com/wrk-tafel/admin/issues/3155)) |
-| [`material-icons-migration-evaluation.md`](../material-icons-migration-evaluation.md) | Whether the frontend's FontAwesome icons can be replaced with Material icons, and which delivery form survives the pipeline's gates ([#3304](https://github.com/wrk-tafel/admin/issues/3304)) |
-| [`material-theming-migration-evaluation.md`](../material-theming-migration-evaluation.md) | Whether the frontend's custom styling can move onto Angular Material's own theming tooling, and which overrides are already silently dead ([#3306](https://github.com/wrk-tafel/admin/issues/3306)) |
+| [`rls-postgres-evaluation.md`](../rls-postgres-evaluation.md) | Whether Postgres Row Level Security makes sense given this application's single-tenant, permission-not-row access model ([#3411](https://github.com/wrk-tafel/admin/issues/3411)) |
+
+## Reference
+
+Unlike an ADR or an analysis, this is a living inventory of current state, kept in sync as the
+codebase changes rather than written once and left alone:
+
+| Document | Subject |
+|---|---|
+| [`scheduled-jobs.md`](../../scheduled-jobs.md) | Every `@Scheduled` job's schedule and coordination mechanism (row-claim vs. `@SchedulerLock`, see [ADR-0047](0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md)) |
 
 ## Writing a new one
 

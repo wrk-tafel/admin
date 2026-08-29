@@ -92,7 +92,7 @@ class TafelAdminFeaturesProperties {
 /**
  * GDPR gap G1 (`docs/architecture/gdpr-compliance.md`) - a household stays in the database in full,
  * including its persons, notes, documents and attendance history, until an operator decides
- * otherwise. `enabled` and `retentionYears` are read per use, so an operator can widen the window or
+ * otherwise. `enabled` and `retentionTime` are read per use, so an operator can widen the window or
  * switch the job off on a running deployment (`ConfigFileReloadService`).
  *
  * The window is measured from [at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.validUntil],
@@ -119,21 +119,34 @@ class TafelAdminFeaturesProperties {
 @ExcludeFromTestCoverage
 class TafelAdminHouseholdRetentionProperties {
     /**
-     * Kill switch for the whole job, independent of [retentionYears] - if the deletion ever needs to
+     * Kill switch for the whole job, independent of [retentionTime] - if the deletion ever needs to
      * be paused (e.g. while the operator is still deciding the right window, or after an incident),
-     * this turns it off without touching the number.
+     * this turns it off without touching the window.
      */
     var enabled: Boolean = true
 
     /**
-     * How many years past `validUntil` a household, and everything attached to it, is kept before
-     * automatic deletion. Defaults to 7 - the Austrian bookkeeping retention period (UGB/BAO Section
-     * 132) for records touching cost contributions - as a defensible floor even though the
-     * application itself does not yet record a legal basis per household (see gap G2). Raise or lower
-     * it per deployment; it is re-read per use, so a change takes effect without a restart. A value of
-     * 0 or less keeps every household instead of deleting them all.
+     * How long past `validUntil` a household, and everything attached to it, is kept before automatic
+     * deletion. A [Period] rather than a plain year count, same as [TafelAdminUserRetentionProperties.retentionTime]
+     * and [TafelAdminEmployeeRetentionProperties.retentionTime] - see the former's KDoc for why
+     * (`y`/`m`/`w`/`d` suffixes via Spring Boot's simple `Period` parsing, since `Duration` has no
+     * year/month unit at all). Defaults to 7 years - the Austrian bookkeeping retention period
+     * (UGB/BAO Section 132) for records touching cost contributions - as a defensible floor even
+     * though the application itself does not yet record a legal basis per household (see gap G2).
+     * Raise or lower it per deployment; it is re-read per use, so a change takes effect without a
+     * restart. A zero or negative period ([Period.isZero]/[Period.isNegative]) keeps every household
+     * instead of deleting them all.
      */
-    var retentionYears: Long = 7
+    var retentionTime: Period = Period.ofYears(7)
+
+    /**
+     * The most a single run may delete before it refuses to proceed and alerts administrators
+     * instead (`RETENTION_RUN` push notification, GDPR gap G19) - a misconfigured `retentionTime`
+     * that would otherwise sweep a database's worth of households looks identical to a normal night
+     * without this. Read per use, same as [retentionTime]. 0 or less switches the ceiling off
+     * entirely, same convention as `TafelAdminAuditBreachDetectionProperties.readThreshold`.
+     */
+    var maxDeletionsPerRun: Long = 50
 }
 
 /**
@@ -181,15 +194,24 @@ class TafelAdminUserRetentionProperties {
      * deployment can express it the way an operator actually thinks about it - `7y`, `18m`, `730d` -
      * via Spring Boot's simple `Period` parsing (`y`/`m`/`w`/`d` suffixes); `Duration` has no year/month
      * unit at all, since neither has a fixed length. Defaults to 7 years, the same floor as
-     * `householdDeletion.retentionYears` and [TafelAdminEmployeeRetentionProperties.retentionTime] -
-     * one unified retention window across the application rather than three separately reasoned ones,
-     * even though this one isn't itself tied to that bookkeeping period; widen or shorten it per
+     * [TafelAdminHouseholdRetentionProperties.retentionTime] and
+     * [TafelAdminEmployeeRetentionProperties.retentionTime] - one unified retention window across the
+     * application rather than three separately reasoned ones, even though this one isn't itself tied
+     * to that bookkeeping period; widen or shorten it per
      * deployment. A zero or negative period ([Period.isZero]/[Period.isNegative] - the latter true as
      * soon as *any* field is negative, so don't mix positive and negative fields in one value) keeps
      * every account instead of deleting them all. An account holding `ADMINISTRATOR` is never a
      * candidate, regardless of this value.
      */
     var retentionTime: Period = Period.ofYears(7)
+
+    /**
+     * The most a single run may delete before it refuses to proceed and alerts administrators
+     * instead (`RETENTION_RUN` push notification, GDPR gap G19) - see
+     * [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun] for the reasoning. Read per use. 0
+     * or less switches the ceiling off entirely.
+     */
+    var maxDeletionsPerRun: Long = 50
 }
 
 /**
@@ -223,7 +245,7 @@ class TafelAdminEmployeeRetentionProperties {
     /**
      * How long an employee referenced by nothing else is kept before automatic deletion - a [Period]
      * for the same reason as `userDeletion.retentionTime`, see its KDoc. Defaults to 7 years, the
-     * same unified floor as `householdDeletion.retentionYears` and
+     * same unified floor as [TafelAdminHouseholdRetentionProperties.retentionTime] and
      * [TafelAdminUserRetentionProperties.retentionTime], even though an employee this job ever
      * actually reaches is - by definition - not the issuer/driver/recorder of anything still on
      * record, so no bookkeeping period specifically applies to it. A zero or negative period keeps
@@ -231,15 +253,23 @@ class TafelAdminEmployeeRetentionProperties {
      * candidate, regardless of this value.
      */
     var retentionTime: Period = Period.ofYears(7)
+
+    /**
+     * The most a single run may delete before it refuses to proceed and alerts administrators
+     * instead (`RETENTION_RUN` push notification, GDPR gap G19) - see
+     * [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun] for the reasoning. Read per use. 0
+     * or less switches the ceiling off entirely.
+     */
+    var maxDeletionsPerRun: Long = 50
 }
 
 /**
  * The audit trail (`audit_log`) - see ADR-0039.
  *
- * Both values are read per use, so an operator can widen the retention window or switch recording
- * off on a running deployment (`ConfigFileReloadService`) - the latter being the point of having a
- * switch at all: if the listener ever misbehaves under load during a distribution, turning it off
- * must not need a restart.
+ * Every value here is read per use, so an operator can widen the retention window or switch
+ * recording/deletion off on a running deployment (`ConfigFileReloadService`) - the latter being the
+ * point of having a switch at all: if the listener ever misbehaves under load during a distribution,
+ * turning it off must not need a restart.
  *
  * `tafeladmin.audit.cleanupCron` - when the retention job runs, default 05:00 daily - is deliberately
  * *not* a field here: `@Scheduled` fixes its expression at bean creation, so it is startup-only. It
@@ -248,6 +278,7 @@ class TafelAdminEmployeeRetentionProperties {
  */
 @ExcludeFromTestCoverage
 class TafelAdminAuditProperties {
+    /** Kill switch for *writing* entries only - see [cleanupEnabled] for deleting them. */
     var enabled: Boolean = true
 
     /**
@@ -260,13 +291,47 @@ class TafelAdminAuditProperties {
      *
      * Raise it per deployment if a longer trail is genuinely needed; it is re-read per use, so a
      * change takes effect without a restart. Note that raising it does not bring back what has
-     * already been deleted.
+     * already been deleted. A value of 0 or less disables *deletion*, same as [cleanupEnabled] below
+     * - the two exist for different reasons (see [cleanupEnabled]'s KDoc) but either one keeps every
+     * entry.
      *
      * Deleting a household deliberately does *not* purge its entries early - the DELETE entry, with
      * the last known values, is the single thing the old schema lost and this table exists for. They
      * age out on this clock like everything else.
      */
     var retentionDays: Long = 30
+
+    /**
+     * Kill switch for `AuditRetentionService`'s deletion, independent of [retentionDays] - GDPR gap
+     * G18. Before this existed, the only way to pause deletion was `retentionDays <= 0`, which is
+     * indistinguishable from an operator who simply hasn't set a window yet - the fail-safe direction
+     * for *that* ambiguity is "keep forever", the opposite of every other retention job here
+     * ([TafelAdminHouseholdRetentionProperties.enabled],
+     * [TafelAdminUserRetentionProperties.enabled], [TafelAdminEmployeeRetentionProperties.enabled]),
+     * which all default their kill switch to *on* and gate on a separate, explicit window value.
+     * This makes "deletion is deliberately paused" and "no window is configured yet" two different,
+     * unambiguous states instead of one overloaded number.
+     */
+    var cleanupEnabled: Boolean = true
+
+    /**
+     * The most a single run may delete before it refuses to proceed and alerts administrators
+     * instead (`RETENTION_RUN` push notification, GDPR gap G19) - see
+     * [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun] for the reasoning. Defaults far
+     * higher than the other retention jobs': this table's daily churn is legitimately in the
+     * thousands on a busy day, not the handful a household/user/employee deletion should ever be. 0
+     * or less switches the ceiling off entirely.
+     */
+    var maxDeletionsPerRun: Long = 20000
+
+    /**
+     * How long a single actor's `READ` of the same household counts as "already recorded" for
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.findByHouseholdId] -
+     * without this, every reload of the customer detail screen would write another entry, which
+     * inflates `ExcessiveReadAccessDetectionService`'s hourly count for behaviour that isn't a new
+     * read of the record. Re-read per use, same as [retentionDays].
+     */
+    var readDedupeWindow: Duration = Duration.ofMinutes(5)
 
     var breachDetection: TafelAdminAuditBreachDetectionProperties = TafelAdminAuditBreachDetectionProperties()
 }
@@ -288,6 +353,18 @@ class TafelAdminAuditBreachDetectionProperties {
      * one nobody trusts. Set to 0 (or less) to switch the check off entirely.
      */
     var readThreshold: Int = 20
+
+    /**
+     * What one `READ` of a bulk household report (above-limit, overview, duplicates, merge preview -
+     * `AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE` and friends) counts as against [readThreshold],
+     * instead of the 1 every other entity type counts as. One such read pulls every matching household
+     * into the response or a CSV, not one record, so it should weigh into the hourly tally accordingly
+     * (GDPR G24, issue #3507). Kept as its own knob rather than folded into the entries themselves:
+     * `audit_log` stays one row per read event regardless of what it covers, and only this detection
+     * query treats the bulk-report types specially - see
+     * [at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository.findActorsWithOperationCountAbove].
+     */
+    var bulkReadWeight: Long = 10
 }
 
 /**
@@ -559,6 +636,26 @@ class TafelAdminStorageProperties {
      * else.
      */
     var orphanedFileMinAge: Duration = Duration.ofMinutes(60)
+
+    /**
+     * How long an unclaimed file on the scanner share ([scannerPath]) is kept before
+     * `ScannerFileCleanupService` deletes it - GDPR gap G18 (Art. 5(1)(e), see
+     * `docs/architecture/gdpr-compliance.md`): unlike an already-imported document, a scanner file
+     * has no database row and no retention window of its own, so without this it would otherwise
+     * stay on the share indefinitely. Read per run, so an operator can widen or shorten it on a
+     * running deployment. A value of 0 or less keeps every file instead of deleting them, mirroring
+     * [TafelAdminHouseholdRetentionProperties.retentionTime].
+     */
+    var scannerFileRetention: Duration = Duration.ofDays(7)
+
+    /**
+     * How long before [scannerFileRetention]'s deadline a file starts counting toward
+     * `ScannerFileExpiryReminderService`'s "files about to be discarded" push notification, so staff
+     * get a chance to import or discard it deliberately before the cleanup job removes it for them.
+     * Read per run, same as [scannerFileRetention]; a value greater than or equal to it simply means
+     * every remaining file is always in the warning window.
+     */
+    var scannerFileRetentionWarning: Duration = Duration.ofDays(1)
 }
 
 @ExcludeFromTestCoverage

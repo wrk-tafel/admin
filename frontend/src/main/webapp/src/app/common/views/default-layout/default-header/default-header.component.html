@@ -110,6 +110,10 @@
         <button mat-menu-item testid="usermenu-export" (click)="exportUserData()">
           <mat-icon svgIcon="download"></mat-icon> Meine Daten exportieren
         </button>
+        <!-- The Art. 13 GDPR privacy notice for staff (issue #3429) - what is processed, not the takeout above. -->
+        <button mat-menu-item testid="usermenu-privacy-notice" (click)="downloadStaffPrivacyNotice()">
+          <mat-icon svgIcon="download"></mat-icon> Datenschutzerklärung (Mitarbeiter)
+        </button>
         <!--
           No target="_blank"/rel: GitHub's release-asset URL always answers with
           Content-Disposition: attachment (baked into the signed redirect it issues, not something

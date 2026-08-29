@@ -6,7 +6,11 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.enabledEquals
@@ -19,6 +23,9 @@ import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.ValidationResult
+import org.passay.data.EnglishCharacterData
+import org.passay.data.GermanCharacterData
+import org.passay.rule.CharacterCharacteristicsRule
 import org.passay.rule.DictionarySubstringRule
 import org.passay.rule.LengthRule
 import org.passay.rule.UsernameRule
@@ -32,6 +39,8 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
+import java.time.Clock
+import java.time.LocalDateTime
 
 class TafelUserDetailsManager(
     private val userRepository: UserRepository,
@@ -39,6 +48,11 @@ class TafelUserDetailsManager(
     private val passwordEncoder: PasswordEncoder,
     private val passwordValidator: PasswordValidator,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val loginAttemptService: LoginAttemptService,
+    private val auditLogWriter: AuditLogWriter,
+    private val auditLogRepository: AuditLogRepository,
+    private val auditActorProvider: AuditActorProvider,
+    private val clock: Clock,
 ) : UserDetailsManager {
 
     fun loadUserById(userId: Long): TafelUser? = userRepository.findById(userId)
@@ -53,6 +67,43 @@ class TafelUserDetailsManager(
     fun loadUserByPersonnelNumber(personnelNumber: String): TafelUser? {
         val user = userRepository.findByEmployeePersonnelNumber(personnelNumber)
         return user?.let { mapToUserDetails(user) }
+    }
+
+    /**
+     * A user-detail view (`UserController.getUser`/`getUserByPersonnelNumber`) being read one
+     * account at a time - recorded as an `AuditOperation.READ` for the same GDPR gap G11 breach
+     * detection as `HouseholdService.findByHouseholdId` (issue #3430), now closed for a staff
+     * member's own account data too (issue #3493). Mirrors `recordHouseholdRead` there: entity type
+     * `"User"` (the same type `UserEntity`'s own insert/update/delete entries use) and `businessKey`
+     * the viewed username, de-duplicated per actor+user within `tafeladmin.audit.readDedupeWindow`
+     * so reloading the same screen isn't counted as a fresh read. Deliberately not folded into
+     * [loadUserById]/[loadUserByPersonnelNumber] themselves - those are also called by write flows
+     * (update/delete/export) that must not each count as a read.
+     */
+    fun recordUserRead(user: TafelUser) {
+        val actorUsername = auditActorProvider.currentUsername() ?: return
+        val businessKey = user.username
+        val since = LocalDateTime.now(clock).minus(tafelAdminProperties.audit.readDedupeWindow)
+        val alreadyRecorded = auditLogRepository.existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+            "User",
+            businessKey,
+            AuditOperation.READ,
+            actorUsername,
+            since,
+        )
+        if (alreadyRecorded) {
+            return
+        }
+
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = "User",
+                entityId = user.id,
+                businessKey = businessKey,
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
     }
 
     /**
@@ -138,10 +189,19 @@ class TafelUserDetailsManager(
         userRepository.save(userEntity)
     }
 
+    /**
+     * Deletes the account. Every `created_by`/`updated_by` change-tracking actor elsewhere in the
+     * database (issue #3426) is a foreign key to `users(id)` with `on delete set null`
+     * (`R__00111_change_tracking_actor_user_fk.sql`, ADR-0052), so deleting the row here clears them
+     * by itself - no separate sweep needed.
+     */
     override fun deleteUser(username: String) {
         val userEntity =
             userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
         userRepository.delete(userEntity)
+        // login_attempts is keyed by username, not a FK to users - clear it explicitly rather than
+        // waiting for LoginAttemptService.cleanupStaleEntries to age it out.
+        loginAttemptService.deleteAttempts(username)
     }
 
     override fun changePassword(oldPassword: String?, newPassword: String?) {
@@ -159,8 +219,31 @@ class TafelUserDetailsManager(
         if (isPasswordValid(storedUser.username, newPassword)) {
             storedUser.password = passwordEncoder.encode(newPassword)!!
             storedUser.passwordChangeRequired = false
+            markTokensInvalidated(storedUser)
             userRepository.save(storedUser)
         }
+    }
+
+    /**
+     * Bumps [UserEntity.tokenInvalidatedAt] to now, so [TafelJwtAuthProvider] rejects every JWT
+     * issued for this user before this moment on their very next request. Called wherever a
+     * password is changed - here and from [mapToUserEntity] - and, separately, from
+     * [invalidateTokens] on logout. Does not save; callers already persist [userEntity] themselves.
+     */
+    private fun markTokensInvalidated(userEntity: UserEntity) {
+        userEntity.tokenInvalidatedAt = LocalDateTime.now()
+    }
+
+    /**
+     * Logout only ever clears the cookie client-side otherwise, so the JWT it carried - and any
+     * other still-live token for the same user, since a JWT carries no session id to invalidate just
+     * the one - would keep authenticating for the rest of its lifetime. Called from
+     * `UserController.logout`.
+     */
+    fun invalidateTokens(username: String) {
+        val userEntity = userRepository.findByUsername(username) ?: return
+        markTokensInvalidated(userEntity)
+        userRepository.save(userEntity)
     }
 
     private fun isPasswordValid(username: String, newPassword: String): Boolean {
@@ -179,6 +262,12 @@ class TafelUserDetailsManager(
             WhitespaceRule.ERROR_CODE -> """Leerzeichen sind nicht erlaubt"""
             UsernameRule.ERROR_CODE, UsernameRule.ERROR_CODE_REVERSED -> "Der Benutzername darf nicht Teil des Passworts sein"
             DictionarySubstringRule.ERROR_CODE, DictionarySubstringRule.ERROR_CODE_REVERSED -> "Folgende Wörter dürfen nicht enhalten sein: ${it.parameters["matchingWord"]}"
+            GermanCharacterData.LowerCase.errorCode -> "Muss mindestens einen Kleinbuchstaben enthalten"
+            GermanCharacterData.UpperCase.errorCode -> "Muss mindestens einen Großbuchstaben enthalten"
+            EnglishCharacterData.Digit.errorCode -> "Muss mindestens eine Ziffer enthalten"
+            // the individual character-class messages above already say what's missing - this
+            // aggregate detail (CharacterCharacteristicsRule always reports both) would only repeat it
+            CharacterCharacteristicsRule.ERROR_CODE -> null
             else -> null
         }
     }
@@ -255,6 +344,7 @@ class TafelUserDetailsManager(
         val newPassword = tafelUser.password
         if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
             userEntity.password = passwordEncoder.encode(newPassword)!!
+            markTokensInvalidated(userEntity)
         }
         userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
 

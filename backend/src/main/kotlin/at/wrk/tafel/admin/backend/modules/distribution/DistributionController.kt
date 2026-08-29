@@ -1,12 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
+import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.*
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -111,11 +111,7 @@ class DistributionController(
     fun generateHouseholdListPdf(): ResponseEntity<InputStreamResource> {
         val pdfResult = service.generateHouseholdListPdf()
         pdfResult?.let {
-            val headers = HttpHeaders()
-            headers.add(
-                HttpHeaders.CONTENT_DISPOSITION,
-                "inline; filename=${pdfResult.filename}",
-            )
+            val headers = ContentDispositionUtil.inline(pdfResult.filename)
 
             return ResponseEntity
                 .ok()

@@ -42,11 +42,9 @@ module, and named interfaces gate service/DTO access only (see
   /`@NotNull` on `HouseholdAddress` and `Person`. `HouseholdRequiredFieldsIT` locks the decision
   down. `telephone_number` is not enforced anywhere on the backend — only the frontend form treats
   it as mandatory.
-- Legacy: the old `customers` / `customers_addpersons` tables (see
-  `R__00067_household_person_refactor.sql`) were superseded by `households`/`persons`. They are kept
-  read-only for a production observation window before a separate cleanup migration
-  (`R__00068_household_person_cleanup.sql`) drops them. Do not read/write those tables or build new
-  features against them — they are not part of this module's persistence.
+- There are no legacy customer tables: `R__00068_household_person_cleanup.sql` drops the old
+  `customers`/`customers_addpersons` tables after verifying every row migrated, so `households`/
+  `persons` are the only copy of the master data.
 
 ## The `main_person_id` chicken-and-egg problem
 
@@ -107,8 +105,10 @@ a row that's about to be orphan-removed on the same flush.
 
 ### `HouseholdController` (`/api/households`)
 REST endpoint for household CRUD, validation, PDF generation, the GDPR data takeout, above-cost-limit
-listing, duplicate search and duplicate merging. All endpoints require `CUSTOMER` (or
-`CUSTOMER_DUPLICATES` / `CUSTOMERS_ABOVE_LIMIT` for the respective sub-features). Notable behavior:
+listing, duplicate search and duplicate merging. All endpoints require `CUSTOMER`; the above-limit,
+overview and duplicate/merge endpoints additionally require `CUSTOMERS_ABOVE_LIMIT`,
+`CUSTOMERS_OVERVIEW` or `CUSTOMER_DUPLICATES` respectively - additive, not a substitute for
+`CUSTOMER`, since their responses embed full household records (GDPR G26, issue #3508). Notable behavior:
 - `createHousehold`/`updateHousehold` take a `force: Boolean` query param and check
   `isSupervisor` (role `SUPERVISOR`) from the JWT - see "Income validation" below for what that
   gates.
@@ -133,6 +133,11 @@ still is none. `getHouseholdsAboveLimit`,
 `deleteHouseholdByHouseholdId`. Owns the `saveWithMainPerson` save-order logic described above.
 Duplicate merging (`mergeHouseholds` used to live here) has moved to `HouseholdMergeService` - see
 below.
+
+`findByHouseholdId` (the household detail lookup, `GET /households/{id}`) records one
+`AuditOperation.READ` entry per call the same way `generatePdf` does, de-duplicated per
+actor+household within `tafeladmin.audit.readDedupeWindow` so reloading the detail screen isn't
+counted as a fresh read for `ExcessiveReadAccessDetectionService`'s breach detection (issue #3430).
 
 `getHouseholdsOverview` (`GET /households/overview`) lists the households whose `createdAt`
 ("Neu") or `prolongedAt` ("Verlängert", see `HouseholdConverter` below) falls within a target
@@ -261,9 +266,12 @@ per direction).
 (matching the anchor ordering above) and stores them in `household_duplicate_dismissals`
 (`HouseholdDuplicateDismissalEntity`/`Repository`). `DUPLICATE_CONDITIONS`'s `NOT EXISTS` anti-join
 against that table is what keeps a dismissed pair from resurfacing on a later visit - without it, a
-decision made once would reappear on every review pass. The table has no foreign key to
-`households`: its columns hold the business `household_id`, which is never reused once assigned, so
-a dismissal outliving a deleted household is simply inert rather than a dangling reference.
+decision made once would reappear on every review pass. Its columns hold the business `household_id`
+(not the JPA primary key), so its foreign keys reference `households.household_id`
+(`households_household_id_key`, a unique index rather than the primary key) with
+`on delete cascade` (`R__00110_household_duplicate_dismissals_fk.sql`) - both `household_id_low` and
+`household_id_high` cascade independently, so deleting either household in a dismissed pair removes
+the dismissal row.
 
 `HouseholdController.mergeIntoHousehold`/`getMergePreview` hand off to `HouseholdMergeService` for
 the actual merge - see below for how field conflicts, person de-duplication, and note/distribution
@@ -358,39 +366,48 @@ is likewise omitted entirely, not shown blank, when `householdId` is empty.
 ### `HouseholdNoteController` / `HouseholdNoteService` (`internal/note`)
 Free-text notes attached to a household (`household_notes` table,
 [`HouseholdNoteEntity`](../../database/model/household/HouseholdNoteEntity.kt)), each stamped with
-the authoring employee and a timestamp. Simple create/list (paginated, 5 per page, newest first);
-no update or delete endpoint exists. `HouseholdNoteItem` exposes the note's `id` because the
-timestamp does not identify a note - notes written in one batch share it to the microsecond, so the
-frontend needs the id as a stable list key.
+the authoring employee and a timestamp. Create/list (paginated, 5 per page, newest first), plus
+`PUT`/`DELETE` by id (GDPR gap G21) - both scoped to the note's own author, so a note can only be
+corrected or erased by the employee who wrote it, not by anyone else holding `CUSTOMER`.
+`HouseholdNoteItem` exposes the note's `id` because the timestamp does not identify a note - notes
+written in one batch share it to the microsecond, so the frontend needs the id as a stable list
+key - and an `editable` flag mirroring that authorship check, so the "Alle Notizen anzeigen" dialog
+can hide the pencil/bin for a note it may not touch instead of only failing after the fact.
 
 ### `HouseholdExportService` (`internal`)
 The GDPR Art. 15/20 data takeout (G5, issue #3179, see
-`docs/architecture/gdpr-data-takeout-plan.md`), exposed as a single `HouseholdController` endpoint
+`docs/architecture/adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md`),
+exposed as a single `HouseholdController` endpoint
 mirroring `generatePdf`'s `InputStreamResource`/`Content-Disposition` shape:
 - `GET /{householdId}/export` - one ZIP (`java.util.zip.ZipOutputStream`) containing the household
-  record - persons, notes (via `HouseholdNoteService.getAllNotes`, the unpaged counterpart to
-  `getNotes` - a page-size cap would silently truncate the record), distribution attendance history
+  record - master data (including `prolongedAt` and whether a privacy-notice document is on file),
+  persons, notes (via `HouseholdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc`,
+  the unpaged overload - a page-size cap would silently truncate the record; each of these three also
+  carries who last changed it, resolved from `updatedBy`'s plain user id via one batched
+  `UserRepository.findAllById` lookup), distribution attendance history
   (`DistributionHouseholdRepository.findAllByHouseholdEntityIds`) and the list of uploaded documents -
-  as `datenexport.pdf` (rendered through the same `PDFService`/XSL-FO pipeline as every other PDF in
-  the app, see `pdf-templates/household-export/export-document.xsl` and
-  `docs/architecture/adr/0009-server-side-document-generation-with-xsl-fo.md`), plus every uploaded
-  document itself, read via `DocumentStorageService`. Deduplicates same-named documents so a second
-  `ausweis.jpg` doesn't silently overwrite the first inside the archive, and reserves the PDF's own
-  file name first so an actual upload named `datenexport.pdf` gets renamed the same way instead of
-  colliding with it.
+  including each document's linked person and uploader - as both `datenexport.pdf` (rendered through
+  the same `PDFService`/XSL-FO pipeline as every other PDF in the app, see
+  `pdf-templates/household-export/export-document.xsl` and
+  `docs/architecture/adr/0009-server-side-document-generation-with-xsl-fo.md`) and a machine-readable
+  `daten.json` (GDPR Art. 20, issue #3418, `HouseholdExportJsonData`), plus every uploaded document
+  itself, read via `DocumentStorageService`. Deduplicates same-named documents so a second
+  `ausweis.jpg` doesn't silently overwrite the first inside the archive, and reserves the PDF's and
+  JSON's own file names first so an actual upload named `datenexport.pdf`/`daten.json` gets renamed
+  the same way instead of colliding with them.
 
 One combined archive rather than several separate downloads: a data-subject request normally wants
-"everything you have on me" in one piece. The PDF's rows (`HouseholdExportModel.kt`) are built once
-per request from the same converted household. The service stores nothing - the archive is built on
-request and never written to disk or a table. It records one `AuditOperation.READ` entry (`entityType =
-"Household"`, see issue #3180) the same way `generatePdf` does, and is deliberately not a `readOnly`
-transaction for the same reason: `AuditLogWriter.record`'s write only takes effect for a transaction
-that actually commits. Deliberately excludes `audit_log` entries - see the takeout plan's §4 for why
-that's left an open question rather than answered here. Shares `buildHouseholdFilename`
+"everything you have on me" in one piece. The PDF's and JSON's rows (`HouseholdExportModel.kt`) are
+built once per request from the same household/notes entities. The service stores nothing - the
+archive is built on request and never written to disk or a table. It records one `AuditOperation.READ` entry
+(`entityType = "Household"`, see issue #3180) the same way `generatePdf` does, and is deliberately not
+a `readOnly` transaction for the same reason: `AuditLogWriter.record`'s write only takes effect for a
+transaction that actually commits. Deliberately excludes `audit_log` entries - see the takeout plan's
+§4 for why that's left an open question rather than answered here. Shares `buildHouseholdFilename`
 (`internal/HouseholdFilenames.kt`) with `HouseholdService.generatePdf` so the filename schemes don't
 drift.
 
-### `HouseholdDocumentController` / `DocumentScannerController` (`internal/document`)
+### `HouseholdDocumentController` / `DocumentScannerController` / `DocumentScannerSseController` (`internal/document`)
 `HouseholdDocumentController` (`/api/households/{householdId}/documents`) is upload/list/download/
 delete for a household's documents (ID scans, proofs of income, the signed privacy notice - see
 `DocumentType`), stored as plain files under `tafeladmin.storage.documentsPath` with metadata in
@@ -398,23 +415,40 @@ delete for a household's documents (ID scans, proofs of income, the signed priva
 (`/api/document-scanner-files`) lists and reads the not-yet-imported files a physical document
 scanner writes to `tafeladmin.storage.scannerPath` (see "Scanner Folder" in the root `CLAUDE.md`),
 which `HouseholdDocumentController.importScannerDocument` turns into a proper document.
+`DocumentScannerSseController` (`/api/sse/document-scanner-files`) is that same file list pushed
+live as it changes.
 
-Both controllers require `CUSTOMER_DOCUMENTS`, not `CUSTOMER` - separate from the rest of this
-module's permission on purpose, since these two hold the most sensitive artefacts on a household
+All three controllers require `CUSTOMER_DOCUMENTS`, not `CUSTOMER` - separate from the rest of this
+module's permission on purpose, since these hold the most sensitive artefacts on a household
 (GDPR G7, `docs/architecture/gdpr-compliance.md`, issue #3181,
 `docs/architecture/adr/0050-customer-documents-split-into-its-own-permission.md`).
+
+### `ScannerFileCleanupService` (`internal/document`)
+GDPR gap G18 (`docs/architecture/gdpr-compliance.md`): a nightly job (05:05, `@Scheduled`,
+`@SchedulerLock`) that deletes any file on the scanner share
+(`tafeladmin.storage.scannerPath`) older than `tafeladmin.storage.scannerFileRetention` (default 7
+days). Unlike `DocumentStorageCleanupService`, a scanner file has no database row to reconcile
+against at all - `ScannerFileService` only ever lists/reads/deletes the folder directly - so this
+only ever needs a file's own last-modified timestamp. `push`'s `ScannerFileExpiryReminderService`
+warns before this job deletes anything, reading the same share independently rather than reacting to
+an event this service would have to publish - see that service's KDoc for why.
 
 ### `HouseholdRetentionService` (`internal`)
 GDPR gap G1 (`docs/architecture/gdpr-compliance.md`): a nightly job (06:00, `@Scheduled`) that
 deletes every household whose `validUntil` is further in the past than
-`tafeladmin.householdDeletion.retentionYears` (default 7 years), and everything attached to it -
-persons, notes, documents (rows and files on disk) and attendance history. Candidate ids are
+`tafeladmin.householdDeletion.retentionTime` (default 7 years), and everything attached to it -
+persons, notes, documents (rows and files on disk), attendance history and duplicate dismissals
+naming it. Candidate ids are
 selected and locked with `FOR UPDATE SKIP LOCKED`
 (`HouseholdRepository.findExpiredHouseholdIdsSkipLocked`) inside the same transaction that then
 deletes each of them through `HouseholdService.deleteHouseholdByHouseholdId` - the same method a
 staff member's manual delete uses - so a second instance's run skips a household this one already
 claimed (ADR-0047) instead of racing it. `tafeladmin.householdDeletion.enabled` is a kill switch
-independent of the retention window. Modelled directly on `AuditRetentionService`.
+independent of the retention window. Modelled directly on `AuditRetentionService`. GDPR gap G19: a
+run above `tafeladmin.householdDeletion.maxDeletionsPerRun` refuses to delete anything and alerts
+administrators (`RETENTION_RUN` push notification) instead of proceeding, same for a run that
+throws; the customer search screen's "Wird in den nächsten 30 Tagen gelöscht" filter chip
+(`HouseholdEntity.Specs.willBeDeletedSoon`) previews what the job is about to sweep.
 
 ## Gotchas / best practices
 
@@ -429,8 +463,6 @@ independent of the retention window. Modelled directly on `AuditRetentionService
 4. **Duplicate detection reads `persons` via `households.main_person_id`, not `households` directly**
    - if you add new duplicate-matching criteria, remember firstname/lastname/address for comparison
    live partly on `persons` (name) and partly on `households` (address).
-5. **`customers`/`customers_addpersons` are legacy and read-only.** Don't add new reads or writes
-   against them; they exist only for a transitional observation window.
-6. This module can only see `base::country` and `base::exception` (per
+5. This module can only see `base::country` and `base::exception` (per
    `package-info.java`) - if you need employee data, go through `UserEntity.employee` /
    `HouseholdEntity.issuer`, not a direct `base::employee` dependency.

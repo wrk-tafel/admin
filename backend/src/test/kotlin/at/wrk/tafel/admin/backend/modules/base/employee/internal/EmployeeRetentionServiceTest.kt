@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertReason
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import io.mockk.every
@@ -11,7 +13,9 @@ import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.Period
@@ -27,6 +31,9 @@ class EmployeeRetentionServiceTest {
     @RelaxedMockK
     private lateinit var employeeService: EmployeeService
 
+    @RelaxedMockK
+    private lateinit var eventPublisher: ApplicationEventPublisher
+
     private lateinit var properties: TafelAdminProperties
     private lateinit var service: EmployeeRetentionService
 
@@ -39,7 +46,7 @@ class EmployeeRetentionServiceTest {
     @BeforeEach
     fun beforeEach() {
         properties = TafelAdminProperties()
-        service = EmployeeRetentionService(employeeRepository, employeeService, properties, clock)
+        service = EmployeeRetentionService(employeeRepository, employeeService, properties, clock, eventPublisher)
     }
 
     @Test
@@ -127,5 +134,30 @@ class EmployeeRetentionServiceTest {
         service.cleanupExpiredEmployees()
 
         verify(exactly = 0) { employeeService.deleteEmployee(any()) }
+    }
+
+    @Test
+    fun `refuses the run and alerts administrators when it would delete more than the configured ceiling`() {
+        properties.employeeDeletion.maxDeletionsPerRun = 1
+        every { employeeRepository.findExpiredEmployeeIdsSkipLocked(any()) } returns listOf(2001L, 2002L)
+
+        service.cleanupExpiredEmployees()
+
+        verify(exactly = 0) { employeeService.deleteEmployee(any()) }
+        val event = slot<RetentionRunAlertEvent>()
+        verify { eventPublisher.publishEvent(capture(event)) }
+        assertThat(event.captured.reason).isEqualTo(RetentionRunAlertReason.CEILING_EXCEEDED)
+    }
+
+    @Test
+    fun `publishes a failure alert and rethrows when the run throws`() {
+        every { employeeRepository.findExpiredEmployeeIdsSkipLocked(any()) } returns listOf(2001L)
+        every { employeeService.deleteEmployee(2001L) } throws IllegalStateException("boom")
+
+        assertThrows<IllegalStateException> { service.cleanupExpiredEmployees() }
+
+        val event = slot<RetentionRunAlertEvent>()
+        verify { eventPublisher.publishEvent(capture(event)) }
+        assertThat(event.captured.reason).isEqualTo(RetentionRunAlertReason.FAILED)
     }
 }

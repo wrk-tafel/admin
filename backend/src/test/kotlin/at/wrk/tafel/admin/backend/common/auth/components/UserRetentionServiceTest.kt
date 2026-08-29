@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertReason
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -14,7 +16,9 @@ import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.Period
@@ -30,6 +34,9 @@ class UserRetentionServiceTest {
     @RelaxedMockK
     private lateinit var userDetailsManager: TafelUserDetailsManager
 
+    @RelaxedMockK
+    private lateinit var eventPublisher: ApplicationEventPublisher
+
     private lateinit var properties: TafelAdminProperties
     private lateinit var service: UserRetentionService
 
@@ -42,7 +49,7 @@ class UserRetentionServiceTest {
     @BeforeEach
     fun beforeEach() {
         properties = TafelAdminProperties()
-        service = UserRetentionService(userRepository, userDetailsManager, properties, clock)
+        service = UserRetentionService(userRepository, userDetailsManager, properties, clock, eventPublisher)
     }
 
     @Test
@@ -150,6 +157,32 @@ class UserRetentionServiceTest {
         service.cleanupExpiredUsers()
 
         verify(exactly = 0) { userDetailsManager.deleteUser(any()) }
+    }
+
+    @Test
+    fun `refuses the run and alerts administrators when it would delete more than the configured ceiling`() {
+        properties.userDeletion.maxDeletionsPerRun = 1
+        every { userRepository.findExpiredUserIdsSkipLocked(any(), any()) } returns listOf(1001L, 1002L)
+
+        service.cleanupExpiredUsers()
+
+        verify(exactly = 0) { userDetailsManager.deleteUser(any()) }
+        val event = slot<RetentionRunAlertEvent>()
+        verify { eventPublisher.publishEvent(capture(event)) }
+        assertThat(event.captured.reason).isEqualTo(RetentionRunAlertReason.CEILING_EXCEEDED)
+    }
+
+    @Test
+    fun `publishes a failure alert and rethrows when the run throws`() {
+        every { userRepository.findExpiredUserIdsSkipLocked(any(), any()) } returns listOf(1001L)
+        every { userRepository.findAllById(listOf(1001L)) } returns listOf(testUser(1001L, "expired-one"))
+        every { userDetailsManager.deleteUser("expired-one") } throws IllegalStateException("boom")
+
+        assertThrows<IllegalStateException> { service.cleanupExpiredUsers() }
+
+        val event = slot<RetentionRunAlertEvent>()
+        verify { eventPublisher.publishEvent(capture(event)) }
+        assertThat(event.captured.reason).isEqualTo(RetentionRunAlertReason.FAILED)
     }
 
     private fun testUser(id: Long, username: String) = UserEntity(

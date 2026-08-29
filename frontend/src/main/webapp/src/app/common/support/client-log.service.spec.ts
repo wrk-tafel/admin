@@ -12,6 +12,10 @@ describe('ClientLogService', () => {
     vi.spyOn(window, 'addEventListener').mockImplementation((type, listener) => {
       listeners[type] = listener as (event: Event) => void;
     });
+    // captureGlobalErrors wraps console.warn/console.error in place - spying on them first means
+    // vi.restoreAllMocks() below undoes that wrap again after every test, not just this one.
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     TestBed.configureTestingModule({providers: [ClientLogService]});
     service = TestBed.inject(ClientLogService);
@@ -96,6 +100,82 @@ describe('ClientLogService', () => {
 
     expect(service.getEntries().map(entry => entry.message))
       .toEqual(['Ressource nicht geladen: img http://localhost/assets/logo.png']);
+  });
+
+  it('records a console.warn call and still prints it', () => {
+    // captured before captureGlobalErrors reassigns console.warn to its own wrapper - the wrapper
+    // itself is a plain function, not the spy, so asserting on console.warn after wrapping would
+    // fail with "not a spy" even though the original spy was in fact called underneath it.
+    const warnSpy = console.warn;
+    service.captureGlobalErrors();
+
+    console.warn('SSE-Verbindung dauerhaft geschlossen, versuche erneut zu verbinden...');
+
+    expect(service.getEntries().map(entry => entry.message))
+      .toEqual(['SSE-Verbindung dauerhaft geschlossen, versuche erneut zu verbinden...']);
+    expect(warnSpy).toHaveBeenCalledWith('SSE-Verbindung dauerhaft geschlossen, versuche erneut zu verbinden...');
+  });
+
+  it('records a console.warn call with several arguments, an Error among them', () => {
+    service.captureGlobalErrors();
+
+    console.warn('Konnte Kamera nicht starten', new Error('permission denied'));
+
+    expect(service.getEntries().map(entry => entry.message))
+      .toEqual(['Konnte Kamera nicht starten Error: permission denied']);
+  });
+
+  it('records a raw console.error call and still prints it', () => {
+    // same reasoning as the console.warn test above - captured before wrapping.
+    const errorSpy = console.error;
+    service.captureGlobalErrors();
+
+    console.error('some raw console.error call');
+
+    expect(service.getEntries().map(entry => entry.message)).toEqual(['some raw console.error call']);
+    expect(errorSpy).toHaveBeenCalledWith('some raw console.error call');
+  });
+
+  it('does not record console.warn/console.error while runWithConsoleCaptureSuppressed runs', () => {
+    service.captureGlobalErrors();
+
+    service.runWithConsoleCaptureSuppressed(() => {
+      console.warn('suppressed warning');
+      console.error('suppressed error');
+    });
+
+    expect(service.getEntries()).toEqual([]);
+  });
+
+  it('resumes recording console.warn/console.error once runWithConsoleCaptureSuppressed returns', () => {
+    service.captureGlobalErrors();
+
+    service.runWithConsoleCaptureSuppressed(() => { /* nothing to suppress here */ });
+    console.error('recorded again');
+
+    expect(service.getEntries().map(entry => entry.message)).toEqual(['recorded again']);
+  });
+
+  it('resumes recording even when the suppressed function throws', () => {
+    service.captureGlobalErrors();
+
+    expect(() => service.runWithConsoleCaptureSuppressed(() => {
+      throw new Error('boom');
+    })).toThrow('boom');
+
+    console.error('recorded after the throw');
+
+    expect(service.getEntries().map(entry => entry.message)).toEqual(['recorded after the throw']);
+  });
+
+  it('emits every recorded entry on onRecord', () => {
+    const emitted: string[] = [];
+    service.onRecord.subscribe(entry => emitted.push(entry.message));
+
+    service.record('first error');
+    service.record('second error');
+
+    expect(emitted).toEqual(['first error', 'second error']);
   });
 
   it('hands out a copy so a caller cannot change the log', () => {

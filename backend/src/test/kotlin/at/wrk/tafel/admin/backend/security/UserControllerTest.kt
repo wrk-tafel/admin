@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.UserController
 import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.common.auth.model.*
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
@@ -48,10 +49,19 @@ class UserControllerTest {
     private lateinit var tafelAdminProperties: TafelAdminProperties
 
     @RelaxedMockK
+    private lateinit var applicationProperties: ApplicationProperties
+
+    @RelaxedMockK
     private lateinit var loginAttemptService: LoginAttemptService
 
     @RelaxedMockK
     private lateinit var userExportService: UserExportService
+
+    @RelaxedMockK
+    private lateinit var staffPrivacyNoticeService: StaffPrivacyNoticeService
+
+    @RelaxedMockK
+    private lateinit var jwtTokenService: JwtTokenService
 
     @RelaxedMockK
     private lateinit var request: HttpServletRequest
@@ -104,7 +114,7 @@ class UserControllerTest {
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
-        val testFilename = "benutzerdaten-${testUser.username}.pdf"
+        val testFilename = "benutzerdaten-${testUser.username}.zip"
         every { userExportService.exportUserByUsername(testUser.username) } returns UserExportFileResult(
             filename = testFilename,
             bytes = testFilename.toByteArray(),
@@ -113,8 +123,8 @@ class UserControllerTest {
         val response = controller.exportUser()
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
-        assertThat(response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/zip")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
         assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
 
         SecurityContextHolder.clearContext()
@@ -140,7 +150,7 @@ class UserControllerTest {
 
     @Test
     fun `export user by id`() {
-        val testFilename = "benutzerdaten-${testUser.username}.pdf"
+        val testFilename = "benutzerdaten-${testUser.username}.zip"
         every { userExportService.exportUserById(1) } returns UserExportFileResult(
             filename = testFilename,
             bytes = testFilename.toByteArray(),
@@ -149,8 +159,8 @@ class UserControllerTest {
         val response = controller.exportUserById(1)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
-        assertThat(response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/zip")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
         assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
     }
 
@@ -161,6 +171,19 @@ class UserControllerTest {
         val exception = assertThrows<NotFoundException> { controller.exportUserById(1) }
         assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(exception.body.detail).isEqualTo("Benutzer (ID: 1) nicht gefunden!")
+    }
+
+    @Test
+    fun `generate staff privacy notice template`() {
+        val pdfBytes = "pdf-bytes".toByteArray()
+        every { staffPrivacyNoticeService.generatePrivacyNoticePdf() } returns pdfBytes
+
+        val response = controller.generatePrivacyNoticeTemplate()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo("datenschutzerklaerung-mitarbeiter.pdf")
+        assertThat(response.body!!.inputStream.readAllBytes()).isEqualTo(pdfBytes)
     }
 
     @Test
@@ -176,12 +199,36 @@ class UserControllerTest {
 
     @Test
     fun `change password`() {
-        val request = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
+        val relativeBaseUrl = "/test-base/"
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
+        every { jwtTokenService.generateToken(any(), any()) } returns "NEW-TOKEN"
 
-        val response = controller.changePassword(request)
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "OLD-TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        val changePasswordRequest = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
+
+        val responseEntity = controller.changePassword(changePasswordRequest, request, response)
+
+        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
         verify { userDetailsManager.changePassword("old", "new") }
+        // Changing one's own password invalidates the very token this request came in on (see
+        // TafelUserDetailsManager.changePassword) - the frontend keeps the user on this session
+        // afterwards, so a fresh cookie has to be issued in the same response.
+        verify {
+            response.addCookie(
+                withArg {
+                    assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
+                    assertThat(it.value).isEqualTo("NEW-TOKEN")
+                    assertThat(it.path).isEqualTo(relativeBaseUrl)
+                    assertThat(it.attributes["SameSite"]).isEqualTo("strict")
+                },
+            )
+        }
     }
 
     @Test
@@ -189,15 +236,16 @@ class UserControllerTest {
         val errMsg = "failed"
         val errDetails = listOf("Length error ...", "Complexity error ...")
         every { userDetailsManager.changePassword(any(), any()) } throws PasswordChangeException(errMsg, errDetails)
-        val request = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
+        val changePasswordRequest = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
 
-        val response = controller.changePassword(request)
+        val responseEntity = controller.changePassword(changePasswordRequest, request, response)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        assertThat(response.body?.message).isEqualTo(errMsg)
-        assertThat(response.body?.details).hasSameElementsAs(errDetails)
+        assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(responseEntity.body?.message).isEqualTo(errMsg)
+        assertThat(responseEntity.body?.details).hasSameElementsAs(errDetails)
 
         verify { userDetailsManager.changePassword("old", "new") }
+        verify(exactly = 0) { response.addCookie(any()) }
     }
 
     @Test
@@ -261,6 +309,30 @@ class UserControllerTest {
         val response = controller.getUser(1)
 
         assertThat(response.body?.lockedUntil).isEqualTo(lockedUntil)
+    }
+
+    /**
+     * The actual `AuditOperation.READ` recording (dedupe window, actor resolution) is
+     * `TafelUserDetailsManager.recordUserRead`'s own concern, covered by
+     * `TafelUserDetailsManagerTest` - this only pins down that the detail-view endpoint hands the
+     * loaded user to it (issue #3493).
+     */
+    @Test
+    fun `get user records a READ via TafelUserDetailsManager`() {
+        every { userDetailsManager.loadUserById(1) } returns testUser
+
+        controller.getUser(1)
+
+        verify(exactly = 1) { userDetailsManager.recordUserRead(testUser) }
+    }
+
+    @Test
+    fun `get user by personnel number records a READ via TafelUserDetailsManager`() {
+        every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns testUser
+
+        controller.getUserByPersonnelNumber(testUser.personnelNumber)
+
+        verify(exactly = 1) { userDetailsManager.recordUserRead(testUser) }
     }
 
     @Test

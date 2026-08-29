@@ -1,8 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertReason
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,6 +28,11 @@ import java.time.LocalDateTime
  *
  * Runs once a night, at 06:30 - after `UserRetentionService` (06:15), so an employee whose only user
  * account is deleted the same night is a candidate for the very next run rather than an extra day.
+ *
+ * A run that throws, or that would delete more than [TafelAdminEmployeeRetentionProperties.maxDeletionsPerRun],
+ * publishes `RetentionRunAlertEvent` instead of proceeding silently - GDPR gap G19. See
+ * `HouseholdRetentionService`'s KDoc for why the ceiling check after the candidates are already
+ * claimed is safe.
  */
 @Service
 class EmployeeRetentionService(
@@ -32,10 +40,12 @@ class EmployeeRetentionService(
     private val employeeService: EmployeeService,
     private val properties: TafelAdminProperties,
     private val clock: Clock,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(EmployeeRetentionService::class.java)
+        private const val JOB_NAME = "Mitarbeiter-Bereinigung"
     }
 
     @Scheduled(cron = "\${tafeladmin.employeeDeletion.cleanupCron:0 30 6 * * *}")
@@ -52,18 +62,47 @@ class EmployeeRetentionService(
             return
         }
 
-        val cutoff = LocalDateTime.now(clock).minus(retentionTime)
-        val expiredEmployeeIds = employeeRepository.findExpiredEmployeeIdsSkipLocked(cutoff)
-        if (expiredEmployeeIds.isEmpty()) {
-            return
-        }
+        try {
+            val cutoff = LocalDateTime.now(clock).minus(retentionTime)
+            val expiredEmployeeIds = employeeRepository.findExpiredEmployeeIdsSkipLocked(cutoff)
+            if (expiredEmployeeIds.isEmpty()) {
+                return
+            }
 
-        expiredEmployeeIds.forEach { employeeService.deleteEmployee(it) }
-        logger.info(
-            "Deleted {} unreferenced employee(s) untouched since before {} ({} retention)",
-            expiredEmployeeIds.size,
-            cutoff,
-            retentionTime,
-        )
+            val ceiling = properties.employeeDeletion.maxDeletionsPerRun
+            if (ceiling > 0 && expiredEmployeeIds.size > ceiling) {
+                logger.warn(
+                    "Employee retention would delete {} employee(s), above the configured ceiling of {} - refusing this run",
+                    expiredEmployeeIds.size,
+                    ceiling,
+                )
+                eventPublisher.publishEvent(
+                    RetentionRunAlertEvent(
+                        jobName = JOB_NAME,
+                        reason = RetentionRunAlertReason.CEILING_EXCEEDED,
+                        detail = "${expiredEmployeeIds.size} Mitarbeiter betroffen, Limit liegt bei $ceiling.",
+                    ),
+                )
+                return
+            }
+
+            expiredEmployeeIds.forEach { employeeService.deleteEmployee(it) }
+            logger.info(
+                "Deleted {} unreferenced employee(s) untouched since before {} ({} retention)",
+                expiredEmployeeIds.size,
+                cutoff,
+                retentionTime,
+            )
+        } catch (e: Exception) {
+            logger.error("Employee retention run failed", e)
+            eventPublisher.publishEvent(
+                RetentionRunAlertEvent(
+                    jobName = JOB_NAME,
+                    reason = RetentionRunAlertReason.FAILED,
+                    detail = "${e.javaClass.simpleName}: ${e.message}",
+                ),
+            )
+            throw e
+        }
     }
 }

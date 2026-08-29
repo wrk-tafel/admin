@@ -47,7 +47,7 @@ class MailSenderService(
         content: String,
         attachments: List<MailAttachment> = emptyList(),
     ) {
-        sendMail(resolveRecipients(mailType), subject, content, attachments, isHtmlMail = false)
+        sendMail(resolveRecipients(mailType), mailType.outboxLabel, subject, content, attachments, isHtmlMail = false)
     }
 
     fun sendHtmlMail(
@@ -57,15 +57,17 @@ class MailSenderService(
         templateName: String,
         context: Context,
     ) {
-        sendMail(resolveRecipients(mailType), subject, renderHtml(templateName, context), attachments, isHtmlMail = true)
+        sendMail(resolveRecipients(mailType), mailType.outboxLabel, subject, renderHtml(templateName, context), attachments, isHtmlMail = true)
     }
 
     /**
      * Same as [sendHtmlMail], but for a mail whose recipients come from the deployment's
      * configuration rather than from the `mail_recipients` table maintained in the UI - used by the
-     * support contact, which has to keep working when the application itself is what's broken.
+     * support contact, which has to keep working when the application itself is what's broken. It
+     * has no [MailType] of its own to derive a label from, so the caller names it directly.
      */
     fun sendHtmlMailTo(
+        mailType: String,
         recipients: List<String>,
         subject: String,
         attachments: List<MailAttachment> = emptyList(),
@@ -73,7 +75,7 @@ class MailSenderService(
         context: Context,
     ) {
         val to = recipients.map { MailRecipient(address = it, recipientType = RecipientType.TO) }
-        sendMail(to, subject, renderHtml(templateName, context), attachments, isHtmlMail = true)
+        sendMail(to, mailType, subject, renderHtml(templateName, context), attachments, isHtmlMail = true)
     }
 
     private fun renderHtml(templateName: String, context: Context): String {
@@ -94,6 +96,7 @@ class MailSenderService(
      */
     private fun sendMail(
         recipients: List<MailRecipient>,
+        mailType: String,
         subject: String,
         content: String,
         attachments: List<MailAttachment>,
@@ -125,6 +128,7 @@ class MailSenderService(
 
         mailOutboxService.enqueue(
             mimeMessage = messageHelper.mimeMessage,
+            mailType = mailType,
             subject = fullSubject,
             recipients = recipients.map { it.address },
         )
@@ -132,6 +136,16 @@ class MailSenderService(
 
     private fun resolveRecipients(mailType: MailType): List<MailRecipient> = mailRecipientRepository.findAllByMailType(mailType)
         .map { MailRecipient(address = it.address, recipientType = it.recipientType) }
+
+    // Purely a display label for a failed-delivery notification (MailDeliveryFailedEvent) - matches
+    // the wording used elsewhere for the same three mails (see the settings module's mail-recipients
+    // screen and ReportMailFailedEvent.reportName), so a mail type reads the same wherever it shows up.
+    private val MailType.outboxLabel: String
+        get() = when (this) {
+            MailType.DAILY_REPORT -> "Tagesreport"
+            MailType.STATISTICS -> "Statistiken"
+            MailType.RETURN_BOXES -> "Retourkisten"
+        }
 
     private fun addRecipientAddresses(recipients: List<MailRecipient>, messageHelper: MimeMessageHelper) {
         recipients.filter { it.recipientType == RecipientType.TO }

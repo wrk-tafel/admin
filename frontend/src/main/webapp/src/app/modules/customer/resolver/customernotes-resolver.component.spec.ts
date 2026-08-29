@@ -39,13 +39,15 @@ describe('CustomerNotesResolver', () => {
                     id: 38,
                     author: 'author1',
                     timestamp: dayjs().subtract(1, 'hour').toDate(),
-                    note: 'note from author 1'
+                    note: 'note from author 1',
+                    editable: true
                 },
                 {
                     id: 43,
                     author: 'author2',
                     timestamp: dayjs().subtract(2, 'hour').toDate(),
-                    note: 'note from author 2'
+                    note: 'note from author 2',
+                    editable: false
                 }
             ],
             totalCount: 1,

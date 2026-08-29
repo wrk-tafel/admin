@@ -105,7 +105,7 @@ class EmployeeControllerTest {
 
     @Test
     fun `export employee`() {
-        val testFilename = "mitarbeiterdaten-00001.pdf"
+        val testFilename = "mitarbeiterdaten-00001.zip"
         every { employeeExportService.exportEmployeeById(1L) } returns EmployeeExportFileResult(
             filename = testFilename,
             bytes = testFilename.toByteArray(),
@@ -114,8 +114,8 @@ class EmployeeControllerTest {
         val response = employeeController.exportEmployee(1L)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/pdf")
-        assertThat(response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()).isEqualTo("inline; filename=$testFilename")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/zip")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
         assertThat(String(response.body!!.inputStream.readAllBytes())).isEqualTo(testFilename)
     }
 

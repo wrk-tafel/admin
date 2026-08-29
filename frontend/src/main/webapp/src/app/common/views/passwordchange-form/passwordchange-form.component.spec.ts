@@ -160,12 +160,14 @@ describe('PasswordChangeFormComponent', () => {
   });
 
   it('passwordRules flag a too-short password only on the length rule', () => {
-    component.passwordFormModel.set({...component.passwordFormModel(), newPassword: '1234567'});
+    // otherwise satisfies every rule (incl. character variety) so only the length rule is unmet
+    component.passwordFormModel.set({...component.passwordFormModel(), newPassword: 'Ab12345'});
 
     const rules = component.passwordRules();
     expect(rules[0].met).toBe(false); // length
     expect(rules[2].met).toBe(true); // no whitespace
     expect(rules[3].met).toBe(true); // no banned word
+    expect(rules[4].met).toBe(true); // character variety
   });
 
   it('passwordRules flag whitespace and banned words', () => {
@@ -175,6 +177,13 @@ describe('PasswordChangeFormComponent', () => {
     expect(rules[0].met).toBe(true); // length
     expect(rules[2].met).toBe(false); // no whitespace
     expect(rules[3].met).toBe(false); // no banned word ("tafel")
+  });
+
+  it('passwordRules flag a password missing a character class', () => {
+    component.passwordFormModel.set({...component.passwordFormModel(), newPassword: 'onlylowercase'});
+
+    const rules = component.passwordRules();
+    expect(rules[4].met).toBe(false); // character variety (no uppercase, no digit)
   });
 
   it('passwordRules are all met for a compliant password', () => {

@@ -70,27 +70,61 @@ interface AuditLogRepository :
     fun deleteAllByOccurredAtBeforeSkipLocked(@Param("cutoff") cutoff: LocalDateTime): Int
 
     /**
-     * Who read more than [threshold] entries of [operation] since [since] - the query behind GDPR
-     * gap G11's breach-detection threshold (`ExcessiveReadAccessDetectionService`). Grouped rather
-     * than fetched row-by-row: a session downloading hundreds of documents in an hour must cost one
-     * query here, not one row loaded per document.
+     * A preview of what [deleteAllByOccurredAtBeforeSkipLocked] would delete this run, for
+     * `AuditRetentionService`'s ceiling check (GDPR gap G19) - a plain count rather than a locking
+     * `SELECT ... FOR UPDATE`, since it only has to decide whether to proceed, not claim rows. A
+     * concurrent instance may delete some of what this counted before the delete itself runs, which
+     * only ever makes the actual run smaller than this preview, never larger - the ceiling this
+     * guards is a sanity bound, not a precise quota.
+     */
+    fun countByOccurredAtBefore(cutoff: LocalDateTime): Long
+
+    /**
+     * Who read more than [threshold] weighted entries of [operation] since [since] - the query
+     * behind GDPR gap G11's breach-detection threshold (`ExcessiveReadAccessDetectionService`).
+     * Grouped rather than fetched row-by-row: a session downloading hundreds of documents in an
+     * hour must cost one query here, not one row loaded per document.
+     *
+     * Each entry counts as 1 except one whose `entityType` is in [bulkEntityTypes]
+     * ([at.wrk.tafel.admin.backend.database.common.audit.AuditScope.bulkReportEntityTypes]), which
+     * counts as [bulkReadWeight] - a bulk household report/export reveals every household it
+     * returned, not one, so it must weigh into the tally accordingly (GDPR gap G24, issue #3507).
+     * `audit_log` itself stays one row per read event regardless; only this query treats those
+     * entity types specially.
      */
     @Query(
         """
-            SELECT a.actorUsername AS username, COUNT(a) AS readCount
+            SELECT a.actorUsername AS username,
+                   SUM(CASE WHEN a.entityType IN :bulkEntityTypes THEN :bulkReadWeight ELSE 1 END) AS readCount
             FROM AuditLog a
             WHERE a.operation = :operation
               AND a.actorUsername IS NOT NULL
               AND a.occurredAt >= :since
             GROUP BY a.actorUsername
-            HAVING COUNT(a) > :threshold
+            HAVING SUM(CASE WHEN a.entityType IN :bulkEntityTypes THEN :bulkReadWeight ELSE 1 END) > :threshold
         """,
     )
     fun findActorsWithOperationCountAbove(
         @Param("operation") operation: AuditOperation,
         @Param("since") since: LocalDateTime,
         @Param("threshold") threshold: Long,
+        @Param("bulkEntityTypes") bulkEntityTypes: Collection<String>,
+        @Param("bulkReadWeight") bulkReadWeight: Long,
     ): List<AuditActorOperationCountProjection>
+
+    /**
+     * Whether [actorUsername] already has a recorded [operation] of [entityType]/[businessKey] since
+     * [since] - lets a caller de-duplicate a read (e.g. `HouseholdService.findByHouseholdId`) so a
+     * screen reload within the dedupe window doesn't count as a fresh one for breach detection
+     * (`ExcessiveReadAccessDetectionService`, see issue #3430).
+     */
+    fun existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+        entityType: String,
+        businessKey: String,
+        operation: AuditOperation,
+        actorUsername: String,
+        since: LocalDateTime,
+    ): Boolean
 }
 
 /**

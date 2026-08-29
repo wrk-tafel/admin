@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.database.common.audit
 
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertReason
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import io.mockk.every
@@ -10,7 +12,9 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -21,6 +25,9 @@ class AuditRetentionServiceTest {
 
     @RelaxedMockK
     private lateinit var auditLogRepository: AuditLogRepository
+
+    @RelaxedMockK
+    private lateinit var eventPublisher: ApplicationEventPublisher
 
     private lateinit var properties: TafelAdminProperties
     private lateinit var service: AuditRetentionService
@@ -34,7 +41,7 @@ class AuditRetentionServiceTest {
     @BeforeEach
     fun beforeEach() {
         properties = TafelAdminProperties()
-        service = AuditRetentionService(auditLogRepository, properties, clock)
+        service = AuditRetentionService(auditLogRepository, properties, clock, eventPublisher)
     }
 
     @Test
@@ -71,5 +78,51 @@ class AuditRetentionServiceTest {
         service.cleanupExpiredEntries()
 
         verify(exactly = 0) { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(any()) }
+    }
+
+    @Test
+    fun `cleanupEnabled keeps everything independent of retentionDays`() {
+        properties.audit.cleanupEnabled = false
+
+        service.cleanupExpiredEntries()
+
+        verify(exactly = 0) { auditLogRepository.countByOccurredAtBefore(any()) }
+        verify(exactly = 0) { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(any()) }
+    }
+
+    @Test
+    fun `refuses the run and alerts administrators when it would delete more than the configured ceiling`() {
+        properties.audit.maxDeletionsPerRun = 10
+        every { auditLogRepository.countByOccurredAtBefore(any()) } returns 11
+
+        service.cleanupExpiredEntries()
+
+        verify(exactly = 0) { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(any()) }
+        val event = slot<RetentionRunAlertEvent>()
+        verify { eventPublisher.publishEvent(capture(event)) }
+        assertThat(event.captured.reason).isEqualTo(RetentionRunAlertReason.CEILING_EXCEEDED)
+    }
+
+    @Test
+    fun `a non-positive ceiling switches the check off entirely`() {
+        properties.audit.maxDeletionsPerRun = 0
+        every { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(any()) } returns 5
+
+        service.cleanupExpiredEntries()
+
+        verify(exactly = 0) { auditLogRepository.countByOccurredAtBefore(any()) }
+        verify { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(any()) }
+        verify(exactly = 0) { eventPublisher.publishEvent(any()) }
+    }
+
+    @Test
+    fun `publishes a failure alert and rethrows when the run throws`() {
+        every { auditLogRepository.deleteAllByOccurredAtBeforeSkipLocked(any()) } throws IllegalStateException("boom")
+
+        assertThrows<IllegalStateException> { service.cleanupExpiredEntries() }
+
+        val event = slot<RetentionRunAlertEvent>()
+        verify { eventPublisher.publishEvent(capture(event)) }
+        assertThat(event.captured.reason).isEqualTo(RetentionRunAlertReason.FAILED)
     }
 }

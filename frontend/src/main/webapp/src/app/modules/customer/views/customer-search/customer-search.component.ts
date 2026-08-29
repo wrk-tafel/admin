@@ -19,6 +19,7 @@ import {CommonModule} from '@angular/common';
 import {MatIcon} from '@angular/material/icon';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
 import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
@@ -49,6 +50,8 @@ const QUERY_PARAMS = {
   valid: 'bezugsberechtigt',
   locked: 'gesperrt',
   missingPrivacyNotice: 'ohne-datenschutzerklaerung',
+  willBeDeletedSoon: 'wird-bald-geloescht',
+  privacyNoticeOutdated: 'datenschutzerklaerung-veraltet',
   page: 'seite',
   pageSize: 'anzahl',
 } as const;
@@ -105,6 +108,8 @@ export class CustomerSearchComponent {
   valid = signal(false);
   locked = signal(false);
   missingPrivacyNotice = signal(false);
+  willBeDeletedSoon = signal(false);
+  privacyNoticeOutdated = signal(false);
 
   // Use a signal so the template-sugar (@if / @for) reacts immediately when updated
   searchResult = signal<CustomerSearchResult | undefined>(undefined);
@@ -216,6 +221,8 @@ export class CustomerSearchComponent {
       this.valid() || undefined,
       this.locked() || undefined,
       this.missingPrivacyNotice() || undefined,
+      this.willBeDeletedSoon() || undefined,
+      this.privacyNoticeOutdated() || undefined,
       request.page,
       request.pageSize,
     ).pipe(
@@ -287,8 +294,7 @@ export class CustomerSearchComponent {
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 
@@ -297,8 +303,13 @@ export class CustomerSearchComponent {
    * customer number that just did not match anything. Two-or-more words are read as first name(s)
    * plus surname; a single word goes to the surname field alone, since that is what most searches
    * on this screen are narrowed to.
+   *
+   * Passed as router navigation `state` (read back by `CustomerEditComponent`, same mechanism the
+   * Anspruch-Schnellcheck's own "Kunden anlegen" link uses for `quickCheckPersons`), not as query
+   * params: a searched name landing in the URL - and so in browser history - is exactly what GDPR
+   * gap G25 (issue #3506) closes.
    */
-  createCustomerQueryParams = computed(() => {
+  createCustomerState = computed(() => {
     const trimmed = this.query().trim();
     if (!trimmed || /^\d+$/.test(trimmed)) {
       return {};
@@ -319,6 +330,8 @@ export class CustomerSearchComponent {
     this.valid.set(params.get(QUERY_PARAMS.valid) === 'true');
     this.locked.set(params.get(QUERY_PARAMS.locked) === 'true');
     this.missingPrivacyNotice.set(params.get(QUERY_PARAMS.missingPrivacyNotice) === 'true');
+    this.willBeDeletedSoon.set(params.get(QUERY_PARAMS.willBeDeletedSoon) === 'true');
+    this.privacyNoticeOutdated.set(params.get(QUERY_PARAMS.privacyNoticeOutdated) === 'true');
 
     const page = Number(params.get(QUERY_PARAMS.page));
     const pageSize = Number(params.get(QUERY_PARAMS.pageSize));
@@ -340,6 +353,8 @@ export class CustomerSearchComponent {
         [QUERY_PARAMS.valid]: this.valid() ? 'true' : null,
         [QUERY_PARAMS.locked]: this.locked() ? 'true' : null,
         [QUERY_PARAMS.missingPrivacyNotice]: this.missingPrivacyNotice() ? 'true' : null,
+        [QUERY_PARAMS.willBeDeletedSoon]: this.willBeDeletedSoon() ? 'true' : null,
+        [QUERY_PARAMS.privacyNoticeOutdated]: this.privacyNoticeOutdated() ? 'true' : null,
         [QUERY_PARAMS.page]: response.currentPage > 1 ? response.currentPage : null,
         [QUERY_PARAMS.pageSize]: response.pageSize !== DEFAULT_PAGE_SIZE ? response.pageSize : null,
       }

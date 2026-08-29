@@ -15,6 +15,7 @@ import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
 import chevronLeftIcon from '@material-symbols/svg-400/outlined/chevron_left-fill.svg';
 import chevronRightIcon from '@material-symbols/svg-400/outlined/chevron_right-fill.svg';
 import csvIcon from '@material-symbols/svg-400/outlined/csv-fill.svg';
@@ -159,8 +160,7 @@ export class CustomerOverviewComponent {
   }
 
   private processCsvResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition')!;
-    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 

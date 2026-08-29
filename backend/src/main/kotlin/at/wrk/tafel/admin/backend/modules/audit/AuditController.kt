@@ -13,9 +13,12 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 
 /**
- * Read-only by design - there is no endpoint that writes, edits or deletes an entry, and adding one
- * would make the trail worth less than not having it. Entries appear as a side effect of the changes
- * they describe, and leave only by ageing out (`AuditRetentionService`).
+ * Read-only by design - there is no endpoint that lets a caller write, edit or delete an entry, and
+ * adding one would make the trail worth less than not having it. Entries otherwise appear only as a
+ * side effect of the changes they describe, and leave only by ageing out (`AuditRetentionService`).
+ *
+ * The one exception is every endpoint here itself: reading the audit trail is sensitive enough to be
+ * recorded as its own `AuditOperation.READ` entry - see [AuditService].
  */
 @RestController
 @RequestMapping("/api/audit")
@@ -54,7 +57,13 @@ class AuditController(
      * Feeds the "Verlauf" tab. Sits under `/api/audit` rather than under
      * `/api/households/{householdId}/...` so the whole feature stays behind one permission and one
      * controller - the household module knows nothing about the audit trail.
+     *
+     * Requires `CUSTOMER` in addition to the class-level `AUDIT_LOG`, unlike every other endpoint
+     * here: this one serves one household's full history - names, addresses, income - rather than
+     * the redacted view [AuditService.search]/[AuditService.getFilterOptions] give an `AUDIT_LOG`-only
+     * caller for the same entity types (see [at.wrk.tafel.admin.backend.database.common.audit.AuditScope.householdScopedEntityTypes]).
      */
+    @PreAuthorize("hasAuthority('AUDIT_LOG') and hasAuthority('CUSTOMER')")
     @GetMapping("/households/{householdId}")
     fun getHouseholdHistory(
         @PathVariable householdId: Long,

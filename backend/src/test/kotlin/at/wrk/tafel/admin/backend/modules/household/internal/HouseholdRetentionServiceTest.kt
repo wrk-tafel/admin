@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent
+import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertReason
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import io.mockk.every
@@ -11,9 +13,12 @@ import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 import java.time.LocalDate
+import java.time.Period
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -25,6 +30,9 @@ class HouseholdRetentionServiceTest {
 
     @RelaxedMockK
     private lateinit var householdService: HouseholdService
+
+    @RelaxedMockK
+    private lateinit var eventPublisher: ApplicationEventPublisher
 
     private lateinit var properties: TafelAdminProperties
     private lateinit var service: HouseholdRetentionService
@@ -38,12 +46,12 @@ class HouseholdRetentionServiceTest {
     @BeforeEach
     fun beforeEach() {
         properties = TafelAdminProperties()
-        service = HouseholdRetentionService(householdRepository, householdService, properties, clock)
+        service = HouseholdRetentionService(householdRepository, householdService, properties, clock, eventPublisher)
     }
 
     @Test
     fun `deletes every household expired past the configured retention window`() {
-        properties.householdDeletion.retentionYears = 3
+        properties.householdDeletion.retentionTime = Period.ofYears(3)
         every { householdRepository.findExpiredHouseholdIdsSkipLocked(any()) } returns listOf(1001L, 1002L)
 
         service.cleanupExpiredHouseholds()
@@ -74,7 +82,7 @@ class HouseholdRetentionServiceTest {
 
     @Test
     fun `a non-positive retention keeps every household rather than deleting them all`() {
-        properties.householdDeletion.retentionYears = 0
+        properties.householdDeletion.retentionTime = Period.ZERO
 
         service.cleanupExpiredHouseholds()
 
@@ -83,9 +91,9 @@ class HouseholdRetentionServiceTest {
     }
 
     @Test
-    fun `the enabled switch keeps every household regardless of retentionYears`() {
+    fun `the enabled switch keeps every household regardless of retentionTime`() {
         properties.householdDeletion.enabled = false
-        properties.householdDeletion.retentionYears = 1
+        properties.householdDeletion.retentionTime = Period.ofYears(1)
 
         service.cleanupExpiredHouseholds()
 
@@ -100,5 +108,42 @@ class HouseholdRetentionServiceTest {
         service.cleanupExpiredHouseholds()
 
         verify(exactly = 0) { householdService.deleteHouseholdByHouseholdId(any()) }
+    }
+
+    @Test
+    fun `refuses the run and alerts administrators when it would delete more than the configured ceiling`() {
+        properties.householdDeletion.maxDeletionsPerRun = 1
+        every { householdRepository.findExpiredHouseholdIdsSkipLocked(any()) } returns listOf(1001L, 1002L)
+
+        service.cleanupExpiredHouseholds()
+
+        verify(exactly = 0) { householdService.deleteHouseholdByHouseholdId(any()) }
+        val event = slot<RetentionRunAlertEvent>()
+        verify { eventPublisher.publishEvent(capture(event)) }
+        assertThat(event.captured.reason).isEqualTo(RetentionRunAlertReason.CEILING_EXCEEDED)
+    }
+
+    @Test
+    fun `a non-positive ceiling switches the check off entirely`() {
+        properties.householdDeletion.maxDeletionsPerRun = 0
+        every { householdRepository.findExpiredHouseholdIdsSkipLocked(any()) } returns listOf(1001L, 1002L)
+
+        service.cleanupExpiredHouseholds()
+
+        verify { householdService.deleteHouseholdByHouseholdId(1001L) }
+        verify { householdService.deleteHouseholdByHouseholdId(1002L) }
+        verify(exactly = 0) { eventPublisher.publishEvent(any()) }
+    }
+
+    @Test
+    fun `publishes a failure alert and rethrows when the run throws`() {
+        every { householdRepository.findExpiredHouseholdIdsSkipLocked(any()) } returns listOf(1001L)
+        every { householdService.deleteHouseholdByHouseholdId(1001L) } throws IllegalStateException("boom")
+
+        assertThrows<IllegalStateException> { service.cleanupExpiredHouseholds() }
+
+        val event = slot<RetentionRunAlertEvent>()
+        verify { eventPublisher.publishEvent(capture(event)) }
+        assertThat(event.captured.reason).isEqualTo(RetentionRunAlertReason.FAILED)
     }
 }

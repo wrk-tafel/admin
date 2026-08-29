@@ -34,7 +34,7 @@ Die Detailansicht zeigt Name, Benutzername, Personalnummer, ob eine Passwortänd
 
 Über **Benutzer bearbeiten** gelangt man zur Bearbeitungsmaske. Über das Dropdown **Benutzer-Status ändern** kann der Benutzer aktiviert bzw. deaktiviert werden (je nach aktuellem Status wird nur die passende Option angezeigt); zusätzlich steht dort, getrennt durch eine Trennlinie, **Benutzer löschen** zur Verfügung, um den Benutzer unwiderruflich zu entfernen.
 
-Über **Daten exportieren (PDF)** lässt sich eine DSGVO-Datenauskunft (Art. 15/20) zu diesem Benutzerkonto als PDF-Datei herunterladen – Stammdaten (Benutzername, Personalnummer, Name, Aktiv-Status, letzter Login) und alle zugewiesenen Berechtigungen. Nützlich, wenn eine Auskunftsanfrage im Namen einer anderen Person gestellt wird, etwa durch die Personalabteilung oder nach dem Ausscheiden aus dem Verein. Für die eigenen Daten steht derselbe Export auch über das Benutzermenü zur Verfügung (Benutzer-Icon oben rechts, **Meine Daten exportieren**).
+Über **Daten exportieren (ZIP)** lässt sich eine DSGVO-Datenauskunft (Art. 15/20) zu diesem Benutzerkonto als ZIP-Datei herunterladen – Stammdaten (Benutzername, Personalnummer, Name, Aktiv-Status, Erstellungsdatum, letzter Login), alle zugewiesenen Berechtigungen (jeweils mit Datum und Person der Erteilung), registrierte Push-Geräte, individuell angepasste Benachrichtigungseinstellungen, offene Anmeldeversuche sowie die Login-Historie der letzten 30 Tage, sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei. Nützlich, wenn eine Auskunftsanfrage im Namen einer anderen Person gestellt wird, etwa durch die Personalabteilung oder nach dem Ausscheiden aus dem Verein. Für die eigenen Daten steht derselbe Export auch über das Benutzermenü zur Verfügung (Benutzer-Icon oben rechts, **Meine Daten exportieren**).
 
 ![Benutzer-Status ändern](images/benutzer-status-aendern.jpg)
 
@@ -61,9 +61,9 @@ Im unteren Bereich werden die **Berechtigungen** einzeln oder je Kategorie ("All
 | Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kunden-Dokumente, Kundenverwaltung, Scanner |
 | Logistik | Transport/Logistik |
 | Leitung | Benutzerverwaltung, Einstellungen, Supervisor |
-| Verwaltung | Änderungsprotokoll, Datenauskunft, Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken, Administrator |
+| Verwaltung | Zugriffsprotokoll, Datenauskunft, Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken, Administrator |
 
-Die Berechtigung **Änderungsprotokoll** gibt Einsicht in den Verlauf aller Änderungen – sowohl in den gleichnamigen Menüpunkt als auch in den Reiter "Verlauf" auf der Kunden-Detailseite (siehe [Änderungsprotokoll](aenderungsprotokoll.md)). Sie ist bewusst von "Kundenverwaltung" getrennt, da sie auch Vorgängerwerte und Änderungen an Benutzern und Einstellungen sichtbar macht.
+Die Berechtigung **Zugriffsprotokoll** gibt Einsicht in den Verlauf aller Änderungen und Zugriffe – sowohl in den gleichnamigen Menüpunkt als auch in den Reiter "Verlauf" auf der Kunden-Detailseite (siehe [Zugriffsprotokoll](zugriffsprotokoll.md)). Sie ist bewusst von "Kundenverwaltung" getrennt, da sie auch Vorgängerwerte und Änderungen an Benutzern und Einstellungen sichtbar macht.
 
 Die Berechtigung **Datenauskunft** gibt Zugriff auf die gleichnamige Seite (siehe [Datenauskunft](datenauskunft.md)), auf der sich Kunden, Benutzerkonten und Mitarbeiter ohne Benutzerkonto mit einem einzigen Suchfeld finden lassen. Sie kommt **zusätzlich** zur jeweiligen Fachbereichs-Berechtigung hinzu, ersetzt diese aber nicht: Wer dort einen Kunden-Treffer exportieren oder löschen möchte, braucht weiterhin "Kundenverwaltung", bei einem Benutzerkonto "Benutzerverwaltung" und bei einem Mitarbeiter ohne Konto "Einstellungen" – genau wie beim direkten Aufruf über die jeweilige Seite.
 
@@ -83,7 +83,7 @@ Beim Neuanlegen eines Benutzers ist standardmäßig keine Berechtigung ausgewäh
 
 ## Anmelde-Versuche
 
-Unter **Benutzer → Anmelde-Versuche** werden fehlgeschlagene Login-Versuche mit Benutzername, Anzahl der Fehlversuche, Zeitpunkt des letzten Fehlversuchs und Status angezeigt. Nach mehreren fehlgeschlagenen Anmeldeversuchen wird ein Benutzerkonto automatisch vorübergehend gesperrt; ab wie vielen Fehlversuchen und für wie lange, steht im Einleitungstext über der Liste, und die Fehlversuche werden gegen diese Grenze gezählt ("3 von 10"). *Erfolgreiche* Logins stehen nicht hier, sondern im [Änderungsprotokoll](aenderungsprotokoll.md).
+Unter **Benutzer → Anmelde-Versuche** werden fehlgeschlagene Login-Versuche mit Benutzername, Anzahl der Fehlversuche, Zeitpunkt des letzten Fehlversuchs und Status angezeigt. Nach mehreren fehlgeschlagenen Anmeldeversuchen wird ein Benutzerkonto automatisch vorübergehend gesperrt; ab wie vielen Fehlversuchen und für wie lange, steht im Einleitungstext über der Liste, und die Fehlversuche werden gegen diese Grenze gezählt ("3 von 10"). *Erfolgreiche* Logins stehen nicht hier, sondern im [Zugriffsprotokoll](zugriffsprotokoll.md).
 
 Gesperrte Konten stehen immer an erster Stelle der Liste. Bei ihnen zeigt der Status nicht nur, bis wann die Sperre gilt, sondern auch, wie lange sie noch dauert ("Gesperrt bis 14:32 - noch 12 Min.") – damit ist entscheidbar, ob das Ablaufen abgewartet oder die Sperre aufgehoben wird. Über das Suchfeld kann nach einem Benutzernamen gesucht werden, mit dem Filter **Nur gesperrte** wird die Liste auf die aktuell gesperrten Konten eingeschränkt. Der Button neben der Überschrift lädt die Liste neu, daneben steht der Zeitpunkt des letzten Ladens ("Stand 14:20:05") – nützlich, während jemand gerade weitere Anmeldeversuche macht.
 
@@ -97,5 +97,7 @@ Für die Aktion gibt es je nach Zustand zwei Varianten:
 In beiden Fällen wird der Eintrag aus der Liste entfernt – die gezählten Fehlversuche *sind* der Eintrag. Sind keine Fehlversuche vorhanden, bleibt die Liste leer.
 
 ![Anmelde-Versuche](images/benutzer-anmeldeversuche.jpg)
+
+Zusätzlich zur Sperre pro Benutzerkonto gibt es eine zweite, unabhängige Sperre pro Internetadresse: Kommen von derselben Adresse zu viele fehlgeschlagene Anmeldeversuche über verschiedene Benutzernamen hinweg, wird diese Adresse selbst vorübergehend gesperrt. Das betrifft üblicherweise mehrere Personen gemeinsam (z. B. ein ganzer Standort hinter derselben Internetadresse) und ist deutlich großzügiger bemessen als die Sperre pro Konto, damit einzelne Tippfehler nicht ausreichen. Diese Sperre erscheint nicht in der Liste oben und kann nicht manuell aufgehoben werden – sie läuft nach der konfigurierten Dauer von selbst ab.
 
 Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).

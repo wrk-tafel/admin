@@ -1,17 +1,25 @@
 # Module: audit
 
-Read access to the audit trail — "who changed what, and what did it look like before".
+Read access to the audit trail — "who changed or accessed what, and what a change looked like
+before".
 
 The decision behind it, including the options that lost, is ADR-0039
 (`docs/architecture/adr/0039-audit-trail-as-an-append-only-log-written-by-the-application.md`).
 
 ## Why the writing side isn't in here
 
-This module only reads. The listener that fills `audit_log` sits in `database/common/audit/`, next
-to the entity it writes — the same place the SSE outbox lives, and for the same reason: it has to see
-every module's writes. A Spring Modulith module cannot observe another module's persistence, and
-making every module depend on this one so it could report its own changes is exactly the coupling
-the listener exists to avoid.
+This module only reads *other* modules' changes. The listener that fills `audit_log` for those sits
+in `database/common/audit/`, next to the entity it writes — the same place the SSE outbox lives, and
+for the same reason: it has to see every module's writes. A Spring Modulith module cannot observe
+another module's persistence, and making every module depend on this one so it could report its own
+changes is exactly the coupling the listener exists to avoid.
+
+The one write this module does make itself is recording that it was read: `AuditService` calls
+`AuditLogWriter.record` — the same escape hatch bulk `@Modifying` queries use (see "The gap to know
+about" below) — for its own `search`/`getFilterOptions`/`getHouseholdHistory` reads, since reading
+the audit trail is itself sensitive enough to be worth its own entry (`AuditOperation.READ`, issue
+#3474). All three methods are `@Transactional`, not `@Transactional(readOnly = true)`, because of it
+— see `AuditLogWriter`'s `beforeCommit`, which drops a buffered entry for a read-only transaction.
 
 ## How a change becomes an entry
 
@@ -53,7 +61,7 @@ Deliberately left out, and worth leaving out:
 A successful login is the one exception written on purpose despite not being an entity change:
 `LoginAuditService` records it as one entry per login, `entityType` `UserLogin`
 (`AuditScope.USER_LOGIN_ENTITY_TYPE`), `operation` `LOGIN`, `businessKey` the username — so "who
-logged in, and when" is answered from the same log and the same "Änderungsprotokoll" screen as
+logged in, and when" is answered from the same log and the same "Zugriffsprotokoll" screen as
 everything else, filterable like any other entry. It has no `AuditScope.auditedEntities` map entry
 (a login is never loaded or saved through the persistence context, so no Hibernate event exists to
 key one off) and carries no field diff, only that it happened.
@@ -116,14 +124,18 @@ created, so changing it needs a restart — which is why it is a plain placehold
 ## API
 
 Everything is behind the `AUDIT_LOG` permission (ADMINISTRATION group), separate from `CUSTOMER`:
-seeing a household's current data and seeing every change ever made to it are different levels of
-access, and the log spans users and settings too.
+seeing a household's current data and seeing every change or tracked access ever made to it are
+different levels of access, and the log spans users and settings too.
 
-| Endpoint | Serves |
-|---|---|
-| `GET /api/audit` | the administration screen — the whole log, newest first, optionally filtered by entity type, operation, actor, business key and date range |
-| `GET /api/audit/filter-options` | what the filters offer: the entity types and operations, so adding an entity to `AuditScope` shows up in the UI without a frontend edit, plus the users the log holds entries for |
-| `GET /api/audit/households/{householdId}` | the customer detail screen's "Verlauf" tab |
+That separation does not extend to household-scoped field values (names, addresses, income —
+`AuditScope.householdScopedEntityTypes`): those need `CUSTOMER` as well, so an `AUDIT_LOG`-only
+caller cannot read them by either endpoint below.
+
+| Endpoint | Serves | Recorded read |
+|---|---|---|
+| `GET /api/audit` | the administration screen — the whole log, newest first, optionally filtered by entity type, operation, actor, business key and date range. `AuditService.mapEntry` returns an empty `changes` list for a household-scoped entry when the caller lacks `CUSTOMER` — the entry itself (who/what/when) still shows, only the field values are withheld | entity type `AuditScope.AUDIT_LOG_QUERY_ENTITY_TYPE`, business key the applied filter (`null` when none was given) |
+| `GET /api/audit/filter-options` | what the filters offer: the entity types and operations, so adding an entity to `AuditScope` shows up in the UI without a frontend edit, plus the users the log holds entries for | entity type `AuditScope.AUDIT_LOG_QUERY_ENTITY_TYPE`, no business key |
+| `GET /api/audit/households/{householdId}` | the customer detail screen's "Verlauf" tab. Requires `CUSTOMER` in addition to `AUDIT_LOG` (method-level `@PreAuthorize`) rather than redacting, since every entry it returns is household-scoped by definition | entity type `Household`, business key the household number — appears in that same household's own history, the way `HouseholdDocumentService.getDocumentFile` reads do |
 
 The household endpoint sits under `/api/audit` rather than under `/api/households/...` so the whole
 feature stays behind one permission and one controller, and the household module keeps knowing
@@ -133,8 +145,9 @@ The actor list comes from the log itself rather than from `users`, because the f
 `actor_username`: an account that never changed anything would be an option that can only return
 nothing, and one since deleted still has to be offered for as long as its entries are here.
 
-There is no endpoint that writes, edits or deletes an entry, and adding one would make the trail
-worth less than not having it.
+There is no endpoint that lets a caller write, edit or delete an entry, and adding one would make
+the trail worth less than not having it — see "Why the writing side isn't in here" above for the one
+exception, which is these endpoints recording that they were themselves read.
 
 ## Testing
 

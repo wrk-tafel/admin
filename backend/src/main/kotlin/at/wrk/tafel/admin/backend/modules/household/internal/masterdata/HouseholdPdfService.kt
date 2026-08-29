@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.masterdata
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.common.retention.RetentionPeriodFormatter
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import org.apache.commons.io.IOUtils
@@ -20,6 +22,7 @@ import java.time.format.DateTimeFormatter
 class HouseholdPdfService(
     private val pdfService: PDFService,
     private val clock: Clock,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -51,6 +54,9 @@ class HouseholdPdfService(
             householdId = household.householdId.toString(),
             fullName = listOfNotNull(mainPerson?.firstname, mainPerson?.lastname).joinToString(" ").ifBlank { "-" },
             issuedAtDate = LocalDate.now(clock).format(DATE_FORMATTER),
+            retentionText = RetentionPeriodFormatter.format(tafelAdminProperties.householdDeletion.retentionTime),
+            generatedAt = LocalDate.now(clock).format(DATE_FORMATTER),
+            auditRetentionDays = tafelAdminProperties.audit.retentionDays.toString(),
         )
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")
     }
@@ -68,6 +74,9 @@ class HouseholdPdfService(
             householdId = "",
             fullName = "",
             issuedAtDate = "",
+            retentionText = RetentionPeriodFormatter.format(tafelAdminProperties.householdDeletion.retentionTime),
+            generatedAt = LocalDate.now(clock).format(DATE_FORMATTER),
+            auditRetentionDays = tafelAdminProperties.audit.retentionDays.toString(),
         )
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")
     }

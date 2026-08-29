@@ -59,7 +59,7 @@ is behind the request.
   answer "who last touched this row" without a join; the log answers everything else.
 - **Reading it is its own Spring Modulith module**, `modules/audit`, behind a new `AUDIT_LOG`
   permission: a household's history on the customer detail screen's "Verlauf" tab, and the whole log
-  on the `/aenderungsprotokoll` administration screen. There is no endpoint that writes, edits or
+  on the `/zugriffsprotokoll` administration screen. There is no endpoint that writes, edits or
   deletes an entry.
 - **Entries expire.** `AuditRetentionService` removes entries older than
   `tafeladmin.audit.retentionDays` (default 30) daily at 05:00
@@ -95,6 +95,15 @@ is behind the request.
   kept longer than the `users` table.
 - Every write now costs one extra insert per changed row within the same transaction. Excluding the
   distribution tables is what keeps that off the hot path of a distribution day.
+- **`AUDIT_LOG` alone is not enough to read a household-scoped entry's field values.** The log
+  spanning users and settings too is why `AUDIT_LOG` was kept separate from `CUSTOMER` in the first
+  place, but that separation originally extended to the values themselves - an `AUDIT_LOG`-only
+  account could read every household's names, addresses and income out of `changed_fields`. Fixed by
+  requiring `CUSTOMER` as well: outright on the per-household "Verlauf" endpoint
+  (`AuditController.getHouseholdHistory`), and by redacting `changes` to an empty list on the mixed
+  `search`/`filter-options` screen (`AuditService.isRedactedForCaller`) rather than hiding the whole
+  entry - *that* a household/person/note/document changed, by whom and when, still needs no more than
+  `AUDIT_LOG` to see.
 
 ## Alternatives considered
 

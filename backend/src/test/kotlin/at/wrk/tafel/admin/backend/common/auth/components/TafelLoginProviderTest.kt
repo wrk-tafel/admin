@@ -22,12 +22,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.web.authentication.WebAuthenticationDetails
 
 internal class TafelLoginProviderTest {
 
     private lateinit var userDetailsService: UserDetailsService
     private lateinit var passwordEncoder: PasswordEncoder
     private lateinit var loginAttemptService: LoginAttemptService
+    private lateinit var loginAttemptIpService: LoginAttemptIpService
     private lateinit var loginAuditService: LoginAuditService
     private lateinit var upgradedHashes: MutableList<Pair<String, String>>
     private lateinit var provider: TafelLoginProvider
@@ -52,12 +54,13 @@ internal class TafelLoginProviderTest {
         userDetailsService = mockk()
         passwordEncoder = mockk()
         loginAttemptService = mockk(relaxed = true)
+        loginAttemptIpService = mockk(relaxed = true)
         loginAuditService = mockk(relaxed = true)
 
         every { passwordEncoder.encode(any()) } returns "fallback-hash"
         every { passwordEncoder.upgradeEncoding(any()) } returns false
         upgradedHashes = mutableListOf()
-        provider = TafelLoginProvider(userDetailsService, passwordEncoder, loginAttemptService, loginAuditService) { username, upgradedHash ->
+        provider = TafelLoginProvider(userDetailsService, passwordEncoder, loginAttemptService, loginAttemptIpService, loginAuditService) { username, upgradedHash ->
             upgradedHashes.add(username to upgradedHash)
         }
 
@@ -164,6 +167,64 @@ internal class TafelLoginProviderTest {
         verify(exactly = 0) { loginAuditService.recordLogin(any()) }
         assertThat(logAppender.list.single().level).isEqualTo(Level.WARN)
         assertThat(logAppender.list.single().formattedMessage).contains("user")
+    }
+
+    @Test
+    fun `login from a locked-out IP is rejected without hitting the user store`() {
+        every { loginAttemptIpService.isLocked("1.2.3.4") } returns true
+        val authRequest = UsernamePasswordAuthenticationToken("user", "pwd")
+        authRequest.details = WebAuthenticationDetails("1.2.3.4", null)
+
+        assertThrows<LockedException> {
+            provider.authenticate(authRequest)
+        }
+
+        verify(exactly = 0) { userDetailsService.loadUserByUsername(any()) }
+        verify(exactly = 0) { loginAttemptService.isLocked(any()) }
+        verify(exactly = 0) { loginAttemptIpService.recordFailure(any()) }
+    }
+
+    @Test
+    fun `successful login from a known IP resets its failure counter too`() {
+        every { loginAttemptService.isLocked("user") } returns false
+        every { loginAttemptIpService.isLocked("1.2.3.4") } returns false
+        every { userDetailsService.loadUserByUsername("user") } returns testUser
+        every { passwordEncoder.matches("pwd", "encoded-password") } returns true
+        val authRequest = UsernamePasswordAuthenticationToken("user", "pwd")
+        authRequest.details = WebAuthenticationDetails("1.2.3.4", null)
+
+        provider.authenticate(authRequest)
+
+        verify { loginAttemptIpService.recordSuccess("1.2.3.4") }
+    }
+
+    @Test
+    fun `wrong password from a known IP records an IP failure too`() {
+        every { loginAttemptService.isLocked("user") } returns false
+        every { loginAttemptIpService.isLocked("1.2.3.4") } returns false
+        every { userDetailsService.loadUserByUsername("user") } returns testUser
+        every { passwordEncoder.matches("wrong-pwd", "encoded-password") } returns false
+        val authRequest = UsernamePasswordAuthenticationToken("user", "wrong-pwd")
+        authRequest.details = WebAuthenticationDetails("1.2.3.4", null)
+
+        assertThrows<BadCredentialsException> {
+            provider.authenticate(authRequest)
+        }
+
+        verify { loginAttemptIpService.recordFailure("1.2.3.4") }
+    }
+
+    @Test
+    fun `authentication built without request details skips IP tracking entirely`() {
+        every { loginAttemptService.isLocked("user") } returns false
+        every { userDetailsService.loadUserByUsername("user") } returns testUser
+        every { passwordEncoder.matches("pwd", "encoded-password") } returns true
+
+        provider.authenticate(UsernamePasswordAuthenticationToken("user", "pwd"))
+
+        verify(exactly = 0) { loginAttemptIpService.isLocked(any()) }
+        verify(exactly = 0) { loginAttemptIpService.recordSuccess(any()) }
+        verify(exactly = 0) { loginAttemptIpService.recordFailure(any()) }
     }
 
     @Test

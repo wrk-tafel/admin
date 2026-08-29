@@ -70,6 +70,7 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
             tokenValue = "token",
             username = testUser.username,
             authenticated = true,
+            userId = testUser.id,
         )
     }
 
@@ -197,8 +198,8 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
 
         val household = transactionTemplate.execute { householdRepository.findByHouseholdId(householdId) }!!
 
-        assertThat(household.createdBy).isEqualTo(testUser.username)
-        assertThat(household.updatedBy).isEqualTo(testUser.username)
+        assertThat(household.createdBy).isEqualTo(testUser.id)
+        assertThat(household.updatedBy).isEqualTo(testUser.id)
     }
 
     /**

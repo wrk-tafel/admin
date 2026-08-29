@@ -272,7 +272,7 @@ export class CustomerFormComponent {
       flags.push('Familienbeihilfe');
     }
     if (person.excludeFromHousehold) {
-      flags.push('Nicht im Haushalt');
+      flags.push('Nicht im selben Haushalt');
     }
     return flags;
   }

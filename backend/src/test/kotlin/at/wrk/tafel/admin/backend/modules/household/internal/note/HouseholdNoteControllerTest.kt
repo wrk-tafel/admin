@@ -99,4 +99,39 @@ internal class HouseholdNoteControllerTest {
         assertThat(response.body).isEqualTo(noteItem)
         verify { service.createNewNote(householdId, note) }
     }
+
+    @Test
+    fun `update note - successful`() {
+        val householdId = 123L
+        val noteId = 42L
+        val note = "updated note"
+
+        val noteItem = HouseholdNoteItem(
+            id = noteId,
+            author = "author 1",
+            timestamp = LocalDateTime.now(),
+            note = note,
+        )
+        every { service.updateNote(householdId, noteId, note) } returns noteItem
+
+        val response = controller.updateNote(
+            householdId = householdId,
+            noteId = noteId,
+            request = UpdateHouseholdNoteRequest(note = note),
+        )
+
+        assertThat(response).isEqualTo(noteItem)
+        verify { service.updateNote(householdId, noteId, note) }
+    }
+
+    @Test
+    fun `delete note - successful`() {
+        val householdId = 123L
+        val noteId = 42L
+
+        val response = controller.deleteNote(householdId = householdId, noteId = noteId)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        verify { service.deleteNote(householdId, noteId) }
+    }
 }

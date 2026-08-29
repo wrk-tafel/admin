@@ -2,9 +2,13 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
+import at.wrk.tafel.admin.backend.database.model.household.DocumentType
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
@@ -187,6 +191,45 @@ class HouseholdMergeServiceTest {
         assertThat(sourceEntry.changedFields["mergedIntoHousehold"]).containsExactly(2L, 1L)
     }
 
+    /**
+     * Regression test for issue #3447: notes/documents used to be summarised as a count on the
+     * target's audit entry only, which could not say which note/document came from which source.
+     */
+    @Test
+    fun `merge reports one audit entry per moved note and document`() {
+        val source = testHousehold(2L, 20L)
+        every { householdRepository.findByHouseholdId(1L) } returns testHousehold(1L, 10L)
+        every { householdRepository.findByHouseholdId(2L) } returns source
+        mockDefaultResponse()
+
+        val note = HouseholdNoteEntity(household = source, note = "note").apply { id = 501L }
+        every { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(2L) } returns listOf(note)
+
+        val document = DocumentEntity(
+            household = source,
+            documentType = DocumentType.OTHER,
+            fileName = "file.pdf",
+            contentType = "application/pdf",
+            storagePath = "path",
+        ).apply { id = 601L }
+        every { documentRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(2L) } returns listOf(document)
+
+        service.merge(1L, HouseholdMergeRequest(sourceHouseholdIds = listOf(2L)))
+
+        val entries = mutableListOf<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entries)) }
+
+        val noteEntry = entries.single { it.entityType == "HouseholdNote" }
+        assertThat(noteEntry.entityId).isEqualTo(501L)
+        assertThat(noteEntry.businessKey).isEqualTo("1")
+        assertThat(noteEntry.changedFields["household"]).containsExactly(2L, 1L)
+
+        val documentEntry = entries.single { it.entityType == "Document" }
+        assertThat(documentEntry.entityId).isEqualTo(601L)
+        assertThat(documentEntry.businessKey).isEqualTo("1")
+        assertThat(documentEntry.changedFields["household"]).containsExactly(2L, 1L)
+    }
+
     @Test
     fun `preview returns the plan without persisting anything`() {
         every { householdRepository.findByHouseholdId(1L) } returns testHousehold(1L, 10L)
@@ -200,6 +243,17 @@ class HouseholdMergeServiceTest {
         assertThat(response.sources).hasSize(1)
         verify(exactly = 0) { householdRepository.saveAndFlush(any<HouseholdEntity>()) }
         verify(exactly = 0) { householdService.deleteHouseholdByHouseholdId(any()) }
+        verify {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = AuditScope.HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
+                    entityId = null,
+                    businessKey = "targetHouseholdId=1;sourceHouseholdIds=2",
+                    operation = AuditOperation.READ,
+                    changedFields = emptyMap(),
+                ),
+            )
+        }
     }
 
     @Test

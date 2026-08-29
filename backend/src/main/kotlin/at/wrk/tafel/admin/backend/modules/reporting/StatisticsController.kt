@@ -1,10 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.reporting
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
+import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsCsvResult
 import at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsService
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -75,11 +75,7 @@ class StatisticsController(
     }
 
     private fun StatisticsCsvResult.toResponseEntity(): ResponseEntity<InputStreamResource> {
-        val headers = HttpHeaders()
-        headers.add(
-            HttpHeaders.CONTENT_DISPOSITION,
-            "inline; filename=$filename",
-        )
+        val headers = ContentDispositionUtil.inline(filename)
 
         return ResponseEntity
             .ok()

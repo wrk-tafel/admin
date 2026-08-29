@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.masterdata
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.Gender
@@ -33,6 +34,10 @@ class HouseholdPdfServiceTest {
 
     private lateinit var service: HouseholdPdfService
     private lateinit var testHousehold: HouseholdEntity
+
+    // Matches TafelAdminHouseholdRetentionProperties' own default, and what the checked-in golden
+    // reference images below were rendered with.
+    private val tafelAdminProperties = TafelAdminProperties()
 
     // Fixed so generatePrivacyNoticePdf's "Ort, Datum" (LocalDate.now(clock)) doesn't drift a day
     // past midnight and mismatch the checked-in golden reference image below.
@@ -108,7 +113,7 @@ class HouseholdPdfServiceTest {
         testHousehold.persons = mutableListOf(mainPerson, addPers1, addPers2, addPers3)
         testHousehold.mainPerson = mainPerson
 
-        service = HouseholdPdfService(PDFService(), clock)
+        service = HouseholdPdfService(PDFService(), clock, tafelAdminProperties)
     }
 
     @Test
@@ -175,7 +180,10 @@ class HouseholdPdfServiceTest {
         val document: PDDocument = Loader.loadPDF(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
 
-        assertThat(document.numberOfPages).isEqualTo(1)
+        // The consent statement and signature line spill onto a second page now that the notice
+        // covers the full Art. 13 disclosure set (GDPR gap G20, issue #3429) - only page 0 is
+        // rendered/compared below, same as before.
+        assertThat(document.numberOfPages).isEqualTo(2)
 
         val expectedImage = ImageIO.read(javaClass.getResourceAsStream("$MASTER_REFERENCES_PATH/privacynotice-actual.png"))
         ImageIO.write(expectedImage, "png", File(comparisonResultDirectory, "privacynotice-expected.png"))
@@ -186,6 +194,24 @@ class HouseholdPdfServiceTest {
         comparisonResult.writeResultTo(File(comparisonResultDirectory, "privacynotice-diff.png"))
 
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
+
+        // The footer's page number/generation-date stamp (issue #3429 follow-up) - fo:static-content
+        // repeats it on every page, so this checks each page individually. It's a two-column table
+        // ("Erstellt am" flush left, "Seite x von y" flush right), so the two are asserted
+        // separately rather than as one string joined by a fixed separator.
+        for (page in 1..document.numberOfPages) {
+            val stripper = PDFTextStripper().apply {
+                startPage = page
+                endPage = page
+            }
+            val pageText = stripper.getText(document)
+            assertThat(pageText).contains("Erstellt am 15.01.2026")
+            assertThat(pageText).contains("Seite $page von 2")
+        }
+
+        // Audit-trail retention paragraph (GDPR gap G27, issue #3509) - matches
+        // TafelAdminAuditProperties' own default, same as the retentionText assertion would.
+        assertThat(PDFTextStripper().getText(document)).contains("30 Tagen")
 
         document.close()
     }
@@ -198,7 +224,7 @@ class HouseholdPdfServiceTest {
         testHousehold.mainPerson = null
 
         val document = Loader.loadPDF(service.generatePrivacyNoticePdf(testHousehold))
-        assertThat(document.numberOfPages).isEqualTo(1)
+        assertThat(document.numberOfPages).isEqualTo(2)
         assertThat(PDFTextStripper().getText(document)).contains("Max Mustermann")
         document.close()
     }
@@ -209,7 +235,7 @@ class HouseholdPdfServiceTest {
         testHousehold.persons = mutableListOf()
 
         val document = Loader.loadPDF(service.generatePrivacyNoticePdf(testHousehold))
-        assertThat(document.numberOfPages).isEqualTo(1)
+        assertThat(document.numberOfPages).isEqualTo(2)
         document.close()
     }
 
@@ -221,7 +247,7 @@ class HouseholdPdfServiceTest {
         val document: PDDocument = Loader.loadPDF(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
 
-        assertThat(document.numberOfPages).isEqualTo(1)
+        assertThat(document.numberOfPages).isEqualTo(2)
         // Neither a "Kundennummer" line nor a name/date leak in - see privacy-notice.xsl.
         assertThat(PDFTextStripper().getText(document)).doesNotContain("Kundennummer")
 
@@ -234,6 +260,20 @@ class HouseholdPdfServiceTest {
         comparisonResult.writeResultTo(File(comparisonResultDirectory, "privacynotice-template-diff.png"))
 
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
+
+        // Blank template or not, the footer stamp is always populated (issue #3429 follow-up) - see
+        // PrivacyNoticePdfData.generatedAt's KDoc for why it's separate from issuedAtDate here. The
+        // footer is a two-column table ("Erstellt am" flush left, "Seite x von y" flush right), so
+        // the two are asserted separately rather than as one string joined by a fixed separator.
+        for (page in 1..document.numberOfPages) {
+            val stripper = PDFTextStripper().apply {
+                startPage = page
+                endPage = page
+            }
+            val pageText = stripper.getText(document)
+            assertThat(pageText).contains("Erstellt am 15.01.2026")
+            assertThat(pageText).contains("Seite $page von 2")
+        }
 
         document.close()
     }

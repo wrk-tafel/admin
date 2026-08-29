@@ -11,7 +11,7 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | [Logistik](logistik.md) | Routen-Navi auf der Route, Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
 | [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Mitarbeiter |
-| [Änderungsprotokoll](aenderungsprotokoll.md) | Wer hat wann was geändert, und wie war der Wert davor |
+| [Zugriffsprotokoll](zugriffsprotokoll.md) | Wer hat wann was geändert oder auf sensible Daten zugegriffen, und wie war der Wert davor |
 | [Datenauskunft](datenauskunft.md) | Kunden, Benutzerkonten und Mitarbeiter ohne Konto durchsuchen, DSGVO-Datenexport und -Löschung |
 | [Statistiken](statistiken.md) | Allgemeine Statistik, Auswertung Kinder |
 
@@ -27,7 +27,7 @@ Auf Test- und Entwicklungsumgebungen wird oberhalb der Anmeldemaske zusätzlich 
 
 Dieselbe Umgebungskennzeichnung bleibt nach der Anmeldung als schmales Banner oben in der Kopfzeile der Anwendung sichtbar, damit auch eine bereits geöffnete Sitzung auf einer Test- oder Entwicklungsumgebung nicht mit der Produktivumgebung verwechselt werden kann.
 
-Über das Benutzer-Icon oben rechts kann das eigene Passwort geändert, die Push-Benachrichtigungen für das aktuelle Gerät verwaltet, die eigenen Daten exportiert, dieses Benutzerhandbuch (immer die aktuellste Version, als PDF-Download) geöffnet oder man kann sich abmelden.
+Über das Benutzer-Icon oben rechts kann das eigene Passwort geändert, die Push-Benachrichtigungen für das aktuelle Gerät verwaltet, die eigenen Daten exportiert, die eigene Datenschutzerklärung heruntergeladen, dieses Benutzerhandbuch (immer die aktuellste Version, als PDF-Download) geöffnet oder man kann sich abmelden.
 
 ![Benutzermenü](images/benutzermenue.jpg)
 
@@ -38,6 +38,8 @@ Dieselbe Umgebungskennzeichnung bleibt nach der Anmeldung als schmales Banner ob
 Nach dem Speichern bleibt man mit dem neuen Passwort angemeldet – ein neuerlicher Login ist nicht nötig. Die Anwendung kehrt dabei automatisch auf jene Seite zurück, von der aus das Benutzermenü geöffnet wurde, und bestätigt die Änderung mit einem kurzen Hinweis. Über **Abbrechen** kommt man ohne Änderung wieder auf dieselbe Seite zurück.
 
 Über **Meine Daten exportieren** lädt man eine DSGVO-Datenauskunft (Art. 15/20) zum eigenen Benutzerkonto als PDF-Datei herunter: Benutzername, die verknüpften Mitarbeiter-Stammdaten (Personalnummer, Name), die zugewiesenen Berechtigungen, der Aktiv-Status sowie der letzte Login-Zeitpunkt. Das gespeicherte Passwort ist darin nie enthalten. Für eine andere Person kann dieselbe Auskunft auch von einem Benutzer mit Benutzerverwaltungs-Berechtigung über dessen Benutzerdetailseite abgerufen werden, siehe [Benutzer](benutzer.md).
+
+Über **Datenschutzerklärung (Mitarbeiter)** lädt man eine allgemeine, personenunabhängige Datenschutzerklärung für Mitarbeiter:innen und Freiwillige als PDF herunter: welche Daten über Mitarbeiter:innen verarbeitet werden, auf welcher Grundlage, wie lange und mit welchen Rechten. Dasselbe Dokument steht auch ohne eigenes Benutzerkonto zur Verfügung, siehe [Mitarbeiter](einstellungen.md#mitarbeiter).
 
 <a id="benachrichtigungen"></a>
 
@@ -82,6 +84,7 @@ Die Bereiche **Erinnerungen** und **Technisches** setzen eine Berechtigung vorau
 | Benachrichtigungsart | Wird ausgelöst, wenn … | Erforderliche Berechtigung |
 | --- | --- | --- |
 | Ausgabe noch offen | eine Ausgabe an einem früheren Tag gestartet und bis dahin nicht beendet wurde (Erinnerung jeweils in der Früh, bis die Ausgabe beendet ist) | Ausgabe-Ablauf oder Supervisor |
+| Gescannte Dateien werden bald gelöscht | eine Datei im Scanner-Ordner (siehe [Kunden](kunden.md)) bald automatisch gelöscht wird, weil sie zu lange nicht importiert oder gelöscht wurde (Erinnerung jeweils in der Früh, bis die Datei importiert, gelöscht oder tatsächlich automatisch entfernt wurde) | Kunden-Dokumente |
 | E-Mail nicht versendet | eine E-Mail auch nach mehreren Versuchen nicht versendet werden konnte – etwa eine der E-Mails nach dem Ende einer Ausgabe (Tagesreport, Statistiken, Retourkisten) oder eine Support-Anfrage. Die Benachrichtigung nennt den Betreff der E-Mail | Administrator |
 | Benutzer gesperrt | ein Benutzer nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt wurde | Administrator |
 | Ungewöhnlich viele Zugriffe | ein Benutzerkonto innerhalb einer Stunde mehr sensible Kundendaten abgerufen hat (Dokument-Downloads, Stammdatenblatt/Ausweis/Kundenliste) als der konfigurierte Schwellenwert erlaubt. Die Benachrichtigung nennt den Benutzernamen und die Anzahl der Abrufe | Administrator |
@@ -104,9 +107,9 @@ Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login
 
 ![Passwort ändern nach erzwungenem Login](images/login-passwort-aendern.jpg)
 
-In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben und bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten. Eine Checkliste unterhalb der Eingabefelder zeigt für jede dieser Regeln direkt beim Tippen an, ob sie bereits erfüllt ist, sodass Fehler auffallen, bevor "Speichern" überhaupt versucht wird. Ein Balken unter dem Feld "Neues Passwort" zeigt zusätzlich dessen Stärke (Schwach/Mittel/Stark) an, sobald mit dem Tippen begonnen wurde – farblich passend in Rot, Orange bzw. Grün. Nach dem Speichern meldet die Seite kurz "Passwort geändert – Anmeldung läuft…", bevor automatisch zur Übersicht weitergeleitet wird.
+In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben, bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten und sowohl Klein- als auch Großbuchstaben sowie eine Ziffer enthalten. Eine Checkliste unterhalb der Eingabefelder zeigt für jede dieser Regeln direkt beim Tippen an, ob sie bereits erfüllt ist, sodass Fehler auffallen, bevor "Speichern" überhaupt versucht wird. Ein Balken unter dem Feld "Neues Passwort" zeigt zusätzlich dessen Stärke (Schwach/Mittel/Stark) an, sobald mit dem Tippen begonnen wurde – farblich passend in Rot, Orange bzw. Grün. Nach dem Speichern meldet die Seite kurz "Passwort geändert – Anmeldung läuft…", bevor automatisch zur Übersicht weitergeleitet wird.
 
-Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzername/Passwort "Anmeldung fehlgeschlagen!", nach zu vielen Fehlversuchen "Konto vorübergehend gesperrt! Bitte versuchen Sie es in ca. 5 Minuten erneut oder wenden Sie sich an eine Administratorin/einen Administrator." (die genannte Wartezeit entspricht der tatsächlich konfigurierten Sperrdauer), nach Ablauf der Sitzung während der Nutzung "Sitzung abgelaufen! Bitte erneut anmelden.", bei fehlender Berechtigung für eine aufgerufene Seite "Zugriff nicht erlaubt!" und wenn der Server nicht erreichbar ist (z. B. bei einer Störung) "Server nicht erreichbar! Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut." – letzteres damit eine Störung nicht mit einem falschen Passwort verwechselt und unnötig ein Passwort zurückgesetzt wird. Bei jedem fehlgeschlagenen Anmeldeversuch springt der Cursor automatisch zurück ins Benutzername-Feld, dessen Inhalt markiert ist, sodass der nächste Versuch mit einem einzigen Tastendruck beginnen kann.
+Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzername/Passwort "Anmeldung fehlgeschlagen!" – dieselbe Meldung erscheint auch bei einem wegen zu vieler Fehlversuche vorübergehend gesperrten Konto, damit von außen nicht erkennbar ist, welche Konten gerade gesperrt sind (eine Administratorin/ein Administrator sieht den tatsächlichen Sperrstatus über Benutzer → Anmelde-Versuche) –, nach Ablauf der Sitzung während der Nutzung "Sitzung abgelaufen! Bitte erneut anmelden.", bei fehlender Berechtigung für eine aufgerufene Seite "Zugriff nicht erlaubt!", bei zu vielen Anmeldeversuchen von derselben Internetadresse in kurzer Zeit "Zu viele Anmeldeversuche! Bitte warten Sie einen Moment und versuchen Sie es erneut." und wenn der Server nicht erreichbar ist (z. B. bei einer Störung) "Server nicht erreichbar! Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut." – letzteres damit eine Störung nicht mit einem falschen Passwort verwechselt und unnötig ein Passwort zurückgesetzt wird. Bei jedem fehlgeschlagenen Anmeldeversuch springt der Cursor automatisch zurück ins Benutzername-Feld, dessen Inhalt markiert ist, sodass der nächste Versuch mit einem einzigen Tastendruck beginnen kann.
 
 ![Sitzung abgelaufen](images/login-sitzung-abgelaufen.jpg)
 
@@ -119,7 +122,7 @@ Die Menüstruktur gliedert sich in folgende Bereiche:
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
 - **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, sowie unter der aufklappbaren Gruppe "Auswertungen": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
 - **Logistik**: Routen-Navi, Waren-Eingabe
-- **Verwaltung**: Benutzer, Statistiken, Änderungsprotokoll, Einstellungen
+- **Verwaltung**: Benutzer, Statistiken, Zugriffsprotokoll, Einstellungen
 
 Innerhalb von "Einstellungen" sind die neun Menüpunkte zusätzlich in zwei Gruppen unterteilt: **Stammdaten** (Fahrzeuge, Filialen, Notschlafstellen, Routen, Waren-Kategorien, Retour-Kategorien) für logistische Stammdaten und **Systemverwaltung** (E-Mail, Grenzwerte, Mitarbeiter) für allgemeine Systemeinstellungen.
 
@@ -206,7 +209,7 @@ Darunter zeigt die Übersicht, solange keine Ausgabe läuft, zusätzlich organis
 Sobald eine Ausgabe läuft, zeigt die Übersicht stattdessen die folgenden tagesbezogenen Kennzahlen:
 
 - **Kunden angemeldet**: Anzahl der für den heutigen Tag angemeldeten Kunden. Über **Kundenliste** kann die Liste der angemeldeten Kunden heruntergeladen werden.
-- **Personen angemeldet**: Anzahl aller Personen, für die die angemeldeten Kunden Waren erhalten — die Hauptperson jedes Haushalts plus die weiteren Personen im Haushalt. Als "Nicht im Haushalt" markierte Personen zählen nicht mit.
+- **Personen angemeldet**: Anzahl aller Personen, für die die angemeldeten Kunden Waren erhalten — die Hauptperson jedes Haushalts plus die weiteren Personen im Haushalt. Als "Nicht im selben Haushalt" markierte Personen zählen nicht mit.
 - **Tickets abgearbeitet**: Fortschritt der Ticket-Bearbeitung (verarbeitete / gesamt) als Zahl und als Balken darunter.
 - **Erfasste Routen**: Fortschritt der Warenerfassung aus der Logistik (siehe [Logistik](logistik.md)) – als Zahl mit Balken sowie daneben alle heute zu fahrenden Routen als kleine Kacheln (Chips). Bereits vollständig erfasste Routen sind grün mit Häkchen markiert, die übrigen sind neutral. So ist auf einen Blick erkennbar, welche Routen noch fehlen, statt die erfassten gegen die Gesamtzahl abzuzählen.
 - **Erfasste Warenmenge**: Gesamtgewicht der bisher erfassten Warenmengen.

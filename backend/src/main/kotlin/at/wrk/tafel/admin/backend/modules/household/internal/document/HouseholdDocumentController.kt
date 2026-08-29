@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.document
 
+import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -55,8 +55,7 @@ class HouseholdDocumentController(
     ): ResponseEntity<InputStreamResource> {
         val result = service.getDocumentFile(householdId, documentId)
 
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=${result.fileName}")
+        val headers = ContentDispositionUtil.attachment(result.fileName)
 
         return ResponseEntity.ok()
             .headers(headers)

@@ -27,6 +27,7 @@ import org.springframework.data.jpa.domain.Specification
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Period
 
 /**
  * The "case" record - business number, address, contact data, validity/lock/cost-contribution state
@@ -114,6 +115,17 @@ class HouseholdEntity(
 
     @OneToMany(mappedBy = "household", cascade = [CascadeType.ALL], orphanRemoval = true)
     var documents: MutableList<DocumentEntity> = mutableListOf()
+
+    /**
+     * Unused in application code - notes are created/queried straight through
+     * [at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteRepository], never via this
+     * collection. It exists so a household delete cascades to its notes through Hibernate (which
+     * fires [at.wrk.tafel.admin.backend.database.common.audit.AuditEventListener] for each one) the
+     * same way [persons] and [documents] already do, rather than only through the DB's own
+     * `on delete cascade` on `household_notes`, which Hibernate never sees.
+     */
+    @OneToMany(mappedBy = "household", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var notes: MutableList<HouseholdNoteEntity> = mutableListOf()
 
     /**
      * All household members except the main person - the direct equivalent of the former
@@ -230,6 +242,64 @@ class HouseholdEntity(
 
                 val id: Expression<Long> = root["id"]
                 cb.not(id.`in`(subQuery))
+            }
+
+            /**
+             * Matches households `HouseholdRetentionService` will delete within the next [withinDays]
+             * days at the job's own [retentionTime] window (GDPR gap G1/G18) - the customer-search
+             * counterpart to the job's cutoff, so an upcoming deletion is visible on this screen
+             * before it happens rather than only in the "Verlauf" tab afterwards. A zero or negative
+             * [retentionTime] means the job is disabled and nothing will ever be swept, so nothing
+             * matches.
+             */
+            fun willBeDeletedSoon(retentionTime: Period, withinDays: Long): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                if (retentionTime.isZero || retentionTime.isNegative) {
+                    cb.disjunction()
+                } else {
+                    val validUntil: Expression<LocalDate> = root["validUntil"]
+                    val cutoff = LocalDate.now().minus(retentionTime)
+                    cb.and(
+                        cb.isNotNull(validUntil),
+                        cb.greaterThanOrEqualTo(validUntil, cutoff),
+                        cb.lessThan(validUntil, cutoff.plusDays(withinDays)),
+                    )
+                }
+            }
+
+            /**
+             * Matches households with an uploaded `PRIVACY_NOTICE` document whose stamped
+             * [DocumentEntity.retentionPeriodAtUpload] no longer matches [currentRetentionTime] - the
+             * live config has moved since the document was printed and signed (issue #3500, follow-up
+             * to GDPR gap G22). Compared as [Period.toString]'s canonical ISO-8601 text, same as the
+             * value is stamped with - a raw text comparison, not a semantic "same duration" one, same
+             * as every other retention comparison in this application takes the configured value as-is
+             * rather than normalizing it. A document uploaded before that field existed has a `null`
+             * stamp and never matches - it predates the ability to tell. A zero or negative
+             * [currentRetentionTime] means the retention job is disabled, so there is no live window to
+             * have drifted from and nothing matches, same short-circuit as [willBeDeletedSoon].
+             */
+            fun privacyNoticeRetentionDrift(currentRetentionTime: Period): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                if (currentRetentionTime.isZero || currentRetentionTime.isNegative) {
+                    cb.disjunction()
+                } else {
+                    val subQuery: Subquery<Long> = cq!!.subquery(Long::class.java)
+                    val subRoot: Root<DocumentEntity> = subQuery.from(DocumentEntity::class.java)
+                    val subHousehold: Join<DocumentEntity, HouseholdEntity> = subRoot.join("household")
+                    val documentType: Expression<DocumentType> = subRoot["documentType"]
+                    val retentionPeriodAtUpload: Expression<String> = subRoot["retentionPeriodAtUpload"]
+
+                    subQuery.select(subHousehold["id"]).distinct(true)
+                        .where(
+                            cb.and(
+                                cb.equal(documentType, DocumentType.PRIVACY_NOTICE),
+                                cb.isNotNull(retentionPeriodAtUpload),
+                                cb.notEqual(retentionPeriodAtUpload, currentRetentionTime.toString()),
+                            ),
+                        )
+
+                    val id: Expression<Long> = root["id"]
+                    id.`in`(subQuery)
+                }
             }
         }
     }

@@ -58,6 +58,22 @@ internal class PushNotificationTypeTargetingTest {
         ).isFalse()
     }
 
+    @Test
+    fun `the scanner file expiry warning requires CUSTOMER_DOCUMENTS`() {
+        assertThat(
+            PushNotificationTypeTargeting.isAllowedFor(
+                PushNotificationType.SCANNER_FILES_EXPIRING,
+                listOf(UserPermissions.CUSTOMER_DOCUMENTS.key),
+            ),
+        ).isTrue()
+        assertThat(
+            PushNotificationTypeTargeting.isAllowedFor(
+                PushNotificationType.SCANNER_FILES_EXPIRING,
+                listOf(UserPermissions.CUSTOMER.key),
+            ),
+        ).isFalse()
+    }
+
     /**
      * The technical notifications go to whoever keeps the application running, which is a different
      * person from whoever runs the distribution - so leading the distribution must not, on its own,
@@ -69,6 +85,7 @@ internal class PushNotificationTypeTargetingTest {
             PushNotificationType.USER_LOCKED_OUT,
             PushNotificationType.REPORT_MAIL_FAILED,
             PushNotificationType.EXCESSIVE_READ_ACCESS,
+            PushNotificationType.RETENTION_RUN,
         )
 
         technicalTypes.forEach { type ->

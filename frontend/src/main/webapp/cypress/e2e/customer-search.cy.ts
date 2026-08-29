@@ -268,6 +268,78 @@ describe('Customer Search', () => {
     });
   });
 
+  // The retention window defaults to 7 years (tafeladmin.householdDeletion.retentionTime, unset
+  // in application-e2e.yml) - a validUntil just past that cutoff is inside the 30-day preview the
+  // chip shows, without actually being expired long enough for HouseholdRetentionService to sweep
+  // it out from under a still-running suite.
+  it('search by "wird bald gelöscht" filter', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        country: AUSTRIA,
+        validUntil: dayjs().subtract(7, 'years').add(15, 'days').toDate(),
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        }
+      }).then((response) => {
+        const customer = response.body.data;
+
+        // Filter by lastname too - same reasoning as the cost-contribution/locked filter tests above.
+        cy.byTestId('searchInputText').type(customer.lastname);
+        clickSearchAndWaitForResult();
+        cy.intercept('GET', /\/api\/households(\?|$)/).as('willBeDeletedSoonFilterSearch');
+        cy.byTestId('filter-willBeDeletedSoon').click();
+        cy.wait('@willBeDeletedSoonFilterSearch');
+
+        clickSearchAndOpenExpectedResult(customer.id!, {alreadySearched: true});
+      });
+    });
+  });
+
+  // A privacy notice document is stamped with whatever tafeladmin.householdDeletion.retentionTime
+  // is live at upload time - to make it drift, the config genuinely has to change afterwards, the
+  // same operator-edits-the-config-file mechanism customer-detail.cy.ts's scanner-folder hot-reload
+  // test uses, not a fabricated database row.
+  it('search by privacy notice outdated filter', () => {
+    cy.task('clearBackendConfig');
+
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+      const customerId = customer.id!;
+
+      cy.visit('/kunden/detail/' + customerId);
+      cy.byTestId('documents-tab-label').click();
+      cy.byTestId('upload-document-panel').should('be.visible');
+      cy.byTestId('documentTypeInput').click();
+      cy.byTestId('documentTypeInput-option-PRIVACY_NOTICE').click();
+      cy.byTestId('documentFileInput').selectFile('cypress/fixtures/documents/test-document.pdf', {force: true});
+      cy.byTestId('okButton').click();
+      cy.byTestId('document-0-fileNameText').should('be.visible');
+
+      cy.task('writeBackendConfig', ['tafeladmin:', '  householdDeletion:', '    retentionTime: 5y'].join('\n'));
+      // configReload.cron polls once a second under the e2e profile - give the edit time to land
+      // before the search below runs against it.
+      cy.wait(1500);
+
+      cy.visit('/kunden/suchen');
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+      cy.intercept('GET', /\/api\/households(\?|$)/).as('privacyNoticeOutdatedFilterSearch');
+      cy.byTestId('filter-privacyNoticeOutdated').click();
+      cy.wait('@privacyNoticeOutdatedFilterSearch');
+
+      clickSearchAndOpenExpectedResult(customerId, {alreadySearched: true});
+    });
+
+    cy.task('clearBackendConfig');
+  });
+
   it('keeps query, filters and page after returning from a customer via the back button', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
@@ -297,6 +369,9 @@ describe('Customer Search', () => {
     cy.byTestId('create-customer-cta').click();
 
     cy.url().should('include', '/kunden/anlegen');
+    // The prefilled name travels as router navigation state, not a query param - a searched name
+    // must never land in the URL/browser history (GDPR gap G25).
+    cy.url().should('not.include', 'vorname').and('not.include', 'nachname');
     cy.byTestId('firstnameInput').should('have.value', 'Zzzzvorname');
     cy.byTestId('lastnameInput').should('have.value', 'Zzzznachname');
   });

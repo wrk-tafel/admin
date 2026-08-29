@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.database.common.audit
 
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -55,12 +56,55 @@ object AuditScope {
 
     /**
      * An employee's data-takeout read - see
-     * [at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeExportService]. Employee
-     * writes are not audited at all (`EmployeeEntity` carries no [auditedEntities] map entry), so
-     * unlike the reads above this type never appears on a write-derived entry - only on the export's
-     * own manually-recorded read, the same way [USER_LOGIN_ENTITY_TYPE] and the others here are.
+     * [at.wrk.tafel.admin.backend.modules.base.employee.internal.EmployeeExportService]. Shares its
+     * string value with the [EmployeeEntity] entry in [auditedEntities] below, so the export's
+     * manually-recorded read lands under the same "Employee" entity type as the insert/update/delete
+     * entries an employee's own writes produce.
      */
     const val EMPLOYEE_EXPORT_ENTITY_TYPE = "Employee"
+
+    /**
+     * The audit trail's own `search`/`filter-options` queries - see
+     * [at.wrk.tafel.admin.backend.modules.audit.internal.AuditService]. Neither spans one household
+     * nor one user, so - like [SCANNER_FILE_ENTITY_TYPE] and [DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE] -
+     * it has no [auditedEntities] map entry.
+     * [at.wrk.tafel.admin.backend.modules.audit.internal.AuditService.getHouseholdHistory] is the
+     * exception: it already has a natural household business key, so its own read is recorded under
+     * the "Household" entity type instead of this one, and shows up in that household's own history.
+     */
+    const val AUDIT_LOG_QUERY_ENTITY_TYPE = "AuditLogQuery"
+
+    /**
+     * The above-cost-limit report (its paginated list and its CSV export alike) - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.getHouseholdsAboveLimit]/
+     * `generateAboveLimitCsv`. Spans every household above the limit rather than one, so - like
+     * [AUDIT_LOG_QUERY_ENTITY_TYPE] - it has no [auditedEntities] map entry (GDPR G24, issue #3507).
+     */
+    const val HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE = "HouseholdsAboveLimit"
+
+    /**
+     * The new-and-renewed-households report (its JSON view and its CSV export alike) - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.getHouseholdsOverview]/
+     * `generateHouseholdsOverviewCsv`. Spans every household new/renewed in the distribution rather
+     * than one, so it has no [auditedEntities] map entry (GDPR G24, issue #3507).
+     */
+    const val HOUSEHOLDS_OVERVIEW_ENTITY_TYPE = "HouseholdsOverview"
+
+    /**
+     * The duplicate-candidates list - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService.findDuplicates].
+     * Each page embeds full household records for both the anchor and its similar households, so it
+     * has no [auditedEntities] map entry (GDPR G24, issue #3507).
+     */
+    const val HOUSEHOLD_DUPLICATES_ENTITY_TYPE = "HouseholdDuplicates"
+
+    /**
+     * A household-merge preview - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService.preview]. Spans
+     * the target and every source household rather than one, so it has no [auditedEntities] map
+     * entry (GDPR G24, issue #3507).
+     */
+    const val HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE = "HouseholdMergePreview"
 
     /**
      * @param entityType the label stored in `audit_log.entity_type`. Kept as a stable string rather
@@ -106,6 +150,11 @@ object AuditScope {
             householdScoped = true,
             businessKey = { (it as DocumentEntity).household.householdId.toString() },
         ),
+        EmployeeEntity::class.java to AuditedEntity(
+            entityType = "Employee",
+            householdScoped = false,
+            businessKey = { (it as EmployeeEntity).personnelNumber },
+        ),
         UserEntity::class.java to AuditedEntity(
             entityType = "User",
             householdScoped = false,
@@ -140,10 +189,32 @@ object AuditScope {
     val householdScopedEntityTypes: Set<String> =
         auditedEntities.values.filter { it.householdScoped }.map { it.entityType }.toSet()
 
+    /**
+     * The bulk household reports - each entry spans every household the report/export returned,
+     * not one - so `ExcessiveReadAccessDetectionService` weighs a read of one of these more heavily
+     * than the default 1 (`tafeladmin.audit.breachDetection.bulkReadWeight`, GDPR G24, issue #3507).
+     */
+    val bulkReportEntityTypes: Set<String> = setOf(
+        HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE,
+        HOUSEHOLDS_OVERVIEW_ENTITY_TYPE,
+        HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
+        HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
+    )
+
     val allEntityTypes: List<String> = (
         auditedEntities.values.map { it.entityType } +
-            listOf(USER_LOGIN_ENTITY_TYPE, SCANNER_FILE_ENTITY_TYPE, DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE, EMPLOYEE_EXPORT_ENTITY_TYPE)
-        ).sorted()
+            listOf(
+                USER_LOGIN_ENTITY_TYPE,
+                SCANNER_FILE_ENTITY_TYPE,
+                DISTRIBUTION_HOUSEHOLD_LIST_ENTITY_TYPE,
+                EMPLOYEE_EXPORT_ENTITY_TYPE,
+                AUDIT_LOG_QUERY_ENTITY_TYPE,
+                HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE,
+                HOUSEHOLDS_OVERVIEW_ENTITY_TYPE,
+                HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
+                HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
+            )
+        ).distinct().sorted()
 
     /**
      * Takes the *mapped* class (`EntityPersister.getMappedClass()`), never `entity.javaClass`: a

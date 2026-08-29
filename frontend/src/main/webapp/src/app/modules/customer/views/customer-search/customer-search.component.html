@@ -49,6 +49,10 @@
                           (selectionChange)="toggleFilter(locked, $event.selected)">Gesperrt</mat-chip-option>
         <mat-chip-option testid="filter-missingPrivacyNotice" [selected]="missingPrivacyNotice()"
                           (selectionChange)="toggleFilter(missingPrivacyNotice, $event.selected)">Datenschutzerklärung fehlt</mat-chip-option>
+        <mat-chip-option testid="filter-willBeDeletedSoon" [selected]="willBeDeletedSoon()"
+                          (selectionChange)="toggleFilter(willBeDeletedSoon, $event.selected)">Wird in den nächsten 30 Tagen gelöscht</mat-chip-option>
+        <mat-chip-option testid="filter-privacyNoticeOutdated" [selected]="privacyNoticeOutdated()"
+                          (selectionChange)="toggleFilter(privacyNoticeOutdated, $event.selected)">Datenschutzerklärung veraltet</mat-chip-option>
       </mat-chip-listbox>
     </div>
 
@@ -78,7 +82,7 @@
             <h3 class="tafel-h6 font-semibold mb-2">Keine Kunden gefunden</h3>
             <p class="mb-4 text-sm text-slate-600">Für diese Suche gibt es noch keinen Kunden.</p>
             <a matButton="filled" testid="create-customer-cta" [routerLink]="['/kunden/anlegen']"
-               [queryParams]="createCustomerQueryParams()">Kunden anlegen</a>
+               [state]="createCustomerState()">Kunden anlegen</a>
           </div>
         } @else {
           <div class="hidden md:block">

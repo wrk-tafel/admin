@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
@@ -12,7 +13,6 @@ import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -109,6 +109,8 @@ class HouseholdController(
         @RequestParam valid: Boolean? = null,
         @RequestParam locked: Boolean? = null,
         @RequestParam missingPrivacyNotice: Boolean? = null,
+        @RequestParam willBeDeletedSoon: Boolean? = null,
+        @RequestParam privacyNoticeOutdated: Boolean? = null,
         @RequestParam pageSize: Int? = null,
     ): PagedResponse<HouseholdResponse> {
         val householdSearchResult = householdService.getHouseholds(
@@ -120,6 +122,8 @@ class HouseholdController(
                 valid = valid,
                 locked = locked,
                 missingPrivacyNotice = missingPrivacyNotice,
+                willBeDeletedSoon = willBeDeletedSoon,
+                privacyNoticeOutdated = privacyNoticeOutdated,
             ),
             pageSize = pageSize,
         )
@@ -151,11 +155,7 @@ class HouseholdController(
     ): ResponseEntity<InputStreamResource> {
         val pdfResult = householdService.generatePdf(householdId, type)
         pdfResult?.let {
-            val headers = HttpHeaders()
-            headers.add(
-                HttpHeaders.CONTENT_DISPOSITION,
-                "inline; filename=${pdfResult.filename}",
-            )
+            val headers = ContentDispositionUtil.inline(pdfResult.filename)
 
             return ResponseEntity
                 .ok()
@@ -167,8 +167,9 @@ class HouseholdController(
 
     /**
      * The GDPR Art. 15/20 data takeout (issue #3179) - one downloadable ZIP containing the household
-     * record (persons, notes and distribution attendance history, as one PDF file) plus every
-     * uploaded document (see `docs/architecture/gdpr-data-takeout-plan.md`).
+     * record (persons, notes and distribution attendance history) as both `datenexport.pdf` and a
+     * machine-readable `daten.json` (issue #3418), plus every uploaded document (see
+     * `docs/architecture/adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md`).
      */
     @GetMapping("/{householdId}/export", produces = ["application/zip"])
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -176,8 +177,7 @@ class HouseholdController(
         val result = householdExportService.exportHousehold(householdId)
             ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
 
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${result.filename}")
+        val headers = ContentDispositionUtil.inline(result.filename)
 
         return ResponseEntity
             .ok()
@@ -195,8 +195,7 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun generatePrivacyNoticeTemplatePdf(): ResponseEntity<InputStreamResource> {
         val pdfResult = householdService.generatePrivacyNoticeTemplatePdf()
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${pdfResult.filename}")
+        val headers = ContentDispositionUtil.inline(pdfResult.filename)
 
         return ResponseEntity
             .ok()
@@ -206,7 +205,7 @@ class HouseholdController(
     }
 
     @GetMapping("/above-limit")
-    @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
     fun getHouseholdsAboveLimit(
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
@@ -224,14 +223,13 @@ class HouseholdController(
     }
 
     @GetMapping("/above-limit/csv", produces = [MediaType.TEXT_PLAIN_VALUE])
-    @PreAuthorize("hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_ABOVE_LIMIT')")
     fun generateHouseholdsAboveLimitCsv(
         @RequestParam sortBy: String? = null,
         @RequestParam sortDirection: String? = null,
     ): ResponseEntity<InputStreamResource> {
         val csvResult = householdService.generateAboveLimitCsv(sortBy, sortDirection)
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${csvResult.filename}")
+        val headers = ContentDispositionUtil.inline(csvResult.filename)
 
         return ResponseEntity
             .ok()
@@ -241,18 +239,14 @@ class HouseholdController(
     }
 
     @GetMapping("/overview")
-    @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_OVERVIEW')")
     fun getHouseholdsOverview(@RequestParam distributionId: Long? = null): HouseholdOverviewResponse = householdService.getHouseholdsOverview(distributionId)
 
     @GetMapping("/overview/generate-csv", produces = [MediaType.TEXT_PLAIN_VALUE])
-    @PreAuthorize("hasAuthority('CUSTOMERS_OVERVIEW')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_OVERVIEW')")
     fun generateHouseholdsOverviewCsv(@RequestParam distributionId: Long? = null): ResponseEntity<InputStreamResource> {
         val csvResult = householdService.generateHouseholdsOverviewCsv(distributionId)
-        val headers = HttpHeaders()
-        headers.add(
-            HttpHeaders.CONTENT_DISPOSITION,
-            "inline; filename=${csvResult.filename}",
-        )
+        val headers = ContentDispositionUtil.inline(csvResult.filename)
 
         return ResponseEntity
             .ok()
@@ -262,7 +256,7 @@ class HouseholdController(
     }
 
     @GetMapping("/duplicates")
-    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_DUPLICATES')")
     fun getDuplicates(
         @RequestParam page: Int? = null,
     ): PagedResponse<HouseholdDuplicationItem> {
@@ -282,20 +276,20 @@ class HouseholdController(
     }
 
     @PostMapping("/duplicates/dismiss")
-    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_DUPLICATES')")
     fun dismissDuplicate(@Valid @RequestBody request: HouseholdDuplicateDismissRequest) {
         householdDuplicationService.dismiss(request.householdId!!, request.otherHouseholdId!!)
     }
 
     @GetMapping("/{householdId}/merge-preview")
-    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_DUPLICATES')")
     fun getMergePreview(
         @PathVariable householdId: Long,
         @RequestParam sourceHouseholdIds: List<Long>,
     ): HouseholdMergePreviewResponse = householdMergeService.preview(householdId, sourceHouseholdIds)
 
     @PostMapping("/{householdId}/merge")
-    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_DUPLICATES')")
     fun mergeIntoHousehold(
         @PathVariable householdId: Long,
         @Valid @RequestBody request: HouseholdMergeRequest,

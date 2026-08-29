@@ -30,9 +30,15 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.util.unit.DataSize
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Period
 
 @ExtendWith(MockKExtension::class)
 internal class HouseholdDocumentServiceTest {
+
+    companion object {
+        private val PDF_MAGIC_BYTES = byteArrayOf(0x25, 0x50, 0x44, 0x46) // "%PDF"
+        private val PNG_MAGIC_BYTES = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
+    }
 
     @RelaxedMockK
     private lateinit var documentRepository: DocumentRepository
@@ -104,7 +110,7 @@ internal class HouseholdDocumentServiceTest {
 
     @Test
     fun `upload document - successful`() {
-        val file = MockMultipartFile("file", "proof.pdf", "application/pdf", "test-content".toByteArray())
+        val file = MockMultipartFile("file", "proof.pdf", "application/pdf", PDF_MAGIC_BYTES + "test-content".toByteArray())
 
         val result = service.uploadDocument(100L, null, DocumentType.PROOF_OF_INCOME, file)
 
@@ -124,11 +130,34 @@ internal class HouseholdDocumentServiceTest {
 
     @Test
     fun `upload document - with person`() {
-        val file = MockMultipartFile("file", "enrollment.png", "image/png", "test-content".toByteArray())
+        val file = MockMultipartFile("file", "enrollment.png", "image/png", PNG_MAGIC_BYTES + "test-content".toByteArray())
 
         val result = service.uploadDocument(100L, 5L, DocumentType.OTHER, file)
 
         assertThat(result.personId).isEqualTo(5L)
+    }
+
+    @Test
+    fun `upload document - PRIVACY_NOTICE stamps the live retention period`() {
+        tafelAdminProperties.householdDeletion.retentionTime = Period.ofYears(5)
+        val file = MockMultipartFile("file", "notice.pdf", "application/pdf", PDF_MAGIC_BYTES + "test-content".toByteArray())
+
+        service.uploadDocument(100L, null, DocumentType.PRIVACY_NOTICE, file)
+
+        val entitySlot = slot<DocumentEntity>()
+        verify { documentRepository.saveAndFlush(capture(entitySlot)) }
+        assertThat(entitySlot.captured.retentionPeriodAtUpload).isEqualTo("P5Y")
+    }
+
+    @Test
+    fun `upload document - non-PRIVACY_NOTICE types are never stamped with a retention period`() {
+        val file = MockMultipartFile("file", "proof.pdf", "application/pdf", PDF_MAGIC_BYTES + "test-content".toByteArray())
+
+        service.uploadDocument(100L, null, DocumentType.PROOF_OF_INCOME, file)
+
+        val entitySlot = slot<DocumentEntity>()
+        verify { documentRepository.saveAndFlush(capture(entitySlot)) }
+        assertThat(entitySlot.captured.retentionPeriodAtUpload).isNull()
     }
 
     @Test
@@ -188,6 +217,28 @@ internal class HouseholdDocumentServiceTest {
     @Test
     fun `upload document - unsupported content type rejected`() {
         val file = MockMultipartFile("file", "proof.txt", "text/plain", "test-content".toByteArray())
+
+        assertThrows<BusinessRuleException> {
+            service.uploadDocument(100L, null, DocumentType.PROOF_OF_INCOME, file)
+        }
+    }
+
+    /**
+     * A renamed file (e.g. an `.exe` uploaded as `proof.pdf`) has to be caught by more than the
+     * declared `Content-Type` alone, since that is just the client's own claim.
+     */
+    @Test
+    fun `upload document - content type not matching extension rejected`() {
+        val file = MockMultipartFile("file", "proof.png", "application/pdf", PDF_MAGIC_BYTES + "test-content".toByteArray())
+
+        assertThrows<BusinessRuleException> {
+            service.uploadDocument(100L, null, DocumentType.PROOF_OF_INCOME, file)
+        }
+    }
+
+    @Test
+    fun `upload document - content not matching declared content type rejected`() {
+        val file = MockMultipartFile("file", "proof.pdf", "application/pdf", "not-actually-a-pdf".toByteArray())
 
         assertThrows<BusinessRuleException> {
             service.uploadDocument(100L, null, DocumentType.PROOF_OF_INCOME, file)
@@ -271,7 +322,7 @@ internal class HouseholdDocumentServiceTest {
 
     @Test
     fun `import from scanner file - successful`() {
-        every { scannerFileService.read("scan1.pdf") } returns "scanned-content".toByteArray()
+        every { scannerFileService.read("scan1.pdf") } returns PDF_MAGIC_BYTES + "scanned-content".toByteArray()
         every { scannerFileService.resolveContentType("scan1.pdf") } returns "application/pdf"
 
         val result = service.importFromScannerFile(100L, "scan1.pdf", null, DocumentType.OTHER)
@@ -282,7 +333,7 @@ internal class HouseholdDocumentServiceTest {
         assertThat(result.fileName).matches("Sonstiges_\\d{4}-\\d{2}-\\d{2}_\\d{4}\\.pdf")
 
         val storedFileNameSlot = slot<String>()
-        verify { documentStorageService.store(eq(100L), capture(storedFileNameSlot), eq("scanned-content".toByteArray())) }
+        verify { documentStorageService.store(eq(100L), capture(storedFileNameSlot), eq(PDF_MAGIC_BYTES + "scanned-content".toByteArray())) }
         assertThat(storedFileNameSlot.captured).matches("Sonstiges_\\d{4}-\\d{2}-\\d{2}_\\d{4}\\.pdf")
 
         verify { scannerFileService.delete("scan1.pdf") }
@@ -290,13 +341,36 @@ internal class HouseholdDocumentServiceTest {
     }
 
     @Test
-    fun `import from scanner file - PRIVACY_NOTICE type derives ASCII-only filename`() {
-        every { scannerFileService.read("scan1.pdf") } returns "scanned-content".toByteArray()
+    fun `import from scanner file - PRIVACY_NOTICE type derives ASCII-only filename and stamps the live retention period`() {
+        tafelAdminProperties.householdDeletion.retentionTime = Period.ofYears(5)
+        every { scannerFileService.read("scan1.pdf") } returns PDF_MAGIC_BYTES + "scanned-content".toByteArray()
         every { scannerFileService.resolveContentType("scan1.pdf") } returns "application/pdf"
 
         val result = service.importFromScannerFile(100L, "scan1.pdf", null, DocumentType.PRIVACY_NOTICE)
 
         assertThat(result.fileName).matches("Datenschutzerklaerung_\\d{4}-\\d{2}-\\d{2}_\\d{4}\\.pdf")
+
+        val entitySlot = slot<DocumentEntity>()
+        verify { documentRepository.saveAndFlush(capture(entitySlot)) }
+        assertThat(entitySlot.captured.retentionPeriodAtUpload).isEqualTo("P5Y")
+    }
+
+    /**
+     * The scanner-import path derives its own `contentType` from the file extension
+     * ([ScannerFileService.resolveContentType]), but a mismatched extension/actual-content pair can
+     * still end up on the NAS share (a renamed file, a scanner malfunction) - the same magic-byte
+     * check as the browser upload path has to catch it here too.
+     */
+    @Test
+    fun `import from scanner file - content not matching resolved content type rejected`() {
+        every { scannerFileService.read("scan1.pdf") } returns "not-actually-a-pdf".toByteArray()
+        every { scannerFileService.resolveContentType("scan1.pdf") } returns "application/pdf"
+
+        assertThrows<BusinessRuleException> {
+            service.importFromScannerFile(100L, "scan1.pdf", null, DocumentType.OTHER)
+        }
+
+        verify(exactly = 0) { scannerFileService.delete(any()) }
     }
 
     @Test

@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import jakarta.servlet.FilterChain
@@ -11,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse
 import org.apache.commons.io.IOUtils
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.LockedException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
@@ -78,7 +78,10 @@ class TafelLoginFilter(
                 expirationSeconds = expirationTimeInSeconds,
             )
 
-            logger.info("Login successful via user '${user.username}' on '${request.requestURL}' (password-change required: ${user.passwordChangeRequired})")
+            logger.info(
+                "Login successful via user '${sanitizeForLog(user.username)}' on '${request.requestURL}' " +
+                    "(password-change required: ${user.passwordChangeRequired})",
+            )
 
             val cookie = createTokenCookie(token, expirationTimeInSeconds, tafelAdminProperties.server.relativeBaseUrl, request)
             response.addCookie(cookie)
@@ -97,13 +100,10 @@ class TafelLoginFilter(
         response: HttpServletResponse,
         failed: AuthenticationException,
     ) {
-        // distinguishes a rate-limit lockout from wrong credentials so the SPA can tell the
-        // user to wait it out, rather than showing the generic "login failed" message
-        response.status = if (failed is LockedException) {
-            HttpStatus.LOCKED.value()
-        } else {
-            HttpStatus.FORBIDDEN.value()
-        }
+        // Deliberately the same status for a locked-out account/IP (LockedException) as for wrong
+        // credentials: distinguishing them here would tell a caller which usernames/IPs are already
+        // locked out, before they've even proven who they are.
+        response.status = HttpStatus.FORBIDDEN.value()
         logger.info("Login failed - ${failed.message}")
     }
 }

@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
@@ -10,6 +11,8 @@ import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentType
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
@@ -20,8 +23,6 @@ import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.PersonGender
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
 import at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentStorageService
-import at.wrk.tafel.admin.backend.modules.household.internal.note.HouseholdNoteItem
-import at.wrk.tafel.admin.backend.modules.household.internal.note.HouseholdNoteService
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -32,6 +33,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import tools.jackson.databind.json.JsonMapper
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -49,7 +51,7 @@ internal class HouseholdExportServiceTest {
     private lateinit var householdConverter: HouseholdConverter
 
     @RelaxedMockK
-    private lateinit var householdNoteService: HouseholdNoteService
+    private lateinit var householdNoteRepository: HouseholdNoteRepository
 
     @RelaxedMockK
     private lateinit var distributionHouseholdRepository: DistributionHouseholdRepository
@@ -61,6 +63,9 @@ internal class HouseholdExportServiceTest {
     private lateinit var documentStorageService: DocumentStorageService
 
     @RelaxedMockK
+    private lateinit var userRepository: UserRepository
+
+    @RelaxedMockK
     private lateinit var auditLogWriter: AuditLogWriter
 
     private val clock: Clock = Clock.fixed(Instant.parse("2026-08-25T10:00:00Z"), ZoneId.of("UTC"))
@@ -69,15 +74,21 @@ internal class HouseholdExportServiceTest {
     // only checking that some byte array was returned.
     private val pdfService = PDFService()
 
+    private val jsonMapper: JsonMapper = JsonMapper.builder().build()
+
     @InjectMockKs
     private lateinit var service: HouseholdExportService
 
     private fun testHouseholdEntityWithMainPerson(): HouseholdEntity {
-        val household = HouseholdEntity(householdId = 100, validUntil = LocalDate.now()).apply { id = 42 }
+        val household = HouseholdEntity(householdId = 100, validUntil = LocalDate.now()).apply {
+            id = 42
+            updatedBy = testUserEntity.id
+        }
         val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
             id = 1
             firstname = "max"
             lastname = "mustermann"
+            updatedBy = testUserEntity.id
         }
         household.persons = mutableListOf(mainPerson)
         household.mainPerson = mainPerson
@@ -95,7 +106,7 @@ internal class HouseholdExportServiceTest {
     }
 
     @Test
-    fun `export household - zips the data pdf and every uploaded file, deduplicating identical filenames`() {
+    fun `export household - zips the data pdf, the data json and every uploaded file, deduplicating identical filenames`() {
         val household = testHouseholdEntityWithMainPerson()
         val householdResponse = HouseholdResponse(
             id = 100,
@@ -111,7 +122,14 @@ internal class HouseholdExportServiceTest {
                 ),
             ),
         )
-        val notes = listOf(HouseholdNoteItem(id = 1, author = "test", timestamp = LocalDateTime.now(), note = "note"))
+        val notes = listOf(
+            HouseholdNoteEntity(household = household, note = "note").apply {
+                id = 1
+                createdAt = LocalDateTime.now()
+                employee = testUserEntity.employee
+                updatedBy = testUserEntity.id
+            },
+        )
 
         val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now().minusDays(1), startedByUser = testUserEntity).apply {
             id = 5
@@ -131,7 +149,11 @@ internal class HouseholdExportServiceTest {
             fileName = "ausweis.jpg",
             contentType = "image/jpeg",
             storagePath = "/documents/100/ausweis-1.jpg",
-        ).apply { id = 1 }
+        ).apply {
+            id = 1
+            person = household.mainPerson
+            uploadedByUser = testUserEntity
+        }
         val document2 = DocumentEntity(
             household = household,
             documentType = DocumentType.PROOF_OF_INCOME,
@@ -141,12 +163,13 @@ internal class HouseholdExportServiceTest {
         ).apply { id = 2 }
 
         every { householdRepository.findByHouseholdId(100) } returns household
-        every { householdConverter.mapEntityToHousehold(household) } returns householdResponse
-        every { householdNoteService.getAllNotes(100) } returns notes
+        every { householdConverter.mapEntityToHousehold(household, any()) } returns householdResponse
+        every { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(100) } returns notes
         every { distributionHouseholdRepository.findAllByHouseholdEntityIds(listOf(42L)) } returns listOf(attendance)
         every { documentRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(100) } returns listOf(document1, document2)
         every { documentStorageService.read("/documents/100/ausweis-1.jpg") } returns "content-1".toByteArray()
         every { documentStorageService.read("/documents/100/ausweis-2.jpg") } returns "content-2".toByteArray()
+        every { userRepository.findAllById(listOf(testUserEntity.id!!)) } returns listOf(testUserEntity)
 
         val result = service.exportHousehold(100)
 
@@ -161,13 +184,21 @@ internal class HouseholdExportServiceTest {
                 entry = zip.nextEntry
             }
         }
-        assertThat(entries).hasSize(3)
+        assertThat(entries).hasSize(4)
         assertThat(entries["ausweis.jpg"]).isEqualTo("content-1".toByteArray())
         assertThat(entries["ausweis_2.jpg"]).isEqualTo("content-2".toByteArray())
 
         val pdf = entries["datenexport.pdf"]
         assertThat(pdf).isNotNull
         assertThat(String(pdf!!.copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
+
+        val json = entries["daten.json"]
+        assertThat(json).isNotNull
+        val jsonNode = jsonMapper.readTree(json)
+        assertThat(jsonNode.get("householdId").asLong()).isEqualTo(100)
+        assertThat(jsonNode.get("persons").get(0).get("name").asString()).isEqualTo("mustermann max")
+        assertThat(jsonNode.get("notes").get(0).get("note").asString()).isEqualTo("note")
+        assertThat(jsonNode.get("attendances").get(0).get("ticketNumber").asInt()).isEqualTo(7)
 
         val entrySlot = slot<AuditLogWriter.PendingEntry>()
         verify { auditLogWriter.record(capture(entrySlot)) }
@@ -179,7 +210,7 @@ internal class HouseholdExportServiceTest {
     }
 
     @Test
-    fun `export household - no documents zips only the data pdf`() {
+    fun `export household - no documents zips only the data pdf and json`() {
         val household = testHouseholdEntityWithMainPerson()
         val householdResponse = HouseholdResponse(
             id = 100,
@@ -187,10 +218,11 @@ internal class HouseholdExportServiceTest {
         )
 
         every { householdRepository.findByHouseholdId(100) } returns household
-        every { householdConverter.mapEntityToHousehold(household) } returns householdResponse
-        every { householdNoteService.getAllNotes(100) } returns emptyList()
+        every { householdConverter.mapEntityToHousehold(household, any()) } returns householdResponse
+        every { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(100) } returns emptyList()
         every { distributionHouseholdRepository.findAllByHouseholdEntityIds(listOf(42L)) } returns emptyList()
         every { documentRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(100) } returns emptyList()
+        every { userRepository.findAllById(listOf(testUserEntity.id!!)) } returns listOf(testUserEntity)
 
         val result = service.exportHousehold(100)
 
@@ -203,6 +235,6 @@ internal class HouseholdExportServiceTest {
                 entry = zip.nextEntry
             }
         }
-        assertThat(entries).containsExactly("datenexport.pdf")
+        assertThat(entries).containsExactlyInAnyOrder("datenexport.pdf", "daten.json")
     }
 }

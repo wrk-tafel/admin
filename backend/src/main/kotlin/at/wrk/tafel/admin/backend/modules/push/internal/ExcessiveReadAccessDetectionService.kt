@@ -1,7 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
@@ -27,6 +29,12 @@ import java.time.LocalDateTime
  * [DistributionStillOpenReminderService]: a notification is the one kind of scheduled work a second
  * run cannot repeat harmlessly, and there are no rows of its own to claim the way the retention
  * cleanups do.
+ *
+ * Not every `READ` counts as 1 towards the threshold: one of the bulk household reports
+ * ([AuditScope.bulkReportEntityTypes] - above-limit, overview, duplicates, merge preview) reveals
+ * every household it returned in a single request, not one, so it weighs in as
+ * `tafeladmin.audit.breachDetection.bulkReadWeight` instead (GDPR gap G24, issue #3507) - see
+ * [at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository.findActorsWithOperationCountAbove].
  */
 @Component
 class ExcessiveReadAccessDetectionService(
@@ -49,11 +57,17 @@ class ExcessiveReadAccessDetectionService(
         }
 
         val since = LocalDateTime.now(clock).minusHours(1)
-        val offenders = auditLogRepository.findActorsWithOperationCountAbove(AuditOperation.READ, since, threshold.toLong())
+        val offenders = auditLogRepository.findActorsWithOperationCountAbove(
+            AuditOperation.READ,
+            since,
+            threshold.toLong(),
+            AuditScope.bulkReportEntityTypes,
+            tafelAdminProperties.audit.breachDetection.bulkReadWeight,
+        )
         offenders.forEach { offender ->
             logger.warn(
                 "User '{}' read {} sensitive records in the last hour (threshold {}) - notifying administrators",
-                offender.username,
+                sanitizeForLog(offender.username),
                 offender.readCount,
                 threshold,
             )

@@ -37,4 +37,14 @@ class DocumentEntity(
     @ManyToOne
     @JoinColumn(name = "uploaded_by_user_id")
     var uploadedByUser: UserEntity? = null
+
+    /**
+     * The `tafeladmin.householdDeletion.retentionTime` [java.time.Period] live at upload time, stored
+     * as its canonical ISO-8601 text ([java.time.Period.toString], e.g. `"P7Y"`) - only stamped for
+     * [DocumentType.PRIVACY_NOTICE], since that's the only document type whose printed text states a
+     * retention figure that can later drift from the live config (issue #3500). `null` for every
+     * other document type, and for a `PRIVACY_NOTICE` uploaded before this field existed.
+     */
+    @Column(name = "retention_period_at_upload")
+    var retentionPeriodAtUpload: String? = null
 }

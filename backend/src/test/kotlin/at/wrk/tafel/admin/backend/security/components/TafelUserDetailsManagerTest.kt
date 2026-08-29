@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
@@ -8,6 +9,10 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.WebSecurityConfig
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -46,6 +51,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -67,6 +77,20 @@ class TafelUserDetailsManagerTest {
     @SpyK
     private var tafelAdminProperties: TafelAdminProperties = TafelAdminProperties()
 
+    @RelaxedMockK
+    private lateinit var loginAttemptService: LoginAttemptService
+
+    @RelaxedMockK
+    private lateinit var auditLogWriter: AuditLogWriter
+
+    @RelaxedMockK
+    private lateinit var auditLogRepository: AuditLogRepository
+
+    @RelaxedMockK
+    private lateinit var auditActorProvider: AuditActorProvider
+
+    private val clock: Clock = Clock.fixed(Instant.parse("2026-08-28T10:00:00Z"), ZoneId.of("UTC"))
+
     @InjectMockKs
     private lateinit var manager: TafelUserDetailsManager
 
@@ -78,6 +102,15 @@ class TafelUserDetailsManagerTest {
             TafelJwtAuthentication(tokenValue = "TOKEN", testUser.username)
         every { userRepository.findByUsername(testUser.username) } returns testUserEntity
         testUserEntityPassword = testUserEntity.password
+    }
+
+    /**
+     * No authenticated actor by default (mirrors `HouseholdServiceTest`) - only the
+     * `recordUserRead` tests below override this.
+     */
+    @BeforeEach
+    fun stubNoAuditActorByDefault() {
+        every { auditActorProvider.currentUsername() } returns null
     }
 
     @AfterEach
@@ -193,9 +226,31 @@ class TafelUserDetailsManagerTest {
                 withArg {
                     assertThat(it.password).isEqualTo(newPasswordEncoded)
                     assertThat(it.passwordChangeRequired).isFalse()
+                    assertThat(it.tokenInvalidatedAt).isNotNull()
                 },
             )
         }
+    }
+
+    @Test
+    fun `invalidateTokens sets tokenInvalidatedAt and saves`() {
+        every { userRepository.findByUsername(testUserEntity.username) } returns testUserEntity
+        every { userRepository.save(any()) } returns testUserEntity
+
+        manager.invalidateTokens(testUserEntity.username)
+
+        verify(exactly = 1) {
+            userRepository.save(withArg { assertThat(it.tokenInvalidatedAt).isNotNull() })
+        }
+    }
+
+    @Test
+    fun `invalidateTokens for an unknown user does nothing`() {
+        every { userRepository.findByUsername("unknown") } returns null
+
+        manager.invalidateTokens("unknown")
+
+        verify(exactly = 0) { userRepository.save(any()) }
     }
 
     @Test
@@ -281,7 +336,8 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - password too short`() {
-        val newPassword = "67890"
+        // otherwise satisfies every rule (incl. character classes) so only the length violation shows up
+        val newPassword = "Ab12345"
 
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
@@ -296,7 +352,8 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - password too long`() {
-        val newPassword = "6789067890678906789067890678906789067890678906789067890"
+        // otherwise satisfies every rule (incl. character classes) so only the length violation shows up
+        val newPassword = "Ab123456".repeat(7)
 
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
@@ -311,7 +368,8 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - contains username`() {
-        val newPassword = "123${testUserEntity.username}123"
+        // otherwise satisfies every rule (incl. character classes) so only the username violation shows up
+        val newPassword = "Ab123${testUserEntity.username}123"
 
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
@@ -326,7 +384,8 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - contains whitespace`() {
-        val newPassword = "1234 1234"
+        // otherwise satisfies every rule (incl. character classes) so only the whitespace violation shows up
+        val newPassword = "Ab12 cd34"
 
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
@@ -341,7 +400,8 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - contains illegal words`() {
-        val newPassword = "123wrk123tafel123"
+        // otherwise satisfies every rule (incl. character classes) so only the illegal-word violation shows up
+        val newPassword = "Z123wrk123tafel123"
 
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
@@ -350,6 +410,37 @@ class TafelUserDetailsManagerTest {
         assertThat(exception.validationDetails).hasSameElementsAs(
             listOf(
                 "Folgende Wörter dürfen nicht enhalten sein: wrk",
+            ),
+        )
+    }
+
+    @Test
+    fun `changePassword - missing every character class`() {
+        val newPassword = "12345678"
+
+        val exception = assertThrows<PasswordChangeException> {
+            manager.changePassword("12345", newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+        assertThat(exception.validationDetails).hasSameElementsAs(
+            listOf(
+                "Muss mindestens einen Kleinbuchstaben enthalten",
+                "Muss mindestens einen Großbuchstaben enthalten",
+            ),
+        )
+    }
+
+    @Test
+    fun `changePassword - missing only the uppercase character class`() {
+        val newPassword = "abcd1234"
+
+        val exception = assertThrows<PasswordChangeException> {
+            manager.changePassword("12345", newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+        assertThat(exception.validationDetails).hasSameElementsAs(
+            listOf(
+                "Muss mindestens einen Großbuchstaben enthalten",
             ),
         )
     }
@@ -575,6 +666,8 @@ class TafelUserDetailsManagerTest {
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
         assertThat(updatedUser.authorities).hasSize(1)
         assertThat(updatedUser.authorities.first().name).isEqualTo(UserPermissions.CHECKIN.key)
+        // No password field on this update - no reason to invalidate the user's existing sessions.
+        assertThat(updatedUser.tokenInvalidatedAt).isNull()
     }
 
     @Test
@@ -601,7 +694,7 @@ class TafelUserDetailsManagerTest {
         val encodedPassword = "dummy-encoded-pwd"
         every { passwordEncoder.encode(any()) } returns encodedPassword
 
-        val newPassword = "new-pwd1234"
+        val newPassword = "New-Pwd1234"
         val userUpdate = testUser.copy(
             personnelNumber = "new-persnr",
             username = "new-username",
@@ -627,6 +720,7 @@ class TafelUserDetailsManagerTest {
         val updatedUser = updatedUserSlot.captured
         assertThat(updatedUser.password).isEqualTo(encodedPassword)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
+        assertThat(updatedUser.tokenInvalidatedAt).isNotNull()
     }
 
     @Test
@@ -715,6 +809,7 @@ class TafelUserDetailsManagerTest {
         manager.deleteUser(testUserEntity.username)
 
         verify { userRepository.delete(testUserEntity) }
+        verify(exactly = 1) { loginAttemptService.deleteAttempts(testUserEntity.username) }
     }
 
     @Test
@@ -778,5 +873,60 @@ class TafelUserDetailsManagerTest {
 
         assertThat(result).isTrue
         verify { userRepository.delete(administratorEntity) }
+    }
+
+    /**
+     * No authenticated actor (default from `stubNoAuditActorByDefault`) means nothing to attribute
+     * a read to, so no entry is recorded - mirrors `HouseholdServiceTest`'s equivalent case.
+     */
+    @Test
+    fun `recordUserRead does not record without an authenticated actor`() {
+        manager.recordUserRead(testUser)
+
+        verify(exactly = 0) { auditLogWriter.record(any()) }
+    }
+
+    @Test
+    fun `recordUserRead records a READ for breach detection when not already recorded recently`() {
+        every { auditActorProvider.currentUsername() } returns "test-actor"
+        every { tafelAdminProperties.audit.readDedupeWindow } returns Duration.ofMinutes(5)
+        every {
+            auditLogRepository.existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+                "User",
+                testUser.username,
+                AuditOperation.READ,
+                "test-actor",
+                LocalDateTime.now(clock).minusMinutes(5),
+            )
+        } returns false
+
+        manager.recordUserRead(testUser)
+
+        val entrySlot = slot<AuditLogWriter.PendingEntry>()
+        verify { auditLogWriter.record(capture(entrySlot)) }
+        assertThat(entrySlot.captured.entityType).isEqualTo("User")
+        assertThat(entrySlot.captured.entityId).isEqualTo(testUser.id)
+        assertThat(entrySlot.captured.businessKey).isEqualTo(testUser.username)
+        assertThat(entrySlot.captured.operation).isEqualTo(AuditOperation.READ)
+        assertThat(entrySlot.captured.changedFields).isEmpty()
+    }
+
+    @Test
+    fun `recordUserRead does not record a second READ within the dedupe window`() {
+        every { auditActorProvider.currentUsername() } returns "test-actor"
+        every { tafelAdminProperties.audit.readDedupeWindow } returns Duration.ofMinutes(5)
+        every {
+            auditLogRepository.existsByEntityTypeAndBusinessKeyAndOperationAndActorUsernameAndOccurredAtAfter(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns true
+
+        manager.recordUserRead(testUser)
+
+        verify(exactly = 0) { auditLogWriter.record(any()) }
     }
 }

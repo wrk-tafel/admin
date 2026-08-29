@@ -1,0 +1,17 @@
+### Report a client-side error, logged to app.log as it happens (rate-limited per IP)
+POST {{baseApiPath}}/client-errors
+Content-Type: application/json
+
+{
+  "message": "TypeError: Cannot read properties of undefined (reading 'id')",
+  "page": "http://localhost:4200/uebersicht",
+  "userAgent": "Mozilla/5.0 Chrome/128"
+}
+
+### page and userAgent are optional - a report without them still goes out
+POST {{baseApiPath}}/client-errors
+Content-Type: application/json
+
+{
+  "message": "Unbehandelter Promise-Fehler: Error: backend nicht erreichbar"
+}

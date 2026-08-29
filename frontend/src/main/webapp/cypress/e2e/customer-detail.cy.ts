@@ -151,7 +151,9 @@ describe('Customer Detail', () => {
   it('customer note shown', () => {
     cy.visit('/kunden/detail/101');
 
-    cy.byTestId('latest-customer-note').should('be.visible');
+    // the "Aktuellste Notiz" card sits below the wider two-column Hauptbezieher card now, below
+    // the fold at the default viewport height - scroll to it the way a user would
+    cy.byTestId('latest-customer-note').scrollIntoView().should('be.visible');
     cy.byTestId('latest-customer-note-none').should('not.exist');
   });
 
@@ -159,45 +161,160 @@ describe('Customer Detail', () => {
     cy.visit('/kunden/detail/100');
 
     cy.byTestId('latest-customer-note').should('not.exist');
-    cy.byTestId('latest-customer-note-none').should('be.visible');
+    cy.byTestId('latest-customer-note-none').scrollIntoView().should('be.visible');
   });
 
   // Customer 103's notes are all inserted in one testdata transaction, so they share a single
   // created_at to the microsecond. Tracking the list by that timestamp collapsed every row onto
   // one key (NG0955) - only a real render over real data shows all ten actually surviving.
-  it('all notes dialog lists every note of a customer whose notes share a timestamp', () => {
+  it('Notizen tab lists every note of a customer whose notes share a timestamp', () => {
     cy.visit('/kunden/detail/103');
 
-    cy.byTestId('showall-notes-button').click();
+    cy.byTestId('notes-tab-label').click();
 
-    // Scoped to the dialog - the "latest note" panel behind it carries the same testid.
-    cy.get('mat-dialog-content').within(() => {
+    // Scoped to the tab panel - the "Aktuellste Notiz" preview on Allgemeine Daten carries the
+    // same testids and stays mounted (just hidden) once that tab has been left.
+    cy.get('[testid="notes-tab-panel"]').within(() => {
       cy.byTestId('note-title').should('have.length', 10);
-      // Newest first, so note 10 is at the top and note 1 sits below the dialog's scroll fold.
+      // Newest first, so note 10 is at the top and note 1 sits below the paginator fold.
       cy.contains('Testnotiz 10.').should('be.visible');
       cy.contains('Testnotiz 1.').scrollIntoView().should('be.visible');
     });
   });
 
-  // The panel and the dialog render the same note text and used to disagree about it: the panel
-  // interpreted it as HTML, the dialog escaped it. Both now show plain text with real newlines.
-  it('note text renders identically as plain text in the panel and the dialog', () => {
+  // The preview and the tab render the same note text and used to disagree about it: the preview
+  // interpreted it as HTML, the tab escaped it. Both now show plain text with real newlines.
+  it('note text renders identically as plain text on Allgemeine Daten and in the Notizen tab', () => {
     cy.visit('/kunden/detail/103');
 
     // The testdata note carries a real newline; it has to survive as one instead of collapsing.
-    const assertPlainTextWithNewline = () => {
-      cy.byTestId('note-text')
-        .filterDisplayed()
-        .first()
-        .invoke('text')
-        .should('contain', 'Testnotiz 10.\nLorem ipsum');
-    };
+    cy.byTestId('note-text').invoke('text').should('contain', 'Testnotiz 10.\nLorem ipsum');
 
-    assertPlainTextWithNewline();
+    cy.byTestId('notes-tab-label').click();
+    cy.get('[testid="notes-tab-panel"]').within(() => {
+      cy.byTestId('note-text').first().invoke('text').should('contain', 'Testnotiz 10.\nLorem ipsum');
+    });
+  });
 
-    cy.byTestId('showall-notes-button').click();
-    cy.get('mat-dialog-content').within(() => {
-      assertPlainTextWithNewline();
+  it('edits a note directly from the "Aktuellste Notiz" panel and sees the correction in the Notizen tab too', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+      cy.createCustomerNote(customerId, 'original note text');
+      cy.visit('/kunden/detail/' + customerId);
+
+      cy.byTestId('note-editButton').click();
+      cy.byTestId('editnote-dialog').should('be.visible');
+      cy.get('textarea').clear().type('corrected note text');
+      cy.byTestId('okButton').click();
+
+      // Wait for the edit dialog's own close animation to finish and remove it from the DOM.
+      cy.byTestId('editnote-dialog').should('not.exist');
+      cy.byTestId('note-text').should('have.text', 'corrected note text');
+
+      // editing from the preview also refreshes the Notizen tab's own list
+      cy.byTestId('notes-tab-label').click();
+      cy.get('[testid="notes-tab-panel"]').within(() => {
+        cy.byTestId('note-text').should('have.text', 'corrected note text');
+      });
+    });
+  });
+
+  it('deletes a note directly from the "Aktuellste Notiz" panel, updating the preview and the note count', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+      cy.createCustomerNote(customerId, 'first note');
+      cy.createCustomerNote(customerId, 'second note').then(() => {
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('notes-count').should('contain.text', '2');
+        cy.byTestId('note-text').should('have.text', 'second note');
+
+        cy.byTestId('note-deleteButton').click();
+        cy.byTestId('deletenote-dialog').should('be.visible');
+        cy.byTestId('okButton').click();
+
+        // Wait for the delete-confirm dialog's own close animation to finish and remove it from
+        // the DOM - otherwise `note-text` below could still match its (fading) content too.
+        cy.byTestId('deletenote-dialog').should('not.exist');
+        cy.byTestId('notes-count').should('contain.text', '1');
+        cy.byTestId('note-text').should('have.text', 'first note');
+
+        // deleting from the preview also refreshes the Notizen tab's own list
+        cy.byTestId('notes-tab-label').click();
+        cy.get('[testid="notes-tab-panel"]').within(() => {
+          cy.byTestId('note-title').should('have.length', 1);
+        });
+      });
+    });
+  });
+
+  it('edits an older note from within the Notizen tab, not shown on the "Aktuellste Notiz" panel', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+      cy.createCustomerNote(customerId, 'older note');
+      cy.createCustomerNote(customerId, 'newest note').then(() => {
+        cy.visit('/kunden/detail/' + customerId);
+        cy.byTestId('notes-tab-label').click();
+
+        // newest first, so the older note is the second one
+        cy.get('[testid="notes-tab-panel"]').within(() => {
+          cy.byTestId('note-title').should('have.length', 2);
+          cy.byTestId('note-editButton').last().click();
+        });
+
+        cy.byTestId('editnote-dialog').should('be.visible');
+        cy.get('textarea').clear().type('corrected older note');
+        cy.byTestId('okButton').click();
+
+        cy.byTestId('editnote-dialog').should('not.exist');
+        cy.get('[testid="notes-tab-panel"]').within(() => {
+          cy.contains('corrected older note').should('be.visible');
+        });
+
+        // the "Aktuellste Notiz" preview still shows the untouched newest note
+        cy.byTestId('generaldata-tab-label').click();
+        cy.byTestId('note-text').should('have.text', 'newest note');
+      });
+    });
+  });
+
+  it('hides and refuses edit/delete for a note written by someone else', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.data.id!;
+      cy.createCustomerNote(customerId, 'note written by e2etest').then((noteResponse) => {
+        const noteId = noteResponse.body.id;
+
+        // e2etest2 holds CUSTOMER like the note's author, but is a different employee - it may
+        // read the note but not correct or erase what someone else wrote (GDPR gap G21).
+        cy.loginE2ETest2();
+        cy.visit('/kunden/detail/' + customerId);
+
+        // hidden both on the "Aktuellste Notiz" preview...
+        cy.byTestId('note-text').should('have.text', 'note written by e2etest');
+        cy.byTestId('note-editButton').should('not.exist');
+        cy.byTestId('note-deleteButton').should('not.exist');
+
+        // ...and in the Notizen tab's own full list
+        cy.byTestId('notes-tab-label').click();
+        cy.get('[testid="notes-tab-panel"]').within(() => {
+          cy.byTestId('note-text').should('have.text', 'note written by e2etest');
+          cy.byTestId('note-editButton').should('not.exist');
+          cy.byTestId('note-deleteButton').should('not.exist');
+        });
+
+        cy.request({
+          method: 'PUT',
+          url: `/api/households/${customerId}/notes/${noteId}`,
+          body: {note: 'hijacked'},
+          failOnStatusCode: false
+        }).its('status').should('eq', 403);
+
+        cy.request({
+          method: 'DELETE',
+          url: `/api/households/${customerId}/notes/${noteId}`,
+          failOnStatusCode: false
+        }).its('status').should('eq', 403);
+      });
     });
   });
 
@@ -206,7 +323,6 @@ describe('Customer Detail', () => {
     cy.visit('/kunden/detail/101');
 
     cy.byTestId('customerIdText').should('be.visible');
-    cy.byTestId('latest-customer-note').scrollIntoView().should('be.visible');
     cy.byTestId('editCustomerButton').scrollIntoView().should('be.visible');
 
     // below lg: the outer section reverses (flex-col-reverse), so the data tabs render
@@ -220,6 +336,8 @@ describe('Customer Detail', () => {
 
     // ...and the actions leave the identity header, which keeps them on desktop only
     cy.byTestId('customer-identity-header').find('[testid="editCustomerButton"]').should('not.exist');
+
+    cy.byTestId('latest-customer-note').scrollIntoView().should('be.visible');
 
     cy.byTestId('lock-info-banner').should('not.exist');
 
@@ -288,7 +406,6 @@ describe('Customer Detail', () => {
     cy.visit('/kunden/detail/100');
 
     cy.byTestId('customerIdText').should('be.visible');
-    // the notes panel sits below the fold at tablet height - scroll to it the way a user would
     cy.byTestId('latest-customer-note-none').scrollIntoView().should('be.visible');
 
     let validDateString;
@@ -353,6 +470,38 @@ describe('Customer Detail', () => {
       cy.visit('/kunden/detail/100');
 
       cy.byTestId('assign-ticket-button').should('be.disabled');
+    });
+
+    // Deleting a household cascades away its distributions_households row, silently dropping an
+    // assigned ticket from the active distribution's queue (issue #3444) - the confirm dialog has
+    // to call that out rather than deleting the ticket without any warning.
+    it('warns about the active ticket when deleting a customer that still has one', () => {
+      cy.addCustomerToDistribution({customerId: 100, ticketNumber: 25});
+      cy.visit('/kunden/detail/100');
+
+      openEditMenu();
+      cy.byTestId('deleteCustomerButton').click();
+
+      cy.byTestId('deletecustomer-dialog').should('be.visible');
+      cy.byTestId('deletecustomer-ticket-warning').should('contain.text', '25');
+
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+    });
+
+    it('no ticket warning when deleting a customer without an active ticket', () => {
+      cy.visit('/kunden/detail/100');
+
+      openEditMenu();
+      cy.byTestId('deleteCustomerButton').click();
+
+      cy.byTestId('deletecustomer-dialog').should('be.visible');
+      cy.byTestId('deletecustomer-ticket-warning').should('not.exist');
+
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
     });
   });
 
@@ -552,7 +701,7 @@ describe('Customer Detail', () => {
       cy.byTestId('scannerFilePreview-' + scannerFileName, {timeout: 10000}).should('be.visible');
       cy.byTestId('scannerFilePreview-' + scannerFileName).invoke('attr', 'href').then((href) => cy.request(href as string));
 
-      cy.visit('/aenderungsprotokoll');
+      cy.visit('/zugriffsprotokoll');
       cy.byTestId('audit-filter-entityType').click();
       cy.get('mat-option').contains('Scanner-Datei').click();
 
@@ -826,7 +975,7 @@ describe('Customer Detail', () => {
 
       cy.byTestId('additionalpersons-tab-label').click();
       cy.byTestId('addperson-2-lastnameText').should('have.text', 'Musterfrau');
-      cy.byTestId('addperson-2-excludedChip').should('be.visible').and('contain.text', 'Nicht im Haushalt');
+      cy.byTestId('addperson-2-excludedChip').should('be.visible').and('contain.text', 'Nicht im selben Haushalt');
       cy.byTestId('addperson-0-excludedChip').should('not.exist');
       cy.byTestId('addperson-1-excludedChip').should('not.exist');
     });
@@ -881,7 +1030,7 @@ describe('Customer Detail', () => {
     it('shows a note count and relative time on the "Aktuellste Notiz" card', () => {
       cy.visit('/kunden/detail/103');
 
-      cy.byTestId('notes-count').should('be.visible');
+      cy.byTestId('notes-count').scrollIntoView().should('be.visible');
       cy.byTestId('note-relative-time').should('be.visible');
     });
 
@@ -1025,8 +1174,11 @@ describe('Customer Detail', () => {
         cy.visit('/kunden/detail/' + customer.id);
         cy.byTestId('history-tab-label').scrollIntoView().click();
 
-        cy.byTestId('audit-entry-0-changes').should('contain.text', 'Telefon');
-        cy.byTestId('audit-entry-0-changes').should('contain.text', '0699333444');
+        // Opening this very detail view just wrote its own "Abgerufen" (READ) entry, newer than
+        // the update above, so that's what sits on top - the edit is the entry right behind it.
+        cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+        cy.byTestId('audit-entry-1-changes').should('contain.text', 'Telefon');
+        cy.byTestId('audit-entry-1-changes').should('contain.text', '0699333444');
       });
     });
 
@@ -1067,6 +1219,9 @@ describe('Customer Detail', () => {
       cy.byTestId('additionalpersons-tab-label').click();
       cy.checkAccessibility(MAIN_CONTENT);
 
+      cy.byTestId('notes-tab-label').click();
+      cy.checkAccessibility(MAIN_CONTENT);
+
       cy.byTestId('documents-tab-label').click();
       cy.byTestId('upload-document-panel').should('be.visible');
       cy.checkAccessibility(MAIN_CONTENT);
@@ -1083,16 +1238,41 @@ describe('Customer Detail', () => {
     });
 
     it('has no violations in the note dialogs', () => {
-      // 103 is the testdata customer with more than one note, so the "all notes" dialog exists
+      // 103 is the testdata customer with more than one note, so the Notizen tab has content
       cy.visit('/kunden/detail/103');
 
       cy.byTestId('addnote-button').click();
       cy.byTestId('noteHint').should('be.visible');
       cy.checkDialogAccessibility();
       cy.byTestId('cancelButton').click();
+      // Wait for its close animation to finish and remove it from the DOM.
+      cy.get('tafel-add-note-dialog').should('not.exist');
 
-      cy.byTestId('showall-notes-button').click();
+      // Unlike the old "all notes" dialog, the edit/delete-note dialogs no longer stack on top of
+      // another open dialog - the Notizen tab they're opened from is a page tab, not a dialog - so
+      // `checkDialogAccessibility()` (which targets every open `mat-dialog-container`) applies
+      // directly instead of needing to scope to the topmost one.
+      cy.byTestId('notes-tab-label').click();
+      cy.get('[testid="notes-tab-panel"]').within(() => {
+        cy.byTestId('note-editButton').first().click();
+      });
+      cy.byTestId('editnote-dialog').should('be.visible');
       cy.checkDialogAccessibility();
+      cy.byTestId('editnote-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+      // Wait for the edit dialog's own close animation to finish and remove it from the DOM -
+      // otherwise the `notes-tab-panel` lookup below could still catch its (fading) content too.
+      cy.byTestId('editnote-dialog').should('not.exist');
+
+      cy.get('[testid="notes-tab-panel"]').within(() => {
+        cy.byTestId('note-deleteButton').first().click();
+      });
+      cy.byTestId('deletenote-dialog').should('be.visible');
+      cy.checkDialogAccessibility();
+      cy.byTestId('deletenote-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
     });
 
     it('has no violations in the overflow menu and its dialogs', () => {

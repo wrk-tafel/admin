@@ -4,6 +4,9 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import jakarta.servlet.DispatcherType
@@ -16,6 +19,7 @@ import org.passay.dictionary.sort.ArraysSort
 import org.passay.rule.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.ProviderManager
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -27,11 +31,13 @@ import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 import org.springframework.security.web.util.matcher.OrRequestMatcher
 import tools.jackson.databind.json.JsonMapper
+import java.time.Clock
 
 @Configuration
 @EnableWebSecurity
@@ -45,7 +51,13 @@ class WebSecurityConfig(
     private val tafelAdminProperties: TafelAdminProperties,
     private val jsonMapper: JsonMapper,
     private val loginAttemptService: LoginAttemptService,
+    private val loginAttemptIpService: LoginAttemptIpService,
     private val loginAuditService: LoginAuditService,
+    private val rateLimiterIpService: RateLimiterIpService,
+    private val auditLogWriter: AuditLogWriter,
+    private val auditLogRepository: AuditLogRepository,
+    private val auditActorProvider: AuditActorProvider,
+    private val clock: Clock,
 ) {
 
     companion object {
@@ -53,9 +65,19 @@ class WebSecurityConfig(
         // permits the request, and it excludes the path from TafelJwtAuthenticationFilter below -
         // which matters because TafelJwtAuthConverter rejects a cookie-less request outright
         // instead of letting it through unauthenticated.
-        private val publicEndpoints = listOf("/api/login", "/api/logout", "/api/config/public")
+        private const val LOGIN_ENDPOINT = "/api/login"
+        private val publicEndpoints = listOf(LOGIN_ENDPOINT, "/api/config/public")
 
         val passwordLengthRule = LengthRule(8, 50)
+
+        // Same three character classes a generated password is already built from (see
+        // tafelPasswordGenerator below) - required here too via CharacterCharacteristicsRule so a
+        // user-chosen password can't fall below what a generated one always guarantees.
+        val generatedPasswordCharactersRules = listOf(
+            CharacterRule(GermanCharacterData.LowerCase),
+            CharacterRule(GermanCharacterData.UpperCase),
+            CharacterRule(EnglishCharacterData.Digit),
+        )
         val passwordValidator = DefaultPasswordValidator(
             listOf(
                 passwordLengthRule,
@@ -70,12 +92,8 @@ class WebSecurityConfig(
                         ),
                     ),
                 ),
+                CharacterCharacteristicsRule(generatedPasswordCharactersRules.size, generatedPasswordCharactersRules),
             ),
-        )
-        val generatedPasswordCharactersRules = listOf(
-            CharacterRule(GermanCharacterData.LowerCase),
-            CharacterRule(GermanCharacterData.UpperCase),
-            CharacterRule(EnglishCharacterData.Digit),
         )
     }
 
@@ -100,6 +118,30 @@ class WebSecurityConfig(
         )
 
         http
+            .addFilterBefore(
+                RateLimitFilter(
+                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, LOGIN_ENDPOINT),
+                    scope = "login",
+                    rateLimiterService = rateLimiterIpService,
+                ),
+                TafelLoginFilter::class.java,
+            )
+            .addFilterBefore(
+                RateLimitFilter(
+                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/support"),
+                    scope = "support",
+                    rateLimiterService = rateLimiterIpService,
+                ),
+                TafelLoginFilter::class.java,
+            )
+            .addFilterBefore(
+                RateLimitFilter(
+                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/client-errors"),
+                    scope = "clientError",
+                    rateLimiterService = rateLimiterIpService,
+                ),
+                TafelLoginFilter::class.java,
+            )
             .addFilter(
                 TafelLoginFilter(
                     authenticationManager = authenticationManager(),
@@ -142,7 +184,7 @@ class WebSecurityConfig(
                 csrf.csrfTokenRequestHandler(SpaCsrfTokenRequestHandler())
                 // login authenticates via the Authorization header, which cross-site requests
                 // cannot set - and the client has no token yet at that point
-                csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern("/api/login"))
+                csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(LOGIN_ENDPOINT))
             }
             .headers { headers ->
                 headers.contentSecurityPolicy {
@@ -163,6 +205,25 @@ class WebSecurityConfig(
 
                     it.policyDirectives(policyDirectives)
                 }
+                // Never send this app's URL to another origin, not even same-site over a scheme
+                // downgrade - the app never needs the referrer read on the other end, and
+                // households/employees/tickets are identifiable straight from the path.
+                headers.referrerPolicy { it.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER) }
+                // Deny every permission this app has no use for. camera stays allowed for same
+                // origin - the checkin module's QR scanner (zxing) depends on it - and
+                // clipboard-write for the "copy generated password" action on the user form.
+                headers.permissionsPolicyHeader {
+                    it.policy(
+                        listOf(
+                            "geolocation=()",
+                            "microphone=()",
+                            "payment=()",
+                            "usb=()",
+                            "camera=(self)",
+                            "clipboard-write=(self)",
+                        ).joinToString(", "),
+                    )
+                }
             }
 
         return http.build()
@@ -182,7 +243,18 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator, tafelAdminProperties)
+    fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(
+        userRepository,
+        employeeRepository,
+        passwordEncoder(),
+        passwordValidator,
+        tafelAdminProperties,
+        loginAttemptService,
+        auditLogWriter,
+        auditLogRepository,
+        auditActorProvider,
+        clock,
+    )
 
     @Bean
     fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
@@ -192,6 +264,7 @@ class WebSecurityConfig(
         tafelUserDetailsManager(),
         passwordEncoder(),
         loginAttemptService,
+        loginAttemptIpService,
         loginAuditService,
         tafelUserDetailsManager()::upgradePasswordHash,
     )

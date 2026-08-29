@@ -2,14 +2,19 @@ package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
+import at.wrk.tafel.admin.backend.common.auth.components.StaffPrivacyNoticeService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportFileResult
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
 import at.wrk.tafel.admin.backend.common.auth.model.*
+import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
@@ -21,7 +26,6 @@ import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
 import org.springframework.data.domain.PageRequest
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -41,8 +45,11 @@ class UserController(
     private val userDetailsManager: TafelUserDetailsManager,
     private val tafelPasswordGenerator: TafelPasswordGenerator,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val applicationProperties: ApplicationProperties,
     private val loginAttemptService: LoginAttemptService,
     private val userExportService: UserExportService,
+    private val staffPrivacyNoticeService: StaffPrivacyNoticeService,
+    private val jwtTokenService: JwtTokenService,
 ) {
 
     companion object {
@@ -63,11 +70,12 @@ class UserController(
 
     /**
      * The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363, see
-     * `docs/architecture/gdpr-data-takeout-plan.md` §3) - a PDF, same shape as the household export.
-     * Self-service, same as [getUserInfo] - no `USER_MANAGEMENT` needed, since the class-level
-     * `isAuthenticated()` already covers it.
+     * `docs/architecture/adr/0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md`)
+     * - a ZIP (`datenexport.pdf` plus a machine-readable `daten.json`, issue #3418), same shape as the
+     * household export. Self-service, same as [getUserInfo] - no `USER_MANAGEMENT` needed, since the
+     * class-level `isAuthenticated()` already covers it.
      */
-    @GetMapping("/export", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @GetMapping("/export", produces = ["application/zip"])
     fun exportUser(): ResponseEntity<InputStreamResource> {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val result = userExportService.exportUserByUsername(authenticatedUser.username!!)
@@ -80,7 +88,7 @@ class UserController(
      * request made on a staff member's behalf, or after they've left. Behind `USER_MANAGEMENT`,
      * reachable from a user's detail screen.
      */
-    @GetMapping("/{userId}/export", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @GetMapping("/{userId}/export", produces = ["application/zip"])
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun exportUserById(@PathVariable userId: Long): ResponseEntity<InputStreamResource> {
         val result = userExportService.exportUserById(userId)
@@ -88,18 +96,37 @@ class UserController(
         return exportResponse(result)
     }
 
-    private fun exportResponse(result: UserExportFileResult): ResponseEntity<InputStreamResource> {
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=${result.filename}")
+    /**
+     * The Art. 13 GDPR privacy notice for staff (GDPR gap G20, issue #3429) - what data is processed
+     * about a staff member, and why, not the Art. 15/20 takeout [exportUser] already answers.
+     * Generic and reference-less, same as `/households/privacy-notice-template`: `isAuthenticated()`
+     * is enough, since nobody's personal data is involved. Reachable from the user menu (self-service)
+     * and from the Mitarbeiter settings screen (for an admin to hand it to someone with no account).
+     */
+    @GetMapping("/privacy-notice-template", produces = [MediaType.APPLICATION_PDF_VALUE])
+    fun generatePrivacyNoticeTemplate(): ResponseEntity<InputStreamResource> {
+        val bytes = staffPrivacyNoticeService.generatePrivacyNoticePdf()
+        val headers = ContentDispositionUtil.inline("datenschutzerklaerung-mitarbeiter.pdf")
 
         return ResponseEntity
             .ok()
             .headers(headers)
             .contentType(MediaType.APPLICATION_PDF)
+            .body(InputStreamResource(ByteArrayInputStream(bytes)))
+    }
+
+    private fun exportResponse(result: UserExportFileResult): ResponseEntity<InputStreamResource> {
+        val headers = ContentDispositionUtil.inline(result.filename)
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.valueOf("application/zip"))
             .body(InputStreamResource(ByteArrayInputStream(result.bytes)))
     }
 
     @GetMapping("/generate-password")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun generatePassword(): ResponseEntity<GeneratedPasswordResponse> {
         val generatedPassword = tafelPasswordGenerator.generatePassword()
         val response = GeneratedPasswordResponse(password = generatedPassword)
@@ -108,13 +135,29 @@ class UserController(
 
     @PostMapping("/change-password")
     @Transactional
-    fun changePassword(@Valid @RequestBody request: ChangePasswordRequest): ResponseEntity<ChangePasswordResponse> {
+    fun changePassword(
+        @Valid @RequestBody changePasswordRequest: ChangePasswordRequest,
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<ChangePasswordResponse> {
         try {
-            userDetailsManager.changePassword(request.passwordCurrent, request.passwordNew)
+            userDetailsManager.changePassword(changePasswordRequest.passwordCurrent, changePasswordRequest.passwordNew)
         } catch (e: PasswordChangeException) {
             val validationResult = ChangePasswordResponse(message = e.message, details = e.validationDetails)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationResult)
         }
+
+        // Changing one's own password just invalidated every JWT issued for this account up to now
+        // (see TafelUserDetailsManager.changePassword) - including the one this very request came in
+        // on. The frontend explicitly keeps the user on this session afterwards ("Sie bleiben mit dem
+        // neuen Passwort angemeldet"), so a fresh cookie has to replace it here, the same way
+        // TafelLoginFilter mints one after a real login.
+        val username = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username!!
+        val expirationTimeInSeconds = applicationProperties.security.jwtToken.expirationTimeInSeconds
+        val token = jwtTokenService.generateToken(username = username, expirationSeconds = expirationTimeInSeconds)
+        val cookie = TafelLoginFilter.createTokenCookie(token, expirationTimeInSeconds, tafelAdminProperties.server.relativeBaseUrl, request)
+        response.addCookie(cookie)
+
         return ResponseEntity.ok().build()
     }
 
@@ -122,27 +165,42 @@ class UserController(
     fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Unit> {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
+        // Clearing the cookie alone only removes it client-side - the JWT itself would otherwise
+        // keep authenticating for the rest of its lifetime if it were captured beforehand.
+        userDetailsManager.invalidateTokens(user.username!!)
+
         val cookie = TafelLoginFilter.createTokenCookie(null, 0, tafelAdminProperties.server.relativeBaseUrl, request)
         response.addCookie(cookie)
 
-        logger.info("User ${user.username} logged out!")
+        logger.info("User ${sanitizeForLog(user.username)} logged out!")
         return ResponseEntity.ok().build()
     }
 
+    /**
+     * A user-detail view (`GET /api/users/{id}`), read one account at a time - recorded as an
+     * `AuditOperation.READ` for the same GDPR gap G11 breach detection as
+     * `HouseholdService.findByHouseholdId` (issue #3430), now closed for a staff member's own
+     * account data too (issue #3493). See `TafelUserDetailsManager.recordUserRead`.
+     */
     @GetMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional
     fun getUser(@PathVariable userId: Long): ResponseEntity<UserResponse> {
         val userDetails = userDetailsManager.loadUserById(userId)
             ?: throw NotFoundException("Benutzer (ID: $userId) nicht gefunden!")
+        userDetailsManager.recordUserRead(userDetails)
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
     }
 
+    /** Same detail-view read as [getUser], reached by personnel number instead of id. */
     @GetMapping("/personnel-number/{personnelNumber}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional
     fun getUserByPersonnelNumber(@PathVariable personnelNumber: String): ResponseEntity<UserResponse> {
         val userDetails = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
             ?: throw NotFoundException("Benutzer (Personalnummer: $personnelNumber) nicht gefunden!")
+        userDetailsManager.recordUserRead(userDetails)
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
     }

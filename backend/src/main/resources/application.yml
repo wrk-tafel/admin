@@ -21,6 +21,14 @@ logging:
     org.apache: WARN
   file:
     name: ${user.dir}/logs/app.log
+  # Spring Boot's own defaults (10MB per file, 7 files kept, no total cap) match what is set here -
+  # made explicit so app.log's rollover is a decision rather than whatever the framework happens to
+  # default to.
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+      total-size-cap: 100MB
   pattern:
     file: "%d{ISO8601} %-5level [%t] %C: %msg%n%throwable"
 
@@ -46,6 +54,14 @@ server:
       buffered: false
       prefix: access
       suffix: .log
+      # Tomcat's own default pattern is %r ("%h %l %u %t \"%r\" %s %b"), which is the full request
+      # line - method, path AND query string. A search's ?searchInput=<name> is, in practice, a
+      # customer's name, so that default would put a name into the one log file rotate: false below
+      # keeps forever. %m %U %H spells out the same "%r" minus the query string (method, path,
+      # protocol) - see GDPR gap G25, issue #3506.
+      pattern: '%h %l %u %t "%m %U %H" %s %b'
+      # Tomcat itself never rotates access.log - rotation/retention for it is handled host-side
+      # (e.g. logrotate on the deployment host), outside this application's configuration.
       rotate: false
 
 spring:
@@ -102,6 +118,10 @@ spring:
     properties.mail.smtp:
       auth: true
       starttls.enable: true
+      # required, not just enable: without it, a relay that doesn't advertise STARTTLS (or a
+      # man-in-the-middle stripping the capability) makes JavaMail fall back to plaintext instead
+      # of failing - see GDPR compliance doc G28.
+      starttls.required: true
   jpa:
     open-in-view: false
   thymeleaf:
@@ -136,6 +156,21 @@ security:
   loginAttempts:
     maxFailures: 10
     lockoutDurationInSeconds: 300 # 5 minutes
+  # The IP-scoped counterpart to loginAttempts above (LoginAttemptIpService): failed logins from one
+  # IP across however many different usernames lock that IP out the same way. maxFailures sits well
+  # above the per-username threshold since several staff can share one office's NAT'd IP.
+  loginAttemptsIp:
+    maxFailures: 30
+    lockoutDurationInSeconds: 900 # 15 minutes
+  # A token bucket per client IP (RateLimiterIpService), separately for /api/login, /api/support and
+  # /api/client-errors - capacity is the burst an IP may spend at once, refilling by refillTokens every
+  # refillPeriodInSeconds. Unlike loginAttempts above this counts every request (not just failures)
+  # and lives only in this instance's memory, not the database - see RateLimitFilter.
+  rateLimit:
+    enabled: true
+    capacity: 30
+    refillTokens: 30
+    refillPeriodInSeconds: 60
   # Argon2id tuning for password hashes (WebSecurityConfig.passwordEncoder). A change here only
   # affects newly-created hashes; an existing user's hash is migrated onto it lazily, on their next
   # successful login, rather than needing a bulk rehash (see
@@ -173,16 +208,37 @@ tafeladmin:
   # less keeps every entry instead of deleting them all.
   #
   # breachDetection.readThreshold - GDPR gap G11's threshold check (ExcessiveReadAccessDetectionService):
-  # more than this many READ entries by one user within the trailing hour notifies administrators via
-  # push. Read per use, so it can be tuned on a running deployment; 0 or less switches the check off.
+  # more than this many weighted READ entries by one user within the trailing hour notifies
+  # administrators via push. Read per use, so it can be tuned on a running deployment; 0 or less
+  # switches the check off.
+  # breachDetection.bulkReadWeight - what one READ of a bulk household report (above-limit, overview,
+  # duplicates, merge preview - see AuditScope.bulkReportEntityTypes) counts as against readThreshold,
+  # instead of the 1 every other entity type counts as (GDPR gap G24). Read per use.
   # breachDetectionCron - how often that check runs, default hourly - is startup-only for the same
   # reason cleanupCron is.
+  #
+  # readDedupeWindow - how long the same actor's READ of the same household is considered "already
+  # recorded" (HouseholdService.findByHouseholdId), so reloading the customer detail screen doesn't
+  # write a fresh entry every time. Read per use.
+  #
+  # cleanupEnabled - GDPR gap G19 - the deletion kill switch, independent of both `enabled` above
+  # (which only ever gates writing) and retentionDays: before this existed, the only way to pause
+  # deletion was retentionDays <= 0, indistinguishable from "no window configured yet". Read per use.
+  #
+  # maxDeletionsPerRun - the most a single cleanup run may delete before it refuses to proceed and
+  # alerts administrators instead (RETENTION_RUN push notification). Higher than the other retention
+  # jobs' ceilings below, since this table's daily churn is legitimately in the thousands. 0 or less
+  # switches the ceiling off entirely.
   audit:
     enabled: true
     retentionDays: 30
+    cleanupEnabled: true
+    maxDeletionsPerRun: 20000
     cleanupCron: "0 0 5 * * *"
+    readDedupeWindow: 5m
     breachDetection:
       readThreshold: 20
+      bulkReadWeight: 10
     breachDetectionCron: "0 0 * * * *"
   # Check-in via handheld scanners. A scanner refreshes its registration while it is in use, so this
   # only has to outlast the gaps within a distribution day: long enough that a scanner switched off
@@ -205,19 +261,28 @@ tafeladmin:
     scannerFolderEnabled: true
   # GDPR gap G1 (docs/architecture/gdpr-compliance.md) - deletes a household, and everything attached
   # to it (persons, notes, documents on disk, attendance history), once its validUntil has been in the
-  # past for longer than retentionYears. Runs through the same HouseholdService.deleteHouseholdByHouseholdId
+  # past for longer than retentionTime. Runs through the same HouseholdService.deleteHouseholdByHouseholdId
   # a staff member's manual delete uses, so there is only the one retention window rather than a
-  # separate one per data class - see HouseholdRetentionService. `enabled` and `retentionYears` are
+  # separate one per data class - see HouseholdRetentionService. `enabled` and `retentionTime` are
   # read per use and take effect on a running deployment; `cleanupCron` does not, for the same reason
   # as audit.cleanupCron above. 06:00 is a quiet slot after the audit/document-storage cleanups at
   # 05:00, so a night's deletions do not overlap with each other's transactions.
   #
-  # retentionYears defaults to 7, the Austrian bookkeeping retention period (UGB/BAO Section 132) for
-  # records touching cost contributions - a defensible floor, not a final answer; the actual period is
-  # the operator's call. A value of 0 or less keeps every household instead of deleting them all.
+  # retentionTime is a Period (y/m/w/d suffixes, e.g. "7y", "18m", "730d" - unlike a Duration, which
+  # has no year/month unit at all) rather than a plain year count, so it can be expressed however an
+  # operator actually thinks about it. Defaults to 7y, the Austrian bookkeeping retention period
+  # (UGB/BAO Section 132) for records touching cost contributions - a defensible floor, not a final
+  # answer; the actual period is the operator's call. A zero or negative period keeps every household
+  # instead of deleting them all.
+  #
+  # maxDeletionsPerRun - GDPR gap G19 - the most a single run may delete before it refuses to proceed
+  # and alerts administrators instead (RETENTION_RUN push notification), so a misconfigured window
+  # sweeping a database's worth of households doesn't look identical to a normal night. Read per use.
+  # 0 or less switches the ceiling off entirely.
   householdDeletion:
     enabled: true
-    retentionYears: 7
+    retentionTime: 7y
+    maxDeletionsPerRun: 50
     cleanupCron: "0 0 6 * * *"
   # GDPR gap G13 (docs/architecture/gdpr-compliance.md), the "users" half - mirrors householdDeletion
   # above for staff accounts. Candidate accounts are measured by lastLogin (falling back to createdAt
@@ -231,13 +296,17 @@ tafeladmin:
   #
   # retentionTime is a Period (y/m/w/d suffixes, e.g. "7y", "18m", "730d" - unlike a Duration, which
   # has no year/month unit at all) rather than a plain year count, so it can be expressed however an
-  # operator actually thinks about it. Defaults to 7y - unified with householdDeletion.retentionYears
+  # operator actually thinks about it. Defaults to 7y - unified with householdDeletion.retentionTime
   # and employeeDeletion.retentionTime below as one consistent retention floor across the application,
   # even though it isn't itself tied to householdDeletion's bookkeeping period; widen or shorten per
   # deployment. A zero or negative period keeps every account instead of deleting them all.
+  #
+  # maxDeletionsPerRun - GDPR gap G19 - see householdDeletion.maxDeletionsPerRun above; same
+  # reasoning, same ceiling default.
   userDeletion:
     enabled: true
     retentionTime: 7y
+    maxDeletionsPerRun: 50
     cleanupCron: "0 15 6 * * *"
   # GDPR gap G13, the "employees" half - see userDeletion above. Deletes an employee once it is
   # referenced by nothing else at all - not just no linked user account, also no household issuer, no
@@ -248,12 +317,16 @@ tafeladmin:
   # account is deleted the same night is already a candidate on the very next run.
   #
   # retentionTime defaults to 7y, the same unified floor as userDeletion.retentionTime and
-  # householdDeletion.retentionYears, even though an employee this job ever reaches is by definition
+  # householdDeletion.retentionTime, even though an employee this job ever reaches is by definition
   # not the issuer/driver/recorder of anything still on record, so no bookkeeping period specifically
   # applies to it. A zero or negative period keeps every employee instead of deleting them all.
+  #
+  # maxDeletionsPerRun - GDPR gap G19 - see householdDeletion.maxDeletionsPerRun above; same
+  # reasoning, same ceiling default.
   employeeDeletion:
     enabled: true
     retentionTime: 7y
+    maxDeletionsPerRun: 50
     cleanupCron: "0 30 6 * * *"
   # Watches the config files this application was started with - in production the operator-managed
   # /app/config/config.yml bind-mounted into the container - and re-binds tafeladmin.* whenever one
@@ -396,6 +469,13 @@ tafeladmin:
     # nightly cleanup deletes it. A file is written to disk before its row is committed, so this is
     # what keeps the cleanup from deleting a document out from under the request creating it.
     orphanedFileMinAge: 60m
+    # How long an unclaimed file on the scanner share above is kept before the nightly cleanup
+    # deletes it - a scanner file has no database row of its own, so this is its whole retention
+    # window rather than a race-condition guard like orphanedFileMinAge (GDPR gap G18).
+    scannerFileRetention: 7d
+    # How long before scannerFileRetention's deadline a file starts appearing in the "files about to
+    # be discarded" push notification, so staff get a chance to import or discard it themselves first.
+    scannerFileRetentionWarning: 1d
   # Wipes and re-creates the schema on startup so the testdata migrations can seed it from scratch.
   # Only ever true for local development and the Cypress run - it destroys all data. Read once at
   # startup by definition, since Flyway has finished long before anyone could edit the config file.

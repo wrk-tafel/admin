@@ -12,12 +12,14 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.web.authentication.WebAuthenticationDetails
 import java.util.UUID
 
 class TafelLoginProvider(
     private val userDetailsService: UserDetailsService,
     private val passwordEncoder: PasswordEncoder,
     private val loginAttemptService: LoginAttemptService,
+    private val loginAttemptIpService: LoginAttemptIpService,
     private val loginAuditService: LoginAuditService,
     private val upgradePasswordHash: (username: String, upgradedHash: String) -> Unit,
 ) : AbstractUserDetailsAuthenticationProvider() {
@@ -37,6 +39,15 @@ class TafelLoginProvider(
 
     override fun authenticate(authentication: Authentication): Authentication {
         val username = authentication.name ?: ""
+        // Set by Spring's default WebAuthenticationDetailsSource from the request TafelLoginFilter
+        // authenticated against - null only for an Authentication built outside that filter (a unit
+        // test), in which case there is no IP to track.
+        val ipAddress = (authentication.details as? WebAuthenticationDetails)?.remoteAddress
+
+        if (ipAddress != null && loginAttemptIpService.isLocked(ipAddress)) {
+            log.warn("Login rejected for locked-out IP '{}'", sanitizeForLog(ipAddress))
+            throw LockedException("IP '$ipAddress' is locked due to too many failed login attempts")
+        }
         if (loginAttemptService.isLocked(username)) {
             log.warn("Login rejected for locked-out user '{}'", sanitizeForLog(username))
             throw LockedException("User '$username' is locked due to too many failed login attempts")
@@ -45,11 +56,13 @@ class TafelLoginProvider(
         try {
             val result = super.authenticate(authentication)
             loginAttemptService.recordSuccess(username)
+            ipAddress?.let { loginAttemptIpService.recordSuccess(it) }
             loginAuditService.recordLogin(result.principal as TafelUser)
             log.info("Login successful for user '{}'", sanitizeForLog(username))
             return result
         } catch (e: BadCredentialsException) {
             loginAttemptService.recordFailure(username)
+            ipAddress?.let { loginAttemptIpService.recordFailure(it) }
             log.warn("Login failed for user '{}': {}", sanitizeForLog(username), sanitizeForLog(e.message))
             throw e
         }

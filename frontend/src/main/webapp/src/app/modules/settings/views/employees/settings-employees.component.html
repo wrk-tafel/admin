@@ -1,11 +1,28 @@
 <mat-card class="w-full">
   <mat-card-header class="mb-2">
     <mat-card-title>
-      <div class="flex items-center gap-2">
-        <h2 class="tafel-h5 mb-0 mt-1">Mitarbeiter</h2>
-        <button matButton="filled" class="button-success" testid="addEmployeeButton" matTooltip="Neuen Mitarbeiter anlegen" (click)="addEmployee()" aria-label="Neuen Mitarbeiter anlegen">
-          <mat-icon svgIcon="add"></mat-icon>
-        </button>
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <div class="flex items-center gap-2">
+          <h2 class="tafel-h5 mb-0 mt-1">Mitarbeiter</h2>
+          <button matButton="filled" class="button-success" testid="addEmployeeButton" matTooltip="Neuen Mitarbeiter anlegen" (click)="addEmployee()" aria-label="Neuen Mitarbeiter anlegen">
+            <mat-icon svgIcon="add"></mat-icon>
+          </button>
+        </div>
+        <div class="flex items-center gap-1">
+          <button type="button" matButton="outlined" testid="downloadStaffPrivacyNoticeButton"
+                  [disabled]="downloadingPrivacyNotice()" (click)="downloadStaffPrivacyNotice()">
+            @if (downloadingPrivacyNotice()) {
+              <span class="inline-flex items-center gap-1.5 align-middle">
+                <mat-icon svgIcon="progress_activity" class="animate-spin"></mat-icon>
+                <span>Wird erstellt...</span>
+              </span>
+            } @else {
+              Datenschutzerklärung (Mitarbeiter)
+            }
+          </button>
+          <tafel-info-tooltip testId="staff-privacy-notice-info-tooltip"
+                              text="Datenschutzerklärung für Mitarbeiter:innen ohne Personenbezug zum Ausdrucken - z. B. für Mitarbeiter:innen ohne eigenes Benutzerkonto."></tafel-info-tooltip>
+        </div>
       </div>
     </mat-card-title>
   </mat-card-header>
@@ -134,7 +151,7 @@
               <mat-icon svgIcon="delete"></mat-icon>
             </button>
             @if (!employee.userAccount) {
-              <button matButton="outlined" class="ml-2" [attr.testid]="'exportEmployeeButton-' + i" matTooltip="Daten exportieren (PDF)"
+              <button matButton="outlined" class="ml-2" [attr.testid]="'exportEmployeeButton-' + i" matTooltip="Daten exportieren (ZIP)"
                       (click)="exportEmployee(employee)" [attr.aria-label]="'Daten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' exportieren'">
                 <mat-icon svgIcon="download"></mat-icon>
               </button>
@@ -230,7 +247,7 @@
                   <mat-icon svgIcon="delete"></mat-icon>
                 </button>
                 @if (!employee.userAccount) {
-                  <button matButton="outlined" [attr.testid]="'exportEmployeeButtonMobile-' + i" matTooltip="Daten exportieren (PDF)"
+                  <button matButton="outlined" [attr.testid]="'exportEmployeeButtonMobile-' + i" matTooltip="Daten exportieren (ZIP)"
                           (click)="exportEmployee(employee)" [attr.aria-label]="'Daten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' exportieren'">
                     <mat-icon svgIcon="download"></mat-icon>
                   </button>

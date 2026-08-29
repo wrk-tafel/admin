@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.config
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.passay.PasswordData
 import org.passay.rule.CharacterRule
 
 class WebSecurityConfigTest {
@@ -18,5 +19,14 @@ class WebSecurityConfigTest {
 
         assertThat(rules).hasSize(3)
         assertThat(rules).allSatisfy { rule -> assertThat(rule).isInstanceOf(CharacterRule::class.java) }
+    }
+
+    @Test
+    fun `passwordValidator requires every one of the generated-password character classes too`() {
+        val missingUppercase = WebSecurityConfig.passwordValidator.validate(PasswordData("user", "onlylowercase123"))
+        val compliant = WebSecurityConfig.passwordValidator.validate(PasswordData("user", "Compliant123"))
+
+        assertThat(missingUppercase.isValid).isFalse()
+        assertThat(compliant.isValid).isTrue()
     }
 }

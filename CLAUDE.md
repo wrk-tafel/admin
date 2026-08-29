@@ -132,9 +132,10 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 The backend uses **Spring Modulith** architecture with 12 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
 
-- **audit**: read access to the audit trail — "who changed what, and what did it look like before".
-  Only reads: the listener that fills `audit_log` lives in `database/common/audit/` because it has to
-  see every module's writes. See ADR-0039 and the module README
+- **audit**: read access to the audit trail — "who changed or accessed what, and what a change
+  looked like before". Only reads: the listener that fills `audit_log` lives in
+  `database/common/audit/` because it has to see every module's writes. See ADR-0039 and the module
+  README
 - **household**: Household/person management (business package still called `household`, DB tables `households`/`persons`) with income validation, duplicate detection, PDF generation (ID cards, master data). A household is the case record (business number, address, contact, validity/lock/cost-contribution state); it has one or more persons, exactly one of which is flagged as the main person. Note: the frontend module is still named `customer` and its DTOs still use the old flat "customer + additionalPersons" shape on purpose (see Frontend Architecture and API Structure below) — only `customer-api.service.ts` knows about the household/person split.
 - **distribution**: Food distribution events with ticket management and statistics; publishes `DistributionClosedEvent` on close for other modules (e.g. `reporting`) to react to
 - **logistics**: Routes, food collections, shelters, shops, cars, and food category management
@@ -144,7 +145,9 @@ The backend uses **Spring Modulith** architecture with 12 core feature modules (
 - **settings**: Application configuration and mail recipient management
 - **support**: In-app support contact form that mails the request — plus the technical context of
   the report (reporter, version, page, browser, the session's last errors) and a screenshot of the
-  page, attached as `screenshot.jpg` — to `tafeladmin.support.recipients`. See ADR-0044
+  page, attached as `screenshot.jpg` — to `tafeladmin.support.recipients`. See ADR-0044. Also logs a
+  client-side error to `app.log` the moment it happens, without waiting for a user to notice it and
+  write a support request. See ADR-0053
 - **push**: Web Push (VAPID) device subscriptions and per-user notification preferences; broadcasts
   on distribution started/closed events
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
@@ -236,7 +239,8 @@ choice on its own merits).
   seconds later, and which is what makes delivery at-least-once — while the ones already sent keep
   their outcome
 - **Scheduled jobs coordinate on their own rows first, and only take a scheduler lock when there are
-  none** (ADR-0047). A job that works through rows claims them with `FOR UPDATE SKIP LOCKED` — the
+  none** (ADR-0047; `docs/scheduled-jobs.md` lists every job with its schedule and
+  which mechanism it uses). A job that works through rows claims them with `FOR UPDATE SKIP LOCKED` — the
   five retention cleanups (`sse_outbox`, `mail_outbox`, `login_attempts`, `scanner_registrations`,
   `audit_log`) and the mail poller all do — so two instances share the work out instead of one
   standing idle. Note this is why those deletes are native `@Modifying` queries rather than derived
@@ -267,7 +271,7 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **user**: User search, create, edit with password change functionality, plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking
 - **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a list of expandable cards with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded body instead of a separate details dialog — see the settings module README before restyling them back into a table
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
-- **audit**: the `aenderungsprotokoll` screen — the whole audit trail, filterable. The per-household
+- **audit**: the `zugriffsprotokoll` screen — the whole audit trail, filterable. The per-household
   view of the same data is the customer detail screen's "Verlauf" tab; both render the shared
   `common/components/audit-entry-list` component
 
@@ -327,7 +331,6 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - `distributions`: Food distribution events
 - `distributions_households`: household participation in distributions
 - `distributions_statistics`: Statistics per distribution
-- `customers`, `customers_addpersons`: legacy tables, superseded by `households`/`persons` above. Kept read-only/unused for a production observation window before a separate cleanup migration drops them — do not write to these, do not build new features against them
 - `routes`, `route_stops`, `shops`: Logistics route management
 - `food_categories`, `food_collections`, `food_collection_items`: Food recording
 - `shelters`, `shelter_contacts`: Shelter management
@@ -652,6 +655,7 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/audit`: Audit trail — the whole log (filterable), `/filter-options` for the filter dropdowns, and `/households/{householdId}` for one household's "Verlauf" tab. Read-only by design; behind the `AUDIT_LOG` permission
 - `/api/settings`: Application settings
 - `/api/support`: Mails an in-app support request (title, text, and the browser's `clientContext`) to the configured support addresses
+- `/api/client-errors`: Logs one client-side error (message, page, user agent) to `app.log` as it happens, rate-limited per IP; behind `isAuthenticated()`, no dedicated permission
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 - `/api/data-subject-requests`: the central "Datenauskunft" screen — `/search` across households, user accounts and employees without one; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
 
@@ -800,7 +804,10 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   `TafelAdminStorageProperties.scannerFolderAvailable` is the single rule both sides go by, enforced
   server-side by `ScannerFileService` and reported to the frontend as `/api/config`'s
   `scannerFolderEnabled` so the UI can hide a source the backend would refuse to serve. Both
-  settings can be flipped on a running deployment — see Config Hot-Reload below.
+  settings can be flipped on a running deployment — see Config Hot-Reload below. A file nobody
+  imports or deletes doesn't stay there forever: `ScannerFileCleanupService` deletes it after
+  `tafeladmin.storage.scannerFileRetention` (7 days by default, GDPR gap G18), and `push`'s
+  `ScannerFileExpiryReminderService` warns `CUSTOMER_DOCUMENTS` holders before that happens.
 - **Config Hot-Reload**: the **whole** configuration is re-read while the application runs — not just
   `tafeladmin.*`. Production's settings come from an operator-managed `config.yml` bind-mounted into
   the container (`-Dspring.config.additional-location`, see `_build/Dockerfile`), and
@@ -842,9 +849,9 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   - The frontend follows along: `ConfigChangePublisher` pushes the new `ConfigResponse` over
     `/api/sse/config`, and `ConfigApiService.observeConfig()` is a shared stream of the HTTP response
     plus that SSE feed — components must subscribe to it rather than reading the config once.
-- **Audit Trail**: every change to a household, person, note, document, user, user authority, static
-  value or mail recipient is recorded in `audit_log` — who, when, and the old/new values as a `jsonb`
-  diff. Written from a Hibernate flush-time listener (`database/common/audit/`) that buffers entries
+- **Audit Trail**: every change to a household, person, note, document, employee, user, user
+  authority, static value or mail recipient is recorded in `audit_log` — who, when, and the old/new
+  values as a `jsonb` diff. Written from a Hibernate flush-time listener (`database/common/audit/`) that buffers entries
   and writes them in `beforeCommit`, so a rolled-back transaction records nothing. Two things to keep
   in mind when touching this area:
   - **`AuditScope` is the whole allow-list.** Adding an entity there is all it takes to audit it —

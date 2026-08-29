@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
@@ -23,6 +24,12 @@ class HouseholdDuplicationServiceIT : TafelBaseIntegrationTest() {
 
     @Autowired
     private lateinit var householdDuplicationService: HouseholdDuplicationService
+
+    @Autowired
+    private lateinit var householdService: HouseholdService
+
+    @Autowired
+    private lateinit var householdDuplicateDismissalRepository: HouseholdDuplicateDismissalRepository
 
     private lateinit var testUser: UserEntity
     private lateinit var testCountry: CountryEntity
@@ -87,6 +94,25 @@ class HouseholdDuplicationServiceIT : TafelBaseIntegrationTest() {
         val result = householdDuplicationService.findDuplicates(page = null)
 
         assertThat(result.totalCount).isEqualTo(0)
+    }
+
+    @Test
+    @Transactional
+    fun `deleting a household cascades to its duplicate dismissals`() {
+        val household1 = persistHousehold(firstname = "Maria", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+        val household2 = persistHousehold(firstname = "Marie", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        householdDuplicationService.dismiss(household1.householdId, household2.householdId)
+
+        householdService.deleteHouseholdByHouseholdId(household1.householdId)
+        testEntityManager.flush()
+
+        val low = minOf(household1.householdId, household2.householdId)
+        val high = maxOf(household1.householdId, household2.householdId)
+        assertThat(householdDuplicateDismissalRepository.existsByHouseholdIdLowAndHouseholdIdHigh(low, high)).isFalse()
     }
 
     @Test

@@ -50,6 +50,7 @@ class SupportService(
         context.setVariable("diagnostics", collectDiagnostics(request.clientContext, screenshot != null))
 
         mailSenderService.sendHtmlMailTo(
+            mailType = "Support-Anfrage",
             recipients = recipients,
             subject = subjectPrefix(supportProperties?.subjectPrefix) + request.title,
             attachments = listOfNotNull(screenshot),
