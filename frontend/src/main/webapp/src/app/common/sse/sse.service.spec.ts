@@ -101,7 +101,7 @@ describe('SseService', () => {
     expect(FakeEventSource.latest()).not.toBe(firstInstance);
   });
 
-  it('does not reconnect on a transient error while the browser is still retrying (readyState CONNECTING)', () => {
+  it('does not open a replacement EventSource on a transient error while the browser is still retrying (readyState CONNECTING)', () => {
     const service = setup();
     const connectionStateCallback = vi.fn();
     service.listen('/sse/dashboard', connectionStateCallback).subscribe();
@@ -110,10 +110,71 @@ describe('SseService', () => {
     firstInstance.readyState = FakeEventSource.CONNECTING;
     firstInstance.onerror!({} as Event);
 
+    // The native EventSource retries CONNECTING on its own - this service must never open a second
+    // one alongside it, whatever it reports on connectionStateCallback.
+    expect(FakeEventSource.instances).toHaveLength(1);
+  });
+
+  // A network-level failure never reaches CLOSED - the browser's own EventSource keeps retrying in
+  // CONNECTING indefinitely - so nothing would otherwise ever report the drop and the "Live-
+  // Verbindung" badge would stay green while no data arrives. See #3530.
+  it('reports disconnected after a grace period when a CONNECTING error never resolves', () => {
+    const service = setup();
+    const connectionStateCallback = vi.fn();
+    service.listen('/sse/dashboard', connectionStateCallback).subscribe();
+
+    const firstInstance = FakeEventSource.latest();
+    firstInstance.readyState = FakeEventSource.CONNECTING;
+    firstInstance.onerror!({} as Event);
+
+    vi.advanceTimersByTime(4999);
+    expect(connectionStateCallback).not.toHaveBeenCalledWith(false);
+
+    vi.advanceTimersByTime(1);
+    expect(connectionStateCallback).toHaveBeenCalledWith(false);
+    expect(FakeEventSource.instances).toHaveLength(1);
+  });
+
+  it('does not report disconnected when the browser reconnects on its own within the grace period', () => {
+    const service = setup();
+    const connectionStateCallback = vi.fn();
+    service.listen('/sse/dashboard', connectionStateCallback).subscribe();
+
+    const firstInstance = FakeEventSource.latest();
+    firstInstance.readyState = FakeEventSource.CONNECTING;
+    firstInstance.onerror!({} as Event);
+
+    vi.advanceTimersByTime(2000);
+    firstInstance.readyState = FakeEventSource.OPEN;
+    firstInstance.onopen!();
+
     vi.advanceTimersByTime(5000);
 
     expect(connectionStateCallback).not.toHaveBeenCalledWith(false);
-    expect(FakeEventSource.instances).toHaveLength(1);
+  });
+
+  it('does not fire a stale grace-period disconnect after the connection permanently closed and reconnected', () => {
+    const service = setup();
+    const connectionStateCallback = vi.fn();
+    service.listen('/sse/dashboard', connectionStateCallback).subscribe();
+
+    const firstInstance = FakeEventSource.latest();
+    firstInstance.readyState = FakeEventSource.CONNECTING;
+    firstInstance.onerror!({} as Event);
+
+    // A second, unrelated error now closes the connection for good before the grace period from
+    // the first error elapses - the grace timer from the CONNECTING branch must not still fire
+    // callback(false) a second time once the reconnect below succeeds.
+    firstInstance.readyState = FakeEventSource.CLOSED;
+    firstInstance.onerror!({} as Event);
+    vi.advanceTimersByTime(1000);
+
+    FakeEventSource.latest().onopen!();
+    connectionStateCallback.mockClear();
+
+    vi.advanceTimersByTime(5000);
+
+    expect(connectionStateCallback).not.toHaveBeenCalledWith(false);
   });
 
   it('backs off exponentially up to 30s while reconnecting keeps failing', () => {

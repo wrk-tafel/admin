@@ -10,6 +10,12 @@ import {UrlHelperService} from '../util/url-helper.service';
 const RECONNECT_DELAY_MIN_MILLIS = 1000;
 const RECONNECT_DELAY_MAX_MILLIS = 30000;
 
+// On a network-level failure (as opposed to the server sending a fatal response), the native
+// `EventSource` keeps retrying on its own and never reaches `CLOSED` - it sits in `CONNECTING`
+// indefinitely instead, which is why `onerror` alone can't be trusted to report a drop. Give the
+// browser's own retry this long to succeed before telling the caller the connection is down.
+const DISCONNECT_GRACE_MILLIS = 5000;
+
 @Service()
 export class SseService {
   private readonly urlHelperService = inject(UrlHelperService);
@@ -38,6 +44,14 @@ export class SseService {
       let eventSource: EventSource | null = null;
       let reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
       let reconnectDelay = RECONNECT_DELAY_MIN_MILLIS;
+      let disconnectGraceTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+      const clearDisconnectGrace = () => {
+        if (disconnectGraceTimeoutId !== null) {
+          clearTimeout(disconnectGraceTimeoutId);
+          disconnectGraceTimeoutId = null;
+        }
+      };
 
       const connect = () => {
         eventSource = new EventSource(`${baseUrl}/api${url}`);
@@ -46,6 +60,7 @@ export class SseService {
           // Only a connection that actually opened proves the backend is reachable again, so the
           // backoff is reset here rather than on the attempt being made.
           reconnectDelay = RECONNECT_DELAY_MIN_MILLIS;
+          clearDisconnectGrace();
 
           if (connectionStateCallback) {
             connectionStateCallback(true);
@@ -68,12 +83,26 @@ export class SseService {
           console.error('SSE connection error', error);
 
           if (eventSource?.readyState === EventSource.CLOSED) {
+            clearDisconnectGrace();
+
             if (connectionStateCallback) {
               connectionStateCallback(false);
             }
 
             console.warn('SSE connection permanently closed, trying to reconnect...');
             reconnect();
+          } else if (eventSource?.readyState === EventSource.CONNECTING && disconnectGraceTimeoutId === null) {
+            // A network-level failure leaves the native EventSource retrying in CONNECTING forever
+            // rather than ever reaching CLOSED, so the branch above never fires for it and nothing
+            // would otherwise report the drop - see #3530. Report it as disconnected once the grace
+            // period has passed without the browser's own retry succeeding.
+            disconnectGraceTimeoutId = setTimeout(() => {
+              disconnectGraceTimeoutId = null;
+
+              if (eventSource?.readyState !== EventSource.OPEN && connectionStateCallback) {
+                connectionStateCallback(false);
+              }
+            }, DISCONNECT_GRACE_MILLIS);
           }
         };
       };
@@ -104,6 +133,7 @@ export class SseService {
         if (reconnectTimeoutId !== null) {
           clearTimeout(reconnectTimeoutId);
         }
+        clearDisconnectGrace();
         eventSource?.close();
       };
     });

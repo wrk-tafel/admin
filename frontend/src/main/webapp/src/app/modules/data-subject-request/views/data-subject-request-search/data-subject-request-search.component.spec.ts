@@ -2,7 +2,7 @@ import {TestBed} from '@angular/core/testing';
 import {HttpHeaders, HttpResponse, provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {MatDialog} from '@angular/material/dialog';
-import {of} from 'rxjs';
+import {of, Subject} from 'rxjs';
 import {DataSubjectRequestSearchComponent} from './data-subject-request-search.component';
 import {
   DataSubjectDeleteResponse,
@@ -89,6 +89,32 @@ describe('DataSubjectRequestSearchComponent', () => {
       {type: 'CUSTOMER', label: 'Kunde', items: [searchResponse.items[0]]},
       {type: 'USER_ACCOUNT', label: 'Benutzerkonto', items: [searchResponse.items[1]]}
     ]);
+  });
+
+  // A slower search's response arriving after a faster, more recent one must never overwrite the
+  // result list with matches for a term that is no longer in the search box. See #3530.
+  it('a slower stale search response never overwrites a newer one already applied', () => {
+    const firstResponse = new Subject<DataSubjectMatchListResponse>();
+    const secondResponse: DataSubjectMatchListResponse = {items: [searchResponse.items[1]], truncated: false};
+
+    (apiMock.search as any)
+      .mockReturnValueOnce(firstResponse)
+      .mockReturnValueOnce(of(secondResponse));
+
+    const component = createComponent().componentInstance;
+
+    component['onSearchInput']('Muster');
+    vi.advanceTimersByTime(400);
+
+    component['onSearchInput']('Musterfrau');
+    vi.advanceTimersByTime(400);
+
+    // The second, faster search has already resolved and been applied by the time the first,
+    // slower one finally answers.
+    firstResponse.next(searchResponse);
+    firstResponse.complete();
+
+    expect(component['matches']()).toEqual(secondResponse.items);
   });
 
   it('does not select a match whose area permission is missing', () => {

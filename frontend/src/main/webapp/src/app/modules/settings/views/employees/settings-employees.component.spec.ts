@@ -10,7 +10,7 @@ import {
   PersonnelNumberAvailabilityResponse
 } from '../../../../api/employee-api.service';
 import {MatDialog} from '@angular/material/dialog';
-import {of, throwError} from 'rxjs';
+import {of, Subject, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -127,6 +127,35 @@ describe('SettingsEmployeesComponent', () => {
 
     expect(employeeApiMock.findEmployees).toHaveBeenCalledWith('00001', 1, listResponse.pageSize);
     expect(employeeApiMock.findEmployees).toHaveBeenCalledTimes(2);
+  });
+
+  // A slower search's response arriving after a faster, more recent one must never overwrite the
+  // list with results for a query the search box no longer holds. See #3530.
+  it('a slower stale search response never overwrites a newer one already applied', () => {
+    const firstResponse = new Subject<EmployeeListResponse>();
+    const secondResponse: EmployeeListResponse = {...listResponse, items: [testEmployee2], totalCount: 1};
+
+    (employeeApiMock.findEmployees as any)
+      .mockReturnValueOnce(of(listResponse))
+      .mockReturnValueOnce(firstResponse)
+      .mockReturnValueOnce(of(secondResponse));
+
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['searchControl'].setValue('0000');
+    vi.advanceTimersByTime(500);
+
+    component['searchControl'].setValue('00002');
+    vi.advanceTimersByTime(500);
+
+    // The second, faster search has already resolved and been applied by the time the first,
+    // slower one finally answers.
+    firstResponse.next(listResponse);
+    firstResponse.complete();
+
+    expect(component['employees']()).toEqual(secondResponse);
   });
 
   it('startEdit() enters edit mode for the given row and prefills the fields', () => {

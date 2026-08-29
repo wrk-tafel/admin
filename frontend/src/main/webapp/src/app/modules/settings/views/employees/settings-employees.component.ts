@@ -24,7 +24,7 @@ import {
   MatTable
 } from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
-import {catchError, debounceTime, distinctUntilChanged, EMPTY, map, Observable, of, switchMap, tap} from 'rxjs';
+import {catchError, debounceTime, distinctUntilChanged, EMPTY, map, Observable, of, Subject, switchMap, tap} from 'rxjs';
 import {
   CreateEmployeeRequest,
   EmployeeApiService,
@@ -150,7 +150,18 @@ export class SettingsEmployeesComponent {
   private personnelNumberInput = viewChild<ElementRef<HTMLInputElement>>('personnelNumberInput');
   private personnelNumberInputMobile = viewChild<ElementRef<HTMLInputElement>>('personnelNumberInputMobile');
 
+  /**
+   * Every {@link loadEmployees} call goes through this subject and `switchMap` instead of
+   * subscribing per call, so a still-in-flight search/page request can never overwrite the list
+   * with a response for a query that is no longer the current one - see #3530.
+   */
+  private readonly loadRequests = new Subject<{ page?: number; pageSize?: number }>();
+
   constructor() {
+    this.loadRequests
+      .pipe(switchMap(request => this.fetchEmployees(request.page, request.pageSize)), takeUntilDestroyed())
+      .subscribe();
+
     this.loadEmployees();
 
     this.searchControl.valueChanges
@@ -188,7 +199,7 @@ export class SettingsEmployeesComponent {
   }
 
   protected loadEmployees(page?: number, pageSize?: number) {
-    this.fetchEmployees(page, pageSize).subscribe();
+    this.loadRequests.next({page, pageSize});
   }
 
   private fetchEmployees(page?: number, pageSize?: number): Observable<EmployeeListResponse> {
