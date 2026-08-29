@@ -25,14 +25,16 @@ of the file's `WARN` traffic.**
   (`frontend/.../common/support/`) subscribes to it at startup (same
   `provideAppInitializer` pattern as `captureGlobalErrors`) and reports each entry via
   `ClientErrorApiService`.
-- `captureGlobalErrors()` also now wraps `console.warn`, so a degraded-but-handled situation logged
-  that way (a chime that couldn't play, a screen wake lock that couldn't be acquired, an SSE stream
-  reconnecting) reaches the log too, not only an uncaught exception. `console.error` is deliberately
-  left unwrapped: Angular's own default `ErrorHandler` logs an uncaught error via `console.error`
-  internally, and `TafelErrorHandler` already records that same error explicitly before forwarding to
-  it - wrapping `console.error` as well would record (and then report) every uncaught error twice. A
-  raw `console.error(...)` call made directly by app code (outside `TafelErrorHandler`, e.g. in
-  `SseService`) is therefore still not captured - the same gap that existed before this ADR.
+- `captureGlobalErrors()` also now wraps `console.warn` and `console.error`, so a degraded-but-handled
+  situation logged that way (a chime that couldn't play, a screen wake lock that couldn't be acquired,
+  an SSE stream reconnecting) or a raw `console.error(...)` call made directly by app code (e.g. in
+  `SseService`) reaches the log too, not only an uncaught exception - closing a gap that otherwise
+  remained even after this ADR. Angular's own default `ErrorHandler` logs an uncaught error via
+  `console.error` internally, and `TafelErrorHandler` already records that same error explicitly
+  before forwarding to it - without a guard, wrapping `console.error` would record (and then report)
+  every uncaught error twice. `ClientLogService.runWithConsoleCaptureSuppressed` is that guard:
+  `TafelErrorHandler` calls Angular's default handler through it, so the forwarded `console.error`
+  call is not recorded a second time.
 - The request body (`ClientErrorReportRequest`, `backend/.../modules/support/model/`) is
   deliberately smaller than a support request's `clientContext`: `message`, `page` and `userAgent`
   only - no screenshot, no viewport/screen/language/timezone, no stack trace. This goes out
@@ -107,6 +109,7 @@ still create a mail via `SupportService`, one per client error, which is a much 
 - `backend/src/main/kotlin/at/wrk/tafel/admin/backend/modules/support/internal/ClientErrorLogService.kt`
 - `frontend/src/main/webapp/src/app/common/support/client-error-reporting.service.ts`
 - `frontend/src/main/webapp/src/app/common/support/client-log.service.ts`
+- `frontend/src/main/webapp/src/app/common/support/tafel-error-handler.ts`
 - [ADR-0044](0044-support-requests-sent-as-mail.md) - the existing client-error-capture stack this
   builds on
 - `docs/architecture/gdpr-compliance.md`
