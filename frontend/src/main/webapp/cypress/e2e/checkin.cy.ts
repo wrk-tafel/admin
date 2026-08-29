@@ -121,6 +121,26 @@ describe('CheckIn', () => {
     assertDashboardCustomerCount(0);
   });
 
+  it('scanner status badge turns AKTIV once the selected scanner\'s SSE stream actually connects', () => {
+    cy.request({method: 'POST', url: '/api/scanners/register'}).then((response) => {
+      const scannerId: number = response.body.scannerId;
+
+      // Trimmed, not have.text - the badge's interpolation sits on its own template line, so the
+      // rendered text node carries surrounding whitespace. contain.text isn't safe here either:
+      // 'AKTIV' is a substring of 'INAKTIV', so it wouldn't actually distinguish the two states.
+      cy.byTestId('state-camera').should(($el) => {
+        expect($el.text().trim()).to.equal('INAKTIV');
+      });
+
+      cy.byTestId('scannerIdInput').click();
+      cy.get('mat-option').contains(`Nr. ${scannerId}`).click();
+
+      cy.byTestId('state-camera').should(($el) => {
+        expect($el.text().trim()).to.equal('AKTIV');
+      });
+    });
+  });
+
   it('stacks the header on phone: scanner toolbar above the customer-number input, button beside it', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.visit('/anmeldung/annahme');

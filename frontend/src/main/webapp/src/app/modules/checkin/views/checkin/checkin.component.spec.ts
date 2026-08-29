@@ -213,7 +213,10 @@ describe('CheckinComponent', () => {
 
         const customerId = 11111;
         const scanResult: ScanResult = { value: customerId };
-        sseService.listen.mockReturnValue(of(scanResult));
+        sseService.listen.mockImplementation((_url, connectionStateCallback) => {
+            connectionStateCallback?.(true);
+            return of(scanResult);
+        });
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
@@ -229,8 +232,20 @@ describe('CheckinComponent', () => {
         expect(component.currentScannerId()).toBe(newScannerId);
         expect(component.customerId()).toBe(customerId);
         expect(component.scannerReadyState()).toBeTruthy();
-        expect(sseService.listen).toHaveBeenCalledWith(`/sse/scanners/${newScannerId}/results`);
+        expect(sseService.listen).toHaveBeenCalledWith(`/sse/scanners/${newScannerId}/results`, expect.any(Function));
         expect(customerApiService.getCustomer).toHaveBeenCalled();
+    });
+
+    it('selectedScannerId badge stays inactive when the SSE stream never connects (e.g. an expired scanner id)', () => {
+        sseService.listen.mockReturnValue(EMPTY);
+
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+
+        component.selectedScannerId = 123;
+
+        expect(component.scannerReadyState()).toBeFalsy();
     });
 
     it('selectedScannerId removed scanner', () => {
@@ -260,7 +275,10 @@ describe('CheckinComponent', () => {
         const testSubscription = {
             unsubscribe: vi.fn().mockName('Subscription.unsubscribe')
         } as any;
-        sseService.listen.mockReturnValue(EMPTY);
+        sseService.listen.mockImplementation((_url, connectionStateCallback) => {
+            connectionStateCallback?.(true);
+            return EMPTY;
+        });
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
@@ -276,7 +294,7 @@ describe('CheckinComponent', () => {
         expect(component.currentScannerId()).toBe(newScannerId);
         expect(component.scannerReadyState()).toBeTruthy();
         expect(testSubscription.unsubscribe).toHaveBeenCalled();
-        expect(sseService.listen).toHaveBeenCalledWith(`/sse/scanners/${newScannerId}/results`);
+        expect(sseService.listen).toHaveBeenCalledWith(`/sse/scanners/${newScannerId}/results`, expect.any(Function));
     });
 
     it('searchForCustomerId found valid customer', async () => {
@@ -644,6 +662,55 @@ describe('CheckinComponent', () => {
         fixture.detectChanges();
 
         expect(component.customerNotes()).toEqual(mockNotesResponse.items);
+    });
+
+    it('a slower earlier customer lookup does not overwrite a faster newer one', async () => {
+        // Regression test: two searches can be in flight at once (typing then a scan, or two
+        // scans back to back) - whichever HTTP response arrives first must not win just because
+        // it happened to resolve after the other one.
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+
+        const notesResponse: CustomerNotesResponse = {
+            items: [], totalCount: 0, currentPage: 1, totalPages: 0, pageSize: 5
+        };
+        customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
+        distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({ ticketNumber: null }));
+
+        const slowCustomer1 = new Subject<any>();
+        const fastCustomer2 = {
+            id: 2,
+            gender: Gender.MALE,
+            address: { street: 's', houseNumber: '1', postalCode: 1020, city: 'Wien' },
+            validUntil: dayjs().add(3, 'months').toDate(),
+            additionalPersons: []
+        };
+        customerApiService.getCustomer
+            .mockReturnValueOnce(slowCustomer1)
+            .mockReturnValueOnce(of(fastCustomer2));
+
+        component.customerId.set(1);
+        component.searchForCustomerId();
+
+        component.customerId.set(2);
+        component.searchForCustomerId();
+        await fixture.whenStable();
+
+        expect(component.customer()!.id).toBe(2);
+
+        // The first search's response only arrives now - it must be ignored, not overwrite customer 2
+        slowCustomer1.next({
+            id: 1,
+            gender: Gender.MALE,
+            address: { street: 's', houseNumber: '1', postalCode: 1020, city: 'Wien' },
+            validUntil: dayjs().add(3, 'months').toDate(),
+            additionalPersons: []
+        });
+        slowCustomer1.complete();
+        await fixture.whenStable();
+
+        expect(component.customer()!.id).toBe(2);
     });
 
     it('reset customer', async () => {
