@@ -54,6 +54,12 @@ server:
       buffered: false
       prefix: access
       suffix: .log
+      # Tomcat's own default pattern is %r ("%h %l %u %t \"%r\" %s %b"), which is the full request
+      # line - method, path AND query string. A search's ?searchInput=<name> is, in practice, a
+      # customer's name, so that default would put a name into the one log file rotate: false below
+      # keeps forever. %m %U %H spells out the same "%r" minus the query string (method, path,
+      # protocol) - see GDPR gap G25, issue #3506.
+      pattern: '%h %l %u %t "%m %U %H" %s %b'
       # Tomcat itself never rotates access.log - rotation/retention for it is handled host-side
       # (e.g. logrotate on the deployment host), outside this application's configuration.
       rotate: false
@@ -202,8 +208,12 @@ tafeladmin:
   # less keeps every entry instead of deleting them all.
   #
   # breachDetection.readThreshold - GDPR gap G11's threshold check (ExcessiveReadAccessDetectionService):
-  # more than this many READ entries by one user within the trailing hour notifies administrators via
-  # push. Read per use, so it can be tuned on a running deployment; 0 or less switches the check off.
+  # more than this many weighted READ entries by one user within the trailing hour notifies
+  # administrators via push. Read per use, so it can be tuned on a running deployment; 0 or less
+  # switches the check off.
+  # breachDetection.bulkReadWeight - what one READ of a bulk household report (above-limit, overview,
+  # duplicates, merge preview - see AuditScope.bulkReportEntityTypes) counts as against readThreshold,
+  # instead of the 1 every other entity type counts as (GDPR gap G24). Read per use.
   # breachDetectionCron - how often that check runs, default hourly - is startup-only for the same
   # reason cleanupCron is.
   #
@@ -228,6 +238,7 @@ tafeladmin:
     readDedupeWindow: 5m
     breachDetection:
       readThreshold: 20
+      bulkReadWeight: 10
     breachDetectionCron: "0 0 * * * *"
   # Check-in via handheld scanners. A scanner refreshes its registration while it is in use, so this
   # only has to outlast the gaps within a distribution day: long enough that a scanner switched off

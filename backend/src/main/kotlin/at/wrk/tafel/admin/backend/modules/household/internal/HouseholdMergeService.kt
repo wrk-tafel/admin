@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -35,8 +36,22 @@ class HouseholdMergeService(
         private val log = LoggerFactory.getLogger(HouseholdMergeService::class.java)
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * Not read-only: every call records an `AuditOperation.READ` - the preview embeds full records
+     * for the target and every source household, not one (GDPR G24, issue #3507).
+     */
+    @Transactional
     fun preview(targetHouseholdId: Long, sourceHouseholdIds: List<Long>): HouseholdMergePreviewResponse {
+        auditLogWriter.record(
+            AuditLogWriter.PendingEntry(
+                entityType = AuditScope.HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
+                entityId = null,
+                businessKey = "targetHouseholdId=$targetHouseholdId;sourceHouseholdIds=${sourceHouseholdIds.joinToString(",")}",
+                operation = AuditOperation.READ,
+                changedFields = emptyMap(),
+            ),
+        )
+
         val (target, sources) = resolve(targetHouseholdId, sourceHouseholdIds)
         val sourceEntityIds = sources.map { it.id!! }
         val householdEntityIds = sourceEntityIds + target.id!!

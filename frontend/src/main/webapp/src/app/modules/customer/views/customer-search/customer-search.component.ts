@@ -303,8 +303,13 @@ export class CustomerSearchComponent {
    * customer number that just did not match anything. Two-or-more words are read as first name(s)
    * plus surname; a single word goes to the surname field alone, since that is what most searches
    * on this screen are narrowed to.
+   *
+   * Passed as router navigation `state` (read back by `CustomerEditComponent`, same mechanism the
+   * Anspruch-Schnellcheck's own "Kunden anlegen" link uses for `quickCheckPersons`), not as query
+   * params: a searched name landing in the URL - and so in browser history - is exactly what GDPR
+   * gap G25 (issue #3506) closes.
    */
-  createCustomerQueryParams = computed(() => {
+  createCustomerState = computed(() => {
     const trimmed = this.query().trim();
     if (!trimmed || /^\d+$/.test(trimmed)) {
       return {};

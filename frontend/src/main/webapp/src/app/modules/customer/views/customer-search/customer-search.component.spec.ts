@@ -389,21 +389,21 @@ describe('CustomerSearchComponent', () => {
       const {component} = createComponent();
       component.query.set('Max Mustermann');
 
-      expect(component.createCustomerQueryParams()).toEqual({vorname: 'Max', nachname: 'Mustermann'});
+      expect(component.createCustomerState()).toEqual({vorname: 'Max', nachname: 'Mustermann'});
     });
 
     it('prefills only the last name from a one-word query', () => {
       const {component} = createComponent();
       component.query.set('Mustermann');
 
-      expect(component.createCustomerQueryParams()).toEqual({nachname: 'Mustermann'});
+      expect(component.createCustomerState()).toEqual({nachname: 'Mustermann'});
     });
 
     it('prefills nothing from a numeric query', () => {
       const {component} = createComponent();
       component.query.set('12345');
 
-      expect(component.createCustomerQueryParams()).toEqual({});
+      expect(component.createCustomerState()).toEqual({});
     });
   });
 

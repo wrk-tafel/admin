@@ -1,5 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
+import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdDuplicateDismissalRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -33,6 +36,9 @@ internal class HouseholdDuplicationServiceTest {
 
     @RelaxedMockK
     private lateinit var householdDuplicateDismissalRepository: HouseholdDuplicateDismissalRepository
+
+    @RelaxedMockK
+    private lateinit var auditLogWriter: AuditLogWriter
 
     @InjectMockKs
     private lateinit var service: HouseholdDuplicationService
@@ -84,6 +90,37 @@ internal class HouseholdDuplicationServiceTest {
         assertThat(result.pageSize).isEqualTo(pageSize)
         assertThat(result.currentPage).isEqualTo(page)
         assertThat(result.totalPages).isEqualTo(totalCount / pageSize)
+
+        verify {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = AuditScope.HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
+                    entityId = null,
+                    businessKey = "page=$page",
+                    operation = AuditOperation.READ,
+                    changedFields = emptyMap(),
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `fetch duplicates - records read with null businessKey when page omitted`() {
+        every { jdbcTemplate.query(any<String>(), any<RowMapper<*>>()) } returns listOf(0L) andThen emptyList()
+
+        service.findDuplicates(null)
+
+        verify {
+            auditLogWriter.record(
+                AuditLogWriter.PendingEntry(
+                    entityType = AuditScope.HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
+                    entityId = null,
+                    businessKey = null,
+                    operation = AuditOperation.READ,
+                    changedFields = emptyMap(),
+                ),
+            )
+        }
     }
 
     @Test

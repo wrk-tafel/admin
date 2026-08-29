@@ -369,6 +369,9 @@ describe('Customer Search', () => {
     cy.byTestId('create-customer-cta').click();
 
     cy.url().should('include', '/kunden/anlegen');
+    // The prefilled name travels as router navigation state, not a query param - a searched name
+    // must never land in the URL/browser history (GDPR gap G25).
+    cy.url().should('not.include', 'vorname').and('not.include', 'nachname');
     cy.byTestId('firstnameInput').should('have.value', 'Zzzzvorname');
     cy.byTestId('lastnameInput').should('have.value', 'Zzzznachname');
   });
