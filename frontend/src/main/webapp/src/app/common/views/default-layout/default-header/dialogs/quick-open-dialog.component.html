@@ -1,12 +1,16 @@
 <tafel-dialog type="info" title="Schnellsuche" testId="quick-open-dialog">
   <div tafel-dialog-content>
-    <mat-form-field class="w-full" subscriptSizing="dynamic">
-      <mat-label>Suchbegriff</mat-label>
-      <input #searchInput matInput type="text" testid="quickOpenInput" tafelAutofocus autocomplete="off"
-             placeholder="Seite oder Kunde suchen …"
-             [ngModel]="query()" (ngModelChange)="query.set($event)"
-             (keydown.enter)="openFirstResult()"/>
-    </mat-form-field>
+    <div class="flex items-center gap-2">
+      <mat-form-field class="w-full" subscriptSizing="dynamic">
+        <mat-label>Suchbegriff</mat-label>
+        <input #searchInput matInput type="text" testid="quickOpenInput" tafelAutofocus autocomplete="off"
+               placeholder="Seite, Kundennummer oder Suchbegriff …"
+               [ngModel]="query()" (ngModelChange)="query.set($event)"
+               (keydown.enter)="openFirstResult()"/>
+      </mat-form-field>
+      <tafel-info-tooltip [testId]="'quick-open-input-info-tooltip'"
+                          text="Durchsucht Navigationsseiten und - mit Berechtigung - Kunden: Kundennummer, Namen aller Personen des Haushalts, Adresse, Telefonnummer und E-Mail. Tippfehler werden toleriert."></tafel-info-tooltip>
+    </div>
 
     <p class="sr-only" role="status">{{ resultAnnouncement() }}</p>
 
@@ -31,18 +35,30 @@
         </section>
       }
 
-      @if (showPrivacyNoticeTemplateAction()) {
+      @if (showPrivacyNoticeTemplateAction() || showStaffPrivacyNoticeAction()) {
         <section>
           <h3 class="tafel-h6 uppercase tracking-wide text-gray-500 mb-1">Aktionen</h3>
           <ul class="list-none p-0 m-0">
-            <li>
-              <button type="button" data-quick-open-result testid="quickOpenDownloadPrivacyNoticeTemplate"
-                      class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left hover:bg-gray-100 focus:bg-gray-100"
-                      (click)="downloadPrivacyNoticeTemplate()">
-                <mat-icon svgIcon="download" class="!w-5 !h-5 text-center text-gray-500" aria-hidden="true"></mat-icon>
-                <span>{{ privacyNoticeTemplateLabel }}</span>
-              </button>
-            </li>
+            @if (showPrivacyNoticeTemplateAction()) {
+              <li>
+                <button type="button" data-quick-open-result testid="quickOpenDownloadPrivacyNoticeTemplate"
+                        class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left hover:bg-gray-100 focus:bg-gray-100"
+                        (click)="downloadPrivacyNoticeTemplate()">
+                  <mat-icon svgIcon="download" class="!w-5 !h-5 text-center text-gray-500" aria-hidden="true"></mat-icon>
+                  <span>{{ privacyNoticeTemplateLabel }}</span>
+                </button>
+              </li>
+            }
+            @if (showStaffPrivacyNoticeAction()) {
+              <li>
+                <button type="button" data-quick-open-result testid="quickOpenDownloadStaffPrivacyNotice"
+                        class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left hover:bg-gray-100 focus:bg-gray-100"
+                        (click)="downloadStaffPrivacyNotice()">
+                  <mat-icon svgIcon="download" class="!w-5 !h-5 text-center text-gray-500" aria-hidden="true"></mat-icon>
+                  <span>{{ staffPrivacyNoticeLabel }}</span>
+                </button>
+              </li>
+            }
           </ul>
         </section>
       }

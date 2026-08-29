@@ -36,6 +36,9 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Der Auswahlpunkt "Bitte auswählen" im Routen-Dropdown der Warenerfassung führt jetzt nicht mehr zu einem Fehler, sondern setzt die Ansicht korrekt zurück; eine Route ohne Filialen führt in der mobilen Ansicht ebenfalls nicht mehr zu einem Fehler.
 - Der Bildschirm bleibt während der Routenführung jetzt auch dann dauerhaft an, wenn er zwischenzeitlich vom Betriebssystem in den Hintergrund geschickt und die Bildschirm-Sperre dabei vom System selbst wieder freigegeben wurde.
 - Das Bearbeiten einer Route (z. B. nur der Name) löscht den bereits erfassten Tagesfortschritt der Routenführung (abgehakte Stopps) jetzt nicht mehr, sofern sich die Stopps selbst nicht geändert haben.
+- Die Nationalität lässt sich beim Anlegen oder Bearbeiten eines Kunden jetzt durch Eintippen aus der Länderliste suchen, statt nur über eine lange Auswahlliste durchgeblättert zu werden.
+- Die Schnellsuche (Strg+K) nennt jetzt im Suchfeld sowie über einen Kurzhinweis, dass sie auch nach der Kundennummer sucht, und bietet unter "Aktionen" zusätzlich den Download der Datenschutzerklärung für Mitarbeiter:innen an.
+- Der direkte Sprung zu einem Kunden oder Benutzer über eine reine Nummer erfolgt jetzt erst nach Enter oder Klick auf "Suchen", statt bereits während der Eingabe zu greifen und dadurch bei einer noch unvollständigen Nummer fälschlich zu einem anderen, kürzeren Datensatz zu springen.
 
 ## [1.14.0] - 2026-08-29
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.

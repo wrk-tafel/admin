@@ -3,11 +3,13 @@ import {applyEach, form, FormField, maxLength, required, validate} from '@angula
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomerData, Gender, QuickCheckPersonData} from '../../../../api/customer-api.service';
 import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatIcon} from '@angular/material/icon';
@@ -30,6 +32,9 @@ import dayjs from 'dayjs';
 /** +N-month quick-picks next to "Gültig bis", mirroring the customer detail page's prolong menu. */
 const VALID_UNTIL_QUICK_PICKS = [1, 2, 3, 6, 12] as const;
 
+/** Map key for the main customer's country autocomplete override - distinct from any person's `key`. */
+const MAIN_COUNTRY_KEY = 'main';
+
 @Component({
   selector: 'tafel-customer-form',
   templateUrl: 'customer-form.component.html',
@@ -37,10 +42,12 @@ const VALID_UNTIL_QUICK_PICKS = [1, 2, 3, 6, 12] as const;
     FormField,
     MatCardModule,
     CommonModule,
+    FormsModule,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatAutocompleteModule,
     MatCheckboxModule,
     MatExpansionModule,
     MatIcon,
@@ -242,8 +249,86 @@ export class CustomerFormComponent {
     });
   }
 
-  compareCountry(a: CountryData | null, b: CountryData | null): boolean {
-    return a?.id === b?.id;
+  /**
+   * Free-typed override text for a country autocomplete field, keyed by `MAIN_COUNTRY_KEY` or a
+   * person's `key` - present only while the user is actively narrowing the list; absent (falling
+   * back to the field's currently committed country name) once a selection commits, on blur without
+   * one, or on initial load. Keeping this separate from the committed `CountryData | null` value
+   * means a half-typed search never overwrites - or gets validated as - the actual selection.
+   */
+  private readonly countryFilterOverrides = signal<Map<string | number, string>>(new Map());
+
+  mainCountryDisplayText = computed(() =>
+    this.countryDisplayText(MAIN_COUNTRY_KEY, this.customerForm.country().value()));
+  mainFilteredCountries = computed(() => this.filterCountries(this.mainCountryDisplayText()));
+
+  onMainCountryInput(value: string) {
+    this.setCountryFilterOverride(MAIN_COUNTRY_KEY, value);
+  }
+
+  onMainCountrySelected(country: CountryData) {
+    this.customerForm.country().value.set(country);
+    this.setCountryFilterOverride(MAIN_COUNTRY_KEY, null);
+  }
+
+  onMainCountryBlur() {
+    this.customerForm.country().markAsTouched();
+    this.setCountryFilterOverride(MAIN_COUNTRY_KEY, null);
+  }
+
+  personCountryDisplayText(index: number): string {
+    const person = this.formModel().additionalPersons[index];
+    return person ? this.countryDisplayText(person.key, person.country) : '';
+  }
+
+  personFilteredCountries(index: number): CountryData[] {
+    return this.filterCountries(this.personCountryDisplayText(index));
+  }
+
+  onPersonCountryInput(index: number, value: string) {
+    const person = this.formModel().additionalPersons[index];
+    if (person) {
+      this.setCountryFilterOverride(person.key, value);
+    }
+  }
+
+  onPersonCountrySelected(index: number, country: CountryData) {
+    const person = this.formModel().additionalPersons[index];
+    if (!person) {
+      return;
+    }
+    this.personField(index).country().value.set(country);
+    this.setCountryFilterOverride(person.key, null);
+  }
+
+  onPersonCountryBlur(index: number) {
+    const person = this.formModel().additionalPersons[index];
+    if (!person) {
+      return;
+    }
+    this.personField(index).country().markAsTouched();
+    this.setCountryFilterOverride(person.key, null);
+  }
+
+  private countryDisplayText(key: string | number, committed: CountryData | null): string {
+    return this.countryFilterOverrides().get(key) ?? (committed?.name ?? '');
+  }
+
+  private filterCountries(text: string): CountryData[] {
+    const term = text.trim().toLowerCase();
+    return term ? this.countries().filter(country => country.name.toLowerCase().includes(term)) : this.countries();
+  }
+
+  private setCountryFilterOverride(key: string | number, value: string | null) {
+    this.countryFilterOverrides.update(map => {
+      const next = new Map(map);
+      if (value === null) {
+        next.delete(key);
+      } else {
+        next.set(key, value);
+      }
+      return next;
+    });
   }
 
   personField(index: number) {
@@ -315,6 +400,7 @@ export class CustomerFormComponent {
     this.customerForm().markAsDirty();
     if (removedKey !== undefined) {
       this.togglePersonPanel(removedKey, false);
+      this.setCountryFilterOverride(removedKey, null);
     }
   }
 

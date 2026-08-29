@@ -264,6 +264,22 @@ describe('Customer Creation', () => {
     cy.byTestId('validUntilInput').should('have.value', dayjs().add(6, 'months').add(12, 'months').format('YYYY-MM-DD'));
   });
 
+  it('nationality search-by-typing narrows the list, and reverts to the last selection if nothing is picked', () => {
+    cy.byTestId('countryInput').click();
+    cy.get('mat-option').its('length').should('be.greaterThan', 5);
+
+    cy.byTestId('countryInput').type('Deutsch');
+    cy.get('mat-option').should('have.length', 1).and('contain.text', 'Deutschland');
+    cy.get('mat-option').contains('Deutschland').click();
+    cy.byTestId('countryInput').should('have.value', 'Deutschland');
+
+    // typing without picking a result must not silently commit the typed text as the selection
+    cy.byTestId('countryInput').clear().type('xyz-gibt-es-nicht');
+    cy.get('mat-option').should('not.exist');
+    cy.byTestId('countryInput').blur();
+    cy.byTestId('countryInput').should('have.value', 'Deutschland');
+  });
+
   it('shows the unsaved-changes indicator once the form is dirty, and Speichern is never styled as danger while merely disabled', () => {
     cy.byTestId('unsaved-changes-indicator').should('not.exist');
     cy.byTestId('save-button').should('be.disabled').and('not.have.class', 'button-danger');

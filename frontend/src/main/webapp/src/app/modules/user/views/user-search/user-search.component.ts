@@ -129,7 +129,13 @@ export class UserSearchComponent {
         filter(value => value.trim() !== this.lastDispatchedQuery),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.search());
+      // tryExactMatch: false - a personnel number is very often typed in stages (the debounce can
+      // settle between digits), so live search-as-you-type must never navigate away on what could
+      // still be a mid-typed prefix that happens to already match a different, shorter personnel
+      // number. The exact-id jump only fires on an explicit Enter/"Suchen", once the number is
+      // actually finished; until then, live search still finds it - see customer-search's identical
+      // fix (issue #3533).
+      .subscribe(() => this.search(undefined, undefined, true, false));
 
     // A link into this screen carries its whole state (query, status, page) - see QUERY_PARAMS.
     // Without any of them present (the plain menu entry), land on the default (active users) first
