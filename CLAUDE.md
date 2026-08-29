@@ -145,7 +145,9 @@ The backend uses **Spring Modulith** architecture with 12 core feature modules (
 - **settings**: Application configuration and mail recipient management
 - **support**: In-app support contact form that mails the request — plus the technical context of
   the report (reporter, version, page, browser, the session's last errors) and a screenshot of the
-  page, attached as `screenshot.jpg` — to `tafeladmin.support.recipients`. See ADR-0044
+  page, attached as `screenshot.jpg` — to `tafeladmin.support.recipients`. See ADR-0044. Also logs a
+  client-side error to `app.log` the moment it happens, without waiting for a user to notice it and
+  write a support request. See ADR-0053
 - **push**: Web Push (VAPID) device subscriptions and per-user notification preferences; broadcasts
   on distribution started/closed events
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
@@ -653,6 +655,7 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/audit`: Audit trail — the whole log (filterable), `/filter-options` for the filter dropdowns, and `/households/{householdId}` for one household's "Verlauf" tab. Read-only by design; behind the `AUDIT_LOG` permission
 - `/api/settings`: Application settings
 - `/api/support`: Mails an in-app support request (title, text, and the browser's `clientContext`) to the configured support addresses
+- `/api/client-errors`: Logs one client-side error (message, page, user agent) to `app.log` as it happens, rate-limited per IP; behind `isAuthenticated()`, no dedicated permission
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 - `/api/data-subject-requests`: the central "Datenauskunft" screen — `/search` across households, user accounts and employees without one; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
 

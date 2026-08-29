@@ -52,6 +52,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Berichte "Kunden über dem Limit", "Kunden-Übersicht" sowie die Kunden-Duplikate-Verwaltung erfordern jetzt zusätzlich zur jeweiligen eigenen Berechtigung auch die Berechtigung "Kundenverwaltung", da ihre Antworten vollständige Kundendaten enthalten.
 - Der Aufruf der Berichte "Kunden über dem Limit" und "Kunden-Übersicht" (inkl. CSV-Export) sowie der Kunden-Duplikate und einer Zusammenführungs-Vorschau wird jetzt im Änderungsprotokoll als Zugriff erfasst und bei der Warnung wegen ungewöhnlich vieler Zugriffe stärker gewichtet als eine einzelne Kundenansicht.
 - Ein bei der Kunden-, Benutzer-, Mitarbeiter- oder Datenauskunft-Suche eingegebener Suchbegriff landet jetzt weder im technischen Server-Zugriffsprotokoll (access.log) noch im Text einer darüber abgeschickten Support-Anfrage; beim Anlegen eines Kunden über die leere Kunden-Suche wird der vorausgefüllte Name außerdem nicht mehr in der Browser-Adresszeile angezeigt.
+- Ein Fehler im Browser der Anwendung wird jetzt automatisch im technischen Server-Log vermerkt, damit er auffällt, auch wenn niemand dazu eine Support-Anfrage schreibt.
 
 ## [1.13.1] - 2026-08-26
 - Der Button "Daten löschen" auf der Seite "Datenauskunft" ist jetzt als kritische Aktion hervorgehoben (rot statt neutral).

@@ -37,7 +37,7 @@ Two things to be clear about before reading on:
 | `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
 | `mail_outbox` | customers and staff | every mail this installation sends, as the finished MIME message — report PDFs, and a support request's free text plus its screenshot of whatever screen it was written on | `tafeladmin.mailOutbox.sentRetention`, 14 days after sending; a row parked as `FAILED` gets `tafeladmin.mailOutbox.failedRetention`, 30 days after queuing (`MailOutboxService.cleanupOldMails`, ADR-0046) |
 | the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | `tafeladmin.storage.scannerFileRetention`, 7 days by default (`ScannerFileCleanupService`), or until a user imports or deletes it first |
-| `logs/app.log` | staff, and anyone who reached the login endpoint | usernames on login/logout/distribution start, the client IP when a locked-out IP is rejected (`TafelLoginProvider`, WARN); at DEBUG, which is off in production, `MailOutboxService` also logs a queued mail's recipient addresses. No customer names were found in any log statement | Spring Boot's rolling default, 7 files |
+| `logs/app.log` | staff, and anyone who reached the login endpoint | usernames on login/logout/distribution start, the client IP when a locked-out IP is rejected (`TafelLoginProvider`, WARN); at DEBUG, which is off in production, `MailOutboxService` also logs a queued mail's recipient addresses; a capped, newline-sanitized client-side error message plus page and user agent, reported automatically by every session (`ClientErrorLogService`, ADR-0053). No customer names were found in any log statement | Spring Boot's rolling default, 7 files |
 | `logs/access.log` | customers — pseudonymously by path only | one line per request, including `/api/households/{id}` paths; `server.tomcat.accesslog.pattern` deliberately omits the query string (`%m %U %H`, not Tomcat's default `%r`) so a search's `?searchInput=<name>` never lands here, see [G25](#g25-a-search-term-is-a-name-and-it-no-longer-travels-into-the-access-log-or-the-support-mail) | **never** — `rotate: false` in `application.yml` |
 | PDFs and CSVs generated on demand | customers | Stammdatenblatt and ID card per household; the Kundenliste PDF is a distribution's attendance list — ticket number, household number, person and infant counts, no names; the above-limit and overview CSVs (`HouseholdService.generateAboveLimitCsv`/`generateHouseholdsOverviewCsv`) are per-household rows *with* name and address, and now each recorded as an `AuditOperation.READ` — see [G24](#g24-bulk-household-reports-now-record-their-own-auditoperation-read-weighted-in-breach-detection) | outside the application the moment they are downloaded or printed |
 | `shelters_contacts` | shelter contacts (not staff, not customers) | name, phone | manual only — no retention job; cascades when its shelter is deleted |
@@ -996,11 +996,14 @@ Recorded so the next reader does not re-investigate them:
   so the service worker never caches an API response. Page titles are route titles, never a name.
 - **Error responses and the support context carry no record data**: `include-stacktrace: never`,
   `GenericExceptionHandler` replaces raw JPA/Jackson messages, and the browser's `recentErrors` keep
-  status, method and path only — no request or response bodies.
+  status, method and path only — no request or response bodies. The automatic client-error report to
+  `app.log` (ADR-0053) is built the same restricted way: message, page and user agent only.
 - **Test data is synthetic** — `testdata.sql`, the `_http-calls/` samples, the Cypress fixtures and the
   user-guide screenshots use Mustermann/Musterfrau-style names and dummy addresses.
-- **No telemetry**: `angular.json` has `analytics: false`, and there is no Sentry or analytics
-  dependency anywhere in the frontend.
+- **No third-party telemetry**: `angular.json` has `analytics: false`, and there is no Sentry or
+  analytics *service* dependency anywhere in the frontend. `/api/client-errors` (ADR-0053) reports a
+  client-side error to this application's own backend log, not to a third party — it is this
+  application's own logging, not telemetry leaving the organisation.
 
 ## 6. What this repository cannot answer
 
