@@ -194,13 +194,16 @@ describe('CustomerFormComponent', () => {
     }));
   });
 
-  it('validUntil set when incomeDue is updated', () => {
+  it('validUntil set when incomeDue is updated by the operator', () => {
     apiService.getCountries.mockReturnValue(of({countries: mockCountryList, frequentlyUsedCount: 1}));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges(); // Trigger effects
 
+    // markAsDirty simulates a real edit through the bound date input (which marks the field dirty
+    // before syncing its value) - a plain value.set() alone, as population does, must not trigger this.
+    component.customerForm.incomeDue().markAsDirty();
     // Set incomeDue as string (YYYY-MM-DD format as HTML date input provides)
     component.customerForm.incomeDue().value.set('2000-01-01' as any);
     fixture.detectChanges(); // Trigger effect after value change
@@ -216,6 +219,8 @@ describe('CustomerFormComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
+    component.customerForm.incomeDue().markAsDirty();
+
     // First set incomeDue
     component.customerForm.incomeDue().value.set(dayjs('2000-01-01', 'YYYY-MM-DD').toDate());
     fixture.detectChanges();
@@ -228,6 +233,26 @@ describe('CustomerFormComponent', () => {
 
     const validUntilUpdated = dayjs(component.customerForm.validUntil().value()).format('YYYY-MM-DD');
     expect(validUntilUpdated).toEqual('2000-04-01');
+  });
+
+  it('opening the edit form does not rewrite the stored validUntil from incomeDue', () => {
+    apiService.getCountries.mockReturnValue(of({countries: mockCountryList, frequentlyUsedCount: 1}));
+
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+
+    // incomeDue + 2 months deliberately differs from validUntil, so a wrongly-firing auto-fill
+    // effect on population (see issue #3528) would be caught here.
+    const populatedData: CustomerData = {
+      ...testCustomerData,
+      incomeDue: dayjs().add(30, 'days').toDate(),
+      validUntil: dayjs().add(1, 'years').toDate()
+    };
+
+    fixture.componentRef.setInput('customerData', populatedData);
+    fixture.detectChanges();
+
+    expect(component.customerForm.validUntil().value()).toEqual(populatedData.validUntil);
   });
 
   it('prefills the persons handed over from the quick-check screen', () => {

@@ -105,18 +105,28 @@ export class CustomerEditComponent implements HasUnsavedChanges {
    * Early duplicate warning (create mode only): once lastname, firstname and birthdate are filled
    * in, runs the same fuzzy customer search the search screen uses and keeps only the results whose
    * birthdate actually matches - before the operator fills in ten more fields and only finds out
-   * about a likely duplicate from the 409 on save.
+   * about a likely duplicate from the 409 on save. Branches inside `switchMap` rather than using a
+   * leading `filter` so that clearing the name (no longer eligible for the check) still emits an
+   * empty list instead of leaving the last search's results on screen.
    */
   readonly possibleDuplicates = toSignal(
     toObservable(this.customerUpdated).pipe(
       debounceTime(600),
-      filter(data => !this.editMode() && this.hasNameAndBirthDateForDuplicateCheck(data)),
-      switchMap(data => this.customerApiService.searchCustomer(`${data.lastname} ${data.firstname}`).pipe(
-        map(result => (result.items ?? []).filter(candidate =>
-          candidate.id != null && candidate.birthDate && dayjs(candidate.birthDate).isSame(dayjs(data.birthDate), 'day')
-        )),
-        catchError(() => of([] as CustomerData[]))
-      ))
+      switchMap(data => {
+        if (this.editMode() || !this.hasNameAndBirthDateForDuplicateCheck(data)) {
+          return of([] as CustomerData[]);
+        }
+        return this.customerApiService.searchCustomer(
+          `${data!.lastname} ${data!.firstname}`,
+          null, null, null, null, null, null, null, undefined, undefined,
+          SUPPRESS_ERROR_TOAST_CONTEXT
+        ).pipe(
+          map(result => (result.items ?? []).filter(candidate =>
+            candidate.id != null && candidate.birthDate && dayjs(candidate.birthDate).isSame(dayjs(data!.birthDate), 'day')
+          )),
+          catchError(() => of([] as CustomerData[]))
+        );
+      })
     ),
     {initialValue: [] as CustomerData[]}
   );

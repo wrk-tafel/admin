@@ -362,7 +362,8 @@ export class CustomerDetailComponent {
     }).afterClosed().subscribe(confirmed => {
       if (confirmed) {
         this.customerApiService.updateCustomer(customerData, true, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
-          next: () => {
+          next: (response: CustomerUpdateResponse) => {
+            this.customerData.set(response.data);
             this.toastr.success('Kunde wurde verlängert!');
           },
           error: (error: HttpErrorResponse) => {

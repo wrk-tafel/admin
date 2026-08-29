@@ -1046,18 +1046,42 @@ describe('Customer Detail', () => {
         const customerId = response.body.data.id;
         cy.visit('/kunden/detail/' + customerId);
 
-        cy.byTestId('prolongButton').click();
-        cy.byTestId('prolongThreeMonthsButton').click();
+        let validDateString: string;
+        cy.byTestId('validUntilText').then(($value) => {
+          validDateString = $value.text();
+          const expectedAfterFirstProlong = dayjs(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
 
-        // Should trigger confirm dialog
-        cy.byTestId('confirm-customer-save-dialog')
-          .should('be.visible')
-          .within(() => {
-            cy.byTestId('title').contains('Kunde speichern');
-            cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)');
-            cy.byTestId('header').should('have.class', 'dialog-header-warning');
-            cy.byTestId('ok-button').click();
-          });
+          cy.byTestId('prolongButton').click();
+          cy.byTestId('prolongThreeMonthsButton').click();
+
+          // Should trigger confirm dialog
+          cy.byTestId('confirm-customer-save-dialog')
+            .should('be.visible')
+            .within(() => {
+              cy.byTestId('title').contains('Kunde speichern');
+              cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)');
+              cy.byTestId('header').should('have.class', 'dialog-header-warning');
+              cy.byTestId('ok-button').click();
+            });
+
+          // The forced save must refresh the on-screen customer data, not just toast success -
+          // otherwise the chip keeps showing the pre-prolong date until a reload.
+          cy.byTestId('validUntilText').should('have.text', expectedAfterFirstProlong);
+
+          // A second prolong must add on top of the just-confirmed date, not the stale one from
+          // before the first (force-saved) prolong.
+          const expectedAfterSecondProlong = dayjs(expectedAfterFirstProlong, 'DD.MM.YYYY')
+            .add(3, 'months').endOf('day').format('DD.MM.YYYY');
+          cy.byTestId('prolongButton').click();
+          cy.byTestId('prolongThreeMonthsButton').click();
+          cy.byTestId('confirm-customer-save-dialog')
+            .should('be.visible')
+            .within(() => {
+              cy.byTestId('ok-button').click();
+            });
+
+          cy.byTestId('validUntilText').should('have.text', expectedAfterSecondProlong);
+        });
       });
     });
 
