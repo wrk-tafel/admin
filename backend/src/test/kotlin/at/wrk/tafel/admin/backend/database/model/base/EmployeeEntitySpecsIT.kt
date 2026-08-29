@@ -46,7 +46,8 @@ class EmployeeEntitySpecsIT : TafelBaseIntegrationTest() {
         val second = persist(personnelNumber = "2$tag", firstname = "a", lastname = "a")
         testEntityManager.flush()
 
-        val result = employeeRepository.findAll(orderBySpec(tag))
+        val spec = EmployeeEntity.Specs.orderById(orderBySpec(tag))
+        val result = employeeRepository.findAll(spec)
 
         assertThat(result.map { it.id }).containsExactly(first.id, second.id)
     }
