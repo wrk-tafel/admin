@@ -42,16 +42,22 @@ jobs:
         with:
           languages: java-kotlin
           build-mode: manual
-          config-file: ./.github/codeql/codeql-config.yml
       - name: Build backend
-        # Compiles main and test sources without running the test suite itself (that's
-        # subflow_test.yml's job) - CodeQL only needs the compiled bytecode to extract from.
+        # Compiles the main sources only. CodeQL extracts whatever the compiler reads during this
+        # step, so this is also what decides which files get analyzed: for compiled languages the
+        # config file's `paths`/`paths-ignore` are NOT applied (they only filter interpreted
+        # languages), so the only way to keep the test sources out of the analysis is to not compile
+        # them here. They are left out on purpose - the MockK `verify { response.addCookie(...) }`
+        # calls in UserControllerTest/TafelLoginFilterTest are permanent java/insecure-cookie false
+        # positives (the mocked cookie never has setSecure() called on it in the test itself), and
+        # Kotlin has no AlertSuppression.ql, so a `// codeql[...]` comment cannot silence them
+        # either (https://github.com/github/codeql/issues/21637). Sonar still analyzes the tests.
         # --rerun-tasks forces the compiler to actually run: CodeQL's tracer only sees a source file
         # if the compiler process that reads it runs during this step, so an UP-TO-DATE/FROM-CACHE
         # compile (e.g. this exact backend source was already built by an earlier run, which is
         # common for a workflow-only change) leaves nothing for CodeQL to extract and fails the job
         # with "CodeQL could not process any code written in Java/Kotlin".
-        run: ./gradlew :backend:classes :backend:testClasses --rerun-tasks
+        run: ./gradlew :backend:classes --rerun-tasks
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4
         with:
