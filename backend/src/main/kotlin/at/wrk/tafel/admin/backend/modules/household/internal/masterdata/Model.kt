@@ -134,6 +134,13 @@ data class PrivacyNoticePdfData(
      * back up.
      */
     val generatedAt: String,
+    /**
+     * `tafeladmin.audit.retentionDays` as display text (GDPR gap G27, issue #3509) - the notice used
+     * to never mention that before/after copies of name, address and income are kept in the audit
+     * trail after every change, and that reads of the record are logged, even though the staff notice
+     * already covers its own Änderungsprotokoll paragraph.
+     */
+    val auditRetentionDays: String,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -148,6 +155,7 @@ data class PrivacyNoticePdfData(
         if (issuedAtDate != other.issuedAtDate) return false
         if (retentionText != other.retentionText) return false
         if (generatedAt != other.generatedAt) return false
+        if (auditRetentionDays != other.auditRetentionDays) return false
 
         return true
     }
@@ -160,6 +168,7 @@ data class PrivacyNoticePdfData(
         result = 31 * result + issuedAtDate.hashCode()
         result = 31 * result + generatedAt.hashCode()
         result = 31 * result + retentionText.hashCode()
+        result = 31 * result + auditRetentionDays.hashCode()
         return result
     }
 }

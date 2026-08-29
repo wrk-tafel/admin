@@ -1,6 +1,11 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
+import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenProperties
+import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenSecretProperties
+import at.wrk.tafel.admin.backend.config.properties.SecurityLoginAttemptsIpProperties
+import at.wrk.tafel.admin.backend.config.properties.SecurityProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.text.PDFTextStripper
@@ -24,7 +29,20 @@ class StaffPrivacyNoticeServiceTest {
         audit.retentionDays = 30
     }
 
-    private val service = StaffPrivacyNoticeService(pdfService, tafelAdminProperties, clock)
+    private val applicationProperties = ApplicationProperties(
+        security = SecurityProperties(
+            jwtToken = SecurityJwtTokenProperties(
+                issuer = "test",
+                audience = "test",
+                secret = SecurityJwtTokenSecretProperties(value = "secret", algorithm = "HMACSHA256"),
+                expirationTimeInSeconds = 3600,
+                expirationTimePwdChangeInSeconds = 300,
+            ),
+            loginAttemptsIp = SecurityLoginAttemptsIpProperties(lockoutDurationInSeconds = 900),
+        ),
+    )
+
+    private val service = StaffPrivacyNoticeService(pdfService, tafelAdminProperties, applicationProperties, clock)
 
     @Test
     fun `generate privacy notice pdf`() {
@@ -41,6 +59,8 @@ class StaffPrivacyNoticeServiceTest {
         assertThat(text).contains("28.08.2026")
         assertThat(text).contains("7 Jahren")
         assertThat(text).contains("30 Tagen")
+        assertThat(text).contains("15 Minuten")
+        assertThat(text).contains("IP-Adresse")
 
         // The footer's page number/generation-date stamp (issue #3429 follow-up) - fo:static-content
         // repeats it on every page, so this checks each page individually rather than just somewhere

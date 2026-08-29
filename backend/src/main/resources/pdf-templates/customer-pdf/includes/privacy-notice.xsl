@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     Printable consent form (GDPR G2, issue #3177; recipients/third-country/mandatory-voluntary/
-    Art. 13(2)(f) paragraphs and the retentionText parameter added for gap G22, issue #3429): what
-    an operator hands the customer at intake to read and sign, filed outside the application - there
-    is no stored consent field, this document is the whole record. See
-    docs/architecture/gdpr-compliance.md (G2, G20) and issue #3185.
+    Art. 13(2)(f) paragraphs and the retentionText parameter added for gap G22, issue #3429; the
+    audit-trail paragraph and its auditRetentionDays parameter added for gap G27, issue #3509):
+    what an operator hands the customer at intake to read and sign, filed outside the application -
+    there is no stored consent field, this document is the whole record. See
+    docs/architecture/gdpr-compliance.md (G2, G20, G27) and issue #3185.
 
     Controller identity, DPO contact and the rights/complaints wording below are taken from the
     organisation's own published privacy notice (https://www.roteskreuz.at/wien/ich-will-mehr-wissen/
@@ -61,7 +62,11 @@
             Wir verarbeiten Ihre Stammdaten (Name, Geburtsdatum, Adresse, Kontaktdaten), Angaben zu
             Ihrem Haushalt sowie von Ihnen vorgelegte Nachweise (z. B. Einkommensnachweise,
             Ausweiskopien), um Ihre Anspruchsberechtigung im Rahmen des Projekts „Team Österreich
-            Tafel" zu prüfen und die Ausgabe von Lebensmitteln zu organisieren.
+            Tafel" zu prüfen und die Ausgabe von Lebensmitteln zu organisieren. Änderungen an
+            diesen Daten werden mit dem vorherigen und dem neuen Wert sowie dem Zeitpunkt und der
+            ausführenden Person nachvollziehbar protokolliert (Änderungsprotokoll); auch der
+            Zugriff auf Ihren Datensatz durch unsere Mitarbeiter:innen wird in bestimmten Fällen
+            protokolliert.
         </fo:block>
         <xsl:call-template name="section-title">
             <xsl:with-param name="text" select="'Rechtsgrundlage'"/>
@@ -94,7 +99,9 @@
         </xsl:call-template>
         <fo:block font-size="10pt" color="{$tafelInk}" space-after="3mm" line-height="1.4">
             Ihre Daten werden gelöscht, sobald Ihre Anspruchsberechtigung seit mehr als
-            <xsl:value-of select="./retentionText"/> abgelaufen ist.
+            <xsl:value-of select="./retentionText"/> abgelaufen ist. Einträge im
+            Änderungsprotokoll, die Ihren Datensatz betreffen, werden nach
+            <xsl:value-of select="./auditRetentionDays"/> Tagen gelöscht.
         </fo:block>
         <xsl:call-template name="section-title">
             <xsl:with-param name="text" select="'Pflichtangabe und Folgen der Nichtbereitstellung'"/>

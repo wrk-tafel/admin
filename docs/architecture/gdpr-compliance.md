@@ -900,21 +900,27 @@ assumed, enforced server-side, the smaller and more direct of the two options th
 originally weighed. `UserPermissions.kt`'s KDoc on all three permissions now says so explicitly, the
 same way it already does for `DATA_SUBJECT_REQUESTS`.
 
-### G27 The notices omit the IP address (staff) and the audit trail (customers)
+### G27 The notices now cover the IP address (staff) and the audit trail (customers)
 
 **Art. 13(1)(c), Art. 13(2)(a).** Found in the same re-audit, issue
 [#3509](https://github.com/wrk-tafel/admin/issues/3509).
 
 [G22](#g22-staff-now-get-an-art-13-notice-too-and-the-customer-notices-own-gaps-are-closed) completed
 both notices against what §1 recorded at the time — and §1 was itself incomplete. The staff notice
-lists master data, permissions, login timestamps and push devices, but not that the client IP address
-is stored on failed logins (`login_attempts_ip`, [G23](#g23-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked))
+listed master data, permissions, login timestamps and push devices, but not that the client IP
+address is stored on failed logins (`login_attempts_ip`, [G23](#g23-login-is-now-rate-limited-and-ip-lockout-protected-and-no-longer-confirms-which-accounts-are-locked))
 and counted in memory for rate limiting — a category that applies to anyone who reaches the login
-endpoint. The customer notice never mentions the audit trail: that before/after copies of name,
-address and income are kept for `tafeladmin.audit.retentionDays` after every change, and that reads
-of the record are logged ([G6](#g6-a-small-targeted-set-of-reads-is-now-recorded)). Both figures
-belong in the template as parameters read from the live configuration, the way `retentionText`
-already is.
+endpoint, not just staff. The customer notice never mentioned the audit trail: that before/after
+copies of name, address and income are kept for `tafeladmin.audit.retentionDays` after every
+change, and that reads of the record are logged ([G6](#g6-a-small-targeted-set-of-reads-is-now-recorded)).
+
+Both notices now say so. The staff notice's data-categories and Speicherdauer paragraphs cover the
+client IP address, with the lockout window itself read as `ipLockoutDurationText`
+(`StaffPrivacyNoticeService`, from `security.loginAttemptsIp.lockoutDurationInSeconds`) rather than
+hard-coded; `RetentionPeriodFormatter` gained a `Duration` overload for that. The customer notice's
+data-categories and Speicherdauer paragraphs cover the Änderungsprotokoll, with the day count read
+as `auditRetentionDays` (`HouseholdPdfService`, from `tafeladmin.audit.retentionDays`) the same way
+`retentionText` already was. Both golden PDF references were regenerated to match.
 
 ### G28 Two smaller confidentiality leaks: opportunistic SMTP TLS, and a mail subject on a lock screen
 
@@ -1050,7 +1056,7 @@ number here.
 | 23 | [G24](#g24-bulk-household-reports-now-record-their-own-auditoperation-read-weighted-in-breach-detection) bulk CSV/list downloads unrecorded | [#3507](https://github.com/wrk-tafel/admin/issues/3507) | done | one `AuditOperation.READ` per bulk report/CSV call, weighted in `ExcessiveReadAccessDetectionService` via `tafeladmin.audit.breachDetection.bulkReadWeight` |
 | 24 | [G25](#g25-a-search-term-is-a-name-and-it-no-longer-travels-into-the-access-log-or-the-support-mail) search terms in `access.log`, the URL and the support mail | [#3506](https://github.com/wrk-tafel/admin/issues/3506) | done | access-log pattern without the query string; `SupportContextService` strips it from `page`; the "Kunden anlegen" empty-state CTA now passes the name via router state instead of query params |
 | 25 | [G26](#g26-three-report-permissions-now-require-customer-too) report permissions reach the full household record | [#3508](https://github.com/wrk-tafel/admin/issues/3508) | done | `@PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_ABOVE_LIMIT')")` and its two siblings on `HouseholdController` |
-| 26 | [G27](#g27-the-notices-omit-the-ip-address-staff-and-the-audit-trail-customers) notices omit the IP address / the audit trail | [#3509](https://github.com/wrk-tafel/admin/issues/3509) | small | two paragraphs, figures as template parameters, golden PDFs regenerated |
+| 26 | [G27](#g27-the-notices-now-cover-the-ip-address-staff-and-the-audit-trail-customers) notices omitted the IP address / the audit trail | [#3509](https://github.com/wrk-tafel/admin/issues/3509) | done | two paragraphs per notice, figures as template parameters (`ipLockoutDurationText`/`auditRetentionDays`), golden PDFs regenerated |
 | 27 | [G28](#g28-two-smaller-confidentiality-leaks-opportunistic-smtp-tls-and-a-mail-subject-on-a-lock-screen) opportunistic SMTP TLS; mail subject in a push body | [#3510](https://github.com/wrk-tafel/admin/issues/3510), [#3511](https://github.com/wrk-tafel/admin/issues/3511) | done | `starttls.required: true` set, named a failed mail by type and outbox id instead of its subject |
 | 28 | [G29](#g29-a-signed-privacy-notice-can-now-be-flagged-when-its-printed-retention-figure-has-drifted-from-the-live-config) a signed privacy notice can silently drift from a later-changed retention window | [#3500](https://github.com/wrk-tafel/admin/issues/3500) | done | `DocumentEntity.retentionPeriodAtUpload` stamped at upload, a "Datenschutzerklärung veraltet" customer-search filter; whether to act on a drift stays open, see [#3496](https://github.com/wrk-tafel/admin/issues/3496) |
 

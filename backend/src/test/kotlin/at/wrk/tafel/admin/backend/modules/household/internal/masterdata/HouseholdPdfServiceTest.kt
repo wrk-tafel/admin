@@ -209,6 +209,10 @@ class HouseholdPdfServiceTest {
             assertThat(pageText).contains("Seite $page von 2")
         }
 
+        // Audit-trail retention paragraph (GDPR gap G27, issue #3509) - matches
+        // TafelAdminAuditProperties' own default, same as the retentionText assertion would.
+        assertThat(PDFTextStripper().getText(document)).contains("30 Tagen")
+
         document.close()
     }
 
