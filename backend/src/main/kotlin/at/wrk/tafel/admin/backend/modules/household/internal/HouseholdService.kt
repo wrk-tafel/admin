@@ -341,7 +341,7 @@ class HouseholdService(
         filters: HouseholdSearchFilters = HouseholdSearchFilters(),
         pageSize: Int? = null,
     ): HouseholdSearchResult {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
         val searchTerm = SearchTextSpecs.normalize(searchInput)
 
         val where = where(
@@ -416,7 +416,7 @@ class HouseholdService(
 
         val entitiesAboveLimit = loadHouseholdsAboveLimit(sortBy, sortDirection)
 
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
         val fromIndex = pageRequest.offset.toInt().coerceAtMost(entitiesAboveLimit.size)
         val toIndex = (fromIndex + pageRequest.pageSize).coerceAtMost(entitiesAboveLimit.size)
 

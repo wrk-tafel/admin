@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.database.model.base
 
-import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.repository.JpaRepository
@@ -11,7 +10,7 @@ import java.time.LocalDateTime
 
 interface EmployeeRepository :
     JpaRepository<EmployeeEntity, Long>,
-    JpaSpecificationExecutor<UserEntity> {
+    JpaSpecificationExecutor<EmployeeEntity> {
 
     fun findByPersonnelNumber(personnelNumber: String): EmployeeEntity?
     fun existsByPersonnelNumber(personnelNumber: String): Boolean

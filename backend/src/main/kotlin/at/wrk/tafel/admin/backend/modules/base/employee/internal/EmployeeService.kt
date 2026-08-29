@@ -31,7 +31,7 @@ class EmployeeService(
     }
 
     fun findEmployees(searchInput: String? = null, page: Int? = null, pageSize: Int? = null): EmployeeListResponse {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize), Sort.by("id"))
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize), Sort.by("id"))
         val pagedResult = if (searchInput != null) {
             employeeRepository.findBySearchInput(searchInput, pageRequest)
         } else {

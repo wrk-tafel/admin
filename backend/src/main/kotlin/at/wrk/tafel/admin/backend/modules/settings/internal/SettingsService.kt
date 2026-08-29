@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.model.base.RecipientType
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAddressItem
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
@@ -73,10 +74,11 @@ class SettingsService(
     @Transactional
     fun updateMailRecipients(settings: MailRecipientsRequest): MailRecipientsResponse {
         val requestedItems = settings.mailRecipients.flatMap { mailRecipient ->
+            val mailType = parseMailType(mailRecipient.mailType)
             mailRecipient.recipients.flatMap { (updatedRecipientType, updatedAddresses) ->
                 updatedAddresses
                     .filter { it.address.trim().isNotBlank() }
-                    .map { addressItem -> Triple(mailRecipient.mailType, updatedRecipientType, addressItem) }
+                    .map { addressItem -> Triple(mailType, updatedRecipientType, addressItem) }
             }
         }
 
@@ -84,16 +86,24 @@ class SettingsService(
             .associateBy { it.id }
 
         val toSave = requestedItems.map { (mailType, recipientType, addressItem) ->
+            val recipientTypeEntity = RecipientType.valueOf(recipientType.name.uppercase())
             val entity = addressItem.id?.let { existingById[it] }
             if (entity != null) {
-                entity.mailType = MailType.valueOf(mailType)
-                entity.recipientType = RecipientType.valueOf(recipientType.name.uppercase())
+                // The id's own (mailType, recipientType) group must match what it was submitted
+                // under - without this check, an id posted under a different group than the one it
+                // currently belongs to would silently re-parent an existing address instead of being
+                // rejected.
+                if (entity.mailType != mailType || entity.recipientType != recipientTypeEntity) {
+                    throw ConflictException(
+                        "E-Mail Empfänger (ID: ${addressItem.id}) gehört nicht zu ${mailType.name}/${recipientType.name}!",
+                    )
+                }
                 entity.address = addressItem.address
                 entity
             } else {
                 MailRecipientEntity(
-                    mailType = MailType.valueOf(mailType),
-                    recipientType = RecipientType.valueOf(recipientType.name.uppercase()),
+                    mailType = mailType,
+                    recipientType = recipientTypeEntity,
                     address = addressItem.address,
                 )
             }
@@ -103,6 +113,11 @@ class SettingsService(
         log.info("Updated mail recipients ({} entries across {} mail type(s))", toSave.size, settings.mailRecipients.size)
         return getMailRecipients()
     }
+
+    // MailType.valueOf on an unknown/malformed value would otherwise surface as an uncaught
+    // IllegalArgumentException - a 500 for what is a plain 400-shaped input problem.
+    private fun parseMailType(mailType: String): MailType = runCatching { MailType.valueOf(mailType) }
+        .getOrElse { throw BusinessRuleException("Unbekannter Mailtyp: $mailType") }
 
     @Transactional
     fun deleteMailRecipient(id: Long) {
@@ -140,6 +155,17 @@ class SettingsService(
         val amount = item.amount ?: throw BusinessRuleException("Betrag ist erforderlich!")
 
         val today = LocalDate.now()
+
+        // The given row must still be the one currently valid "today" - a stale one (already closed
+        // off by a concurrent edit, e.g. two tabs on the same value) would otherwise be historized a
+        // second time, leaving two rows both valid today for the same (type, countAdults,
+        // countChildren, age) and breaking findSingleValueOfType's single-row assumption for every
+        // later lookup until fixed by hand.
+        if (!isCurrentlyValid(entity, today)) {
+            throw ConflictException(
+                "Statischer Wert mit ID $staticValueId wurde zwischenzeitlich bereits geändert - bitte Seite neu laden!",
+            )
+        }
 
         if (entity.validFrom == today) {
             entity.amount = amount

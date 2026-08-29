@@ -22,7 +22,7 @@ class HouseholdNoteService(
 ) {
 
     fun getNotes(householdId: Long, page: Int?, pageSize: Int? = null): HouseholdNoteSearchResult {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
         val pagedResult =
             householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId, pageRequest)
         val currentEmployeeId = currentEmployeeId()

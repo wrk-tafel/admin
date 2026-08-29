@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
@@ -226,7 +227,7 @@ class HouseholdDuplicationService(
             ),
         )
 
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 1)
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), 1)
 
         val duplicatesPage = loadDuplicates(pageRequest)
 
