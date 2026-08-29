@@ -495,6 +495,59 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         assertThat(result.map { it.id }).containsExactly(earlier.id, later.id)
     }
 
+    @Test
+    fun `orderBySearchRelevance sorts by id when requested`() {
+        val tag = "Findme${generateRandomLong()}"
+        val first = persistHousehold(customizeMainPerson = { firstname = tag })
+        val second = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.flush()
+
+        val spec = HouseholdEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "id", sortDirection = "asc")
+        val result = householdRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(first.id, second.id)
+    }
+
+    @Test
+    fun `orderBySearchRelevance sorts by birthDate when requested`() {
+        val tag = "Findme${generateRandomLong()}"
+        val older = persistHousehold(
+            customizeMainPerson = {
+                firstname = tag
+                birthDate = LocalDate.now().minusYears(50)
+            },
+        )
+        val younger = persistHousehold(
+            customizeMainPerson = {
+                firstname = tag
+                birthDate = LocalDate.now().minusYears(20)
+            },
+        )
+        testEntityManager.flush()
+
+        val spec = HouseholdEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "birthDate", sortDirection = "asc")
+        val result = householdRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(older.id, younger.id)
+    }
+
+    @Test
+    fun `orderBySearchRelevance sorts by issuedAt when requested`() {
+        val tag = "Findme${generateRandomLong()}"
+        val first = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.flush()
+
+        Thread.sleep(50)
+
+        val second = persistHousehold(customizeMainPerson = { firstname = tag })
+        testEntityManager.flush()
+
+        val spec = HouseholdEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "issuedAt", sortDirection = "asc")
+        val result = householdRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(first.id, second.id)
+    }
+
     /**
      * A number long enough that it cannot accidentally turn up inside another household's search
      * text - which a short one plausibly could, since that text holds postal codes, phone numbers

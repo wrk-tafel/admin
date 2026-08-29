@@ -187,6 +187,57 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `orderBySearchRelevance sorts by id when requested`() {
+        val tag = "Findme${generateRandomLong()}"
+        val first = persistUser { username = "prefix-$tag-1" }
+        val second = persistUser { username = "prefix-$tag-2" }
+        testEntityManager.flush()
+
+        val spec = UserEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "id", sortDirection = "asc")
+        val result = userRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(first.id, second.id)
+    }
+
+    @Test
+    fun `orderBySearchRelevance sorts by status when requested`() {
+        val tag = "Findme${generateRandomLong()}"
+        val disabledUser = persistUser {
+            username = "prefix-$tag-1"
+            enabled = false
+        }
+        val enabledUser = persistUser {
+            username = "prefix-$tag-2"
+            enabled = true
+        }
+        testEntityManager.flush()
+
+        val spec = UserEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "status", sortDirection = "asc")
+        val result = userRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(disabledUser.id, enabledUser.id)
+    }
+
+    @Test
+    fun `orderBySearchRelevance sorts by personnelNumber when requested`() {
+        val tag = "Findme${generateRandomLong()}"
+        val lowerNumber = persistUser {
+            username = "prefix-$tag-1"
+            employee.personnelNumber = "1$tag"
+        }
+        val higherNumber = persistUser {
+            username = "prefix-$tag-2"
+            employee.personnelNumber = "2$tag"
+        }
+        testEntityManager.flush()
+
+        val spec = UserEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "personnelNumber", sortDirection = "asc")
+        val result = userRepository.findAll(spec)
+
+        assertThat(result.map { it.id }).containsExactly(lowerNumber.id, higherNumber.id)
+    }
+
+    @Test
     fun `deleting a user does not cascade-delete its shared employee`() {
         val user = persistUser()
         val country = createCountry()
