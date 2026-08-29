@@ -501,4 +501,21 @@ internal class HouseholdConverterTest {
         assertThat(result.persons.first { it.id == newMainPersonId }.isMainPerson).isTrue()
         assertThat(result.persons.first { it.id == oldMainPersonId }.isMainPerson).isFalse()
     }
+
+    @Test
+    fun `an additional person id of 0 is treated as not-yet-persisted, not an unresolvable reference`() {
+        // no real stored person ever has id <= 0 (Postgres sequences start at 1) - some callers still
+        // send 0 rather than omitting the id entirely for a brand new additional person
+        val updatedHousehold = testHousehold.copy(
+            persons = listOf(
+                testMainPerson,
+                testHousehold.additionalPersons()[0].copy(id = 0),
+            ),
+        )
+
+        val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1)
+
+        assertThat(result.persons).hasSize(2)
+        assertThat(result.persons.first { !it.isMainPerson }.id).isNull()
+    }
 }
