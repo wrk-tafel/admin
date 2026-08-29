@@ -17,6 +17,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -220,6 +221,42 @@ class RouteServiceTest {
             routeRepository.saveAndFlush(any())
             routeRepository.save(any())
         }
+    }
+
+    @Test
+    fun `update route keeps an unchanged stop's row so today's driver-guidance progress survives`() {
+        // Regression test for #3527: a stop that comes back byte-for-byte unchanged (e.g. only the
+        // route's name was edited) must not be dropped and recreated, since a fresh row means a
+        // fresh id and routes_stops_completions cascade-deletes with the old one.
+        val existingEntity = RouteEntity(number = 1.0, name = "Old Route").apply {
+            id = 99
+        }
+        val unchangedStop = RouteStopEntity(route = existingEntity, time = LocalTime.of(9, 0)).apply {
+            id = 7
+            shop = testShop1
+        }
+        existingEntity.stops = mutableListOf(unchangedStop)
+        val request = RouteRequest(
+            id = 99,
+            number = 1.0,
+            name = "New Route Name",
+            note = null,
+            enabled = true,
+            stops = listOf(RouteStopItem(id = null, time = LocalTime.of(9, 0), shopId = testShop1.id, description = null)),
+        )
+        every { routeRepository.findByIdOrNull(99L) } returns existingEntity
+        every { routeRepository.saveAndFlush(any()) } answers { firstArg() as RouteEntity }
+        every { routeRepository.save(any()) } answers { firstArg() as RouteEntity }
+
+        val result = service.updateRoute(99L, request)
+
+        assertThat(result.name).isEqualTo("New Route Name")
+        assertThat(result.stops).hasSize(1)
+        // the original stop's id survived - it was never removed and recreated
+        assertThat(result.stops[0].id).isEqualTo(7)
+        assertThat(existingEntity.stops).containsExactly(unchangedStop)
+        // no shop lookup needed either, since nothing new was created
+        verify(exactly = 0) { shopRepository.findByIdOrNull(any()) }
     }
 
     @Test

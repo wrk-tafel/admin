@@ -327,4 +327,19 @@ describe('FoodCollectionRecordingComponent', () => {
         expect(matDialog.open).toHaveBeenCalled();
     });
 
+    it('onSelectedRouteChange - clears the selection instead of throwing when "Bitte auswählen" is chosen', () => {
+        // Regression test for #3527: the "Bitte auswählen" option's undefined value used to be
+        // dereferenced directly, throwing instead of resetting the screen.
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        component.selectedRouteData.set({
+            route: {id: 1, name: 'Route 1'},
+            shops: [],
+            foodCollectionData: undefined
+        });
+
+        expect(() => component.onSelectedRouteChange(undefined)).not.toThrow();
+        expect(component.selectedRouteData()).toBeUndefined();
+    });
+
 });

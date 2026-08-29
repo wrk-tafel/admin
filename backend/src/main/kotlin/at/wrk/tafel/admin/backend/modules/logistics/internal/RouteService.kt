@@ -65,18 +65,45 @@ class RouteService(
         routeEntity.note = updatedRoute.note
         routeEntity.enabled = updatedRoute.enabled
 
-        // Stops are replaced wholesale instead of diffed. The delete has to hit the database
-        // before the new rows are inserted, otherwise re-using a shop or a time that one of the
-        // removed stops still occupies violates routes_stops' unique constraints - hence the
-        // explicit flush between clearing and re-adding.
-        routeEntity.stops.clear()
-        routeRepository.saveAndFlush(routeEntity)
-        routeEntity.stops.addAll(updatedRoute.stops.map { mapStopToEntity(it, routeEntity) })
+        replaceStops(routeEntity, updatedRoute.stops)
 
         val savedEntity = routeRepository.save(routeEntity)
         log.info("Updated route {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
         return mapRoute(savedEntity)
     }
+
+    /**
+     * A stop that comes back byte-for-byte unchanged keeps its existing row instead of being
+     * dropped and recreated with a new id - `routes_stops_completions` cascade-deletes with its
+     * stop, so replacing every stop on every save wiped a driver's progress for the day even for a
+     * purely cosmetic edit like renaming the route or toggling `enabled` (see #3527).
+     * [RouteStopItem] carries no id the frontend round-trips, so "unchanged" is judged by content
+     * (time/shop/description) rather than by id.
+     *
+     * A stop whose time, shop or description actually changed is still replaced as before, and the
+     * delete still has to hit the database before the new rows are inserted - reusing a shop or a
+     * time one of the removed stops still occupies would otherwise violate routes_stops' unique
+     * constraints - hence the explicit flush between removing and re-adding.
+     */
+    private fun replaceStops(routeEntity: RouteEntity, requestedStops: List<RouteStopItem>) {
+        val remainingRequested = requestedStops.toMutableList()
+        val stopsToKeep = mutableSetOf<RouteStopEntity>()
+        for (existingStop in routeEntity.stops) {
+            val matchIndex = remainingRequested.indexOfFirst { it.isUnchanged(existingStop) }
+            if (matchIndex >= 0) {
+                stopsToKeep += existingStop
+                remainingRequested.removeAt(matchIndex)
+            }
+        }
+
+        routeEntity.stops.removeIf { it !in stopsToKeep }
+        routeRepository.saveAndFlush(routeEntity)
+        routeEntity.stops.addAll(remainingRequested.map { mapStopToEntity(it, routeEntity) })
+    }
+
+    private fun RouteStopItem.isUnchanged(stop: RouteStopEntity): Boolean = time == stop.time &&
+        shopId == stop.shop?.id &&
+        description == stop.description
 
     private fun validateStops(stops: List<RouteStopItem>) {
         val shopIds = stops.mapNotNull { it.shopId }

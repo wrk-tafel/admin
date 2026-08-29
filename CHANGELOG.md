@@ -31,6 +31,11 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Der Statistik-Export "Haushaltsgrößen" berücksichtigt Haushalte mit mehr als 10 Personen jetzt in einer eigenen Zeile "11+", statt sie weder zu zählen noch in der Prozentsumme zu berücksichtigen.
 - Die Retourkisten-E-Mail zeigt die Menge einer Filiale, die auf mehreren Routen angefahren wird, jetzt getrennt pro Route, statt sie über alle Routen hinweg zusammenzuzählen.
 - Beim Erfassen der gefahrenen Kilometer einer Route wird jetzt verhindert, dass der Kilometerstand am Ende kleiner als der am Start ist.
+- Beim Wechsel der Route in der mobilen Warenerfassung wird die noch nicht gespeicherte Retourware der zuletzt gezeigten Filiale jetzt korrekt der zuvor ausgewählten statt der neu ausgewählten Route zugeordnet; ohne Internetverbindung wird der Speicherversuch jetzt nicht mehr unternommen, sondern stattdessen gewarnt, dass die noch nicht gespeicherte Retourware verloren geht.
+- Beim Bearbeiten des Kilometerstands einer Route bleibt eine Fehlermeldung ("KM Ende muss größer als KM Start sein" bzw. "nur gemeinsam") jetzt nicht mehr bestehen, nachdem der ursprüngliche Grund dafür behoben wurde.
+- Der Auswahlpunkt "Bitte auswählen" im Routen-Dropdown der Warenerfassung führt jetzt nicht mehr zu einem Fehler, sondern setzt die Ansicht korrekt zurück; eine Route ohne Filialen führt in der mobilen Ansicht ebenfalls nicht mehr zu einem Fehler.
+- Der Bildschirm bleibt während der Routenführung jetzt auch dann dauerhaft an, wenn er zwischenzeitlich vom Betriebssystem in den Hintergrund geschickt und die Bildschirm-Sperre dabei vom System selbst wieder freigegeben wurde.
+- Das Bearbeiten einer Route (z. B. nur der Name) löscht den bereits erfassten Tagesfortschritt der Routenführung (abgehakte Stopps) jetzt nicht mehr, sofern sich die Stopps selbst nicht geändert haben.
 
 ## [1.14.0] - 2026-08-29
 - Die Kunden-Suche bietet jetzt einen zusätzlichen Filter "Datenschutzerklärung veraltet", der Kunden zeigt, deren hochgeladene Datenschutzerklärung mit einer inzwischen geänderten Aufbewahrungsfrist bedruckt wurde.
