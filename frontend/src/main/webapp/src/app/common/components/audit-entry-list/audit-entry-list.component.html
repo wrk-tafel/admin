@@ -69,10 +69,10 @@
                         thing saying so, which is what the "Vorher"/"Nachher" column headers are for.
                       -->
                       <td class="py-1 pr-4 break-all" [attr.testid]="'audit-entry-' + i + '-change-' + c + '-oldValue'">
-                        <span [class]="hasValue(change.oldValue) ? 'bg-red-100 text-red-900 px-1' : ''">{{ displayValue(change.oldValue) }}</span>
+                        <span [class]="hasValue(change.oldValue) ? 'bg-red-100 text-red-900 px-1' : ''">{{ displayValue(change.field, change.oldValue) }}</span>
                       </td>
                       <td class="py-1 break-all" [attr.testid]="'audit-entry-' + i + '-change-' + c + '-newValue'">
-                        <span [class]="hasValue(change.newValue) ? 'bg-green-100 text-green-900 px-1' : ''">{{ displayValue(change.newValue) }}</span>
+                        <span [class]="hasValue(change.newValue) ? 'bg-green-100 text-green-900 px-1' : ''">{{ displayValue(change.field, change.newValue) }}</span>
                       </td>
                     </tr>
                   }

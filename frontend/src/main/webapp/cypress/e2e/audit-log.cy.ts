@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import {PHONE_VIEWPORT} from '../support/viewports';
 import {MAIN_CONTENT} from '../support/accessibility';
+import {Gender} from '../support/commands';
 
 const isoToday = () => dayjs().format('YYYY-MM-DD');
 const isoLastMonth = () => dayjs().subtract(1, 'month').format('YYYY-MM-DD');
@@ -64,6 +65,28 @@ describe('Zugriffsprotokoll', () => {
       cy.byTestId('audit-entry-0-changes').should('contain.text', 'Telefon');
       cy.byTestId('audit-entry-0-changes').should('contain.text', '0123456789');
       cy.byTestId('audit-entry-0-changes').should('contain.text', '0699111222');
+    });
+  });
+
+  // A boolean/enum field is stored raw ("true"/"FEMALE") - the diff has to show its German label,
+  // not the technical value the backend recorded it as.
+  it('translates a changed boolean or enum field value into German', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.updateCustomer({...customer, gender: Gender.FEMALE});
+
+      cy.visit('/zugriffsprotokoll');
+      cy.byTestId('audit-filter-entityType').click();
+      cy.get('mat-option').contains('Person').click();
+      cy.byTestId('audit-filter-businessKey').type(String(customer.id));
+      cy.byTestId('audit-filter-operation').click();
+      cy.get('mat-option').contains('Geändert').click();
+
+      cy.byTestId('audit-entry-0-changes').should('contain.text', 'Geschlecht');
+      cy.byTestId('audit-entry-0-changes').should('contain.text', 'Männlich');
+      cy.byTestId('audit-entry-0-changes').should('contain.text', 'Weiblich');
+      cy.byTestId('audit-entry-0-changes').should('not.contain.text', 'FEMALE');
     });
   });
 

@@ -2,6 +2,8 @@ import {HttpClient, HttpParams} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import {PagedResponse} from '../common/api/paged-response';
+import {genderLabel} from './customer-api.service';
+import {documentTypeLabel} from './customer-document-api.service';
 
 /**
  * Reads the audit trail ("Zugriffsprotokoll"). There is deliberately no write method - entries
@@ -137,16 +139,22 @@ export const auditOperationLabel: Record<AuditOperation, string> = {
  */
 export const auditFieldLabel: Record<string, string> = {
   addressCity: 'Ort',
+  address: 'E-Mail-Adresse',
   addressDoor: 'Tür',
   addressHouseNumber: 'Hausnummer',
   addressPostalCode: 'PLZ',
   addressStairway: 'Stiege',
   addressStreet: 'Straße',
+  age: 'Alter',
+  amount: 'Betrag',
   birthDate: 'Geburtsdatum',
   contentType: 'Dateityp',
   country: 'Nationalität',
+  countAdults: 'Anzahl Erwachsene',
+  countChildren: 'Anzahl Kinder',
   documentType: 'Dokumentart',
   email: 'E-Mail',
+  employee: 'Mitarbeiter',
   employer: 'Arbeitgeber',
   enabled: 'Aktiv',
   excludeFromHousehold: 'Nicht im selben Haushalt',
@@ -154,14 +162,18 @@ export const auditFieldLabel: Record<string, string> = {
   firstname: 'Vorname',
   gender: 'Geschlecht',
   household: 'Kunde',
+  householdId: 'Kundennummer',
   income: 'Einkommen',
   incomeDue: 'Einkommen nachgewiesen bis',
   isMainPerson: 'Hauptbezieher',
+  issuer: 'Angelegt von',
+  lastLogin: 'Letzte Anmeldung',
   lastname: 'Nachname',
   lockReason: 'Sperrgrund',
   locked: 'Gesperrt',
   lockedAt: 'Gesperrt am',
   lockedBy: 'Gesperrt von',
+  mailType: 'Mailtyp',
   mainPerson: 'Hauptbezieher',
   mergedFromHouseholds: 'Zusammengeführt aus',
   mergedIntoHousehold: 'Zusammengeführt in',
@@ -169,14 +181,98 @@ export const auditFieldLabel: Record<string, string> = {
   movedDocuments: 'Verschobene Dokumente',
   movedNotes: 'Verschobene Notizen',
   movedPersons: 'Verschobene Personen',
+  name: 'Berechtigung',
   note: 'Notiz',
   passwordChangeRequired: 'Passwortänderung erforderlich',
   password: 'Passwort',
   pendingCostContribution: 'Offener Unkostenbeitrag',
+  person: 'Person',
+  personnelNumber: 'Personalnummer',
   prolongedAt: 'Verlängert am',
   receivesFamilyAllowance: 'Bezieht Familienbeihilfe',
+  recipientType: 'Empfängertyp',
+  retentionPeriodAtUpload: 'Aufbewahrungsfrist bei Upload',
   singleParent: 'Alleinerzieher',
+  storagePath: 'Speicherpfad',
   telephoneNumber: 'Telefon',
+  tokenInvalidatedAt: 'Sitzung ungültig seit',
+  type: 'Art',
+  uploadedByUser: 'Hochgeladen von',
+  user: 'Benutzer',
   username: 'Benutzername',
+  validFrom: 'Gültig von',
+  validTo: 'Gültig bis',
   validUntil: 'Gültig bis'
+};
+
+/**
+ * German labels for known field *values* - booleans as Ja/Nein, and the fixed enum sets stored for
+ * gender, document type, static-value type, mail type, recipient type and permission name. Keyed by
+ * field name, since the same raw value ("true", "TO", ...) means something different depending on
+ * which field it belongs to. A value with no entry here is shown as stored - same "missing
+ * translation must not hide a change" reasoning as [auditFieldLabel].
+ */
+const BOOLEAN_VALUE_LABEL: Record<string, string> = {
+  true: 'Ja',
+  false: 'Nein'
+};
+
+const BOOLEAN_FIELDS = [
+  'enabled',
+  'excludeFromHousehold',
+  'isMainPerson',
+  'locked',
+  'passwordChangeRequired',
+  'receivesFamilyAllowance',
+  'singleParent'
+];
+
+export const auditValueLabel: Record<string, Record<string, string>> = {
+  ...Object.fromEntries(BOOLEAN_FIELDS.map(field => [field, BOOLEAN_VALUE_LABEL])),
+  gender: genderLabel,
+  documentType: documentTypeLabel,
+  // StaticValueEntity.type - the labels used on the static-values settings screen
+  // (modules/settings/views/static-values/static-value-types.ts).
+  type: {
+    INCOME_LIMIT: 'Einkommensgrenze',
+    ADDITIONAL_ADULT: 'Zusätzlicher Erwachsener',
+    ADDITIONAL_CHILD: 'Zusätzliches Kind',
+    TOLERANCE: 'Toleranz',
+    FAMILY_ALLOWANCE: 'Familienbeihilfe',
+    CHILD_TAX_ALLOWANCE: 'Kinderabsetzbetrag',
+    SIBLING_ADDITION: 'Geschwisterstaffel',
+    COST_CONTRIBUTION: 'Unkostenbeitrag'
+  },
+  // MailRecipientEntity.mailType/recipientType - the labels used on the mail-recipients settings
+  // screen (modules/settings/components/mail-recipients/mail-recipients.component.ts).
+  mailType: {
+    DAILY_REPORT: 'Tagesreport',
+    STATISTICS: 'Statistiken',
+    RETURN_BOXES: 'Retourkisten'
+  },
+  recipientType: {
+    TO: 'Empfänger (AN)',
+    CC: 'Kopie (CC)',
+    BCC: 'Blindkopie (BCC)'
+  },
+  // UserAuthorityEntity.name - the permission key, labelled the same way UserPermissions.title
+  // labels it on the backend (common/auth/model/UserPermissions.kt).
+  name: {
+    AUDIT_LOG: 'Zugriffsprotokoll',
+    CHECKIN: 'Anmeldung',
+    DISTRIBUTION_LCM: 'Ausgabe-Ablauf',
+    USER_MANAGEMENT: 'Benutzerverwaltung',
+    CUSTOMER: 'Kundenverwaltung',
+    CUSTOMER_DOCUMENTS: 'Kunden-Dokumente',
+    CUSTOMER_DUPLICATES: 'Kunden-Duplikate',
+    CUSTOMERS_ABOVE_LIMIT: 'Kunden über dem Limit',
+    CUSTOMERS_OVERVIEW: 'Kunden-Übersicht (Neu & Verlängert)',
+    DATA_SUBJECT_REQUESTS: 'Datenauskunft',
+    LOGISTICS: 'Transport/Logistik',
+    SCANNER: 'Scanner',
+    SETTINGS: 'Einstellungen',
+    STATISTICS: 'Statistiken',
+    SUPERVISOR: 'Supervisor',
+    ADMINISTRATOR: 'Administrator'
+  }
 };
