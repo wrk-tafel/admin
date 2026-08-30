@@ -144,39 +144,49 @@ class DistributionService(
      */
     fun getLastEndedDistributionTime(): LocalDateTime? = distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()?.endedAt
 
+    /**
+     * Wrapped in [AdvisoryLockKey.ASSIGN_HOUSEHOLD_TO_DISTRIBUTION] because the checks below are a
+     * check-then-act against two `UNIQUE` constraints (`uc_distributionid_ticketnumber` and
+     * `uq_distributions_households_distribution_household`): two check-in desks submitting the same
+     * ticket number, or the same household, within the same window would otherwise both pass the
+     * check and the loser would get a duplicate-key 500 instead of the intended
+     * [ConflictException].
+     */
     @Transactional
     fun assignHouseholdToDistribution(
         householdId: Long,
         ticketNumber: Int,
     ) {
-        val distribution = getCurrentDistribution()!!
+        advisoryLockService.withLock(AdvisoryLockKey.ASSIGN_HOUSEHOLD_TO_DISTRIBUTION) {
+            val distribution = getCurrentDistribution()!!
 
-        val household = householdRepository.findByHouseholdId(householdId)
-            ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
-        val existingHousehold = distribution.households.firstOrNull { it.household.householdId == householdId }
+            val household = householdRepository.findByHouseholdId(householdId)
+                ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+            val existingHousehold = distribution.households.firstOrNull { it.household.householdId == householdId }
 
-        val existingTicket = distribution.households.firstOrNull { it.ticketNumber == ticketNumber }
+            val existingTicket = distribution.households.firstOrNull { it.ticketNumber == ticketNumber }
 
-        // Can't assign to another household if already assigned but ok if it's the same household (update costContributionPaid flag)
-        if (existingTicket != null && existingTicket.household.householdId != householdId) {
-            throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")
-        }
+            // Can't assign to another household if already assigned but ok if it's the same household (update costContributionPaid flag)
+            if (existingTicket != null && existingTicket.household.householdId != householdId) {
+                throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")
+            }
 
-        val entry = existingHousehold ?: DistributionHouseholdEntity(
-            distribution = distribution,
-            household = household,
-            ticketNumber = ticketNumber,
-        )
-        entry.distribution = distribution
-        entry.household = household
-        entry.ticketNumber = ticketNumber
-        entry.processed = false
+            val entry = existingHousehold ?: DistributionHouseholdEntity(
+                distribution = distribution,
+                household = household,
+                ticketNumber = ticketNumber,
+            )
+            entry.distribution = distribution
+            entry.household = household
+            entry.ticketNumber = ticketNumber
+            entry.processed = false
 
-        distributionHouseholdRepository.save(entry)
+            distributionHouseholdRepository.save(entry)
 
-        // The first check-in of the day is the moment the desk opens - see DistributionPhaseEvents.
-        if (distributionRepository.markCheckinStarted(distribution.id!!, LocalDateTime.now()) == 1) {
-            eventPublisher.publishEvent(CheckinStartedEvent(distribution.id!!))
+            // The first check-in of the day is the moment the desk opens - see DistributionPhaseEvents.
+            if (distributionRepository.markCheckinStarted(distribution.id!!, LocalDateTime.now()) == 1) {
+                eventPublisher.publishEvent(CheckinStartedEvent(distribution.id!!))
+            }
         }
     }
 
