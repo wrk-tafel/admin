@@ -313,6 +313,17 @@ internal class StatisticsServiceTest {
     }
 
     @Test
+    fun `countShopsTotal defaults to zero when no shop donated in the range`() {
+        val mockQuery = mockk<Query>(relaxed = true)
+        every { entityManager.createNativeQuery(any<String>()) } returns mockQuery
+        every { mockQuery.resultList } returns emptyList<Any>()
+
+        val result = service.countShopsTotal(LocalDate.now(), LocalDate.now())
+
+        assertThat(result).isEqualTo(0L)
+    }
+
+    @Test
     fun `get data`() {
         val fromDate = LocalDate.now().minusDays(7)
         val toDate = LocalDate.now()
@@ -382,9 +393,9 @@ internal class StatisticsServiceTest {
                     dataPoints = expectedDataPoints,
                 ),
                 shopsCount = StatisticsDetail(
-                    title = "60",
+                    title = "10",
                     subTitle = "Spender (Anzahl)",
-                    value = 60.0,
+                    value = 10.0,
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
                 ),
@@ -397,9 +408,9 @@ internal class StatisticsServiceTest {
                     dataPoints = expectedDataPoints,
                 ),
                 shopItemsAverage = StatisticsDetail(
-                    title = "20,00 kg",
+                    title = "6,00 kg",
                     subTitle = "Warenmenge (Durchschnitt pro Spender)",
-                    value = 20.0,
+                    value = 6.0,
                     unit = "kg",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints,
@@ -438,9 +449,9 @@ internal class StatisticsServiceTest {
         assertThat(lines[5]).isEqualTo("Notschlafstellen (Anzahl);60")
         assertThat(lines[6]).isEqualTo("Notschlafstellen (Durchschnitt pro Ausgabe);20,00")
         assertThat(lines[7]).isEqualTo("Notschlafstellen (versorgte Personen pro Ausgabe);60")
-        assertThat(lines[8]).isEqualTo("Spender (Anzahl);60")
+        assertThat(lines[8]).isEqualTo("Spender (Anzahl);10")
         assertThat(lines[9]).isEqualTo("Warenmenge (Gesamt);60 kg")
-        assertThat(lines[10]).isEqualTo("Warenmenge (Durchschnitt pro Spender);20,00 kg")
+        assertThat(lines[10]).isEqualTo("Warenmenge (Durchschnitt pro Spender);6,00 kg")
     }
 
     /**

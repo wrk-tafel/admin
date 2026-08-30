@@ -322,6 +322,31 @@ class StatisticsServiceIT : TafelBaseIntegrationTest() {
         assertThat(widerRange.sumOf { it.value.toInt() }).isEqualTo(before.sumOf { it.value.toInt() } + 1)
     }
 
+    /**
+     * A distribution that served no shelter at all still has to count in the average's divisor -
+     * otherwise the figure only reflects the distributions that happened to have a shelter, and
+     * reads far too high.
+     */
+    @Test
+    fun `averageShelters divides by every distribution in range, including ones without shelters`() {
+        val distributionDate = LocalDate.now()
+
+        persistShelterStatistic(distributionDate = distributionDate)
+
+        val distributionWithoutShelter = createDistribution(testUser)
+        distributionWithoutShelter.startedAt = distributionDate.atTime(9, 0)
+        distributionWithoutShelter.endedAt = distributionDate.atTime(11, 0)
+        testEntityManager.persist(distributionWithoutShelter)
+        testEntityManager.persist(DistributionStatisticEntity(distribution = distributionWithoutShelter))
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = statisticsService.averageShelters(distributionDate, distributionDate)
+
+        // one shelter served across two distributions in the bucket
+        assertThat(result.last().value.toDouble()).isEqualTo(0.5)
+    }
+
     private fun persistShelterStatistic(distributionDate: LocalDate) {
         val distribution = createDistribution(testUser)
         distribution.startedAt = distributionDate.atTime(13, 0)

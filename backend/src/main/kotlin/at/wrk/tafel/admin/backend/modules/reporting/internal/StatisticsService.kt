@@ -64,50 +64,60 @@ class StatisticsService(
     }
 
     @Transactional(readOnly = true)
-    fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsResponse = StatisticsResponse(
-        beneficiaryCustomers = lastValueDetail(
-            subTitle = "Bezugsberechtigte Haushalte",
-            results = countBeneficiaryCustomers(fromDate, toDate),
-        ),
-        beneficiaryPersons = lastValueDetail(
-            subTitle = "Bezugsberechtigte Personen",
-            results = countBeneficiaryPersons(fromDate, toDate),
-        ),
-        beneficiaryCustomersWithChildren = lastValueDetail(
-            subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
-            results = countBeneficiaryCustomersWithChildren(fromDate, toDate),
-        ),
-        singleParentHouseholds = lastValueDetail(
-            subTitle = "Alleinerzieher (Haushalte)",
-            results = countSingleParentHouseholds(fromDate, toDate),
-        ),
-        sheltersCount = sumDetail(
-            subTitle = "Notschlafstellen (Anzahl)",
-            results = countShelters(fromDate, toDate),
-        ),
-        sheltersAverage = averageDetail(
-            subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
-            results = averageShelters(fromDate, toDate),
-        ),
-        sheltersPersonsCount = sumDetail(
-            subTitle = "Versorgte Personen (Anzahl)",
-            results = countSheltersPersons(fromDate, toDate),
-        ),
-        shopsCount = sumDetail(
-            subTitle = "Spender (Anzahl)",
-            results = countShops(fromDate, toDate),
-        ),
-        shopItemsTotal = sumDetail(
-            subTitle = "Warenmenge (Gesamt)",
-            results = totalShopItems(fromDate, toDate),
-            unit = UNIT_KILOGRAM,
-        ),
-        shopItemsAverage = averageDetail(
-            subTitle = "Warenmenge (Durchschnitt pro Spender)",
-            results = averageShopItems(fromDate, toDate),
-            unit = UNIT_KILOGRAM,
-        ),
-    )
+    fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsResponse {
+        val shopItemsTotalResults = totalShopItems(fromDate, toDate)
+        val shopItemsTotalSum = shopItemsTotalResults.sumOf { it.value.toDouble() }
+        val shopsCountTotal = countShopsTotal(fromDate, toDate)
+
+        return StatisticsResponse(
+            beneficiaryCustomers = lastValueDetail(
+                subTitle = "Bezugsberechtigte Haushalte",
+                results = countBeneficiaryCustomers(fromDate, toDate),
+            ),
+            beneficiaryPersons = lastValueDetail(
+                subTitle = "Bezugsberechtigte Personen",
+                results = countBeneficiaryPersons(fromDate, toDate),
+            ),
+            beneficiaryCustomersWithChildren = lastValueDetail(
+                subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
+                results = countBeneficiaryCustomersWithChildren(fromDate, toDate),
+            ),
+            singleParentHouseholds = lastValueDetail(
+                subTitle = "Alleinerzieher (Haushalte)",
+                results = countSingleParentHouseholds(fromDate, toDate),
+            ),
+            sheltersCount = sumDetail(
+                subTitle = "Notschlafstellen (Anzahl)",
+                results = countShelters(fromDate, toDate),
+            ),
+            sheltersAverage = averageDetail(
+                subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
+                results = averageShelters(fromDate, toDate),
+            ),
+            sheltersPersonsCount = sumDetail(
+                subTitle = "Versorgte Personen (Anzahl)",
+                results = countSheltersPersons(fromDate, toDate),
+            ),
+            shopsCount = countDetail(
+                subTitle = "Spender (Anzahl)",
+                results = countShops(fromDate, toDate),
+                value = shopsCountTotal,
+            ),
+            shopItemsTotal = countDetail(
+                subTitle = "Warenmenge (Gesamt)",
+                results = shopItemsTotalResults,
+                value = Math.round(shopItemsTotalSum),
+                unit = UNIT_KILOGRAM,
+            ),
+            shopItemsAverage = weightedAverageDetail(
+                subTitle = "Warenmenge (Durchschnitt pro Spender)",
+                results = averageShopItems(fromDate, toDate),
+                totalValue = shopItemsTotalSum,
+                totalDivisor = shopsCountTotal,
+                unit = UNIT_KILOGRAM,
+            ),
+        )
+    }
 
     /**
      * A key figure whose headline is the *state* at the end of the period (how many households were
@@ -145,6 +155,30 @@ class StatisticsService(
     private fun averageDetail(subTitle: String, results: List<StatisticsResult>, unit: String? = null): StatisticsDetail {
         val divisor = max(results.count { it.value.toDouble() > 0 }, 1)
         val average = results.sumOf { it.value.toDouble() } / divisor
+
+        return detail(
+            title = String.format("%.2f", average).withUnit(unit),
+            subTitle = subTitle,
+            value = average,
+            unit = unit,
+            results = results,
+        )
+    }
+
+    /**
+     * The true "per spender" average over the whole range - sum of everything collected divided by
+     * how many distinct shops donated across the whole range, not the unweighted mean of each
+     * timeline bucket's own average: a bucket with a single high-volume shop would otherwise pull
+     * the headline far above what donors actually average per delivery.
+     */
+    private fun weightedAverageDetail(
+        subTitle: String,
+        results: List<StatisticsResult>,
+        totalValue: Double,
+        totalDivisor: Long,
+        unit: String? = null,
+    ): StatisticsDetail {
+        val average = if (totalDivisor > 0) totalValue / totalDivisor else 0.0
 
         return detail(
             title = String.format("%.2f", average).withUnit(unit),
@@ -282,17 +316,24 @@ class StatisticsService(
         return executeStatsQuery(sql, fromDate, toDate)
     }
 
+    /**
+     * `distributions` is the outer, un-filtered side of the join here on purpose: a distribution
+     * that served zero shelters still has to count in the divisor (`COUNT(DISTINCT d.id)`), or the
+     * average is only taken over distributions that happened to have a shelter, which skews it up.
+     * `dss.id` stays `NULL` for those via the `LEFT JOIN`, so `COUNT(dss.id)` still counts only the
+     * shelters actually served.
+     */
     fun averageShelters(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
         val sql = """
-            SELECT 
+            SELECT
                 format_by_resolution(t.start_date, t.res_code) as label,
                 (
-                    SELECT 
-                        CASE WHEN COUNT(DISTINCT d.id) = 0 THEN 0 
+                    SELECT
+                        CASE WHEN COUNT(DISTINCT d.id) = 0 THEN 0
                         ELSE COUNT(dss.id)::FLOAT / COUNT(DISTINCT d.id)::FLOAT END
-                    FROM distributions_statistics_shelters dss
-                    JOIN distributions_statistics ds ON ds.id = dss.distribution_statistic_id
-                    JOIN distributions d ON d.id = ds.distribution_id
+                    FROM distributions d
+                    JOIN distributions_statistics ds ON ds.distribution_id = d.id
+                    LEFT JOIN distributions_statistics_shelters dss ON dss.distribution_statistic_id = ds.id
                     WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
@@ -336,6 +377,27 @@ class StatisticsService(
         """.trimIndent()
 
         return executeStatsQuery(sql, fromDate, toDate)
+    }
+
+    /**
+     * How many distinct shops donated across the *whole* [fromDate]..[toDate] range, not summed per
+     * timeline bucket: [countShops] counts `DISTINCT shop_id` inside each bucket, so a shop that
+     * donates in more than one bucket is counted again in every one of them once those per-bucket
+     * counts are added up for the headline. This one query has no `get_timeline` grouping, so it
+     * always returns exactly one row.
+     */
+    fun countShopsTotal(fromDate: LocalDate, toDate: LocalDate): Long {
+        val sql = """
+            SELECT
+                'total' as label,
+                COUNT(DISTINCT fci.shop_id) as value
+            FROM distributions d
+            JOIN food_collections fc ON d.id = fc.distribution_id
+            JOIN food_collections_items fci ON fc.id = fci.food_collection_id
+            WHERE DATE(d.started_at) BETWEEN :fromDate AND :toDate
+        """.trimIndent()
+
+        return executeStatsQuery(sql, fromDate, toDate).firstOrNull()?.value?.toLong() ?: 0L
     }
 
     fun totalShopItems(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {

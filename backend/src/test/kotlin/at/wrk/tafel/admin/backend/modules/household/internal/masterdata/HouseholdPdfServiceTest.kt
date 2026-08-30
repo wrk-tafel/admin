@@ -172,6 +172,71 @@ class HouseholdPdfServiceTest {
         document.close()
     }
 
+    /**
+     * `countInfants` must agree with everywhere else "unter 3 Jahren" is counted
+     * (`DistributionStatisticService`, `DistributionService.mapHouseholdToPdfModel`): under 3, not
+     * at-or-under 3, and never a person `excludeFromHousehold` is flagged for.
+     */
+    @Test
+    fun `generate idcard pdf - countInfants excludes excludeFromHousehold and the 3-year boundary`() {
+        val mainPerson = PersonEntity(household = testHousehold, country = testCountry1, isMainPerson = true)
+        mainPerson.lastname = "Mustermann"
+        mainPerson.firstname = "Max"
+        mainPerson.birthDate = LocalDate.of(1980, 6, 10)
+
+        // turns 3 exactly on the fixed clock's date - the boundary itself must not be counted
+        val turningThreeToday = PersonEntity(household = testHousehold, country = testCountry1)
+        turningThreeToday.lastname = "Mustermann"
+        turningThreeToday.firstname = "AtBoundary"
+        turningThreeToday.birthDate = LocalDate.of(2023, 1, 15)
+        turningThreeToday.excludeFromHousehold = false
+
+        val includedInfant = PersonEntity(household = testHousehold, country = testCountry1)
+        includedInfant.lastname = "Mustermann"
+        includedInfant.firstname = "IncludedInfant"
+        includedInfant.birthDate = LocalDate.of(2024, 1, 15)
+        includedInfant.excludeFromHousehold = false
+
+        val excludedInfant = PersonEntity(household = testHousehold, country = testCountry1)
+        excludedInfant.lastname = "Mustermann"
+        excludedInfant.firstname = "ExcludedInfant"
+        excludedInfant.birthDate = LocalDate.of(2024, 6, 15)
+        excludedInfant.excludeFromHousehold = true
+
+        testHousehold.persons = mutableListOf(mainPerson, turningThreeToday, includedInfant, excludedInfant)
+        testHousehold.mainPerson = mainPerson
+
+        val document = Loader.loadPDF(service.generateIdCardPdf(testHousehold))
+        val pageText = PDFTextStripper().apply {
+            startPage = 1
+            endPage = 1
+        }.getText(document)
+
+        assertThat(pageText).contains("davon unter 3 Jahren 1")
+        document.close()
+    }
+
+    /**
+     * `masterdata.xsl` already guards this field with `!= '-'`; the ID card must do the same rather
+     * than concatenating the placeholder straight onto the street name.
+     */
+    @Test
+    fun `generate idcard pdf - omits the house number placeholder when there is none`() {
+        testHousehold.addressHouseNumber = null
+        testHousehold.addressStairway = null
+        testHousehold.addressDoor = null
+
+        val document = Loader.loadPDF(service.generateIdCardPdf(testHousehold))
+        val pageText = PDFTextStripper().apply {
+            startPage = 2
+            endPage = 2
+        }.getText(document)
+
+        assertThat(pageText).contains("Karl-Schäfer-Straße")
+        assertThat(pageText).doesNotContain("Karl-Schäfer-Straße -")
+        document.close()
+    }
+
     @Test
     fun `generate privacy notice pdf`() {
         val pdfBytes = service.generatePrivacyNoticePdf(testHousehold)

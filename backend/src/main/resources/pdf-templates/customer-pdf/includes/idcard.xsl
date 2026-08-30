@@ -161,8 +161,10 @@
                         <fo:table-cell number-columns-spanned="2" padding-bottom="3mm">
                             <xsl:variable name="streetValue">
                                 <xsl:value-of select="customer/address/street"/>
-                                <xsl:value-of select="' '"/>
-                                <xsl:value-of select="customer/address/houseNumber"/>
+                                <xsl:if test="customer/address/houseNumber != '-'">
+                                    <xsl:value-of select="' '"/>
+                                    <xsl:value-of select="customer/address/houseNumber"/>
+                                </xsl:if>
                                 <xsl:if test="customer/address/stairway != '-'">
                                     <xsl:value-of select="', Stiege '"/>
                                     <xsl:value-of select="customer/address/stairway"/>
