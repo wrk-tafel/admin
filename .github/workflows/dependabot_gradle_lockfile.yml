@@ -45,11 +45,20 @@ jobs:
       - name: Commit changes if any
         env:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          # A push authenticated with the default GITHUB_TOKEN never triggers `pull_request:
+          # synchronize` (GitHub suppresses workflow runs started by the default token, to avoid
+          # recursive runs), so pushing with it leaves this commit - the one that fixes the PR -
+          # with no CI run against it at all. A PAT belonging to an account other than this
+          # workflow's own token isn't subject to that suppression. Add a fine-grained PAT with
+          # "Contents: write" on this repo as the DEPENDABOT_LOCKFILE_PAT repository secret to
+          # enable that; without it, the commit still pushes (so the branch stays correct) but
+          # falls back to the same unchecked push this replaces.
+          PUSH_TOKEN: ${{ secrets.DEPENDABOT_LOCKFILE_PAT || secrets.GITHUB_TOKEN }}
         run: |
           if [ -n "$(git status --porcelain backend/gradle.lockfile settings-gradle.lockfile gradle/verification-metadata.xml)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add backend/gradle.lockfile settings-gradle.lockfile gradle/verification-metadata.xml
             git commit -m "build(deps): update gradle lockfile and verification metadata"
-            git push origin "HEAD:$HEAD_REF"
+            git push "https://x-access-token:${PUSH_TOKEN}@github.com/${{ github.repository }}.git" "HEAD:$HEAD_REF"
           fi

@@ -73,6 +73,16 @@ jobs:
             rm -f changed-files.txt
           fi
 
+          # The compare API returns at most 300 changed files, and only on the comparison's first
+          # page - `--paginate` cannot recover files beyond that cap, since later pages carry commit
+          # data with the files array omitted entirely, not more filenames. 300 lines here therefore
+          # doesn't mean "no more files exist" so much as "the response was truncated" - treat that
+          # the same as a failed comparison rather than classifying off a silently incomplete list.
+          if [ -f changed-files.txt ] && [ "$(wc -l < changed-files.txt)" -ge 300 ]; then
+            echo "::warning title=Change detection fell back::${BASE_SHA}...${HEAD_SHA} touches at least 300 files, the compare API's per-comparison cap - every area is treated as changed."
+            rm -f changed-files.txt
+          fi
+
       - name: Classify the changed files
         id: classify
         env:
@@ -99,7 +109,9 @@ jobs:
                 frontend/*)
                   frontend=true
                   ;;
-                _build/*)
+                # .hadolint.yaml lives at the repo root (subflow_lint.yml's lint-docker job reads
+                # it), not under _build/, so it needs its own case here.
+                _build/*|.hadolint.yaml)
                   docker=true
                   ;;
                 # A workflow change is only proven by running the pipeline it changes, so it counts

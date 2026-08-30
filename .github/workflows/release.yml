@@ -201,6 +201,11 @@ jobs:
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
   check-deploy-window:
     runs-on: ubuntu-latest
+    # Evaluated right before deploy-prod rather than in the first wave: build -> test/e2e -> image
+    # -> release easily takes 30+ minutes, and checking "is it Saturday" at run start instead of at
+    # deploy time lets a run started late Friday deploy into Saturday, or one started late Saturday
+    # fail even though the actual deploy would land on Sunday.
+    needs: github-release
     steps:
       - name: Check for the Saturday event window
         env:
