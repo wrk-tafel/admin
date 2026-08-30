@@ -14,6 +14,10 @@ describe('Settings - Employees', () => {
   });
 
   it('sorts by clicking a column header, replacing the default order', () => {
+    // Waits out the page's own initial (unsorted) load first - otherwise it can still be in
+    // flight when the intercept below is registered, and the click-triggered request race with it.
+    cy.byTestId('employees-row-0').should('exist');
+
     cy.intercept('GET', /\/api\/employees(\?|$)/).as('sortedEmployees');
     cy.contains('th', 'Nachname').click();
     cy.wait('@sortedEmployees').its('request.url').should('include', 'sortBy=lastname').and('include', 'sortDirection=asc');

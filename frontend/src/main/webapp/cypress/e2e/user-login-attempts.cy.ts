@@ -17,6 +17,10 @@ describe('Benutzer - Anmelde-Versuche', () => {
   });
 
   it('sorts by clicking a column header, replacing the locked-first default', () => {
+    // Waits out the page's own initial (unsorted) load first - otherwise it can still be in
+    // flight when the intercept below is registered, and the click-triggered request race with it.
+    cy.byTestId('login-attempts-row-0').should('exist');
+
     cy.intercept('GET', /\/api\/users\/login-attempts(\?|$)/).as('sortedLoginAttempts');
     cy.contains('th', 'Benutzername').click();
     cy.wait('@sortedLoginAttempts').its('request.url').should('include', 'sortBy=username').and('include', 'sortDirection=asc');
