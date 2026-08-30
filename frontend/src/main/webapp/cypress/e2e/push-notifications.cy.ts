@@ -223,10 +223,18 @@ describe('PushNotifications', () => {
   // response rather than the component's mocked unit spec, so it also proves the retry actually
   // re-issues the request.
   it('shows a retryable error instead of leaving the toggles disabled forever when preferences fail to load', () => {
-    cy.intercept('GET', '/api/push/preferences', {statusCode: 503, body: {}}).as('preferencesFailed');
+    let preferencesCallCount = 0;
+    cy.intercept('GET', '/api/push/preferences', (req) => {
+      preferencesCallCount++;
+      if (preferencesCallCount === 1) {
+        req.reply({statusCode: 503, body: {}});
+      } else {
+        req.continue();
+      }
+    }).as('preferences');
 
     cy.visit('/benachrichtigungen');
-    cy.wait('@preferencesFailed');
+    cy.wait('@preferences');
 
     cy.byTestId('push-preferences-error').should('be.visible');
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('be.disabled');
@@ -234,9 +242,8 @@ describe('PushNotifications', () => {
     // see cypress/support/accessibility.ts
     cy.checkAccessibility(MAIN_CONTENT);
 
-    cy.intercept('GET', '/api/push/preferences').as('preferencesRetried');
     cy.byTestId('push-preferences-retry').click();
-    cy.wait('@preferencesRetried');
+    cy.wait('@preferences');
 
     cy.byTestId('push-preferences-error').should('not.exist');
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('not.be.disabled');
