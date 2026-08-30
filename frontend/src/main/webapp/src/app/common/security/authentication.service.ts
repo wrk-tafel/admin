@@ -5,6 +5,8 @@ import {firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../http/suppress-error-toast.token';
 import {GlobalStateService} from '../state/global-state.service';
+import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
+import {extractErrorMessage} from '../api/problem-detail';
 
 @Service()
 export class AuthenticationService {
@@ -12,6 +14,7 @@ export class AuthenticationService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly globalStateService = inject(GlobalStateService);
+  private readonly toastr = inject(TafelToastrService);
 
   /**
    * Logs in and, on success, also loads the user's permissions before resolving - callers can
@@ -97,9 +100,15 @@ export class AuthenticationService {
   }
 
   /**
-   * On failure (e.g. an expired/invalid session), also clears `userInfo` rather than leaving the
-   * previous value in place - otherwise {@link isAuthenticated} would keep reporting the old
-   * session as authenticated after this fails.
+   * On a `401` (the session actually expired/is invalid), clears `userInfo` - otherwise
+   * {@link isAuthenticated} would keep reporting the old session as authenticated after this
+   * fails. Any other failure (offline, a gateway hiccup, a momentary `5xx`) is not proof the
+   * session ended, so it keeps the last known `userInfo` instead of clearing it - clearing it here
+   * would blank every `tafelIfPermission`-gated element (sidebar, dashboard panels) on the page the
+   * user is still looking at, and {@link AuthGuardService#canActivate} would treat it as a logged-out
+   * visitor on the next navigation even though the server session is still valid. The request
+   * suppresses the generic error toast (a logged-out visitor loading the app must not see one), so
+   * this surfaces one itself for the "unknown, might still be logged in" case.
    */
   public loadUserInfo(): Promise<UserInfo | null> {
     return firstValueFrom(this.http.get<UserInfo>('/users/info', {context: SUPPRESS_ERROR_TOAST_CONTEXT})
@@ -108,9 +117,13 @@ export class AuthenticationService {
           return of(userInfo);
         }),
 
-        catchError(_ => {
-          this.userInfo.set(null);
-          return of(null);
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 401) {
+            this.userInfo.set(null);
+            return of(null);
+          }
+          this.toastr.error(extractErrorMessage(error), 'Sitzungsprüfung fehlgeschlagen!');
+          return of(this.userInfo());
         })
       ));
   }

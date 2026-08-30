@@ -8,12 +8,14 @@ import { AuthenticationService } from './authentication.service';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { SUPPRESS_ERROR_TOAST } from '../http/suppress-error-toast.token';
 import { GlobalStateService } from '../state/global-state.service';
+import { TafelToastrService } from '../components/tafel-toastr/tafel-toastr.service';
 
 describe('AuthenticationService', () => {
     let httpMock: HttpTestingController;
 
     let router: MockedObject<Router>;
     let globalStateService: MockedObject<GlobalStateService>;
+    let toastr: MockedObject<TafelToastrService>;
     let service: AuthenticationService;
 
     beforeEach(() => {
@@ -22,6 +24,11 @@ describe('AuthenticationService', () => {
         };
         const globalStateServiceSpy = {
             reset: vi.fn().mockName('GlobalStateService.reset')
+        };
+        const toastrSpy = {
+            error: vi.fn().mockName('TafelToastrService.error'),
+            success: vi.fn().mockName('TafelToastrService.success'),
+            warning: vi.fn().mockName('TafelToastrService.warning')
         };
 
         TestBed.configureTestingModule({
@@ -36,6 +43,10 @@ describe('AuthenticationService', () => {
                 {
                     provide: GlobalStateService,
                     useValue: globalStateServiceSpy
+                },
+                {
+                    provide: TafelToastrService,
+                    useValue: toastrSpy
                 }
             ],
         });
@@ -44,6 +55,7 @@ describe('AuthenticationService', () => {
 
         router = TestBed.inject(Router) as MockedObject<Router>;
         globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
+        toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
         service = TestBed.inject(AuthenticationService);
     });
 
@@ -341,6 +353,23 @@ describe('AuthenticationService', () => {
 
         expect(await result).toBeNull();
         expect(service.userInfo()).toBeNull();
+        httpMock.verify();
+    });
+
+    // A transient failure (offline, a gateway hiccup) is not proof the session ended - clearing
+    // userInfo here would blank every permission-gated element on a page that is still perfectly
+    // authenticated, and the next navigation's guard would treat it as a logged-out visit - see #3563.
+    it('loadUserInfo keeps the last known userInfo and surfaces a toast when the request fails with a non-401 error', async () => {
+        service.userInfo.set({ username: 'test-user', permissions: ['PERM1'] });
+
+        const result = service.loadUserInfo();
+
+        const mockReq = httpMock.expectOne('/users/info');
+        mockReq.flush(null, { status: 503, statusText: 'Service Unavailable' });
+
+        expect(await result).toEqual({ username: 'test-user', permissions: ['PERM1'] });
+        expect(service.userInfo()).toEqual({ username: 'test-user', permissions: ['PERM1'] });
+        expect(toastr.error).toHaveBeenCalledWith('Server nicht verfügbar!', 'Sitzungsprüfung fehlgeschlagen!');
         httpMock.verify();
     });
 

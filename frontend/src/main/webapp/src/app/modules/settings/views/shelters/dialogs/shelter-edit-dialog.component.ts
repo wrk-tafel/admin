@@ -11,7 +11,7 @@ import {ShelterItem, ShelterContact} from '../../../../../api/shelter-api.servic
 import {MatDividerModule} from '@angular/material/divider';
 
 export interface ShelterEditDialogData {
-  shelter: ShelterItem;
+  shelter?: ShelterItem;
 }
 
 @Component({
@@ -33,6 +33,8 @@ export class ShelterEditDialogComponent {
   readonly data: ShelterEditDialogData = inject(MAT_DIALOG_DATA);
   private readonly fb = inject(FormBuilder);
   private readonly cd = inject(ChangeDetectorRef);
+
+  protected readonly title = this.data.shelter ? 'Notschlafstelle bearbeiten' : 'Notschlafstelle anlegen';
 
   form = this.fb.group({
     id: [this.data.shelter?.id, []],

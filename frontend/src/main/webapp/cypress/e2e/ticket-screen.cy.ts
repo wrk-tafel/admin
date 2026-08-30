@@ -271,6 +271,20 @@ describe('TicketScreen', () => {
       assertTicketText('3');
     });
 
+    // Regression test for #3563: Enter on a focused button used to be hijacked as the "Weiter
+    // (bezahlt)" shortcut instead of activating that button, so tabbing to e.g. "Ticket zurück"
+    // and pressing Enter closed the current ticket as paid and skipped ahead instead of going back.
+    it('Enter on a focused button activates that button instead of the "Weiter (bezahlt)" shortcut', () => {
+      cy.byTestId('show-currentticket-button').click();
+      assertTicketText('1');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('2');
+
+      cy.byTestId('show-previousticket-button').focus().type('{enter}');
+      assertTicketText('1');
+    });
+
   });
 
   // Split out from the "with distribution and tickets" block above because marking a ticket "not
