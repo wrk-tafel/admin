@@ -307,7 +307,7 @@ class StatisticsService(
                     FROM distributions_statistics_shelters dss
                     JOIN distributions_statistics ds ON ds.id = dss.distribution_statistic_id
                     JOIN distributions d ON d.id = ds.distribution_id
-                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                    WHERE vienna_date(d.started_at) BETWEEN t.start_date AND t.end_date
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -334,7 +334,7 @@ class StatisticsService(
                     FROM distributions d
                     JOIN distributions_statistics ds ON ds.distribution_id = d.id
                     LEFT JOIN distributions_statistics_shelters dss ON dss.distribution_statistic_id = ds.id
-                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                    WHERE vienna_date(d.started_at) BETWEEN t.start_date AND t.end_date
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -352,7 +352,7 @@ class StatisticsService(
                     FROM distributions_statistics_shelters dss
                     JOIN distributions_statistics ds ON ds.id = dss.distribution_statistic_id
                     JOIN distributions d ON d.id = ds.distribution_id
-                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                    WHERE vienna_date(d.started_at) BETWEEN t.start_date AND t.end_date
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -370,7 +370,7 @@ class StatisticsService(
                     FROM distributions d
                     JOIN food_collections fc ON d.id = fc.distribution_id
                     JOIN food_collections_items fci ON fc.id = fci.food_collection_id
-                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                    WHERE vienna_date(d.started_at) BETWEEN t.start_date AND t.end_date
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -394,7 +394,7 @@ class StatisticsService(
             FROM distributions d
             JOIN food_collections fc ON d.id = fc.distribution_id
             JOIN food_collections_items fci ON fc.id = fci.food_collection_id
-            WHERE DATE(d.started_at) BETWEEN :fromDate AND :toDate
+            WHERE vienna_date(d.started_at) BETWEEN :fromDate AND :toDate
         """.trimIndent()
 
         return executeStatsQuery(sql, fromDate, toDate).firstOrNull()?.value?.toLong() ?: 0L
@@ -409,7 +409,7 @@ class StatisticsService(
                     FROM distributions d
                     JOIN food_collections fc ON d.id = fc.distribution_id
                     JOIN food_collections_items fci ON fc.id = fci.food_collection_id
-                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                    WHERE vienna_date(d.started_at) BETWEEN t.start_date AND t.end_date
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -429,7 +429,7 @@ class StatisticsService(
                     FROM distributions d
                     JOIN food_collections fc ON d.id = fc.distribution_id
                     JOIN food_collections_items fci ON fc.id = fci.food_collection_id
-                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                    WHERE vienna_date(d.started_at) BETWEEN t.start_date AND t.end_date
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC

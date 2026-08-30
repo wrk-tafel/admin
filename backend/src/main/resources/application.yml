@@ -91,6 +91,13 @@ spring:
     # password: <database password>
     driverClassName: org.postgresql.Driver
     hikari:
+      # Pins every pooled connection's session TimeZone to the same zone the JVM already runs under
+      # (ADR-0027). This matters now that event-timestamp columns are `timestamptz` (ADR-0054):
+      # pgjdbc converts those to/from LocalDateTime using the JVM's default zone regardless of this
+      # setting, but any raw/native SQL date function (date_trunc, EXTRACT, to_char, now()) applied
+      # directly to such a column is evaluated in the session's TimeZone - without this, that would
+      # be whatever the Postgres server itself defaults to, not Europe/Vienna.
+      connection-init-sql: "SET TIME ZONE 'Europe/Vienna'"
       # Sized for this application's real concurrency: a handful of simultaneous users plus the
       # @Async executor's 10 threads (see AsyncConfig). Postgres' default max_connections is 100,
       # so a pool much larger than this claims connections nobody uses - and every pool-wide event
