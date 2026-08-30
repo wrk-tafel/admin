@@ -543,7 +543,7 @@ return true;
     });
 
     // "Einstellungen" mixes logistics master data with system administration - the sub-group labels
-    // are what makes the right entry findable without reading all nine flat entries.
+    // are what makes the right entry findable without reading all ten flat entries.
     it('splits the Einstellungen submenu into labeled sub-groups instead of one flat list', () => {
         authService.hasPermission.mockReturnValue(true);
         authService.hasAnyPermission.mockReturnValue(true);
@@ -564,7 +564,7 @@ return true;
         // the sub-group labels are not links - only the actual entries are
         const links = Array.from<HTMLAnchorElement>(group.querySelectorAll('a')).map(a => a.textContent!.trim());
         expect(links).toEqual([
-            'Fahrzeuge', 'Filialen', 'Notschlafstellen', 'Routen', 'Waren-Kategorien', 'Retour-Kategorien',
+            'Fahrzeuge', 'Filialen', 'Länder', 'Notschlafstellen', 'Routen', 'Waren-Kategorien', 'Retour-Kategorien',
             'E-Mail', 'Grenzwerte', 'Mitarbeiter'
         ]);
     });

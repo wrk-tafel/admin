@@ -11,6 +11,14 @@ export class CountryApiService {
     return this.http.get<CountryListResponse>('/countries')
       .pipe(map(val => ({countries: val.items, frequentlyUsedCount: val.frequentlyUsedCount})));
   }
+
+  getAllCountries(): Observable<CountryList> {
+    return this.http.get<CountryList>('/countries/admin');
+  }
+
+  updateCountry(countryId: number, country: CountryAdminData): Observable<CountryAdminData> {
+    return this.http.put<CountryAdminData>(`/countries/${countryId}`, country);
+  }
 }
 
 interface CountryListResponse {
@@ -28,4 +36,15 @@ export interface CountryData {
   id: number;
   code: string;
   name: string;
+}
+
+export interface CountryList {
+  items: CountryAdminData[];
+}
+
+export interface CountryAdminData {
+  id: number;
+  code: string;
+  name: string;
+  enabled: boolean;
 }

@@ -42,4 +42,28 @@ class CountryControllerTest {
 
         assertThat(response.frequentlyUsedCount).isEqualTo(CountryService.FREQUENTLY_USED_COUNT)
     }
+
+    @Test
+    fun `list all countries for admin`() {
+        val country1 = CountryResponse(id = 1, code = "AA", name = "Name A", enabled = true)
+        val country2 = CountryResponse(id = 2, code = "BB", name = "Name B", enabled = false)
+
+        every { countryService.listAllCountriesForAdmin() } returns listOf(country1, country2)
+
+        val response = countryController.listAllCountries()
+
+        assertThat(response).isEqualTo(CountryAdminListResponse(items = listOf(country1, country2)))
+    }
+
+    @Test
+    fun `update country`() {
+        val request = CountryRequest(name = "Neuer Name", enabled = false)
+        val response = CountryResponse(id = 1, code = "AA", name = "Neuer Name", enabled = false)
+
+        every { countryService.updateCountry(1, request) } returns response
+
+        val result = countryController.updateCountry(1, request)
+
+        assertThat(result).isEqualTo(response)
+    }
 }

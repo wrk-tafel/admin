@@ -224,6 +224,10 @@ export const navigationMenuItems: ITafelNavData[] = [
         url: '/einstellungen/filialen'
       },
       {
+        name: 'Länder',
+        url: '/einstellungen/laender'
+      },
+      {
         name: 'Notschlafstellen',
         url: '/einstellungen/notschlafstellen'
       },
