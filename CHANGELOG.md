@@ -12,6 +12,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Ein Kunde, dessen Verlängerung wegen eines zu hohen Einkommens ungültig gespeichert wird, scheint jetzt nicht mehr fälschlich als "Verlängert" in der Kundenübersicht und den Statistiken auf.
 - Die Anzahl der Kinder unter 3 Jahren auf der Bezugskarte und dem Stammdatenblatt wird jetzt wie in den übrigen Auswertungen berechnet (unter statt bis einschließlich 3 Jahre, ohne von der Haushaltszählung ausgeschlossene Personen).
 - Die Bezugskarte zeigt bei einer Adresse ohne Hausnummer jetzt keinen überflüssigen Bindestrich mehr an.
+- Ein gesperrter Kunde kann jetzt nicht mehr über das Bearbeiten-Formular versehentlich entsperrt werden, und eine spätere Änderung an einem bereits gesperrten Kunden überschreibt nicht mehr, wann und von wem er gesperrt wurde.
 
 ## [1.15.0] - 2026-08-30
 - Die Screenshots im Benutzerhandbuch zeigen wieder den aktuellen Stand der Anwendung (u. a. Kunden anlegen/bearbeiten mit dem neuen Nationalität-Suchfeld und die Schnellsuche mit dem Kurzhinweis und der zweiten Aktion "Datenschutzerklärung (Mitarbeiter) herunterladen").

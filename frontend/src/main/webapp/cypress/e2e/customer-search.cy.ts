@@ -269,6 +269,36 @@ describe('Customer Search', () => {
     });
   });
 
+  // Regression test for issue #3557: the edit pencil must never open a locked customer for editing -
+  // only the detail screen's explicit "Kunde entsperren" action may touch a locked household.
+  it('disables the edit button for a locked customer', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        country: AUSTRIA,
+        validUntil: dayjs().add(1, 'year').toDate(),
+        locked: true,
+        lockReason: 'Testgrund-' + randomNumber,
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        }
+      }).then((response) => {
+        const customer = response.body.data;
+
+        cy.byTestId('searchInputText').type(customer.lastname);
+        clickSearchAndWaitForResult();
+
+        cy.byTestId('searchresult-editcustomer-button-' + customer.id).filterDisplayed().should('be.disabled');
+      });
+    });
+  });
+
   it('search by missing privacy notice filter', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;

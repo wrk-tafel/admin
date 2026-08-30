@@ -1,4 +1,16 @@
 <div class="pb-20">
+  @if (customerData()?.locked) {
+    <div testid="lock-info-banner" class="tafel-banner-error">
+      <div><strong>Kunde ist gesperrt!</strong> Änderungen können nicht gespeichert werden.</div>
+      @if (customerData()!.lockedBy) {
+        <div>Gesperrt am {{ customerData()!.lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{ customerData()!.lockedBy }}</div>
+      }
+      @if (customerData()!.lockReason) {
+        <div><strong>Sperrgrund:</strong> {{ customerData()!.lockReason }}</div>
+      }
+    </div>
+  }
+
   @if (!editMode() && possibleDuplicates().length > 0) {
     <div #duplicatesWarning testid="possible-duplicates-warning" class="tafel-banner-warning">
       <div class="font-bold mb-1">Möglicherweise bereits vorhanden</div>
@@ -43,6 +55,7 @@
   <div class="flex gap-2">
     <button testid="validate-button" matButton="filled" (click)="validate()">Anspruch prüfen</button>
     <button testid="save-button" matButton="filled" class="button-success"
-            (click)="save()" [disabled]="!isSaveEnabled()">Speichern</button>
+            (click)="save()" [disabled]="!isSaveEnabled()"
+            [matTooltip]="customerData()?.locked ? 'Kunde ist gesperrt' : ''">Speichern</button>
   </div>
 </div>

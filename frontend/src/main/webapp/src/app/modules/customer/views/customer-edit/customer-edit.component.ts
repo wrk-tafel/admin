@@ -24,7 +24,8 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {HasUnsavedChanges} from './customer-edit-unsaved-changes.guard';
-import {CurrencyPipe, NgClass} from '@angular/common';
+import {CurrencyPipe, DatePipe, NgClass} from '@angular/common';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @Component({
   selector: 'tafel-customer-edit',
@@ -34,7 +35,9 @@ import {CurrencyPipe, NgClass} from '@angular/common';
     MatButtonModule,
     RouterLink,
     CurrencyPipe,
-    NgClass
+    DatePipe,
+    NgClass,
+    MatTooltipModule
   ]
 })
 export class CustomerEditComponent implements HasUnsavedChanges {
@@ -45,7 +48,7 @@ export class CustomerEditComponent implements HasUnsavedChanges {
   // editMode is derived from input customerData; use computed (read-only signal)
   editMode = computed(() => !!this.customerData());
   customerFormComponent = viewChild.required<CustomerFormComponent>(CustomerFormComponent);
-  readonly isSaveEnabled = computed(() => this.customerFormComponent().valid());
+  readonly isSaveEnabled = computed(() => this.customerFormComponent().valid() && !this.customerData()?.locked);
   readonly dirty = computed(() => this.customerFormComponent().dirty());
 
   // Set right before navigating away after a successful save, so the unsaved-changes guard - which

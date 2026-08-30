@@ -1,5 +1,8 @@
 import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {Gender} from '../support/commands';
+
+const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
 
 describe('Customer Edit', () => {
 
@@ -107,6 +110,36 @@ describe('Customer Edit', () => {
         .should('contain.text', 'Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet');
 
       cy.url().should('contain', '/kunden/detail/' + customerId);
+    });
+  });
+
+  // Regression test for issue #3557: a locked customer reached directly by URL (the search screen's
+  // edit pencil is disabled for one, but the route itself is still reachable) must show the lock and
+  // refuse to save, so the lock can never be silently dropped by an edit.
+  it('shows the lock banner and refuses to save a locked customer opened by direct URL', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        country: AUSTRIA,
+        validUntil: dayjs().add(1, 'year').toDate(),
+        locked: true,
+        lockReason: 'Testgrund-' + randomNumber,
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        }
+      }).then((response) => {
+        const customer = response.body.data;
+        cy.visit('/kunden/bearbeiten/' + customer.id);
+
+        cy.byTestId('lock-info-banner').should('be.visible').and('contain.text', customer.lockReason);
+        cy.byTestId('save-button').should('be.disabled');
+      });
     });
   });
 
