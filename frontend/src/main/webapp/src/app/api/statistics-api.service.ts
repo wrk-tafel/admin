@@ -34,7 +34,7 @@ export class StatisticsApiService {
   }
 
   getChildrenData(
-    filter: ChildrenFilter, page?: number, pageSize?: number
+    filter: ChildrenFilter, page?: number, pageSize?: number, sortBy?: string, sortDirection?: string
   ): Observable<ChildrenSearchResult> {
     let queryParams = this.childrenParams(filter);
     if (page) {
@@ -42,6 +42,12 @@ export class StatisticsApiService {
     }
     if (pageSize) {
       queryParams = queryParams.set('pageSize', pageSize);
+    }
+    if (sortBy) {
+      queryParams = queryParams.set('sortBy', sortBy);
+    }
+    if (sortDirection) {
+      queryParams = queryParams.set('sortDirection', sortDirection);
     }
 
     return this.http.get<ChildrenSearchResult>('/statistics/children', {params: queryParams});

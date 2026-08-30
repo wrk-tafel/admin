@@ -170,6 +170,8 @@ Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Person
 
 Die Spalte **Benutzerkonto** zeigt, ob ein [Benutzerkonto](benutzer.md) auf die Personalnummer verweist. Mit der Berechtigung "Benutzerverwaltung" ist der Kontoname ein Link direkt auf die Benutzer-Details; ohne diese Berechtigung steht dort nur "Benutzerkonto vorhanden". Mitarbeiter ohne Konto sind als "Kein Benutzerkonto" gekennzeichnet.
 
+Ein Klick auf eine der Spaltenüberschriften Personalnummer, Vorname oder Nachname sortiert die Tabelle danach statt nach der Anlagereihenfolge; ein erneuter Klick auf dieselbe Spalte kehrt die Richtung um.
+
 Über den Button **Datenschutzerklärung (Mitarbeiter)** neben "Neuen Mitarbeiter anlegen" lässt sich eine allgemeine, personenunabhängige Datenschutzerklärung für Mitarbeiter:innen und Freiwillige als PDF herunterladen und ausdrucken — gedacht für Mitarbeiter:innen ohne eigenes Benutzerkonto, die sich sonst nicht selbst über das Benutzermenü informieren können. Sie erklärt, welche Daten über Mitarbeiter:innen verarbeitet werden, auf welcher Grundlage, wie lange und mit welchen Rechten — dasselbe Dokument ist auch im Benutzermenü unter "Datenschutzerklärung (Mitarbeiter)" für die eigene Ansicht verlinkt.
 
 ![Mitarbeiter](images/einstellungen-mitarbeiter.jpg)

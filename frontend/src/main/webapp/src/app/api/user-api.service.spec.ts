@@ -173,6 +173,14 @@ describe('UserApiService', () => {
     httpMock.verify();
   });
 
+  it('get login attempts sorted by a column', () => {
+    apiService.getLoginAttempts(1, 10, undefined, false, 'username', 'asc').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users/login-attempts?page=1&pageSize=10&sortBy=username&sortDirection=asc'});
+    req.flush({items: []});
+    httpMock.verify();
+  });
+
   it('get login attempt settings', () => {
     apiService.getLoginAttemptSettings().subscribe();
 

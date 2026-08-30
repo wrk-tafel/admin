@@ -7,7 +7,13 @@ import {PagedResponse} from '../common/api/paged-response';
 export class EmployeeApiService {
   private readonly http = inject(HttpClient);
 
-  findEmployees(searchInput?: string, page?: number, pageSize?: number): Observable<EmployeeListResponse> {
+  findEmployees(
+    searchInput?: string,
+    page?: number,
+    pageSize?: number,
+    sortBy?: string,
+    sortDirection?: string
+  ): Observable<EmployeeListResponse> {
     let queryParams = new HttpParams();
     if (searchInput) {
       queryParams = queryParams.set('searchInput', searchInput);
@@ -17,6 +23,12 @@ export class EmployeeApiService {
     }
     if (pageSize) {
       queryParams = queryParams.set('pageSize', pageSize);
+    }
+    if (sortBy) {
+      queryParams = queryParams.set('sortBy', sortBy);
+    }
+    if (sortDirection) {
+      queryParams = queryParams.set('sortDirection', sortDirection);
     }
     return this.http.get<EmployeeListResponse>('/employees', {params: queryParams});
   }

@@ -16,6 +16,22 @@ describe('Benutzer - Anmelde-Versuche', () => {
     cy.byTestId('login-attempts-row-0').should('contain.text', 'gesperrt1');
   });
 
+  it('sorts by clicking a column header, replacing the locked-first default', () => {
+    // Waits out the page's own initial (unsorted) load first - otherwise it can still be in
+    // flight when the intercept below is registered, and the click-triggered request race with it.
+    cy.byTestId('login-attempts-row-0').should('exist');
+
+    cy.intercept('GET', /\/api\/users\/login-attempts(\?|$)/).as('sortedLoginAttempts');
+    cy.contains('th', 'Benutzername').click();
+    cy.wait('@sortedLoginAttempts').its('request.url').should('include', 'sortBy=username').and('include', 'sortDirection=asc');
+
+    cy.contains('th', 'Benutzername').click();
+    cy.wait('@sortedLoginAttempts').its('request.url').should('include', 'sortBy=username').and('include', 'sortDirection=desc');
+
+    // still present after sorting - it is a reorder of the same filtered result, not a new search
+    cy.byTestId('login-attempts-table').should('contain.text', 'gesperrt1').and('contain.text', 'fehlversuch1');
+  });
+
   it('shows a paginator above and below the table', () => {
     cy.get('.tafel-paginator-responsive').should('have.length', 2);
     cy.byTestId('login-attempts-paginator').should('exist');

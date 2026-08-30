@@ -34,7 +34,9 @@ class EmployeeController(
         @RequestParam searchInput: String? = null,
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
-    ): EmployeeListResponse = employeeService.findEmployees(searchInput, page, pageSize)
+        @RequestParam sortBy: String? = null,
+        @RequestParam sortDirection: String? = null,
+    ): EmployeeListResponse = employeeService.findEmployees(searchInput, page, pageSize, sortBy, sortDirection)
 
     @GetMapping("/personnel-number-availability")
     fun checkPersonnelNumberAvailability(

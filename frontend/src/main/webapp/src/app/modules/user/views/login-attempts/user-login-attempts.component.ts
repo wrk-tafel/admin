@@ -15,6 +15,7 @@ import {
   MatTable
 } from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatSortModule, Sort, SortDirection} from '@angular/material/sort';
 import {DatePipe} from '@angular/common';
 import {catchError, debounceTime, distinctUntilChanged, EMPTY, map, Subject, switchMap, tap} from 'rxjs';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
@@ -85,6 +86,7 @@ export interface LoginAttemptRow extends LoginAttemptItem {
     MatTable,
     MatHeaderCellDef,
     MatPaginatorModule,
+    MatSortModule,
     MatButtonToggleModule,
     MatFormFieldModule,
     MatInputModule,
@@ -110,6 +112,10 @@ export class UserLoginAttemptsComponent {
 
   protected searchControl = new FormControl<string>('', {nonNullable: true});
   protected readonly statusFilter = signal<LoginAttemptFilter>('ALL');
+  // Empty until a column header is clicked - the backend's own default order (locked entries
+  // first, most recent failure next) has no single "active" column to reflect here.
+  protected readonly sortActive = signal('');
+  protected readonly sortDirectionState = signal<SortDirection>('');
   protected readonly settings = signal<LoginAttemptSettingsResponse | null>(null);
   protected readonly lastUpdatedAt = signal<Date | null>(null);
 
@@ -184,7 +190,14 @@ export class UserLoginAttemptsComponent {
   }
 
   private fetchLoginAttempts$(page?: number, pageSize?: number) {
-    return this.userApiService.getLoginAttempts(page, pageSize, this.searchControl.value.trim(), this.statusFilter() === 'LOCKED')
+    return this.userApiService.getLoginAttempts(
+      page,
+      pageSize,
+      this.searchControl.value.trim(),
+      this.statusFilter() === 'LOCKED',
+      this.sortActive() || undefined,
+      this.sortDirectionState() || undefined
+    )
       .pipe(
         tap({
           next: data => {
@@ -201,6 +214,16 @@ export class UserLoginAttemptsComponent {
 
   protected onStatusFilterChanged(event: MatButtonToggleChange) {
     this.statusFilter.set(event.value as LoginAttemptFilter);
+    this.loadLoginAttempts(1, this.loginAttempts()?.pageSize);
+  }
+
+  /**
+   * A new sort replaces the current page 1 - clicking a column header is a request to see the
+   * result ordered by it, not just to reorder the page already on screen.
+   */
+  protected onSortChange(sort: Sort) {
+    this.sortActive.set(sort.direction ? sort.active : '');
+    this.sortDirectionState.set(sort.direction);
     this.loadLoginAttempts(1, this.loginAttempts()?.pageSize);
   }
 

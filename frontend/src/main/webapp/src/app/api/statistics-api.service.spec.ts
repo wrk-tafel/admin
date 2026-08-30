@@ -264,6 +264,16 @@ describe('StatisticsApiService', () => {
     req.flush(testResponse);
   });
 
+  it('get children data sorted by a column', () => {
+    apiService.getChildrenData(filter, 1, 25, 'lastname', 'asc').subscribe();
+
+    const req = httpMock.expectOne({
+      method: 'GET',
+      url: '/statistics/children?ageMin=6&ageMax=10&referenceDate=2026-09-01&page=1&pageSize=25&sortBy=lastname&sortDirection=asc'
+    });
+    req.flush({items: []});
+  });
+
   it('generate children csv', () => {
     apiService.generateChildrenCsv(filter).subscribe();
 

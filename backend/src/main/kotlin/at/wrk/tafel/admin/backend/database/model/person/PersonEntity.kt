@@ -94,12 +94,50 @@ class PersonEntity(
                 )
             }
 
-            fun orderByHouseholdId(spec: Specification<PersonEntity>): Specification<PersonEntity> = Specification { root: Root<PersonEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+            /**
+             * Ordered by household by default, so a household's children stay adjacent and the
+             * children-statistics screen can show its number just once per group (see
+             * `StatisticsChildrenComponent`'s `firstOfHousehold`).
+             *
+             * A [sortBy]/[sortDirection] pair - a user clicking a sortable `mat-sort-header` column on
+             * that screen - overrides this entirely, the same way
+             * `UserEntity.Specs.orderBySearchRelevance` does: children then simply sort by the chosen
+             * column across households, and the screen's per-household grouping no longer applies to
+             * consecutive rows (nothing breaks - the household number is just shown on every row rather
+             * than once per group). [sortBy] takes the same column ids the frontend's `mat-sort-header`s
+             * use (`householdId`, `firstname`, `lastname`, `age`); an unrecognized or missing value
+             * falls back to the household default. `age` is derived from [PersonEntity.birthDate] at
+             * query time (older == smaller birth date), so it sorts by the inverse of [sortDirection] on
+             * that column. `id` still closes out the order so paging stays stable when two rows tie on
+             * the requested column.
+             */
+            fun orderByHouseholdId(
+                spec: Specification<PersonEntity>,
+                sortBy: String? = null,
+                sortDirection: String? = null,
+            ): Specification<PersonEntity> = Specification { root: Root<PersonEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 val household: Join<PersonEntity, HouseholdEntity> = root.join("household")
                 val householdId: Expression<Long> = household["householdId"]
+                val firstname: Expression<String> = root["firstname"]
+                val lastname: Expression<String> = root["lastname"]
+                val birthDate: Expression<LocalDate> = root["birthDate"]
                 val id: Expression<Long> = root["id"]
+                val ascending = "asc".equals(sortDirection, ignoreCase = true)
 
-                cq!!.orderBy(cb.asc(householdId), cb.desc(id))
+                fun <T> CriteriaBuilder.orderBy(expression: Expression<T>) = if (ascending) asc(expression) else desc(expression)
+
+                val orders = buildList {
+                    when (sortBy) {
+                        "householdId" -> add(cb.orderBy(householdId))
+                        "firstname" -> add(cb.orderBy(firstname))
+                        "lastname" -> add(cb.orderBy(lastname))
+                        // Older children have an earlier birth date, so ascending age is descending birthDate.
+                        "age" -> add(if (ascending) cb.desc(birthDate) else cb.asc(birthDate))
+                        else -> add(cb.asc(householdId))
+                    }
+                    add(cb.desc(id))
+                }
+                cq!!.orderBy(orders)
                 spec.toPredicate(root, cq, cb)
             }
         }

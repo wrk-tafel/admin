@@ -127,12 +127,22 @@ class LoginAttemptService(
     // directly from UserController (a @RestController), and an ArchUnit rule
     // (ProjectSpecificRulesTest) forbids controllers from depending on database entities.
     @Transactional(readOnly = true)
-    fun findAll(pageRequest: PageRequest, searchInput: String? = null, lockedOnly: Boolean = false): Page<LoginAttemptItem> {
-        val page = loginAttemptRepository.findAllFiltered(
-            usernamePattern = "%${searchInput?.trim()?.lowercase().orEmpty()}%",
-            lockedOnly = lockedOnly,
-            now = now(),
-            pageRequest = pageRequest,
+    fun findAll(
+        pageRequest: PageRequest,
+        searchInput: String? = null,
+        lockedOnly: Boolean = false,
+        sortBy: String? = null,
+        sortDirection: String? = null,
+    ): Page<LoginAttemptItem> {
+        val now = now()
+        var spec = LoginAttemptEntity.Specs.usernameLike("%${searchInput?.trim()?.lowercase().orEmpty()}%")
+        if (lockedOnly) {
+            spec = spec.and(LoginAttemptEntity.Specs.lockedOnly(now))
+        }
+
+        val page = loginAttemptRepository.findAll(
+            LoginAttemptEntity.Specs.orderByLockedFirst(spec, now, sortBy, sortDirection),
+            pageRequest,
         )
 
         val userIdsByUsername = findUserIdsByUsername(page.content.map { it.username })

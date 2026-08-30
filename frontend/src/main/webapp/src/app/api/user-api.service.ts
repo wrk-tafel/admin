@@ -92,7 +92,9 @@ export class UserApiService {
     page?: number,
     pageSize?: number,
     searchInput?: string | null,
-    lockedOnly?: boolean
+    lockedOnly?: boolean,
+    sortBy?: string,
+    sortDirection?: string
   ): Observable<PagedResponse<LoginAttemptItem>> {
     let queryParams = new HttpParams();
     if (page) {
@@ -106,6 +108,12 @@ export class UserApiService {
     }
     if (lockedOnly) {
       queryParams = queryParams.set('lockedOnly', true);
+    }
+    if (sortBy) {
+      queryParams = queryParams.set('sortBy', sortBy);
+    }
+    if (sortDirection) {
+      queryParams = queryParams.set('sortDirection', sortDirection);
     }
     return this.http.get<PagedResponse<LoginAttemptItem>>('/users/login-attempts', {params: queryParams});
   }

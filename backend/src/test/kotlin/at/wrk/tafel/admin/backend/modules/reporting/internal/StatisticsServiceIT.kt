@@ -143,6 +143,63 @@ class StatisticsServiceIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `getChildrenData orders by household by default`() {
+        val higherHousehold = persistHousehold()
+        addAdditionalPerson(higherHousehold, age = 8, lastname = "FromHigherHousehold")
+        val lowerHousehold = persistHousehold()
+        addAdditionalPerson(lowerHousehold, age = 8, lastname = "FromLowerHousehold")
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = statisticsService.getChildrenData(ageMin = 6, ageMax = 10)
+
+        val expectedOrder = listOf(higherHousehold, lowerHousehold).sortedBy { it.householdId }.map { it.householdId }
+        assertThat(result.items.map { it.householdId }).isEqualTo(expectedOrder)
+    }
+
+    @Test
+    fun `getChildrenData sorts by the requested column, overriding the household default`() {
+        val household = persistHousehold()
+        val bravo = addAdditionalPerson(household, age = 8, lastname = "Bravo")
+        val alpha = addAdditionalPerson(household, age = 8, lastname = "Alpha")
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = statisticsService.getChildrenData(ageMin = 6, ageMax = 10, sortBy = "lastname", sortDirection = "asc")
+
+        assertThat(result.items.map { it.lastname }).containsExactly(alpha.lastname, bravo.lastname)
+    }
+
+    @Test
+    fun `getChildrenData sorts by firstname when requested`() {
+        val household = persistHousehold()
+        addAdditionalPerson(household, age = 8, lastname = "X", firstname = "Bravo")
+        addAdditionalPerson(household, age = 8, lastname = "Y", firstname = "Alpha")
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = statisticsService.getChildrenData(ageMin = 6, ageMax = 10, sortBy = "firstname", sortDirection = "asc")
+
+        assertThat(result.items.map { it.firstname }).containsExactly("Alpha", "Bravo")
+    }
+
+    /** Older means an earlier birth date, so ascending age has to sort by descending birth date. */
+    @Test
+    fun `getChildrenData sorts by age when requested, ascending age meaning descending birthDate`() {
+        val household = persistHousehold()
+        addAdditionalPerson(household, age = 6, lastname = "Younger")
+        addAdditionalPerson(household, age = 9, lastname = "Older")
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val ascending = statisticsService.getChildrenData(ageMin = 6, ageMax = 10, sortBy = "age", sortDirection = "asc")
+        assertThat(ascending.items.map { it.lastname }).containsExactly("Younger", "Older")
+
+        val descending = statisticsService.getChildrenData(ageMin = 6, ageMax = 10, sortBy = "age", sortDirection = "desc")
+        assertThat(descending.items.map { it.lastname }).containsExactly("Older", "Younger")
+    }
+
+    @Test
     fun `getChildrenAgeDistribution counts every match per age year`() {
         val household = persistHousehold()
         addAdditionalPerson(household, age = 6, lastname = "Six1")
@@ -316,11 +373,23 @@ class StatisticsServiceIT : TafelBaseIntegrationTest() {
         return household
     }
 
-    private fun addAdditionalPerson(household: HouseholdEntity, age: Int, lastname: String, excludeFromHousehold: Boolean = false): PersonEntity = addAdditionalPerson(household, LocalDate.now().minusYears(age.toLong()), lastname, excludeFromHousehold)
+    private fun addAdditionalPerson(
+        household: HouseholdEntity,
+        age: Int,
+        lastname: String,
+        excludeFromHousehold: Boolean = false,
+        firstname: String = "Kind",
+    ): PersonEntity = addAdditionalPerson(household, LocalDate.now().minusYears(age.toLong()), lastname, excludeFromHousehold, firstname)
 
-    private fun addAdditionalPerson(household: HouseholdEntity, birthDate: LocalDate, lastname: String, excludeFromHousehold: Boolean = false): PersonEntity {
+    private fun addAdditionalPerson(
+        household: HouseholdEntity,
+        birthDate: LocalDate,
+        lastname: String,
+        excludeFromHousehold: Boolean = false,
+        firstname: String = "Kind",
+    ): PersonEntity {
         val person = PersonEntity(household = household, country = testCountry, isMainPerson = false)
-        person.firstname = "Kind"
+        person.firstname = firstname
         person.lastname = lastname
         person.birthDate = birthDate
         person.excludeFromHousehold = excludeFromHousehold
