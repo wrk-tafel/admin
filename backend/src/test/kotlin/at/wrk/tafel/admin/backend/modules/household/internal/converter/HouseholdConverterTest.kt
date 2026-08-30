@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.converter
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -423,6 +424,37 @@ internal class HouseholdConverterTest {
         assertThat(result.lockedAt).isNotNull()
         assertThat(result.lockReason).isEqualTo(updatedHousehold.lockReason)
         assertThat(result.lockedBy).isEqualTo(testUserEntity)
+    }
+
+    @Test
+    fun `update of an already locked household keeps the original lock stamp and reason`() {
+        // The stored household was locked by a different user than the one performing this update -
+        // an unrelated later edit (e.g. disableCustomer's validUntil round-trip) must not re-attribute
+        // the lock to whoever happens to save next.
+        val originalLockedAt = LocalDateTime.now().minusDays(3)
+        val originalLockedBy = UserEntity(
+            username = "original-locker",
+            password = testUserEntity.password,
+            employee = testUserEntity.employee,
+            enabled = true,
+            passwordChangeRequired = false,
+        ).apply { id = 5 }
+        testHouseholdEntity2.lockedAt = originalLockedAt
+        testHouseholdEntity2.lockedBy = originalLockedBy
+
+        val updatedHousehold = testHousehold.copy(
+            validUntil = LocalDate.now().plusMonths(1),
+            locked = true,
+            lockReason = "different reason submitted by the request",
+            persons = listOf(testMainPerson.copy(id = 20)),
+        )
+
+        val result = converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity2)
+
+        assertThat(result.locked).isTrue()
+        assertThat(result.lockedAt).isEqualTo(originalLockedAt)
+        assertThat(result.lockedBy).isEqualTo(originalLockedBy)
+        assertThat(result.lockReason).isEqualTo("dummy reason")
     }
 
     @Test
