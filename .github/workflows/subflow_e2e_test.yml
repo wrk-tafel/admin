@@ -1,13 +1,11 @@
 name: E2E Test
 
-# Sharded so the suite runs in parallel rather than end to end - the same approach as the
-# lighthouse workflow's `pages` job. Each shard starts its own backend/database and only ever runs
-# its own spec files, so shards can't interfere with each other's state. The specs are grouped by
-# feature area, each area split into two roughly equal-sized shards by file count (no per-spec
-# timing data exists to balance by); if the job summaries show one shard consistently slower than
-# the others, move a spec or two across shards (within or across the `-1`/`-2` split) to rebalance.
-# Adding a spec file means adding it to exactly one shard here - nothing derives the list
-# automatically.
+# Every spec file gets its own shard, so the suite runs with full parallelism instead of grouping
+# several files per runner. The spec list is discovered from cypress/e2e/ at run time rather than
+# hand-maintained (unlike the lighthouse workflow's route shards, which can't be derived from files
+# since a route doesn't map 1:1 onto one) - adding a spec file needs no change here. Each shard
+# starts its own backend/database and only ever runs its own spec file, so shards can't interfere
+# with each other's state.
 
 env:
   JAVA_VERSION: '26'
@@ -18,70 +16,29 @@ on:
   workflow_call:
 
 jobs:
+  discover-specs:
+    name: discover specs
+    runs-on: ubuntu-latest
+    outputs:
+      specs: ${{ steps.list.outputs.specs }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: list
+        working-directory: frontend/src/main/webapp/cypress/e2e
+        run: |
+          specs=$(ls *.cy.ts | sed 's/\.cy\.ts$//' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "specs=${specs}" >> "$GITHUB_OUTPUT"
+
   run:
-    name: run (${{ matrix.shard.name }})
+    name: run (${{ matrix.spec }})
+    needs: discover-specs
     runs-on: ubuntu-latest
     strategy:
-      # One shard failing says nothing about the others, and a run that stops at the first red
+      # One spec failing says nothing about the others, and a run that stops at the first red
       # shard reports only a fraction of what it covered.
       fail-fast: false
       matrix:
-        shard:
-          - name: kunden-1
-            specs:
-              - customer-above-limit.cy.ts
-              - customer-create.cy.ts
-              - customer-detail.cy.ts
-              - customer-duplicates.cy.ts
-              - customer-edit.cy.ts
-          - name: kunden-2
-            specs:
-              - customer-overview.cy.ts
-              - customer-quickcheck.cy.ts
-              - customer-search.cy.ts
-              - quick-open.cy.ts
-          - name: einstellungen-1
-            specs:
-              - settings-cars.cy.ts
-              - settings-employees.cy.ts
-              - settings-food-categories.cy.ts
-              - settings-food-return-categories.cy.ts
-              - settings-mail.cy.ts
-          - name: einstellungen-2
-            specs:
-              - settings-routes.cy.ts
-              - settings-shelters.cy.ts
-              - settings-shops.cy.ts
-              - settings-static-values.cy.ts
-          - name: benutzer-anmeldung-1
-            specs:
-              - user-create.cy.ts
-              - user-detail.cy.ts
-              - user-edit.cy.ts
-              - user-login-attempts.cy.ts
-              - user-search.cy.ts
-              - login.cy.ts
-          - name: benutzer-anmeldung-2
-            specs:
-              - logout.cy.ts
-              - passwordchange.cy.ts
-              - audit-log.cy.ts
-              - data-subject-request.cy.ts
-              - general.cy.ts
-          - name: betrieb-1
-            specs:
-              - checkin.cy.ts
-              - dashboard.cy.ts
-              - food-collection-recording.cy.ts
-              - push-notifications.cy.ts
-              - route-guidance.cy.ts
-          - name: betrieb-2
-            specs:
-              - scanner.cy.ts
-              - statistics-children.cy.ts
-              - statistics-general.cy.ts
-              - support-request.cy.ts
-              - ticket-screen.cy.ts
+        spec: ${{ fromJson(needs.discover-specs.outputs.specs) }}
     services:
       postgres:
         image: postgres:18-bookworm
@@ -121,17 +78,11 @@ jobs:
         run: |
           java -Dspring.profiles.active=e2e -jar ./artifact/admin-backend.jar &
           cd frontend/src/main/webapp
-
-          specs=""
-          for f in ${{ join(matrix.shard.specs, ' ') }}; do
-            specs="${specs}cypress/e2e/${f},"
-          done
-
-          npm run cy:run-ci -- --spec "${specs%,}"
+          npm run cy:run-ci -- --spec "cypress/e2e/${{ matrix.spec }}.cy.ts"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: cypress-results-${{ matrix.shard.name }}
+          name: cypress-results-${{ matrix.spec }}
           path: |
             ./frontend/src/main/webapp/cypress/screenshots/
             ./frontend/src/main/webapp/cypress/videos/
