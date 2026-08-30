@@ -97,6 +97,10 @@ export class CustomerFormComponent {
     income: null,
     incomeDue: null,
     validUntil: null,
+    locked: false,
+    lockedAt: null,
+    lockedBy: null,
+    lockReason: null,
     singleParent: false,
     additionalPersons: []
   });
@@ -230,6 +234,10 @@ export class CustomerFormComponent {
           income: customerData.income ?? null,
           incomeDue: customerData.incomeDue ?? null,
           validUntil: customerData.validUntil ?? null,
+          locked: customerData.locked ?? false,
+          lockedAt: customerData.lockedAt ?? null,
+          lockedBy: customerData.lockedBy ?? null,
+          lockReason: customerData.lockReason ?? null,
           singleParent: customerData.singleParent ?? false,
           additionalPersons: additionalPersonsData
         });
@@ -515,6 +523,11 @@ export interface CustomerFormModel {
   income: number | null;
   incomeDue: Date | null;
   validUntil: Date | null;
+  /** Not editable through this form - carried through unchanged so an unrelated save can't drop it (see issue #3557). */
+  locked: boolean;
+  lockedAt: Date | null;
+  lockedBy: string | null;
+  lockReason: string | null;
   singleParent: boolean;
   additionalPersons: AdditionalPersonFormItem[];
 }

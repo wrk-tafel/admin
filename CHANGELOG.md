@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Feldwerte im Zugriffsprotokoll (z. B. Ja/Nein-Felder, Geschlecht, Dokumentart, Grenzwert-Art, Mailtyp, Empfängertyp, Berechtigung) werden jetzt auf Deutsch angezeigt, statt als technischer, teils englischer Rohwert.
+- Ein gesperrter Kunde kann jetzt nicht mehr über das Bearbeiten-Formular versehentlich entsperrt werden, und eine spätere Änderung an einem bereits gesperrten Kunden überschreibt nicht mehr, wann und von wem er gesperrt wurde.
 
 ## [1.15.0] - 2026-08-30
 - Die Screenshots im Benutzerhandbuch zeigen wieder den aktuellen Stand der Anwendung (u. a. Kunden anlegen/bearbeiten mit dem neuen Nationalität-Suchfeld und die Schnellsuche mit dem Kurzhinweis und der zweiten Aktion "Datenschutzerklärung (Mitarbeiter) herunterladen").
