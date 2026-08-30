@@ -60,6 +60,30 @@ class MailTemplateRenderingTest {
     }
 
     @Test
+    fun `daily-report-mail escapes markup typed into the distribution notes`() {
+        val context = Context()
+        context.setVariable("distributionDate", "22.03.2026")
+        context.setVariable("notes", "<script>alert(1)</script>")
+
+        val rendered = render("mails/daily-report-mail", context)
+
+        assertThat(rendered).contains("""<div class="tafel-note">&lt;script&gt;alert(1)&lt;/script&gt;</div>""")
+    }
+
+    // Not compared against a reference file on purpose: the newline is part of the *data* here, and
+    // a golden file would have it rewritten by git's line-ending normalization on checkout.
+    @Test
+    fun `daily-report-mail keeps the line breaks typed into the distribution notes`() {
+        val context = Context()
+        context.setVariable("distributionDate", "22.03.2026")
+        context.setVariable("notes", "Erste Zeile\nZweite Zeile")
+
+        val rendered = render("mails/daily-report-mail", context)
+
+        assertThat(rendered).contains("<div class=\"tafel-note\">Erste Zeile\nZweite Zeile</div>")
+    }
+
+    @Test
     fun `statistic-mail renders distribution date`() {
         val context = Context()
         context.setVariable("distributionDate", "22.03.2026")
@@ -95,6 +119,39 @@ class MailTemplateRenderingTest {
         val rendered = render("mails/return-boxes-mail", context)
 
         assertThat(rendered).isEqualTo(loadReference("return-boxes-mail-with-data.html"))
+    }
+
+    @Test
+    fun `return-boxes-mail escapes markup typed into notes, route names, shop data and return-box descriptions`() {
+        val context = Context()
+        context.setVariable("distributionDate", "22.03.2026")
+        context.setVariable("notes", "<script>alert('notes')</script>")
+        context.setVariable(
+            "returnBoxes",
+            ReturnBoxesDataModel(
+                routes = listOf(
+                    ReturnBoxesRoute(
+                        name = "<script>alert('route')</script>",
+                        shops = listOf(
+                            ReturnBoxesShop(
+                                name = "<script>alert('shop')</script>",
+                                address = "<script>alert('address')</script>",
+                                returnBoxes = "<script>alert('returnBoxes')</script>",
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val rendered = render("mails/return-boxes-mail", context)
+
+        assertThat(rendered).doesNotContain("<script>")
+        assertThat(rendered).contains("""<div class="tafel-note">&lt;script&gt;alert(&#39;notes&#39;)&lt;/script&gt;</div>""")
+        assertThat(rendered).contains("""<div style="font-weight: bold; margin-bottom: 6px;">&lt;script&gt;alert(&#39;route&#39;)&lt;/script&gt;</div>""")
+        assertThat(rendered).contains("""<strong>&lt;script&gt;alert(&#39;shop&#39;)&lt;/script&gt;</strong>""")
+        assertThat(rendered).contains("""<span style="color: #6B6B6B;">&lt;script&gt;alert(&#39;address&#39;)&lt;/script&gt;</span>""")
+        assertThat(rendered).contains("""<td>&lt;script&gt;alert(&#39;returnBoxes&#39;)&lt;/script&gt;</td>""")
     }
 
     @Test

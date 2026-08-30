@@ -16,6 +16,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Beim Bearbeiten eines Benutzerkontos können Benutzername, Passwort und die Pflicht zur Passwort-Änderung eines Administrator-Kontos jetzt nur mehr von einem Administrator geändert werden, statt von jedem Konto mit der Berechtigung "Benutzerverwaltung".
 - Wer das eigene Passwort über die Benutzerverwaltung (statt über "Passwort ändern") ändert, bleibt jetzt wie erwartet angemeldet, statt beim nächsten Klick unerwartet abgemeldet zu werden.
 - Ein durch Abmelden oder Passwortänderung ungültig gewordenes Anmelde-Token wird jetzt auch während der Zeitumstellung von Sommer- auf Winterzeit korrekt erkannt.
+- Anmerkungen einer Ausgabe sowie Routen-, Filial- und Retourkisten-Angaben werden im Tagesreport- und Retourkisten-Mail jetzt escaped angezeigt, statt enthaltenes HTML ungefiltert an die Mail-Empfänger auszuliefern.
 
 ## [1.15.0] - 2026-08-30
 - Die Screenshots im Benutzerhandbuch zeigen wieder den aktuellen Stand der Anwendung (u. a. Kunden anlegen/bearbeiten mit dem neuen Nationalität-Suchfeld und die Schnellsuche mit dem Kurzhinweis und der zweiten Aktion "Datenschutzerklärung (Mitarbeiter) herunterladen").
