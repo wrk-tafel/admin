@@ -118,6 +118,23 @@ export class FoodCollectionRecordingComponent {
     this.routeTabStatus() === 'unsaved' || this.warenTabStatus() === 'unsaved'
   );
 
+  /**
+   * Whether switching routes right now would actually discard something - a narrower question
+   * than {@link hasUnsavedChanges}, which also reads "unsaved" whenever one of km/items is
+   * `complete` and the other still has nothing entered (see `combineTabStatus`'s "one section
+   * outstanding" rule) even though there is nothing dirty to lose. Km/base data are read directly
+   * (real dirty state, not the combined badge) on every layout - neither has any other safeguard.
+   * The mobile items layout is excluded: it already resends the outgoing shop's pending return
+   * items as part of the switch itself (`sendReturnItemsOfCurrentShop`) and auto-saves Warenmenge
+   * counters through the offline queue as they're typed, so nothing is actually lost there: only
+   * the desktop layout's batch-save model is genuinely at risk of losing unsaved amounts here.
+   */
+  private readonly routeSwitchWouldDiscardChanges = computed(() =>
+    this.routeTabStatus() === 'unsaved'
+    || this.kmComponent()?.tabStatus() === 'unsaved'
+    || (this.isDesktopLayout() && this.itemsComponent()?.tabStatus() === 'unsaved')
+  );
+
   // Fed by onSelectedRouteChange, piped through switchMap below: a slow response for a route
   // switched away from must never overwrite what a later, faster selection already applied.
   private readonly routeSelection$ = new Subject<RouteData>();
@@ -181,7 +198,7 @@ export class FoodCollectionRecordingComponent {
       return;
     }
 
-    if (this.hasUnsavedChanges()) {
+    if (this.routeSwitchWouldDiscardChanges()) {
       const previousRoute = this.selectedRoute;
       this.dialog.open(UnsavedChangesDialogComponent).afterClosed().subscribe(confirmed => {
         if (confirmed) {
@@ -272,9 +289,11 @@ export class FoodCollectionRecordingComponent {
           this.toastr.warning(`Gespeichert - unvollständig und daher nicht gespeichert: ${skipped.join(', ')}`);
         } else {
           this.toastr.success('Daten wurden gespeichert!');
+          // only refresh from a save that actually persisted everything - refreshing after a
+          // partial save would rebuild the skipped section's form from the server, which never
+          // received its (still-invalid, still on-screen) input and would silently wipe it
+          this.refreshFoodCollectionSnapshot();
         }
-
-        this.refreshFoodCollectionSnapshot();
       },
       error: () => {
         this.saving.set(false);
