@@ -1,5 +1,6 @@
 import {Component, computed, DestroyRef, effect, inject, model, signal, untracked} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {catchError, EMPTY, Subject, switchMap} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
@@ -240,12 +241,36 @@ export class RouteGuidanceComponent {
     }
   });
 
+  // Fed by onSelectedRouteChange, piped through switchMap below: a slow response for a route
+  // switched away from must never overwrite the guidance a later, faster selection already loaded.
+  private readonly routeSelection$ = new Subject<RouteData>();
+
   constructor() {
     // A queued completion is sent once connectivity returns; when it lands, the server-assigned
     // completedAt/completedBy replace the optimistic local guess set in setCompletion() below.
     this.offlineQueueService.stopSynced$.pipe(takeUntilDestroyed()).subscribe(
       ({routeId, stop}) => this.applyStopUpdate(routeId, stop)
     );
+
+    this.routeSelection$.pipe(
+      switchMap(route => this.routeApiService.getRouteGuidance(route.id).pipe(
+        catchError((error: HttpErrorResponse) => {
+          this.toastr.error(extractErrorMessage(error), 'Fehler beim Laden der Route');
+          return EMPTY;
+        })
+      )),
+      takeUntilDestroyed()
+    ).subscribe(guidance => {
+      this._guidance.set(guidance);
+      // open where the driver actually is - the first stop not done yet, or the last one when the
+      // whole route is finished
+      const firstOpenIndex = guidance.stops.findIndex(stop => !stop.completed);
+      this._currentIndex.set(firstOpenIndex >= 0 ? firstOpenIndex : Math.max(0, guidance.stops.length - 1));
+      if (guidance.stops.length > 0) {
+        // a cradled phone that locks between stops costs an unlock-and-navigate every time
+        void this.wakeLockService.request();
+      }
+    });
 
     this.window.document.addEventListener('visibilitychange', this.onVisibilityChange);
     this.destroyRef.onDestroy(() => {
@@ -263,22 +288,7 @@ export class RouteGuidanceComponent {
       return;
     }
 
-    this.routeApiService.getRouteGuidance(route.id).subscribe({
-      next: guidance => {
-        this._guidance.set(guidance);
-        // open where the driver actually is - the first stop not done yet, or the last one when the
-        // whole route is finished
-        const firstOpenIndex = guidance.stops.findIndex(stop => !stop.completed);
-        this._currentIndex.set(firstOpenIndex >= 0 ? firstOpenIndex : Math.max(0, guidance.stops.length - 1));
-        if (guidance.stops.length > 0) {
-          // a cradled phone that locks between stops costs an unlock-and-navigate every time
-          void this.wakeLockService.request();
-        }
-      },
-      error: (error: HttpErrorResponse) => {
-        this.toastr.error(extractErrorMessage(error), 'Fehler beim Laden der Route');
-      }
-    });
+    this.routeSelection$.next(route);
   }
 
   /** Pure paging - never touches completion. See the class doc above `_currentIndex`. */

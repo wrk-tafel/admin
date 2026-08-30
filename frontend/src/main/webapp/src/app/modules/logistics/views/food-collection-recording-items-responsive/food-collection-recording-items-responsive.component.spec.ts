@@ -657,7 +657,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(fixture.componentInstance.justSynced()).toBe(false);
   });
 
-  it('tabStatus - unsaved while return boxes are pending, complete once markAsSaved is called', () => {
+  it('tabStatus - unsaved while return boxes are pending, complete once markReturnItemsSaved is called', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -672,7 +672,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     component.onReturnCategoryValueChange({key: 'Graue Kisten', value: 2});
     expect(component.tabStatus()).toBe('unsaved');
 
-    component.markAsSaved();
+    component.markReturnItemsSaved();
     expect(component.tabStatus()).toBe('complete');
   });
 

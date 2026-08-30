@@ -209,6 +209,30 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
         });
     });
 
+    it('saveRequests - skips the items request when a Warenmenge cell is invalid, correctly labelled', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
+        const component = fixture.componentInstance;
+        const componentRef = fixture.componentRef;
+        foodCollectionsApiService.saveReturnItems.mockReturnValue(of(undefined));
+
+        componentRef.setInput('selectedRouteData', {
+            route: testRoute,
+            shops: testShops
+        });
+        componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
+        fixture.detectChanges();
+
+        // a cleared Warenmenge cell must never be sent - it would fail the backend's validation
+        component.getShops(0).at(0).get('amount')!.setValue(null);
+
+        expect(component.hasInvalidItems()).toBe(true);
+        expect(component.hasInvalidReturnItems()).toBe(false);
+        expect(component.saveRequests()).toHaveLength(1);
+        expect(foodCollectionsApiService.saveItems).not.toHaveBeenCalled();
+        expect(foodCollectionsApiService.saveReturnItems).toHaveBeenCalled();
+    });
+
     it('saveRequests - skips the return items when a free-text row duplicates a return category', () => {
         const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
         const component = fixture.componentInstance;
@@ -300,7 +324,8 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
         component.getShops(0).at(0).get('amount')!.markAsDirty();
         expect(component.tabStatus()).toBe('unsaved');
 
-        component.markAsSaved();
+        component.markItemsSaved();
+        component.markReturnItemsSaved();
         expect(component.tabStatus()).toBe('complete');
     });
 

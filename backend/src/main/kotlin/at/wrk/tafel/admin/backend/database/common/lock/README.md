@@ -11,7 +11,7 @@ Available lock keys:
 - `CREATE_DISTRIBUTION` (1000L) - For creating new distribution events
 - `CLOSE_DISTRIBUTION` (2000L) - For closing distribution events
 - `LOGIN_ATTEMPT_TRACKING` (3000L) - Serializes concurrent login-failure updates across instances
-- `PATCH_FOOD_COLLECTION_ITEM` (4000L) - Serializes read-modify-write updates to a food collection's items to avoid duplicate-key races when multiple patches for the same route/shop overlap
+- `PATCH_FOOD_COLLECTION_ITEM` (4000L) - Serializes every write path against a food collection's items (`saveItems`, `saveItemsPerShop`, `patchItem`) to avoid lost updates and duplicate-key races when a per-shop mobile save, a different shop's per-shop save, and the desktop autosave overlap
 - `SCANNER_REGISTRATION` (5000L) - Serializes scanner registration's gap-filling scanner-id lookup to avoid two concurrent registrations computing and inserting the same id
 - `SAVE_FOOD_COLLECTION_RETURN_ITEMS` (6000L) - Serializes the per-shop replace of a food collection's free-text return items, whose whole element collection is rewritten on every save
 - `REGISTER_PUSH_SUBSCRIPTION` (7000L) - Serializes the upsert-by-endpoint of a push subscription, whose check-then-act would otherwise let overlapping registrations of one endpoint collide on its UNIQUE constraint

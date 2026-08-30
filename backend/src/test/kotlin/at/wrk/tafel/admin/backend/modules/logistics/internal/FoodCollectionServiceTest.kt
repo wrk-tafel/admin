@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
@@ -182,10 +183,11 @@ class FoodCollectionServiceTest {
         }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
-        every { shopRepository.findByIdOrNull(999L) } returns null
 
-        val exception = assertThrows<NotFoundException> { service.saveReturnItems(routeId = routeId, data = data) }
-        assertThat(exception.body.detail).isEqualTo("Filiale nicht gefunden!")
+        // a shop id that isn't a stop of the route at all is now rejected by that check before the
+        // save ever gets to looking the shop up on its own (see #3527/#3559)
+        val exception = assertThrows<BusinessRuleException> { service.saveReturnItems(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Filiale ist keine Station dieser Route!")
     }
 
     @Test
@@ -928,6 +930,84 @@ class FoodCollectionServiceTest {
     }
 
     @Test
+    fun `save items takes the same advisory lock as patchItem and saveItemsPerShop`() {
+        val routeId = 123L
+        val data = FoodCollectionItemsRequest(
+            items = listOf(
+                FoodCollectionItem(categoryId = testFoodCategory1.id!!, shopId = testShop1.id!!, amount = 1),
+            ),
+        )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { foodCollectionRepository.save(any()) } returns mockk()
+        every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
+        every { shopRepository.findByIdOrNull(testShop1.id!!) } returns testShop1
+
+        service.saveItems(routeId = routeId, data = data)
+
+        verify(exactly = 1) {
+            advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM, any<() -> Unit>())
+        }
+    }
+
+    @Test
+    fun `save items per shop takes the same advisory lock as patchItem`() {
+        val routeId = 123L
+        val data = FoodCollectionSaveItemsPerShopRequest(
+            items = listOf(FoodCollectionCategoryAmount(categoryId = testFoodCategory1.id!!, amount = 1)),
+        )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { foodCollectionRepository.save(any()) } returns mockk()
+        every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
+        every { shopRepository.findByIdOrNull(testShop1.id!!) } returns testShop1
+
+        service.saveItemsPerShop(routeId = routeId, shopId = testShop1.id!!, data = data)
+
+        verify(exactly = 1) {
+            advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM, any<() -> Unit>())
+        }
+    }
+
+    @Test
+    fun `save items with a shop that is not a stop of the route throws exception`() {
+        val routeId = testRoute1.id!!
+        val data = FoodCollectionItemsRequest(
+            items = listOf(
+                FoodCollectionItem(categoryId = testFoodCategory1.id!!, shopId = testShop3.id!!, amount = 1),
+            ),
+        )
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+
+        val exception = assertThrows<BusinessRuleException> { service.saveItems(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Filiale ist keine Station dieser Route!")
+    }
+
+    @Test
+    fun `save return items with a shop that is not a stop of the route throws exception`() {
+        val routeId = testRoute1.id!!
+        val data = FoodCollectionSaveReturnItemsRequest(
+            returnItems = listOf(FoodCollectionReturnItem(shopId = testShop3.id!!, description = "Kiste", amount = 1)),
+        )
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+
+        val exception = assertThrows<BusinessRuleException> { service.saveReturnItems(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Filiale ist keine Station dieser Route!")
+    }
+
+    @Test
     fun `save items per shop with a shop that is not a stop of the route throws exception`() {
         val routeId = testRoute1.id!!
         val data = FoodCollectionSaveItemsPerShopRequest(
@@ -1164,10 +1244,11 @@ class FoodCollectionServiceTest {
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
-        every { shopRepository.findByIdOrNull(999L) } returns null
 
-        val exception = assertThrows<NotFoundException> { service.saveItems(routeId = routeId, data = data) }
-        assertThat(exception.body.detail).isEqualTo("Filiale nicht gefunden!")
+        // a shop id that isn't a stop of the route at all is now rejected by that check before the
+        // save ever gets to looking the shop up on its own (see #3527/#3559)
+        val exception = assertThrows<BusinessRuleException> { service.saveItems(routeId = routeId, data = data) }
+        assertThat(exception.body.detail).isEqualTo("Filiale ist keine Station dieser Route!")
     }
 
     /**

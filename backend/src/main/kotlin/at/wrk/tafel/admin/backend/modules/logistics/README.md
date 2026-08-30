@@ -230,13 +230,24 @@ This is the most involved sub-area — it records what a route's team actually p
   `advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS)`. Hibernate
   rewrites the whole element collection on any change, so a concurrent per-shop save for another
   shop of the same route would otherwise drop the rows this one just wrote.
-- **Race condition guard:** `patchItem()` wraps its read-modify-write in
+- **Race condition guard:** `saveItems()`, `saveItemsPerShop()` and `patchItem()` all wrap their
+  read-modify-write (or, for `saveItems`, outright replace) of `items` in the same
   `advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM)` (lock id `4000L` in
-  `AdvisoryLockKey`). The code comment explains why: concurrent auto-save requests for the same
-  category/shop would otherwise race on the read-modify-write and both try to insert the same
-  item, violating the `food_collections_items_pk` unique constraint. If you add another
-  read-modify-write path against `items`, consider whether it needs the same lock.
+  `AdvisoryLockKey`). Without a shared lock, a mobile per-shop save for one shop, a mobile save for
+  another shop of the same route, and the desktop autosave's `PATCH /items` would each read the
+  same `items` snapshot and the later commit would silently drop the earlier one's rows;
+  `patchItem`'s own original hazard (two concurrent patches for the same category/shop both
+  inserting and violating the `food_collections_items_pk` unique constraint) is the same
+  read-modify-write race with a duplicate key instead of lost data as the visible symptom. If you
+  add another read-modify-write path against `items`, it needs this lock too.
   See `database/common/lock/README.md` for the advisory-lock mechanism itself.
+- **Shop-belongs-to-route guard:** every path that writes an item/return item under a caller-given
+  `shopId` validates it against `route.stops` via `validateShopIsRouteStop` before saving —
+  including the route-level bulk endpoints (`saveItems`, `saveReturnItems`), which validate every
+  item's `shopId` individually since a bulk request can mix shops. Without it, a client bug pairing
+  one route's id with another route's shop (see #3527) would silently store the item under the
+  wrong route instead of failing loudly, and would surface later as `unassignedReturnItems` in
+  route guidance/exports.
 - `kmStart`/`kmEnd` are nullable at the DB level (migration `R__00061_food_collections_nullable`
   dropped their original `NOT NULL`) — a food collection can exist before mileage is recorded, and
   they have their own endpoint (`POST /routes/{routeId}/km`) separate from the route's base data

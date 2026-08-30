@@ -271,6 +271,16 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     return this.form.invalid;
   }
 
+  /** Whether the Warenmenge matrix itself (the item amounts, not the return boxes) has an invalid cell. */
+  hasInvalidItems(): boolean {
+    return this.categories.invalid;
+  }
+
+  /** Whether either return-boxes matrix (predefined counters or free-text rows) has an invalid cell. */
+  hasInvalidReturnItems(): boolean {
+    return this.returnCategories.invalid || this.returnItems.invalid;
+  }
+
   markAllAsTouched() {
     this.form.markAllAsTouched();
   }
@@ -281,12 +291,18 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     }
 
     const routeId = this.selectedRouteData()!.route.id;
-    const itemsRequest: FoodCollectionSaveItemsRequest = {
-      items: this.mapItemsFromCategories()
-    };
-    const requests = [this.foodCollectionsApiService.saveItems(routeId, itemsRequest)];
+    const requests: Observable<void>[] = [];
 
-    if (this.returnItems.valid) {
+    // an invalid amount (e.g. a cleared cell) must not be sent - it would fail the backend's
+    // validation, abort the whole sequential save and be mislabelled as a Retourware failure
+    if (!this.hasInvalidItems()) {
+      const itemsRequest: FoodCollectionSaveItemsRequest = {
+        items: this.mapItemsFromCategories()
+      };
+      requests.push(this.foodCollectionsApiService.saveItems(routeId, itemsRequest));
+    }
+
+    if (!this.hasInvalidReturnItems()) {
       const returnItemsRequest: FoodCollectionSaveReturnItemsRequest = {
         returnItems: this.mapReturnItems()
       };
@@ -296,9 +312,16 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     return requests;
   }
 
-  /** Called once this section's own save requests have actually gone out - flips its badge back to "complete". */
-  markAsSaved() {
-    this.form.markAsPristine();
+  /** Called once the Warenmenge matrix's own save request has actually gone out - flips its badge back to "complete". */
+  markItemsSaved() {
+    this.categories.markAsPristine();
+    this.savedTick.update(tick => tick + 1);
+  }
+
+  /** Called once the return-boxes save request has actually gone out - flips its badge back to "complete". */
+  markReturnItemsSaved() {
+    this.returnCategories.markAsPristine();
+    this.returnItems.markAsPristine();
     this.savedTick.update(tick => tick + 1);
   }
 

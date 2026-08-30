@@ -9,14 +9,18 @@ import { GlobalStateService } from '../../../../common/state/global-state.servic
 import { DistributionItem } from '../../../../api/distribution-api.service';
 import { signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
+import {RouteApiService} from '../../../../api/route-api.service';
 
 describe('FoodCollectionRecordingComponent', () => {
     let router: MockedObject<Router>;
     let globalStateService: MockedObject<GlobalStateService>;
     let toastr: MockedObject<TafelToastrService>;
     let matDialog: MockedObject<MatDialog>;
+    let foodCollectionsApiService: MockedObject<FoodCollectionsApiService>;
+    let routeApiService: MockedObject<RouteApiService>;
 
     beforeEach((() => {
         TestBed.configureTestingModule({
@@ -46,6 +50,14 @@ describe('FoodCollectionRecordingComponent', () => {
                 {
                     provide: MatDialog,
                     useValue: { open: vi.fn().mockReturnValue({ afterClosed: () => of(undefined) }) }
+                },
+                {
+                    provide: FoodCollectionsApiService,
+                    useValue: { getFoodCollection: vi.fn().mockName('FoodCollectionsApiService.getFoodCollection') }
+                },
+                {
+                    provide: RouteApiService,
+                    useValue: { getShopsOfRoute: vi.fn().mockName('RouteApiService.getShopsOfRoute') }
                 }
             ]
         }).compileComponents();
@@ -54,6 +66,8 @@ describe('FoodCollectionRecordingComponent', () => {
         globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
         toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
         matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+        foodCollectionsApiService = TestBed.inject(FoodCollectionsApiService) as MockedObject<FoodCollectionsApiService>;
+        routeApiService = TestBed.inject(RouteApiService) as MockedObject<RouteApiService>;
     }));
 
     function createSectionStubs(component: any, overrides: {
@@ -81,9 +95,11 @@ describe('FoodCollectionRecordingComponent', () => {
         };
         const items = {
             markAllAsTouched: vi.fn(),
-            hasInvalidInput: vi.fn().mockReturnValue(false),
+            hasInvalidItems: vi.fn().mockReturnValue(false),
+            hasInvalidReturnItems: vi.fn().mockReturnValue(false),
             saveRequests: vi.fn().mockReturnValue([of(undefined)]),
-            markAsSaved: vi.fn(),
+            markItemsSaved: vi.fn(),
+            markReturnItemsSaved: vi.fn(),
             tabStatus: vi.fn().mockReturnValue(undefined),
             ...overrides.items
         };
@@ -247,7 +263,26 @@ describe('FoodCollectionRecordingComponent', () => {
 
         expect(stubs.basedata.markAsSaved).not.toHaveBeenCalled();
         expect(stubs.km.markAsSaved).toHaveBeenCalled();
-        expect(stubs.items.markAsSaved).toHaveBeenCalled();
+        expect(stubs.items.markItemsSaved).toHaveBeenCalled();
+        expect(stubs.items.markReturnItemsSaved).toHaveBeenCalled();
+    });
+
+    it('save - only marks the Warenmenge part as saved when the return items were invalid', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        const stubs = createSectionStubs(component, {
+            items: {
+                hasInvalidReturnItems: vi.fn().mockReturnValue(true)
+            }
+        });
+
+        component.save();
+
+        expect(stubs.items.markItemsSaved).toHaveBeenCalled();
+        expect(stubs.items.markReturnItemsSaved).not.toHaveBeenCalled();
+        expect(toastr.warning).toHaveBeenCalledWith(
+            'Gespeichert - unvollständig und daher nicht gespeichert: Retourware'
+        );
     });
 
     it('routeTabStatus/warenTabStatus - read the respective sections and combine the "Waren" ones', () => {
@@ -340,6 +375,99 @@ describe('FoodCollectionRecordingComponent', () => {
 
         expect(() => component.onSelectedRouteChange(undefined)).not.toThrow();
         expect(component.selectedRouteData()).toBeUndefined();
+    });
+
+    it('onSelectedRouteChange - switchMap discards a stale response from a route switched away from', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+
+        const routeA = {id: 1, name: 'Route A'};
+        const routeB = {id: 2, name: 'Route B'};
+
+        const foodCollectionA$ = new Subject<any>();
+        const shopsA$ = new Subject<any>();
+        const foodCollectionB$ = new Subject<any>();
+        const shopsB$ = new Subject<any>();
+
+        foodCollectionsApiService.getFoodCollection.mockImplementation(
+            (routeId: number) => (routeId === routeA.id ? foodCollectionA$ : foodCollectionB$)
+        );
+        routeApiService.getShopsOfRoute.mockImplementation(
+            (routeId: number) => (routeId === routeA.id ? shopsA$ : shopsB$)
+        );
+
+        component.onSelectedRouteChange(routeA);
+        component.onSelectedRouteChange(routeB);
+
+        // route B, selected second, responds first
+        foodCollectionB$.next({items: [], returnItems: []});
+        foodCollectionB$.complete();
+        shopsB$.next({shops: []});
+        shopsB$.complete();
+
+        expect(component.selectedRouteData()?.route).toEqual(routeB);
+
+        // route A's slower response arrives after - switchMap already unsubscribed it, so it must
+        // not overwrite what route B already applied
+        foodCollectionA$.next({items: [], returnItems: []});
+        foodCollectionA$.complete();
+        shopsA$.next({shops: []});
+        shopsA$.complete();
+
+        expect(component.selectedRouteData()?.route).toEqual(routeB);
+    });
+
+    it('onSelectedRouteChange - asks before discarding unsaved changes and does not switch when declined', () => {
+        matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
+        foodCollectionsApiService.getFoodCollection.mockReturnValue(of({items: [], returnItems: []}) as any);
+        routeApiService.getShopsOfRoute.mockReturnValue(of({shops: []}));
+
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component, {
+            basedata: {tabStatus: vi.fn().mockReturnValue('unsaved')}
+        });
+
+        component.onSelectedRouteChange({id: 2, name: 'Route B'});
+
+        expect(matDialog.open).toHaveBeenCalled();
+        expect(foodCollectionsApiService.getFoodCollection).not.toHaveBeenCalled();
+        expect(component.selectedRouteData()).toBeUndefined();
+    });
+
+    it('onSelectedRouteChange - switches once discarding unsaved changes is confirmed', () => {
+        matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
+        foodCollectionsApiService.getFoodCollection.mockReturnValue(of({items: [], returnItems: []}) as any);
+        routeApiService.getShopsOfRoute.mockReturnValue(of({shops: []}));
+
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component, {
+            basedata: {tabStatus: vi.fn().mockReturnValue('unsaved')}
+        });
+        const routeB = {id: 2, name: 'Route B'};
+
+        component.onSelectedRouteChange(routeB);
+
+        expect(matDialog.open).toHaveBeenCalled();
+        expect(component.selectedRouteData()?.route).toEqual(routeB);
+    });
+
+    it('save - refreshes the food collection snapshot from the server after a successful save', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component);
+
+        const route = {id: 5, name: 'Route 5'};
+        component.selectedRouteData.set({route, shops: [], foodCollectionData: {items: [], returnItems: []}});
+
+        const freshData = {items: [{categoryId: 1, shopId: 1, amount: 9}], returnItems: []};
+        foodCollectionsApiService.getFoodCollection.mockReturnValue(of(freshData) as any);
+
+        component.save();
+
+        expect(foodCollectionsApiService.getFoodCollection).toHaveBeenCalledWith(route.id);
+        expect(component.selectedRouteData()?.foodCollectionData).toEqual(freshData);
     });
 
 });

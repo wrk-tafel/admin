@@ -30,8 +30,8 @@ import {
 import {KmDiffDialogComponent} from '../food-collection-recording-km/dialogs/km-diff-dialog.component';
 import {UnsavedChangesDialogComponent} from './dialogs/unsaved-changes-dialog.component';
 import {FoodCollectionData, FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
-import {concat, forkJoin, map, Observable} from 'rxjs';
-import {toSignal} from '@angular/core/rxjs-interop';
+import {catchError, concat, EMPTY, forkJoin, map, Observable, Subject, switchMap} from 'rxjs';
+import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {combineTabStatus, TabStatus} from '../../services/food-collection-tab-status';
@@ -118,6 +118,10 @@ export class FoodCollectionRecordingComponent {
     this.routeTabStatus() === 'unsaved' || this.warenTabStatus() === 'unsaved'
   );
 
+  // Fed by onSelectedRouteChange, piped through switchMap below: a slow response for a route
+  // switched away from must never overwrite what a later, faster selection already applied.
+  private readonly routeSelection$ = new Subject<RouteData>();
+
   constructor() {
     // Redirect to overview once it's confirmed no distribution is active. `getCurrentDistribution()`
     // is also `null` before the first SSE message arrives, so this must wait for that first message
@@ -128,6 +132,29 @@ export class FoodCollectionRecordingComponent {
       if (this.globalStateService.getHasReceivedDistribution()() && this.globalStateService.getCurrentDistribution()() === null) {
         this.router.navigate(['uebersicht']);
       }
+    });
+
+    this.routeSelection$.pipe(
+      switchMap(route =>
+        forkJoin({
+          foodCollectionData: this.foodCollectionsApiService.getFoodCollection(route.id),
+          shopsOfRouteData: this.routeApiService.getShopsOfRoute(route.id)
+        }).pipe(
+          map(({foodCollectionData, shopsOfRouteData}) => ({route, foodCollectionData, shopsOfRouteData})),
+          catchError(() => {
+            this.toastr.error('Fehler beim Laden der Daten!');
+            return EMPTY;
+          })
+        )
+      ),
+      takeUntilDestroyed()
+    ).subscribe(({route, foodCollectionData, shopsOfRouteData}) => {
+      this.selectedRoute = route;
+      this.selectedRouteData.set({
+        route: route,
+        shops: shopsOfRouteData.shops,
+        foodCollectionData: foodCollectionData
+      });
     });
   }
 
@@ -142,27 +169,33 @@ export class FoodCollectionRecordingComponent {
     return this.dialog.open(UnsavedChangesDialogComponent).afterClosed().pipe(map(confirmed => !!confirmed));
   }
 
+  /**
+   * Switching the route rebuilds every child form from scratch, so an unconfirmed switch would
+   * silently drop unsaved amounts/km/base data the same way leaving the screen does (see
+   * canDeactivate) - the picker itself has no navigation to intercept, so this asks directly.
+   */
   onSelectedRouteChange(route: RouteData | undefined) {
     if (!route) {
+      this.selectedRoute = undefined;
       this.selectedRouteData.set(undefined);
       return;
     }
 
-    forkJoin({
-      foodCollectionData: this.foodCollectionsApiService.getFoodCollection(route.id),
-      shopsOfRouteData: this.routeApiService.getShopsOfRoute(route.id)
-    }).subscribe({
-      next: ({foodCollectionData, shopsOfRouteData}) => {
-        this.selectedRouteData.set({
-          route: route,
-          shops: shopsOfRouteData.shops,
-          foodCollectionData: foodCollectionData
-        });
-      },
-      error: () => {
-        this.toastr.error('Fehler beim Laden der Daten!');
-      }
-    });
+    if (this.hasUnsavedChanges()) {
+      const previousRoute = this.selectedRoute;
+      this.dialog.open(UnsavedChangesDialogComponent).afterClosed().subscribe(confirmed => {
+        if (confirmed) {
+          this.routeSelection$.next(route);
+        } else {
+          // undo the dropdown's already-applied visual selection - a fresh object reference is
+          // needed since the mat-select otherwise still considers the just-picked route selected
+          this.selectedRoute = previousRoute ? {...previousRoute} : undefined;
+        }
+      });
+      return;
+    }
+
+    this.routeSelection$.next(route);
   }
 
   /**
@@ -203,7 +236,8 @@ export class FoodCollectionRecordingComponent {
     const skipped = [
       basedata?.hasInvalidInput() ? 'Routendaten' : null,
       km?.hasInvalidInput() ? 'Kilometerstand' : null,
-      items?.hasInvalidInput() ? 'Retourware' : null
+      items?.hasInvalidItems() ? 'Warenmenge' : null,
+      items?.hasInvalidReturnItems() ? 'Retourware' : null
     ].filter((section): section is string => !!section);
 
     if (requests.length === 0) {
@@ -227,8 +261,11 @@ export class FoodCollectionRecordingComponent {
         if (!km?.hasInvalidInput()) {
           km?.markAsSaved();
         }
-        if (!items?.hasInvalidInput()) {
-          items?.markAsSaved();
+        if (!items?.hasInvalidItems()) {
+          items?.markItemsSaved();
+        }
+        if (!items?.hasInvalidReturnItems()) {
+          items?.markReturnItemsSaved();
         }
 
         if (skipped.length > 0) {
@@ -236,10 +273,35 @@ export class FoodCollectionRecordingComponent {
         } else {
           this.toastr.success('Daten wurden gespeichert!');
         }
+
+        this.refreshFoodCollectionSnapshot();
       },
       error: () => {
         this.saving.set(false);
         this.toastr.error('Speichern fehlgeschlagen!');
+      }
+    });
+  }
+
+  /**
+   * Re-reads the food collection after a successful save: `selectedRouteData().foodCollectionData`
+   * is otherwise only ever fetched once, on route selection, so crossing the desktop/mobile
+   * breakpoint afterwards - which destroys and recreates the items component - would rebuild its
+   * form from the pre-save snapshot and a second "Speichern" would overwrite the server with the
+   * old values again.
+   */
+  private refreshFoodCollectionSnapshot() {
+    const current = this.selectedRouteData();
+    if (!current) {
+      return;
+    }
+
+    const routeId = current.route.id;
+    this.foodCollectionsApiService.getFoodCollection(routeId).subscribe(foodCollectionData => {
+      // the route may have been switched away from while this request was out - the snapshot then
+      // belongs to a screen that is no longer shown, so it must not be applied
+      if (this.selectedRouteData()?.route.id === routeId) {
+        this.selectedRouteData.update(data => data ? {...data, foodCollectionData} : data);
       }
     });
   }
