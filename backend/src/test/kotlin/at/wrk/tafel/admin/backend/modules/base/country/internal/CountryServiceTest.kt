@@ -12,6 +12,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.testCountry2
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry3
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry4
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry5
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -92,16 +93,20 @@ class CountryServiceTest {
     }
 
     @Test
-    fun `update country changes name and enabled state`() {
+    fun `update country changes code, name and enabled state`() {
         val existingEntity = CountryEntity(code = "AT", name = "Österreich").apply { id = 1 }
 
         every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
+        every { countryRepository.findByCode("BT") } returns null
         every { countryRepository.save(any()) } answers { firstArg() as CountryEntity }
 
-        val response = countryService.updateCountry(existingEntity.id!!, CountryRequest(name = "Neuer Name", enabled = false))
+        val response = countryService.updateCountry(
+            existingEntity.id!!,
+            CountryRequest(code = "bt", name = "Neuer Name", enabled = false),
+        )
 
         assertThat(response).isEqualTo(
-            CountryResponse(id = existingEntity.id!!, code = existingEntity.code, name = "Neuer Name", enabled = false),
+            CountryResponse(id = existingEntity.id!!, code = "BT", name = "Neuer Name", enabled = false),
         )
     }
 
@@ -109,8 +114,59 @@ class CountryServiceTest {
     fun `update country throws NotFoundException for unknown id`() {
         every { countryRepository.findByIdOrNull(999) } returns null
 
-        val exception = assertThrows<NotFoundException> { countryService.updateCountry(999, CountryRequest(name = "X", enabled = true)) }
+        val exception = assertThrows<NotFoundException> {
+            countryService.updateCountry(999, CountryRequest(code = "XX", name = "X", enabled = true))
+        }
         assertThat(exception.body.detail).isEqualTo("Country with id 999 not found")
+    }
+
+    @Test
+    fun `update country throws BusinessRuleException when the code is already used by another country`() {
+        val existingEntity = CountryEntity(code = "AT", name = "Österreich").apply { id = 1 }
+        val otherEntity = CountryEntity(code = "DE", name = "Deutschland").apply { id = 2 }
+
+        every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
+        every { countryRepository.findByCode("DE") } returns otherEntity
+
+        val exception = assertThrows<BusinessRuleException> {
+            countryService.updateCountry(existingEntity.id!!, CountryRequest(code = "DE", name = "Österreich", enabled = true))
+        }
+        assertThat(exception.body.detail).isEqualTo("Länder-Code DE ist bereits vergeben!")
+    }
+
+    @Test
+    fun `update country keeps its own code without tripping the uniqueness check`() {
+        val existingEntity = CountryEntity(code = "AT", name = "Österreich").apply { id = 1 }
+
+        every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
+        every { countryRepository.findByCode("AT") } returns existingEntity
+        every { countryRepository.save(any()) } answers { firstArg() as CountryEntity }
+
+        val response = countryService.updateCountry(existingEntity.id!!, CountryRequest(code = "AT", name = "Österreich Neu", enabled = true))
+
+        assertThat(response.name).isEqualTo("Österreich Neu")
+    }
+
+    @Test
+    fun `create country persists a new, normalized entity`() {
+        every { countryRepository.findByCode("ZZ") } returns null
+        every { countryRepository.save(any()) } answers { (firstArg() as CountryEntity).apply { id = 42 } }
+
+        val response = countryService.createCountry(CountryRequest(code = " zz ", name = "Neuland", enabled = true))
+
+        assertThat(response).isEqualTo(CountryResponse(id = 42, code = "ZZ", name = "Neuland", enabled = true))
+    }
+
+    @Test
+    fun `create country throws BusinessRuleException when the code is already used`() {
+        val existingEntity = CountryEntity(code = "AT", name = "Österreich").apply { id = 1 }
+
+        every { countryRepository.findByCode("AT") } returns existingEntity
+
+        val exception = assertThrows<BusinessRuleException> {
+            countryService.createCountry(CountryRequest(code = "AT", name = "Duplikat", enabled = true))
+        }
+        assertThat(exception.body.detail).isEqualTo("Länder-Code AT ist bereits vergeben!")
     }
 
     private fun testUsageCount(countryId: Long, usageCount: Long): CountryUsageCount = object : CountryUsageCount {

@@ -16,6 +16,10 @@ export class CountryApiService {
     return this.http.get<CountryList>('/countries/admin');
   }
 
+  createCountry(country: CountryCreateData): Observable<CountryAdminData> {
+    return this.http.post<CountryAdminData>('/countries', country);
+  }
+
   updateCountry(countryId: number, country: CountryAdminData): Observable<CountryAdminData> {
     return this.http.put<CountryAdminData>(`/countries/${countryId}`, country);
   }
@@ -44,6 +48,12 @@ export interface CountryList {
 
 export interface CountryAdminData {
   id: number;
+  code: string;
+  name: string;
+  enabled: boolean;
+}
+
+export interface CountryCreateData {
   code: string;
   name: string;
   enabled: boolean;

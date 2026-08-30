@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.base.country
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 
 @ExcludeFromTestCoverage
 data class CountryListResponse(
@@ -24,6 +25,9 @@ data class CountryAdminListResponse(
 
 @ExcludeFromTestCoverage
 data class CountryRequest(
+    @field:NotBlank
+    @field:Size(min = 2, max = 2)
+    val code: String,
     @field:NotBlank
     val name: String,
     val enabled: Boolean,

@@ -470,17 +470,24 @@ Both follow the same shape, and a change to one usually belongs in the other:
 ## `countries` (`SettingsCountriesComponent`)
 
 Admin CRUD for the ISO country list (#3585), added because `base::country`'s reference data
-previously had no maintenance UI at all — every row is seed data from the repeatable countries
-migration. This view differs from every other screen above in two ways that reflect the domain:
+previously had no maintenance UI at all — every row started as seed data from the repeatable
+countries migration, and a household can now also be assigned a country the list doesn't yet
+carry. This view differs from every other screen above in two ways that reflect the domain:
 
-- **No create, no delete, and no drag-and-drop reordering.** The list is the fixed ISO-3166 set,
-  seeded once and never grown or shrunk by hand, so there is nothing to create or delete; and
-  unlike the reorderable screens, the order administered here has no meaning of its own — the
-  nationality autocomplete it feeds sorts by usage first (`CountryService.listCountries`), so
-  there is nothing to drag either. Only `name` (typo fixes) and `enabled` are editable, via the
-  same inline-edit pattern as `cars`/`food-categories` (`startEdit()`/`saveEdit()`/`cancelEdit()`,
-  autofocus via `viewChild`+`effect()`, Enter saves and Escape cancels). `code` (the ISO code) is
-  never editable.
+- **No delete, and no drag-and-drop reordering — but a country can be created.** Every person's
+  nationality is a `NOT NULL` FK into this table across a household's whole history, so a country
+  is never deleted, only deactivated, same as every other reference-data screen in this module;
+  and unlike the reorderable screens, the order administered here has no meaning of its own — the
+  nationality autocomplete it feeds sorts by usage first (`CountryService.listCountries`), so there
+  is nothing to drag either. `name` and `code` (the ISO code) are both editable inline — the same
+  pattern as `cars`/`food-categories` (`startEdit()`/`saveEdit()`/`cancelEdit()`, autofocus via
+  `viewChild`+`effect()`, Enter saves and Escape cancels) — and a new country is added via
+  `CountryCreateDialogComponent` (`views/countries/dialogs`), the same create-dialog convention as
+  `food-categories`/`shops`/`cars`. `code` is validated client-side to exactly two letters
+  (`Validators.pattern`, matching the backend's `@Size(min=2, max=2)`) and normalized to uppercase
+  before it is sent; a code already in use surfaces the backend's `BusinessRuleException` message
+  ("Länder-Code XX ist bereits vergeben!") via `extractErrorMessage()` in the error toast, same
+  approach as `shops`' Filialnummer uniqueness check.
 - **Search on top of the status filter, like `shops`/`routes`**, because the ~250-row list is by
   far the longest one in this module — a status filter alone would still leave an unmanageable
   working list. Filtering is purely client-side (`visibleCountries()`), matching a search term
@@ -491,9 +498,9 @@ migration. This view differs from every other screen above in two ways that refl
   assigned a since-disabled country keeps showing its name; only the pick list for a new/edited
   person shrinks.
 - Backend: `base::country`'s `CountryController` exposes the admin surface at `GET
-  /api/countries/admin` and `PUT /api/countries/{id}`, both behind `SETTINGS` — separate from the
-  pre-existing, `isAuthenticated()`-only `GET /api/countries` the nationality autocomplete uses,
-  which now filters to `enabled` countries only.
+  /api/countries/admin`, `POST /api/countries` and `PUT /api/countries/{id}`, all behind
+  `SETTINGS` — separate from the pre-existing, `isAuthenticated()`-only `GET /api/countries` the
+  nationality autocomplete uses, which filters to `enabled` countries only.
 
 ## API services
 
@@ -519,5 +526,5 @@ As elsewhere, HTTP access lives in `app/api/`, not under this module:
   view's inline editing.
 - `country-api.service.ts` — `CountryApiService`; `getCountries()` (the enabled-only, usage-sorted
   list) predates this view and is shared with `customer`'s nationality autocomplete,
-  `getAllCountries()`/`updateCountry()` were added for this view's admin listing and inline
-  editing.
+  `getAllCountries()`/`createCountry()`/`updateCountry()` were added for this view's admin listing,
+  creation and inline editing.

@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.country.CountryRequest
 import at.wrk.tafel.admin.backend.modules.base.country.CountryResponse
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
@@ -54,16 +55,44 @@ class CountryService(
         .sortedBy { it.name }
         .map { mapToResponse(it) }
 
+    fun createCountry(request: CountryRequest): CountryResponse {
+        val code = normalizeCode(request.code)
+        validateCodeIsUnique(code, null)
+
+        val entity = CountryEntity(
+            code = code,
+            name = request.name,
+            enabled = request.enabled,
+        )
+
+        val savedEntity = countryRepository.save(entity)
+        log.info("Created country {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
+        return mapToResponse(savedEntity)
+    }
+
     fun updateCountry(countryId: Long, request: CountryRequest): CountryResponse {
         val entity = countryRepository.findByIdOrNull(countryId)
             ?: throw NotFoundException("Country with id $countryId not found")
 
+        val code = normalizeCode(request.code)
+        validateCodeIsUnique(code, countryId)
+
+        entity.code = code
         entity.name = request.name
         entity.enabled = request.enabled
 
         val savedEntity = countryRepository.save(entity)
         log.info("Updated country {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
         return mapToResponse(savedEntity)
+    }
+
+    private fun normalizeCode(code: String): String = code.trim().uppercase()
+
+    private fun validateCodeIsUnique(code: String, countryId: Long?) {
+        val existingCountry = countryRepository.findByCode(code)
+        if (existingCountry != null && existingCountry.id != countryId) {
+            throw BusinessRuleException("Länder-Code $code ist bereits vergeben!")
+        }
     }
 
     private fun mapToResponse(entity: CountryEntity) = CountryResponse(

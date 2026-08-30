@@ -56,8 +56,21 @@ class CountryControllerTest {
     }
 
     @Test
+    fun `create country`() {
+        val request = CountryRequest(code = "ZZ", name = "Neuland", enabled = true)
+        val response = CountryResponse(id = 1, code = "ZZ", name = "Neuland", enabled = true)
+
+        every { countryService.createCountry(request) } returns response
+
+        val result = countryController.createCountry(request)
+
+        assertThat(result.statusCode.value()).isEqualTo(201)
+        assertThat(result.body).isEqualTo(response)
+    }
+
+    @Test
     fun `update country`() {
-        val request = CountryRequest(name = "Neuer Name", enabled = false)
+        val request = CountryRequest(code = "AA", name = "Neuer Name", enabled = false)
         val response = CountryResponse(id = 1, code = "AA", name = "Neuer Name", enabled = false)
 
         every { countryService.updateCountry(1, request) } returns response

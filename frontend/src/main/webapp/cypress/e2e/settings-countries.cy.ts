@@ -52,6 +52,81 @@ describe('Settings - Countries', () => {
     });
   });
 
+  it('edits a country code inline', () => {
+    cy.byTestId('countries-search-input').type('Vatikan');
+    cy.get('[testid^="editCountryButton-"]').first().click();
+
+    cy.get('[testid^="countryCodeInput-"]').first().should('be.visible').clear().type('zz');
+    cy.get('[testid^="saveCountryButton-"]').first().click();
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
+    cy.byTestId('countries-search-input').clear().type('Vatikan');
+    cy.byTestId('countries-table').should('contain.text', 'ZZ');
+
+    // restore the code so other runs/tests keep finding it by "VA"
+    cy.get('[testid^="editCountryButton-"]').first().click();
+    cy.get('[testid^="countryCodeInput-"]').first().should('be.visible').clear().type('VA{enter}');
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
+  });
+
+  it('rejects a code that is not exactly two letters without submitting', () => {
+    cy.byTestId('countries-search-input').type('Vatikan');
+    cy.get('[testid^="editCountryButton-"]').first().click();
+
+    cy.get('[testid^="countryCodeInput-"]').first().should('be.visible').clear().type('ABC');
+    cy.get('[testid^="saveCountryButton-"]').first().click();
+
+    // still in edit mode - the invalid value was refused rather than sent
+    cy.get('[testid^="countryCodeInput-"]').first().should('be.visible');
+  });
+
+  it('rejects a duplicate code with an error toast', () => {
+    cy.byTestId('countries-search-input').type('Vatikan');
+    cy.get('[testid^="editCountryButton-"]').first().click();
+
+    cy.get('[testid^="countryCodeInput-"]').first().should('be.visible').clear().type('AT');
+    cy.get('[testid^="saveCountryButton-"]').first().click();
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'bereits vergeben');
+  });
+
+  it('creates a new country', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      cy.byTestId('addCountryButton').click();
+
+      cy.byTestId('countryCreateCodeInput').should('be.visible').type('zz');
+      cy.byTestId('countryCreateNameInput').type('Neuland ' + randomId);
+      cy.byTestId('saveCountryCreateButton').click();
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'erstellt');
+      cy.byTestId('countries-search-input').type('Neuland ' + randomId);
+      cy.byTestId('countries-table').should('contain.text', 'Neuland ' + randomId);
+      cy.byTestId('countries-table').should('contain.text', 'ZZ');
+    });
+  });
+
+  it('shows validation errors and does not submit an invalid new country', () => {
+    cy.byTestId('addCountryButton').click();
+
+    cy.byTestId('countryCreateCodeInput').should('be.visible').clear();
+    cy.byTestId('countryCreateNameInput').clear();
+    cy.byTestId('saveCountryCreateButton').click();
+
+    cy.byTestId('country-create-dialog').should('be.visible');
+    cy.byTestId('countryCreateCodeInput').should('have.class', 'ng-invalid');
+    cy.byTestId('countryCreateNameInput').should('have.class', 'ng-invalid');
+  });
+
+  it('rejects creating a country with a code that is already used', () => {
+    cy.byTestId('addCountryButton').click();
+
+    cy.byTestId('countryCreateCodeInput').should('be.visible').type('AT');
+    cy.byTestId('countryCreateNameInput').type('Doppeltes Österreich');
+    cy.byTestId('saveCountryCreateButton').click();
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'bereits vergeben');
+  });
+
   it('discards changes when cancelling an inline edit', () => {
     cy.byTestId('countries-search-input').type('Vatikan');
     cy.get('[testid^="countries-row-"]').first().invoke('text').then((originalText) => {
@@ -145,6 +220,12 @@ describe('Settings - Countries', () => {
       cy.get('[testid^="countryNameInputMobile-"]').first().should('be.visible');
 
       cy.checkAccessibility('[testid="countries-cards"]');
+    });
+
+    it('has no violations in the create-country dialog', () => {
+      cy.byTestId('addCountryButton').click();
+
+      cy.checkDialogAccessibility();
     });
 
   });

@@ -6,6 +6,9 @@
         <span class="text-sm font-normal text-slate-500" testid="countries-summary">
           {{ enabledCount() }} von {{ totalCount() }} aktiv
         </span>
+        <button matButton="filled" class="button-success" testid="addCountryButton" matTooltip="Neues Land anlegen" (click)="addCountry()" aria-label="Neues Land anlegen">
+          <mat-icon svgIcon="add"></mat-icon>
+        </button>
       </div>
     </mat-card-title>
   </mat-card-header>
@@ -51,7 +54,17 @@
 
         <ng-container matColumnDef="code">
           <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Code</th>
-          <td mat-cell *matCellDef="let country">{{ country.code }}</td>
+          <td mat-cell *matCellDef="let country; let i = index">
+            @if (editingId() === country.id) {
+              <mat-form-field subscriptSizing="dynamic" class="w-20">
+                <input matInput [formControl]="codeControl" maxlength="2"
+                       [attr.testid]="'countryCodeInput-' + i" aria-label="Code"
+                       (keydown.enter)="saveEdit(country)" (keydown.escape)="cancelEdit()"/>
+              </mat-form-field>
+            } @else {
+              {{ country.code }}
+            }
+          </td>
         </ng-container>
 
         <ng-container matColumnDef="name">
@@ -119,7 +132,17 @@
             <mat-card-content>
               <div class="grid grid-cols-2 gap-2 items-center">
                 <div class="font-bold">Code:</div>
-                <div>{{ country.code }}</div>
+                <div>
+                  @if (editingId() === country.id) {
+                    <mat-form-field subscriptSizing="dynamic" class="w-20">
+                      <input matInput [formControl]="codeControl" maxlength="2"
+                             [attr.testid]="'countryCodeInputMobile-' + i" aria-label="Code"
+                             (keydown.enter)="saveEdit(country)" (keydown.escape)="cancelEdit()"/>
+                    </mat-form-field>
+                  } @else {
+                    {{ country.code }}
+                  }
+                </div>
               </div>
             </mat-card-content>
             <mat-card-actions>

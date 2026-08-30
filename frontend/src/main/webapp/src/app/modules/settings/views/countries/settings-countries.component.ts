@@ -1,6 +1,8 @@
 import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
-import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {MatDialog} from '@angular/material/dialog';
+import {CountryCreateDialogComponent} from './dialogs/country-create-dialog.component';
 import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {
   MatCell,
@@ -19,9 +21,12 @@ import {MatInputModule} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {CountryAdminData, CountryApiService} from '../../../../api/country-api.service';
+import {CountryAdminData, CountryApiService, CountryCreateData} from '../../../../api/country-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
+import {HttpErrorResponse} from '@angular/common/http';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
 import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
 import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
@@ -70,6 +75,7 @@ import {
 })
 export class SettingsCountriesComponent {
   private readonly registerIcons = registerSvgIcons({
+    add: addIcon,
     check: checkIcon,
     close: closeIcon,
     edit: editIcon,
@@ -79,6 +85,7 @@ export class SettingsCountriesComponent {
 
   private readonly countryApiService = inject(CountryApiService);
   private readonly toastr = inject(TafelToastrService);
+  private readonly dialog = inject(MatDialog);
 
   private readonly _countries = signal<CountryAdminData[]>([]);
   private readonly _loaded = signal(false);
@@ -114,6 +121,12 @@ export class SettingsCountriesComponent {
 
   protected editingId = signal<number | null>(null);
   protected nameControl = new FormControl<string>('', {nonNullable: true});
+  // Same shape the backend enforces (@Size(min=2, max=2)) - caught here so an invalid code never
+  // becomes a bare "Speichern fehlgeschlagen" toast with the row already back to its read state.
+  protected codeControl = new FormControl<string>('', {
+    nonNullable: true,
+    validators: [Validators.required, Validators.pattern(/^[A-Za-z]{2}$/)]
+  });
   private nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
   private nameInputMobile = viewChild<ElementRef<HTMLInputElement>>('nameInputMobile');
 
@@ -150,6 +163,7 @@ export class SettingsCountriesComponent {
   protected startEdit(country: CountryAdminData) {
     this.editingId.set(country.id);
     this.nameControl.setValue(country.name);
+    this.codeControl.setValue(country.code);
   }
 
   protected cancelEdit() {
@@ -157,8 +171,14 @@ export class SettingsCountriesComponent {
   }
 
   protected saveEdit(country: CountryAdminData) {
+    if (this.codeControl.invalid) {
+      this.codeControl.markAsTouched();
+      return;
+    }
+
     const updated: CountryAdminData = {
       ...country,
+      code: this.codeControl.value.trim().toUpperCase(),
       name: this.nameControl.value.trim()
     };
 
@@ -168,7 +188,25 @@ export class SettingsCountriesComponent {
         this.editingId.set(null);
         this.loadCountries();
       },
-      error: () => this.toastr.error('Speichern fehlgeschlagen', 'Fehler')
+      error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Speichern fehlgeschlagen')
+    });
+  }
+
+  protected addCountry() {
+    const dialogRef = this.dialog.open(CountryCreateDialogComponent, {
+      width: '500px'
+    });
+
+    dialogRef.afterClosed().subscribe((created: CountryCreateData | undefined) => {
+      if (created) {
+        this.countryApiService.createCountry(created).subscribe({
+          next: () => {
+            this.toastr.success('Land erstellt', 'Erfolgreich');
+            this.loadCountries();
+          },
+          error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Erstellen fehlgeschlagen')
+        });
+      }
     });
   }
 

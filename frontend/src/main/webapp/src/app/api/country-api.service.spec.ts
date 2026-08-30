@@ -1,6 +1,6 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {CountryAdminData, CountryApiService, CountryList, CountryListResult} from './country-api.service';
+import {CountryAdminData, CountryApiService, CountryCreateData, CountryList, CountryListResult} from './country-api.service';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 
 describe('CountryApiService', () => {
@@ -47,6 +47,20 @@ describe('CountryApiService', () => {
 
     const req = httpMock.expectOne({method: 'GET', url: '/countries/admin'});
     req.flush({items: mockCountries});
+    httpMock.verify();
+  });
+
+  it('create country', () => {
+    const newCountry: CountryCreateData = {code: 'ZZ', name: 'Neuland', enabled: true};
+    const createdCountry: CountryAdminData = {id: 2, ...newCountry};
+
+    apiService.createCountry(newCountry).subscribe((data: CountryAdminData) => {
+      expect(data).toEqual(createdCountry);
+    });
+
+    const req = httpMock.expectOne({method: 'POST', url: '/countries'});
+    expect(req.request.body).toEqual(newCountry);
+    req.flush(createdCountry);
     httpMock.verify();
   });
 
