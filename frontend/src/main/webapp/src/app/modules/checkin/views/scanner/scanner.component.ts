@@ -87,16 +87,29 @@ export class ScannerComponent {
     void this.requestWakeLock();
     document.addEventListener('visibilitychange', this.visibilityChangeListener);
 
+    // Registered synchronously, up-front - registration/camera enumeration below is async and
+    // currentCameraEffect can already have started the camera by the time either resolves, so
+    // this must not wait on them: a slow/unreachable backend (or a rejected getCameras()) must
+    // not leave the component destroyable without ever stopping the camera it started.
     this.destroyRef.onDestroy(() => {
       document.removeEventListener('visibilitychange', this.visibilityChangeListener);
       if (this.scanFeedbackTimeoutId) {
         clearTimeout(this.scanFeedbackTimeoutId);
       }
       void this.releaseWakeLock();
+      void this.qrCodeReaderService.stop();
     });
+
+    // Triggered via effect(), not called straight from the constructor - the pairing phase's
+    // <video id="qrCodeReaderVideo"> has to exist before startScanning() can bind to it, and
+    // registration/camera enumeration can resolve fast enough that starting it any earlier
+    // occasionally raced ahead of the very first paint (the destroy cleanup above stays
+    // synchronous regardless, so a destroy before this effect ever runs still has nothing left
+    // running). init() reads no signals, so this only ever runs once.
+    effect(() => void this.init());
   }
 
-  initEffect = effect(async () => {
+  private async init(): Promise<void> {
     const registrationPromise = this.registerScanner();
 
     const qrPromise = this.qrCodeReaderService.getCameras().then(async cameras => {
@@ -104,11 +117,7 @@ export class ScannerComponent {
     });
 
     await Promise.all([registrationPromise, qrPromise]);
-
-    this.destroyRef.onDestroy(async () => {
-      await this.qrCodeReaderService.stop();
-    });
-  });
+  }
 
   // Only sets currentCamera here - starting/restarting the actual scan is left entirely to
   // currentCameraEffect below. Starting it concurrently from both effects raced two overlapping
@@ -129,6 +138,24 @@ export class ScannerComponent {
       this.qrCodeReaderService.saveCurrentCamera(currentCamera);
       this.torchOn.set(false);
 
+      const promise = this.qrCodeReaderService.restart(currentCamera.deviceId);
+      this.processQrCodeReaderPromise(promise);
+    }
+  });
+
+  private hasRebindForScanningPhase = false;
+
+  // scanner.component.html renders a separate <video id="qrCodeReaderVideo"> per phase, so the
+  // element currentCameraEffect's restart() bound to (the pairing one) is destroyed the instant
+  // this switch to 'scanning' below is rendered - @zxing/browser resolves the id to a DOM element
+  // once, when decodeFromVideoDevice() is called, and never looks it up again. Restarting once
+  // more here rebinds to the scanning-phase element, which by now already exists (this effect
+  // runs after the phase-driven template swap has been applied to the DOM, same as every other
+  // effect in this component that already relies on that ordering).
+  rebindVideoForScanningPhaseEffect = effect(() => {
+    const currentCamera = this.currentCamera();
+    if (this.phase() === 'scanning' && currentCamera && !this.hasRebindForScanningPhase) {
+      this.hasRebindForScanningPhase = true;
       const promise = this.qrCodeReaderService.restart(currentCamera.deviceId);
       this.processQrCodeReaderPromise(promise);
     }

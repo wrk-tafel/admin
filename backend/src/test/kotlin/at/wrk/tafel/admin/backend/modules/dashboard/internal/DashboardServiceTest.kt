@@ -91,7 +91,7 @@ internal class DashboardServiceTest {
             id = 123
             endedAt = null
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val countRegisteredCustomers = 5
         every { distributionHouseholdRepository.countAllByDistributionId(testDistributionEntity.id!!) } returns countRegisteredCustomers
@@ -112,7 +112,7 @@ internal class DashboardServiceTest {
                 testDistributionHouseholdEntity3,
             )
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val data = service.getData()
 
@@ -131,7 +131,7 @@ internal class DashboardServiceTest {
                 testDistributionHouseholdEntity3,
             )
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val data = service.getData()
 
@@ -171,7 +171,7 @@ internal class DashboardServiceTest {
             ).apply { id = testShelter2.id },
         )
         testDistributionEntity.statistic = testStatistic
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val countRegisteredCustomers = 5
         every { distributionHouseholdRepository.countAllByDistributionId(testDistributionEntity.id!!) } returns countRegisteredCustomers
@@ -216,7 +216,7 @@ internal class DashboardServiceTest {
             ),
         )
         testDistributionEntity.statistic = testStatistic
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val data = service.getData()
 
@@ -231,7 +231,7 @@ internal class DashboardServiceTest {
             endedAt = null
             notes = testNotes
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val data = service.getData()
 
@@ -271,7 +271,7 @@ internal class DashboardServiceTest {
                 doneRoute4,
             )
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         every { routeRepository.findByEnabledIsTrue() } returns listOf(
             testRoute1,
@@ -301,7 +301,7 @@ internal class DashboardServiceTest {
             id = 123
             endedAt = null
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
         every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute1)
         every {
             routeStopCompletionRepository.findAllByRouteStopIdInAndCompletionDate(any(), LocalDate.now())
@@ -318,7 +318,7 @@ internal class DashboardServiceTest {
             id = 123
             endedAt = null
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
         every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute1, testRoute2)
         every {
             routeStopCompletionRepository.findAllByRouteStopIdInAndCompletionDate(any(), LocalDate.now())
@@ -343,7 +343,7 @@ internal class DashboardServiceTest {
             id = 123
             endedAt = null
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
         every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute2, testRoute3)
 
         val data = service.getData()
@@ -375,7 +375,7 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get data without active distribution`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
         every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns null
 
         val data = service.getData()
@@ -390,7 +390,7 @@ internal class DashboardServiceTest {
         assertThat(data.lastDistribution).isNull()
         assertThat(data.organizationOverview).isNotNull
 
-        verify { distributionRepository.findFirstByOrderByIdDesc() }
+        verify { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() }
         verify(exactly = 0) { distributionHouseholdRepository.countAllByDistributionId(any()) }
     }
 
@@ -400,7 +400,7 @@ internal class DashboardServiceTest {
             id = 123
             endedAt = null
         }
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val data = service.getData()
 
@@ -412,7 +412,7 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get organization overview data counts active households, persons, users, cars, shelters, routes, shops and employees`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
         every { householdRepository.countByLockedFalseAndValidUntilGreaterThanEqual(LocalDate.now()) } returns 137
         every { personRepository.countActive(LocalDate.now()) } returns 142
         every { userRepository.countByEnabledTrue() } returns 12
@@ -437,7 +437,7 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get last distribution data summarizes the most recently closed distribution`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         val closedAt = LocalDateTime.now().minusDays(3)
         val testLastDistributionEntity = DistributionEntity(startedAt = closedAt, startedByUser = testUserEntity).apply {
@@ -496,7 +496,7 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get last distribution data is shelter-less when the closed distribution has no statistic`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         val closedAt = LocalDateTime.now().minusDays(3)
         val testLastDistributionEntity = DistributionEntity(startedAt = closedAt, startedByUser = testUserEntity).apply {
@@ -514,7 +514,7 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get last distribution data is null when no distribution has ever been closed`() {
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
         every { distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc() } returns null
 
         val data = service.getData()

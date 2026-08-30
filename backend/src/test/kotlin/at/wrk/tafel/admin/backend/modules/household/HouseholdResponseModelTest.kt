@@ -18,6 +18,7 @@ class HouseholdResponseModelTest {
     )
 
     private fun validPerson() = Person(
+        isMainPerson = true,
         firstname = "Max",
         lastname = "Mustermann",
         birthDate = LocalDate.now(),
@@ -54,7 +55,7 @@ class HouseholdResponseModelTest {
 
     @Test
     fun `household request with invalid email is invalid`() {
-        val household = HouseholdRequest(address = validAddress(), email = "not-an-email")
+        val household = HouseholdRequest(address = validAddress(), email = "not-an-email", persons = listOf(validPerson()))
 
         val violations = validator.validate(household)
 
@@ -82,6 +83,32 @@ class HouseholdResponseModelTest {
         val violations = validator.validate(household)
 
         assertThat(violations).isEmpty()
+    }
+
+    @Test
+    fun `household request with no main person is invalid`() {
+        val household = HouseholdRequest(
+            address = validAddress(),
+            persons = listOf(validPerson().copy(isMainPerson = false)),
+        )
+
+        val violations = validator.validate(household)
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }
+            .containsExactly("mainPersonCountValid")
+    }
+
+    @Test
+    fun `household request with two main persons is invalid`() {
+        val household = HouseholdRequest(
+            address = validAddress(),
+            persons = listOf(validPerson(), validPerson()),
+        )
+
+        val violations = validator.validate(household)
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }
+            .containsExactly("mainPersonCountValid")
     }
 
     @Test

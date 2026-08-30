@@ -1,6 +1,6 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {of} from 'rxjs';
+import {of, Subject} from 'rxjs';
 import dayjs from 'dayjs';
 import {provideRouter} from '@angular/router';
 import {provideCharts, withDefaultRegisterables} from 'ng2-charts';
@@ -78,7 +78,7 @@ describe('StatisticsChildrenComponent', () => {
     fixture.detectChanges();
 
     const expectedFilter = {ageMin: 6, ageMax: 10, referenceDate: today};
-    expect(statisticsApiService.getChildrenData).toHaveBeenCalledWith(expectedFilter, undefined, undefined);
+    expect(statisticsApiService.getChildrenData).toHaveBeenCalledWith(expectedFilter, undefined, undefined, undefined, undefined);
     expect(statisticsApiService.getChildrenAgeDistribution).toHaveBeenCalledWith(expectedFilter);
     expect(component.childrenData()).toEqual(mockResult);
     expect(component.ageDistribution()).toEqual(mockDistribution);
@@ -93,7 +93,7 @@ describe('StatisticsChildrenComponent', () => {
     component.filterForm.patchValue({ageMin: 0, ageMax: 3});
 
     expect(statisticsApiService.getChildrenData)
-      .toHaveBeenCalledWith({ageMin: 0, ageMax: 3, referenceDate: today}, undefined, undefined);
+      .toHaveBeenCalledWith({ageMin: 0, ageMax: 3, referenceDate: today}, undefined, undefined, undefined, undefined);
   });
 
   it('reloads data when the reference date changes', () => {
@@ -103,8 +103,9 @@ describe('StatisticsChildrenComponent', () => {
 
     component.filterForm.patchValue({referenceDate: '2026-09-01'});
 
-    expect(statisticsApiService.getChildrenData)
-      .toHaveBeenCalledWith({ageMin: 6, ageMax: 10, referenceDate: dayjs('2026-09-01').toDate()}, undefined, undefined);
+    expect(statisticsApiService.getChildrenData).toHaveBeenCalledWith(
+      {ageMin: 6, ageMax: 10, referenceDate: dayjs('2026-09-01').toDate()}, undefined, undefined, undefined, undefined
+    );
   });
 
   it('applies the school age preset', () => {
@@ -117,7 +118,7 @@ describe('StatisticsChildrenComponent', () => {
     expect(component.filterForm.getRawValue().ageMin).toBe(6);
     expect(component.filterForm.getRawValue().ageMax).toBe(15);
     expect(statisticsApiService.getChildrenData)
-      .toHaveBeenCalledWith({ageMin: 6, ageMax: 15, referenceDate: today}, undefined, undefined);
+      .toHaveBeenCalledWith({ageMin: 6, ageMax: 15, referenceDate: today}, undefined, undefined, undefined, undefined);
   });
 
   it('does not request anything while the filter is invalid', () => {
@@ -165,6 +166,30 @@ describe('StatisticsChildrenComponent', () => {
     expect(component.chartData().datasets[0].data).toEqual([1, 1, 1]);
   });
 
+  // A fast second edit's response can arrive before the first, slower one's - the older response
+  // must never overwrite what the newer request already applied. See #3530.
+  it('a slower stale response never overwrites a newer one already applied', () => {
+    const firstResponse = new Subject<ChildrenSearchResult>();
+    const secondResult: ChildrenSearchResult = {...mockResult, totalCount: 99};
+
+    statisticsApiService.getChildrenData
+      .mockReturnValueOnce(firstResponse)
+      .mockReturnValueOnce(of(secondResult));
+
+    const fixture = TestBed.createComponent(StatisticsChildrenComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.filterForm.patchValue({ageMin: 0, ageMax: 3});
+    // The second, faster request has already resolved and been applied by the time the first,
+    // slower one finally answers.
+    firstResponse.next(mockResult);
+    firstResponse.complete();
+
+    expect(component.childrenData()).toEqual(secondResult);
+    expect(component.appliedFilter()).toEqual({ageMin: 0, ageMax: 3, referenceDate: today});
+  });
+
   it('loads the requested page on paginator page change', () => {
     const fixture = TestBed.createComponent(StatisticsChildrenComponent);
     const component = fixture.componentInstance;
@@ -173,7 +198,35 @@ describe('StatisticsChildrenComponent', () => {
     component.onPageChange({pageIndex: 1, pageSize: 25, length: 30});
 
     expect(statisticsApiService.getChildrenData)
-      .toHaveBeenCalledWith({ageMin: 6, ageMax: 10, referenceDate: today}, 2, 25);
+      .toHaveBeenCalledWith({ageMin: 6, ageMax: 10, referenceDate: today}, 2, 25, undefined, undefined);
+  });
+
+  it('clicking a column header sorts and resets to the first page', () => {
+    const fixture = TestBed.createComponent(StatisticsChildrenComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.onSortChange({active: 'lastname', direction: 'asc'} as any);
+
+    expect(component.sortActive()).toBe('lastname');
+    expect(component.sortDirectionState()).toBe('asc');
+    expect(statisticsApiService.getChildrenData)
+      .toHaveBeenLastCalledWith({ageMin: 6, ageMax: 10, referenceDate: today}, 1, mockResult.pageSize, 'lastname', 'asc');
+  });
+
+  // matSortDisableClear keeps a real click cycling between asc/desc only, but the handler itself
+  // stays defensive about an empty direction (falls back to the backend's default order) in case
+  // that ever changes.
+  it('falls back to the default order when the sort event carries no direction', () => {
+    const fixture = TestBed.createComponent(StatisticsChildrenComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.onSortChange({active: 'lastname', direction: ''} as any);
+
+    expect(component.sortActive()).toBe('');
+    expect(statisticsApiService.getChildrenData)
+      .toHaveBeenLastCalledWith({ageMin: 6, ageMax: 10, referenceDate: today}, 1, mockResult.pageSize, undefined, undefined);
   });
 
 });

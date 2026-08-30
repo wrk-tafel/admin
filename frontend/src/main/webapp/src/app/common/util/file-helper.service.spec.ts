@@ -9,6 +9,8 @@ describe('FileHelperService', () => {
   let click: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    vi.useFakeTimers();
+
     TestBed.configureTestingModule({
       providers: [FileHelperService]
     });
@@ -24,6 +26,14 @@ describe('FileHelperService', () => {
   });
 
   afterEach(() => {
+    // Every test that calls downloadFile() must flush the deferred revokeObjectURL timer
+    // itself (inline, right after the call) - a pending fake timer left for afterEach to
+    // flush has been observed to still fire later as a real callback once the mocks below
+    // are gone, crashing as an unhandled error attributed to whatever spec happens to be
+    // running at that point. This is a backstop for a test that forgets to, not the primary
+    // mechanism.
+    vi.runAllTimers();
+    vi.useRealTimers();
     vi.restoreAllMocks();
     delete (URL as any).createObjectURL;
     delete (URL as any).revokeObjectURL;
@@ -36,6 +46,9 @@ describe('FileHelperService', () => {
 
     expect(createObjectURL).toHaveBeenCalledWith(data);
     expect(click).toHaveBeenCalledTimes(1);
+
+    // Flushed here, inline, rather than left to afterEach - see the note there.
+    vi.runAllTimers();
   });
 
   it('downloadFile sets the anchor href and download filename before clicking', () => {
@@ -47,6 +60,9 @@ describe('FileHelperService', () => {
     service.downloadFile('report.pdf', new Blob(['file content']));
 
     expect(click).toHaveBeenCalledTimes(1);
+
+    // Flushed here, inline, rather than left to afterEach - see the note there.
+    vi.runAllTimers();
   });
 
   it('downloadFile revokes the object URL only after the click was triggered', () => {
@@ -63,8 +79,21 @@ describe('FileHelperService', () => {
     });
 
     service.downloadFile('report.pdf', new Blob(['file content']));
+    vi.runAllTimers();
 
     expect(callOrder).toEqual(['createObjectURL', 'click', 'revokeObjectURL']);
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+  });
+
+  // Firefox/Safari can abort a larger download (e.g. a ZIP export) if its object URL is revoked
+  // while the browser is still reading it - a revoke right after click() raced that read. See #3530.
+  it('downloadFile does not revoke the object URL immediately, giving the browser time to start reading it', () => {
+    service.downloadFile('report.pdf', new Blob(['file content']));
+
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
   });
 
@@ -73,6 +102,7 @@ describe('FileHelperService', () => {
 
     service.downloadFile('first.pdf', new Blob(['first']));
     service.downloadFile('second.pdf', new Blob(['second']));
+    vi.runAllTimers();
 
     expect(createObjectURL).toHaveBeenCalledTimes(2);
     expect(revokeObjectURL).toHaveBeenNthCalledWith(1, 'blob:mock-url-1');

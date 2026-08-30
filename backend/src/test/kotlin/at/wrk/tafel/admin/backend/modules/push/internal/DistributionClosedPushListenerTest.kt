@@ -54,4 +54,12 @@ internal class DistributionClosedPushListenerTest {
             )
         }
     }
+
+    @Test
+    fun `a manual mail resend does not re-broadcast the distribution-closed push`() {
+        listener.onDistributionClosed(DistributionClosedEvent(distributionId = testDistributionEntity.id!!, resend = true))
+
+        verify(exactly = 0) { pushBroadcastService.broadcast(any(), any(), any()) }
+        verify(exactly = 0) { distributionRepository.findByIdOrNull(any()) }
+    }
 }

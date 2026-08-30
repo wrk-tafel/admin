@@ -71,6 +71,33 @@ describe('User Edit', () => {
     });
   });
 
+  it('typing a password and collapsing the reset section again before saving does not reset it', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.visit('/benutzer/bearbeiten/' + user.id);
+      cy.byTestId('firstnameInput').should('have.value', user.firstname);
+
+      cy.byTestId('password-reset-toggle').click();
+      cy.byTestId('passwordInput').should('be.visible').type('aNewSecretPassword1');
+      cy.byTestId('passwordRepeatInput').type('aNewSecretPassword1');
+
+      // collapsed again without clearing what was typed - the save that follows must still treat
+      // this as "leave the password unchanged", not send the now-hidden value. See #3530.
+      cy.byTestId('password-reset-toggle').click();
+      cy.byTestId('passwordInput').should('not.be.visible');
+
+      cy.intercept('PUT', '/api/users/*').as('updateUser');
+      cy.byTestId('save-button').click();
+
+      cy.wait('@updateUser').then((interception) => {
+        expect(interception.request.body.password).to.eq(undefined);
+        expect(interception.request.body.passwordRepeat).to.eq(undefined);
+      });
+      cy.url().should('contain', '/benutzer/detail/' + user.id);
+    });
+  });
+
   it('warns before leaving the page with unsaved changes', () => {
     cy.createDummyUser().then((response) => {
       const user = response.body;

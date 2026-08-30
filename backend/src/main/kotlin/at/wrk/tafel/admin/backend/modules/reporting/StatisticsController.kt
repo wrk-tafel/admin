@@ -55,7 +55,9 @@ class StatisticsController(
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
         @RequestParam referenceDate: LocalDate? = null,
-    ): PagedResponse<ChildItem> = statisticsService.getChildrenData(ageMin, ageMax, page, pageSize, referenceDate)
+        @RequestParam sortBy: String? = null,
+        @RequestParam sortDirection: String? = null,
+    ): PagedResponse<ChildItem> = statisticsService.getChildrenData(ageMin, ageMax, page, pageSize, referenceDate, sortBy, sortDirection)
 
     @GetMapping("/children/age-distribution")
     fun getChildrenAgeDistribution(

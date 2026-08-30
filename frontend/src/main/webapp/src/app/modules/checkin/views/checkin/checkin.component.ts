@@ -1,13 +1,14 @@
 import {Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {HttpErrorResponse} from '@angular/common/http';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
-import {Subscription} from 'rxjs';
+import {catchError, EMPTY, forkJoin, Subject, Subscription, switchMap} from 'rxjs';
 import dayjs from 'dayjs';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
-import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
+import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule, DatePipe, NgClass} from '@angular/common';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
@@ -195,13 +196,12 @@ export class CheckinComponent {
     this.scannerReadyState.set(false);
 
     if (scannerId) {
-      this.scannerSubscription = this.sseService.listen<ScanResult>(`/sse/scanners/${scannerId}/results`)
+      this.scannerSubscription = this.sseService
+        .listen<ScanResult>(`/sse/scanners/${scannerId}/results`, (connected) => this.scannerReadyState.set(connected))
         .subscribe((result: ScanResult) => {
           this.customerId.set(result.value);
           this.searchForCustomerId();
         });
-
-      this.scannerReadyState.set(true);
     }
   }
 
@@ -212,7 +212,43 @@ export class CheckinComponent {
   readonly currentDistribution = this.globalStateService.getCurrentDistribution();
   readonly hasReceivedDistribution = this.globalStateService.getHasReceivedDistribution();
 
+  // A scan can come in while the previous customer's lookup is still in flight (typing then a
+  // scan, or two scans back to back) - routing every search through this switchMap cancels a
+  // still-pending older search (customer + notes + ticket, all of it) the moment a newer one
+  // starts, so a slower earlier lookup can never overwrite what a faster later one just loaded.
+  private readonly customerSearchTrigger = new Subject<number>();
+
   constructor() {
+    this.customerSearchTrigger.pipe(
+      switchMap(customerId => this.customerApiService.getCustomer(customerId, SUPPRESS_ERROR_TOAST_CONTEXT).pipe(
+        switchMap(customerData => {
+          this.processCustomer(customerData);
+
+          return forkJoin({
+            notes: this.customerNoteApiService.getNotesForCustomer(customerData.id!),
+            ticket: this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id!)
+          });
+        }),
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 404) {
+            this.processCustomer(undefined);
+            this.customerNotes.set([]);
+            this.toastr.warning(`Kunde ${customerId} nicht gefunden!`);
+          } else {
+            this.toastr.error(extractErrorMessage(error), 'Fehler beim Laden des Kunden!');
+          }
+          return EMPTY;
+        })
+      )),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({notes, ticket}) => {
+      this.customerNotes.set(notes.items);
+      if (ticket.ticketNumber) {
+        this.ticketNumber.set(ticket.ticketNumber);
+      }
+      this.ticketNumberEdit.set(this.ticketNumber() != null);
+    });
+
     // Redirect to overview once it's confirmed no distribution is active (only after the first
     // SSE message has actually been processed - see getHasReceivedDistribution's doc comment on
     // why the raw connection state isn't enough here).
@@ -238,35 +274,8 @@ export class CheckinComponent {
   }
 
   searchForCustomerId() {
-    const observer = {
-      next: (customerData: CustomerData) => {
-        this.processCustomer(customerData);
-
-        this.customerNoteApiService.getNotesForCustomer(this.customerId()!).subscribe(notesResponse => {
-          this.customerNotes.set(notesResponse.items);
-        });
-
-        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id!)
-          .subscribe((ticketNumberResponse: TicketNumberResponse) => {
-            if (ticketNumberResponse.ticketNumber) {
-              this.ticketNumber.set(ticketNumberResponse.ticketNumber);
-            }
-            this.ticketNumberEdit.set(this.ticketNumber() != null);
-          });
-      },
-      error: (error: HttpErrorResponse) => {
-        if (error.status === 404) {
-          this.processCustomer(undefined);
-          this.customerNotes.set([]);
-          this.toastr.warning(`Kunde ${this.customerId()} nicht gefunden!`);
-        } else {
-          this.toastr.error(extractErrorMessage(error), 'Fehler beim Laden des Kunden!');
-        }
-      },
-    };
-
     if (this.customerId()) {
-      this.customerApiService.getCustomer(this.customerId()!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
+      this.customerSearchTrigger.next(this.customerId()!);
     } else {
       this.toastr.warning('Keine Kundennummer angegeben!');
     }

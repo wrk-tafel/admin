@@ -142,7 +142,12 @@ export class FoodCollectionRecordingComponent {
     return this.dialog.open(UnsavedChangesDialogComponent).afterClosed().pipe(map(confirmed => !!confirmed));
   }
 
-  onSelectedRouteChange(route: RouteData) {
+  onSelectedRouteChange(route: RouteData | undefined) {
+    if (!route) {
+      this.selectedRouteData.set(undefined);
+      return;
+    }
+
     forkJoin({
       foodCollectionData: this.foodCollectionsApiService.getFoodCollection(route.id),
       shopsOfRouteData: this.routeApiService.getShopsOfRoute(route.id)

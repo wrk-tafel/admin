@@ -389,6 +389,30 @@ describe('UserFormComponent', () => {
     expect(component.passwordFieldsVisible()).toBe(true);
   });
 
+  // Expand -> type -> collapse -> save must not reset the password, contrary to the template hint
+  // "Leer lassen, um das bestehende Passwort beizubehalten" - see #3530.
+  it('does not send a password typed into the reset section once it is collapsed again', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    vi.spyOn(component.userDataChange, 'emit');
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.componentRef.setInput('userData', mockUser);
+    fixture.detectChanges();
+
+    component.togglePasswordResetSection();
+    component.userForm.password().value.set('newSecretPassword');
+    component.userForm.passwordRepeat().value.set('newSecretPassword');
+    fixture.detectChanges();
+
+    component.togglePasswordResetSection();
+    fixture.detectChanges();
+
+    expect(component.userDataChange.emit).toHaveBeenLastCalledWith(expect.objectContaining({
+      password: undefined,
+      passwordRepeat: undefined
+    }));
+  });
+
   it('isDirty tracks changes against the loaded state and markSaved rebases it', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;

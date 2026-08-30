@@ -10,7 +10,7 @@ import {
   PersonnelNumberAvailabilityResponse
 } from '../../../../api/employee-api.service';
 import {MatDialog} from '@angular/material/dialog';
-import {of, throwError} from 'rxjs';
+import {of, Subject, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -110,7 +110,7 @@ describe('SettingsEmployeesComponent', () => {
     const component = fixture.componentInstance;
     expect(component['employees']()).toBeDefined();
     expect(component['employees']()?.items.length).toBe(2);
-    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith(undefined, undefined, undefined);
+    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined);
     expect(component['searchAnnouncement']()).toBe('2 Mitarbeiter gefunden');
   });
 
@@ -125,8 +125,37 @@ describe('SettingsEmployeesComponent', () => {
 
     vi.advanceTimersByTime(500);
 
-    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith('00001', 1, listResponse.pageSize);
+    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith('00001', 1, listResponse.pageSize, undefined, undefined);
     expect(employeeApiMock.findEmployees).toHaveBeenCalledTimes(2);
+  });
+
+  // A slower search's response arriving after a faster, more recent one must never overwrite the
+  // list with results for a query the search box no longer holds. See #3530.
+  it('a slower stale search response never overwrites a newer one already applied', () => {
+    const firstResponse = new Subject<EmployeeListResponse>();
+    const secondResponse: EmployeeListResponse = {...listResponse, items: [testEmployee2], totalCount: 1};
+
+    (employeeApiMock.findEmployees as any)
+      .mockReturnValueOnce(of(listResponse))
+      .mockReturnValueOnce(firstResponse)
+      .mockReturnValueOnce(of(secondResponse));
+
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['searchControl'].setValue('0000');
+    vi.advanceTimersByTime(500);
+
+    component['searchControl'].setValue('00002');
+    vi.advanceTimersByTime(500);
+
+    // The second, faster search has already resolved and been applied by the time the first,
+    // slower one finally answers.
+    firstResponse.next(listResponse);
+    firstResponse.complete();
+
+    expect(component['employees']()).toEqual(secondResponse);
   });
 
   it('startEdit() enters edit mode for the given row and prefills the fields', () => {
@@ -202,7 +231,8 @@ describe('SettingsEmployeesComponent', () => {
     component['openEmployee'](testEmployee2);
 
     expect(component['searchControl'].value).toBe(testEmployee2.personnelNumber);
-    expect(employeeApiMock.findEmployees).toHaveBeenCalledWith(testEmployee2.personnelNumber, 1, listResponse.pageSize);
+    expect(employeeApiMock.findEmployees)
+      .toHaveBeenCalledWith(testEmployee2.personnelNumber, 1, listResponse.pageSize, undefined, undefined);
     expect(component['editingId']()).toBe(testEmployee2.id);
   });
 
@@ -371,5 +401,31 @@ describe('SettingsEmployeesComponent', () => {
 
     expect(fileHelperMock.downloadFile).not.toHaveBeenCalled();
     expect(component['downloadingPrivacyNotice']()).toBe(false);
+  });
+
+  it('clicking a column header sorts and resets to the first page', () => {
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['onSortChange']({active: 'lastname', direction: 'asc'} as any);
+
+    expect(component['sortActive']()).toBe('lastname');
+    expect(component['sortDirectionState']()).toBe('asc');
+    expect(employeeApiMock.findEmployees).toHaveBeenLastCalledWith(undefined, 1, listResponse.pageSize, 'lastname', 'asc');
+  });
+
+  // matSortDisableClear keeps a real click cycling between asc/desc only, but the handler itself
+  // stays defensive about an empty direction (falls back to the backend's default order) in case
+  // that ever changes.
+  it('falls back to the default order when the sort event carries no direction', () => {
+    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['onSortChange']({active: 'lastname', direction: ''} as any);
+
+    expect(component['sortActive']()).toBe('');
+    expect(employeeApiMock.findEmployees).toHaveBeenLastCalledWith(undefined, 1, listResponse.pageSize, undefined, undefined);
   });
 });

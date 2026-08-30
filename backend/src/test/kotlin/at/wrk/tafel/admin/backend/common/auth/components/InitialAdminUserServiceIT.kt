@@ -2,10 +2,14 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.TEST_POSTGRES_IMAGE
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.DefaultApplicationArguments
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -87,5 +91,77 @@ class InitialAdminUserServiceIT {
         initialAdminUserService.createInitialAdminUserIfMissing()
 
         assertThat(userRepository.findAll().map { it.id }).isEqualTo(usersBefore)
+    }
+}
+
+/**
+ * A brand-new installation is also what ADR-0035's "wipe the users table" recovery path produces -
+ * except there `employees` was never wiped, so the configured personnel number can already be
+ * sitting in the database when [InitialAdminUserService] runs. `TafelUserDetailsManager.resolveEmployee`
+ * loads that row and `userRepository.save` has to cascade onto the very same managed instance, which
+ * only works inside one transaction spanning both (issue #3522) - runs on its own container so this
+ * class can control the exact database state the boot sees, and calls [InitialAdminUserService.run]
+ * itself rather than [InitialAdminUserService.createInitialAdminUserIfMissing] directly: Spring's
+ * transactional proxy never intercepts a self-invocation, so a transaction present only on the
+ * latter would silently not apply to the real `ApplicationRunner` boot path (see
+ * [InitialAdminUserService.run]'s KDoc).
+ */
+@SpringBootTest(
+    properties = [
+        // Kept off across context startup - the pre-existing employee has to be in place before
+        // InitialAdminUserService acts, and startup is the one moment this test can't control that.
+        "tafeladmin.setup.initialAdmin.enabled=false",
+        "tafeladmin.setup.initialAdmin.password=Startpasswort1",
+    ],
+)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class InitialAdminUserServiceExistingEmployeeIT {
+
+    companion object {
+        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer(TEST_POSTGRES_IMAGE)
+            .withDatabaseName("tafeladmin-initialadmin-existingemployee")
+            .withUsername("admin")
+            .withPassword("admin")
+            .apply { start() }
+
+        @DynamicPropertySource
+        @JvmStatic
+        fun dynamicDataSourceProperties(registry: DynamicPropertyRegistry) {
+            registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl)
+            registry.add("spring.datasource.username", postgreSQLContainer::getUsername)
+            registry.add("spring.datasource.password", postgreSQLContainer::getPassword)
+        }
+    }
+
+    @Autowired
+    private lateinit var initialAdminUserService: InitialAdminUserService
+
+    @Autowired
+    private lateinit var userRepository: UserRepository
+
+    @Autowired
+    private lateinit var employeeRepository: EmployeeRepository
+
+    @Autowired
+    private lateinit var tafelAdminProperties: TafelAdminProperties
+
+    @Test
+    fun `bootstrapping into a database whose employees table already has the configured personnel number succeeds`() {
+        val properties = tafelAdminProperties.setup.initialAdmin
+        employeeRepository.save(
+            EmployeeEntity(
+                personnelNumber = properties.personnelNumber,
+                firstname = "Pre-existing",
+                lastname = "Employee",
+            ),
+        )
+        properties.enabled = true
+
+        initialAdminUserService.run(DefaultApplicationArguments())
+
+        val createdUser = userRepository.findByUsername(properties.username)!!
+        assertThat(createdUser.employee.personnelNumber).isEqualTo(properties.personnelNumber)
+        assertThat(createdUser.employee.firstname).isEqualTo(properties.firstname)
+        assertThat(createdUser.employee.lastname).isEqualTo(properties.lastname)
     }
 }

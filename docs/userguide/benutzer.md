@@ -6,7 +6,7 @@ Im Bereich "Benutzer" werden die Zugänge und Berechtigungen der Mitarbeiterinne
 
 ## Benutzer suchen
 
-Unter **Benutzer → Suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Personalnummer entspricht, springt direkt zur Detailansicht (wie früher das Feld "Personalnummer" mit dem Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen); der Button **Suchen** funktioniert weiterhin zusätzlich, etwa bei einer nur einstelligen Eingabe.
+Unter **Benutzer → Suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Personalnummer entspricht, springt nach **Enter** oder einem Klick auf **Suchen** direkt zur Detailansicht (wie früher das Feld "Personalnummer" mit dem Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die normale Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen) und findet dabei auch die Personalnummer; der direkte Sprung selbst wartet dagegen immer auf **Enter** oder **Suchen**, damit eine noch unvollständig eingetippte Nummer nicht zu einem falschen Benutzer springt.
 
 Das Suchfeld durchsucht Benutzername, Personalnummer, Nachname und Vorname in einem. Es genügt ein Teil davon, und Tippfehler werden toleriert – genaue Treffer stehen im Ergebnis oben, ähnliche darunter. Das Info-Symbol (ⓘ) neben dem Suchfeld erklärt dasselbe direkt in der Anwendung.
 
@@ -16,7 +16,7 @@ Zusätzlich lässt sich über die Status-Chips "Alle", "Aktiv" und "Deaktiviert"
 
 Beim Öffnen der Seite werden bereits die ersten (aktiven) Benutzer angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein anderer Status-Filter grenzt diese Liste dann ein. Suchbegriff, Status-Filter und die aktuelle Seite bleiben in der Adresszeile erhalten: Wird ein Benutzer aus dem Ergebnis geöffnet und über "Zurück" wieder zur Suche zurückgekehrt, ist dasselbe Ergebnis sofort wieder da, ohne erneut suchen zu müssen.
 
-Das Suchergebnis zeigt Nummer, Name, Personalnummer und Status als Chips: "Aktiv" (grün) oder "Deaktiviert" (grau), zusätzlich "Passwortänderung erforderlich" bzw. "Gesperrt bis <Datum>", falls zutreffend - letzteres macht auf einen Blick sichtbar, warum sich eine Person gerade nicht anmelden kann, ohne extra auf "Anmelde-Versuche" wechseln zu müssen. Die gesamte Zeile ist anklickbar und öffnet die Detailansicht; über den Stift in den Aktionen gelangt man direkt zum Bearbeiten. Liefert die Suche keine Treffer, erscheint statt des Ergebnisses der Hinweis "Keine Benutzer gefunden" mit einem Button **Benutzer anlegen**; bei vielen Treffern kann über die Seitennavigation geblättert werden.
+Das Suchergebnis zeigt Nummer, Name, Personalnummer und Status als Chips: "Aktiv" (grün) oder "Deaktiviert" (grau), zusätzlich "Passwortänderung erforderlich" bzw. "Gesperrt bis <Datum>", falls zutreffend - letzteres macht auf einen Blick sichtbar, warum sich eine Person gerade nicht anmelden kann, ohne extra auf "Anmelde-Versuche" wechseln zu müssen. Die gesamte Zeile ist anklickbar und öffnet die Detailansicht; über den Stift in den Aktionen gelangt man direkt zum Bearbeiten. Liefert die Suche keine Treffer, erscheint statt des Ergebnisses der Hinweis "Keine Benutzer gefunden" mit einem Button **Benutzer anlegen**; bei vielen Treffern kann über die Seitennavigation geblättert werden. Ein Klick auf eine der Spaltenüberschriften Nr., Name, Personalnummer oder Status sortiert die Tabelle danach statt nach den besten Treffern zuerst; ein erneuter Klick auf dieselbe Spalte kehrt die Richtung um.
 
 ![Suchergebnis](images/benutzer-suchen-ergebnis.jpg)
 
@@ -94,7 +94,7 @@ Für die Aktion gibt es je nach Zustand zwei Varianten:
 * **Entsperren** bei einem aktuell gesperrten Konto: hebt die Sperre sofort auf und setzt die Fehlversuche zurück – ohne Sicherheitsabfrage, weil in diesem Fall genau das die Absicht ist.
 * **Zurücksetzen** bei einem nicht gesperrten Eintrag: löscht die gezählten Fehlversuche, mit Sicherheitsabfrage. An der Anmeldung ändert sich dadurch nichts.
 
-In beiden Fällen wird der Eintrag aus der Liste entfernt – die gezählten Fehlversuche *sind* der Eintrag. Sind keine Fehlversuche vorhanden, bleibt die Liste leer.
+In beiden Fällen wird der Eintrag aus der Liste entfernt – die gezählten Fehlversuche *sind* der Eintrag. Sind keine Fehlversuche vorhanden, bleibt die Liste leer. Ein Klick auf eine der Spaltenüberschriften Benutzername, Fehlversuche, Letzter Fehlversuch oder Status sortiert die Tabelle danach statt gesperrte Konten zuerst; ein erneuter Klick auf dieselbe Spalte kehrt die Richtung um.
 
 ![Anmelde-Versuche](images/benutzer-anmeldeversuche.jpg)
 

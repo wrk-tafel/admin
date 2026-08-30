@@ -47,10 +47,17 @@ const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withXhr(),
+      // Interceptor order matters here: a response flows back through this list in reverse, so
+      // whichever interceptor sits closer to the backend (later in this array) sees it first.
+      // `xsrfInterceptor` has to be that one - it retries a 403 caused by the XSRF-token race
+      // itself, and only the interceptors listed before it (further from the backend) see the
+      // outcome of that retry. Listing `errorHandlerInterceptor` before it means a successful
+      // retry never reaches the error handler at all, instead of toasting/logging the transient
+      // 403 that the retry already resolved.
       withInterceptors([
         apiPathInterceptor,
-        xsrfInterceptor,
-        errorHandlerInterceptor
+        errorHandlerInterceptor,
+        xsrfInterceptor
       ])
     ),
     provideRouter(routes,

@@ -199,6 +199,47 @@ describe('Food Collection Recording', () => {
     });
   });
 
+  it('sends the outgoing shop\'s pending return items under its own route, not the newly selected one', () => {
+    // Regression test for #3527: switching routes used to send the shop being left behind's
+    // return items under the *new* route's id, corrupting the new route's food collection.
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    cy.intercept('POST', '**/food-collections/routes/*/shops/*/return-items').as('saveReturnItemsPerShop');
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+    cy.byTestId('select-items-tab').click();
+    cy.byTestId('shop-title').should('contain.text', 'Lidl');
+
+    cy.byTestId('return-category-11-increment-button').click();
+    // completeRouteViaApi() below fills in base data/km but not items - route 2 needs at least one
+    // recorded amount of its own, or afterEach's closeDistribution() refuses it as unvollständig
+    cy.byTestId('category-1-input').type('1');
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 3').click();
+
+    cy.wait('@saveReturnItemsPerShop').its('request.url')
+      .should('match', /\/food-collections\/routes\/2\/shops\/20\/return-items(\?|$)/);
+
+    completeRouteViaApi();
+  });
+
+  it('resets the screen without an error when "Bitte auswählen" is chosen again', () => {
+    // Regression test for #3527: re-selecting the placeholder option used to dereference the
+    // now-undefined route and crash instead of just clearing the screen.
+    enterRouteData();
+    cy.byTestId('select-items-tab').click();
+    cy.byTestId('items-table').should('be.visible');
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Bitte auswählen').click();
+
+    cy.byTestId('save-button').should('not.exist');
+    cy.byTestId('items-table').should('not.exist');
+  });
+
   it('queues a change made while offline and syncs it automatically once back online', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.byTestId('routeInput').should('be.visible');

@@ -36,6 +36,23 @@ describe('User Search', () => {
     });
   });
 
+  // The exact-match jump must only ever fire on an explicit search (button/Enter, both covered
+  // above) - never from search-as-you-type alone, since the debounce can settle on a
+  // still-incomplete number that happens to already match a different, shorter personnel number
+  // (issue #3533).
+  it('does not jump automatically while a personnel number is only typed, without an explicit search', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.byTestId('searchInputText').type(user.personnelNumber);
+      // past the 300ms debounce, with margin
+      cy.wait(600);
+
+      cy.url().should('include', '/benutzer/suchen');
+      cy.url().should('not.include', '/benutzer/detail/' + user.id);
+    });
+  });
+
   // One digit longer than the real personnel number - guaranteed to miss the exact-match jump, but
   // close enough for the fuzzy fallback to still find it via `search_text` (same tolerance as the
   // typo test below).
@@ -110,6 +127,26 @@ describe('User Search', () => {
 
       cy.url().should('include', 'suche=').and('include', 'status=alle');
       cy.byTestId('searchresult-table').should('be.visible');
+      cy.get(`a[href$="/benutzer/detail/${user.id}"]`).filterDisplayed().should('have.length', 1);
+    });
+  });
+
+  it('sorts by clicking a column header, replacing the default order', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.byTestId('searchInputText').type(user.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.intercept('GET', /\/api\/users(\?|$)/).as('sortedSearch');
+      cy.contains('th', 'Name').click();
+      cy.wait('@sortedSearch').its('request.url').should('include', 'sortBy=name').and('include', 'sortDirection=asc');
+
+      cy.contains('th', 'Name').click();
+      cy.wait('@sortedSearch').its('request.url').should('include', 'sortBy=name').and('include', 'sortDirection=desc');
+
+      // still present after sorting - it is a reorder of the same filtered result, not a new search
       cy.get(`a[href$="/benutzer/detail/${user.id}"]`).filterDisplayed().should('have.length', 1);
     });
   });
@@ -224,7 +261,7 @@ describe('User Search', () => {
 
     cy.get('.mat-mdc-tooltip')
       .should('have.class', 'mat-mdc-tooltip-show')
-      .and('contain.text', 'Eine reine Zahl springt bei einem exakten Treffer direkt zum Benutzer');
+      .and('contain.text', 'Eine reine Zahl springt erst nach Enter oder Klick auf \'Suchen\' bei einem exakten Treffer');
   });
 
   it('labels the edit action through its tooltip', () => {

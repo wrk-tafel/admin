@@ -33,7 +33,7 @@
                  (ngModelChange)="onQueryInput($event)" (keydown.enter)="search()" tafelAutofocus>
         </mat-form-field>
         <tafel-info-tooltip [testId]="'search-input-info-tooltip'"
-                            text="Eine reine Zahl springt bei einem exakten Treffer direkt zum Kunden. Sonst wird die Kundennummer, die Namen aller Personen des Haushalts, Adresse, Telefonnummer und E-Mail durchsucht - Tippfehler werden toleriert, genaue Treffer stehen im Ergebnis oben."></tafel-info-tooltip>
+                            text="Eine reine Zahl springt erst nach Enter oder Klick auf 'Suchen' bei einem exakten Treffer direkt zum Kunden - während der Eingabe wird nur gesucht, damit eine noch unvollständige Nummer nicht zu einem falschen Kunden springt. Durchsucht werden Kundennummer, die Namen aller Personen des Haushalts, Adresse, Telefonnummer und E-Mail - Tippfehler werden toleriert, genaue Treffer stehen im Ergebnis oben."></tafel-info-tooltip>
       </div>
     </div>
 
@@ -86,7 +86,8 @@
           </div>
         } @else {
           <div class="hidden md:block">
-            <table mat-table [dataSource]="result.items" class="min-w-full divide-y divide-gray-200 mt-4"
+            <table mat-table matSort matSortDisableClear [matSortActive]="sortActive()" [matSortDirection]="sortDirectionState()"
+                   (matSortChange)="onSortChange($event)" [dataSource]="result.items" class="min-w-full divide-y divide-gray-200 mt-4"
                    aria-label="Liste der gefundenen Kunden">
               <ng-container matColumnDef="icon">
                 <th mat-header-cell *matHeaderCellDef><span class="sr-only">Status</span></th>
@@ -100,12 +101,12 @@
               </ng-container>
 
               <ng-container matColumnDef="id">
-                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Nr.</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="px-6 py-2 text-left">Nr.</th>
                 <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-id-' + i" class="px-4 py-2">{{customer.id}}</td>
               </ng-container>
 
               <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Name</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="px-6 py-2 text-left">Name</th>
                 <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-name-' + i" class="px-4 py-2">
                   @if (customer.lastname || customer.firstname) {
                     <a class="text-blue-600 hover:underline cursor-pointer after:content-[''] after:absolute after:inset-0"
@@ -118,7 +119,7 @@
               </ng-container>
 
               <ng-container matColumnDef="birthDate">
-                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Geb. Datum</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="px-6 py-2 text-left">Geb. Datum</th>
                 <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-birthDate-' + i" class="px-4 py-2">{{!customer.birthDate ? '-' : customer.birthDate | date : 'dd.MM.yyyy'}}</td>
               </ng-container>
 
@@ -133,12 +134,12 @@
               </ng-container>
 
               <ng-container matColumnDef="issuedAt">
-                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Ausgestellt am</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="px-6 py-2 text-left">Ausgestellt am</th>
                 <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-issuedAt-' + i" class="px-4 py-2">{{!customer.issuedAt ? '-' : customer.issuedAt | date : 'dd.MM.yyyy'}}</td>
               </ng-container>
 
               <ng-container matColumnDef="validUntil">
-                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Gültig bis</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="px-6 py-2 text-left">Gültig bis</th>
                 <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-validUntil-' + i" class="px-4 py-2">
                   @if (customer.validUntil) {
                     <span class="text-white px-2" [ngClass]="isValid(customer) ? 'bg-green-700' : 'bg-red-600'">{{customer.validUntil | date : 'dd.MM.yyyy'}}</span>

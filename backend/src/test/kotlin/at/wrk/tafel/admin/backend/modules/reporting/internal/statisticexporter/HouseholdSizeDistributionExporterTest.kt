@@ -63,6 +63,7 @@ class HouseholdSizeDistributionExporterTest {
                 listOf("8", "0", "0,00"),
                 listOf("9", "0", "0,00"),
                 listOf("10", "0", "0,00"),
+                listOf("11+", "0", "0,00"),
             ),
         )
     }
@@ -173,7 +174,40 @@ class HouseholdSizeDistributionExporterTest {
                 listOf("8", "0", "0,00"),
                 listOf("9", "0", "0,00"),
                 listOf("10", "0", "0,00"),
+                listOf("11+", "0", "0,00"),
             ),
         )
+    }
+
+    @Test
+    fun `households larger than 10 persons are counted in an overflow row instead of dropped`() {
+        val startedAt = LocalDateTime.now()
+        val household = HouseholdEntity(householdId = 902, validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            birthDate = startedAt.toLocalDate().minusYears(40)
+        }
+        household.persons.add(mainPerson)
+        household.mainPerson = mainPerson
+        repeat(11) {
+            household.persons.add(
+                PersonEntity(household = household, country = testCountry1).apply {
+                    birthDate = startedAt.toLocalDate().minusYears(10)
+                },
+            )
+        }
+
+        val testStatisticDistribution = DistributionEntity(startedAt = startedAt, startedByUser = testUserEntity).apply {
+            id = 123
+            households = listOf(
+                DistributionHouseholdEntity(distribution = this, household = household, ticketNumber = 1),
+            )
+        }
+        val testStatistic = DistributionStatisticEntity(distribution = testStatisticDistribution)
+        testStatisticDistribution.statistic = testStatistic
+
+        val rows = HouseholdSizeDistributionExporter().getRows(testStatistic)
+
+        assertThat(rows.first { it[0] == "10" }).isEqualTo(listOf("10", "0", "0,00"))
+        assertThat(rows.first { it[0] == "11+" }).isEqualTo(listOf("11+", "1", "100,00"))
     }
 }

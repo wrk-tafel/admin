@@ -78,13 +78,14 @@ internal class DistributionStatisticServiceTest {
             )
         } returns testCustomersNew
 
-        val testCountCustomersUpdated = 456
+        // 1 and 2 are also new/prolonged below - only 3 and 999 should count as "updated"
+        val testUpdatedHouseholdIds = listOf(1L, 2L, 3L, 999L)
         every {
-            householdRepository.countByUpdatedAtBetween(
+            householdRepository.findIdByUpdatedAtBetween(
                 statisticStartTime,
                 statisticEndTime,
             )
-        } returns testCountCustomersUpdated
+        } returns testUpdatedHouseholdIds
 
         val testCustomersProlonged =
             listOfNotNull(testDistributionHouseholdEntity1.household, testDistributionHouseholdEntity2.household)
@@ -117,7 +118,7 @@ internal class DistributionStatisticServiceTest {
         assertThat(savedStatistic.countPersonsNew).isEqualTo(3)
         assertThat(savedStatistic.countCustomersProlonged).isEqualTo(testCustomersProlonged.size)
         assertThat(savedStatistic.countPersonsProlonged).isEqualTo(3)
-        assertThat(savedStatistic.countCustomersUpdated).isEqualTo(testCountCustomersUpdated - testCustomersNew.size - testCustomersProlonged.size)
+        assertThat(savedStatistic.countCustomersUpdated).isEqualTo(2)
         assertThat(savedStatistic.countSingleParentHouseholds).isEqualTo(0)
 
         assertThat(savedStatistic.shopsTotalCount).isEqualTo(3)
@@ -136,7 +137,7 @@ internal class DistributionStatisticServiceTest {
         testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity)
 
         every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
-        every { householdRepository.countByUpdatedAtBetween(any(), any()) } returns 0
+        every { householdRepository.findIdByUpdatedAtBetween(any(), any()) } returns emptyList()
         every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
@@ -196,7 +197,7 @@ internal class DistributionStatisticServiceTest {
         )
 
         every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
-        every { householdRepository.countByUpdatedAtBetween(any(), any()) } returns 0
+        every { householdRepository.findIdByUpdatedAtBetween(any(), any()) } returns emptyList()
         every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
@@ -240,7 +241,7 @@ internal class DistributionStatisticServiceTest {
         )
 
         every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
-        every { householdRepository.countByUpdatedAtBetween(any(), any()) } returns 0
+        every { householdRepository.findIdByUpdatedAtBetween(any(), any()) } returns emptyList()
         every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
@@ -250,6 +251,76 @@ internal class DistributionStatisticServiceTest {
         verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }
 
         assertThat(savedStatisticSlot.captured.countInfants).isEqualTo(1)
+    }
+
+    @Test
+    fun `count infants treats a missing birth date as not an infant instead of crashing`() {
+        val startedAt = LocalDateTime.now().minusYears(3)
+        val testDistributionEntity = DistributionEntity(startedAt = startedAt, startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = startedAt.plusHours(2)
+        }
+        testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity)
+
+        val household = HouseholdEntity(householdId = nextHouseholdId(), validUntil = LocalDate.now())
+        val mainPerson = PersonEntity(household = household, country = testCountry1, isMainPerson = true).apply {
+            birthDate = LocalDate.now().minusYears(40)
+        }
+        household.persons.add(mainPerson)
+        household.mainPerson = mainPerson
+        // birth date unknown - HouseholdEntity.Specs.postProcessingNecessary is what surfaces such
+        // households for later correction, they're kept as household members in the meantime
+        household.persons.add(
+            PersonEntity(household = household, country = testCountry1).apply {
+                birthDate = null
+                excludeFromHousehold = false
+            },
+        )
+
+        testDistributionEntity.households = listOf(
+            DistributionHouseholdEntity(
+                distribution = testDistributionEntity,
+                household = household,
+                ticketNumber = 1,
+            ),
+        )
+
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.findIdByUpdatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+        every { distributionStatisticRepository.save(any()) } returns mockk()
+
+        service.saveStatistic(testDistributionEntity)
+
+        val savedStatisticSlot = slot<DistributionStatisticEntity>()
+        verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }
+
+        assertThat(savedStatisticSlot.captured.countInfants).isEqualTo(0)
+    }
+
+    @Test
+    fun `count customers updated is never negative for a household both new and prolonged in the same window`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now().minusHours(2), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = LocalDateTime.now()
+        }
+        testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity)
+        val statisticStartTime = testDistributionEntity.startedAt.toLocalDate().atStartOfDay()
+        val statisticEndTime = testDistributionEntity.endedAt!!
+
+        val household = listOfNotNull(testDistributionHouseholdEntity1.household)
+        every { householdRepository.findAllByCreatedAtBetween(statisticStartTime, statisticEndTime) } returns household
+        every { householdRepository.findAllByProlongedAtBetween(statisticStartTime, statisticEndTime) } returns household
+        // the household above is the only one that touched updated_at in the window
+        every { householdRepository.findIdByUpdatedAtBetween(statisticStartTime, statisticEndTime) } returns listOf(1L)
+        every { distributionStatisticRepository.save(any()) } returns mockk()
+
+        service.saveStatistic(testDistributionEntity)
+
+        val savedStatisticSlot = slot<DistributionStatisticEntity>()
+        verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }
+
+        assertThat(savedStatisticSlot.captured.countCustomersUpdated).isEqualTo(0)
     }
 
     @Test

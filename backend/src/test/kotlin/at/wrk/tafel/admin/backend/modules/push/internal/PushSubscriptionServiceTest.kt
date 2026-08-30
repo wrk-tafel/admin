@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import at.wrk.tafel.admin.backend.modules.push.model.PushSubscriptionLabelRequest
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
 import java.time.LocalDateTime
@@ -157,6 +159,28 @@ internal class PushSubscriptionServiceTest {
         assertThat(savedSlot.captured.user).isEqualTo(testUserEntity)
         assertThat(savedSlot.captured.p256dhKey).isEqualTo("p256dh")
         assertThat(savedSlot.captured.authKey).isEqualTo("auth")
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "http://push.example.com/x",
+            "http://10.0.0.5:5432/",
+            "https://10.0.0.5:5432/",
+            "https://127.0.0.1/",
+            "https://localhost/",
+            "https://169.254.169.254/latest/meta-data",
+            "https://[::1]/",
+            "not-a-url",
+        ],
+    )
+    fun `createSubscription rejects an endpoint that isn't a public https url`(endpoint: String) {
+        val request = PushSubscriptionRequest(endpoint = endpoint, p256dhKey = "p", authKey = "a")
+
+        assertThatThrownBy { service.createSubscription(request) }
+            .isInstanceOf(BusinessRuleException::class.java)
+
+        verify(exactly = 0) { pushSubscriptionRepository.saveAndFlush(any<PushSubscriptionEntity>()) }
     }
 
     /**

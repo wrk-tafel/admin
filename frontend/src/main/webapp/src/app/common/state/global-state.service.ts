@@ -76,4 +76,16 @@ export class GlobalStateService {
     return this._hasReceivedDistribution.asReadonly();
   }
 
+  /**
+   * Drops the last-known distribution snapshot without touching the `/sse/distributions`
+   * subscription itself - that stream is deliberately kept open across a logout (see {@link init}).
+   * Call this from {@link AuthenticationService#logout} so a re-login doesn't render the previous
+   * session's snapshot (and can't trigger a "confirmed closed" redirect off stale data) for as long
+   * as the backoff in `SseService` takes to deliver the next message.
+   */
+  reset(): void {
+    this._currentDistribution.set(null);
+    this._hasReceivedDistribution.set(false);
+  }
+
 }

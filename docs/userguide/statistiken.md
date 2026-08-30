@@ -47,7 +47,7 @@ Unter **Statistiken → Auswertung Kinder** wird ermittelt, wie viele Kinder in 
 
 Das Balkendiagramm **Verteilung nach Alter** zeigt, wie sich die Treffer auf die einzelnen Altersjahre aufteilen — hilfreich, wenn sich die Inhalte je nach Altersgruppe unterscheiden.
 
-Die Ergebnisliste darunter zeigt Haushalt, Vor- und Nachname sowie Alter des Kindes. Kinder desselben Haushalts stehen untereinander; die Haushaltsnummer wird dabei nur einmal je Haushalt angezeigt und führt (mit der Berechtigung "Kunden") direkt zu den Kundendetails. Bei keinen Treffern erscheint "Keine Einträge gefunden." Bei vielen Treffern kann über die Seitennavigation geblättert werden.
+Die Ergebnisliste darunter zeigt Haushalt, Vor- und Nachname sowie Alter des Kindes. Kinder desselben Haushalts stehen untereinander; die Haushaltsnummer wird dabei nur einmal je Haushalt angezeigt und führt (mit der Berechtigung "Kunden") direkt zu den Kundendetails. Bei keinen Treffern erscheint "Keine Einträge gefunden." Bei vielen Treffern kann über die Seitennavigation geblättert werden. Ein Klick auf eine der Spaltenüberschriften Haushalt, Vorname, Nachname oder Alter sortiert die Tabelle danach; ein erneuter Klick auf dieselbe Spalte kehrt die Richtung um. Sobald nicht mehr nach Haushalt sortiert ist, steht die Haushaltsnummer wieder bei jedem Kind statt nur einmal je Haushalt, da Geschwister dann nicht mehr zwingend untereinanderstehen.
 
 Auf schmalen Bildschirmen wird die Ergebnisliste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
 

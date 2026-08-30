@@ -15,8 +15,9 @@ import {
   MatTable
 } from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatSortModule, Sort, SortDirection} from '@angular/material/sort';
 import {DatePipe} from '@angular/common';
-import {debounceTime, distinctUntilChanged, map} from 'rxjs';
+import {catchError, debounceTime, distinctUntilChanged, EMPTY, map, Subject, switchMap, tap} from 'rxjs';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {RouterLink} from '@angular/router';
 import {LoginAttemptItem, LoginAttemptSettingsResponse, UserApiService} from '../../../../api/user-api.service';
@@ -85,6 +86,7 @@ export interface LoginAttemptRow extends LoginAttemptItem {
     MatTable,
     MatHeaderCellDef,
     MatPaginatorModule,
+    MatSortModule,
     MatButtonToggleModule,
     MatFormFieldModule,
     MatInputModule,
@@ -110,6 +112,10 @@ export class UserLoginAttemptsComponent {
 
   protected searchControl = new FormControl<string>('', {nonNullable: true});
   protected readonly statusFilter = signal<LoginAttemptFilter>('ALL');
+  // Empty until a column header is clicked - the backend's own default order (locked entries
+  // first, most recent failure next) has no single "active" column to reflect here.
+  protected readonly sortActive = signal('');
+  protected readonly sortDirectionState = signal<SortDirection>('');
   protected readonly settings = signal<LoginAttemptSettingsResponse | null>(null);
   protected readonly lastUpdatedAt = signal<Date | null>(null);
 
@@ -146,8 +152,20 @@ export class UserLoginAttemptsComponent {
    */
   protected readonly resultAnnouncement = signal('');
 
+  /**
+   * Every {@link loadLoginAttempts} call goes through this subject and `switchMap` instead of
+   * subscribing per call, so a still-in-flight request for a search/filter that is no longer
+   * current can never overwrite the list with a response that no longer matches it - see #3530.
+   */
+  private readonly loadRequests = new Subject<{ page?: number; pageSize?: number }>();
+
   constructor() {
     this.loadSettings();
+
+    this.loadRequests
+      .pipe(switchMap(request => this.fetchLoginAttempts$(request.page, request.pageSize)), takeUntilDestroyed())
+      .subscribe();
+
     this.loadLoginAttempts();
 
     this.searchControl.valueChanges
@@ -168,20 +186,44 @@ export class UserLoginAttemptsComponent {
   }
 
   protected loadLoginAttempts(page?: number, pageSize?: number) {
-    this.userApiService.getLoginAttempts(page, pageSize, this.searchControl.value.trim(), this.statusFilter() === 'LOCKED')
-      .subscribe({
-        next: data => {
-          this._loginAttempts.set(data);
-          this.now.set(Date.now());
-          this.lastUpdatedAt.set(new Date());
-          this.resultAnnouncement.set(`${data.totalCount} Anmelde-Versuche gefunden`);
-        },
-        error: () => this.toastr.error('Fehler beim Laden der Anmelde-Versuche', 'Fehler')
-      });
+    this.loadRequests.next({page, pageSize});
+  }
+
+  private fetchLoginAttempts$(page?: number, pageSize?: number) {
+    return this.userApiService.getLoginAttempts(
+      page,
+      pageSize,
+      this.searchControl.value.trim(),
+      this.statusFilter() === 'LOCKED',
+      this.sortActive() || undefined,
+      this.sortDirectionState() || undefined
+    )
+      .pipe(
+        tap({
+          next: data => {
+            this._loginAttempts.set(data);
+            this.now.set(Date.now());
+            this.lastUpdatedAt.set(new Date());
+            this.resultAnnouncement.set(`${data.totalCount} Anmelde-Versuche gefunden`);
+          },
+          error: () => this.toastr.error('Fehler beim Laden der Anmelde-Versuche', 'Fehler')
+        }),
+        catchError(() => EMPTY)
+      );
   }
 
   protected onStatusFilterChanged(event: MatButtonToggleChange) {
     this.statusFilter.set(event.value as LoginAttemptFilter);
+    this.loadLoginAttempts(1, this.loginAttempts()?.pageSize);
+  }
+
+  /**
+   * A new sort replaces the current page 1 - clicking a column header is a request to see the
+   * result ordered by it, not just to reorder the page already on screen.
+   */
+  protected onSortChange(sort: Sort) {
+    this.sortActive.set(sort.direction ? sort.active : '');
+    this.sortDirectionState.set(sort.direction);
     this.loadLoginAttempts(1, this.loginAttempts()?.pageSize);
   }
 

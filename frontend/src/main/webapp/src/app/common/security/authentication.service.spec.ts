@@ -7,16 +7,21 @@ import { firstValueFrom } from 'rxjs';
 import { AuthenticationService } from './authentication.service';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { SUPPRESS_ERROR_TOAST } from '../http/suppress-error-toast.token';
+import { GlobalStateService } from '../state/global-state.service';
 
 describe('AuthenticationService', () => {
     let httpMock: HttpTestingController;
 
     let router: MockedObject<Router>;
+    let globalStateService: MockedObject<GlobalStateService>;
     let service: AuthenticationService;
 
     beforeEach(() => {
         const routerSpy = {
             navigate: vi.fn().mockName('Router.navigate').mockResolvedValue(true)
+        };
+        const globalStateServiceSpy = {
+            reset: vi.fn().mockName('GlobalStateService.reset')
         };
 
         TestBed.configureTestingModule({
@@ -27,6 +32,10 @@ describe('AuthenticationService', () => {
                 {
                     provide: Router,
                     useValue: routerSpy
+                },
+                {
+                    provide: GlobalStateService,
+                    useValue: globalStateServiceSpy
                 }
             ],
         });
@@ -34,6 +43,7 @@ describe('AuthenticationService', () => {
         httpMock = TestBed.inject(HttpTestingController);
 
         router = TestBed.inject(Router) as MockedObject<Router>;
+        globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
         service = TestBed.inject(AuthenticationService);
     });
 
@@ -300,6 +310,36 @@ describe('AuthenticationService', () => {
         await logout;
 
         expect(router.navigate).toHaveBeenCalledWith(['login']);
+        expect(service.userInfo()).toBeNull();
+        httpMock.verify();
+    });
+
+    // Without this, a re-login in the same tab would render the previous session's distribution
+    // snapshot until the next `/sse/distributions` message arrived - see #3530.
+    it('logout resets the global distribution state so a re-login does not show stale data', async () => {
+        service.userInfo.set({ username: 'test-user', permissions: ['PERM1'] });
+
+        const logout = firstValueFrom(service.logout());
+
+        const mockReq = httpMock.expectOne('/users/logout');
+        mockReq.flush(null, { status: 200, statusText: 'OK' });
+        await logout;
+
+        expect(globalStateService.reset).toHaveBeenCalled();
+        httpMock.verify();
+    });
+
+    // A stale `userInfo` after a failed refresh would keep `isAuthenticated()` reporting the old
+    // session as authenticated even though the session actually expired - see #3530.
+    it('loadUserInfo clears a stale userInfo when the refresh fails', async () => {
+        service.userInfo.set({ username: 'test-user', permissions: ['PERM1'] });
+
+        const result = service.loadUserInfo();
+
+        const mockReq = httpMock.expectOne('/users/info');
+        mockReq.flush(null, { status: 401, statusText: 'Unauthorized' });
+
+        expect(await result).toBeNull();
         expect(service.userInfo()).toBeNull();
         httpMock.verify();
     });

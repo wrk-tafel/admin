@@ -62,6 +62,10 @@ data class SecurityRateLimitProperties(
     val capacity: Int = 30,
     val refillTokens: Int = 30,
     val refillPeriodInSeconds: Long = 60,
+    // Caps how many distinct (scope, ip) buckets RateLimiterIpService keeps in memory at once - a
+    // caller spoofing a fresh IP per request (e.g. via a client-controllable X-Forwarded-For that
+    // reached this far) would otherwise grow the map without bound between hourly cleanups.
+    val maxTrackedKeys: Int = 10_000,
 )
 
 data class SecurityJwtTokenProperties(

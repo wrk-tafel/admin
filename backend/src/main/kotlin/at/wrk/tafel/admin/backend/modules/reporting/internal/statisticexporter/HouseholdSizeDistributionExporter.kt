@@ -40,6 +40,13 @@ class HouseholdSizeDistributionExporter : StatisticExporter {
             rows.add(listOf(personSize.toString(), personCountPerSize.toString(), String.format("%.2f", percentage.toFloat())))
         }
 
+        // households larger than the explicit 1..10 rows above still have to be counted somewhere,
+        // otherwise this column's percentages no longer add up to the household total
+        val largeHouseholdsCount = households.count { getPersonCount(it, referenceDate) > 10 }
+        val largeHouseholdsPercentage =
+            if (householdsCount > 0) (largeHouseholdsCount.toDouble() / householdsCount) * 100 else 0
+        rows.add(listOf("11+", largeHouseholdsCount.toString(), String.format("%.2f", largeHouseholdsPercentage.toFloat())))
+
         return rows
     }
 

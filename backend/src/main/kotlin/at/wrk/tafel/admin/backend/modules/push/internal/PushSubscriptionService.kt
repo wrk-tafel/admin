@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import at.wrk.tafel.admin.backend.modules.push.model.PushPublicKeyResponse
@@ -19,6 +20,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.net.InetAddress
+import java.net.URI
 
 @Service
 class PushSubscriptionService(
@@ -82,7 +85,12 @@ class PushSubscriptionService(
      * client-side should be load-bearing for a DB constraint anyway.
      */
     @Transactional
-    fun createSubscription(request: PushSubscriptionRequest): PushSubscriptionItem = advisoryLockService.withLock(AdvisoryLockKey.REGISTER_PUSH_SUBSCRIPTION) {
+    fun createSubscription(request: PushSubscriptionRequest): PushSubscriptionItem {
+        validateEndpoint(request.endpoint)
+        return createValidatedSubscription(request)
+    }
+
+    private fun createValidatedSubscription(request: PushSubscriptionRequest): PushSubscriptionItem = advisoryLockService.withLock(AdvisoryLockKey.REGISTER_PUSH_SUBSCRIPTION) {
         val user = requireCurrentUser()
 
         val entity = pushSubscriptionRepository.findByEndpoint(request.endpoint) ?: PushSubscriptionEntity()
@@ -139,6 +147,48 @@ class PushSubscriptionService(
         if (deletedCount == 0L) {
             throw NotFoundException(SUBSCRIPTION_NOT_FOUND_MESSAGE)
         }
+    }
+
+    /**
+     * `endpoint` is whatever URL the subscribing browser's push service handed back - `WebPushSenderService`
+     * later `POST`s to it verbatim, on demand via "Test" (any authenticated user, no distribution
+     * needed). Without a check here, an endpoint like `http://10.0.0.5:5432/` turns that into an
+     * SSRF probe against whatever else is reachable from the backend.
+     *
+     * Only rejects an IP-address host that is itself private/loopback/link-local - deliberately not
+     * resolving a hostname's DNS record here, which would turn every subscription into a network
+     * call at request time (and still not fully close DNS-rebinding, which is out of scope for this
+     * check). Every real push service endpoint (FCM, Mozilla's autopush, ...) is `https://` with a
+     * public hostname anyway, so this only ever blocks what a legitimate browser would never hand
+     * back.
+     */
+    private fun validateEndpoint(endpoint: String) {
+        val uri = runCatching { URI(endpoint) }.getOrNull()
+            ?: throw BusinessRuleException("Push-Endpoint ist ungültig")
+
+        if (!uri.scheme.equals("https", ignoreCase = true)) {
+            throw BusinessRuleException("Push-Endpoint muss https verwenden")
+        }
+
+        val host = uri.host
+        if (host.isNullOrBlank() || host.equals("localhost", ignoreCase = true) || isPrivateOrLoopbackIpLiteral(host)) {
+            throw BusinessRuleException("Push-Endpoint darf nicht auf ein internes Netzwerk zeigen")
+        }
+    }
+
+    private fun isPrivateOrLoopbackIpLiteral(host: String): Boolean {
+        // Not an IP literal (a regular hostname) - InetAddress.getByName would perform a real DNS
+        // lookup for one of those, which validateEndpoint deliberately avoids.
+        if (!host.matches(Regex("^\\d{1,3}(\\.\\d{1,3}){3}$")) && !host.contains(":")) {
+            return false
+        }
+
+        val address = runCatching { InetAddress.getByName(host) }.getOrNull() ?: return true
+        return address.isLoopbackAddress ||
+            address.isSiteLocalAddress ||
+            address.isLinkLocalAddress ||
+            address.isAnyLocalAddress ||
+            address.isMulticastAddress
     }
 
     private fun currentUser() = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username

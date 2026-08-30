@@ -151,6 +151,14 @@ describe('Customer Creation', () => {
           .and('contain.text', lastname)
           .and('contain.text', firstname);
 
+        // Clearing the name makes the check ineligible again - the warning must disappear along
+        // with it rather than keep showing the last search's results (issue #3528).
+        cy.byTestId('lastnameInput').clear();
+        cy.byTestId('possible-duplicates-warning', {timeout: 8000}).should('not.exist');
+
+        cy.byTestId('lastnameInput').type(lastname);
+        cy.byTestId('possible-duplicates-warning', {timeout: 8000}).should('be.visible');
+
         cy.byTestId('possible-duplicate-' + existingCustomerId).find('a').click();
         // the typed identity fields count as unsaved changes, so the guard asks before leaving
         cy.byTestId('unsavedchanges-dialog').within(() => {
@@ -262,6 +270,36 @@ describe('Customer Creation', () => {
 
     cy.byTestId('validUntilQuickPick-12m').click();
     cy.byTestId('validUntilInput').should('have.value', dayjs().add(6, 'months').add(12, 'months').format('YYYY-MM-DD'));
+  });
+
+  it('nationality search-by-typing narrows the list, and reverts to the last selection if nothing is picked', () => {
+    cy.byTestId('countryInput').click();
+    cy.get('mat-option').its('length').should('be.greaterThan', 5);
+
+    cy.byTestId('countryInput').type('Deutsch');
+    cy.get('mat-option').should('have.length', 1).and('contain.text', 'Deutschland');
+    cy.get('mat-option').contains('Deutschland').click();
+    cy.byTestId('countryInput').should('have.value', 'Deutschland');
+
+    // typing without picking a result must not silently commit the typed text as the selection
+    cy.byTestId('countryInput').clear().type('xyz-gibt-es-nicht');
+    cy.get('mat-option').should('not.exist');
+    cy.byTestId('countryInput').blur();
+    cy.byTestId('countryInput').should('have.value', 'Deutschland');
+  });
+
+  it('groups the unfiltered nationality dropdown into frequently used first, then the rest', () => {
+    cy.byTestId('countryInput').click();
+    cy.byTestId('countryInput-divider').should('exist');
+
+    // the frequently-used group (at most 5 - see CountryService.FREQUENTLY_USED_COUNT) comes before
+    // the divider, with at least one further option after it
+    cy.byTestId('countryInput-divider').prevAll('mat-option').should('have.length.of.at.most', 5);
+    cy.byTestId('countryInput-divider').nextAll('mat-option').its('length').should('be.greaterThan', 0);
+
+    // once a filter is typed, the split stops meaning anything - the divider disappears
+    cy.byTestId('countryInput').type('Deutsch');
+    cy.byTestId('countryInput-divider').should('not.exist');
   });
 
   it('shows the unsaved-changes indicator once the form is dirty, and Speichern is never styled as danger while merely disabled', () => {

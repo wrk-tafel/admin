@@ -3,7 +3,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {FormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import dayjs from 'dayjs';
-import {Subject, debounceTime, distinctUntilChanged} from 'rxjs';
+import {catchError, debounceTime, distinctUntilChanged, EMPTY, Subject, switchMap, tap} from 'rxjs';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
@@ -134,6 +134,14 @@ export class AuditLogComponent {
 
   private readonly businessKeyInput = new Subject<string>();
 
+  /**
+   * Every {@link search} call goes through this subject and `switchMap` instead of subscribing per
+   * call, so a still-in-flight search for a filter that is no longer current can never overwrite
+   * the list/announcement with a response that no longer matches the URL params already written
+   * for the newer filter - see #3530.
+   */
+  private readonly searchRequests = new Subject<{ page?: number; pageSize?: number }>();
+
   private readonly auditApiService = inject(AuditApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly router = inject(Router);
@@ -145,6 +153,13 @@ export class AuditLogComponent {
     this.businessKeyInput
       .pipe(debounceTime(TEXT_FILTER_DEBOUNCE_MS), distinctUntilChanged(), takeUntilDestroyed())
       .subscribe(() => this.applyFilter());
+
+    this.searchRequests
+      .pipe(
+        switchMap(request => this.fetchAuditEntries$(request.page, request.pageSize)),
+        takeUntilDestroyed()
+      )
+      .subscribe();
 
     this.auditApiService.getFilterOptions().subscribe({
       next: options => {
@@ -162,6 +177,10 @@ export class AuditLogComponent {
 
   /** Always jumps back to the first page - staying on page 7 of a result set that no longer has one shows nothing. */
   protected search(page?: number, pageSize?: number) {
+    this.searchRequests.next({page, pageSize});
+  }
+
+  private fetchAuditEntries$(page?: number, pageSize?: number) {
     const filter: AuditSearchFilter = {
       entityType: this.entityType(),
       operation: this.operation(),
@@ -171,15 +190,18 @@ export class AuditLogComponent {
       to: this.to()
     };
 
-    this.auditApiService.searchAuditEntries(filter, page, pageSize ?? this.entries()?.pageSize).subscribe({
-      next: data => {
-        this.entries.set(data);
-        this.searchAnnouncement.set(
-          data.totalCount === 1 ? '1 Eintrag gefunden' : `${data.totalCount} Einträge gefunden`
-        );
-      },
-      error: () => this.toastr.error('Fehler beim Laden des Zugriffsprotokolls', 'Fehler')
-    });
+    return this.auditApiService.searchAuditEntries(filter, page, pageSize ?? this.entries()?.pageSize).pipe(
+      tap({
+        next: data => {
+          this.entries.set(data);
+          this.searchAnnouncement.set(
+            data.totalCount === 1 ? '1 Eintrag gefunden' : `${data.totalCount} Einträge gefunden`
+          );
+        },
+        error: () => this.toastr.error('Fehler beim Laden des Zugriffsprotokolls', 'Fehler')
+      }),
+      catchError(() => EMPTY)
+    );
   }
 
   /** A filter changed: the list follows immediately, and so does the URL. */

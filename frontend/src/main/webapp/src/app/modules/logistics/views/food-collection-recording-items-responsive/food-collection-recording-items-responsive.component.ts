@@ -118,6 +118,12 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     ]);
   }
 
+  // The route + shop pairing whose data is currently on screen, captured together (not just the
+  // shop) so a route switch can never send the outgoing shop's return items under the *new*
+  // route's id - `selectedRouteData()` already points at the new route by the time selectShop()
+  // is sending off the previous shop's data (see #3527).
+  private currentSelection: {routeId: number; shopId: number} | null = null;
+
   // Last known values per shop for this session, used as a fallback while offline. Seeded from
   // the route-level snapshot on first read of a shop, refreshed on every successful live load,
   // and updated immediately on every local edit so a same-session change is never masked by a
@@ -135,7 +141,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     }
   });
 
-  private findNextUnfilledShop(): Shop {
+  private findNextUnfilledShop(): Shop | undefined {
     const shops = this.selectedRouteData()!.shops;
     for (const shop of shops) {
       const items = this.selectedRouteData()!.foodCollectionData?.items ?? [];
@@ -260,17 +266,32 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     this.returnItems.updateValueAndValidity();
   }
 
-  selectShop(shop: Shop) {
+  selectShop(shop: Shop | undefined) {
     if (!this.selectedRouteData()) {
+      return;
+    }
+
+    if (this.connectivityService.isOnline()()) {
+      // the return boxes of the shop being left are only held in this component until they are
+      // sent, so they have to go out before the form is repopulated for the next shop - checked
+      // before attempting the send, not after, so an offline attempt never fires at all (see #3527)
+      this.sendReturnItemsOfCurrentShop();
+    } else {
+      this.warnAboutUnsentReturnItems();
+    }
+
+    if (!shop) {
+      // a route with no shops at all - nothing to load, so the form is simply reset instead of
+      // dereferencing a shop that doesn't exist (see #3527)
+      this.currentShop.set(null);
+      this.currentSelection = null;
+      this.categoryValues.set({});
+      this.applyReturnItems([]);
       return;
     }
 
     const routeId = this.selectedRouteData()!.route.id;
     const shopId = shop.id;
-
-    // the return boxes of the shop being left are only held in this component until they are sent,
-    // so they have to go out before the form is repopulated for the next shop
-    this.sendReturnItemsOfCurrentShop();
 
     if (!this.connectivityService.isOnline()()) {
       this.applyFallbackShopValues(shop, 'Offline - zuletzt bekannter Stand wird angezeigt.');
@@ -289,7 +310,14 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   }
 
   private sendReturnItemsOfCurrentShop() {
-    const request = this.returnItemsSaveRequest();
+    // nothing to send if the form hasn't actually changed since it was last loaded/sent - also
+    // what keeps switching shops/routes without touching the return boxes from firing a request
+    // at all, now that `currentSelection` moving on no longer masks a stale route id (see #3527)
+    if (!this.currentSelection || (this.returnItems.pristine && !this.returnCategoryValuesDirty())) {
+      return;
+    }
+
+    const request = this.returnItemsSaveRequest(this.currentSelection);
     if (request) {
       request.subscribe({
         next: () => this.markAsSaved(),
@@ -297,6 +325,13 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
           this.toastr.error('Retourware konnte nicht gespeichert werden!');
         }
       });
+    }
+  }
+
+  /** Called instead of sending while offline - the unsent return boxes of the shop being left are about to be replaced. */
+  private warnAboutUnsentReturnItems() {
+    if (this.currentSelection && (this.returnItems.dirty || this.returnCategoryValuesDirty())) {
+      this.toastr.warning('Offline - nicht gespeicherte Retourware der vorherigen Filiale geht verloren!');
     }
   }
 
@@ -311,6 +346,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     this.categoryValues.set(newValues);
     this.applyReturnItems(returnItems);
     this.currentShop.set(shop);
+    this.currentSelection = {routeId: this.selectedRouteData()!.route.id, shopId: shop.id};
   }
 
   private applyFallbackShopValues(shop: Shop, warningMessage: string) {
@@ -330,6 +366,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       (this.selectedRouteData()!.foodCollectionData?.returnItems ?? []).filter(item => item.shopId === shop.id)
     );
     this.currentShop.set(shop);
+    this.currentSelection = {routeId: this.selectedRouteData()!.route.id, shopId: shop.id};
     this.toastr.warning(warningMessage);
   }
 
@@ -437,7 +474,10 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
 
     const requests = [this.foodCollectionsApiService.saveItemsPerShop(routeId, shopId, saveItemsRequest)];
 
-    const returnItemsRequest = this.returnItemsSaveRequest();
+    // the explicit "Speichern" button always sends whatever the shop currently on screen holds,
+    // dirty or not - the dirty/pristine skip in sendReturnItemsOfCurrentShop() is specific to the
+    // implicit send that happens while switching away from a shop/route
+    const returnItemsRequest = this.returnItemsSaveRequest({routeId, shopId});
     if (returnItemsRequest) {
       requests.push(returnItemsRequest);
     }
@@ -445,8 +485,8 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     return requests;
   }
 
-  private returnItemsSaveRequest(): Observable<void> | null {
-    if (!this.selectedRouteData() || !this.currentShop() || this.returnItems.invalid) {
+  private returnItemsSaveRequest(selection: {routeId: number; shopId: number} | null): Observable<void> | null {
+    if (!selection || this.returnItems.invalid) {
       return null;
     }
 
@@ -464,11 +504,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       returnItems: [...fromCategories, ...freetext].filter(returnItem => returnItem.amount > 0)
     };
 
-    return this.foodCollectionsApiService.saveReturnItemsPerShop(
-      this.selectedRouteData()!.route.id,
-      this.currentShop()!.id,
-      request
-    );
+    return this.foodCollectionsApiService.saveReturnItemsPerShop(selection.routeId, selection.shopId, request);
   }
 
   private getCurrentValue(items: FoodCollectionItem[], category: FoodCategory, shop: Shop) {

@@ -16,6 +16,7 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
@@ -77,6 +78,30 @@ class TafelLoginFilterTest {
         val username = tafelLoginFilter.obtainPassword(request)
 
         assertThat(username).isEqualTo("pwd")
+    }
+
+    @Test
+    fun `obtainUsername fails with a handled authentication exception when the Authorization header is missing`() {
+        every { request.getHeader(HttpHeaders.AUTHORIZATION) } returns null
+
+        assertThatThrownBy { tafelLoginFilter.obtainUsername(request) }
+            .isInstanceOf(BadCredentialsException::class.java)
+    }
+
+    @Test
+    fun `obtainPassword fails with a handled authentication exception when the Authorization header is missing`() {
+        every { request.getHeader(HttpHeaders.AUTHORIZATION) } returns null
+
+        assertThatThrownBy { tafelLoginFilter.obtainPassword(request) }
+            .isInstanceOf(BadCredentialsException::class.java)
+    }
+
+    @Test
+    fun `obtainUsername fails with a handled authentication exception when the Authorization header is not Basic`() {
+        every { request.getHeader(HttpHeaders.AUTHORIZATION) } returns "Bearer sometoken"
+
+        assertThatThrownBy { tafelLoginFilter.obtainUsername(request) }
+            .isInstanceOf(BadCredentialsException::class.java)
     }
 
     @Test

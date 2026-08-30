@@ -8,7 +8,7 @@ Der Bereich "Kunden" verwaltet die Haushalte (Kunden) der Tafel: Stammdaten, Fam
 
 ## Kunden suchen
 
-Unter **Kunden → Kunden suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Kundennummer entspricht, springt direkt zur Detailansicht (wie früher der Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen); der Button **Suchen** funktioniert weiterhin zusätzlich, etwa bei einer nur einstelligen Eingabe.
+Unter **Kunden → Kunden suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Kundennummer entspricht, springt nach **Enter** oder einem Klick auf **Suchen** direkt zur Detailansicht (wie früher der Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die normale Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen) und findet dabei auch die Kundennummer; der direkte Sprung selbst wartet dagegen immer auf **Enter** oder **Suchen**, damit eine noch unvollständig eingetippte Nummer nicht zu einem falschen Kunden springt.
 
 Das Suchfeld durchsucht alles, woran ein Haushalt erkennbar ist: Kundennummer, die Namen **aller** Personen des Haushalts (nicht nur der Hauptperson), Adresse, Telefonnummer und E-Mail-Adresse. Es genügt ein Teil davon – die Eingabe muss nicht vollständig sein und auch nicht am Wortanfang stehen. Tippfehler werden toleriert: Wird "Mustermsnn" statt "Mustermann" eingegeben, wird der Kunde trotzdem gefunden. Genaue Treffer stehen im Ergebnis immer oben, ähnliche darunter.
 
@@ -20,7 +20,7 @@ Zusätzlich lässt sich über die Filter-Chips "Daten unvollständig", "Unkosten
 
 Beim Öffnen der Seite werden bereits die ersten Kunden angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein Filter grenzt diese Liste dann ein. Suchbegriff, Filter und die aktuelle Seite bleiben in der Adresszeile erhalten: Wird ein Kunde aus dem Ergebnis geöffnet und über "Zurück" wieder zur Suche zurückgekehrt, ist dasselbe Ergebnis - inklusive Filter und Seite - sofort wieder da, ohne erneut suchen zu müssen.
 
-Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adresse, Personenanzahl, Ausstellungs- und Gültigkeitsdatum. Das Gültigkeitsdatum ist wie in der Detailansicht grün (aufrecht) oder rot (abgelaufen) hinterlegt, ein Schloss-Symbol markiert gesperrte Kunden. Die gesamte Zeile ist anklickbar und öffnet die Detailansicht; über den Stift in den Aktionen gelangt man direkt zum Bearbeiten. Bei vielen Treffern kann über die Seitennavigation unterhalb der Ergebnisliste geblättert und die Anzahl der Elemente pro Seite angepasst werden.
+Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adresse, Personenanzahl, Ausstellungs- und Gültigkeitsdatum. Das Gültigkeitsdatum ist wie in der Detailansicht grün (aufrecht) oder rot (abgelaufen) hinterlegt, ein Schloss-Symbol markiert gesperrte Kunden. Die gesamte Zeile ist anklickbar und öffnet die Detailansicht; über den Stift in den Aktionen gelangt man direkt zum Bearbeiten. Bei vielen Treffern kann über die Seitennavigation unterhalb der Ergebnisliste geblättert und die Anzahl der Elemente pro Seite angepasst werden. Ein Klick auf eine der Spaltenüberschriften Nr., Name, Geb. Datum, Ausgestellt am oder Gültig bis sortiert die Tabelle danach statt nach den besten Treffern zuerst; ein erneuter Klick auf dieselbe Spalte kehrt die Richtung um.
 
 ![Suchergebnis](images/kunden-suchen-ergebnis.jpg)
 
@@ -93,7 +93,7 @@ Vor dem Hochladen muss der **Dokumenttyp** ausgewählt werden. Ein Hinweis erinn
 
 ### Verlauf
 
-Der Tab "Verlauf" zeigt jede erfasste Änderung an diesem Kunden, seinen weiteren Personen, seinen Notizen und seinen Dokumenten – jeweils mit Zeitpunkt, dem Benutzer, der sie vorgenommen hat, und den Werten davor und danach. Damit lässt sich nachvollziehen, wer z. B. die Adresse korrigiert, das Einkommen angepasst oder den Kunden gesperrt hat.
+Der Tab "Verlauf" zeigt jede erfasste Änderung an diesem Kunden, seinen weiteren Personen, seinen Notizen und seinen Dokumenten sowie jeden Zugriff darauf (Öffnen der Detailseite, Dokument-Download, Stammdatenblatt, Ausweis) – jeweils mit Zeitpunkt, dem Benutzer, der sie vorgenommen hat, und den Werten davor und danach. Damit lässt sich nachvollziehen, wer z. B. die Adresse korrigiert, das Einkommen angepasst oder den Kunden gesperrt hat.
 
 Der Tab wird nur angezeigt, wenn die Berechtigung **Zugriffsprotokoll** vorhanden ist. Dieselben Einträge – gemeinsam mit jenen zu Benutzern und Einstellungen – finden sich im [Zugriffsprotokoll](zugriffsprotokoll.md), dort zusätzlich filterbar.
 
@@ -112,6 +112,8 @@ Die Buttons sitzen wie beim Kundenformular in einer Leiste am unteren Bildschirm
 ## Kunden anlegen / bearbeiten
 
 Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein (das Feld weist mit "4-stellig" darauf hin), die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor. Neben dem Datumsfeld "Gültig bis" stehen Schnellauswahl-Buttons (+1/+2/+3/+6/+12 Monate) zur Verfügung, die ausgehend vom aktuell eingetragenen Datum (oder, falls noch keines gesetzt ist, ab heute) weiterrechnen – dieselbe Schnellauswahl wie beim "Bezug verlängern" in der Kunden-Detailansicht.
+
+Das Feld **Nationalität** lässt sich durch Eintippen aus der Länderliste durchsuchen. Ohne Eingabe zeigt die Liste zuerst die am häufigsten erfassten Länder, durch einen Trennstrich abgesetzt von den restlichen, alphabetisch sortierten Ländern; sobald ein Suchbegriff eingetippt wird, erscheint stattdessen eine flache, nach dem Suchbegriff gefilterte Liste. Wird das Feld verlassen, ohne einen Eintrag aus der Liste auszuwählen, bleibt die zuletzt gültige Auswahl bestehen.
 
 Die fachlich weniger selbsterklärenden Felder tragen ein Info-Symbol (ⓘ), das ihre Wirkung erklärt (siehe [Kurzhinweise](README.md#tooltips-und-erklaerungen)):
 

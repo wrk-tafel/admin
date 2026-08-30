@@ -13,6 +13,19 @@ describe('Settings - Employees', () => {
     cy.byTestId('employees-row-0').should('exist');
   });
 
+  it('sorts by clicking a column header, replacing the default order', () => {
+    // Waits out the page's own initial (unsorted) load first - otherwise it can still be in
+    // flight when the intercept below is registered, and the click-triggered request race with it.
+    cy.byTestId('employees-row-0').should('exist');
+
+    cy.intercept('GET', /\/api\/employees(\?|$)/).as('sortedEmployees');
+    cy.contains('th', 'Nachname').click();
+    cy.wait('@sortedEmployees').its('request.url').should('include', 'sortBy=lastname').and('include', 'sortDirection=asc');
+
+    cy.contains('th', 'Nachname').click();
+    cy.wait('@sortedEmployees').its('request.url').should('include', 'sortBy=lastname').and('include', 'sortDirection=desc');
+  });
+
   it('paginates through the employee list', () => {
     // The testdata seeds exactly 10 employees, which is exactly the default page size - so on a
     // freshly migrated database there is only ever one page and the next-page button is disabled.

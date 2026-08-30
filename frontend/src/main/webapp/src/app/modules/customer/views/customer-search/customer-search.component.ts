@@ -13,6 +13,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatTableModule} from '@angular/material/table';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatSortModule, Sort, SortDirection} from '@angular/material/sort';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatChipsModule} from '@angular/material/chips';
 import {CommonModule} from '@angular/common';
@@ -54,13 +55,18 @@ const QUERY_PARAMS = {
   privacyNoticeOutdated: 'datenschutzerklaerung-veraltet',
   page: 'seite',
   pageSize: 'anzahl',
+  sortBy: 'sortierfeld',
+  sortDirection: 'sortierrichtung',
 } as const;
 
 /**
  * Primary lookup for households: one omnibox that either jumps straight to a customer (a pure
  * number matching an existing customer id) or runs the fuzzy free-text search the backend indexes
  * via `search_text` - see [resolveSearch$]. Filters are chip toggles and the whole state (query,
- * filters, page) lives in the URL so navigating away and back restores the same result list.
+ * filters, page, sort) lives in the URL so navigating away and back restores the same result list.
+ * Clicking a sortable column header (`mat-sort-header`) replaces the backend's default
+ * relevance/most-recently-updated order with that column, ascending/descending - see
+ * [onSortChange] and the backend's `HouseholdEntity.Specs.orderBySearchRelevance`.
  */
 @Component({
   selector: 'tafel-customer-search',
@@ -74,6 +80,7 @@ const QUERY_PARAMS = {
     MatTableModule,
     MatDividerModule,
     MatPaginatorModule,
+    MatSortModule,
     MatChipsModule,
     CommonModule,
     MatIcon,
@@ -110,6 +117,11 @@ export class CustomerSearchComponent {
   missingPrivacyNotice = signal(false);
   willBeDeletedSoon = signal(false);
   privacyNoticeOutdated = signal(false);
+
+  // Empty until a column header is clicked - the backend's own default order (best match, then
+  // most recently updated) has no single "active" column to reflect here.
+  sortActive = signal('');
+  sortDirectionState = signal<SortDirection>('');
 
   // Use a signal so the template-sugar (@if / @for) reacts immediately when updated
   searchResult = signal<CustomerSearchResult | undefined>(undefined);
@@ -151,7 +163,13 @@ export class CustomerSearchComponent {
         filter(value => value.trim() !== this.lastDispatchedQuery),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.search());
+      // tryExactMatch: false - a customer number is very often typed in stages (the debounce can
+      // settle between digits), so live search-as-you-type must never navigate away on what could
+      // still be a mid-typed prefix that happens to already match a different, shorter customer
+      // number. The exact-id jump only fires on an explicit Enter/"Suchen", once the number is
+      // actually finished; until then, live search still finds it - the number is part of
+      // `search_text` too - it just doesn't jump.
+      .subscribe(() => this.search(undefined, undefined, true, false));
 
     // A link into this screen carries its whole state (query, filters, page) - see QUERY_PARAMS.
     // Without any of them present (the plain menu entry), land on the unfiltered first page instead.
@@ -179,6 +197,18 @@ export class CustomerSearchComponent {
     filterSignal.set(selected);
     // A filter refines the current (already fuzzy) result - it must never trigger the exact-id jump.
     this.search(undefined, undefined, true, false);
+  }
+
+  /**
+   * A new sort replaces the current page 1 of the (already fuzzy) result - never the exact-id jump.
+   * An empty direction (matSortDisableClear keeps a real click from ever producing one, but the
+   * handler stays defensive) resets the column too - otherwise the backend would receive a sortBy
+   * with no direction instead of falling back to its own default order.
+   */
+  onSortChange(sort: Sort) {
+    this.sortActive.set(sort.direction ? sort.active : '');
+    this.sortDirectionState.set(sort.direction);
+    this.search(1, this.searchResult()?.pageSize, true, false);
   }
 
   private dispatchSearch(request: CustomerSearchRequest) {
@@ -225,6 +255,8 @@ export class CustomerSearchComponent {
       this.privacyNoticeOutdated() || undefined,
       request.page,
       request.pageSize,
+      this.sortActive() || undefined,
+      this.sortDirectionState() || undefined,
     ).pipe(
       map(response => ({
         type: 'result' as const,
@@ -332,6 +364,9 @@ export class CustomerSearchComponent {
     this.missingPrivacyNotice.set(params.get(QUERY_PARAMS.missingPrivacyNotice) === 'true');
     this.willBeDeletedSoon.set(params.get(QUERY_PARAMS.willBeDeletedSoon) === 'true');
     this.privacyNoticeOutdated.set(params.get(QUERY_PARAMS.privacyNoticeOutdated) === 'true');
+    this.sortActive.set(params.get(QUERY_PARAMS.sortBy) ?? '');
+    const sortDirection = params.get(QUERY_PARAMS.sortDirection);
+    this.sortDirectionState.set(sortDirection === 'asc' || sortDirection === 'desc' ? sortDirection : '');
 
     const page = Number(params.get(QUERY_PARAMS.page));
     const pageSize = Number(params.get(QUERY_PARAMS.pageSize));
@@ -357,6 +392,8 @@ export class CustomerSearchComponent {
         [QUERY_PARAMS.privacyNoticeOutdated]: this.privacyNoticeOutdated() ? 'true' : null,
         [QUERY_PARAMS.page]: response.currentPage > 1 ? response.currentPage : null,
         [QUERY_PARAMS.pageSize]: response.pageSize !== DEFAULT_PAGE_SIZE ? response.pageSize : null,
+        [QUERY_PARAMS.sortBy]: this.sortActive() || null,
+        [QUERY_PARAMS.sortDirection]: this.sortActive() ? this.sortDirectionState() || null : null,
       }
     });
   }

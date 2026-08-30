@@ -51,16 +51,16 @@ class AgeDistributionExporterTest {
             listOf(
                 listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Altersverteilung"),
                 listOf("Gruppe", "Haushalte", "Prozent", "Personen", "Personen/Haushalt"),
-                listOf("0-20", "0", "0,00", "1", "0"),
-                listOf("21-30", "1", "25,00", "1", "1"),
-                listOf("31-40", "0", "0,00", "0", "0"),
-                listOf("41-50", "0", "0,00", "0", "0"),
-                listOf("51-60", "1", "25,00", "1", "1"),
-                listOf("61-70", "0", "0,00", "0", "0"),
-                listOf("71-80", "0", "0,00", "1", "0"),
-                listOf("81-90", "2", "50,00", "2", "1"),
-                listOf("91+", "0", "0,00", "0", "0"),
-                listOf("gesamt", "4", "100,00", "6", "1"),
+                listOf("0-20", "0", "0,00", "1", "0,00"),
+                listOf("21-30", "1", "25,00", "1", "1,00"),
+                listOf("31-40", "0", "0,00", "0", "0,00"),
+                listOf("41-50", "0", "0,00", "0", "0,00"),
+                listOf("51-60", "1", "25,00", "1", "1,00"),
+                listOf("61-70", "0", "0,00", "0", "0,00"),
+                listOf("71-80", "0", "0,00", "1", "0,00"),
+                listOf("81-90", "2", "50,00", "2", "1,00"),
+                listOf("91+", "0", "0,00", "0", "0,00"),
+                listOf("gesamt", "4", "100,00", "6", "1,50"),
             ),
         )
     }
@@ -151,7 +151,7 @@ class AgeDistributionExporterTest {
 
         assertThat(rows.first { it[0] == "0-20" }[3]).isEqualTo("1")
         assertThat(rows.first { it[0] == "21-30" }[3]).isEqualTo("1")
-        assertThat(rows.first { it[0] == "gesamt" }).isEqualTo(listOf("gesamt", "1", "100,00", "2", "2"))
+        assertThat(rows.first { it[0] == "gesamt" }).isEqualTo(listOf("gesamt", "1", "100,00", "2", "2,00"))
     }
 
     @Test
@@ -181,7 +181,7 @@ class AgeDistributionExporterTest {
 
         assertThat(rows.first { it[0] == "0-20" }[3]).isEqualTo("1")
         assertThat(rows.first { it[0] == "21-30" }[3]).isEqualTo("1")
-        assertThat(rows.first { it[0] == "gesamt" }).isEqualTo(listOf("gesamt", "1", "100,00", "2", "2"))
+        assertThat(rows.first { it[0] == "gesamt" }).isEqualTo(listOf("gesamt", "1", "100,00", "2", "2,00"))
     }
 
     /**
@@ -202,7 +202,7 @@ class AgeDistributionExporterTest {
 
         val ageRangeRows = rows.filter { row -> AgeRange.entries.any { it.rangeName == row[0] } }
         assertThat(ageRangeRows.sumOf { it[1].toInt() }).isZero()
-        assertThat(rows.first { it[0] == "gesamt" }).isEqualTo(listOf("gesamt", "1", "100,00", "1", "1"))
+        assertThat(rows.first { it[0] == "gesamt" }).isEqualTo(listOf("gesamt", "1", "100,00", "1", "1,00"))
     }
 
     private fun statisticOf(startedAt: LocalDateTime, household: HouseholdEntity): DistributionStatisticEntity {
@@ -235,16 +235,16 @@ class AgeDistributionExporterTest {
             listOf(
                 listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Altersverteilung"),
                 listOf("Gruppe", "Haushalte", "Prozent", "Personen", "Personen/Haushalt"),
-                listOf("0-20", "0", "0,00", "0", "0"),
-                listOf("21-30", "0", "0,00", "0", "0"),
-                listOf("31-40", "0", "0,00", "0", "0"),
-                listOf("41-50", "0", "0,00", "0", "0"),
-                listOf("51-60", "0", "0,00", "0", "0"),
-                listOf("61-70", "0", "0,00", "0", "0"),
-                listOf("71-80", "0", "0,00", "0", "0"),
-                listOf("81-90", "0", "0,00", "0", "0"),
-                listOf("91+", "0", "0,00", "0", "0"),
-                listOf("gesamt", "0", "100,00", "0", "0"),
+                listOf("0-20", "0", "0,00", "0", "0,00"),
+                listOf("21-30", "0", "0,00", "0", "0,00"),
+                listOf("31-40", "0", "0,00", "0", "0,00"),
+                listOf("41-50", "0", "0,00", "0", "0,00"),
+                listOf("51-60", "0", "0,00", "0", "0,00"),
+                listOf("61-70", "0", "0,00", "0", "0,00"),
+                listOf("71-80", "0", "0,00", "0", "0,00"),
+                listOf("81-90", "0", "0,00", "0", "0,00"),
+                listOf("91+", "0", "0,00", "0", "0,00"),
+                listOf("gesamt", "0", "100,00", "0", "0,00"),
             ),
         )
     }

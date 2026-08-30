@@ -82,6 +82,19 @@ describe('Global quick-open', () => {
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
   });
 
+  it('downloads the staff privacy notice from the "Aktionen" section', () => {
+    openPaletteViaShortcut();
+    cy.byTestId('quickOpenInput').type('Datenschutz');
+    cy.byTestId('quickOpenDownloadStaffPrivacyNotice').click();
+
+    cy.byTestId('quick-open-dialog').should('not.exist');
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, 'datenschutzerklaerung-mitarbeiter.pdf');
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(1000));
+  });
+
   it('shows the no-customers state for a query matching nothing', () => {
     cy.intercept('GET', '/api/households*').as('searchHouseholds');
 

@@ -34,7 +34,7 @@ class ActiveDistributionRequiredInterceptorTest {
         val method = this::class.java.getDeclaredMethod("annotatedMethod")
         every { handlerMethod.method } returns method
         every { handlerMethod.beanType } returns this::class.java
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         val exception = assertThrows<BusinessRuleException> {
             interceptor.preHandle(request, response, handlerMethod)
@@ -48,7 +48,7 @@ class ActiveDistributionRequiredInterceptorTest {
         val method = this::class.java.getDeclaredMethod("annotatedMethod")
         every { handlerMethod.method } returns method
         every { handlerMethod.beanType } returns this::class.java
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val result = interceptor.preHandle(request, response, handlerMethod)
         assertTrue(result)
@@ -64,7 +64,7 @@ class ActiveDistributionRequiredInterceptorTest {
         val result = interceptor.preHandle(request, response, handlerMethod)
 
         assertTrue(result)
-        verify(exactly = 0) { distributionRepository.findFirstByOrderByIdDesc() }
+        verify(exactly = 0) { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() }
     }
 
     @Test
@@ -73,7 +73,7 @@ class ActiveDistributionRequiredInterceptorTest {
         val method = this::class.java.getDeclaredMethod("unannotatedMethod")
         every { handlerMethod.method } returns method
         every { handlerMethod.beanType } returns AnnotatedClass::class.java
-        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         val exception = assertThrows<BusinessRuleException> {
             interceptor.preHandle(request, response, handlerMethod)

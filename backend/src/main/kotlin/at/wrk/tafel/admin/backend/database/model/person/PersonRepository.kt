@@ -61,4 +61,18 @@ interface PersonRepository :
             "where h.locked = false and h.validUntil >= :date and p.excludeFromHousehold = false",
     )
     fun countActive(@Param("date") date: LocalDate): Int
+
+    /**
+     * Persons ever assigned to each country, regardless of household validity - powers the
+     * "frequently used" grouping in the nationality autocomplete (`CountryService.listCountries`),
+     * which is meant to reflect what staff actually type rather than only the current snapshot.
+     */
+    @Query("select p.country.id as countryId, count(p) as usageCount from Person p group by p.country.id")
+    fun countPersonsByCountry(): List<CountryUsageCount>
+}
+
+/** One country's person count, as [PersonRepository.countPersonsByCountry] reads them. */
+interface CountryUsageCount {
+    val countryId: Long
+    val usageCount: Long
 }

@@ -212,6 +212,7 @@ class StatisticsService(
                     WHERE h.valid_until >= t.start_date
                     AND h.created_at < t.end_date + 1
                     AND h.locked is not true
+                    AND p.exclude_household = false
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -232,6 +233,7 @@ class StatisticsService(
                     AND h.created_at < t.end_date + 1
                     AND h.locked IS NOT TRUE
                     AND p.is_main_person = false
+                    AND p.exclude_household = false
                     -- at least 0, so a member born after this point of the timeline - whose AGE()
                     -- is negative there - is not counted as a child back then
                     AND EXTRACT(YEAR FROM AGE(t.start_date, p.birth_date)) BETWEEN 0 AND 15
@@ -471,11 +473,13 @@ class StatisticsService(
         page: Int? = null,
         pageSize: Int? = null,
         referenceDate: LocalDate? = null,
+        sortBy: String? = null,
+        sortDirection: String? = null,
     ): PagedResponse<ChildItem> {
         validateAgeRange(ageMin, ageMax)
         val ageDate = referenceDate ?: LocalDate.now()
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
-        val pagedResult = personRepository.findAll(childrenSpec(ageMin, ageMax, ageDate), pageRequest)
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
+        val pagedResult = personRepository.findAll(childrenSpec(ageMin, ageMax, ageDate, sortBy, sortDirection), pageRequest)
 
         return PagedResponse(
             items = pagedResult.content.map { it.toChildItem(ageDate) },
@@ -568,7 +572,13 @@ class StatisticsService(
         )
     }
 
-    private fun childrenSpec(ageMin: Int, ageMax: Int, referenceDate: LocalDate): Specification<PersonEntity> = PersonEntity.Specs.orderByHouseholdId(childrenFilter(ageMin, ageMax, referenceDate))
+    private fun childrenSpec(
+        ageMin: Int,
+        ageMax: Int,
+        referenceDate: LocalDate,
+        sortBy: String? = null,
+        sortDirection: String? = null,
+    ): Specification<PersonEntity> = PersonEntity.Specs.orderByHouseholdId(childrenFilter(ageMin, ageMax, referenceDate), sortBy, sortDirection)
 
     private fun PersonEntity.toChildItem(referenceDate: LocalDate): ChildItem {
         val age = ChronoUnit.YEARS.between(birthDate, referenceDate).toInt()

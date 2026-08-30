@@ -6,7 +6,7 @@ import {UserLoginAttemptsComponent} from './user-login-attempts.component';
 import {LoginAttemptItem, LoginAttemptSettingsResponse, UserApiService} from '../../../../api/user-api.service';
 import {PagedResponse} from '../../../../common/api/paged-response';
 import {MatDialog} from '@angular/material/dialog';
-import {of, throwError} from 'rxjs';
+import {of, Subject, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('UserLoginAttemptsComponent', () => {
@@ -81,7 +81,7 @@ describe('UserLoginAttemptsComponent', () => {
 
     expect(component['loginAttempts']()?.items.length).toBe(2);
     expect(component['settings']()).toEqual(settings);
-    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(undefined, undefined, '', false);
+    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(undefined, undefined, '', false, undefined, undefined);
   });
 
   it('states the configured lockout rule', () => {
@@ -111,7 +111,7 @@ describe('UserLoginAttemptsComponent', () => {
 
     component['loadLoginAttempts'](2, 25);
 
-    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(2, 25, '', false);
+    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(2, 25, '', false, undefined, undefined);
   });
 
   it('searches by username and starts over at the first page', async () => {
@@ -122,7 +122,33 @@ describe('UserLoginAttemptsComponent', () => {
     component['searchControl'].setValue('  hans  ');
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(1, 10, 'hans', false);
+    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(1, 10, 'hans', false, undefined, undefined);
+  });
+
+  // A slower load's response arriving after a faster, more recent one must never overwrite the
+  // list with a result for a page/filter that is no longer current. See #3530.
+  it('a slower stale load response never overwrites a newer one already applied', () => {
+    const firstResponse = new Subject<PagedResponse<LoginAttemptItem>>();
+    const secondResponse: PagedResponse<LoginAttemptItem> = {...pagedResponse, totalCount: 99};
+
+    (userApiMock.getLoginAttempts as any)
+      .mockReturnValueOnce(of(pagedResponse))
+      .mockReturnValueOnce(firstResponse)
+      .mockReturnValueOnce(of(secondResponse));
+
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['loadLoginAttempts'](1);
+    component['loadLoginAttempts'](2);
+
+    // The second, faster load has already resolved and been applied by the time the first,
+    // slower one finally answers.
+    firstResponse.next(pagedResponse);
+    firstResponse.complete();
+
+    expect(component['loginAttempts']()).toEqual(secondResponse);
   });
 
   it('the locked-only filter starts over at the first page', () => {
@@ -133,7 +159,7 @@ describe('UserLoginAttemptsComponent', () => {
     component['onStatusFilterChanged']({value: 'LOCKED'} as any);
 
     expect(component['statusFilter']()).toBe('LOCKED');
-    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(1, 10, '', true);
+    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(1, 10, '', true, undefined, undefined);
   });
 
   it('refresh() reloads the page currently shown', () => {
@@ -143,7 +169,7 @@ describe('UserLoginAttemptsComponent', () => {
 
     component['refresh']();
 
-    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(1, 10, '', false);
+    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(1, 10, '', false, undefined, undefined);
     expect(component['lastUpdatedAt']()).not.toBeNull();
   });
 
@@ -213,7 +239,8 @@ describe('UserLoginAttemptsComponent', () => {
     expect(matDialogMock.open).not.toHaveBeenCalled();
     expect(userApiMock.deleteLoginAttempt).toHaveBeenCalledWith(lockedLoginAttempt.id);
     expect(toastrMock.success).toHaveBeenCalledWith('Sperre für gesperrt1 aufgehoben', 'Erfolgreich');
-    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(pagedResponse.currentPage, pagedResponse.pageSize, '', false);
+    expect(userApiMock.getLoginAttempts)
+      .toHaveBeenCalledWith(pagedResponse.currentPage, pagedResponse.pageSize, '', false, undefined, undefined);
   });
 
   it('resetLoginAttempt() deletes after confirmation and reloads the current page', () => {
@@ -226,7 +253,8 @@ describe('UserLoginAttemptsComponent', () => {
     expect(matDialogMock.open).toHaveBeenCalled();
     expect(userApiMock.deleteLoginAttempt).toHaveBeenCalledWith(notLockedLoginAttempt.id);
     expect(toastrMock.success).toHaveBeenCalledWith('Fehlversuche für fehlversuch1 zurückgesetzt', 'Erfolgreich');
-    expect(userApiMock.getLoginAttempts).toHaveBeenCalledWith(pagedResponse.currentPage, pagedResponse.pageSize, '', false);
+    expect(userApiMock.getLoginAttempts)
+      .toHaveBeenCalledWith(pagedResponse.currentPage, pagedResponse.pageSize, '', false, undefined, undefined);
   });
 
   it('resetLoginAttempt() does nothing when the dialog is cancelled', () => {
@@ -251,6 +279,32 @@ describe('UserLoginAttemptsComponent', () => {
     component['unlock'](component['rows']()[0]);
 
     expect(toastrMock.error).toHaveBeenCalled();
+  });
+
+  it('clicking a column header sorts and resets to the first page', () => {
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['onSortChange']({active: 'username', direction: 'asc'} as any);
+
+    expect(component['sortActive']()).toBe('username');
+    expect(component['sortDirectionState']()).toBe('asc');
+    expect(userApiMock.getLoginAttempts).toHaveBeenLastCalledWith(1, 10, '', false, 'username', 'asc');
+  });
+
+  // matSortDisableClear keeps a real click cycling between asc/desc only, but the handler itself
+  // stays defensive about an empty direction (falls back to the backend's default order) in case
+  // that ever changes.
+  it('falls back to the default order when the sort event carries no direction', () => {
+    const fixture = TestBed.createComponent(UserLoginAttemptsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['onSortChange']({active: 'username', direction: ''} as any);
+
+    expect(component['sortActive']()).toBe('');
+    expect(userApiMock.getLoginAttempts).toHaveBeenLastCalledWith(1, 10, '', false, undefined, undefined);
   });
 
 });

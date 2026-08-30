@@ -10,16 +10,19 @@ There is no `active` boolean column. A distribution is "current"/"active" purely
 
 ```kotlin
 // database/model/distribution/DistributionRepository.kt
-fun DistributionRepository.getCurrentDistribution(): DistributionEntity? {
-    val latest = findFirstByOrderByIdDesc()
-    return if (latest?.endedAt == null) latest else null
-}
+fun DistributionRepository.getCurrentDistribution(): DistributionEntity? =
+    findFirstByEndedAtIsNullOrderByStartedAtDesc()
 ```
 
-The row with the highest `id` is the current one; it's "active" only if its `ended_at` is still `null`.
-This means **only one distribution can ever be open at a time**, and distributions are implicitly
-ordered by id/creation, not by an explicit status column. `createNewDistribution()` refuses to create a
-new one while an unfinished one exists (`"Ausgabe bereits gestartet!"`).
+The still-open row with the latest `started_at` is the current one. This means **only one distribution
+can ever be open at a time**, and distributions are implicitly ordered by their start time, not by an
+explicit status column. `createNewDistribution()` refuses to create a new one while an unfinished one
+exists (`"Ausgabe bereits gestartet!"`).
+
+Deliberately not the row with the highest `id`: `distributions_seq` increments by 50
+(`R__00070_migrate_id_sequences.sql`), so each application instance holds its own id block and two
+instances interleave - picking by id can surface an already-ended distribution from one instance's
+block over the actually-open one from another's.
 
 ## Components
 
@@ -275,8 +278,14 @@ seeing a household's name or outstanding cost contribution.
 `POST /api/distributions/{distributionId}/send-mails` (`DistributionService.sendMails()`) re-sends all
 three mails (daily report, statistic, return boxes) by publishing `DistributionClosedEvent`, handled
 synchronously by `reporting`'s `DistributionClosedEventListener`, for an already-closed distribution —
-useful if a mail failed to deliver. It deliberately does **not** re-run
+useful if a mail failed to deliver. Rejected with a 409 (`ConflictException`) for a distribution whose
+`endedAt` is still null - resending mails for one that hasn't closed would mail a daily report built
+from the still-empty placeholder statistic. It deliberately does **not** re-run
 `MissingCostContributionService`, since re-running that would double-count pending cost contributions for
 households that already had them added when the distribution originally closed - which is exactly why
 that service is only triggered by `DistributionEndedEvent` (published once, from `closeDistribution()`),
 never by `sendMails()`, which publishes `DistributionClosedEvent` directly instead.
+
+The event it publishes carries `resend = true`, which `push`'s `DistributionClosedPushListener` checks
+and ignores - otherwise resending a past distribution's mails would re-broadcast the "Ausgabe beendet"
+push notification to every device as if it had just closed. See that listener's KDoc.

@@ -130,6 +130,35 @@ internal class RateLimiterIpServiceTest {
         assertThat(service.tryConsume("login", "5.6.7.8")).isFalse()
     }
 
+    @Test
+    fun `tryConsume denies a new key once the tracked-key cap is reached`() {
+        rateLimitProperties = rateLimitProperties.copy(maxTrackedKeys = 2)
+        setUp()
+
+        assertThat(service.tryConsume("login", "1.1.1.1")).isTrue()
+        assertThat(service.tryConsume("login", "2.2.2.2")).isTrue()
+        // a third distinct key would grow the map past the cap - denied rather than tracked
+        assertThat(service.tryConsume("login", "3.3.3.3")).isFalse()
+        assertThat(bucketCount()).isEqualTo(2)
+
+        // already-tracked keys keep working normally
+        assertThat(service.tryConsume("login", "1.1.1.1")).isTrue()
+    }
+
+    @Test
+    fun `tryConsume reclaims fully-refilled buckets before denying a new key at the cap`() {
+        rateLimitProperties = rateLimitProperties.copy(maxTrackedKeys = 1)
+        setUp()
+
+        assertThat(service.tryConsume("login", "1.1.1.1")).isTrue()
+        // 1.1.1.1's bucket refills fully given enough time
+        clock.advanceBy(Duration.ofHours(1))
+
+        // reclaiming the stale, fully-refilled bucket makes room for the new key
+        assertThat(service.tryConsume("login", "2.2.2.2")).isTrue()
+        assertThat(bucketCount()).isEqualTo(1)
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun bucketCount(): Int {
         val field = RateLimiterIpService::class.java.getDeclaredField("buckets")

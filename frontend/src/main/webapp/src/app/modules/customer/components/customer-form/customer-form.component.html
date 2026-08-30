@@ -46,12 +46,25 @@
         </div>
         <mat-form-field class="w-full mb-2">
           <mat-label>Nationalität</mat-label>
-          <mat-select testid="countryInput" [formField]="customerForm.country" [compareWith]="compareCountry">
-            @for (countryItem of countries(); track countryItem.id) {
+          <input matInput testid="countryInput" type="text" autocomplete="off"
+                 [matAutocomplete]="mainCountryAutocomplete"
+                 [ngModel]="mainCountryDisplayText()" [ngModelOptions]="{standalone: true}"
+                 (ngModelChange)="onMainCountryInput($event)"
+                 (blur)="onMainCountryBlur()">
+          <mat-autocomplete #mainCountryAutocomplete="matAutocomplete"
+                            (optionSelected)="onMainCountrySelected($event.option.value)">
+            @for (countryItem of mainCountryGroups().frequentlyUsed; track countryItem.id) {
               <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
                 {{countryItem.name}}</mat-option>
             }
-          </mat-select>
+            @if (mainCountryGroups().frequentlyUsed.length && mainCountryGroups().remaining.length) {
+              <mat-divider testid="countryInput-divider"></mat-divider>
+            }
+            @for (countryItem of mainCountryGroups().remaining; track countryItem.id) {
+              <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                {{countryItem.name}}</mat-option>
+            }
+          </mat-autocomplete>
           <mat-icon matPrefix svgIcon="flag" class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
           @for (errorMessage of visibleErrorMessages(customerForm.country()); track $index) {
             <mat-error>{{errorMessage}}</mat-error>
@@ -258,13 +271,25 @@
                     </div>
                     <mat-form-field class="w-full mt-2">
                       <mat-label>Nationalität</mat-label>
-                      <mat-select testid="countryInput" [formField]="personField(i).country"
-                                  [compareWith]="compareCountry">
-                        @for (countryItem of countries(); track countryItem.id) {
+                      <input matInput testid="countryInput" type="text" autocomplete="off"
+                             [matAutocomplete]="personCountryAutocomplete"
+                             [ngModel]="personCountryDisplayText(i)" [ngModelOptions]="{standalone: true}"
+                             (ngModelChange)="onPersonCountryInput(i, $event)"
+                             (blur)="onPersonCountryBlur(i)">
+                      <mat-autocomplete #personCountryAutocomplete="matAutocomplete"
+                                        (optionSelected)="onPersonCountrySelected(i, $event.option.value)">
+                        @for (countryItem of personCountryGroups(i).frequentlyUsed; track countryItem.id) {
                           <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
                             {{countryItem.name}}</mat-option>
                         }
-                      </mat-select>
+                        @if (personCountryGroups(i).frequentlyUsed.length && personCountryGroups(i).remaining.length) {
+                          <mat-divider testid="countryInput-divider"></mat-divider>
+                        }
+                        @for (countryItem of personCountryGroups(i).remaining; track countryItem.id) {
+                          <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                            {{countryItem.name}}</mat-option>
+                        }
+                      </mat-autocomplete>
                       <mat-icon matPrefix svgIcon="flag" class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
                       @for (errorMessage of visibleErrorMessages(personField(i).country()); track $index) {
                         <mat-error>{{errorMessage}}</mat-error>

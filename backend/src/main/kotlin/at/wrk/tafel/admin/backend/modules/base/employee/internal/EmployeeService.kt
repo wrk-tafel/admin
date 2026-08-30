@@ -15,7 +15,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -30,13 +30,20 @@ class EmployeeService(
         private val log = LoggerFactory.getLogger(EmployeeService::class.java)
     }
 
-    fun findEmployees(searchInput: String? = null, page: Int? = null, pageSize: Int? = null): EmployeeListResponse {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize), Sort.by("id"))
-        val pagedResult = if (searchInput != null) {
-            employeeRepository.findBySearchInput(searchInput, pageRequest)
-        } else {
-            employeeRepository.findAll(pageRequest)
-        }
+    fun findEmployees(
+        searchInput: String? = null,
+        page: Int? = null,
+        pageSize: Int? = null,
+        sortBy: String? = null,
+        sortDirection: String? = null,
+    ): EmployeeListResponse {
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
+        val spec = EmployeeEntity.Specs.orderById(
+            Specification.allOf(listOfNotNull(EmployeeEntity.Specs.searchInputMatches(searchInput))),
+            sortBy,
+            sortDirection,
+        )
+        val pagedResult = employeeRepository.findAll(spec, pageRequest)
 
         val employeeIds = pagedResult.content.mapNotNull { it.id }
         val accountsByEmployeeId = if (employeeIds.isEmpty()) {
@@ -80,17 +87,18 @@ class EmployeeService(
 
     @Transactional
     fun saveEmployee(employeeRequest: EmployeeRequest): EmployeeResponse {
-        if (employeeRepository.existsByPersonnelNumber(employeeRequest.personnelNumber)) {
-            throw ConflictException("Mitarbeiter ${employeeRequest.personnelNumber} ist bereits vorhanden!")
+        val personnelNumber = employeeRequest.personnelNumber.trim()
+        if (employeeRepository.existsByPersonnelNumber(personnelNumber)) {
+            throw ConflictException("Mitarbeiter $personnelNumber ist bereits vorhanden!")
         }
 
         val employeeEntity = EmployeeEntity(
-            personnelNumber = employeeRequest.personnelNumber.trim(),
+            personnelNumber = personnelNumber,
             firstname = employeeRequest.firstname.trim(),
             lastname = employeeRequest.lastname.trim(),
         )
         employeeRepository.save(employeeEntity)
-        return mapEntityToEmployee(employeeRepository.findByPersonnelNumber(employeeRequest.personnelNumber)!!)
+        return mapEntityToEmployee(employeeRepository.findByPersonnelNumber(personnelNumber)!!)
     }
 
     @Transactional
@@ -98,11 +106,12 @@ class EmployeeService(
         val employeeEntity = employeeRepository.findByIdOrNull(employeeId)
             ?: throw NotFoundException("Employee with id $employeeId not found")
 
-        if (employeeRepository.existsByPersonnelNumberAndIdNot(employeeRequest.personnelNumber, employeeId)) {
-            throw ConflictException("Mitarbeiter ${employeeRequest.personnelNumber} ist bereits vorhanden!")
+        val personnelNumber = employeeRequest.personnelNumber.trim()
+        if (employeeRepository.existsByPersonnelNumberAndIdNot(personnelNumber, employeeId)) {
+            throw ConflictException("Mitarbeiter $personnelNumber ist bereits vorhanden!")
         }
 
-        employeeEntity.personnelNumber = employeeRequest.personnelNumber.trim()
+        employeeEntity.personnelNumber = personnelNumber
         employeeEntity.firstname = employeeRequest.firstname.trim()
         employeeEntity.lastname = employeeRequest.lastname.trim()
 

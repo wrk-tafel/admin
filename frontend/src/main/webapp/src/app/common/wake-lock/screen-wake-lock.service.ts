@@ -30,6 +30,9 @@ export class ScreenWakeLockService {
 
     try {
       this.sentinel = await this.window.navigator.wakeLock.request('screen');
+      this.sentinel.addEventListener('release', () => {
+        this.sentinel = undefined;
+      });
     } catch {
       // e.g. permission denied, battery saver, no capable display - the screen just locks as usual,
       // there is nothing else to do about it here

@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse
 import org.apache.commons.io.IOUtils
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
@@ -47,9 +48,11 @@ class TafelLoginFilter(
         this.setFilterProcessesUrl("/api/login")
     }
 
-    public override fun obtainUsername(request: HttpServletRequest): String = basicAuthConverter.convert(request)?.name as String
+    public override fun obtainUsername(request: HttpServletRequest): String = basicAuthConverter.convert(request)?.name
+        ?: throw BadCredentialsException("Missing or invalid 'Authorization: Basic' header")
 
-    public override fun obtainPassword(request: HttpServletRequest): String = basicAuthConverter.convert(request)?.credentials as String
+    public override fun obtainPassword(request: HttpServletRequest): String = basicAuthConverter.convert(request)?.credentials as? String
+        ?: throw BadCredentialsException("Missing or invalid 'Authorization: Basic' header")
 
     /**
      * When [TafelUser.passwordChangeRequired] is true, the issued JWT gets a shorter

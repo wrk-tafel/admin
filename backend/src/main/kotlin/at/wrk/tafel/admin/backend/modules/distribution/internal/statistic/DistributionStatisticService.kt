@@ -49,10 +49,13 @@ class DistributionStatisticService(
     }
 
     /**
-     * `countCustomersUpdated` is derived by subtraction, not a dedicated query: it's every
-     * household updated in the window ([HouseholdRepository.countByUpdatedAtBetween]) minus the
-     * ones already counted as new or prolonged, since those also touch `updated_at` and would
-     * otherwise be double-counted across the three statistics.
+     * `countCustomersUpdated` is every household updated in the window
+     * ([HouseholdRepository.findIdByUpdatedAtBetween]) minus the ones already counted as new or
+     * prolonged, since those also touch `updated_at` and would otherwise be double-counted across
+     * the three statistics. The subtraction is a set difference on ids, not a subtraction of sizes -
+     * a household created *and* prolonged within the same window is counted once in both
+     * `householdsNew` and `householdsProlonged`, and subtracting each size separately would remove
+     * it twice and could drive the result negative.
      */
     private fun fillHouseholdStatistics(
         distribution: DistributionEntity,
@@ -74,7 +77,7 @@ class DistributionStatisticService(
         val referenceDate = distribution.startedAt.toLocalDate()
         val countInfants = distribution.households.flatMap { it.household.additionalPersons() }
             .filterNot { it.excludeFromHousehold }
-            .count { Period.between(it.birthDate, referenceDate).years < 3 }
+            .count { it.birthDate != null && Period.between(it.birthDate, referenceDate).years < 3 }
         statistic.countInfants = countInfants
 
         val averagePersonsPerHousehold = if (countHouseholds > 0) {
@@ -105,12 +108,12 @@ class DistributionStatisticService(
                 .filterNot { it.excludeFromHousehold }.size + countHouseholdsProlonged
         statistic.countPersonsProlonged = countPersonsProlonged
 
-        val countHouseholdsUpdated =
-            householdRepository.countByUpdatedAtBetween(
-                statisticStartTime,
-                statisticEndTime,
-            )
-        statistic.countCustomersUpdated = countHouseholdsUpdated - countHouseholdsNew - countHouseholdsProlonged
+        val updatedHouseholdIds = householdRepository.findIdByUpdatedAtBetween(
+            statisticStartTime,
+            statisticEndTime,
+        ).toSet()
+        val newOrProlongedHouseholdIds = (householdsNew.map { it.id } + householdsProlonged.map { it.id }).toSet()
+        statistic.countCustomersUpdated = (updatedHouseholdIds - newOrProlongedHouseholdIds).size
 
         statistic.countSingleParentHouseholds =
             distribution.households.count { it.household.singleParent }

@@ -41,7 +41,23 @@ class RateLimiterIpService(
             return true
         }
 
-        return buckets.computeIfAbsent(key(scope, ip)) { newBucket(settings) }.tryConsume(1)
+        val bucketKey = key(scope, ip)
+        val existing = buckets[bucketKey]
+        if (existing != null) {
+            return existing.tryConsume(1)
+        }
+
+        // A new key past the cap: try to reclaim already-refilled buckets first, and only if that
+        // doesn't help, deny outright rather than let the map grow further - safer under attack than
+        // silently letting a caller past its budget.
+        if (buckets.size >= settings.maxTrackedKeys) {
+            cleanupStaleEntries()
+        }
+        if (buckets.size >= settings.maxTrackedKeys) {
+            return false
+        }
+
+        return buckets.computeIfAbsent(bucketKey) { newBucket(settings) }.tryConsume(1)
     }
 
     // Buckets for an IP that stopped sending requests would otherwise sit in memory forever - a

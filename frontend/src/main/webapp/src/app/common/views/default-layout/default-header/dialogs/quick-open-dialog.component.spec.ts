@@ -15,6 +15,7 @@ import {ITafelNavData} from '../../navigation-menuItems';
 import {AuthenticationService} from '../../../../../common/security/authentication.service';
 import {GlobalStateService} from '../../../../../common/state/global-state.service';
 import {CustomerApiService, CustomerData} from '../../../../../api/customer-api.service';
+import {UserApiService} from '../../../../../api/user-api.service';
 import {FileHelperService} from '../../../../../common/util/file-helper.service';
 
 const SEARCH_DEBOUNCE_WAIT_MS = 300;
@@ -93,6 +94,7 @@ describe('flattenNavigationItems', () => {
 describe('QuickOpenDialogComponent', () => {
   let authenticationService: MockedObject<AuthenticationService>;
   let customerApiService: MockedObject<CustomerApiService>;
+  let userApiService: MockedObject<UserApiService>;
   let fileHelperService: MockedObject<FileHelperService>;
   let dialogRef: MockedObject<MatDialogRef<QuickOpenDialogComponent>>;
   let router: Router;
@@ -136,6 +138,12 @@ describe('QuickOpenDialogComponent', () => {
           }
         },
         {
+          provide: UserApiService,
+          useValue: {
+            generatePrivacyNoticeTemplate: vi.fn().mockName('UserApiService.generatePrivacyNoticeTemplate')
+          }
+        },
+        {
           provide: FileHelperService,
           useValue: {
             downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
@@ -152,6 +160,7 @@ describe('QuickOpenDialogComponent', () => {
 
     authenticationService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
     customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
+    userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
     fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
     dialogRef = TestBed.inject(MatDialogRef) as MockedObject<MatDialogRef<QuickOpenDialogComponent>>;
     router = TestBed.inject(Router);
@@ -300,6 +309,43 @@ describe('QuickOpenDialogComponent', () => {
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-vorlage.pdf', response.body);
   });
 
+  it('shows the staff privacy notice action for an empty query, regardless of the CUSTOMER permission', () => {
+    authenticationService.hasPermission.mockImplementation(permission => permission !== 'CUSTOMER');
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component.showStaffPrivacyNoticeAction()).toBe(true);
+  });
+
+  it('filters the staff privacy notice action out for a non-matching query', () => {
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.query.set('fahrzeuge');
+    fixture.detectChanges();
+
+    expect(component.showStaffPrivacyNoticeAction()).toBe(false);
+  });
+
+  it('downloads the staff privacy notice and closes the dialog', () => {
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=datenschutzerklaerung-mitarbeiter.pdf'}),
+      body: new Blob()
+    });
+    userApiService.generatePrivacyNoticeTemplate.mockReturnValue(of(response));
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.downloadStaffPrivacyNotice();
+
+    expect(dialogRef.close).toHaveBeenCalled();
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-mitarbeiter.pdf', response.body);
+  });
+
   it('announces the result counts for the screen reader status region', async () => {
     customerApiService.searchCustomer.mockReturnValue(searchResult([testCustomer]));
     const fixture = TestBed.createComponent(QuickOpenDialogComponent);
@@ -307,7 +353,7 @@ describe('QuickOpenDialogComponent', () => {
     const component = fixture.componentInstance;
 
     expect(component.resultAnnouncement()).not.toContain('Kunden');
-    expect(component.resultAnnouncement()).toContain('1 Aktion');
+    expect(component.resultAnnouncement()).toContain('2 Aktionen');
 
     component.query.set('Muster');
     fixture.detectChanges();

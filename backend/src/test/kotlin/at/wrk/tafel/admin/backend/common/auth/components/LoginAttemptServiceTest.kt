@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.jpa.domain.Specification
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -68,20 +69,12 @@ internal class LoginAttemptServiceTest {
         eventPublisher = mockk(relaxed = true)
         loginAttemptRepository = mockk()
         every { loginAttemptRepository.findByUsername(any()) } answers { entries[firstArg()] }
-        every { loginAttemptRepository.findAllFiltered(any(), any(), any(), any()) } answers {
-            val usernamePattern = firstArg<String>().trim('%')
-            val lockedOnly = secondArg<Boolean>()
-            val now = thirdArg<LocalDateTime>()
-            val pageRequest = arg<PageRequest>(3)
-
-            val matching = entries.values
-                .filter { it.username.contains(usernamePattern) }
-                .filter { !lockedOnly || isLocked(it, now) }
-                .sortedWith(
-                    compareBy<LoginAttemptEntity> { if (isLocked(it, now)) 0 else 1 }
-                        .thenByDescending { it.lastFailureAt }
-                        .thenByDescending { it.id },
-                )
+        // The actual filtering/sorting a real Specification performs against Postgres cannot be
+        // exercised through a mocked repository - see LoginAttemptEntitySpecsIT for that. This fake
+        // only hands back every tracked entry, for tests that don't care about order or filtering.
+        every { loginAttemptRepository.findAll(any<Specification<LoginAttemptEntity>>(), any<PageRequest>()) } answers {
+            val pageRequest = secondArg<PageRequest>()
+            val matching = entries.values.toList()
             PageImpl(matching, pageRequest, matching.size.toLong())
         }
         every { loginAttemptRepository.save(any()) } answers {
@@ -138,8 +131,6 @@ internal class LoginAttemptServiceTest {
 
         service = LoginAttemptService(loginAttemptRepository, userRepository, advisoryLockService, applicationProperties, clock, eventPublisher)
     }
-
-    private fun isLocked(entry: LoginAttemptEntity, now: LocalDateTime) = entry.lockedUntil?.isAfter(now) == true
 
     private fun userIdProjection(name: String, id: Long) = object : UserIdProjection {
         override val username = name
@@ -296,48 +287,9 @@ internal class LoginAttemptServiceTest {
         assertThat(entries).containsOnlyKeys("recent-user")
     }
 
-    @Test
-    fun `findAll returns a page of tracked entries, most recent failure first`() {
-        service.recordFailure("user1")
-        clock.advanceBy(Duration.ofSeconds(1))
-        service.recordFailure("user2")
-
-        val page = service.findAll(PageRequest.of(0, 10))
-
-        assertThat(page.content).extracting<String> { it.username }.containsExactly("user2", "user1")
-        assertThat(page.totalElements).isEqualTo(2)
-    }
-
-    @Test
-    fun `findAll returns currently locked entries first`() {
-        repeat(MAX_FAILURES) { service.recordFailure("locked-user") }
-        clock.advanceBy(Duration.ofSeconds(1))
-        service.recordFailure("unlocked-user")
-
-        val page = service.findAll(PageRequest.of(0, 10))
-
-        assertThat(page.content).extracting<String> { it.username }.containsExactly("locked-user", "unlocked-user")
-    }
-
-    @Test
-    fun `findAll filters by the searched username, ignoring case and whitespace`() {
-        service.recordFailure("hans")
-        service.recordFailure("franz")
-
-        val page = service.findAll(PageRequest.of(0, 10), searchInput = "  HAN ")
-
-        assertThat(page.content).extracting<String> { it.username }.containsExactly("hans")
-    }
-
-    @Test
-    fun `findAll with lockedOnly leaves out the entries nobody is locked out by`() {
-        repeat(MAX_FAILURES) { service.recordFailure("locked-user") }
-        service.recordFailure("unlocked-user")
-
-        val page = service.findAll(PageRequest.of(0, 10), lockedOnly = true)
-
-        assertThat(page.content).extracting<String> { it.username }.containsExactly("locked-user")
-    }
+    // Filtering by username, restricting to locked-only entries, and the locked-first/column-sort
+    // ordering are exercised against a real Postgres via LoginAttemptEntitySpecsIT - a mocked
+    // repository cannot evaluate a JPA Specification.
 
     @Test
     fun `findAll links the account behind a username, and leaves an unknown one unlinked`() {

@@ -105,9 +105,14 @@ class DailyReportsExporterTest {
             ).toMutableList()
         }
 
-        every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
+        currentDistribution.statistic = currentStatistic
+
+        // the repository returns every distribution of the year including the one currently being
+        // closed - the exporter has to filter that one out itself, not rely on the repository mock
+        every { distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year) } returns listOf(
             previousDistribution1,
             previousDistribution2,
+            currentDistribution,
         )
 
         val filename = exporter.getName()
@@ -166,7 +171,8 @@ class DailyReportsExporterTest {
                 testDistributionStatisticShelterEntity2,
             ).toMutableList()
         }
-        every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
+        currentDistribution.statistic = currentStatistic
+        every { distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year) } returns listOf(
             currentDistribution,
         )
 

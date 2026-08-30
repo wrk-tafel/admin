@@ -157,12 +157,16 @@ export class UserFormComponent {
   private derivedUserData = computed(() => {
     const formValue = this.formModel();
     const perms = this.permissions();
+    // The password fields are collapsed behind "Passwort zurücksetzen" precisely so a save can't
+    // accidentally reset a password nobody meant to touch - whatever is still sitting in those
+    // controls from a since-collapsed expand must not be sent once they're hidden again. See #3530.
+    const passwordFieldsVisible = this.passwordFieldsVisible();
 
     return {
       ...formValue,
       // Empty password fields mean "don't change the password" - send as absent, not ''
-      password: formValue.password || undefined,
-      passwordRepeat: formValue.passwordRepeat || undefined,
+      password: passwordFieldsVisible ? (formValue.password || undefined) : undefined,
+      passwordRepeat: passwordFieldsVisible ? (formValue.passwordRepeat || undefined) : undefined,
       permissions: perms.filter((permission) => permission.enabled === true)
     } as UserData;
   });

@@ -13,6 +13,8 @@ import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_TO2
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.StaticValueType
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
+import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAddressItem
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientAdresses
@@ -204,6 +206,61 @@ class SettingsServiceTest {
     }
 
     @Test
+    fun `update mail recipients fails with a business rule exception for an unknown mail type`() {
+        val updatedSettings = MailRecipientsRequest(
+            mailRecipients = listOf(
+                MailRecipientsPerMailType(
+                    mailType = "NOT_A_REAL_MAIL_TYPE",
+                    recipients = listOf(
+                        MailRecipientAdresses(recipientType = MailRecipientType.TO, addresses = listOf(MailRecipientAddressItem(address = "to1"))),
+                    ),
+                ),
+            ),
+        )
+
+        assertThatThrownBy { service.updateMailRecipients(updatedSettings) }
+            .isInstanceOf(BusinessRuleException::class.java)
+
+        verify(exactly = 0) { mailRecipientRepository.saveAll(any<List<MailRecipientEntity>>()) }
+    }
+
+    /**
+     * An id looked up purely by its numeric value, ignoring which (mailType, recipientType) group it
+     * was submitted under, would otherwise silently re-parent an existing address into a different
+     * category instead of being rejected - see issue #3531.
+     */
+    @Test
+    fun `update mail recipients fails with a conflict when an id is submitted under a different mailType-recipientType group`() {
+        val existing = MailRecipientEntity(
+            mailType = MailType.STATISTICS,
+            recipientType = RecipientType.TO,
+            address = "existing@test.com",
+        ).apply { id = 42 }
+        every { mailRecipientRepository.findAllById(listOf(42L)) } returns listOf(existing)
+
+        val updatedSettings = MailRecipientsRequest(
+            mailRecipients = listOf(
+                MailRecipientsPerMailType(
+                    mailType = MailType.DAILY_REPORT.name,
+                    recipients = listOf(
+                        MailRecipientAdresses(
+                            recipientType = MailRecipientType.CC,
+                            addresses = listOf(MailRecipientAddressItem(id = 42L, address = "existing@test.com")),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        assertThatThrownBy { service.updateMailRecipients(updatedSettings) }
+            .isInstanceOf(ConflictException::class.java)
+
+        assertThat(existing.mailType).isEqualTo(MailType.STATISTICS)
+        assertThat(existing.recipientType).isEqualTo(RecipientType.TO)
+        verify(exactly = 0) { mailRecipientRepository.saveAll(any<List<MailRecipientEntity>>()) }
+    }
+
+    @Test
     fun `delete mail recipient`() {
         every { mailRecipientRepository.existsById(1L) } returns true
 
@@ -367,6 +424,45 @@ class SettingsServiceTest {
                 age = null,
             ),
         )
+    }
+
+    /**
+     * A stale row - already closed off by a concurrent edit (e.g. two tabs open on the same value) -
+     * must be rejected rather than historized a second time, which would otherwise leave two rows
+     * both valid today for the same (type, countAdults, countChildren, age) and break
+     * findSingleValueOfType's single-row assumption for every later lookup - see issue #3531.
+     */
+    @Test
+    fun `update static value fails with conflict when the row is no longer the currently valid one`() {
+        val today = LocalDate.now()
+        val staleRow = StaticValueEntity(
+            validFrom = LocalDate.of(2022, 1, 1),
+            // already closed off by an earlier, concurrent edit
+            validTo = today.minusDays(1),
+            type = StaticValueType.INCOME_LIMIT,
+            amount = BigDecimal("1328.00"),
+        ).apply {
+            id = 1
+            countAdults = 1
+            countChildren = 0
+        }
+        every { staticValueRepository.findByIdOrNull(1L) } returns staleRow
+
+        val requestedChanges = StaticValueRequest(
+            id = 1,
+            type = "INCOME_LIMIT",
+            validFrom = LocalDate.of(2022, 1, 1),
+            validTo = today.minusDays(1),
+            amount = BigDecimal("1500.00"),
+            countAdults = 1,
+            countChildren = 0,
+            age = null,
+        )
+
+        assertThatThrownBy { service.updateStaticValue(1L, requestedChanges) }
+            .isInstanceOf(ConflictException::class.java)
+
+        verify(exactly = 0) { staticValueRepository.save(any()) }
     }
 
     @Test

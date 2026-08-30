@@ -212,12 +212,16 @@ class UserController(
         @RequestParam enabled: Boolean? = null,
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
+        @RequestParam sortBy: String? = null,
+        @RequestParam sortDirection: String? = null,
     ): PagedResponse<UserResponse> {
         val userSearchResult = userDetailsManager.loadUsers(
             searchInput = searchInput,
             enabled = enabled,
             page = page,
             pageSize = pageSize,
+            sortBy = sortBy,
+            sortDirection = sortDirection,
         )
         // One query for the whole page's lockout state rather than one per row - see
         // LoginAttemptService.getLockedUntil(Collection<String>).
@@ -271,6 +275,13 @@ class UserController(
         @PathVariable userId: Long,
         @Valid @RequestBody user: UserRequest,
     ): ResponseEntity<UserResponse> {
+        // The write below always targets the path id (see mapToTafelUser call), never a body one -
+        // this only turns a body/path mismatch into an explicit error instead of a silent one, since
+        // every existing caller submits the loaded user back and the two always agree.
+        if (user.id != null && user.id != userId) {
+            throw BusinessRuleException("Die ID im Request stimmt nicht mit der ID im Pfad überein!")
+        }
+
         val existingUser = userDetailsManager.loadUserById(userId)
             ?: throw NotFoundException("Benutzer (ID: $userId) nicht vorhanden!")
 
@@ -285,18 +296,34 @@ class UserController(
             validateNotLastAdministrator(userId, existingUser)
         }
 
+        validatePersonnelNumberAvailable(user, excludedUserId = userId)
+
         if (user.password != user.passwordRepeat) {
             throw BusinessRuleException("Passwörter stimmen nicht überein!")
         }
 
         try {
-            val updatedTafelUser = mapToTafelUser(user)
+            val updatedTafelUser = mapToTafelUser(user, id = userId)
             userDetailsManager.updateUser(updatedTafelUser)
 
             val userResponse = mapToResponse(userDetailsManager.loadUserById(userId)!!)
             return ResponseEntity.ok(userResponse)
         } catch (e: PasswordChangeException) {
             throw BusinessRuleException(e.message)
+        }
+    }
+
+    /**
+     * Refuses a personnel number that already belongs to a *different* user account. Without this,
+     * `TafelUserDetailsManager.resolveEmployee` would happily re-link [excludedUserId] onto that
+     * other account's [at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity] and overwrite
+     * its name - `users.employee_id` is meant to be one-to-one (see `EmployeeService.deleteEmployee`'s
+     * KDoc), and this is the update-time counterpart of [validateIfUserExists]'s create-time check.
+     */
+    private fun validatePersonnelNumberAvailable(user: UserRequest, excludedUserId: Long) {
+        val ownerOfPersonnelNumber = userDetailsManager.loadUserByPersonnelNumber(user.personnelNumber)
+        if (ownerOfPersonnelNumber != null && ownerOfPersonnelNumber.id != excludedUserId) {
+            throw ConflictException("Benutzer (Personalnummer: ${user.personnelNumber}) existiert bereits!")
         }
     }
 
@@ -332,12 +359,16 @@ class UserController(
         @RequestParam lockedOnly: Boolean? = null,
         @RequestParam page: Int? = null,
         @RequestParam pageSize: Int? = null,
+        @RequestParam sortBy: String? = null,
+        @RequestParam sortDirection: String? = null,
     ): PagedResponse<LoginAttemptItem> {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, PaginationDefaults.resolvePageSize(pageSize))
+        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
         val pagedResult = loginAttemptService.findAll(
             pageRequest = pageRequest,
             searchInput = searchInput,
             lockedOnly = lockedOnly ?: false,
+            sortBy = sortBy,
+            sortDirection = sortDirection,
         )
 
         return PagedResponse(
@@ -360,8 +391,8 @@ class UserController(
         return ResponseEntity.noContent().build()
     }
 
-    private fun mapToTafelUser(user: UserRequest): TafelUser = TafelUser(
-        id = user.id,
+    private fun mapToTafelUser(user: UserRequest, id: Long? = user.id): TafelUser = TafelUser(
+        id = id,
         username = user.username,
         personnelNumber = user.personnelNumber,
         firstname = user.firstname,

@@ -76,11 +76,15 @@ class UserControllerTest {
      * A relaxed mock returns a relaxed child mock for a nullable `LocalDateTime?`, not `null` -
      * every test that doesn't care about lockout state (i.e. almost all of them, via
      * `testUserResponse`'s `lockedUntil = null`) needs this default so mapToResponse's per-user
-     * lookup resolves the same "not locked" answer `testUserResponse` expects.
+     * lookup resolves the same "not locked" answer `testUserResponse` expects. Same reasoning for
+     * `loadUserByPersonnelNumber`: every update test that doesn't care about the personnel-number
+     * collision check needs it to resolve "nobody else has this number" by default; tests that do
+     * care override it with a more specific stub, same pattern as the lockout one.
      */
     @BeforeEach
-    fun stubNoActiveLockoutByDefault() {
+    fun stubDefaults() {
         every { loginAttemptService.getLockedUntil(any<String>()) } returns null
+        every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
     }
 
     @AfterEach
@@ -400,6 +404,42 @@ class UserControllerTest {
         }
     }
 
+    @Test
+    fun `get users - sortBy and sortDirection are forwarded`() {
+        val userSearchResult = UserSearchResult(
+            items = listOf(testUser),
+            totalCount = 1,
+            currentPage = 1,
+            totalPages = 1,
+            pageSize = 10,
+        )
+
+        every {
+            userDetailsManager.loadUsers(
+                searchInput = null,
+                enabled = null,
+                page = null,
+                pageSize = null,
+                sortBy = "name",
+                sortDirection = "asc",
+            )
+        } returns userSearchResult
+
+        val response = controller.getUsers(sortBy = "name", sortDirection = "asc")
+
+        assertThat(response.items).hasSize(1)
+        verify(exactly = 1) {
+            userDetailsManager.loadUsers(
+                searchInput = null,
+                enabled = null,
+                page = null,
+                pageSize = null,
+                sortBy = "name",
+                sortDirection = "asc",
+            )
+        }
+    }
+
     /**
      * The page's lockout state is looked up once for the whole page (see
      * LoginAttemptService.getLockedUntil(Collection<String>)) rather than once per row - this pins
@@ -639,10 +679,50 @@ class UserControllerTest {
         every { userDetailsManager.loadUserById(any()) } returns null
 
         val exception =
-            assertThrows<NotFoundException> { controller.updateUser(userId = 123, user = testUserRequest) }
+            assertThrows<NotFoundException> {
+                controller.updateUser(userId = 123, user = testUserRequest.copy(id = 123))
+            }
 
         assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(exception.body.detail).isEqualTo("Benutzer (ID: 123) nicht vorhanden!")
+    }
+
+    /**
+     * The write must always target the path id, not whatever id the body happens to carry - issue
+     * #3522: a `USER_MANAGEMENT` holder without `ADMINISTRATOR` could otherwise send another user's
+     * path id with their own id in the body and have the write land on their own account instead,
+     * bypassing [validateAdministratorAssignment]/[validateNotLastAdministrator], which are only
+     * ever checked against the path id's user.
+     */
+    @Test
+    fun `update user rejects a body id that differs from the path id`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val exception = assertThrows<BusinessRuleException> {
+            controller.updateUser(userId = testUser.id!!, user = testUserRequest.copy(id = 999))
+        }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `update user allows a body id matching the path id`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val response = controller.updateUser(userId = testUser.id!!, user = testUserRequest.copy(id = testUser.id))
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+    }
+
+    /** A missing body id (frontend never sends one) is fine - the path id is what's used either way. */
+    @Test
+    fun `update user allows a missing body id`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val response = controller.updateUser(userId = testUser.id!!, user = testUserRequest.copy(id = null))
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
     }
 
     @Test
@@ -655,7 +735,7 @@ class UserControllerTest {
             category = UserPermissions.CHECKIN.category.title,
         )
         val updatedUser = UserRequest(
-            id = 123,
+            id = testUser.id,
             username = "updated-username",
             personnelNumber = "updated-personnelnumber",
             firstname = "updated-firstname",
@@ -674,7 +754,8 @@ class UserControllerTest {
         verify(exactly = 1) { userDetailsManager.updateUser(capture(updatedUserDetailsSlot)) }
 
         val userDetails = updatedUserDetailsSlot.captured
-        assertThat(userDetails.id).isEqualTo(updatedUser.id)
+        // The write always targets the path id, regardless of what the body carried (issue #3522).
+        assertThat(userDetails.id).isEqualTo(testUser.id)
         assertThat(userDetails.username).isEqualTo(updatedUser.username)
         assertThat(userDetails.personnelNumber).isEqualTo(updatedUser.personnelNumber)
         assertThat(userDetails.firstname).isEqualTo(updatedUser.firstname)
@@ -691,7 +772,7 @@ class UserControllerTest {
 
         val newPassword = "123"
         val updatedUserResponse = controller.updateUser(
-            userId = 123,
+            userId = testUser.id!!,
             user = testUserRequest.copy(password = newPassword, passwordRepeat = newPassword),
         )
 
@@ -706,13 +787,43 @@ class UserControllerTest {
 
         val exception = assertThrows<BusinessRuleException> {
             controller.updateUser(
-                userId = 123,
+                userId = testUser.id!!,
                 user = testUserRequest.copy(password = "123", passwordRepeat = "456"),
             )
         }
 
         assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         assertThat(exception.body.detail).isEqualTo("Passwörter stimmen nicht überein!")
+    }
+
+    /**
+     * The update-time counterpart of `create user exists by personnelNumber` - without it,
+     * `TafelUserDetailsManager.resolveEmployee` would re-link the edited user onto another account's
+     * employee and overwrite its name (issue #3522).
+     */
+    @Test
+    fun `update user exists by personnelNumber`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+        val otherUser = testUser.copy(id = 999)
+        every { userDetailsManager.loadUserByPersonnelNumber(testUserRequest.personnelNumber) } returns otherUser
+
+        val exception = assertThrows<ConflictException> {
+            controller.updateUser(userId = testUser.id!!, user = testUserRequest)
+        }
+
+        assertThat(exception.body.detail).isEqualTo("Benutzer (Personalnummer: test-personnelnumber) existiert bereits!")
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    /** Keeping the same personnel number - i.e. the number already belongs to this very user - is fine. */
+    @Test
+    fun `update user keeping its own personnelNumber is allowed`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+        every { userDetailsManager.loadUserByPersonnelNumber(testUserRequest.personnelNumber) } returns testUser
+
+        val response = controller.updateUser(userId = testUser.id!!, user = testUserRequest)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
     }
 
     @Test

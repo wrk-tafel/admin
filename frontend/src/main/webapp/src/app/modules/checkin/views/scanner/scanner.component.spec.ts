@@ -6,7 +6,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ScannerComponent } from './scanner.component';
 import { QRCodeReaderService } from '../../services/qrcode-reader/qrcode-reader.service';
 import { ScannerApiService } from '../../../../api/scanner-api.service';
-import { EMPTY, of, throwError } from 'rxjs';
+import { EMPTY, of, Subject, throwError } from 'rxjs';
 
 describe('ScannerComponent', () => {
     let scannerApiService: MockedObject<ScannerApiService>;
@@ -146,6 +146,19 @@ describe('ScannerComponent', () => {
         expect(qrCodeReaderService.stop).toHaveBeenCalled();
     });
 
+    it('still stops the QR code reader when destroyed before registration/camera enumeration resolve', () => {
+        // Regression test: a slow/unreachable backend must not leave the camera running -
+        // the cleanup has to be registered before this async work, not after it resolves.
+        scannerApiService.registerScanner.mockReturnValue(new Subject());
+        qrCodeReaderService.getCameras.mockReturnValue(new Promise(() => { /* never resolves */ }));
+
+        const slowFixture = TestBed.createComponent(ScannerComponent);
+        slowFixture.detectChanges();
+
+        expect(() => slowFixture.destroy()).not.toThrow();
+        expect(qrCodeReaderService.stop).toHaveBeenCalled();
+    });
+
     it('setSelectedCamera setter changes currentCamera', () => {
         const testCamera = { deviceId: 'cam1', label: 'Camera 1 Front' } as MediaDeviceInfo;
 
@@ -181,6 +194,27 @@ describe('ScannerComponent', () => {
 
             expect(component.phase()).toBe('scanning');
             expect(component.connectionLost()).toBe(true);
+        });
+
+        it('rebinds the QR reader once more when switching to the scanning phase (a different <video> element than pairing)', async () => {
+            // The shared component's own natural startup (registration + camera enumeration) is
+            // still resolving asynchronously at this point - settle it first so its restart()
+            // calls can't race with (and leak into) this test's own fresh instance below.
+            await vi.waitFor(() => expect(component.phase()).toBe('scanning'));
+            qrCodeReaderService.restart.mockClear();
+
+            const testCamera = { deviceId: 'cam1', label: 'Camera 1' } as MediaDeviceInfo;
+            qrCodeReaderService.getCurrentCamera.mockReturnValue(testCamera);
+
+            const freshFixture = TestBed.createComponent(ScannerComponent);
+            freshFixture.detectChanges();
+
+            // One restart() call for the pairing-phase <video>, a second rebinding to the
+            // scanning-phase one once that phase is reached.
+            await vi.waitFor(() => {
+                const calls = qrCodeReaderService.restart.mock.calls.filter(call => call[0] === 'cam1');
+                expect(calls.length).toBeGreaterThanOrEqual(2);
+            });
         });
 
         it('a failed registration surfaces as connectionLost once scanning has started', async () => {

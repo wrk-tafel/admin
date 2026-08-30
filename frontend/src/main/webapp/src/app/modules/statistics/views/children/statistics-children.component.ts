@@ -1,4 +1,6 @@
 import {Component, computed, inject, signal} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {map, Subject, switchMap} from 'rxjs';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {
@@ -14,6 +16,7 @@ import {
   MatTable
 } from '@angular/material/table';
 import {MatPaginatorModule, PageEvent} from '@angular/material/paginator';
+import {MatSortModule, Sort, SortDirection} from '@angular/material/sort';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators} from '@angular/forms';
@@ -79,6 +82,7 @@ export function ageRangeValidator(group: AbstractControl): ValidationErrors | nu
     MatRowDef,
     MatTable,
     MatPaginatorModule,
+    MatSortModule,
     BaseChartDirective,
     RouterLink
   ]
@@ -108,11 +112,18 @@ export class StatisticsChildrenComponent {
 
   childrenColumns = ['householdId', 'firstname', 'lastname', 'age'];
 
+  // Empty until a column header is clicked - the backend's own default order (by household, so
+  // a household's children stay adjacent) has no single "active" column to reflect here.
+  readonly sortActive = signal('');
+  readonly sortDirectionState = signal<SortDirection>('');
+
   /**
-   * Results come back ordered by household, so a household that sends more than one child appears
-   * as consecutive rows - `firstOfHousehold` is what lets the template group them visually instead
-   * of repeating the same household number down the column. Note a household can still be split
-   * across two pages; the flag then simply marks the first row of the page.
+   * By the default (household) order, a household that sends more than one child appears as
+   * consecutive rows - `firstOfHousehold` is what lets the template group them visually instead of
+   * repeating the same household number down the column. Note a household can still be split
+   * across two pages; the flag then simply marks the first row of the page. Sorting by a different
+   * column (see [onSortChange]) no longer guarantees that adjacency - the comparison here still
+   * works, it just stops finding a run to collapse, so the household number is shown on every row.
    */
   rows = computed(() => {
     const items = this.childrenData()?.items ?? [];
@@ -169,7 +180,41 @@ export class StatisticsChildrenComponent {
     }
   };
 
+  /**
+   * Every load goes through this subject instead of subscribing per call, so a still-in-flight
+   * request from a previous keystroke/page can never overwrite what a newer one already applied -
+   * see #3530. One `Subject` feeds both endpoints below so they switchMap off the very same
+   * request, each cancelling only its own prior in-flight call.
+   */
+  private readonly loadRequests = new Subject<LoadChildrenRequest>();
+
   constructor() {
+    this.loadRequests
+      .pipe(
+        switchMap(request => this.statisticsApiService.getChildrenData(
+          request.filter,
+          request.page,
+          request.pageSize,
+          this.sortActive() || undefined,
+          this.sortDirectionState() || undefined
+        )
+          .pipe(map(response => ({filter: request.filter, response})))),
+        takeUntilDestroyed(),
+      )
+      .subscribe(({filter, response}) => {
+        // Set together with the response it actually describes, not at dispatch time - otherwise
+        // the headline could describe a filter whose matching response hasn't arrived yet.
+        this.appliedFilter.set(filter);
+        this.childrenData.set(response);
+      });
+
+    this.loadRequests
+      .pipe(
+        switchMap(request => this.statisticsApiService.getChildrenAgeDistribution(request.filter)),
+        takeUntilDestroyed(),
+      )
+      .subscribe(response => this.ageDistribution.set(response));
+
     this.filterForm.valueChanges.subscribe(() => this.loadChildrenData());
     this.loadChildrenData();
   }
@@ -180,6 +225,16 @@ export class StatisticsChildrenComponent {
 
   onPageChange(event: PageEvent) {
     this.loadChildrenData(event.pageIndex + 1, event.pageSize);
+  }
+
+  /**
+   * A new sort replaces the current page 1 - clicking a column header is a request to see the
+   * result ordered by it, not just to reorder the page already on screen.
+   */
+  onSortChange(sort: Sort) {
+    this.sortActive.set(sort.direction ? sort.active : '');
+    this.sortDirectionState.set(sort.direction);
+    this.loadChildrenData(1, this.childrenData()?.pageSize);
   }
 
   protected generateChildrenCsv() {
@@ -197,13 +252,7 @@ export class StatisticsChildrenComponent {
       return;
     }
 
-    const filter = this.currentFilter();
-    this.appliedFilter.set(filter);
-
-    this.statisticsApiService.getChildrenData(filter, page, pageSize)
-      .subscribe((response) => this.childrenData.set(response));
-    this.statisticsApiService.getChildrenAgeDistribution(filter)
-      .subscribe((response) => this.ageDistribution.set(response));
+    this.loadRequests.next({filter: this.currentFilter(), page, pageSize});
   }
 
   private currentFilter(): ChildrenFilter {
@@ -224,4 +273,11 @@ export class StatisticsChildrenComponent {
   protected readonly schoolAgePreset = SCHOOL_AGE_PRESET;
   protected readonly minAge = MIN_AGE;
   protected readonly maxAge = MAX_AGE;
+}
+
+/** One queued load - the filter it ran with travels with it rather than being re-read later. */
+interface LoadChildrenRequest {
+  filter: ChildrenFilter;
+  page?: number;
+  pageSize?: number;
 }

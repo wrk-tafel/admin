@@ -202,7 +202,14 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
 
     component.currentShop.set(mockShops[0]);
+    // populated the way applyShopValues()/applyFallbackShopValues() would after actually loading
+    // shop 0 - selectShop() only sends a shop's return items for a pairing it captured itself
+    (component as any).currentSelection = {routeId: mockRoute.id, shopId: mockShops[0].id};
     component.addReturnItem('Bananenkartons', 2);
+    // addReturnItem() alone doesn't mark the form dirty (only real user input does) - mark it as if
+    // the user had actually typed the row in, since sendReturnItemsOfCurrentShop() now skips a
+    // pristine form
+    component.returnItems.markAsDirty();
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
     const saveReturnItemsSpy = vi.spyOn(apiService, 'saveReturnItemsPerShop').mockReturnValue(of(undefined));
@@ -217,6 +224,41 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     );
     // the newly loaded shop starts from a clean slate
     expect(component.returnItems.length).toBe(0);
+  });
+
+  it('sends the outgoing shop\'s return items under its own route, not the newly selected route', () => {
+    // Regression test for #3527: selectedRouteData() already points at the new route by the time
+    // the outgoing shop's return items are sent, so the request must not be built from it.
+    const otherRoute = {id: 999, name: 'Other Route'};
+    const otherShop = {id: 888, number: 9, name: 'Other Shop', address: 'Other Address'};
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    component.currentShop.set(mockShops[0]);
+    (component as any).currentSelection = {routeId: mockRoute.id, shopId: mockShops[0].id};
+    component.addReturnItem('Bananenkartons', 2);
+    component.returnItems.markAsDirty();
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    const saveReturnItemsSpy = vi.spyOn(apiService, 'saveReturnItemsPerShop').mockReturnValue(of(undefined));
+    vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue(of({items: [], returnItems: []}) as any);
+
+    // simulates the parent switching selectedRouteData to a different route before this component's
+    // loadEffect re-runs and calls selectShop() for the new route's first shop
+    componentRef.setInput('selectedRouteData', {route: otherRoute, shops: [otherShop], foodCollectionData: {items: []}});
+    component.selectShop(otherShop);
+
+    expect(saveReturnItemsSpy).toHaveBeenCalledWith(
+      mockRoute.id,
+      mockShops[0].id,
+      {returnItems: [{description: 'Bananenkartons', amount: 2}]}
+    );
   });
 
   it('splits loaded return items into known counters and free-text rows', () => {
@@ -647,6 +689,25 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     component.addReturnItem('graue kisten', 2);
 
     expect(component.tabStatus()).toBe('invalid');
+  });
+
+  it('resets to a blank state without an error for a route with no shops', () => {
+    // Regression test for #3527: findNextUnfilledShop() returns undefined for an empty route,
+    // which selectShop() used to dereference directly. Calls selectShop() directly (the way
+    // loadEffect() would for an empty route) rather than via detectChanges(), since Angular's
+    // effect scheduler reports an effect's exception to the ErrorHandler instead of letting it
+    // propagate out of detectChanges(), which would make a thrown error invisible to this test.
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: [], foodCollectionData: {items: []}});
+
+    expect(() => component.selectShop(undefined)).not.toThrow();
+
+    expect(component.currentShop()).toBeNull();
   });
 
   it('should navigate to next shop correctly', () => {

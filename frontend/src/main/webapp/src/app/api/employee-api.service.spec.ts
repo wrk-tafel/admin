@@ -51,6 +51,14 @@ describe('EmployeeApiService', () => {
     httpMock.verify();
   });
 
+  it('find employees sorted by a column', () => {
+    apiService.findEmployees(undefined, 1, 10, 'lastname', 'asc').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/employees?page=1&pageSize=10&sortBy=lastname&sortDirection=asc'});
+    req.flush({items: []});
+    httpMock.verify();
+  });
+
   it('save employee', () => {
     const mockCreateEmployeeRequest: CreateEmployeeRequest = {
       personnelNumber: '00001',
