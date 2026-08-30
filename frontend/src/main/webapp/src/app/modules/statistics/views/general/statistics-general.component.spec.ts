@@ -1,3 +1,4 @@
+import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {ComponentFixture} from '@angular/core/testing';
 import {StatisticsGeneralComponent} from './statistics-general.component';
@@ -6,9 +7,11 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {provideCharts, withDefaultRegisterables} from 'ng2-charts';
 import dayjs from 'dayjs';
 import {StatisticsData, StatisticsDetailData, StatisticsSettings} from '../../../../api/statistics-api.service';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
 
 describe('StatisticsGeneralComponent', () => {
   let httpMock: HttpTestingController;
+  let fileHelperService: MockedObject<FileHelperService>;
 
   const distributions = [
     {startDate: '2026-08-08T10:00:00', endDate: '2026-08-08T18:00:00'},
@@ -46,10 +49,17 @@ describe('StatisticsGeneralComponent', () => {
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         provideCharts(withDefaultRegisterables()),
+        {
+          provide: FileHelperService,
+          useValue: {
+            downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
+          }
+        }
       ]
     }).compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);
+    fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
   }));
 
   afterEach(() => {
@@ -291,7 +301,11 @@ describe('StatisticsGeneralComponent', () => {
     const request = httpMock.expectOne(request => request.url === '/statistics/generate-csv');
     expect(request.request.params.get('fromDate')).toEqual(dayjs().startOf('year').format('YYYY-MM-DD'));
     expect(request.request.params.get('toDate')).toEqual(dayjs().format('YYYY-MM-DD'));
-    request.flush(new Blob(['data']), {headers: {'content-disposition': 'inline; filename=export.csv'}});
+
+    const blob = new Blob(['data']);
+    request.flush(blob, {headers: {'content-disposition': 'inline; filename=export.csv'}});
+
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('export.csv', blob);
   });
 
 });
