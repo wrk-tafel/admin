@@ -52,12 +52,13 @@ internal class PushBroadcastServiceTest {
         every { pushPreferencesService.isEnabled(any(), any()) } returns true
     }
 
-    private fun subscriptionOf(id: Long, userId: Long, permissions: List<UserPermissions> = emptyList()) = PushSubscriptionEntity().apply {
+    private fun subscriptionOf(id: Long, userId: Long, permissions: List<UserPermissions> = emptyList(), enabled: Boolean = true) = PushSubscriptionEntity().apply {
         this.id = id
         user = UserEntity(
             username = "user-$userId",
             password = "pw",
             employee = EmployeeEntity(personnelNumber = "p-$userId", firstname = "first", lastname = "last"),
+            enabled = enabled,
         ).apply {
             this.id = userId
             authorities = permissions.map { UserAuthorityEntity(user = this, name = it.key) }.toMutableList()
@@ -123,6 +124,24 @@ internal class PushBroadcastServiceTest {
 
         verify(exactly = 0) { pushPreferencesService.isEnabled(any(), any()) }
         verify(exactly = 0) { webPushSenderService.send(any(), any()) }
+    }
+
+    /**
+     * A disabled account is offboarded - its subscriptions must not keep receiving broadcasts,
+     * some of which (USER_LOCKED_OUT, EXCESSIVE_READ_ACCESS) name other users and record counts.
+     */
+    @Test
+    fun `skips a subscription whose owner account is disabled`() {
+        val active = subscriptionOf(id = 10, userId = 100, enabled = true)
+        val disabled = subscriptionOf(id = 11, userId = 101, enabled = false)
+        every { pushSubscriptionRepository.findAll() } returns listOf(active, disabled)
+        every { webPushSenderService.send(any(), any()) } returns PushSendResult.SENT
+
+        service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
+
+        verify { webPushSenderService.send(active, "payload-json") }
+        verify(exactly = 0) { webPushSenderService.send(disabled, any()) }
+        verify(exactly = 0) { pushPreferencesService.isEnabled(101L, any()) }
     }
 
     @Test

@@ -143,10 +143,23 @@
   </mat-card-header>
 
   <mat-card-content class="pt-6">
+    @if (preferencesError()) {
+      <p class="mb-4 flex items-center justify-between gap-2 rounded-md bg-red-50 p-3 text-sm text-red-900"
+         testid="push-preferences-error">
+        <span class="flex items-center gap-2">
+          <mat-icon svgIcon="warning"></mat-icon>
+          <span>Einstellungen konnten nicht geladen werden.</span>
+        </span>
+        <button type="button" testid="push-preferences-retry" matButton="outlined" (click)="retryLoadPreferences()">
+          Erneut versuchen
+        </button>
+      </p>
+    }
+
     <mat-slide-toggle
       testid="push-master-toggle"
       [checked]="preferences().masterEnabled"
-      [disabled]="preferencesLoading()"
+      [disabled]="preferencesLoading() || preferencesError()"
       (change)="onMasterToggle($event)"
     >
       Alle Benachrichtigungen erhalten
@@ -191,7 +204,7 @@
                 <mat-slide-toggle
                   testid="push-type-preference-toggle"
                   [checked]="typePreference.enabled"
-                  [disabled]="preferencesLoading() || !preferences().masterEnabled"
+                  [disabled]="preferencesLoading() || preferencesError() || !preferences().masterEnabled"
                   (change)="onTypeToggle(typePreference.type, $event)"
                 >
                   {{ typeLabel(typePreference.type) }}

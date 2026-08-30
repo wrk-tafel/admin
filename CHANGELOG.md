@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Ein deaktiviertes Benutzerkonto erhält jetzt keine Push-Benachrichtigungen mehr auf seinen Geräten, und ein fehlgeschlagenes Laden der Benachrichtigungseinstellungen zeigt jetzt einen Hinweis mit Wiederholen-Möglichkeit an, statt alle Schalter dauerhaft zu deaktivieren.
 - Feldwerte im Zugriffsprotokoll (z. B. Ja/Nein-Felder, Geschlecht, Dokumentart, Grenzwert-Art, Mailtyp, Empfängertyp, Berechtigung) werden jetzt auf Deutsch angezeigt, statt als technischer, teils englischer Rohwert.
 - Der CSV-Export der Tagesreports zeigt bei "Versorgte Personen" und "davon in Ausgabestelle" jetzt die korrekte Personenzahl, statt die Hauptbezieher doppelt zu zählen.
 - Die Statistik-Kennzahlen "Spender (Anzahl)" und "Warenmenge (Durchschnitt pro Spender)" beziehen sich jetzt auf den gesamten gewählten Zeitraum, statt je nach gewählter Zeitauflösung unterschiedliche bzw. zu hohe Werte zu liefern.

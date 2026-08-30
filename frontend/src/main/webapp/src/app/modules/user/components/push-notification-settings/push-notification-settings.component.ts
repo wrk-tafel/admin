@@ -87,6 +87,7 @@ export class PushNotificationSettingsComponent {
   readonly devices = signal<PushDeviceItem[]>([]);
   readonly preferences = signal<PushPreferencesResponse>(DEFAULT_PREFERENCES);
   readonly preferencesLoading = signal(true);
+  readonly preferencesError = signal(false);
   // Id of the device whose test notification is currently in flight - per-device rather than a
   // single flag so testing one device doesn't disable the button on all the others.
   readonly testedDeviceId = signal<number | null>(null);
@@ -113,7 +114,9 @@ export class PushNotificationSettingsComponent {
    * up as an enabled toggle above an empty device list.
    */
   private async initialize() {
-    this.loadPreferences();
+    // Not awaited - it runs alongside the subscription sync below and reports its own outcome via
+    // preferencesLoading/preferencesError rather than ever rejecting itself.
+    void this.loadPreferences();
     this.readPermissionState();
 
     if (this.supported) {
@@ -121,7 +124,11 @@ export class PushNotificationSettingsComponent {
     }
     this.loading.set(false);
 
-    await this.loadDevices();
+    try {
+      await this.loadDevices();
+    } catch {
+      this.toastr.error('Geräte konnten nicht geladen werden.');
+    }
   }
 
   async onToggle(event: MatSlideToggleChange) {
@@ -357,8 +364,19 @@ export class PushNotificationSettingsComponent {
   }
 
   private async loadPreferences() {
-    this.preferences.set(await this.pushNotificationService.getPreferences());
-    this.preferencesLoading.set(false);
+    this.preferencesLoading.set(true);
+    this.preferencesError.set(false);
+    try {
+      this.preferences.set(await this.pushNotificationService.getPreferences());
+    } catch {
+      this.preferencesError.set(true);
+    } finally {
+      this.preferencesLoading.set(false);
+    }
+  }
+
+  protected retryLoadPreferences() {
+    void this.loadPreferences();
   }
 
   protected readonly permissionBlockedHint = PERMISSION_BLOCKED_HINT;
