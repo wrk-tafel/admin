@@ -22,6 +22,8 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Der Download von PDF-, CSV- oder ZIP-Dateien zeigt bei einem vorübergehend nicht erreichbaren Server jetzt die korrekte Fehlermeldung an, statt einer technischen Fehlermeldung.
 - Beim Bearbeiten eines Benutzerkontos bleibt "Speichern" nicht mehr fälschlich deaktiviert, wenn ein zuvor eingegebenes, nicht übereinstimmendes Passwort durch Einklappen des Passwort-zurücksetzen-Bereichs wieder verworfen wird.
 - Der Dialog zum Anlegen einer neuen Notschlafstelle trägt jetzt den Titel "Notschlafstelle anlegen" statt "Notschlafstelle bearbeiten".
+- Ein auf der Seite "Kunden-Duplikate" als "Kein Duplikat" markiertes Kundenpaar blockiert das Speichern der beiden Kunden jetzt nicht mehr, statt bei jeder weiteren Änderung erneut als möglicher Duplikat-Konflikt gemeldet zu werden.
+- Wird das letzte verbleibende Duplikat-Paar auf der letzten Seite der Seite "Kunden-Duplikate" gelöscht oder als "Kein Duplikat" markiert, bleibt die Liste jetzt nutzbar, statt leer zu bleiben.
 
 ## [1.15.0] - 2026-08-30
 - Die Screenshots im Benutzerhandbuch zeigen wieder den aktuellen Stand der Anwendung (u. a. Kunden anlegen/bearbeiten mit dem neuen Nationalität-Suchfeld und die Schnellsuche mit dem Kurzhinweis und der zweiten Aktion "Datenschutzerklärung (Mitarbeiter) herunterladen").

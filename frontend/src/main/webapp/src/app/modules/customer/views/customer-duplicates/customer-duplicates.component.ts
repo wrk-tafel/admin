@@ -99,11 +99,12 @@ export class CustomerDuplicatesComponent {
     }
   ];
 
+  // getCustomerDuplicates() re-clamps to the new last page itself when a requested page comes
+  // back empty but duplicates remain (dismissing/deleting the last pair on the last page), so
+  // this only ever needs to set whatever it resolves to.
   getDuplicates(page?: number) {
     this.customerApiService.getCustomerDuplicates(page)
-      .subscribe((response: CustomerDuplicatesResponse) => {
-        this.customerDuplicatesData.set(response.items.length === 0 ? undefined : response);
-      });
+      .subscribe((response: CustomerDuplicatesResponse) => this.customerDuplicatesData.set(response));
   }
 
   isValid(customer: CustomerData) {
