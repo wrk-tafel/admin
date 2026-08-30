@@ -241,8 +241,12 @@ class HouseholdService(
                 )
             }
         } else if (!valid) {
-            // When a household is updated with an invalid income - force set it invalid
+            // When a household is updated with an invalid income - force set it invalid. A renewal
+            // that ends up here regardless (validUntil was pushed out, but the income check then
+            // failed) must not keep the prolongedAt stamp the converter already set for it - the
+            // household is invalid, not renewed.
             mappedEntity.validUntil = LocalDate.now().minusDays(1)
+            mappedEntity.prolongedAt = null
             val savedEntity = saveWithMainPerson(mappedEntity)
             log.info("Updated household {} (income above limit, saved as invalid)", savedEntity.householdId)
             return HouseholdUpdateResponse(

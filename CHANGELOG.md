@@ -6,6 +6,12 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Feldwerte im Zugriffsprotokoll (z. B. Ja/Nein-Felder, Geschlecht, Dokumentart, Grenzwert-Art, Mailtyp, Empfängertyp, Berechtigung) werden jetzt auf Deutsch angezeigt, statt als technischer, teils englischer Rohwert.
+- Der CSV-Export der Tagesreports zeigt bei "Versorgte Personen" und "davon in Ausgabestelle" jetzt die korrekte Personenzahl, statt die Hauptbezieher doppelt zu zählen.
+- Die Statistik-Kennzahlen "Spender (Anzahl)" und "Warenmenge (Durchschnitt pro Spender)" beziehen sich jetzt auf den gesamten gewählten Zeitraum, statt je nach gewählter Zeitauflösung unterschiedliche bzw. zu hohe Werte zu liefern.
+- Die Statistik-Kennzahl "Notschlafstellen (Durchschnitt pro Ausgabe)" berücksichtigt jetzt auch Ausgaben ohne Notschlafstelle, statt den Durchschnitt zu hoch auszuweisen.
+- Ein Kunde, dessen Verlängerung wegen eines zu hohen Einkommens ungültig gespeichert wird, scheint jetzt nicht mehr fälschlich als "Verlängert" in der Kundenübersicht und den Statistiken auf.
+- Die Anzahl der Kinder unter 3 Jahren auf der Bezugskarte und dem Stammdatenblatt wird jetzt wie in den übrigen Auswertungen berechnet (unter statt bis einschließlich 3 Jahre, ohne von der Haushaltszählung ausgeschlossene Personen).
+- Die Bezugskarte zeigt bei einer Adresse ohne Hausnummer jetzt keinen überflüssigen Bindestrich mehr an.
 - Ein gesperrter Kunde kann jetzt nicht mehr über das Bearbeiten-Formular versehentlich entsperrt werden, und eine spätere Änderung an einem bereits gesperrten Kunden überschreibt nicht mehr, wann und von wem er gesperrt wurde.
 
 ## [1.15.0] - 2026-08-30
