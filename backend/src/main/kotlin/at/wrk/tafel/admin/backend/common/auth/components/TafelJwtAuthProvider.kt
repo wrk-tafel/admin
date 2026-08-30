@@ -12,7 +12,6 @@ import org.springframework.security.authentication.DisabledException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -53,7 +52,14 @@ class TafelJwtAuthProvider(
 
             val tokenInvalidatedAt = userEntity.tokenInvalidatedAt
             if (tokenInvalidatedAt != null) {
-                val issuedAt = claims.issuedAt?.let { LocalDateTime.ofInstant(it.toInstant(), ZoneId.systemDefault()) }
+                // claims.issuedAt is already an absolute instant (the JWT `iat` claim) - converting it
+                // to a zoned LocalDateTime before comparing, as this used to do, maps it into the
+                // system zone's wall-clock time, which during a DST fall-back's repeated hour can make
+                // a token issued before the invalidating event read as issued after it (issue #3572).
+                // Converting tokenInvalidatedAt to an Instant instead and comparing both sides as
+                // instants sidesteps that ambiguity entirely.
+                val issuedAt = claims.issuedAt?.toInstant()
+                val tokenInvalidatedAtInstant = tokenInvalidatedAt.atZone(ZoneId.systemDefault()).toInstant()
                 // The JWT `iat` claim is serialized at whole-second precision (RFC 7519 NumericDate),
                 // while tokenInvalidatedAt carries sub-second precision - comparing against it
                 // untruncated would spuriously reject a token reissued in the very same second as the
@@ -61,7 +67,7 @@ class TafelJwtAuthProvider(
                 // right after invalidating the request's own). Truncating to seconds before comparing
                 // keeps a same-second reissue valid without weakening the actual protection: a token
                 // genuinely issued before the invalidating event is still rejected either way.
-                if (issuedAt == null || issuedAt.isBefore(tokenInvalidatedAt.truncatedTo(ChronoUnit.SECONDS))) {
+                if (issuedAt == null || issuedAt.isBefore(tokenInvalidatedAtInstant.truncatedTo(ChronoUnit.SECONDS))) {
                     throw CredentialsExpiredException("Token not valid")
                 }
             }

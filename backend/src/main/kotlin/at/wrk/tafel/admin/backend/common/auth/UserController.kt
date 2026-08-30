@@ -153,12 +153,24 @@ class UserController(
         // neuen Passwort angemeldet"), so a fresh cookie has to replace it here, the same way
         // TafelLoginFilter mints one after a real login.
         val username = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username!!
+        issueReplacementCookie(username, request, response)
+
+        return ResponseEntity.ok().build()
+    }
+
+    /**
+     * Mints a fresh session cookie for [username], replacing the one the current request came in on.
+     * Needed wherever a caller's own password is changed - [TafelUserDetailsManager.changePassword]/
+     * `mapToUserEntity` invalidate every JWT issued for the account up to now (see
+     * [TafelUserDetailsManager.markTokensInvalidated]), including the one carrying the request itself,
+     * so without this the very next request would be an unexplained 401/logout despite the change
+     * having succeeded (issue #3572).
+     */
+    private fun issueReplacementCookie(username: String, request: HttpServletRequest, response: HttpServletResponse) {
         val expirationTimeInSeconds = applicationProperties.security.jwtToken.expirationTimeInSeconds
         val token = jwtTokenService.generateToken(username = username, expirationSeconds = expirationTimeInSeconds)
         val cookie = TafelLoginFilter.createTokenCookie(token, expirationTimeInSeconds, tafelAdminProperties.server.relativeBaseUrl, request)
         response.addCookie(cookie)
-
-        return ResponseEntity.ok().build()
     }
 
     @PostMapping("/logout")
@@ -274,6 +286,8 @@ class UserController(
     fun updateUser(
         @PathVariable userId: Long,
         @Valid @RequestBody user: UserRequest,
+        request: HttpServletRequest,
+        response: HttpServletResponse,
     ): ResponseEntity<UserResponse> {
         // The write below always targets the path id (see mapToTafelUser call), never a body one -
         // this only turns a body/path mismatch into an explicit error instead of a silent one, since
@@ -306,6 +320,17 @@ class UserController(
         try {
             val updatedTafelUser = mapToTafelUser(user, id = userId)
             userDetailsManager.updateUser(updatedTafelUser)
+
+            // A caller resetting their own password here (rather than through POST
+            // /api/users/change-password) just invalidated every JWT issued for their account too
+            // (see TafelUserDetailsManager.mapToUserEntity) - including the one this request came in
+            // on - so the same replacement cookie changePassword mints has to happen here as well.
+            // The username used is the just-persisted one, in case it changed in the same request.
+            val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
+            val passwordChanged = !user.password.isNullOrBlank()
+            if (authenticatedUser?.userId == userId && passwordChanged) {
+                issueReplacementCookie(updatedTafelUser.username, request, response)
+            }
 
             val userResponse = mapToResponse(userDetailsManager.loadUserById(userId)!!)
             return ResponseEntity.ok(userResponse)

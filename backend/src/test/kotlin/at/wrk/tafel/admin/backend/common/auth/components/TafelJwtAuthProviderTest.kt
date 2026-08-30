@@ -295,6 +295,54 @@ internal class TafelJwtAuthProviderTest {
         assertThat(resultingAuthentication.isAuthenticated).isTrue
     }
 
+    /**
+     * 2026-10-25 is the EU DST fall-back day in Europe/Vienna: local time 02:00-02:59:59 occurs
+     * twice, once at offset +02:00 (CEST, before the transition) and once at +01:00 (CET, after).
+     * `tokenInvalidatedAt` is a naive `LocalDateTime` with no recorded offset, so comparing it
+     * against `issuedAt` after converting *both* through a zoned `LocalDateTime` (the pre-fix
+     * approach) can make a token issued strictly after the invalidating event read as issued
+     * before it, since the ambiguous local time collapses two different real instants into one.
+     * Here the invalidation happened during the first (CEST) occurrence at 02:20 - real instant
+     * 00:20 UTC - and the token was issued during the second (CET) occurrence at 02:05 - real
+     * instant 01:05 UTC, chronologically *after* the invalidation despite reading as an earlier
+     * wall-clock time. Comparing as instants keeps this token valid; the pre-fix `LocalDateTime`
+     * comparison rejected it.
+     */
+    @Test
+    fun `authenticate compares issuedAt against tokenInvalidatedAt as instants across a DST fall-back`() {
+        val originalDefaultTimeZone = TimeZone.getDefault()
+        TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of("Europe/Vienna")))
+        try {
+            val username = "SUBJ"
+            val tokenInvalidatedAt = LocalDateTime.of(2026, 10, 25, 2, 20, 0)
+            val issuedAtInstant = LocalDateTime.of(2026, 10, 25, 2, 5, 0).atOffset(ZoneOffset.ofHours(1)).toInstant()
+            val issuedAt = Date.from(issuedAtInstant)
+            val expiration = Date.from(issuedAtInstant.plusSeconds(60 * 60 * 24))
+
+            val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+            every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
+                mapOf(
+                    Claims.SUBJECT to username,
+                    Claims.EXPIRATION to expiration,
+                    Claims.ISSUED_AT to issuedAt,
+                ),
+            )
+            val userEntity = UserEntity(
+                username = username,
+                password = "pwd",
+                employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+                enabled = true,
+            ).apply { this.tokenInvalidatedAt = tokenInvalidatedAt }
+            every { userRepository.findByUsername(username) } returns userEntity
+
+            val resultingAuthentication = provider.authenticate(authentication)
+
+            assertThat(resultingAuthentication.isAuthenticated).isTrue
+        } finally {
+            TimeZone.setDefault(originalDefaultTimeZone)
+        }
+    }
+
     @Test
     fun `authenticate with valid token but deleted user fails`() {
         val username = "SUBJ"

@@ -26,7 +26,11 @@ security:
     issuer: test-issuer
     audience: test-audience
     secret:
-      value: test-secret
+      # HMACSHA256 requires a key of at least 256 bits (32 bytes) - anything shorter throws
+      # io.jsonwebtoken.security.UnsupportedKeyException the moment a test actually signs a token
+      # with the real JwtTokenService bean (e.g. UserControllerEscalationIT's self-service password
+      # change, issue #3572), rather than only stubbing it away with a relaxed mock.
+      value: integration-test-secret-value-padded-to-32-bytes-minimum
       algorithm: HMACSHA256
     expirationTimeInSeconds: 300 # 5 minutes
     expirationTimePwdChangeInSeconds: 600 # 10 minutes
