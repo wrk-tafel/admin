@@ -125,23 +125,33 @@ describe('Customer Duplicates', () => {
     // Stubbed like the empty-state test above: this needs a specific page-3-of-3 state that the
     // shared e2e database can't be reliably arranged into through the UI alone. Regression test
     // for #3562 - dismissing/deleting the last pair on the last page used to blank the whole card.
-    const buildCustomer = (id: number): CustomerData => ({
+    // The stub responds in the backend's raw household/similarHouseholds shape (not the frontend's
+    // customer/similarCustomers one) - customerApiService.getCustomerDuplicates() is what maps
+    // between the two, same as the real API response would be mapped.
+    const buildHousehold = (id: number) => ({
       id,
-      firstname: 'Firstname' + id,
-      lastname: 'Lastname' + id,
-      birthDate: dayjs().subtract(30, 'year').toDate(),
-      gender: Gender.MALE,
       address: {street: 'Street' + id, houseNumber: '1', city: 'city', postalCode: 1234},
-      validUntil: dayjs().add(1, 'year').toDate()
+      validUntil: dayjs().add(1, 'year').format('YYYY-MM-DD'),
+      persons: [{
+        id,
+        isMainPerson: true,
+        firstname: 'Firstname' + id,
+        lastname: 'Lastname' + id,
+        birthDate: dayjs().subtract(30, 'year').format('YYYY-MM-DD'),
+        gender: Gender.MALE,
+        country: {id: 165, code: 'AT', name: 'Österreich'},
+        excludeFromHousehold: false,
+        receivesFamilyAllowance: false
+      }]
     });
 
     const pageThreeOfThreeResponse = {
-      items: [{customer: buildCustomer(101), similarCustomers: [buildCustomer(102)]}],
+      items: [{household: buildHousehold(101), similarHouseholds: [buildHousehold(102)]}],
       totalCount: 3, currentPage: 3, totalPages: 3, pageSize: 1
     };
     const emptyPageThreeAfterDismissResponse = {items: [], totalCount: 2, currentPage: 3, totalPages: 3, pageSize: 1};
     const clampedPageTwoResponse = {
-      items: [{customer: buildCustomer(201), similarCustomers: [buildCustomer(202)]}],
+      items: [{household: buildHousehold(201), similarHouseholds: [buildHousehold(202)]}],
       totalCount: 2, currentPage: 2, totalPages: 2, pageSize: 1
     };
 
