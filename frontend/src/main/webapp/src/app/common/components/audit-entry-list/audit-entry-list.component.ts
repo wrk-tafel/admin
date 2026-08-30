@@ -8,7 +8,8 @@ import {
   auditEntityTypeLabel,
   auditFieldLabel,
   AuditOperation,
-  auditOperationLabel
+  auditOperationLabel,
+  auditValueLabel
 } from '../../../api/audit-api.service';
 import {AuthenticationService} from '../../security/authentication.service';
 
@@ -153,10 +154,15 @@ export class AuditEntryListComponent {
 
   /**
    * An unset value is shown as a dash rather than left blank, so "was empty" and "the column is
-   * narrow" cannot be confused for one another.
+   * narrow" cannot be confused for one another. A value stored as a raw boolean or enum constant
+   * (e.g. "true", "FEMALE") is translated via [auditValueLabel] where a mapping for the field
+   * exists - the same "unmapped value shown as-is" fallback as [fieldLabel].
    */
-  protected displayValue(value?: string): string {
-    return value === undefined || value === null || value === '' ? '–' : value;
+  protected displayValue(field: string, value?: string): string {
+    if (value === undefined || value === null || value === '') {
+      return '–';
+    }
+    return auditValueLabel[field]?.[value] ?? value;
   }
 
   /**

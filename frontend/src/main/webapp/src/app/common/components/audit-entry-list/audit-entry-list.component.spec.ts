@@ -186,6 +186,37 @@ describe('AuditEntryListComponent', () => {
     expect(element.querySelector('[testid="audit-entry-0-change-0-field"]')?.textContent?.trim()).toBe('somethingNew');
   });
 
+  it('translates a boolean field value instead of showing the raw true/false', () => {
+    const element: HTMLElement = createComponent([{
+      ...entry,
+      changes: [{field: 'singleParent', oldValue: 'false', newValue: 'true'}]
+    }]).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-change-0-oldValue"]')?.textContent?.trim()).toBe('Nein');
+    expect(element.querySelector('[testid="audit-entry-0-change-0-newValue"]')?.textContent?.trim()).toBe('Ja');
+  });
+
+  it('translates a known enum field value instead of showing the raw constant name', () => {
+    const element: HTMLElement = createComponent([{
+      ...entry,
+      changes: [{field: 'gender', oldValue: 'MALE', newValue: 'FEMALE'}]
+    }]).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-change-0-oldValue"]')?.textContent?.trim()).toBe('Männlich');
+    expect(element.querySelector('[testid="audit-entry-0-change-0-newValue"]')?.textContent?.trim()).toBe('Weiblich');
+  });
+
+  // A value stored for a field with no known mapping is shown as-is - same "unmapped falls back
+  // to the raw form" reasoning as the field label itself.
+  it('falls back to the raw value when there is no German label for it', () => {
+    const element: HTMLElement = createComponent([{
+      ...entry,
+      changes: [{field: 'gender', oldValue: 'MALE', newValue: 'DIVERSE'}]
+    }]).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-change-0-newValue"]')?.textContent?.trim()).toBe('DIVERSE');
+  });
+
   describe('grouping by day', () => {
 
     function entryAt(id: number, occurredAt: Date): AuditEntryItem {
