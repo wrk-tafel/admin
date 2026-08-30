@@ -72,6 +72,30 @@ describe('User Edit', () => {
     });
   });
 
+  // Regression test for #3563: a mismatching password typed and then collapsed used to leave
+  // "Speichern" disabled with the mismatch error hidden inside the now-collapsed section.
+  it('collapsing the reset section clears a mismatching password so "Speichern" stays enabled', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.visit('/benutzer/bearbeiten/' + user.id);
+      cy.byTestId('firstnameInput').should('have.value', user.firstname);
+
+      cy.byTestId('password-reset-toggle').click();
+      cy.byTestId('passwordInput').should('be.visible').type('abc');
+      cy.byTestId('passwordRepeatInput').type('abd');
+      cy.byTestId('save-button').should('be.disabled');
+
+      cy.byTestId('password-reset-toggle').click();
+      cy.byTestId('passwordInput').should('not.be.visible');
+      cy.byTestId('save-button').should('not.be.disabled');
+
+      cy.byTestId('password-reset-toggle').click();
+      cy.byTestId('passwordInput').should('be.visible').should('have.value', '');
+      cy.byTestId('passwordRepeatInput').should('have.value', '');
+    });
+  });
+
   it('typing a password and collapsing the reset section again before saving does not reset it', () => {
     cy.createDummyUser().then((response) => {
       const user = response.body;

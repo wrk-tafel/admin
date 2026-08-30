@@ -147,7 +147,7 @@ export class SettingsSheltersComponent {
 
   protected addShelter() {
     const dialogRef = this.dialog.open(ShelterEditDialogComponent, {
-      data: {shelter: undefined as any},
+      data: {},
       width: '600px'
     });
 

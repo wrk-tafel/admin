@@ -268,6 +268,39 @@ describe('ErrorHandlerInterceptor', () => {
         httpTestingController.verify();
     });
 
+    it('blob request with a JSON problem-detail error body remaps it like a normal request', () => {
+        authServiceSpy.isAuthenticated.mockReturnValue(false);
+
+        const observer = {
+            error: (_: any) => {
+                expect(toastrSpy.error).toHaveBeenCalledWith('Custom message from blob error', 'HTTP 400 - Bad Request');
+            },
+        };
+        httpClient.get('/test', { responseType: 'blob' }).subscribe(observer);
+
+        const mockReq = httpTestingController.expectOne('/test');
+        const errorBody: ProblemDetail = { detail: 'Custom message from blob error' };
+        const blob = new Blob([JSON.stringify(errorBody)], { type: 'application/json' });
+        mockReq.flush(blob, { status: 400, statusText: 'Bad Request' });
+        httpTestingController.verify();
+    });
+
+    it('blob request whose error body is not JSON (e.g. an nginx HTML page on a gateway error) falls back to the status message', () => {
+        authServiceSpy.isAuthenticated.mockReturnValue(false);
+
+        const observer = {
+            error: (_: any) => {
+                expect(toastrSpy.error).toHaveBeenCalledWith('Server nicht verfügbar!', 'HTTP 502 - Bad Gateway');
+            },
+        };
+        httpClient.get('/test', { responseType: 'blob' }).subscribe(observer);
+
+        const mockReq = httpTestingController.expectOne('/test');
+        const blob = new Blob(['<html><body>502 Bad Gateway</body></html>'], { type: 'text/html' });
+        mockReq.flush(blob, { status: 502, statusText: 'Bad Gateway' });
+        httpTestingController.verify();
+    });
+
     it('authentication expired and redirected to login', () => {
         authServiceSpy.isAuthenticated.mockReturnValue(true);
 
