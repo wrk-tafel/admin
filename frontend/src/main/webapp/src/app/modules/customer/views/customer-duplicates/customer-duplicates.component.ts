@@ -99,10 +99,20 @@ export class CustomerDuplicatesComponent {
     }
   ];
 
+  /**
+   * Requesting `page` can come back with an empty `items` page even though duplicates remain -
+   * dismissing/deleting the last remaining pair on the last page shrinks totalCount, and the
+   * page just requested no longer exists. Re-request the new last page instead of showing that
+   * empty response, so the reviewer lands on the tail of the queue instead of a dead end.
+   */
   getDuplicates(page?: number) {
     this.customerApiService.getCustomerDuplicates(page)
       .subscribe((response: CustomerDuplicatesResponse) => {
-        this.customerDuplicatesData.set(response.items.length === 0 ? undefined : response);
+        if (response.items.length === 0 && response.totalCount > 0) {
+          this.getDuplicates(Math.ceil(response.totalCount / response.pageSize));
+          return;
+        }
+        this.customerDuplicatesData.set(response);
       });
   }
 

@@ -121,6 +121,55 @@ describe('Customer Duplicates', () => {
     cy.byTestId('no-duplicates-message').find('mat-icon').should('have.css', 'color', 'oklch(0.627 0.194 149.214)');
   });
 
+  it('re-clamps to the new last page instead of going blank when dismissing the last pair on the last page', () => {
+    // Stubbed like the empty-state test above: this needs a specific page-3-of-3 state that the
+    // shared e2e database can't be reliably arranged into through the UI alone. Regression test
+    // for #3562 - dismissing/deleting the last pair on the last page used to blank the whole card.
+    const buildCustomer = (id: number): CustomerData => ({
+      id,
+      firstname: 'Firstname' + id,
+      lastname: 'Lastname' + id,
+      birthDate: dayjs().subtract(30, 'year').toDate(),
+      gender: Gender.MALE,
+      address: {street: 'Street' + id, houseNumber: '1', city: 'city', postalCode: 1234},
+      validUntil: dayjs().add(1, 'year').toDate()
+    });
+
+    const pageThreeOfThreeResponse = {
+      items: [{customer: buildCustomer(101), similarCustomers: [buildCustomer(102)]}],
+      totalCount: 3, currentPage: 3, totalPages: 3, pageSize: 1
+    };
+    const emptyPageThreeAfterDismissResponse = {items: [], totalCount: 2, currentPage: 3, totalPages: 3, pageSize: 1};
+    const clampedPageTwoResponse = {
+      items: [{customer: buildCustomer(201), similarCustomers: [buildCustomer(202)]}],
+      totalCount: 2, currentPage: 2, totalPages: 2, pageSize: 1
+    };
+
+    let getDuplicatesCallCount = 0;
+    cy.intercept('GET', '**/api/households/duplicates*', (req) => {
+      getDuplicatesCallCount++;
+      const body = getDuplicatesCallCount === 1
+        ? pageThreeOfThreeResponse
+        : getDuplicatesCallCount === 2 ? emptyPageThreeAfterDismissResponse : clampedPageTwoResponse;
+      req.reply({statusCode: 200, body});
+    }).as('getDuplicates');
+    cy.intercept('POST', '**/api/households/duplicates/dismiss', {statusCode: 200}).as('dismiss');
+
+    cy.visit('/kunden/duplikate?seite=3');
+    cy.wait('@getDuplicates');
+    cy.byTestId('duplicates-announcement').should('contain.text', 'Seite 3');
+
+    cy.byTestId('duplicate-actions-menu-102').click();
+    cy.byTestId('duplicate-dismiss-button-102').click();
+    cy.wait('@dismiss');
+    cy.wait('@getDuplicates');
+    cy.wait('@getDuplicates');
+
+    cy.byTestId('no-duplicates-message').should('not.exist');
+    cy.byTestId('duplicate-group-201').should('be.visible');
+    cy.byTestId('duplicates-announcement').should('contain.text', 'Seite 2');
+  });
+
   it('the "kein Duplikat" action is only offered on the similar candidates, not the anchor itself', () => {
     createDuplicatePair().then(({first}) => {
       const customer1 = first.body.data;

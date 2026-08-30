@@ -160,6 +160,40 @@ class HouseholdDuplicationServiceIT : TafelBaseIntegrationTest() {
 
     @Test
     @Transactional
+    fun `findPotentialDuplicates - a dismissed pair no longer blocks saving either household`() {
+        val household1 = persistHousehold(firstname = "Maria", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+        val household2 = persistHousehold(firstname = "Marie", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        householdDuplicationService.dismiss(household1.householdId, household2.householdId)
+
+        val resultForHousehold1Update = householdDuplicationService.findPotentialDuplicates(
+            mainPersonFirstname = "Maria",
+            mainPersonLastname = "Huber",
+            addressStreet = "Hauptstraße",
+            addressHouseNumber = "5",
+            addressDoor = null,
+            persons = emptyList(),
+            excludeHouseholdId = household1.householdId,
+        )
+        assertThat(resultForHousehold1Update).isEmpty()
+
+        val resultForHousehold2Update = householdDuplicationService.findPotentialDuplicates(
+            mainPersonFirstname = "Marie",
+            mainPersonLastname = "Huber",
+            addressStreet = "Hauptstraße",
+            addressHouseNumber = "5",
+            addressDoor = null,
+            persons = emptyList(),
+            excludeHouseholdId = household2.householdId,
+        )
+        assertThat(resultForHousehold2Update).isEmpty()
+    }
+
+    @Test
+    @Transactional
     fun `findPotentialDuplicates - person-level match ignores address`() {
         val household1 = persistHousehold(firstname = "Karl", lastname = "Berger", street = "Hauptstraße", houseNumber = "5")
         val duplicatePersonBirthDate = LocalDate.now().minusYears(10)

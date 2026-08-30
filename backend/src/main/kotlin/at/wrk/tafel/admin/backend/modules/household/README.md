@@ -273,6 +273,13 @@ decision made once would reappear on every review pass. Its columns hold the bus
 `household_id_high` cascade independently, so deleting either household in a dismissed pair removes
 the dismissal row.
 
+`findPotentialDuplicates` - `HouseholdService.checkForDuplicates`'s save-time check, run on every
+create and update - applies the same `household_duplicate_dismissals` anti-join to its own
+`MAIN_PERSON_SIMILARITY_SQL`/`PERSON_SIMILARITY_SQL` queries, guarded by `excludeHouseholdId IS
+NULL` since a create has no household id yet to look up a dismissal for. Without it, a pair
+dismissed on `/kunden/duplikate` would still be rejected as a possible duplicate on every later save
+of either household.
+
 `HouseholdController.mergeIntoHousehold`/`getMergePreview` hand off to `HouseholdMergeService` for
 the actual merge - see below for how field conflicts, person de-duplication, and note/distribution
 re-parenting work.

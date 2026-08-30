@@ -17,6 +17,8 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Wer das eigene Passwort über die Benutzerverwaltung (statt über "Passwort ändern") ändert, bleibt jetzt wie erwartet angemeldet, statt beim nächsten Klick unerwartet abgemeldet zu werden.
 - Ein durch Abmelden oder Passwortänderung ungültig gewordenes Anmelde-Token wird jetzt auch während der Zeitumstellung von Sommer- auf Winterzeit korrekt erkannt.
 - Anmerkungen einer Ausgabe sowie Routen-, Filial- und Retourkisten-Angaben werden im Tagesreport- und Retourkisten-Mail jetzt escaped angezeigt, statt enthaltenes HTML ungefiltert an die Mail-Empfänger auszuliefern.
+- Ein auf der Seite "Kunden-Duplikate" als "Kein Duplikat" markiertes Kundenpaar blockiert das Speichern der beiden Kunden jetzt nicht mehr, statt bei jeder weiteren Änderung erneut als möglicher Duplikat-Konflikt gemeldet zu werden.
+- Wird das letzte verbleibende Duplikat-Paar auf der letzten Seite der Seite "Kunden-Duplikate" gelöscht oder als "Kein Duplikat" markiert, bleibt die Liste jetzt nutzbar, statt leer zu bleiben.
 
 ## [1.15.0] - 2026-08-30
 - Die Screenshots im Benutzerhandbuch zeigen wieder den aktuellen Stand der Anwendung (u. a. Kunden anlegen/bearbeiten mit dem neuen Nationalität-Suchfeld und die Schnellsuche mit dem Kurzhinweis und der zweiten Aktion "Datenschutzerklärung (Mitarbeiter) herunterladen").

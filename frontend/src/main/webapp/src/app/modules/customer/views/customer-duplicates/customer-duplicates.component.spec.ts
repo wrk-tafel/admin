@@ -161,6 +161,53 @@ describe('CustomerDuplicatesComponent', () => {
     expect(component.customerDuplicatesData()).toEqual(mockCustomerDuplicatesDataResponse);
   });
 
+  it('get duplicates re-requests the new last page when the requested page comes back empty but duplicates remain', () => {
+    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
+    const component = fixture.componentInstance;
+
+    const emptyLastPageResponse: CustomerDuplicatesResponse = {
+      items: [],
+      totalCount: 2,
+      currentPage: 3,
+      totalPages: 3,
+      pageSize: 1
+    };
+    const clampedPageResponse: CustomerDuplicatesResponse = {
+      ...mockCustomerDuplicatesDataResponse,
+      totalCount: 2,
+      currentPage: 2,
+      totalPages: 2,
+      pageSize: 1
+    };
+    customerApiService.getCustomerDuplicates
+      .mockReturnValueOnce(of(emptyLastPageResponse))
+      .mockReturnValueOnce(of(clampedPageResponse));
+
+    component.getDuplicates(3);
+
+    expect(customerApiService.getCustomerDuplicates).toHaveBeenNthCalledWith(1, 3);
+    expect(customerApiService.getCustomerDuplicates).toHaveBeenNthCalledWith(2, 2);
+    expect(component.customerDuplicatesData()).toEqual(clampedPageResponse);
+  });
+
+  it('get duplicates keeps a genuinely empty response so the empty-state message can render', () => {
+    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
+    const component = fixture.componentInstance;
+
+    const emptyResponse: CustomerDuplicatesResponse = {
+      items: [],
+      totalCount: 0,
+      currentPage: 1,
+      totalPages: 0,
+      pageSize: 1
+    };
+    customerApiService.getCustomerDuplicates.mockReturnValue(of(emptyResponse));
+
+    component.getDuplicates();
+
+    expect(component.customerDuplicatesData()).toEqual(emptyResponse);
+  });
+
   it('total groups label pluralizes correctly', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
