@@ -419,6 +419,39 @@ describe('CustomerApiService', () => {
     expect(result!.items[0].similarCustomers[0].id).toEqual(133);
   });
 
+  it('get customer duplicates re-requests the new last page when the response comes back empty but duplicates remain', () => {
+    let result;
+    apiService.getCustomerDuplicates(3).subscribe(response => result = response);
+
+    const firstReq = httpMock.expectOne({method: 'GET', url: '/households/duplicates?page=3'});
+    firstReq.flush({items: [], totalCount: 2, currentPage: 3, totalPages: 3, pageSize: 1});
+
+    const secondReq = httpMock.expectOne({method: 'GET', url: '/households/duplicates?page=2'});
+    secondReq.flush({
+      items: [{household: mockHousehold, similarHouseholds: [mockHousehold]}],
+      totalCount: 2,
+      currentPage: 2,
+      totalPages: 2,
+      pageSize: 1
+    });
+    httpMock.verify();
+
+    expect(result!.items).toHaveLength(1);
+    expect(result!.currentPage).toEqual(2);
+  });
+
+  it('get customer duplicates keeps a genuinely empty response so the empty-state message can render', () => {
+    let result;
+    apiService.getCustomerDuplicates().subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/duplicates'});
+    req.flush({items: [], totalCount: 0, currentPage: 1, totalPages: 0, pageSize: 1});
+    httpMock.verify();
+
+    expect(result!.items).toEqual([]);
+    expect(result!.totalCount).toEqual(0);
+  });
+
   it('get customers above limit without page', () => {
     apiService.getCustomersAboveLimit().subscribe();
 

@@ -161,36 +161,9 @@ describe('CustomerDuplicatesComponent', () => {
     expect(component.customerDuplicatesData()).toEqual(mockCustomerDuplicatesDataResponse);
   });
 
-  it('get duplicates re-requests the new last page when the requested page comes back empty but duplicates remain', () => {
-    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
-    const component = fixture.componentInstance;
-
-    const emptyLastPageResponse: CustomerDuplicatesResponse = {
-      items: [],
-      totalCount: 2,
-      currentPage: 3,
-      totalPages: 3,
-      pageSize: 1
-    };
-    const clampedPageResponse: CustomerDuplicatesResponse = {
-      ...mockCustomerDuplicatesDataResponse,
-      totalCount: 2,
-      currentPage: 2,
-      totalPages: 2,
-      pageSize: 1
-    };
-    customerApiService.getCustomerDuplicates
-      .mockReturnValueOnce(of(emptyLastPageResponse))
-      .mockReturnValueOnce(of(clampedPageResponse));
-
-    component.getDuplicates(3);
-
-    expect(customerApiService.getCustomerDuplicates).toHaveBeenNthCalledWith(1, 3);
-    expect(customerApiService.getCustomerDuplicates).toHaveBeenNthCalledWith(2, 2);
-    expect(component.customerDuplicatesData()).toEqual(clampedPageResponse);
-  });
-
-  it('get duplicates keeps a genuinely empty response so the empty-state message can render', () => {
+  it('get duplicates sets whatever getCustomerDuplicates resolves to, empty or not', () => {
+    // The re-clamp-to-the-last-page-when-empty behaviour lives in CustomerApiService.getCustomerDuplicates
+    // itself (see its spec) so it also covers the route resolver, not just this component's own re-fetches.
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
