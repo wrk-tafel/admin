@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Screenshots im Benutzerhandbuch zeigen wieder den aktuellen Stand der Anwendung (u. a. Kunden anlegen/bearbeiten mit dem neuen Nationalität-Suchfeld und die Schnellsuche mit dem Kurzhinweis und der zweiten Aktion "Datenschutzerklärung (Mitarbeiter) herunterladen").
 - Die Ergebnistabellen der Anmelde-Versuche, der Mitarbeiterliste und der Kinder-Auswertung lassen sich jetzt durch Klick auf eine Spaltenüberschrift auf- oder absteigend sortieren.
 - Der Scanner-Bildschirm zeigt die Kamera-Vorschau nach dem Wechsel von der Kopplungs- in die Scan-Ansicht jetzt zuverlässig an, statt möglicherweise ein eingefrorenes Bild zu zeigen.
 - Beim Verlassen des Scanner-Bildschirms wird die Kamera jetzt auch dann beendet, wenn die Scanner-Registrierung oder die Kamera-Erkennung zu diesem Zeitpunkt noch nicht abgeschlossen war.
