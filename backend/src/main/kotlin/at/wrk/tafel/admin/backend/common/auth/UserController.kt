@@ -289,6 +289,7 @@ class UserController(
             requested = user.permissions,
             current = existingUser.authorities.mapNotNull { it.authority },
         )
+        validateAdministratorAccountFieldChanges(existingUser, user)
         // Revoking the permission and disabling the account are two ways of arriving at the same
         // place: an administrator who can no longer act.
         val keepsAdministrator = user.permissions.any { it.key == UserPermissions.ADMINISTRATOR.key } && user.enabled
@@ -452,6 +453,38 @@ class UserController(
             throw TafelApiException(
                 HttpStatus.FORBIDDEN,
                 "Die Berechtigung \"${UserPermissions.ADMINISTRATOR.title}\" kann nur von einem Administrator vergeben oder entzogen werden!",
+            )
+        }
+    }
+
+    /**
+     * [validateAdministratorAssignment] only guards the ADMINISTRATOR flag itself - a caller
+     * holding only `USER_MANAGEMENT` could otherwise leave that flag untouched and still reset an
+     * administrator account's password or username, or force a password change on its next login,
+     * which hands over the account just as completely as granting the permission outright would
+     * (issue #3566). Refuses any of those three fields changing on a target that currently holds
+     * ADMINISTRATOR unless the caller does too - the same "only an administrator may touch this"
+     * rule, applied to the fields that let someone impersonate one instead of to the flag itself.
+     */
+    private fun validateAdministratorAccountFieldChanges(existingUser: TafelUser, requested: UserRequest) {
+        val isTargetAdministrator = existingUser.authorities.any { it.authority == UserPermissions.ADMINISTRATOR.key }
+        if (!isTargetAdministrator) {
+            return
+        }
+
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        if (authenticatedUser.authorities.any { it.authority == UserPermissions.ADMINISTRATOR.key }) {
+            return
+        }
+
+        val usernameChanged = requested.username != existingUser.username
+        val passwordChanged = !requested.password.isNullOrBlank()
+        val passwordChangeRequiredChanged = requested.passwordChangeRequired != existingUser.passwordChangeRequired
+        if (usernameChanged || passwordChanged || passwordChangeRequiredChanged) {
+            throw TafelApiException(
+                HttpStatus.FORBIDDEN,
+                "Benutzername, Passwort und die Passwortänderungs-Pflicht eines Administrator-Kontos " +
+                    "können nur von einem Administrator geändert werden!",
             )
         }
     }

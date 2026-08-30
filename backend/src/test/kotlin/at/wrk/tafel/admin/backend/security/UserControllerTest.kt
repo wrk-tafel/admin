@@ -591,6 +591,86 @@ class UserControllerTest {
         verify(exactly = 0) { userDetailsManager.updateUser(any()) }
     }
 
+    /**
+     * validateAdministratorAssignment alone only guards the ADMINISTRATOR flag itself - without
+     * this, a USER_MANAGEMENT holder could leave that flag untouched and still reset an
+     * administrator's password, which hands over the account just as completely (issue #3566).
+     */
+    @Test
+    fun `update user changing an administrator's password is refused without the administrator permission`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+
+        val request =
+            requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(password = "newpass1", passwordRepeat = "newpass1")
+
+        val exception = assertThrows<TafelApiException> {
+            controller.updateUser(userId = testUser.id!!, user = request)
+        }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `update user changing an administrator's username is refused without the administrator permission`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+
+        val request = requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(username = "new-username")
+
+        val exception = assertThrows<TafelApiException> {
+            controller.updateUser(userId = testUser.id!!, user = request)
+        }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `update user forcing a password change on an administrator is refused without the administrator permission`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+
+        val request = requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(passwordChangeRequired = true)
+
+        val exception = assertThrows<TafelApiException> {
+            controller.updateUser(userId = testUser.id!!, user = request)
+        }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `update user changing an administrator's password is allowed for an administrator`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT, UserPermissions.ADMINISTRATOR)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+
+        val request =
+            requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(password = "newpass1", passwordRepeat = "newpass1")
+
+        controller.updateUser(userId = testUser.id!!, user = request)
+
+        verify(exactly = 1) { userDetailsManager.updateUser(any()) }
+    }
+
+    /**
+     * Only a *change* to those fields is refused - a user manager still has to be able to edit an
+     * administrator's name, same as the ADMINISTRATOR-permission check above.
+     */
+    @Test
+    fun `update user editing an administrator's name without touching password, username or passwordChangeRequired is allowed without the administrator permission`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+
+        val request = requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(firstname = "updated-firstname")
+
+        controller.updateUser(userId = testUser.id!!, user = request)
+
+        verify(exactly = 1) { userDetailsManager.updateUser(any()) }
+    }
+
     @Test
     fun `delete user removing the last administrator is refused`() {
         every { userDetailsManager.loadUserById(any()) } returns administratorUser()

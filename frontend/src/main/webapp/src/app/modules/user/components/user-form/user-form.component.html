@@ -8,6 +8,9 @@
         <mat-form-field>
           <mat-label>Benutzername</mat-label>
           <input matInput [formField]="userForm.username" testid="usernameInput" type="text" tafelAutofocus>
+          @if (administratorAccountFieldsLocked()) {
+            <mat-hint testid="username-locked-hint">Nur ein Administrator kann den Benutzernamen eines Administrator-Kontos ändern.</mat-hint>
+          }
           @for (errorMessage of visibleErrorMessages(userForm.username()); track errorMessage) {
             <mat-error>{{errorMessage}}</mat-error>
           }
@@ -69,6 +72,14 @@
       <hr>
       @if (createMode()) {
         <h2 class="tafel-h5">Passwort</h2>
+      } @else if (administratorAccountFieldsLocked()) {
+        <!--
+          The backend refuses a password reset on an administrator account from anyone but another
+          administrator (issue #3566) - the toggle is omitted rather than shown-and-disabled, since
+          there is nothing a non-administrator could do with it here.
+        -->
+        <div class="tafel-h5" testid="password-reset-locked-hint">Passwort zurücksetzen</div>
+        <div class="text-sm text-gray-500 -mt-1">Nur ein Administrator kann das Passwort eines Administrator-Kontos zurücksetzen.</div>
       } @else {
         <!--
           Password fields sit behind an explicit toggle in edit mode rather than mid-form like an
@@ -162,6 +173,11 @@
           <mat-checkbox [formField]="userForm.passwordChangeRequired" testid="passwordChangeRequiredInput">
             Passwort-Änderung beim nächsten Login erforderlich
           </mat-checkbox>
+          @if (administratorAccountFieldsLocked()) {
+            <div testid="passwordChangeRequired-locked-hint" class="text-xs text-gray-500">
+              Nur ein Administrator kann dies für ein Administrator-Konto ändern.
+            </div>
+          }
         </div>
       </div>
       <hr>

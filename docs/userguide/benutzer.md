@@ -73,6 +73,8 @@ Die Berechtigung **Administrator** ist eine Sonderrolle für jene Personen, die 
 
 Vergeben oder entziehen kann diese Berechtigung nur, wer selbst Administrator ist. Für alle anderen ist das Kästchen sichtbar, aber nicht änderbar – so lässt sich ein Administrator-Konto weiterhin bearbeiten (z. B. Name oder Personalnummer), ohne dass dabei versehentlich die Berechtigung verloren geht.
 
+Aus demselben Grund kann bei einem Administrator-Konto auch der Benutzername nur von einem Administrator geändert werden, und der Bereich **Passwort zurücksetzen** ist für alle anderen durch einen Hinweistext ersetzt; ebenso bleibt "Passwort-Änderung beim nächsten Login erforderlich" für sie deaktiviert.
+
 Zusätzlich erhalten Administratoren die technischen Push-Benachrichtigungen (siehe [Benachrichtigungen](README.md#benachrichtigungen)).
 
 Beim Neuanlegen eines Benutzers ist standardmäßig keine Berechtigung ausgewählt und eine Passwort-Änderung beim ersten Login vorausgewählt.
