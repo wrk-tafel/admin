@@ -94,6 +94,42 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(selectShopSpy).toHaveBeenCalledWith(mockShops[1]);
   });
 
+  it('does not jump to another shop when selectedRouteData refreshes for the same route', () => {
+    // Regression test: the parent's refreshFoodCollectionSnapshot() after a save updates
+    // selectedRouteData() in place (new object, same route.id) - that must not be mistaken for an
+    // actual route switch and yank the codriver away from whatever shop they're currently on.
+    const mockRouteData = {
+      route: mockRoute,
+      shops: mockShops,
+      foodCollectionData: {items: []}
+    };
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue(of({items: [], returnItems: []}) as any);
+
+    fixture.detectChanges();
+
+    // the codriver has since moved on to a later shop manually
+    component.selectShop(mockShops[2]);
+    expect(component.currentShop()).toEqual(mockShops[2]);
+
+    const selectShopSpy = vi.spyOn(component, 'selectShop');
+
+    // simulates refreshFoodCollectionSnapshot(): same route, a fresh object reference
+    componentRef.setInput('selectedRouteData', {...mockRouteData, foodCollectionData: {items: []}});
+    fixture.detectChanges();
+
+    expect(selectShopSpy).not.toHaveBeenCalled();
+    expect(component.currentShop()).toEqual(mockShops[2]);
+  });
+
   it('should call api service to save items when saveRequests is called', () => {
     const mockRouteData = {
       route: mockRoute,
