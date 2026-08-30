@@ -332,8 +332,19 @@ export class UserFormComponent {
     this.passwordRepeatTextVisible.update(value => !value);
   }
 
+  /**
+   * Collapsing also clears the password controls, not just their derived-value stripping in
+   * `derivedUserData` - otherwise a mismatching password typed and then collapsed leaves
+   * `passwordRepeatInvalid` on the (now hidden) controls, so `userForm().valid()` stays false and
+   * "Speichern" is disabled with no visible error to explain why. See #3563.
+   */
   public togglePasswordResetSection() {
-    this.passwordResetExpanded.update(value => !value);
+    const nowExpanded = !this.passwordResetExpanded();
+    this.passwordResetExpanded.set(nowExpanded);
+    if (!nowExpanded) {
+      this.userForm.password().value.set('');
+      this.userForm.passwordRepeat().value.set('');
+    }
   }
 
   public triggerEmployeeSearch() {

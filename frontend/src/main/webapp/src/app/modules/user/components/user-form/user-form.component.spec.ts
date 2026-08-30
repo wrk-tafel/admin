@@ -462,6 +462,30 @@ describe('UserFormComponent', () => {
     }));
   });
 
+  // A mismatching password typed and then collapsed must not leave "Speichern" disabled with the
+  // error hidden inside the now-collapsed section - see #3563.
+  it('clears the password controls (and their validation errors) when the reset section is collapsed', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.componentRef.setInput('userData', mockUser);
+    fixture.detectChanges();
+
+    component.togglePasswordResetSection();
+    component.userForm.password().value.set('abc');
+    component.userForm.passwordRepeat().value.set('abd');
+    fixture.detectChanges();
+
+    expect(component.isValid()).toBe(false);
+
+    component.togglePasswordResetSection();
+    fixture.detectChanges();
+
+    expect(component.userForm.password().value()).toBe('');
+    expect(component.userForm.passwordRepeat().value()).toBe('');
+    expect(component.isValid()).toBe(true);
+  });
+
   it('isDirty tracks changes against the loaded state and markSaved rebases it', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;

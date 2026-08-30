@@ -17,6 +17,11 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Wer das eigene Passwort über die Benutzerverwaltung (statt über "Passwort ändern") ändert, bleibt jetzt wie erwartet angemeldet, statt beim nächsten Klick unerwartet abgemeldet zu werden.
 - Ein durch Abmelden oder Passwortänderung ungültig gewordenes Anmelde-Token wird jetzt auch während der Zeitumstellung von Sommer- auf Winterzeit korrekt erkannt.
 - Anmerkungen einer Ausgabe sowie Routen-, Filial- und Retourkisten-Angaben werden im Tagesreport- und Retourkisten-Mail jetzt escaped angezeigt, statt enthaltenes HTML ungefiltert an die Mail-Empfänger auszuliefern.
+- Bei der Ticket-Monitor-Steuerung aktiviert die Eingabetaste jetzt nur mehr den fokussierten Button (z. B. "Ticket zurück"), statt immer "Weiter (bezahlt)" auszulösen.
+- Ein kurzzeitiger Verbindungsfehler beim Prüfen der Berechtigungen blendet jetzt nicht mehr fälschlich Menüpunkte und Bereiche aus, solange die Sitzung tatsächlich noch gültig ist.
+- Der Download von PDF-, CSV- oder ZIP-Dateien zeigt bei einem vorübergehend nicht erreichbaren Server jetzt die korrekte Fehlermeldung an, statt einer technischen Fehlermeldung.
+- Beim Bearbeiten eines Benutzerkontos bleibt "Speichern" nicht mehr fälschlich deaktiviert, wenn ein zuvor eingegebenes, nicht übereinstimmendes Passwort durch Einklappen des Passwort-zurücksetzen-Bereichs wieder verworfen wird.
+- Der Dialog zum Anlegen einer neuen Notschlafstelle trägt jetzt den Titel "Notschlafstelle anlegen" statt "Notschlafstelle bearbeiten".
 - Ein auf der Seite "Kunden-Duplikate" als "Kein Duplikat" markiertes Kundenpaar blockiert das Speichern der beiden Kunden jetzt nicht mehr, statt bei jeder weiteren Änderung erneut als möglicher Duplikat-Konflikt gemeldet zu werden.
 - Wird das letzte verbleibende Duplikat-Paar auf der letzten Seite der Seite "Kunden-Duplikate" gelöscht oder als "Kein Duplikat" markiert, bleibt die Liste jetzt nutzbar, statt leer zu bleiben.
 

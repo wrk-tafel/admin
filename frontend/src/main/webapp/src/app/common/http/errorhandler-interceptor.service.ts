@@ -48,8 +48,17 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
   const remapErrorBodyOnByteArrayResponseType = (request: HttpRequest<any>, error: HttpErrorResponse): Observable<any> => {
     if (request.responseType === 'blob' && error.error instanceof Blob) {
       return from(Promise.resolve(error).then(async x => {
+        let parsedBody: unknown;
+        try {
+          parsedBody = JSON.parse(await x.error.text());
+        } catch {
+          // A gateway 502/503/504 (e.g. nginx's HTML page during a restart) has no JSON body to
+          // remap - fall back to the original response so extractErrorMessage's status-based
+          // override still applies instead of the SyntaxError replacing the whole error.
+          throw x;
+        }
         const remappedData = {
-          error: JSON.parse(await x.error.text()),
+          error: parsedBody,
           headers: x.headers,
           status: x.status,
           statusText: x.statusText,

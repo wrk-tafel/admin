@@ -133,8 +133,9 @@ export class TicketScreenControlComponent {
   /**
    * Keyboard shortcuts for the loop this screen exists for: Enter = "Weiter (bezahlt)",
    * N = "Weiter (nicht bezahlt)" (see the on-screen legend next to the buttons). Ignored while a
-   * form field has focus (so typing the start time or an amount in a dialog isn't hijacked) or
-   * while a dialog is open, and gated by the same conditions as the buttons themselves.
+   * form field or a focusable control (button/link/toggle) has focus - so typing the start time or
+   * an amount in a dialog isn't hijacked, and Enter/N on a focused button/toggle only trigger that
+   * control - or while a dialog is open, and gated by the same conditions as the buttons themselves.
    */
   @HostListener('document:keydown', ['$event'])
   handleKeyboardShortcut(event: KeyboardEvent) {
@@ -142,7 +143,10 @@ export class TicketScreenControlComponent {
       return;
     }
     const target = event.target as HTMLElement | null;
-    if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+    if (target && ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(target.tagName)) {
+      return;
+    }
+    if (target?.closest('[role="button"], mat-button-toggle')) {
       return;
     }
     if (this.dialog.openDialogs.length > 0) {

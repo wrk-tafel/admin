@@ -1,4 +1,5 @@
 import type { MockedObject } from 'vitest';
+import { firstValueFrom } from 'rxjs';
 import { HttpClient, HttpContext, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -265,6 +266,39 @@ describe('ErrorHandlerInterceptor', () => {
 
         const mockReq = httpTestingController.expectOne('/test');
         mockReq.flush(null, { status: 500, statusText: 'Internal Server Error' });
+        httpTestingController.verify();
+    });
+
+    // The blob remap runs a Blob.text()/JSON.parse round-trip through a Promise, so the observer's
+    // error callback fires asynchronously after the test body returns - without awaiting it, the
+    // assertion runs during a later test instead, against that test's (already reassigned) spies.
+    it('blob request with a JSON problem-detail error body remaps it like a normal request', async () => {
+        authServiceSpy.isAuthenticated.mockReturnValue(false);
+
+        const errorPromise = firstValueFrom(httpClient.get('/test', { responseType: 'blob' }));
+
+        const mockReq = httpTestingController.expectOne('/test');
+        const errorBody: ProblemDetail = { detail: 'Custom message from blob error' };
+        const blob = new Blob([JSON.stringify(errorBody)], { type: 'application/json' });
+        mockReq.flush(blob, { status: 400, statusText: 'Bad Request' });
+
+        await expect(errorPromise).rejects.toBeTruthy();
+        expect(toastrSpy.error).toHaveBeenCalledWith('Custom message from blob error', 'HTTP 400 - Bad Request');
+        httpTestingController.verify();
+    });
+
+    it('blob request whose error body is not JSON (e.g. an nginx HTML page on a gateway error) falls back to the status message',
+        async () => {
+        authServiceSpy.isAuthenticated.mockReturnValue(false);
+
+        const errorPromise = firstValueFrom(httpClient.get('/test', { responseType: 'blob' }));
+
+        const mockReq = httpTestingController.expectOne('/test');
+        const blob = new Blob(['<html><body>502 Bad Gateway</body></html>'], { type: 'text/html' });
+        mockReq.flush(blob, { status: 502, statusText: 'Bad Gateway' });
+
+        await expect(errorPromise).rejects.toBeTruthy();
+        expect(toastrSpy.error).toHaveBeenCalledWith('Server nicht verfügbar!', 'HTTP 502 - Bad Gateway');
         httpTestingController.verify();
     });
 
