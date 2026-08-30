@@ -261,6 +261,55 @@ describe('UserFormComponent', () => {
     });
   });
 
+  describe('administrator account fields', () => {
+    const administratorUser: UserData = {
+      ...mockUser,
+      permissions: [
+        ...mockPermissions,
+        {key: 'ADMINISTRATOR', title: 'Administrator', category: 'Verwaltung'}
+      ]
+    };
+
+    function editAdministrator(currentUserIsAdministrator: boolean) {
+      authenticationService.hasPermission.mockImplementation(
+        (permission: string) => currentUserIsAdministrator && permission === 'ADMINISTRATOR'
+      );
+      const fixture = TestBed.createComponent(UserFormComponent);
+      fixture.componentRef.setInput('userData', administratorUser);
+      fixture.componentRef.setInput('permissionsData', administratorUser.permissions);
+      fixture.detectChanges();
+      return fixture.componentInstance;
+    }
+
+    // Mirrors validateAdministratorAccountFieldChanges on the backend (issue #3566): the form
+    // only avoids offering an edit that would be rejected on save.
+    it('locks username, password reset and forced-password-change for a non-administrator editing an administrator', () => {
+      const component = editAdministrator(false);
+
+      expect(component.administratorAccountFieldsLocked()).toBe(true);
+      expect(component.userForm.username().disabled()).toBe(true);
+      expect(component.userForm.passwordChangeRequired().disabled()).toBe(true);
+    });
+
+    it('leaves those fields editable for an administrator', () => {
+      const component = editAdministrator(true);
+
+      expect(component.administratorAccountFieldsLocked()).toBe(false);
+      expect(component.userForm.username().disabled()).toBe(false);
+      expect(component.userForm.passwordChangeRequired().disabled()).toBe(false);
+    });
+
+    it('does not lock these fields for a non-administrator target account', () => {
+      authenticationService.hasPermission.mockReturnValue(false);
+      const fixture = TestBed.createComponent(UserFormComponent);
+      fixture.componentRef.setInput('userData', mockUser);
+      fixture.componentRef.setInput('permissionsData', mockPermissions);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.administratorAccountFieldsLocked()).toBe(false);
+    });
+  });
+
   it('password-repeat validator passwords different', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;

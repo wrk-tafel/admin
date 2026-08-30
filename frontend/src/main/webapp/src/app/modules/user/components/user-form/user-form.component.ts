@@ -1,5 +1,5 @@
 import {Component, computed, effect, inject, input, output, signal, untracked, viewChild} from '@angular/core';
-import {form, FormField, maxLength, required, validate} from '@angular/forms/signals';
+import {disabled, form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {EmployeeApiService, EmployeeData} from '../../../../api/employee-api.service';
 import {CommonModule} from '@angular/common';
@@ -94,6 +94,20 @@ export class UserFormComponent {
   // while editing, empty password fields mean "don't change the password"
   createMode = computed(() => !this.userData());
 
+  private targetIsAdministrator = computed(() =>
+    !!this.userData()?.permissions.some((permission) => permission.key === ADMINISTRATOR_PERMISSION)
+  );
+
+  /**
+   * The backend refuses a username, password or forced-password-change change on an
+   * administrator account unless the caller is one too (issue #3566) - locking these fields here
+   * just keeps the form from offering an edit that would be refused on save, same reasoning as
+   * isPermissionLocked below for the ADMINISTRATOR checkbox itself.
+   */
+  administratorAccountFieldsLocked = computed(() =>
+    this.targetIsAdministrator() && !this.authenticationService.hasPermission(ADMINISTRATOR_PERMISSION)
+  );
+
   // The employee currently linked via the personnel-number search, resolved through
   // `tafel-employee-search-create` (matching logistics' driver/co-driver pattern) rather than typed
   // freely, so an account can no longer reference a personnel number no employee actually holds.
@@ -125,6 +139,7 @@ export class UserFormComponent {
 
     required(schemaPath.username, {message: 'Pflichtfeld'});
     maxLength(schemaPath.username, 50, {message: 'Benutzername zu lang (maximal 50 Zeichen)'});
+    disabled(schemaPath.username, {when: () => this.administratorAccountFieldsLocked()});
 
     required(schemaPath.lastname, {message: 'Pflichtfeld'});
     maxLength(schemaPath.lastname, 50, {message: 'Nachname zu lang (maximal 50 Zeichen)'});
@@ -148,6 +163,8 @@ export class UserFormComponent {
         ? undefined
         : { kind: 'passwordRepeatInvalid', message: 'Passwort stimmt nicht mit der Wiederholung überein!' };
     });
+
+    disabled(schemaPath.passwordChangeRequired, {when: () => this.administratorAccountFieldsLocked()});
   });
 
   passwordTextVisible = signal(false);
