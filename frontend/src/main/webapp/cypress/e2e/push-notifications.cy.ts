@@ -218,6 +218,31 @@ describe('PushNotifications', () => {
       });
   });
 
+  // A failed preferences load used to leave every toggle disabled forever, with nothing on screen
+  // explaining why - see issue #3561. This drives that failure for real against an intercepted
+  // response rather than the component's mocked unit spec, so it also proves the retry actually
+  // re-issues the request.
+  it('shows a retryable error instead of leaving the toggles disabled forever when preferences fail to load', () => {
+    cy.intercept('GET', '/api/push/preferences', {statusCode: 503, body: {}}).as('preferencesFailed');
+
+    cy.visit('/benachrichtigungen');
+    cy.wait('@preferencesFailed');
+
+    cy.byTestId('push-preferences-error').should('be.visible');
+    cy.byTestId('push-master-toggle').find('button[role="switch"]').should('be.disabled');
+    // The error state exists only after this failed load, so no other accessibility gate sees it -
+    // see cypress/support/accessibility.ts
+    cy.checkAccessibility(MAIN_CONTENT);
+
+    cy.intercept('GET', '/api/push/preferences').as('preferencesRetried');
+    cy.byTestId('push-preferences-retry').click();
+    cy.wait('@preferencesRetried');
+
+    cy.byTestId('push-preferences-error').should('not.exist');
+    cy.byTestId('push-master-toggle').find('button[role="switch"]').should('not.be.disabled');
+    cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
+  });
+
   // Each toggle carries its own explanation, so the list says when a notification would actually
   // arrive rather than leaving that to the label alone.
   it('explains each notification type below its toggle', () => {

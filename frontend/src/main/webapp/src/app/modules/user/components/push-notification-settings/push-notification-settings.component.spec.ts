@@ -146,6 +146,47 @@ describe('PushNotificationSettingsComponent', () => {
     expect(fixture.componentInstance.preferencesLoading()).toBe(false);
   });
 
+  describe('loadPreferences failure', () => {
+    it('surfaces an error state instead of leaving the toggles disabled forever', async () => {
+      pushNotificationService.getPreferences.mockRejectedValue(new Error('fail'));
+
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges(); // Trigger effect in constructor
+      await flushAsync();
+
+      expect(fixture.componentInstance.preferencesLoading()).toBe(false);
+      expect(fixture.componentInstance.preferencesError()).toBe(true);
+    });
+
+    it('retrying clears the error state and loads the preferences on success', async () => {
+      pushNotificationService.getPreferences.mockRejectedValueOnce(new Error('fail'));
+
+      const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+      fixture.detectChanges(); // Trigger effect in constructor
+      await flushAsync();
+      expect(fixture.componentInstance.preferencesError()).toBe(true);
+
+      pushNotificationService.getPreferences.mockResolvedValue(testPreferences);
+      (fixture.componentInstance as any).retryLoadPreferences();
+      await flushAsync();
+
+      expect(fixture.componentInstance.preferencesError()).toBe(false);
+      expect(fixture.componentInstance.preferencesLoading()).toBe(false);
+      expect(fixture.componentInstance.preferences()).toEqual(testPreferences);
+    });
+  });
+
+  it('does not leave an unhandled rejection when the device list fails to load on init', async () => {
+    pushNotificationService.getDevices.mockRejectedValue(new Error('fail'));
+
+    const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
+    fixture.detectChanges(); // Trigger effect in constructor
+    await flushAsync();
+
+    expect(fixture.componentInstance.loading()).toBe(false);
+    expect(toastr.error).toHaveBeenCalled();
+  });
+
   it('onToggle(true) enables push notifications', async () => {
     const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
     fixture.detectChanges(); // Trigger effect in constructor
