@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
@@ -42,6 +44,7 @@ class RouteGuidanceService(
     private val distributionRepository: DistributionRepository,
     private val userRepository: UserRepository,
     private val eventPublisher: ApplicationEventPublisher,
+    private val advisoryLockService: AdvisoryLockService,
 ) {
 
     companion object {
@@ -92,24 +95,32 @@ class RouteGuidanceService(
         // too - ticking a stop off must not make them disappear from under the driver.
         val returnItems = returnItemsByShopId(findPreviousCollection(routeId))[stop.shop?.id].orEmpty()
 
-        val existingCompletion = routeStopCompletionRepository.findByRouteStopIdAndCompletionDate(stopId, date)
         if (!completed) {
-            if (existingCompletion != null) {
+            if (routeStopCompletionRepository.findByRouteStopIdAndCompletionDate(stopId, date) != null) {
                 routeStopCompletionRepository.deleteByRouteStopIdAndCompletionDate(stopId, date)
             }
             return mapStop(stop, null, returnItems)
         }
 
-        // Ticking an already ticked stop keeps the original completion instead of restamping it -
-        // the timestamp is what tells a second driver when the stop was actually done.
-        // saveAndFlush, not save: @CreationTimestamp is assigned when the insert is written, so a
-        // plain save() would return an entity whose createdAt is still null and the response would
-        // carry no completion time until the next read.
-        val completion = existingCompletion ?: routeStopCompletionRepository.saveAndFlush(
-            RouteStopCompletionEntity(routeStop = stop, completionDate = date).apply {
-                employee = currentEmployee()
-            },
-        )
+        // Wrapped in AdvisoryLockKey.ROUTE_STOP_COMPLETION because the find-then-insert below is a
+        // check-then-act against `(route_stop_id, completion_date)`'s UNIQUE constraint: a driver
+        // and co-driver both ticking off the same stop at once (the screen is explicitly designed
+        // for two people on one van) would otherwise both find nothing and both insert, and the
+        // loser would get a duplicate-key 500 instead of the completion the other one just recorded.
+        val completion = advisoryLockService.withLock(AdvisoryLockKey.ROUTE_STOP_COMPLETION) {
+            val existingCompletion = routeStopCompletionRepository.findByRouteStopIdAndCompletionDate(stopId, date)
+
+            // Ticking an already ticked stop keeps the original completion instead of restamping it -
+            // the timestamp is what tells a second driver when the stop was actually done.
+            // saveAndFlush, not save: @CreationTimestamp is assigned when the insert is written, so a
+            // plain save() would return an entity whose createdAt is still null and the response would
+            // carry no completion time until the next read.
+            existingCompletion ?: routeStopCompletionRepository.saveAndFlush(
+                RouteStopCompletionEntity(routeStop = stop, completionDate = date).apply {
+                    employee = currentEmployee()
+                },
+            )
+        }
         publishIfAtLastStop(route, date)
         return mapStop(stop, completion, returnItems)
     }

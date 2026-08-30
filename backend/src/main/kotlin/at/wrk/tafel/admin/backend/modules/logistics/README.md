@@ -109,6 +109,13 @@ DB level — it only governs `modules`-to-`modules` traffic.
   doesn't keeps it.
 - Ticking an already-ticked stop is a no-op rather than a re-stamp: the stored `createdAt` is what
   tells a second driver when the stop was actually done.
+- **Ticking a stop off is wrapped in
+  `advisoryLockService.withLock(AdvisoryLockKey.ROUTE_STOP_COMPLETION)`** (lock id `9000L` in
+  `AdvisoryLockKey`, see the advisory-lock README): the find-then-insert against
+  `(route_stop_id, completion_date)`'s `UNIQUE` constraint is a check-then-act, and the screen is
+  explicitly designed for two people on one van (driver and co-driver) — without the lock, both
+  ticking the same stop at the same moment would find nothing and both insert, and the loser would
+  get a duplicate-key 500 instead of the completion the other one just recorded.
 - **Arriving at the last stop publishes `RouteAtLastStopEvent`** — every stop but the final one
   ticked off, which is the point at which the van is about to head back and the people unloading it
   want to know. `routes.last_stop_notified_date` keeps that to one announcement per route per day,

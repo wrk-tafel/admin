@@ -171,19 +171,10 @@ methods is annotated with `@TafelActiveDistributionRequired`. If you add a new c
 controller layer (another service, a `@Scheduled` job, a test calling the service directly without an
 active distribution), you'll get an `NPE`, not the friendly `BusinessRuleException`.
 
-## Advisory locks: `CREATE_DISTRIBUTION` / `CLOSE_DISTRIBUTION`
+## Advisory locks: `CREATE_DISTRIBUTION` / `CLOSE_DISTRIBUTION` / `ASSIGN_HOUSEHOLD_TO_DISTRIBUTION`
 
-Confirmed from `database/common/lock/AdvisoryLockKey.kt`:
-```kotlin
-enum class AdvisoryLockKey(val lockId: Long) {
-    CREATE_DISTRIBUTION(1000L),
-    CLOSE_DISTRIBUTION(2000L),
-    LOGIN_ATTEMPT_TRACKING(3000L),
-    PATCH_FOOD_COLLECTION_ITEM(4000L),
-}
-```
-(the existing lock module's README shows stale example key names/ids that don't match this — always
-read the enum itself, not the README prose there.)
+(always read `database/common/lock/AdvisoryLockKey.kt` itself for the current, full list of keys —
+the lock module's own README has previously drifted out of sync with the enum.)
 
 Both `createNewDistribution()` and `closeDistribution()` use `advisoryLockService.tryWithLock(...)` —
 the **non-blocking** variant (`pg_try_advisory_xact_lock`). If the lock is already held, the operation
@@ -232,6 +223,15 @@ There is no server-side range check for the 1–999 range mentioned in top-level
 paper-ticket-booklet/UI convention, not something enforced in this module. The backend's only
 invariant is *uniqueness of ticket number per distribution*, and it explicitly allows re-submitting the
 same `(householdId, ticketNumber)` pair (used to flip `costContributionPaid` without erroring).
+
+The check above plus the insert that follows it is a check-then-act against two `UNIQUE`
+constraints (`uc_distributionid_ticketnumber` and
+`uq_distributions_households_distribution_household`), so the whole method body is wrapped in
+`advisoryLockService.withLock(AdvisoryLockKey.ASSIGN_HOUSEHOLD_TO_DISTRIBUTION)` — the **blocking**
+variant, unlike `createNewDistribution()`/`closeDistribution()` above. Two check-in desks
+submitting the same ticket number (or the same household) within the same window now serialize
+instead of both passing the check: the loser sees the up-to-date state and gets the intended
+`ConflictException` rather than a duplicate-key 500.
 
 Once assigned, the "queue" is walked in `ticketNumber` order using the `processed` flag:
 - `getFirstUnprocessedDistributionHouseholdEntity()` → who's currently being called

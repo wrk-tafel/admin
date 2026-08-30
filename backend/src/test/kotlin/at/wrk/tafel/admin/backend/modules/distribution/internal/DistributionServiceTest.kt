@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.*
@@ -204,6 +205,7 @@ internal class DistributionServiceTest {
         }
 
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
+        every { advisoryLockService.withLock<Any>(any(), any()) } answers { secondArg<() -> Any>().invoke() }
     }
 
     @AfterEach
@@ -646,6 +648,7 @@ internal class DistributionServiceTest {
                 },
             )
         }
+        verify { advisoryLockService.withLock<Any>(AdvisoryLockKey.ASSIGN_HOUSEHOLD_TO_DISTRIBUTION, any()) }
     }
 
     /**

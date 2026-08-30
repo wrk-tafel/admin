@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -57,6 +59,9 @@ class RouteGuidanceServiceTest {
     @RelaxedMockK
     private lateinit var eventPublisher: ApplicationEventPublisher
 
+    @RelaxedMockK
+    private lateinit var advisoryLockService: AdvisoryLockService
+
     @InjectMockKs
     private lateinit var service: RouteGuidanceService
 
@@ -76,6 +81,7 @@ class RouteGuidanceServiceTest {
         every {
             foodCollectionRepository.findFirstByRouteIdAndDistributionIdNotOrderByDistributionStartedAtDescIdDesc(any(), any())
         } returns null
+        every { advisoryLockService.withLock<Any>(any(), any()) } answers { secondArg<() -> Any>().invoke() }
 
         SecurityContextHolder.getContext().authentication =
             TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
@@ -234,6 +240,7 @@ class RouteGuidanceServiceTest {
                 },
             )
         }
+        verify { advisoryLockService.withLock<Any>(AdvisoryLockKey.ROUTE_STOP_COMPLETION, any()) }
     }
 
     @Test
