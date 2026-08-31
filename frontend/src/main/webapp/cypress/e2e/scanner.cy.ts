@@ -8,8 +8,24 @@ describe('Scanner', () => {
     cy.clearLocalStorage('tafel.scanner.id');
   });
 
-  it('pairing phase shows the scanner number huge, then hands over to the scanning phase once the camera is ready', () => {
-    cy.visit('/anmeldung/scanner');
+  // The pairing phase is over the moment the camera's first decode resolves, and the fake webcam
+  // (cypress.config.ts) gets there in milliseconds - so any assertion about the pairing layout
+  // races a switch that is one-way (ScannerComponent's `hasStartedScanning`), and loses as soon
+  // as the runner is fast enough. Leaving `getUserMedia` pending pins the component in exactly
+  // the state the runner reads the number out in: registered, cameras enumerated and one picked,
+  // nothing decoded yet. @zxing/browser enumerates cameras through `enumerateDevices()` alone, so
+  // the camera picker still renders and stays part of what these tests cover.
+  function visitScannerWithPendingCamera() {
+    cy.visit('/anmeldung/scanner', {
+      onBeforeLoad(win) {
+        cy.stub(win.navigator.mediaDevices, 'getUserMedia')
+          .returns(new Promise<MediaStream>(() => undefined));
+      }
+    });
+  }
+
+  it('pairing phase shows the scanner number huge while the camera is still starting up', () => {
+    visitScannerWithPendingCamera();
 
     // Pairing phase: read out loud across the room while the Annahme operator picks this
     // scanner, so it has to be the dominant thing on screen before the camera takes over.
@@ -18,6 +34,11 @@ describe('Scanner', () => {
       expect(text).to.not.equal('');
       expect(Number(text)).to.be.greaterThan(0);
     });
+    cy.byTestId('state-camera').should('have.text', 'Nicht bereit');
+  });
+
+  it('hands over to the scanning phase once the camera is ready', () => {
+    cy.visit('/anmeldung/scanner');
 
     // Camera init involves real device/codec negotiation, which can be slower than typical
     // DOM assertions.
@@ -95,7 +116,7 @@ describe('Scanner', () => {
   describe('accessibility', () => {
 
     it('has no violations in the pairing phase', () => {
-      cy.visit('/anmeldung/scanner');
+      visitScannerWithPendingCamera();
 
       cy.byTestId('pairing-phase').should('be.visible');
       cy.checkAccessibility(MAIN_CONTENT);

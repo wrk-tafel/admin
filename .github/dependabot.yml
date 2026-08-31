@@ -3,6 +3,17 @@
 # Please see the documentation for all configuration options:
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
+# Every ecosystem below pins `commit-message` explicitly instead of leaving the wording to
+# Dependabot's auto-detection from git history. release.yml's version job derives the next release
+# number from the Conventional Commits type of the squashed commit - which for a PR is its title -
+# so the `type(scope):` prefix has to be guaranteed rather than inferred; an undetected convention
+# would silently produce "Bump X from a to b" and a mis-bumped release.
+#
+# What this cannot pin is the length: Dependabot composes the rest itself as
+# "bump <dep> from <old> to <new> in <directory> in the <group> group", which for a nested manifest
+# path or a grouped update runs past the 100-character header cap on its own. That is why
+# commitlint.config.cjs relaxes header-max-length to 150 and pull_request.yml exempts
+# Dependabot-authored pull requests from the title check.
 version: 2
 updates:
   - package-ecosystem: "gradle" # See documentation for possible values
@@ -10,6 +21,8 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
+    commit-message:
+      prefix: "chore(deps)"
     groups:
       testing-tools:
         patterns:
@@ -22,6 +35,9 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
     ignore:
       - dependency-name: "eslint"
         versions: [ "10.x" ]
@@ -66,6 +82,8 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
+    commit-message:
+      prefix: "chore(deps)"
     groups:
       github-actions:
         patterns:
@@ -76,3 +94,5 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
+    commit-message:
+      prefix: "chore(deps)"
