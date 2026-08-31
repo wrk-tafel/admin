@@ -262,6 +262,8 @@ describe('Food Collection Recording', () => {
     cy.byTestId('unsaved-changes-dialog').should('not.exist');
     // staying keeps Route 2's unsaved entries on screen instead of discarding them
     cy.byTestId('kmStartInput').should('have.value', '1000');
+    // ...and the dropdown itself must still show "Route 2", not fall back to blank/placeholder
+    cy.byTestId('routeInput').should('contain.text', 'Route 2');
 
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains('Route 3').click();

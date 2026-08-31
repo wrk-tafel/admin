@@ -210,6 +210,8 @@ export class FoodCollectionRecordingComponent {
         } else {
           // undo the dropdown's already-applied visual selection - a fresh object reference is
           // needed since the mat-select otherwise still considers the just-picked route selected
+          // (Angular only re-runs writeValue when the bound reference actually differs); compareRoute
+          // is what lets that fresh reference still match the original route option by id.
           this.selectedRoute = previousRoute ? {...previousRoute} : undefined;
         }
       });
@@ -217,6 +219,11 @@ export class FoodCollectionRecordingComponent {
     }
 
     this.routeSelection$.next(route);
+  }
+
+  /** Lets the mat-select re-match a route by id after a revert reassigns it a fresh object reference. */
+  protected compareRoute(a: RouteData | undefined, b: RouteData | undefined): boolean {
+    return a?.id === b?.id;
   }
 
   /**

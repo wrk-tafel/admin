@@ -148,6 +148,36 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
         expect(component.returnItems.at(0).get('amount')!.value).toEqual(2);
     });
 
+    it('does not rebuild the matrix when selectedRouteData refreshes for the same route', () => {
+        // Regression test for #3559: the parent's refreshFoodCollectionSnapshot() after a save
+        // updates selectedRouteData() in place (new object, same route.id) - rebuilding the whole
+        // matrix from that must not clobber an edit made in the gap between the save completing and
+        // the refresh response arriving.
+        const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
+        const component = fixture.componentInstance;
+        const componentRef = fixture.componentRef;
+
+        const mockRouteData = {
+            route: testRoute,
+            shops: testShops,
+            foodCollectionData: {items: [], returnItems: []}
+        };
+        componentRef.setInput('selectedRouteData', mockRouteData);
+        componentRef.setInput('foodCategories', testFoodCategories);
+        componentRef.setInput('foodReturnCategories', testFoodReturnCategories);
+        fixture.detectChanges();
+
+        // the codriver has since typed a new amount that hasn't been saved yet
+        component.getShops(0).at(0).get('amount')!.setValue(9);
+
+        // simulates refreshFoodCollectionSnapshot(): same route, a fresh object reference, server
+        // data that doesn't yet know about the value just typed above
+        componentRef.setInput('selectedRouteData', {...mockRouteData, foodCollectionData: {items: [], returnItems: []}});
+        fixture.detectChanges();
+
+        expect(component.getShops(0).at(0).get('amount')!.value).toEqual(9);
+    });
+
     it('saveRequests - maps category and shop amounts into a saveItems request', () => {
         const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
         const component = fixture.componentInstance;

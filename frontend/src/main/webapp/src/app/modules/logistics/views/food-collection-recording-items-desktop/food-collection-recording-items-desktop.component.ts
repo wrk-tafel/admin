@@ -84,19 +84,34 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     this.categories.controls.length > 0
   );
 
+  // Which route's data this effect last built the matrix for - a save on the parent screen
+  // refreshes `selectedRouteData()` in place (new object, same route) once the save has already
+  // gone out, so rebuilding the whole matrix from that refresh here would risk clobbering an edit
+  // made in the gap between the save completing and the refresh response arriving (see #3559). A
+  // route that's actually different from what's on screen still rebuilds - including a *new*
+  // desktop component instance built for the same route right after crossing the desktop/mobile
+  // breakpoint, since `lastLoadedRouteId` starts unset on every fresh instance.
+  private lastLoadedRouteId?: number;
+
   foodCollectionDataEffect = effect(() => {
+    const data = this.selectedRouteData();
+    if (data && data.route.id === this.lastLoadedRouteId) {
+      return;
+    }
+    this.lastLoadedRouteId = data?.route.id;
+
     // reset form without route to prevent an infinite loop
     this.categories.clear();
     this.returnCategories.clear();
     this.returnItems.clear();
     this.formInitialized.set(false);
 
-    if (this.selectedRouteData()) {
+    if (data) {
       this.attachReturnItemsValidator();
 
-      const shops = this.selectedRouteData()!.shops;
-      const items = this.selectedRouteData()!.foodCollectionData?.items ?? [];
-      const returnItems = this.selectedRouteData()!.foodCollectionData?.returnItems ?? [];
+      const shops = data.shops;
+      const items = data.foodCollectionData?.items ?? [];
+      const returnItems = data.foodCollectionData?.returnItems ?? [];
 
       this.createCategoryShopInputs(shops, items);
       this.createReturnCategoryShopInputs(shops, returnItems);

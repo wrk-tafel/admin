@@ -453,6 +453,30 @@ describe('FoodCollectionRecordingComponent', () => {
         expect(component.selectedRouteData()?.route).toEqual(routeB);
     });
 
+    it('onSelectedRouteChange - reverted selection still matches the original route via compareRoute', () => {
+        // Regression test: declining the switch reassigns `selectedRoute` a fresh object reference
+        // (needed so Angular re-runs the mat-select's writeValue at all) - compareRoute is what lets
+        // that fresh reference still resolve back to the actual <mat-option> for the original route,
+        // instead of the dropdown ending up showing no selection.
+        foodCollectionsApiService.getFoodCollection.mockReturnValue(of({items: [], returnItems: []}) as any);
+        routeApiService.getShopsOfRoute.mockReturnValue(of({shops: []}));
+
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component, {
+            basedata: {tabStatus: vi.fn().mockReturnValue('unsaved')}
+        });
+        const routeA = {id: 1, name: 'Route A'};
+        component.onSelectedRouteChange(routeA);
+        expect(component.selectedRoute).toBe(routeA);
+
+        matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
+        component.onSelectedRouteChange({id: 2, name: 'Route B'});
+
+        expect(component.selectedRoute).not.toBe(routeA);
+        expect(component.compareRoute(component.selectedRoute, routeA)).toBe(true);
+    });
+
     it('save - refreshes the food collection snapshot from the server after a successful save', () => {
         const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
         const component = fixture.componentInstance as any;

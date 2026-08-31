@@ -115,13 +115,30 @@ A few things about it are worth knowing before changing it:
 container. It receives `routeList`, `carList` and `foodCategories` as
 `model.required()` inputs, pre-populated by the three resolvers above via
 `logistics.routes.ts`'s `resolve: {...}` block — all three fire in parallel before
-the route activates. Selecting a route from the `<select>` triggers
-`onSelectedRouteChange()`, which `forkJoin`s the existing food-collection data for
-that route (`FoodCollectionsApiService.getFoodCollection`) with the shops assigned
-to it (`RouteApiService.getShopsOfRoute`) and publishes both as a
-`SelectedRouteData` signal. That signal — and the `SelectedRouteData` interface
-itself, exported from this file — is what the two tabs below consume; there's no
-shared state service, just this one exported interface passed down as `input()`.
+the route activates. Selecting a route from the `<select>` feeds it into
+`routeSelection$`, a `Subject` piped through `switchMap` into a `forkJoin` of the
+existing food-collection data for that route
+(`FoodCollectionsApiService.getFoodCollection`) and the shops assigned to it
+(`RouteApiService.getShopsOfRoute`), publishing both as a `SelectedRouteData`
+signal once both arrive — `switchMap` is what stops a slower response for a route
+switched away from from overwriting what a later, faster selection already
+applied. That signal — and the `SelectedRouteData` interface itself, exported from
+this file — is what the two tabs below consume; there's no shared state service,
+just this one exported interface passed down as `input()`.
+
+`onSelectedRouteChange()` only feeds `routeSelection$` directly when nothing would
+be lost; if base data, mileage, or (desktop only) the item amounts are dirty, it
+opens `UnsavedChangesDialogComponent` first and only proceeds on confirmation,
+same as `canDeactivate()` does for navigating away — the mat-select itself has no
+navigation to intercept, so this is the one place that has to ask directly. On
+cancel, `selectedRoute` (the field the `<mat-select>`'s `[ngModel]` reads) is
+reassigned a *fresh* object with the same id, not the original reference: Angular
+only calls `MatSelect.writeValue()` again when the bound reference actually
+differs, so a fresh object is required to force the dropdown to reconsider its
+selection at all — and `[compareWith]="compareRoute"` (id-based, mirroring
+`compareCar` on the basedata tab) is what lets that fresh object still resolve
+back to the original route's `<mat-option>` instead of the dropdown ending up
+showing no selection.
 
 The component redirects back to `uebersicht` via an `effect()` if no distribution
 is currently active (`GlobalStateService.getCurrentDistribution()`), consistent
@@ -131,11 +148,16 @@ with the `tafelIfDistributionActive` pattern used elsewhere in the app.
 
 The **Speichern** button lives on the container, *below* the tab group, and saves
 every section regardless of which tab is open. Each child section exposes the same
-three-method contract to the container rather than owning a save button itself:
-`markAllAsTouched()`, `hasInvalidInput()`, and `saveRequest()`/`saveRequests()`
-returning cold observables (or `null`/`[]` when there's nothing complete to send).
-`saveAllSections()` collects them, names any section it had to skip in a warning
-toast, and reports one success/error for the whole screen.
+contract to the container rather than owning a save button itself:
+`markAllAsTouched()` and `saveRequest()`/`saveRequests()` returning cold
+observables (or `null`/`[]` when there's nothing complete to send). Basedata and
+km report their validity/saved state as one pair, `hasInvalidInput()`/
+`markAsSaved()`; the items sections report Warenmenge and Retourware separately -
+`hasInvalidItems()`/`hasInvalidReturnItems()` and `markItemsSaved()`/
+`markReturnItemsSaved()` - since either half can be skipped and saved
+independently of the other (see "Section panels" below). `saveAllSections()`
+collects every part, names any it had to skip in a warning toast, and reports one
+success/error for the whole screen.
 
 Two things to keep in mind when adding a section:
 
@@ -146,6 +168,20 @@ Two things to keep in mind when adding a section:
 - Only the item layout matching the current viewport exists (see below), so the
   container picks the active one via a `BreakpointObserver` signal instead of
   saving both.
+
+Once a save completes with nothing skipped, `refreshFoodCollectionSnapshot()`
+re-fetches the food collection and replaces `selectedRouteData().foodCollectionData`
+in place (same route, fresh object). This exists for one specific case: crossing
+the desktop/mobile breakpoint destroys and recreates the active items layout, and
+without this, the new instance would rebuild its form from the *pre-save*
+snapshot — silently reintroducing what was just saved as if it were still unsent.
+Both items layouts guard against this same-route refresh re-driving anything else:
+they track the id of the route they last built their view for
+(`lastLoadedRouteId`) and skip their rebuild/shop-jump when a refreshed
+`selectedRouteData()` still names that same route — otherwise the responsive
+layout would yank the codriver back to `findNextUnfilledShop()` mid-shop, and the
+desktop layout would rebuild its whole matrix and risk clobbering an edit typed in
+the gap between the save completing and the refresh response arriving.
 
 ### Tab 1 — Basedata (`food-collection-recording-basedata`)
 
