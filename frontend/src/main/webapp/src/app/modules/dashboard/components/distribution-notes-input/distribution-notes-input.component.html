@@ -7,11 +7,12 @@
   <!-- `!flex`: Material's own `.mat-mdc-card-content { display: block }` is a single class like
        the utility and comes later in the cascade, so a plain `flex` here does nothing. -->
   <mat-card-content class="!flex flex-col">
-    <mat-form-field class="w-full lg:flex-1" appearance="fill">
-      <!--
-        A placeholder was standing in for the label, and a placeholder is gone the moment the field
-        holds anything - which is exactly when a screen-reader user asks what field they are in.
-      -->
+    <!-- No `appearance="fill"` override: the app-wide default `outline` appearance (see
+         app.config.ts) is what keeps this label visible once the field holds anything -
+         Material's density(-4) setting used across this app hides a `fill` field's floating
+         label entirely (`--mat-form-field-filled-label-display: none`, computed at density < -3),
+         regardless of `floatLabel="always"` or an explicit `mat-label`. -->
+    <mat-form-field class="w-full lg:flex-1">
       <mat-label>Notizen zur Ausgabe</mat-label>
       <textarea
         matInput

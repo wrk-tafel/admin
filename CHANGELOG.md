@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Felder "Anzahl der Mitarbeiter" und "Personen in Notschlafstellen" im Statistik-Bereich sowie "Notizen zur Ausgabe" im Anmerkungen-Bereich der Übersicht behalten jetzt ihre Beschriftung, sobald ein Wert eingegeben ist, statt sie wie einen reinen Platzhalter verschwinden zu lassen.
+
+## [1.16.0] - 2026-08-31
 - Der Abschnitt "Länder" im Benutzerhandbuch zeigt jetzt auch einen Screenshot der Verwaltungsseite, statt nur eine reine Textbeschreibung.
 - Zwei gleichzeitige Speicherungen der Warenmenge in der Warenerfassung für unterschiedliche Filialen derselben Route (z. B. Handy und Desktop) überschreiben sich jetzt nicht mehr gegenseitig, statt bereits erfasste Mengen stillschweigend zu verlieren.
 - Ein Wechsel der Route in der Warenerfassung fragt bei noch nicht gespeicherten Eingaben jetzt vorher nach Bestätigung, statt diese stillschweigend zu verwerfen.

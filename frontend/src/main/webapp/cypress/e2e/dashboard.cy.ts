@@ -52,6 +52,29 @@ describe('Dashboard', () => {
     cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
   });
 
+  it('statistic and notes fields keep their label visible once a value is entered', () => {
+    cy.createDistribution();
+
+    cy.byTestId('distribution-statistics-employee-count-input')
+      .find('.mat-mdc-floating-label')
+      .should('be.visible')
+      .and('contain.text', 'Anzahl der Mitarbeiter');
+    cy.byTestId('distribution-statistics-employee-count-input').type('100');
+    cy.byTestId('distribution-statistics-employee-count-input')
+      .find('.mat-mdc-floating-label')
+      .should('be.visible')
+      .and('contain.text', 'Anzahl der Mitarbeiter');
+
+    cy.byTestId('distribution-notes-textarea').type('Test note');
+    cy.byTestId('distribution-notes-textarea')
+      .parents('mat-form-field')
+      .find('.mat-mdc-floating-label')
+      .should('be.visible')
+      .and('contain.text', 'Notizen zur Ausgabe');
+
+    cy.closeDistribution();
+  });
+
   it('download customer list', () => {
     cy.byTestId('download-customerlist-button').should('not.exist');
     cy.createDistribution();
