@@ -170,6 +170,29 @@ describe('RouteGuidanceComponent', () => {
     expect(component['completedCount']()).toBe(0);
   });
 
+  it('switchMap discards a stale guidance response from a route switched away from', () => {
+    const guidanceA$ = new Subject<RouteGuidanceData>();
+    const guidanceB$ = new Subject<RouteGuidanceData>();
+    routeApiMock.getRouteGuidance = vi.fn(
+      (routeId: number) => (routeId === testRoute.id ? guidanceA$ : guidanceB$)
+    );
+
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+
+    component['onSelectedRouteChange'](testRoute);
+    component['onSelectedRouteChange'](otherRoute);
+
+    // otherRoute, selected second, responds first
+    guidanceB$.next({...guidance, routeId: otherRoute.id});
+    expect(component['guidance']()?.routeId).toBe(otherRoute.id);
+
+    // testRoute's slower response arrives after - switchMap already unsubscribed it, so it must
+    // not overwrite what otherRoute already applied
+    guidanceA$.next({...guidance, routeId: testRoute.id});
+    expect(component['guidance']()?.routeId).toBe(otherRoute.id);
+  });
+
   it('clears the guidance when the selection is reset', () => {
     const fixture = createComponent();
     const component = fixture.componentInstance;

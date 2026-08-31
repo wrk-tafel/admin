@@ -27,4 +27,16 @@ enum class AdvisoryLockKey(val lockId: Long) {
     // upsert is a check-then-act, so overlapping registrations of one browser's endpoint would
     // otherwise both insert and the loser would fail on a duplicate key
     REGISTER_PUSH_SUBSCRIPTION(7000L),
+
+    // serializes the ticket-number/household check-then-insert of a distribution check-in: both
+    // are UNIQUE, so two desks checking in the same ticket number (or the same household) at once
+    // would otherwise both pass the check and the loser would fail on a duplicate key instead of
+    // getting the intended ConflictException
+    ASSIGN_HOUSEHOLD_TO_DISTRIBUTION(8000L),
+
+    // serializes the find-then-insert of a route stop's per-day completion: `(route_stop_id,
+    // completion_date)` is UNIQUE, so a driver and co-driver ticking off the same stop at once
+    // would otherwise both find nothing and both insert, with the loser failing on a duplicate key
+    // instead of getting back the completion the other one just recorded
+    ROUTE_STOP_COMPLETION(9000L),
 }

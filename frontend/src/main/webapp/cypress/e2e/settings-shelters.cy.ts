@@ -31,6 +31,9 @@ describe('Settings - Shelters', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       cy.byTestId('addShelterButton').click();
 
+      // Regression test for #3563: the dialog used to always say "bearbeiten", even for create.
+      cy.byTestId('shelter-edit-dialog').find('[testid="title"]').should('have.text', 'Notschlafstelle anlegen');
+
       // Dialog fields are rendered in an overlay; target visible inputs instead of the host element
       cy.get('input[formControlName="name"]').should('be.visible').type('New Shelter ' + randomId);
       cy.get('input[formControlName="addressStreet"]').should('be.visible').type('New Street');
@@ -55,6 +58,8 @@ describe('Settings - Shelters', () => {
       // The edit button sits in the collapsed header row, so editing needs no expanding. A disabled
       // shelter's button is disabled, hence the first enabled one rather than plainly the first.
       cy.get('[testid^="editShelterButton-"]:not(:disabled)').first().click();
+
+      cy.byTestId('shelter-edit-dialog').find('[testid="title"]').should('have.text', 'Notschlafstelle bearbeiten');
 
       // Dialog fields are rendered in the overlay; target visible inputs instead
       const newName = 'A Shelter Updated ' + randomId;

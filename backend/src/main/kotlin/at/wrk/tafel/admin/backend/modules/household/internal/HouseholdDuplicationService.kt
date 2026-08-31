@@ -133,6 +133,14 @@ class HouseholdDuplicationService(
                           lower(concat(h.address_street, h.address_housenumber, h.address_door)),
                           lower(concat(?::text, ?::text, ?::text))
                   ) < 10
+              AND (
+                  ?::bigint IS NULL OR NOT EXISTS (
+                      SELECT 1
+                      FROM household_duplicate_dismissals dismissal
+                      WHERE dismissal.household_id_low = LEAST(h.household_id, ?::bigint)
+                        AND dismissal.household_id_high = GREATEST(h.household_id, ?::bigint)
+                  )
+              )
         """.trimIndent()
 
         // Person-level equivalent: fuzzy name plus an exact birth date match against every person in
@@ -147,6 +155,14 @@ class HouseholdDuplicationService(
               AND soundex(p.lastname) = soundex(?::text)
               AND soundex(p.firstname) = soundex(?::text)
               AND levenshtein(lower(concat(p.firstname, p.lastname)), lower(concat(?::text, ?::text))) < 4
+              AND (
+                  ?::bigint IS NULL OR NOT EXISTS (
+                      SELECT 1
+                      FROM household_duplicate_dismissals dismissal
+                      WHERE dismissal.household_id_low = LEAST(h.household_id, ?::bigint)
+                        AND dismissal.household_id_high = GREATEST(h.household_id, ?::bigint)
+                  )
+              )
         """.trimIndent()
     }
 
@@ -190,6 +206,9 @@ class HouseholdDuplicationService(
             addressStreet,
             addressHouseNumber,
             addressDoor,
+            excludeHouseholdId,
+            excludeHouseholdId,
+            excludeHouseholdId,
         ).toList()
 
         val personMatches = persons.flatMap { person ->
@@ -203,6 +222,9 @@ class HouseholdDuplicationService(
                 person.firstname,
                 person.firstname,
                 person.lastname,
+                excludeHouseholdId,
+                excludeHouseholdId,
+                excludeHouseholdId,
             )
         }
 

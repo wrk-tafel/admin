@@ -46,6 +46,7 @@ settings/
     routes/                        # route: einstellungen/routen
       dialogs/
         route-edit-dialog.component.ts
+    countries/                     # route: einstellungen/laender
   settings.routes.ts
 ```
 
@@ -466,6 +467,41 @@ Both follow the same shape, and a change to one usually belongs in the other:
   `toSignal()`, so they update on every keystroke without a manual `detectChanges()` call. Neither
   blocks `save()`; the backend still rejects an actual duplicate shop/time on its own.
 
+## `countries` (`SettingsCountriesComponent`)
+
+Admin CRUD for the ISO country list (#3585), added because `base::country`'s reference data
+previously had no maintenance UI at all — every row started as seed data from the repeatable
+countries migration, and a household can now also be assigned a country the list doesn't yet
+carry. This view differs from every other screen above in two ways that reflect the domain:
+
+- **No delete, and no drag-and-drop reordering — but a country can be created.** Every person's
+  nationality is a `NOT NULL` FK into this table across a household's whole history, so a country
+  is never deleted, only deactivated, same as every other reference-data screen in this module;
+  and unlike the reorderable screens, the order administered here has no meaning of its own — the
+  nationality autocomplete it feeds sorts by usage first (`CountryService.listCountries`), so there
+  is nothing to drag either. `name` and `code` (the ISO code) are both editable inline — the same
+  pattern as `cars`/`food-categories` (`startEdit()`/`saveEdit()`/`cancelEdit()`, autofocus via
+  `viewChild`+`effect()`, Enter saves and Escape cancels) — and a new country is added via
+  `CountryCreateDialogComponent` (`views/countries/dialogs`), the same create-dialog convention as
+  `food-categories`/`shops`/`cars`. `code` is validated client-side to exactly two letters
+  (`Validators.pattern`, matching the backend's `@Size(min=2, max=2)`) and normalized to uppercase
+  before it is sent; a code already in use surfaces the backend's `BusinessRuleException` message
+  ("Länder-Code XX ist bereits vergeben!") via `extractErrorMessage()` in the error toast, same
+  approach as `shops`' Filialnummer uniqueness check.
+- **Search on top of the status filter, like `shops`/`routes`**, because the ~250-row list is by
+  far the longest one in this module — a status filter alone would still leave an unmanageable
+  working list. Filtering is purely client-side (`visibleCountries()`), matching a search term
+  against name and code alike, same construction as `shops`' `visibleShops()`.
+- **Disabling a country here excludes it from `CountryApiService.getCountries()`'s selectable
+  list**, which feeds the `customer` module's nationality autocomplete (`customer-form.component.ts`)
+  — same enabled/active relationship as `food-categories`'/`cars`' active lists. A person already
+  assigned a since-disabled country keeps showing its name; only the pick list for a new/edited
+  person shrinks.
+- Backend: `base::country`'s `CountryController` exposes the admin surface at `GET
+  /api/countries/admin`, `POST /api/countries` and `PUT /api/countries/{id}`, all behind
+  `SETTINGS` — separate from the pre-existing, `isAuthenticated()`-only `GET /api/countries` the
+  nationality autocomplete uses, which filters to `enabled` countries only.
+
 ## API services
 
 As elsewhere, HTTP access lives in `app/api/`, not under this module:
@@ -488,3 +524,7 @@ As elsewhere, HTTP access lives in `app/api/`, not under this module:
   optional `searchInput`) and `saveEmployee()` predate this view (shared with
   `logistics`' create-employee flow), `updateEmployee()` was added for this
   view's inline editing.
+- `country-api.service.ts` — `CountryApiService`; `getCountries()` (the enabled-only, usage-sorted
+  list) predates this view and is shared with `customer`'s nationality autocomplete,
+  `getAllCountries()`/`createCountry()`/`updateCountry()` were added for this view's admin listing,
+  creation and inline editing.

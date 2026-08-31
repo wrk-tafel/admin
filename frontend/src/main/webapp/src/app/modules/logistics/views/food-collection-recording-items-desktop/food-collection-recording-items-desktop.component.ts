@@ -84,19 +84,34 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     this.categories.controls.length > 0
   );
 
+  // Which route's data this effect last built the matrix for - a save on the parent screen
+  // refreshes `selectedRouteData()` in place (new object, same route) once the save has already
+  // gone out, so rebuilding the whole matrix from that refresh here would risk clobbering an edit
+  // made in the gap between the save completing and the refresh response arriving (see #3559). A
+  // route that's actually different from what's on screen still rebuilds - including a *new*
+  // desktop component instance built for the same route right after crossing the desktop/mobile
+  // breakpoint, since `lastLoadedRouteId` starts unset on every fresh instance.
+  private lastLoadedRouteId?: number;
+
   foodCollectionDataEffect = effect(() => {
+    const data = this.selectedRouteData();
+    if (data && data.route.id === this.lastLoadedRouteId) {
+      return;
+    }
+    this.lastLoadedRouteId = data?.route.id;
+
     // reset form without route to prevent an infinite loop
     this.categories.clear();
     this.returnCategories.clear();
     this.returnItems.clear();
     this.formInitialized.set(false);
 
-    if (this.selectedRouteData()) {
+    if (data) {
       this.attachReturnItemsValidator();
 
-      const shops = this.selectedRouteData()!.shops;
-      const items = this.selectedRouteData()!.foodCollectionData?.items ?? [];
-      const returnItems = this.selectedRouteData()!.foodCollectionData?.returnItems ?? [];
+      const shops = data.shops;
+      const items = data.foodCollectionData?.items ?? [];
+      const returnItems = data.foodCollectionData?.returnItems ?? [];
 
       this.createCategoryShopInputs(shops, items);
       this.createReturnCategoryShopInputs(shops, returnItems);
@@ -271,6 +286,16 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     return this.form.invalid;
   }
 
+  /** Whether the Warenmenge matrix itself (the item amounts, not the return boxes) has an invalid cell. */
+  hasInvalidItems(): boolean {
+    return this.categories.invalid;
+  }
+
+  /** Whether either return-boxes matrix (predefined counters or free-text rows) has an invalid cell. */
+  hasInvalidReturnItems(): boolean {
+    return this.returnCategories.invalid || this.returnItems.invalid;
+  }
+
   markAllAsTouched() {
     this.form.markAllAsTouched();
   }
@@ -281,12 +306,18 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     }
 
     const routeId = this.selectedRouteData()!.route.id;
-    const itemsRequest: FoodCollectionSaveItemsRequest = {
-      items: this.mapItemsFromCategories()
-    };
-    const requests = [this.foodCollectionsApiService.saveItems(routeId, itemsRequest)];
+    const requests: Observable<void>[] = [];
 
-    if (this.returnItems.valid) {
+    // an invalid amount (e.g. a cleared cell) must not be sent - it would fail the backend's
+    // validation, abort the whole sequential save and be mislabelled as a Retourware failure
+    if (!this.hasInvalidItems()) {
+      const itemsRequest: FoodCollectionSaveItemsRequest = {
+        items: this.mapItemsFromCategories()
+      };
+      requests.push(this.foodCollectionsApiService.saveItems(routeId, itemsRequest));
+    }
+
+    if (!this.hasInvalidReturnItems()) {
       const returnItemsRequest: FoodCollectionSaveReturnItemsRequest = {
         returnItems: this.mapReturnItems()
       };
@@ -296,9 +327,16 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     return requests;
   }
 
-  /** Called once this section's own save requests have actually gone out - flips its badge back to "complete". */
-  markAsSaved() {
-    this.form.markAsPristine();
+  /** Called once the Warenmenge matrix's own save request has actually gone out - flips its badge back to "complete". */
+  markItemsSaved() {
+    this.categories.markAsPristine();
+    this.savedTick.update(tick => tick + 1);
+  }
+
+  /** Called once the return-boxes save request has actually gone out - flips its badge back to "complete". */
+  markReturnItemsSaved() {
+    this.returnCategories.markAsPristine();
+    this.returnItems.markAsPristine();
     this.savedTick.update(tick => tick + 1);
   }
 

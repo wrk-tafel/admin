@@ -1,0 +1,21 @@
+<tafel-dialog title="Land erstellen" testId="country-create-dialog">
+  <div tafel-dialog-content>
+    <form [formGroup]="form" class="grid grid-cols-1">
+      <mat-form-field>
+        <mat-label>Code</mat-label>
+        <input matInput formControlName="code" maxlength="2" testid="countryCreateCodeInput"/>
+        <mat-hint>Zweistelliger ISO-Ländercode, z. B. AT</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" maxlength="50" testid="countryCreateNameInput"/>
+      </mat-form-field>
+    </form>
+  </div>
+
+  <div tafel-dialog-actions>
+    <button matButton="filled" testid="saveCountryCreateButton" (click)="save()">Speichern</button>
+    <button matButton="outlined" testid="cancelCountryCreateButton" (click)="cancel()">Abbrechen</button>
+  </div>
+</tafel-dialog>

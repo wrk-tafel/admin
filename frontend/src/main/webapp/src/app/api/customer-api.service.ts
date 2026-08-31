@@ -1,6 +1,6 @@
 import {HttpClient, HttpContext, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
-import {map, Observable} from 'rxjs';
+import {map, Observable, of, switchMap} from 'rxjs';
 import {CountryData} from './country-api.service';
 import {tap} from 'rxjs/operators';
 import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
@@ -163,8 +163,24 @@ export class CustomerApiService {
           customer: mapHouseholdToCustomer(item.household),
           similarCustomers: (item.similarHouseholds ?? []).map(mapHouseholdToCustomer)
         }))
-      }))
+      })),
+      switchMap(response => this.reclampDuplicatesPageIfEmpty(response))
     );
+  }
+
+  /**
+   * A requested page can come back with an empty `items` array even though duplicates remain -
+   * dismissing/deleting the last remaining pair on the last page shrinks totalCount, and the page
+   * just requested no longer exists. Re-requests the new last page instead of returning that empty
+   * response, so every caller of {@link getCustomerDuplicates} - the queue view's own re-fetches as
+   * well as its route resolver on initial navigation/refresh - lands on the tail of the queue
+   * instead of a dead end.
+   */
+  private reclampDuplicatesPageIfEmpty(response: CustomerDuplicatesResponse): Observable<CustomerDuplicatesResponse> {
+    if (response.items.length === 0 && response.totalCount > 0) {
+      return this.getCustomerDuplicates(Math.ceil(response.totalCount / response.pageSize));
+    }
+    return of(response);
   }
 
   /**

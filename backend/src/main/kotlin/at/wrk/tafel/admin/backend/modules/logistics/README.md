@@ -109,6 +109,13 @@ DB level — it only governs `modules`-to-`modules` traffic.
   doesn't keeps it.
 - Ticking an already-ticked stop is a no-op rather than a re-stamp: the stored `createdAt` is what
   tells a second driver when the stop was actually done.
+- **Ticking a stop off is wrapped in
+  `advisoryLockService.withLock(AdvisoryLockKey.ROUTE_STOP_COMPLETION)`** (lock id `9000L` in
+  `AdvisoryLockKey`, see the advisory-lock README): the find-then-insert against
+  `(route_stop_id, completion_date)`'s `UNIQUE` constraint is a check-then-act, and the screen is
+  explicitly designed for two people on one van (driver and co-driver) — without the lock, both
+  ticking the same stop at the same moment would find nothing and both insert, and the loser would
+  get a duplicate-key 500 instead of the completion the other one just recorded.
 - **Arriving at the last stop publishes `RouteAtLastStopEvent`** — every stop but the final one
   ticked off, which is the point at which the van is about to head back and the people unloading it
   want to know. `routes.last_stop_notified_date` keeps that to one announcement per route per day,
@@ -223,13 +230,24 @@ This is the most involved sub-area — it records what a route's team actually p
   `advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS)`. Hibernate
   rewrites the whole element collection on any change, so a concurrent per-shop save for another
   shop of the same route would otherwise drop the rows this one just wrote.
-- **Race condition guard:** `patchItem()` wraps its read-modify-write in
+- **Race condition guard:** `saveItems()`, `saveItemsPerShop()` and `patchItem()` all wrap their
+  read-modify-write (or, for `saveItems`, outright replace) of `items` in the same
   `advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM)` (lock id `4000L` in
-  `AdvisoryLockKey`). The code comment explains why: concurrent auto-save requests for the same
-  category/shop would otherwise race on the read-modify-write and both try to insert the same
-  item, violating the `food_collections_items_pk` unique constraint. If you add another
-  read-modify-write path against `items`, consider whether it needs the same lock.
+  `AdvisoryLockKey`). Without a shared lock, a mobile per-shop save for one shop, a mobile save for
+  another shop of the same route, and the desktop autosave's `PATCH /items` would each read the
+  same `items` snapshot and the later commit would silently drop the earlier one's rows;
+  `patchItem`'s own original hazard (two concurrent patches for the same category/shop both
+  inserting and violating the `food_collections_items_pk` unique constraint) is the same
+  read-modify-write race with a duplicate key instead of lost data as the visible symptom. If you
+  add another read-modify-write path against `items`, it needs this lock too.
   See `database/common/lock/README.md` for the advisory-lock mechanism itself.
+- **Shop-belongs-to-route guard:** every path that writes an item/return item under a caller-given
+  `shopId` validates it against `route.stops` via `validateShopIsRouteStop` before saving —
+  including the route-level bulk endpoints (`saveItems`, `saveReturnItems`), which validate every
+  item's `shopId` individually since a bulk request can mix shops. Without it, a client bug pairing
+  one route's id with another route's shop (see #3527) would silently store the item under the
+  wrong route instead of failing loudly, and would surface later as `unassignedReturnItems` in
+  route guidance/exports.
 - `kmStart`/`kmEnd` are nullable at the DB level (migration `R__00061_food_collections_nullable`
   dropped their original `NOT NULL`) — a food collection can exist before mileage is recorded, and
   they have their own endpoint (`POST /routes/{routeId}/km`) separate from the route's base data

@@ -629,6 +629,10 @@ class HouseholdServiceTest {
         val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
 
         val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now())
+        // simulates the converter having stamped prolongedAt because validUntil was pushed out by
+        // this same request - the income check below then still fails, so the household must not be
+        // left looking "prolonged" while it is actually saved as invalid
+        testHouseholdEntity.prolongedAt = LocalDateTime.now()
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
@@ -652,6 +656,7 @@ class HouseholdServiceTest {
             ),
         )
         assertThat(testHouseholdEntity.validUntil).isEqualTo(LocalDate.now().minusDays(1))
+        assertThat(testHouseholdEntity.prolongedAt).isNull()
         verify(exactly = 1) { householdConverter.mapHouseholdToEntity(any(), any()) }
     }
 

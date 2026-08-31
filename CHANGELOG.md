@@ -5,6 +5,35 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Der Abschnitt "Länder" im Benutzerhandbuch zeigt jetzt auch einen Screenshot der Verwaltungsseite, statt nur eine reine Textbeschreibung.
+- Zwei gleichzeitige Speicherungen der Warenmenge in der Warenerfassung für unterschiedliche Filialen derselben Route (z. B. Handy und Desktop) überschreiben sich jetzt nicht mehr gegenseitig, statt bereits erfasste Mengen stillschweigend zu verlieren.
+- Ein Wechsel der Route in der Warenerfassung fragt bei noch nicht gespeicherten Eingaben jetzt vorher nach Bestätigung, statt diese stillschweigend zu verwerfen.
+- Eine ungültige Warenmenge in der Warenerfassung (Desktop) wird beim Speichern jetzt korrekt als "Warenmenge" statt fälschlich als "Retourware" gemeldet und nicht mehr an den Server gesendet.
+- Eine ungültige Retourware-Eingabe wird beim Wechsel der Filiale in der mobilen Warenerfassung jetzt mit einem Hinweis verworfen, statt stillschweigend verloren zu gehen.
+- Unter Einstellungen → Länder kann die Länderliste jetzt verwaltet werden (neue Länder anlegen, Name und Code bearbeiten, Aktivieren/Deaktivieren), statt nur eine feste, nicht änderbare Liste zur Auswahl der Staatsangehörigkeit zu sein.
+- Ein gleichzeitiges Anmelden mit derselben Ticketnummer oder demselben Kunden an zwei Check-in-Plätzen sowie ein gleichzeitiges Abhaken desselben Routenpunkts durch Fahrer:in und Beifahrer:in führen jetzt zu einer verständlichen Meldung bzw. einem funktionierenden Ergebnis, statt zu einem unerwarteten Fehler.
+- Ein deaktiviertes Benutzerkonto erhält jetzt keine Push-Benachrichtigungen mehr auf seinen Geräten, und ein fehlgeschlagenes Laden der Benachrichtigungseinstellungen zeigt jetzt einen Hinweis mit Wiederholen-Möglichkeit an, statt alle Schalter dauerhaft zu deaktivieren.
+- Feldwerte im Zugriffsprotokoll (z. B. Ja/Nein-Felder, Geschlecht, Dokumentart, Grenzwert-Art, Mailtyp, Empfängertyp, Berechtigung) werden jetzt auf Deutsch angezeigt, statt als technischer, teils englischer Rohwert.
+- Der CSV-Export der Tagesreports zeigt bei "Versorgte Personen" und "davon in Ausgabestelle" jetzt die korrekte Personenzahl, statt die Hauptbezieher doppelt zu zählen.
+- Die Statistik-Kennzahlen "Spender (Anzahl)" und "Warenmenge (Durchschnitt pro Spender)" beziehen sich jetzt auf den gesamten gewählten Zeitraum, statt je nach gewählter Zeitauflösung unterschiedliche bzw. zu hohe Werte zu liefern.
+- Die Statistik-Kennzahl "Notschlafstellen (Durchschnitt pro Ausgabe)" berücksichtigt jetzt auch Ausgaben ohne Notschlafstelle, statt den Durchschnitt zu hoch auszuweisen.
+- Ein Kunde, dessen Verlängerung wegen eines zu hohen Einkommens ungültig gespeichert wird, scheint jetzt nicht mehr fälschlich als "Verlängert" in der Kundenübersicht und den Statistiken auf.
+- Die Anzahl der Kinder unter 3 Jahren auf der Bezugskarte und dem Stammdatenblatt wird jetzt wie in den übrigen Auswertungen berechnet (unter statt bis einschließlich 3 Jahre, ohne von der Haushaltszählung ausgeschlossene Personen).
+- Die Bezugskarte zeigt bei einer Adresse ohne Hausnummer jetzt keinen überflüssigen Bindestrich mehr an.
+- Ein gesperrter Kunde kann jetzt nicht mehr über das Bearbeiten-Formular versehentlich entsperrt werden, und eine spätere Änderung an einem bereits gesperrten Kunden überschreibt nicht mehr, wann und von wem er gesperrt wurde.
+- Beim Bearbeiten eines Benutzerkontos können Benutzername, Passwort und die Pflicht zur Passwort-Änderung eines Administrator-Kontos jetzt nur mehr von einem Administrator geändert werden, statt von jedem Konto mit der Berechtigung "Benutzerverwaltung".
+- Wer das eigene Passwort über die Benutzerverwaltung (statt über "Passwort ändern") ändert, bleibt jetzt wie erwartet angemeldet, statt beim nächsten Klick unerwartet abgemeldet zu werden.
+- Ein durch Abmelden oder Passwortänderung ungültig gewordenes Anmelde-Token wird jetzt auch während der Zeitumstellung von Sommer- auf Winterzeit korrekt erkannt.
+- Anmerkungen einer Ausgabe sowie Routen-, Filial- und Retourkisten-Angaben werden im Tagesreport- und Retourkisten-Mail jetzt escaped angezeigt, statt enthaltenes HTML ungefiltert an die Mail-Empfänger auszuliefern.
+- Bei der Ticket-Monitor-Steuerung aktiviert die Eingabetaste jetzt nur mehr den fokussierten Button (z. B. "Ticket zurück"), statt immer "Weiter (bezahlt)" auszulösen.
+- Ein kurzzeitiger Verbindungsfehler beim Prüfen der Berechtigungen blendet jetzt nicht mehr fälschlich Menüpunkte und Bereiche aus, solange die Sitzung tatsächlich noch gültig ist.
+- Der Download von PDF-, CSV- oder ZIP-Dateien zeigt bei einem vorübergehend nicht erreichbaren Server jetzt die korrekte Fehlermeldung an, statt einer technischen Fehlermeldung.
+- Beim Bearbeiten eines Benutzerkontos bleibt "Speichern" nicht mehr fälschlich deaktiviert, wenn ein zuvor eingegebenes, nicht übereinstimmendes Passwort durch Einklappen des Passwort-zurücksetzen-Bereichs wieder verworfen wird.
+- Der Dialog zum Anlegen einer neuen Notschlafstelle trägt jetzt den Titel "Notschlafstelle anlegen" statt "Notschlafstelle bearbeiten".
+- Ein auf der Seite "Kunden-Duplikate" als "Kein Duplikat" markiertes Kundenpaar blockiert das Speichern der beiden Kunden jetzt nicht mehr, statt bei jeder weiteren Änderung erneut als möglicher Duplikat-Konflikt gemeldet zu werden.
+- Wird das letzte verbleibende Duplikat-Paar auf der letzten Seite der Seite "Kunden-Duplikate" gelöscht oder als "Kein Duplikat" markiert, bleibt die Liste jetzt nutzbar, statt leer zu bleiben.
+
+## [1.15.0] - 2026-08-30
 - Die Screenshots im Benutzerhandbuch zeigen wieder den aktuellen Stand der Anwendung (u. a. Kunden anlegen/bearbeiten mit dem neuen Nationalität-Suchfeld und die Schnellsuche mit dem Kurzhinweis und der zweiten Aktion "Datenschutzerklärung (Mitarbeiter) herunterladen").
 - Die Ergebnistabellen der Anmelde-Versuche, der Mitarbeiterliste und der Kinder-Auswertung lassen sich jetzt durch Klick auf eine Spaltenüberschrift auf- oder absteigend sortieren.
 - Der Scanner-Bildschirm zeigt die Kamera-Vorschau nach dem Wechsel von der Kopplungs- in die Scan-Ansicht jetzt zuverlässig an, statt möglicherweise ein eingefrorenes Bild zu zeigen.

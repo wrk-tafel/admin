@@ -161,6 +161,26 @@ describe('CustomerDuplicatesComponent', () => {
     expect(component.customerDuplicatesData()).toEqual(mockCustomerDuplicatesDataResponse);
   });
 
+  it('get duplicates sets whatever getCustomerDuplicates resolves to, empty or not', () => {
+    // The re-clamp-to-the-last-page-when-empty behaviour lives in CustomerApiService.getCustomerDuplicates
+    // itself (see its spec) so it also covers the route resolver, not just this component's own re-fetches.
+    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
+    const component = fixture.componentInstance;
+
+    const emptyResponse: CustomerDuplicatesResponse = {
+      items: [],
+      totalCount: 0,
+      currentPage: 1,
+      totalPages: 0,
+      pageSize: 1
+    };
+    customerApiService.getCustomerDuplicates.mockReturnValue(of(emptyResponse));
+
+    component.getDuplicates();
+
+    expect(component.customerDuplicatesData()).toEqual(emptyResponse);
+  });
+
   it('total groups label pluralizes correctly', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;

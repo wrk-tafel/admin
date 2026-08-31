@@ -28,10 +28,10 @@ import {
   FoodCollectionRecordingItemsResponsiveComponent
 } from '../food-collection-recording-items-responsive/food-collection-recording-items-responsive.component';
 import {KmDiffDialogComponent} from '../food-collection-recording-km/dialogs/km-diff-dialog.component';
-import {UnsavedChangesDialogComponent} from './dialogs/unsaved-changes-dialog.component';
+import {UnsavedChangesDialogComponent, UnsavedChangesDialogData} from './dialogs/unsaved-changes-dialog.component';
 import {FoodCollectionData, FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
-import {concat, forkJoin, map, Observable} from 'rxjs';
-import {toSignal} from '@angular/core/rxjs-interop';
+import {catchError, concat, EMPTY, forkJoin, map, Observable, Subject, switchMap} from 'rxjs';
+import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {combineTabStatus, TabStatus} from '../../services/food-collection-tab-status';
@@ -68,7 +68,11 @@ export class FoodCollectionRecordingComponent {
   foodCategories = model.required<FoodCategory[]>();
   foodReturnCategories = model.required<FoodReturnCategory[]>();
 
-  selectedRoute?: RouteData;
+  // A signal, not a plain field: `[ngModel]="selectedRoute()"` has to reliably re-render even when
+  // it's reassigned from an async callback outside any DOM event Angular is tracking (e.g. the
+  // unsaved-changes dialog's afterClosed(), which resolves on a timer once its close animation
+  // finishes) - a plain field mutated there is not guaranteed to schedule a check in zoneless mode.
+  selectedRoute = signal<RouteData | undefined>(undefined);
   selectedRouteData = signal<SelectedRouteData | undefined>(undefined);
 
   basedataComponent = viewChild(FoodCollectionRecordingBasedataComponent);
@@ -118,6 +122,27 @@ export class FoodCollectionRecordingComponent {
     this.routeTabStatus() === 'unsaved' || this.warenTabStatus() === 'unsaved'
   );
 
+  /**
+   * Whether switching routes right now would actually discard something - a narrower question
+   * than {@link hasUnsavedChanges}, which also reads "unsaved" whenever one of km/items is
+   * `complete` and the other still has nothing entered (see `combineTabStatus`'s "one section
+   * outstanding" rule) even though there is nothing dirty to lose. Km/base data are read directly
+   * (real dirty state, not the combined badge) on every layout - neither has any other safeguard.
+   * The mobile items layout is excluded: it already resends the outgoing shop's pending return
+   * items as part of the switch itself (`sendReturnItemsOfCurrentShop`) and auto-saves Warenmenge
+   * counters through the offline queue as they're typed, so nothing is actually lost there: only
+   * the desktop layout's batch-save model is genuinely at risk of losing unsaved amounts here.
+   */
+  private readonly routeSwitchWouldDiscardChanges = computed(() =>
+    this.routeTabStatus() === 'unsaved'
+    || this.kmComponent()?.tabStatus() === 'unsaved'
+    || (this.isDesktopLayout() && this.itemsComponent()?.tabStatus() === 'unsaved')
+  );
+
+  // Fed by onSelectedRouteChange, piped through switchMap below: a slow response for a route
+  // switched away from must never overwrite what a later, faster selection already applied.
+  private readonly routeSelection$ = new Subject<RouteData>();
+
   constructor() {
     // Redirect to overview once it's confirmed no distribution is active. `getCurrentDistribution()`
     // is also `null` before the first SSE message arrives, so this must wait for that first message
@@ -128,6 +153,29 @@ export class FoodCollectionRecordingComponent {
       if (this.globalStateService.getHasReceivedDistribution()() && this.globalStateService.getCurrentDistribution()() === null) {
         this.router.navigate(['uebersicht']);
       }
+    });
+
+    this.routeSelection$.pipe(
+      switchMap(route =>
+        forkJoin({
+          foodCollectionData: this.foodCollectionsApiService.getFoodCollection(route.id),
+          shopsOfRouteData: this.routeApiService.getShopsOfRoute(route.id)
+        }).pipe(
+          map(({foodCollectionData, shopsOfRouteData}) => ({route, foodCollectionData, shopsOfRouteData})),
+          catchError(() => {
+            this.toastr.error('Fehler beim Laden der Daten!');
+            return EMPTY;
+          })
+        )
+      ),
+      takeUntilDestroyed()
+    ).subscribe(({route, foodCollectionData, shopsOfRouteData}) => {
+      this.selectedRoute.set(route);
+      this.selectedRouteData.set({
+        route: route,
+        shops: shopsOfRouteData.shops,
+        foodCollectionData: foodCollectionData
+      });
     });
   }
 
@@ -142,27 +190,44 @@ export class FoodCollectionRecordingComponent {
     return this.dialog.open(UnsavedChangesDialogComponent).afterClosed().pipe(map(confirmed => !!confirmed));
   }
 
+  /**
+   * Switching the route rebuilds every child form from scratch, so an unconfirmed switch would
+   * silently drop unsaved amounts/km/base data the same way leaving the screen does (see
+   * canDeactivate) - the picker itself has no navigation to intercept, so this asks directly.
+   */
   onSelectedRouteChange(route: RouteData | undefined) {
     if (!route) {
+      this.selectedRoute.set(undefined);
       this.selectedRouteData.set(undefined);
       return;
     }
 
-    forkJoin({
-      foodCollectionData: this.foodCollectionsApiService.getFoodCollection(route.id),
-      shopsOfRouteData: this.routeApiService.getShopsOfRoute(route.id)
-    }).subscribe({
-      next: ({foodCollectionData, shopsOfRouteData}) => {
-        this.selectedRouteData.set({
-          route: route,
-          shops: shopsOfRouteData.shops,
-          foodCollectionData: foodCollectionData
-        });
-      },
-      error: () => {
-        this.toastr.error('Fehler beim Laden der Daten!');
-      }
-    });
+    if (this.routeSwitchWouldDiscardChanges()) {
+      const previousRoute = this.selectedRoute();
+      const data: UnsavedChangesDialogData = {
+        message: 'Es gibt ungespeicherte Änderungen auf dieser Route. Beim Wechseln gehen sie verloren.',
+        confirmLabel: 'Route wechseln',
+      };
+      this.dialog.open(UnsavedChangesDialogComponent, {data}).afterClosed().subscribe(confirmed => {
+        if (confirmed) {
+          this.routeSelection$.next(route);
+        } else {
+          // undo the dropdown's already-applied visual selection - a fresh object reference is
+          // needed since the mat-select otherwise still considers the just-picked route selected
+          // (writeValue is only re-run when the bound reference actually differs); compareRoute is
+          // what lets that fresh reference still match the original route option by id.
+          this.selectedRoute.set(previousRoute ? {...previousRoute} : undefined);
+        }
+      });
+      return;
+    }
+
+    this.routeSelection$.next(route);
+  }
+
+  /** Lets the mat-select re-match a route by id after a revert reassigns it a fresh object reference. */
+  protected compareRoute(a: RouteData | undefined, b: RouteData | undefined): boolean {
+    return a?.id === b?.id;
   }
 
   /**
@@ -203,7 +268,8 @@ export class FoodCollectionRecordingComponent {
     const skipped = [
       basedata?.hasInvalidInput() ? 'Routendaten' : null,
       km?.hasInvalidInput() ? 'Kilometerstand' : null,
-      items?.hasInvalidInput() ? 'Retourware' : null
+      items?.hasInvalidItems() ? 'Warenmenge' : null,
+      items?.hasInvalidReturnItems() ? 'Retourware' : null
     ].filter((section): section is string => !!section);
 
     if (requests.length === 0) {
@@ -227,19 +293,49 @@ export class FoodCollectionRecordingComponent {
         if (!km?.hasInvalidInput()) {
           km?.markAsSaved();
         }
-        if (!items?.hasInvalidInput()) {
-          items?.markAsSaved();
+        if (!items?.hasInvalidItems()) {
+          items?.markItemsSaved();
+        }
+        if (!items?.hasInvalidReturnItems()) {
+          items?.markReturnItemsSaved();
         }
 
         if (skipped.length > 0) {
           this.toastr.warning(`Gespeichert - unvollständig und daher nicht gespeichert: ${skipped.join(', ')}`);
         } else {
           this.toastr.success('Daten wurden gespeichert!');
+          // only refresh from a save that actually persisted everything - refreshing after a
+          // partial save would rebuild the skipped section's form from the server, which never
+          // received its (still-invalid, still on-screen) input and would silently wipe it
+          this.refreshFoodCollectionSnapshot();
         }
       },
       error: () => {
         this.saving.set(false);
         this.toastr.error('Speichern fehlgeschlagen!');
+      }
+    });
+  }
+
+  /**
+   * Re-reads the food collection after a successful save: `selectedRouteData().foodCollectionData`
+   * is otherwise only ever fetched once, on route selection, so crossing the desktop/mobile
+   * breakpoint afterwards - which destroys and recreates the items component - would rebuild its
+   * form from the pre-save snapshot and a second "Speichern" would overwrite the server with the
+   * old values again.
+   */
+  private refreshFoodCollectionSnapshot() {
+    const current = this.selectedRouteData();
+    if (!current) {
+      return;
+    }
+
+    const routeId = current.route.id;
+    this.foodCollectionsApiService.getFoodCollection(routeId).subscribe(foodCollectionData => {
+      // the route may have been switched away from while this request was out - the snapshot then
+      // belongs to a screen that is no longer shown, so it must not be applied
+      if (this.selectedRouteData()?.route.id === routeId) {
+        this.selectedRouteData.update(data => data ? {...data, foodCollectionData} : data);
       }
     });
   }

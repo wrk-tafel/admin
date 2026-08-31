@@ -76,14 +76,11 @@ class DailyReportsExporter(
         columns.add(startedAt[IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString())
 
         val countPersonsInShelter = statistic.shelters.sumOf { it.personsCount }
-        val countPeopleTotal = statistic.countCustomers
-            .plus(statistic.countPersons)
-            .plus(countPersonsInShelter)
+        val countPeopleTotal = statistic.countPersons.plus(countPersonsInShelter)
         columns.add(countPeopleTotal.toString())
         columns.add(countPersonsInShelter.toString())
 
-        val countCustomerPersonsTotal = statistic.countCustomers.plus(statistic.countPersons)
-        columns.add(countCustomerPersonsTotal.toString())
+        columns.add(statistic.countPersons.toString())
         columns.add(statistic.countInfants.toString())
         columns.add(statistic.countCustomers.toString())
         columns.add(statistic.countCustomersProlonged.toString())

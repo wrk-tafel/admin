@@ -42,6 +42,12 @@ describe('ShelterEditDialogComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('titles itself "bearbeiten" when a shelter was passed', () => {
+    const fixture = TestBed.createComponent(ShelterEditDialogComponent);
+
+    expect((fixture.componentInstance as any).title).toBe('Notschlafstelle bearbeiten');
+  });
+
   it('initializes form with provided shelter data including contacts', () => {
     const fixture = TestBed.createComponent(ShelterEditDialogComponent);
     const component = fixture.componentInstance;
@@ -97,5 +103,24 @@ describe('ShelterEditDialogComponent', () => {
     component.cancel();
 
     expect(dialogRef.close).toHaveBeenCalled();
+  });
+});
+
+// Regression test for #3563: the dialog used to hard-code "Notschlafstelle bearbeiten" even when
+// opened for create, mismatching RouteEditDialogComponent/ShopEditDialogComponent's convention.
+describe('ShelterEditDialogComponent (create mode - no shelter passed)', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: [
+        {provide: MatDialogRef, useValue: {close: vi.fn()}},
+        {provide: MAT_DIALOG_DATA, useValue: {shelter: undefined}}
+      ]
+    }).compileComponents();
+  });
+
+  it('titles itself "anlegen" when no shelter was passed', () => {
+    const fixture = TestBed.createComponent(ShelterEditDialogComponent);
+
+    expect((fixture.componentInstance as any).title).toBe('Notschlafstelle anlegen');
   });
 });

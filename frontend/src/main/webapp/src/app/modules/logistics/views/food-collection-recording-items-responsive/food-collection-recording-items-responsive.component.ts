@@ -87,7 +87,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
 
   // The predefined return-category counters are signals, not a reactive form, so unlike returnItems
   // they need their own explicit dirty flag: set on every user edit, cleared once a shop's data has
-  // been (re)loaded or successfully sent - see onReturnCategoryValueChange/applyReturnItems/markAsSaved.
+  // been (re)loaded or successfully sent - see onReturnCategoryValueChange/applyReturnItems/markReturnItemsSaved.
   private readonly returnCategoryValuesDirty = signal(false);
 
   private syncConfirmationTimeoutId?: ReturnType<typeof setTimeout>;
@@ -130,15 +130,29 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   // stale fallback even before it's confirmed sent.
   private readonly shopValuesCache = new Map<number, Record<number, number>>();
 
+  // Which route's data this effect last jumped to a shop for - a save on the parent screen
+  // refreshes `selectedRouteData()` in place (new object, same route) so its snapshot stays
+  // current, and that refresh must not re-run findNextUnfilledShop() and yank the codriver away
+  // from whatever shop they're currently on.
+  private lastLoadedRouteId?: number;
+
   // `untracked` because selecting a shop both reads and writes the value signals below - without
   // it the effect would re-run itself on every shop load
   loadEffect = effect(() => {
-    if (this.selectedRouteData()) {
-      untracked(() => {
-        const shop = this.findNextUnfilledShop();
-        this.selectShop(shop);
-      });
+    const data = this.selectedRouteData();
+    if (!data) {
+      this.lastLoadedRouteId = undefined;
+      return;
     }
+    if (data.route.id === this.lastLoadedRouteId) {
+      return;
+    }
+
+    this.lastLoadedRouteId = data.route.id;
+    untracked(() => {
+      const shop = this.findNextUnfilledShop();
+      this.selectShop(shop);
+    });
   });
 
   private findNextUnfilledShop(): Shop | undefined {
@@ -317,10 +331,17 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       return;
     }
 
+    // an invalid free-text row (empty description, duplicate name) is never sent - warn instead of
+    // silently dropping it, since the form is about to be cleared for the next shop
+    if (this.returnItems.invalid) {
+      this.toastr.warning('Ungültige Retourware der vorherigen Filiale wurde nicht gespeichert und geht verloren!');
+      return;
+    }
+
     const request = this.returnItemsSaveRequest(this.currentSelection);
     if (request) {
       request.subscribe({
-        next: () => this.markAsSaved(),
+        next: () => this.markReturnItemsSaved(),
         error: () => {
           this.toastr.error('Retourware konnte nicht gespeichert werden!');
         }
@@ -385,7 +406,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       .forEach(item => this.addReturnItem(item.description, item.amount));
 
     // freshly (re)loaded from the server/cache, so nothing here is an unsent local change yet
-    this.markAsSaved();
+    this.markReturnItemsSaved();
   }
 
   private mergePendingValues(shop: Shop, values: Record<number, number>) {
@@ -419,17 +440,30 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
     return this.returnItems.invalid;
   }
 
+  /** The Warenmenge counters here are plain numbers with no validity state of their own - they auto-save through the offline queue. */
+  hasInvalidItems(): boolean {
+    return false;
+  }
+
+  /** Whether the free-text return rows (duplicate/missing description) are invalid. */
+  hasInvalidReturnItems(): boolean {
+    return this.returnItems.invalid;
+  }
+
   markAllAsTouched() {
     this.returnItems.markAllAsTouched();
   }
 
+  // Nothing to do for the Warenmenge counters: they auto-save through the offline queue and have
+  // no local dirty/pristine state of their own.
+  markItemsSaved() {
+  }
+
   /**
-   * Called once a section's own return data has actually gone out (shop switch or the main
-   * "Speichern" button) - flips its badge back to "complete". The Warenmenge counters are not
-   * reset here: they auto-save through the offline queue, so `pendingSyncCount` alone already
-   * tracks whether they're sent.
+   * Called once this section's own return data has actually gone out (shop switch or the main
+   * "Speichern" button) - flips its badge back to "complete".
    */
-  markAsSaved() {
+  markReturnItemsSaved() {
     this.returnCategoryValuesDirty.set(false);
     this.returnItems.markAsPristine();
   }

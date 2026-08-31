@@ -25,7 +25,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0003](0003-postgresql-as-the-only-infrastructure-dependency.md) | PostgreSQL is the only infrastructure dependency | accepted |
 | [0010](0010-zoneless-standalone-angular-with-signals.md) | Zoneless, standalone Angular with signal-based state | accepted |
 | [0029](0029-installable-pwa-with-an-explicit-update-prompt.md) | Installable PWA with an explicit update prompt | accepted |
-| [0027](0027-single-locale-and-timezone.md) | One locale and one timezone, fixed at the image level | accepted |
+| [0027](0027-single-locale-and-timezone.md) | One locale and one timezone, fixed at the image level | accepted (storage superseded by [0054](0054-event-timestamps-stored-as-utc-instants.md)) |
 
 ### Data and persistence
 
@@ -90,6 +90,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0052](0052-change-tracking-actor-becomes-a-foreign-key.md) | `created_by`/`updated_by` become a foreign key to `users`, not a stored username | accepted |
 | [0044](0044-support-requests-sent-as-mail.md) | In-app support requests sent as mail, with the browser's context attached | accepted |
 | [0053](0053-client-side-errors-logged-automatically-to-app-log.md) | Client-side errors are logged automatically to `app.log` | accepted |
+| [0054](0054-event-timestamps-stored-as-utc-instants.md) | Event timestamps stored as UTC instants (`timestamptz`), still rendered in Europe/Vienna | accepted |
 | [0033](0033-support-requests-become-github-issues.md) | In-app support requests are filed as GitHub issues | superseded by [0044](0044-support-requests-sent-as-mail.md) |
 | [0028](0028-user-guide-in-repo-published-per-release.md) | User guide in the repository, published as a PDF per release | accepted |
 

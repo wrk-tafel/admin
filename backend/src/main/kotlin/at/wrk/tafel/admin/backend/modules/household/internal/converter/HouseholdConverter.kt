@@ -77,10 +77,28 @@ class HouseholdConverter(
         }
 
         if (householdUpdate.locked == true) {
+            // Read before mutating below - householdEntity *is* storedEntity for an update (same
+            // reference, see above), so `wasAlreadyLocked` would otherwise always see the value this
+            // very call just set.
+            val wasAlreadyLocked = storedEntity?.locked == true
+            val previousLockedAt = storedEntity?.lockedAt
+            val previousLockedBy = storedEntity?.lockedBy
+            val previousLockReason = storedEntity?.lockReason
+
             householdEntity.locked = true
-            householdEntity.lockedAt = LocalDateTime.now()
-            householdEntity.lockedBy = userEntity
-            householdEntity.lockReason = householdUpdate.lockReason
+            // A household that was already locked keeps its original "Gesperrt seit/von" - only a
+            // fresh lock (storedEntity wasn't locked yet) re-stamps it. Without this, any later edit
+            // of an already-locked household (e.g. disableCustomer's validUntil update, which round-
+            // trips the full record) would silently rewrite who locked it and when.
+            if (wasAlreadyLocked) {
+                householdEntity.lockedAt = previousLockedAt
+                householdEntity.lockedBy = previousLockedBy
+                householdEntity.lockReason = previousLockReason
+            } else {
+                householdEntity.lockedAt = LocalDateTime.now()
+                householdEntity.lockedBy = userEntity
+                householdEntity.lockReason = householdUpdate.lockReason
+            }
         } else {
             householdEntity.locked = false
             householdEntity.lockedAt = null

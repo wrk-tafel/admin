@@ -131,17 +131,17 @@ class DailyReportsExporterTest {
                 listOf(
                     previousDistribution2.startedAt!!.format(DATE_FORMATTER),
                     previousDistribution2.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
-                    "25", "3", "22", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
+                    "15", "3", "12", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
                 ),
                 listOf(
                     previousDistribution1.startedAt!!.format(DATE_FORMATTER),
                     previousDistribution1.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
-                    "9", "3", "6", "3", "4", "5", "6", "7", "8", "0", "9", "10", "11.1", "12", "13",
+                    "5", "3", "2", "3", "4", "5", "6", "7", "8", "0", "9", "10", "11.1", "12", "13",
                 ),
                 listOf(
                     currentDistribution.startedAt!!.format(DATE_FORMATTER),
                     currentDistribution.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
-                    "22", "0", "22", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
+                    "12", "0", "12", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
                 ),
             ),
         )
@@ -191,7 +191,7 @@ class DailyReportsExporterTest {
                 listOf(
                     currentDistribution.startedAt!!.format(DATE_FORMATTER),
                     currentDistribution.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
-                    "25", "3", "22", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
+                    "15", "3", "12", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
                 ),
             ),
         )

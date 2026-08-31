@@ -90,8 +90,9 @@ class HouseholdPdfService(
         val countPersons = 1 + additionalPersons.count { !it.excludeFromHousehold }
         val countInfants =
             additionalPersons
+                .filterNot { it.excludeFromHousehold }
                 .filter { it.birthDate != null }
-                .count { Period.between(it.birthDate, LocalDate.now(clock)).years <= 3 }
+                .count { Period.between(it.birthDate, LocalDate.now(clock)).years < 3 }
 
         return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,

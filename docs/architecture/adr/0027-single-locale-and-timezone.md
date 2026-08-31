@@ -2,6 +2,11 @@
 
 **Status:** accepted · **Recorded:** 2026-08-09
 
+> **Note:** the storage half of this decision — event timestamps stored as naive `timestamp`,
+> relying on every reader/writer agreeing on the implicit `Europe/Vienna` zone — is superseded by
+> [ADR-0054](0054-event-timestamps-stored-as-utc-instants.md). The locale, language, currency and
+> JVM-zone-for-computation-and-display decisions below are unchanged.
+
 ## Context
 
 This system serves one food bank in Vienna. Its users are German-speaking, its currency is the Euro,

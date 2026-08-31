@@ -1,6 +1,9 @@
 <div th:fragment="content">
-    <p>Der Tagesreport zur Ausgabe vom [( ${distributionDate} )].</p>
+    <p>Der Tagesreport zur Ausgabe vom [[ ${distributionDate} ]].</p>
     <div class="tafel-section-title">Anmerkungen</div>
-    <div th:if="${notes}" class="tafel-note">[( ${notes} )]</div>
+    <!--/* [[...]] escapes: notes is a free-text textarea, so it must not be able to bring markup
+           with it. white-space: pre-wrap on .tafel-note keeps the typed line breaks without
+           turning them into <br/>. */-->
+    <div th:if="${notes}" class="tafel-note">[[ ${notes} ]]</div>
     <p th:unless="${notes}" class="tafel-empty">Keine</p>
 </div>

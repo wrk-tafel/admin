@@ -522,7 +522,7 @@ class UserControllerTest {
         every { userDetailsManager.loadUserById(any()) } returns administrator
 
         val exception = assertThrows<TafelApiException> {
-            controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN))
+            controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN), request = request, response = response)
         }
 
         assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
@@ -539,7 +539,7 @@ class UserControllerTest {
         val administrator = testUser.copy(authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)))
         every { userDetailsManager.loadUserById(any()) } returns administrator
 
-        controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.ADMINISTRATOR))
+        controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.ADMINISTRATOR), request = request, response = response)
 
         verify(exactly = 1) { userDetailsManager.updateUser(any()) }
     }
@@ -556,7 +556,7 @@ class UserControllerTest {
         every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns false
 
         val exception = assertThrows<ConflictException> {
-            controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN))
+            controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN), request = request, response = response)
         }
 
         assertThat(exception.body.detail).contains("mindestens ein aktiver Benutzer")
@@ -569,7 +569,7 @@ class UserControllerTest {
         every { userDetailsManager.loadUserById(any()) } returns administratorUser()
         every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns true
 
-        controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN))
+        controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(UserPermissions.CHECKIN), request = request, response = response)
 
         verify(exactly = 1) { userDetailsManager.updateUser(any()) }
     }
@@ -586,9 +586,91 @@ class UserControllerTest {
 
         val request = requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(enabled = false)
 
-        assertThrows<ConflictException> { controller.updateUser(userId = testUser.id!!, user = request) }
+        assertThrows<ConflictException> {
+            controller.updateUser(userId = testUser.id!!, user = request, request = this.request, response = this.response)
+        }
 
         verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    /**
+     * validateAdministratorAssignment alone only guards the ADMINISTRATOR flag itself - without
+     * this, a USER_MANAGEMENT holder could leave that flag untouched and still reset an
+     * administrator's password, which hands over the account just as completely (issue #3566).
+     */
+    @Test
+    fun `update user changing an administrator's password is refused without the administrator permission`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+
+        val request =
+            requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(password = "newpass1", passwordRepeat = "newpass1")
+
+        val exception = assertThrows<TafelApiException> {
+            controller.updateUser(userId = testUser.id!!, user = request, request = this.request, response = this.response)
+        }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `update user changing an administrator's username is refused without the administrator permission`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+
+        val request = requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(username = "new-username")
+
+        val exception = assertThrows<TafelApiException> {
+            controller.updateUser(userId = testUser.id!!, user = request, request = this.request, response = this.response)
+        }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `update user forcing a password change on an administrator is refused without the administrator permission`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+
+        val request = requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(passwordChangeRequired = true)
+
+        val exception = assertThrows<TafelApiException> {
+            controller.updateUser(userId = testUser.id!!, user = request, request = this.request, response = this.response)
+        }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+    }
+
+    @Test
+    fun `update user changing an administrator's password is allowed for an administrator`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT, UserPermissions.ADMINISTRATOR)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+
+        val request =
+            requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(password = "newpass1", passwordRepeat = "newpass1")
+
+        controller.updateUser(userId = testUser.id!!, user = request, request = this.request, response = this.response)
+
+        verify(exactly = 1) { userDetailsManager.updateUser(any()) }
+    }
+
+    /**
+     * Only a *change* to those fields is refused - a user manager still has to be able to edit an
+     * administrator's name, same as the ADMINISTRATOR-permission check above.
+     */
+    @Test
+    fun `update user editing an administrator's name without touching password, username or passwordChangeRequired is allowed without the administrator permission`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+
+        val request = requestWithPermissions(UserPermissions.ADMINISTRATOR).copy(firstname = "updated-firstname")
+
+        controller.updateUser(userId = testUser.id!!, user = request, request = this.request, response = this.response)
+
+        verify(exactly = 1) { userDetailsManager.updateUser(any()) }
     }
 
     @Test
@@ -680,7 +762,7 @@ class UserControllerTest {
 
         val exception =
             assertThrows<NotFoundException> {
-                controller.updateUser(userId = 123, user = testUserRequest.copy(id = 123))
+                controller.updateUser(userId = 123, user = testUserRequest.copy(id = 123), request = request, response = response)
             }
 
         assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
@@ -699,7 +781,7 @@ class UserControllerTest {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
         val exception = assertThrows<BusinessRuleException> {
-            controller.updateUser(userId = testUser.id!!, user = testUserRequest.copy(id = 999))
+            controller.updateUser(userId = testUser.id!!, user = testUserRequest.copy(id = 999), request = request, response = response)
         }
 
         assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
@@ -710,7 +792,7 @@ class UserControllerTest {
     fun `update user allows a body id matching the path id`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
-        val response = controller.updateUser(userId = testUser.id!!, user = testUserRequest.copy(id = testUser.id))
+        val response = controller.updateUser(userId = testUser.id!!, user = testUserRequest.copy(id = testUser.id), request = request, response = response)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
     }
@@ -720,7 +802,7 @@ class UserControllerTest {
     fun `update user allows a missing body id`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
-        val response = controller.updateUser(userId = testUser.id!!, user = testUserRequest.copy(id = null))
+        val response = controller.updateUser(userId = testUser.id!!, user = testUserRequest.copy(id = null), request = request, response = response)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
     }
@@ -745,7 +827,7 @@ class UserControllerTest {
             enabled = false,
         )
 
-        val updatedUserResponse = controller.updateUser(userId = testUser.id!!, user = updatedUser)
+        val updatedUserResponse = controller.updateUser(userId = testUser.id!!, user = updatedUser, request = request, response = response)
 
         assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(updatedUserResponse.body).isEqualTo(testUserResponse)
@@ -766,6 +848,13 @@ class UserControllerTest {
         assertThat(userDetails.enabled).isEqualTo(updatedUser.enabled)
     }
 
+    /**
+     * An admin resetting *someone else's* password: no authentication is set up in the security
+     * context here (as with most other `updateUser` tests), so [UserController.updateUser] has no
+     * "own account" to compare the target id against - no replacement cookie is minted. See
+     * `update user including own password change mints a replacement cookie` below for the
+     * self-service case (issue #3572).
+     */
     @Test
     fun `update user including password change`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
@@ -774,11 +863,80 @@ class UserControllerTest {
         val updatedUserResponse = controller.updateUser(
             userId = testUser.id!!,
             user = testUserRequest.copy(password = newPassword, passwordRepeat = newPassword),
+            request = request,
+            response = response,
         )
 
         assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(updatedUserResponse.body).isEqualTo(testUserResponse)
         verify(exactly = 1) { userDetailsManager.updateUser(testUser.copy(password = newPassword)) }
+        verify(exactly = 0) { response.addCookie(any()) }
+    }
+
+    /**
+     * The self-service counterpart of `change password` (`POST /api/users/change-password`): a
+     * caller resetting their own password through this endpoint just invalidated every JWT issued
+     * for their account, including the one the request itself came in on
+     * (`TafelUserDetailsManager.mapToUserEntity`), so without a fresh cookie the very next request
+     * would be an unexplained 401/logout despite the change having succeeded (issue #3572).
+     */
+    @Test
+    fun `update user including own password change mints a replacement cookie`() {
+        val relativeBaseUrl = "/test-base/"
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
+        every { jwtTokenService.generateToken(any(), any()) } returns "NEW-TOKEN"
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "OLD-TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
+            userId = testUser.id,
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+
+        val newPassword = "123"
+        val updatedUserResponse = controller.updateUser(
+            userId = testUser.id!!,
+            user = testUserRequest.copy(password = newPassword, passwordRepeat = newPassword),
+            request = request,
+            response = response,
+        )
+
+        assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
+        verify {
+            response.addCookie(
+                withArg {
+                    assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
+                    assertThat(it.value).isEqualTo("NEW-TOKEN")
+                    assertThat(it.path).isEqualTo(relativeBaseUrl)
+                    assertThat(it.attributes["SameSite"]).isEqualTo("strict")
+                },
+            )
+        }
+    }
+
+    /** Editing another field on one's own account - without a password change - mints no cookie. */
+    @Test
+    fun `update user own account without a password change mints no cookie`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "OLD-TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
+            userId = testUser.id,
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+
+        controller.updateUser(
+            userId = testUser.id!!,
+            user = testUserRequest.copy(firstname = "updated-firstname"),
+            request = request,
+            response = response,
+        )
+
+        verify(exactly = 0) { response.addCookie(any()) }
     }
 
     @Test
@@ -789,6 +947,8 @@ class UserControllerTest {
             controller.updateUser(
                 userId = testUser.id!!,
                 user = testUserRequest.copy(password = "123", passwordRepeat = "456"),
+                request = request,
+                response = response,
             )
         }
 
@@ -808,7 +968,7 @@ class UserControllerTest {
         every { userDetailsManager.loadUserByPersonnelNumber(testUserRequest.personnelNumber) } returns otherUser
 
         val exception = assertThrows<ConflictException> {
-            controller.updateUser(userId = testUser.id!!, user = testUserRequest)
+            controller.updateUser(userId = testUser.id!!, user = testUserRequest, request = request, response = response)
         }
 
         assertThat(exception.body.detail).isEqualTo("Benutzer (Personalnummer: test-personnelnumber) existiert bereits!")
@@ -821,7 +981,7 @@ class UserControllerTest {
         every { userDetailsManager.loadUserById(any()) } returns testUser
         every { userDetailsManager.loadUserByPersonnelNumber(testUserRequest.personnelNumber) } returns testUser
 
-        val response = controller.updateUser(userId = testUser.id!!, user = testUserRequest)
+        val response = controller.updateUser(userId = testUser.id!!, user = testUserRequest, request = request, response = response)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
     }

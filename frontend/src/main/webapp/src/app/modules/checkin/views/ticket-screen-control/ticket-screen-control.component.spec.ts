@@ -512,6 +512,31 @@ describe('TicketScreenControlComponent', () => {
       expect(distributionTicketScreenApiService.showNextTicket).not.toHaveBeenCalled();
     });
 
+    it('is ignored while a button has focus, so activating it does not also trigger the shortcut', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentDistribution = signal({id: 1, startedAt: '', endedAt: null} as any);
+      const button = document.createElement('button');
+
+      component.handleKeyboardShortcut(keydown('Enter', button));
+      component.handleKeyboardShortcut(keydown('n', button));
+
+      expect(distributionTicketScreenApiService.showNextTicket).not.toHaveBeenCalled();
+    });
+
+    it('is ignored while a mat-button-toggle has focus', () => {
+      const fixture = TestBed.createComponent(TicketScreenControlComponent);
+      const component = fixture.componentInstance;
+      component.currentDistribution = signal({id: 1, startedAt: '', endedAt: null} as any);
+      const toggle = document.createElement('mat-button-toggle');
+      const innerButton = document.createElement('button');
+      toggle.appendChild(innerButton);
+
+      component.handleKeyboardShortcut(keydown('Enter', innerButton));
+
+      expect(distributionTicketScreenApiService.showNextTicket).not.toHaveBeenCalled();
+    });
+
     it('is ignored while a dialog is open', () => {
       const fixture = TestBed.createComponent(TicketScreenControlComponent);
       const component = fixture.componentInstance;

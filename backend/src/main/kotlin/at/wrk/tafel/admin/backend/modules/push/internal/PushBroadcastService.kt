@@ -47,9 +47,15 @@ class PushBroadcastService(
             val userId = user.id ?: return@forEach
 
             val allowed = recipientCache.getOrPut(userId) {
-                // Permissions first: an in-memory check on the eagerly loaded authorities, so a
-                // user who isn't an audience for this type at all costs no preference query.
-                PushNotificationTypeTargeting.isAllowedFor(type, user.authorities.map { it.name }) &&
+                // A disabled account is offboarded - it must not keep receiving notifications
+                // (which can themselves disclose sensitive information, e.g. USER_LOCKED_OUT/
+                // EXCESSIVE_READ_ACCESS naming other users and record counts) just because its
+                // device subscriptions are still on file. Checked first, before the permission
+                // check below, for the same "cheapest check first" reason.
+                user.enabled &&
+                    // Permissions first: an in-memory check on the eagerly loaded authorities, so a
+                    // user who isn't an audience for this type at all costs no preference query.
+                    PushNotificationTypeTargeting.isAllowedFor(type, user.authorities.map { it.name }) &&
                     pushPreferencesService.isEnabled(userId, type)
             }
             if (!allowed) {
