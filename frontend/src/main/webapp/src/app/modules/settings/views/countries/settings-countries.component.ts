@@ -171,6 +171,10 @@ export class SettingsCountriesComponent {
   }
 
   protected saveEdit(country: CountryAdminData) {
+    // trimmed/uppercased before validating, not after - otherwise surrounding whitespace (e.g. a
+    // pasted " xy ") fails the exactly-two-letters pattern and saveEdit() silently no-ops
+    const trimmedCode = this.codeControl.value.trim().toUpperCase();
+    this.codeControl.setValue(trimmedCode);
     if (this.codeControl.invalid) {
       this.codeControl.markAsTouched();
       return;
@@ -178,7 +182,7 @@ export class SettingsCountriesComponent {
 
     const updated: CountryAdminData = {
       ...country,
-      code: this.codeControl.value.trim().toUpperCase(),
+      code: trimmedCode,
       name: this.nameControl.value.trim()
     };
 

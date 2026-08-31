@@ -66,8 +66,13 @@ describe('Food Collection Recording', () => {
     // selection dialog open the moment the route is picked.
     cy.intercept('POST', '**/food-collections/routes/*').as('saveRouteData');
     cy.intercept('POST', '**/food-collections/routes/*/km').as('saveKm');
+    // matches both enterRouteData()'s own initial load and the refresh a fully successful save
+    // below triggers - consumed once for each further down, so the second wait always lines up
+    // with the refresh rather than racing it into the route-switching clicks that follow
+    cy.intercept('GET', '**/food-collections/routes/*').as('getFoodCollection');
 
     enterRouteData();
+    cy.wait('@getFoodCollection');
     selectAmbiguousDriver();
     selectExistingCoDriver();
 
@@ -81,6 +86,10 @@ describe('Food Collection Recording', () => {
     // which only appears once every section of the screen has been sent
     cy.wait('@saveRouteData').its('response.statusCode').should('eq', 200);
     cy.wait('@saveKm').its('response.statusCode').should('eq', 200);
+    // the save above was fully successful (nothing skipped), so it re-fetches the food collection
+    // in the background - wait for that to settle before switching routes below, or its response
+    // can arrive mid-click and re-render right as a mat-select overlay is trying to close
+    cy.wait('@getFoodCollection');
 
     // reopening the route must not search for the stored employees again - that search is what
     // used to open the dialog, so its absence is the actual fix and not just a symptom of it
@@ -222,6 +231,90 @@ describe('Food Collection Recording', () => {
 
     cy.wait('@saveReturnItemsPerShop').its('request.url')
       .should('match', /\/food-collections\/routes\/2\/shops\/20\/return-items(\?|$)/);
+
+    completeRouteViaApi();
+  });
+
+  it('desktop: skips an invalid Warenmenge cell without blocking the rest of the save', () => {
+    // Regression test for #3559: an invalid Warenmenge cell used to be sent anyway (failing the
+    // backend's validation and aborting km/base data too) and, when skipped, was mislabelled
+    // "Retourware" even though the invalid cell was in Warenmenge.
+    cy.intercept('POST', '**/food-collections/routes/*/items').as('saveItems');
+    cy.intercept('POST', '**/food-collections/routes/*/return-items').as('saveReturnItems');
+
+    // base data has to be complete here - otherwise it's skipped too, and the toast below would
+    // read "...gespeichert: Routendaten, Warenmenge" instead of naming Warenmenge on its own
+    enterRouteData();
+    selectDriver();
+    selectExistingCoDriver();
+    cy.byTestId('select-items-tab').click();
+    enterKmData();
+    cy.byTestId('category-1-shop-20-input').clear();
+
+    saveAndConfirmKmDiff();
+
+    cy.get('.toast-message')
+      .should('be.visible')
+      .should('contain.text', 'unvollständig und daher nicht gespeichert: Warenmenge');
+    cy.get('@saveItems.all').should('have.length', 0);
+    cy.wait('@saveReturnItems').its('response.statusCode').should('eq', 200);
+
+    // the whole point of this test is that the Warenmenge save above was skipped, so route 2 has
+    // no items yet - give it one directly via the API, or afterEach's closeDistribution() refuses
+    // it as unvollständig (see completeRouteViaApi's own comment for the same reasoning)
+    cy.request('PATCH', '/api/food-collections/routes/2/items', {categoryId: 1, shopId: 20, amount: 1});
+  });
+
+  it('warns before switching routes with unsaved changes, and honours the dialog\'s choice', () => {
+    // Regression test for #3559: switching the route used to rebuild every child form without any
+    // confirmation, silently dropping unsaved amounts/km/base data.
+    enterRouteData();
+    cy.byTestId('select-items-tab').click();
+    enterKmData();
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 3').click();
+    cy.byTestId('unsaved-changes-dialog').should('be.visible').within(() => {
+      cy.byTestId('stay-button').click();
+    });
+    cy.byTestId('unsaved-changes-dialog').should('not.exist');
+    // staying keeps Route 2's unsaved entries on screen instead of discarding them
+    cy.byTestId('kmStartInput').should('have.value', '1000');
+    // ...and the dropdown itself must still show "Route 2", not fall back to blank/placeholder
+    cy.byTestId('routeInput').should('contain.text', 'Route 2');
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 3').click();
+    cy.byTestId('unsaved-changes-dialog').should('be.visible').within(() => {
+      cy.byTestId('leave-button').click();
+    });
+    cy.byTestId('unsaved-changes-dialog').should('not.exist');
+    // Route 3 has no food collection yet in this freshly created distribution
+    cy.byTestId('kmStartInput').should('have.value', '');
+  });
+
+  it('mobile: warns instead of silently dropping an invalid free-text return row when leaving the shop', () => {
+    // Regression test for #3559: leaving a shop with an invalid (empty description) free-text
+    // return row used to drop it without any warning - the FormArray is cleared for the next shop.
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    enterRouteData();
+    cy.byTestId('select-items-tab').click();
+
+    cy.byTestId('add-return-item-button').click();
+    cy.byTestId('return-item-0-amount-input').clear().type('2');
+    // description left blank on purpose - the required validator makes the row invalid
+
+    cy.byTestId('next-shop-button').click();
+
+    cy.get('.toast-message')
+      .should('be.visible')
+      .should('contain.text', 'Ungültige Retourware der vorherigen Filiale wurde nicht gespeichert');
+
+    // completeRouteViaApi() below fills in base data/km but not items - route 2 needs at least one
+    // recorded amount of its own, or afterEach's closeDistribution() refuses it as unvollständig
+    cy.byTestId('category-1-input').type('1');
 
     completeRouteViaApi();
   });

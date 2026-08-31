@@ -107,10 +107,14 @@ class FoodCollectionService(
 
     @Transactional
     fun saveItems(routeId: Long, data: FoodCollectionItemsRequest) {
-        val distribution = distributionRepository.getCurrentDistribution()!!
+        // shares PATCH_FOOD_COLLECTION_ITEM with patchItem/saveItemsPerShop, since all three
+        // read-modify-write (or, here, outright replace) the same `items` element collection
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            val distribution = distributionRepository.getCurrentDistribution()!!
 
-        foodCollectionRepository.save(mapAllItems(distribution, routeId, data))
-        publishIfFoodCollectionCompleted(distribution.id!!)
+            foodCollectionRepository.save(mapAllItems(distribution, routeId, data))
+            publishIfFoodCollectionCompleted(distribution.id!!)
+        }
     }
 
     @Transactional
@@ -119,23 +123,28 @@ class FoodCollectionService(
         shopId: Long,
         data: FoodCollectionSaveItemsPerShopRequest,
     ) {
-        val distributionEntity = distributionRepository.getCurrentDistribution()!!
+        // concurrent per-shop saves for different shops of the same route (or the desktop
+        // autosave's PATCH /items) otherwise read the same `items` snapshot and the later commit
+        // silently drops the earlier one's rows - same hazard patchItem documents for itself
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
-        val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
-        validateShopIsRouteStop(foodCollectionEntity.route, shopId)
-        val items = foodCollectionEntity.items?.toMutableList() ?: mutableListOf()
-        data.items.forEach { item ->
-            updateItems(
-                items = items,
-                categoryId = item.categoryId,
-                shopId = shopId,
-                newAmount = item.amount,
-            )
+            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+            validateShopIsRouteStop(foodCollectionEntity.route, shopId)
+            val items = foodCollectionEntity.items?.toMutableList() ?: mutableListOf()
+            data.items.forEach { item ->
+                updateItems(
+                    items = items,
+                    categoryId = item.categoryId,
+                    shopId = shopId,
+                    newAmount = item.amount,
+                )
+            }
+
+            foodCollectionEntity.items = items
+            foodCollectionRepository.save(foodCollectionEntity)
+            publishIfFoodCollectionCompleted(distributionEntity.id!!)
         }
-
-        foodCollectionEntity.items = items
-        foodCollectionRepository.save(foodCollectionEntity)
-        publishIfFoodCollectionCompleted(distributionEntity.id!!)
     }
 
     @Transactional
@@ -144,6 +153,7 @@ class FoodCollectionService(
             val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
             val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+            data.returnItems.forEach { validateShopIsRouteStop(foodCollectionEntity.route, it.shopId) }
             foodCollectionEntity.returnItems = mapReturnItemsToEntity(data.returnItems)
 
             foodCollectionRepository.save(foodCollectionEntity)
@@ -353,11 +363,12 @@ class FoodCollectionService(
         return entity.apply {
             this.distribution = distributionEntity
             updateRoute(route)
-            items = mapItemsToEntity(data.items)
+            items = mapItemsToEntity(route, data.items)
         }
     }
 
-    private fun mapItemsToEntity(items: List<FoodCollectionItem>): List<FoodCollectionItemEntity> = items.map {
+    private fun mapItemsToEntity(route: RouteEntity, items: List<FoodCollectionItem>): List<FoodCollectionItemEntity> = items.map {
+        validateShopIsRouteStop(route, it.shopId)
         FoodCollectionItemEntity(
             category = foodCategoryRepository.findByIdOrNull(it.categoryId)
                 ?: throw NotFoundException(CATEGORY_NOT_FOUND),

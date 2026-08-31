@@ -5,6 +5,10 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Zwei gleichzeitige Speicherungen der Warenmenge in der Warenerfassung für unterschiedliche Filialen derselben Route (z. B. Handy und Desktop) überschreiben sich jetzt nicht mehr gegenseitig, statt bereits erfasste Mengen stillschweigend zu verlieren.
+- Ein Wechsel der Route in der Warenerfassung fragt bei noch nicht gespeicherten Eingaben jetzt vorher nach Bestätigung, statt diese stillschweigend zu verwerfen.
+- Eine ungültige Warenmenge in der Warenerfassung (Desktop) wird beim Speichern jetzt korrekt als "Warenmenge" statt fälschlich als "Retourware" gemeldet und nicht mehr an den Server gesendet.
+- Eine ungültige Retourware-Eingabe wird beim Wechsel der Filiale in der mobilen Warenerfassung jetzt mit einem Hinweis verworfen, statt stillschweigend verloren zu gehen.
 - Unter Einstellungen → Länder kann die Länderliste jetzt verwaltet werden (neue Länder anlegen, Name und Code bearbeiten, Aktivieren/Deaktivieren), statt nur eine feste, nicht änderbare Liste zur Auswahl der Staatsangehörigkeit zu sein.
 - Ein gleichzeitiges Anmelden mit derselben Ticketnummer oder demselben Kunden an zwei Check-in-Plätzen sowie ein gleichzeitiges Abhaken desselben Routenpunkts durch Fahrer:in und Beifahrer:in führen jetzt zu einer verständlichen Meldung bzw. einem funktionierenden Ergebnis, statt zu einem unerwarteten Fehler.
 - Ein deaktiviertes Benutzerkonto erhält jetzt keine Push-Benachrichtigungen mehr auf seinen Geräten, und ein fehlgeschlagenes Laden der Benachrichtigungseinstellungen zeigt jetzt einen Hinweis mit Wiederholen-Möglichkeit an, statt alle Schalter dauerhaft zu deaktivieren.
