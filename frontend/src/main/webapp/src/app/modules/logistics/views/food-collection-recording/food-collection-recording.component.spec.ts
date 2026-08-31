@@ -458,17 +458,16 @@ describe('FoodCollectionRecordingComponent', () => {
         // (needed so Angular re-runs the mat-select's writeValue at all) - compareRoute is what lets
         // that fresh reference still resolve back to the actual <mat-option> for the original route,
         // instead of the dropdown ending up showing no selection.
-        foodCollectionsApiService.getFoodCollection.mockReturnValue(of({items: [], returnItems: []}) as any);
-        routeApiService.getShopsOfRoute.mockReturnValue(of({shops: []}));
-
         const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
         const component = fixture.componentInstance as any;
         createSectionStubs(component, {
             basedata: {tabStatus: vi.fn().mockReturnValue('unsaved')}
         });
+        // seeded directly rather than driven through a first onSelectedRouteChange() call: with
+        // basedata already stubbed 'unsaved', a first call would itself be treated as discarding
+        // changes (there's no "nothing selected yet" case) and never actually set the route
         const routeA = {id: 1, name: 'Route A'};
-        component.onSelectedRouteChange(routeA);
-        expect(component.selectedRoute()).toBe(routeA);
+        component.selectedRoute.set(routeA);
 
         matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
         component.onSelectedRouteChange({id: 2, name: 'Route B'});

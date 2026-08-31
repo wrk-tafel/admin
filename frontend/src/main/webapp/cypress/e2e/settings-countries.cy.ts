@@ -73,7 +73,9 @@ describe('Settings - Countries', () => {
     cy.byTestId('countries-search-input').type('Vatikan');
     cy.get('[testid^="editCountryButton-"]').first().click();
 
-    cy.get('[testid^="countryCodeInput-"]').first().should('be.visible').clear().type('ABC');
+    // a single letter, not three: the input's own maxlength="2" would cap "ABC" down to the
+    // still-valid "AB" before it ever reached the pattern validator this test means to exercise
+    cy.get('[testid^="countryCodeInput-"]').first().should('be.visible').clear().type('A');
     cy.get('[testid^="saveCountryButton-"]').first().click();
 
     // still in edit mode - the invalid value was refused rather than sent
@@ -156,7 +158,9 @@ describe('Settings - Countries', () => {
     cy.byTestId('countries-table').should('not.contain.text', 'Vatikan');
 
     cy.byTestId('countries-filter-disabled').click();
-    cy.byTestId('countries-search-input').type('Vatikan');
+    // the search box still holds "Vatikan" from above (switching filters doesn't touch it) -
+    // retyping it here used to append instead of replace, leaving "VatikanVatikan" that matches
+    // nothing and made every row lookup below fail
     cy.get('[testid^="countries-row-"]').first().within(() => {
       cy.get('[testid^="countries-enabled-toggle-"] button').click();
     });
