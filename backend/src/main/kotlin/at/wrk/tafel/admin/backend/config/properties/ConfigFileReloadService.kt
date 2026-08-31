@@ -94,6 +94,7 @@ class ConfigFileReloadService(
             logger.error("Reloaded configuration couldn't be applied, keeping the values currently in use", it)
             return
         }
+        changedFiles.forEach { fingerprints[it] = fingerprintOf(it) }
         if (changedKeys.isEmpty() && !droppedDeletedFiles) {
             logger.info("Config file changed but the resulting configuration is unchanged")
             return
@@ -144,10 +145,12 @@ class ConfigFileReloadService(
         return runCatching { Paths.get(path).toAbsolutePath().normalize() }.getOrNull()
     }
 
-    private fun hasChanged(file: Path): Boolean {
-        val fingerprint = fingerprintOf(file)
-        return fingerprints.put(file, fingerprint) != fingerprint
-    }
+    /**
+     * Only reads [fingerprints], never writes it - committing a changed fingerprint here would mark
+     * the file as seen even if the refresh below fails, so a transiently failed reload would never
+     * be retried. The map is only updated once a refresh actually succeeds.
+     */
+    private fun hasChanged(file: Path): Boolean = fingerprintOf(file) != fingerprints[file]
 
     /**
      * Modification time plus size: a same-second edit that changes the file's length is caught by
