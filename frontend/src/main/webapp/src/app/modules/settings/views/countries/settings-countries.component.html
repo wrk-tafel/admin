@@ -1,0 +1,186 @@
+<mat-card class="w-full">
+  <mat-card-header class="mb-2">
+    <mat-card-title class="w-full">
+      <div class="flex flex-wrap items-center gap-2">
+        <h2 class="tafel-h5 mb-0 mt-1">Länder</h2>
+        <span class="text-sm font-normal text-slate-500" testid="countries-summary">
+          {{ enabledCount() }} von {{ totalCount() }} aktiv
+        </span>
+        <button matButton="filled" class="button-success" testid="addCountryButton" matTooltip="Neues Land anlegen" (click)="addCountry()" aria-label="Neues Land anlegen">
+          <mat-icon svgIcon="add"></mat-icon>
+        </button>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <p class="mb-4 text-sm text-slate-600">
+      Länder, die bei einer Person als Staatsangehörigkeit ausgewählt werden können. Ein
+      deaktiviertes Land steht dort nicht mehr zur Auswahl, bleibt aber bei bereits erfassten
+      Personen unverändert bestehen.
+    </p>
+
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <mat-form-field subscriptSizing="dynamic" class="w-full max-w-md">
+        <mat-label>Land suchen</mat-label>
+        <mat-icon svgIcon="search" matPrefix class="ms-3 me-2 text-slate-400"></mat-icon>
+        <input matInput [formControl]="searchControl" testid="countries-search-input"
+               placeholder="Name oder Ländercode"/>
+        @if (searchControl.value) {
+          <button matIconButton matSuffix type="button" aria-label="Suche zurücksetzen"
+                  testid="countries-search-clear-button" (click)="clearSearch()">
+            <mat-icon svgIcon="close"></mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <tafel-enabled-filter class="ms-auto" [value]="enabledFilter()" testIdPrefix="countries"
+                            (valueChange)="onFilterChanged($event)"/>
+    </div>
+
+    @if (filtered()) {
+      <p class="mb-4 text-sm text-slate-500" testid="countries-result-count">{{ resultCountLabel() }}</p>
+    }
+
+    <div class="hidden md:block">
+      <table mat-table [dataSource]="visibleCountries()" testid="countries-table">
+        <ng-container matColumnDef="active">
+          <th mat-header-cell *matHeaderCellDef>Aktiv</th>
+          <td mat-cell *matCellDef="let country; let i = index">
+            <tafel-enabled-toggle [enabled]="country.enabled" [label]="'Land ' + country.name"
+                                  [showLabel]="false" [testId]="'countries-enabled-toggle-' + i"
+                                  (enabledChange)="toggleCountryVisibility(country, $event)"/>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="code">
+          <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Code</th>
+          <td mat-cell *matCellDef="let country; let i = index">
+            @if (editingId() === country.id) {
+              <mat-form-field subscriptSizing="dynamic" class="w-20">
+                <input matInput [formControl]="codeControl" maxlength="2"
+                       [attr.testid]="'countryCodeInput-' + i" aria-label="Code"
+                       (keydown.enter)="saveEdit(country)" (keydown.escape)="cancelEdit()"/>
+              </mat-form-field>
+            } @else {
+              {{ country.code }}
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Name</th>
+          <td mat-cell *matCellDef="let country; let i = index">
+            @if (editingId() === country.id) {
+              <mat-form-field subscriptSizing="dynamic">
+                <!-- named by aria-label rather than a mat-label: a <th> names the cell, not a widget
+                     inside it, and a visible label here would repeat the column header in every row -->
+                <input #nameInput matInput [formControl]="nameControl" maxlength="50"
+                       [attr.testid]="'countryNameInput-' + i" aria-label="Name"
+                       (keydown.enter)="saveEdit(country)" (keydown.escape)="cancelEdit()"/>
+              </mat-form-field>
+            } @else {
+              {{ country.name }}
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
+          <td mat-cell *matCellDef="let country; let i = index">
+            @if (editingId() === country.id) {
+              <button matButton="filled" [attr.testid]="'saveCountryButton-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(country)" [attr.aria-label]="'Änderungen an Land ' + country.name + ' speichern'">
+                <mat-icon svgIcon="check"></mat-icon>
+              </button>
+              <button matButton="outlined" class="ml-2" [attr.testid]="'cancelCountryButton-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Land ' + country.name + ' abbrechen'">
+                <mat-icon svgIcon="close"></mat-icon>
+              </button>
+            } @else {
+              <button matButton="filled" [attr.testid]="'editCountryButton-' + i" matTooltip="Land bearbeiten"
+                      [disabled]="!country.enabled" (click)="startEdit(country)" [attr.aria-label]="'Land ' + country.name + ' bearbeiten'">
+                <mat-icon svgIcon="edit"></mat-icon>
+              </button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+            [class.tafel-inactive]="!row.enabled"
+            [attr.testid]="'countries-row-' + row.id"></tr>
+      </table>
+    </div>
+
+    <div class="block md:hidden">
+      <div class="flex flex-col gap-4" testid="countries-cards">
+        @for (country of visibleCountries(); track country.id; let i = $index) {
+          <mat-card class="shadow-sm" [class.tafel-inactive]="!country.enabled"
+                    [attr.testid]="'countries-row-' + country.id">
+            <mat-card-header class="mb-2">
+              <mat-card-title class="flex items-center gap-2 text-base font-semibold">
+                @if (editingId() === country.id) {
+                  <mat-form-field subscriptSizing="dynamic" class="w-full">
+                    <mat-label>Name</mat-label>
+                    <input #nameInputMobile matInput [formControl]="nameControl" maxlength="50"
+                           [attr.testid]="'countryNameInputMobile-' + i"
+                           (keydown.enter)="saveEdit(country)" (keydown.escape)="cancelEdit()"/>
+                  </mat-form-field>
+                } @else {
+                  <span>{{ country.name }}</span>
+                }
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="grid grid-cols-2 gap-2 items-center">
+                <div class="font-bold">Code:</div>
+                <div>
+                  @if (editingId() === country.id) {
+                    <mat-form-field subscriptSizing="dynamic" class="w-20">
+                      <input matInput [formControl]="codeControl" maxlength="2"
+                             [attr.testid]="'countryCodeInputMobile-' + i" aria-label="Code"
+                             (keydown.enter)="saveEdit(country)" (keydown.escape)="cancelEdit()"/>
+                    </mat-form-field>
+                  } @else {
+                    {{ country.code }}
+                  }
+                </div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <tafel-enabled-toggle [enabled]="country.enabled" [label]="'Land ' + country.name"
+                                    [testId]="'countries-enabled-toggle-mobile-' + i"
+                                    (enabledChange)="toggleCountryVisibility(country, $event)"/>
+              @if (editingId() === country.id) {
+                <button matButton="filled" [attr.testid]="'saveCountryButtonMobile-' + i" matTooltip="Änderungen speichern" (click)="saveEdit(country)" [attr.aria-label]="'Änderungen an Land ' + country.name + ' speichern'">
+                  <mat-icon svgIcon="check"></mat-icon>
+                </button>
+                <button matButton="outlined" [attr.testid]="'cancelCountryButtonMobile-' + i" matTooltip="Bearbeiten abbrechen" (click)="cancelEdit()" [attr.aria-label]="'Bearbeiten von Land ' + country.name + ' abbrechen'">
+                  <mat-icon svgIcon="close"></mat-icon>
+                </button>
+              } @else {
+                <button matButton="filled" [attr.testid]="'editCountryButtonMobile-' + i" matTooltip="Land bearbeiten"
+                        [disabled]="!country.enabled" (click)="startEdit(country)" [attr.aria-label]="'Land ' + country.name + ' bearbeiten'">
+                  <mat-icon svgIcon="edit"></mat-icon>
+                </button>
+              }
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    </div>
+
+    <!-- One block for both layouts: the table renders its header even with no rows, and the card
+         list nothing at all, so neither can carry this on its own. -->
+    @if (loaded() && visibleCountries().length === 0) {
+      <div class="flex flex-col items-center gap-2 py-10 text-slate-500" testid="countries-empty">
+        <mat-icon svgIcon="public" class="!w-8 !h-8"></mat-icon>
+        @if (enabledFilter() === 'DISABLED') {
+          <span>Kein Land ist deaktiviert.</span>
+        } @else if (enabledFilter() === 'ENABLED') {
+          <span>Kein Land ist aktiv.</span>
+        } @else {
+          <span>Kein Land gefunden.</span>
+        }
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

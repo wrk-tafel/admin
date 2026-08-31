@@ -14,4 +14,6 @@ class CountryEntity(
     var code: String,
     @Column(name = "name")
     var name: String,
+    @Column(name = "enabled")
+    var enabled: Boolean = true,
 ) : BaseEntity()

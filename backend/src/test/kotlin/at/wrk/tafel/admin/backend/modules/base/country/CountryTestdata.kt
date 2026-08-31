@@ -9,3 +9,5 @@ val testCountry2 = CountryEntity(code = "DE", name = "Deutschland").apply { id =
 val testCountry3 = CountryEntity(code = "CH", name = "Schweiz").apply { id = 3 }
 
 val testCountry4 = CountryEntity(code = "FR", name = "Frankreich").apply { id = 4 }
+
+val testCountry5 = CountryEntity(code = "XX", name = "Deaktiviert", enabled = false).apply { id = 5 }
