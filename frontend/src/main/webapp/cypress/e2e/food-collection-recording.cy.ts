@@ -66,8 +66,13 @@ describe('Food Collection Recording', () => {
     // selection dialog open the moment the route is picked.
     cy.intercept('POST', '**/food-collections/routes/*').as('saveRouteData');
     cy.intercept('POST', '**/food-collections/routes/*/km').as('saveKm');
+    // matches both enterRouteData()'s own initial load and the refresh a fully successful save
+    // below triggers - consumed once for each further down, so the second wait always lines up
+    // with the refresh rather than racing it into the route-switching clicks that follow
+    cy.intercept('GET', '**/food-collections/routes/*').as('getFoodCollection');
 
     enterRouteData();
+    cy.wait('@getFoodCollection');
     selectAmbiguousDriver();
     selectExistingCoDriver();
 
@@ -81,6 +86,10 @@ describe('Food Collection Recording', () => {
     // which only appears once every section of the screen has been sent
     cy.wait('@saveRouteData').its('response.statusCode').should('eq', 200);
     cy.wait('@saveKm').its('response.statusCode').should('eq', 200);
+    // the save above was fully successful (nothing skipped), so it re-fetches the food collection
+    // in the background - wait for that to settle before switching routes below, or its response
+    // can arrive mid-click and re-render right as a mat-select overlay is trying to close
+    cy.wait('@getFoodCollection');
 
     // reopening the route must not search for the stored employees again - that search is what
     // used to open the dialog, so its absence is the actual fix and not just a symptom of it
