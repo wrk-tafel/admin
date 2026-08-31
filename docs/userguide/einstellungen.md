@@ -148,6 +148,8 @@ Unter **Einstellungen → Länder** wird die Länderliste gepflegt, aus der bei 
 
 Über der Liste stehen ein **Suchfeld** (durchsucht Name und Code) und der Filter **Alle / Aktiv / Inaktiv** — bei rund 250 Einträgen die mit Abstand längste Liste in diesem Bereich. Ist die Liste durch Suche oder Filter eingeschränkt, zeigt eine Zeile darüber die Trefferzahl.
 
+![Länder](images/einstellungen-laender.jpg)
+
 Ein deaktiviertes Land steht in der Staatsangehörigkeits-Auswahl nicht mehr zur Verfügung; bereits erfassten Personen bleibt es unverändert erhalten (siehe [Aktiv und inaktiv](#aktiv-inaktiv)). Anders als bei den übrigen Listen dieses Bereichs gibt es hier kein Drag-Handle: Die Reihenfolge hier hat keine eigene Bedeutung, da die Auswahlliste unabhängig davon zunächst nach Häufigkeit und danach alphabetisch sortiert.
 
 <a id="routen"></a>
