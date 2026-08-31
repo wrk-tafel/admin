@@ -233,7 +233,11 @@ describe('Food Collection Recording', () => {
     cy.intercept('POST', '**/food-collections/routes/*/items').as('saveItems');
     cy.intercept('POST', '**/food-collections/routes/*/return-items').as('saveReturnItems');
 
+    // base data has to be complete here - otherwise it's skipped too, and the toast below would
+    // read "...gespeichert: Routendaten, Warenmenge" instead of naming Warenmenge on its own
     enterRouteData();
+    selectDriver();
+    selectExistingCoDriver();
     cy.byTestId('select-items-tab').click();
     enterKmData();
     cy.byTestId('category-1-shop-20-input').clear();
@@ -245,6 +249,11 @@ describe('Food Collection Recording', () => {
       .should('contain.text', 'unvollständig und daher nicht gespeichert: Warenmenge');
     cy.get('@saveItems.all').should('have.length', 0);
     cy.wait('@saveReturnItems').its('response.statusCode').should('eq', 200);
+
+    // the whole point of this test is that the Warenmenge save above was skipped, so route 2 has
+    // no items yet - give it one directly via the API, or afterEach's closeDistribution() refuses
+    // it as unvollständig (see completeRouteViaApi's own comment for the same reasoning)
+    cy.request('PATCH', '/api/food-collections/routes/2/items', {categoryId: 1, shopId: 20, amount: 1});
   });
 
   it('warns before switching routes with unsaved changes, and honours the dialog\'s choice', () => {
@@ -293,6 +302,10 @@ describe('Food Collection Recording', () => {
     cy.get('.toast-message')
       .should('be.visible')
       .should('contain.text', 'Ungültige Retourware der vorherigen Filiale wurde nicht gespeichert');
+
+    // completeRouteViaApi() below fills in base data/km but not items - route 2 needs at least one
+    // recorded amount of its own, or afterEach's closeDistribution() refuses it as unvollständig
+    cy.byTestId('category-1-input').type('1');
 
     completeRouteViaApi();
   });
