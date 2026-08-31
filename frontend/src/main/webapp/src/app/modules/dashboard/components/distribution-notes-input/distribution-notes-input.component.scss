@@ -4,6 +4,16 @@
 // and the textarea, each of them content-sized, so every one of them has to be told to fill or the
 // height stops at the outermost.
 :host ::ng-deep {
+  // `appearance="outline"` (the app-wide default, kept here for its permanent floating label -
+  // see the template) has no field background of its own, unlike `appearance="fill"`: on this
+  // card's purple background the field would otherwise blend in with nothing to mark it as an
+  // input surface. `border-radius` matches the notched outline's own corners so the fill doesn't
+  // poke out past the border.
+  .mat-mdc-text-field-wrapper {
+    background-color: white;
+    border-radius: 4px;
+  }
+
   .mat-mdc-text-field-wrapper,
   .mat-mdc-form-field-flex,
   .mat-mdc-form-field-infix {
