@@ -33,14 +33,16 @@ export class CountryCreateDialogComponent {
   });
 
   save() {
+    // trimmed/uppercased before validating, not after - otherwise surrounding whitespace (e.g. a
+    // pasted " zz ") fails the exactly-two-letters pattern and save() silently no-ops
+    const trimmedCode = (this.form.controls.code.value ?? '').trim().toUpperCase();
+    this.form.controls.code.setValue(trimmedCode);
+    this.form.controls.name.setValue((this.form.controls.name.value ?? '').trim());
+
     if (!this.form.valid) {
       this.form.markAllAsTouched();
     } else {
-      const value = this.form.value;
-      this.dialogRef.close({
-        ...value,
-        code: (value.code ?? '').toUpperCase()
-      } as CountryCreateData);
+      this.dialogRef.close(this.form.value as CountryCreateData);
     }
   }
 
