@@ -131,14 +131,18 @@ be lost; if base data, mileage, or (desktop only) the item amounts are dirty, it
 opens `UnsavedChangesDialogComponent` first and only proceeds on confirmation,
 same as `canDeactivate()` does for navigating away — the mat-select itself has no
 navigation to intercept, so this is the one place that has to ask directly. On
-cancel, `selectedRoute` (the field the `<mat-select>`'s `[ngModel]` reads) is
-reassigned a *fresh* object with the same id, not the original reference: Angular
-only calls `MatSelect.writeValue()` again when the bound reference actually
-differs, so a fresh object is required to force the dropdown to reconsider its
-selection at all — and `[compareWith]="compareRoute"` (id-based, mirroring
-`compareCar` on the basedata tab) is what lets that fresh object still resolve
-back to the original route's `<mat-option>` instead of the dropdown ending up
-showing no selection.
+cancel, `selectedRoute` (a `signal<RouteData | undefined>`, read as
+`[ngModel]="selectedRoute()"`) is reassigned a *fresh* object with the same id,
+not the original reference: `MatSelect.writeValue()` only runs again when the
+bound value actually differs, and `MatDialog#afterClosed()` resolves on a timer
+once the closing animation finishes, outside of any DOM event Angular is
+tracking — a plain (non-signal) field mutated there is not guaranteed to
+schedule a re-render at all in zoneless mode, which is why this is a signal
+rather than the plain field it started as. `[compareWith]="compareRoute"`
+(id-based, mirroring `compareCar` on the basedata tab) is the other half: it
+lets that fresh object still resolve back to the original route's
+`<mat-option>` by id instead of the dropdown ending up showing no selection,
+since the default `compareWith` only matches by reference.
 
 The component redirects back to `uebersicht` via an `effect()` if no distribution
 is currently active (`GlobalStateService.getCurrentDistribution()`), consistent

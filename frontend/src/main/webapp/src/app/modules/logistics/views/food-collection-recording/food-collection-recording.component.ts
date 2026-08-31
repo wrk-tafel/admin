@@ -68,7 +68,11 @@ export class FoodCollectionRecordingComponent {
   foodCategories = model.required<FoodCategory[]>();
   foodReturnCategories = model.required<FoodReturnCategory[]>();
 
-  selectedRoute?: RouteData;
+  // A signal, not a plain field: `[ngModel]="selectedRoute()"` has to reliably re-render even when
+  // it's reassigned from an async callback outside any DOM event Angular is tracking (e.g. the
+  // unsaved-changes dialog's afterClosed(), which resolves on a timer once its close animation
+  // finishes) - a plain field mutated there is not guaranteed to schedule a check in zoneless mode.
+  selectedRoute = signal<RouteData | undefined>(undefined);
   selectedRouteData = signal<SelectedRouteData | undefined>(undefined);
 
   basedataComponent = viewChild(FoodCollectionRecordingBasedataComponent);
@@ -166,7 +170,7 @@ export class FoodCollectionRecordingComponent {
       ),
       takeUntilDestroyed()
     ).subscribe(({route, foodCollectionData, shopsOfRouteData}) => {
-      this.selectedRoute = route;
+      this.selectedRoute.set(route);
       this.selectedRouteData.set({
         route: route,
         shops: shopsOfRouteData.shops,
@@ -193,13 +197,13 @@ export class FoodCollectionRecordingComponent {
    */
   onSelectedRouteChange(route: RouteData | undefined) {
     if (!route) {
-      this.selectedRoute = undefined;
+      this.selectedRoute.set(undefined);
       this.selectedRouteData.set(undefined);
       return;
     }
 
     if (this.routeSwitchWouldDiscardChanges()) {
-      const previousRoute = this.selectedRoute;
+      const previousRoute = this.selectedRoute();
       const data: UnsavedChangesDialogData = {
         message: 'Es gibt ungespeicherte Änderungen auf dieser Route. Beim Wechseln gehen sie verloren.',
         confirmLabel: 'Route wechseln',
@@ -210,9 +214,9 @@ export class FoodCollectionRecordingComponent {
         } else {
           // undo the dropdown's already-applied visual selection - a fresh object reference is
           // needed since the mat-select otherwise still considers the just-picked route selected
-          // (Angular only re-runs writeValue when the bound reference actually differs); compareRoute
-          // is what lets that fresh reference still match the original route option by id.
-          this.selectedRoute = previousRoute ? {...previousRoute} : undefined;
+          // (writeValue is only re-run when the bound reference actually differs); compareRoute is
+          // what lets that fresh reference still match the original route option by id.
+          this.selectedRoute.set(previousRoute ? {...previousRoute} : undefined);
         }
       });
       return;

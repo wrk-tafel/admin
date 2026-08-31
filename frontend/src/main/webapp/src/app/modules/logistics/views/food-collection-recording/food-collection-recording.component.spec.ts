@@ -468,13 +468,13 @@ describe('FoodCollectionRecordingComponent', () => {
         });
         const routeA = {id: 1, name: 'Route A'};
         component.onSelectedRouteChange(routeA);
-        expect(component.selectedRoute).toBe(routeA);
+        expect(component.selectedRoute()).toBe(routeA);
 
         matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
         component.onSelectedRouteChange({id: 2, name: 'Route B'});
 
-        expect(component.selectedRoute).not.toBe(routeA);
-        expect(component.compareRoute(component.selectedRoute, routeA)).toBe(true);
+        expect(component.selectedRoute()).not.toBe(routeA);
+        expect(component.compareRoute(component.selectedRoute(), routeA)).toBe(true);
     });
 
     it('save - refreshes the food collection snapshot from the server after a successful save', () => {
