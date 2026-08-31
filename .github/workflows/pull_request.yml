@@ -7,7 +7,13 @@ on:
 jobs:
   commitlint:
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
+    # Keyed off who *authored* the pull request, not github.actor: the actor is whoever triggered
+    # this particular run, so any human touch on a Dependabot PR - merging main into it, editing
+    # the title, re-running a job - silently drops the exemption and lints a message nobody on the
+    # team wrote. Dependabot's auto-generated wording is deliberately exempt here (see
+    # commitlint.config.cjs), and that has to hold for every run on such a PR, not just the ones
+    # Dependabot itself kicked off.
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -20,7 +26,8 @@ jobs:
     # the final commit on the target branch, so the title needs the same Conventional Commits check
     # as individual commits above — otherwise release.yml's version bump can't see the intent.
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
+    # Author-based for the same reason as the commitlint job above.
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     permissions:
       pull-requests: read
     steps:
