@@ -28,7 +28,7 @@ import {
   FoodCollectionRecordingItemsResponsiveComponent
 } from '../food-collection-recording-items-responsive/food-collection-recording-items-responsive.component';
 import {KmDiffDialogComponent} from '../food-collection-recording-km/dialogs/km-diff-dialog.component';
-import {UnsavedChangesDialogComponent} from './dialogs/unsaved-changes-dialog.component';
+import {UnsavedChangesDialogComponent, UnsavedChangesDialogData} from './dialogs/unsaved-changes-dialog.component';
 import {FoodCollectionData, FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 import {catchError, concat, EMPTY, forkJoin, map, Observable, Subject, switchMap} from 'rxjs';
 import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
@@ -200,7 +200,11 @@ export class FoodCollectionRecordingComponent {
 
     if (this.routeSwitchWouldDiscardChanges()) {
       const previousRoute = this.selectedRoute;
-      this.dialog.open(UnsavedChangesDialogComponent).afterClosed().subscribe(confirmed => {
+      const data: UnsavedChangesDialogData = {
+        message: 'Es gibt ungespeicherte Änderungen auf dieser Route. Beim Wechseln gehen sie verloren.',
+        confirmLabel: 'Route wechseln',
+      };
+      this.dialog.open(UnsavedChangesDialogComponent, {data}).afterClosed().subscribe(confirmed => {
         if (confirmed) {
           this.routeSelection$.next(route);
         } else {

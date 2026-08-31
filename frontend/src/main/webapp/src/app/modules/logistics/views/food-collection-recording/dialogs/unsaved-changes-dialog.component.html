@@ -1,10 +1,10 @@
 <tafel-dialog type="warning" title="Ungespeicherte Änderungen" testId="unsaved-changes-dialog">
   <div tafel-dialog-content>
-    Es gibt ungespeicherte Änderungen auf dieser Seite. Beim Verlassen gehen sie verloren.
+    {{ data.message }}
   </div>
   <div tafel-dialog-actions>
     <button testid="leave-button" matButton="filled" class="button-danger" (click)="dialogRef.close(true)">
-      Seite verlassen
+      {{ data.confirmLabel }}
     </button>
     <button testid="stay-button" matButton="outlined" (click)="dialogRef.close(false)">
       Auf der Seite bleiben
