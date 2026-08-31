@@ -14,7 +14,7 @@ Das Drag-Handle (⋮⋮) lässt sich nicht nur mit der Maus ziehen: Wird es mit 
 
 ## Aktiv und inaktiv
 
-Gelöscht wird in diesem Bereich in der Regel nichts: [Notschlafstellen](#notschlafstellen), [Waren-Kategorien](#lebensmittelkategorien), [Retour-Kategorien](#retourkategorien), [Fahrzeuge](#fahrzeuge), [Filialen](#filialen) und [Routen](#routen) werden nur deaktiviert, weil bereits erfasste Ausgabetage und Warenerfassungen darauf verweisen. Alle sechs Listen zeigen und schalten diesen Zustand gleich (bei [Fahrzeugen](#fahrzeuge) gibt es zusätzlich eine echte Löschfunktion, siehe dort):
+Gelöscht wird in diesem Bereich in der Regel nichts: [Notschlafstellen](#notschlafstellen), [Waren-Kategorien](#lebensmittelkategorien), [Retour-Kategorien](#retourkategorien), [Fahrzeuge](#fahrzeuge), [Filialen](#filialen), [Routen](#routen) und [Länder](#laender) werden nur deaktiviert, weil bereits erfasste Ausgabetage, Warenerfassungen bzw. Personendaten darauf verweisen. Alle sieben Listen zeigen und schalten diesen Zustand gleich (bei [Fahrzeugen](#fahrzeuge) gibt es zusätzlich eine echte Löschfunktion, siehe dort):
 
 - In jeder Zeile steht der Schalter **Aktiv**. Er zeigt den Zustand und ändert ihn — eine eigene Kennzeichnung daneben gibt es nicht.
 - Ein deaktivierter Eintrag bleibt in der Liste stehen, wird aber grau dargestellt, und sein **Bearbeiten**-Button ist gesperrt: Er muss zuerst wieder aktiviert werden.
@@ -139,6 +139,16 @@ Die **Nummer** muss eindeutig sein; ist sie bereits vergeben, erscheint beim Spe
 Rechts in jeder Zeile stehen der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Filiale nicht aufgeklappt werden. Eine deaktivierte Filiale steht in der Warenerfassung nicht mehr zur Auswahl, bleibt aber in bereits erfassten Ausgabetagen erhalten — deshalb gibt es bewusst keine Löschfunktion (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
 
 Hält mindestens eine aktive Route an der zu deaktivierenden Filiale, erscheint vor dem Deaktivieren eine Sicherheitsabfrage, die diese Routen namentlich nennt: Beim Deaktivieren wird die Filiale aus diesen Routen entfernt — die Stopps entfallen ersatzlos. Wird die Filiale später wieder aktiviert, muss sie den [Routen](#routen) neu als Stopp hinzugefügt werden.
+
+<a id="laender"></a>
+
+## Länder
+
+Unter **Einstellungen → Länder** wird die Länderliste gepflegt, aus der bei einer Person die Staatsangehörigkeit ausgewählt wird. Die Liste startet mit der festen ISO-Länderliste, lässt sich aber über den grünen **+**-Button neben der Überschrift um weitere Länder erweitern; gelöscht werden kann keines. Bearbeitbar sind **Name** und **Code** über Stift-/Häkchen-Symbol — derselbe Bearbeitungsmodus wie bei [Fahrzeugen](#fahrzeuge). Der Code muss genau zwei Buchstaben haben und bereits vergebene Codes werden sowohl beim Anlegen als auch beim Ändern abgelehnt ("Länder-Code XX ist bereits vergeben!").
+
+Über der Liste stehen ein **Suchfeld** (durchsucht Name und Code) und der Filter **Alle / Aktiv / Inaktiv** — bei rund 250 Einträgen die mit Abstand längste Liste in diesem Bereich. Ist die Liste durch Suche oder Filter eingeschränkt, zeigt eine Zeile darüber die Trefferzahl.
+
+Ein deaktiviertes Land steht in der Staatsangehörigkeits-Auswahl nicht mehr zur Verfügung; bereits erfassten Personen bleibt es unverändert erhalten (siehe [Aktiv und inaktiv](#aktiv-inaktiv)). Anders als bei den übrigen Listen dieses Bereichs gibt es hier kein Drag-Handle: Die Reihenfolge hier hat keine eigene Bedeutung, da die Auswahlliste unabhängig davon zunächst nach Häufigkeit und danach alphabetisch sortiert.
 
 <a id="routen"></a>
 
