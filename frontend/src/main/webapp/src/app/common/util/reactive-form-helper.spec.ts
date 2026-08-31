@@ -1,4 +1,4 @@
-import {isControlInvalid, isControlValid} from './reactive-form-helper';
+import {isControlInvalid} from './reactive-form-helper';
 
 describe('Reactive Form Helper', () => {
 
@@ -19,32 +19,6 @@ describe('Reactive Form Helper', () => {
       const mockControl = {invalid: false, touched: true} as any;
 
       expect(isControlInvalid(mockControl)).toBe(false);
-    });
-  });
-
-  describe('isControlValid', () => {
-    it('should return false when control is valid but neither dirty nor touched', () => {
-      const mockControl = {valid: true, dirty: false, touched: false} as any;
-
-      expect(isControlValid(mockControl)).toBe(false);
-    });
-
-    it('should return true when control is valid and dirty', () => {
-      const mockControl = {valid: true, dirty: true, touched: false} as any;
-
-      expect(isControlValid(mockControl)).toBe(true);
-    });
-
-    it('should return true when control is valid and touched', () => {
-      const mockControl = {valid: true, dirty: false, touched: true} as any;
-
-      expect(isControlValid(mockControl)).toBe(true);
-    });
-
-    it('should return false when control is dirty but invalid', () => {
-      const mockControl = {valid: false, dirty: true, touched: false} as any;
-
-      expect(isControlValid(mockControl)).toBe(false);
     });
   });
 

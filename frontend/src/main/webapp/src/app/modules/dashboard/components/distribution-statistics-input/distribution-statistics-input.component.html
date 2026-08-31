@@ -6,12 +6,14 @@
   </mat-card-header>
   <mat-card-content>
     <form [formGroup]="form" autocomplete="off" class="flex flex-col gap-2">
-      <!-- No `appearance="fill"` override: the app-wide default `outline` appearance (see
-           app.config.ts) is what keeps the label visible once a value is entered - Material's
-           density(-4) setting used across this app hides a `fill` field's floating label
-           entirely (`--mat-form-field-filled-label-display: none`, computed at density < -3),
-           regardless of `floatLabel="always"` or an explicit `mat-label`. -->
-      <mat-form-field class="w-full" testid="distribution-statistics-employee-count-input">
+      <!-- appearance="fill" kept (over the app-wide outline default, see app.config.ts) for its
+           label sitting fully inside the filled box - an outline field's label instead floats up
+           into the notch cut into its border, which needs a background of its own to mask this
+           card's purple showing through, and even a corrected one still reads as a patch stuck
+           above the field. What actually hid this label - Material's density(-4) setting used
+           across the app, applied to fill fields only, below density -3 (see the .scss) - is
+           overridden locally instead. -->
+      <mat-form-field class="w-full" appearance="fill" testid="distribution-statistics-employee-count-input">
         <mat-label>Anzahl der Mitarbeiter</mat-label>
         <input
           matInput
@@ -34,7 +36,7 @@
       </mat-form-field>
 
       <div class="gap-2 flex flex-row">
-        <mat-form-field class="w-full" testid="distribution-statistics-persons-in-shelter-input">
+        <mat-form-field class="w-full" appearance="fill" testid="distribution-statistics-persons-in-shelter-input">
           <mat-label>Personen in Notschlafstellen</mat-label>
           <input
             matInput

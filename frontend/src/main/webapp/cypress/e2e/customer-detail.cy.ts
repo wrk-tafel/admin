@@ -674,7 +674,8 @@ describe('Customer Detail', () => {
         cy.byTestId('documentTypeInput-option-OTHER').click();
 
         cy.byTestId('documentSourceScanner').click();
-        cy.byTestId('scannerFile-' + scannerFileName, {timeout: 10000}).should('be.visible').click();
+        cy.byTestId('scannerFile-' + scannerFileName, {timeout: 10000}).should('be.visible')
+          .find('input[type="radio"]').click({force: true});
         cy.byTestId('okButton').click();
 
         // the imported document's filename is derived from the document type + import time, not
@@ -789,7 +790,8 @@ describe('Customer Detail', () => {
 
         cy.byTestId('documentSourceScanner').click();
         // deliberately select the OLDER file (not the default/newest one)
-        cy.byTestId('scannerFile-' + olderFileName, {timeout: 10000}).should('be.visible').click();
+        cy.byTestId('scannerFile-' + olderFileName, {timeout: 10000}).should('be.visible')
+          .find('input[type="radio"]').click({force: true});
         cy.byTestId('okButton').click();
 
         cy.byTestId('document-0-fileNameText').should('be.visible').invoke('text').then((fileName) => {

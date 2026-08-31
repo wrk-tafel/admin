@@ -4,6 +4,8 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {
@@ -14,7 +16,7 @@ import {
   SettingsApiService
 } from '../../../../api/settings-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
-import {isControlInvalid, isControlValid} from '../../../../common/util/reactive-form-helper';
+import {isControlInvalid} from '../../../../common/util/reactive-form-helper';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import mailIcon from '@material-symbols/svg-400/outlined/mail-fill.svg';
 import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
@@ -34,7 +36,9 @@ import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
     MatIconModule,
     ReactiveFormsModule,
     CommonModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatFormFieldModule,
+    MatInputModule
   ]
 })
 export class MailRecipientsComponent {
@@ -221,5 +225,4 @@ export class MailRecipientsComponent {
   }
 
   protected readonly isControlInvalid = isControlInvalid;
-  protected readonly isControlValid = isControlValid;
 }

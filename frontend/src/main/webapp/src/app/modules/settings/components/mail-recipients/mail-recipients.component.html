@@ -48,22 +48,18 @@
                       @for (address of getAddressesOfRecipientTypeIndex(i, j).controls; track address; let
                         k = $index; ) {
                         <div class="mt-2 flex items-center flex-nowrap" [formGroupName]="k">
-                          <div class="grow">
+                          <mat-form-field class="grow" subscriptSizing="dynamic">
                             <input
+                              matInput
                               [attr.testid]="'email-input-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
                               type="email"
                               [attr.aria-label]="getRecipientTypeLabel(recipient.get('recipientType')!.value) + ' - E-Mail Adresse ' + (k + 1)"
                               formControlName="address"
-                              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                              [class.border-red-500]="isControlInvalid(address.get('address')!)"
-                              [class.border-green-500]="isControlValid(address.get('address')!)"
                             >
                             @if (isControlInvalid(address.get('address')!)) {
-                              <div class="mt-1 text-sm text-red-600">
-                                Ungültige E-Mail Adresse
-                              </div>
+                              <mat-error>Ungültige E-Mail Adresse</mat-error>
                             }
-                          </div>
+                          </mat-form-field>
                           <div class="text-right ml-2">
                             <button type="button" matButton="filled"
                                     class="button-danger"

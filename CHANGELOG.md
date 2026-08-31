@@ -6,6 +6,9 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Die Felder "Anzahl der Mitarbeiter" und "Personen in Notschlafstellen" im Statistik-Bereich sowie "Notizen zur Ausgabe" im Anmerkungen-Bereich der Übersicht behalten jetzt ihre Beschriftung, sobald ein Wert eingegeben ist, statt sie wie einen reinen Platzhalter verschwinden zu lassen.
+- Die Kontrollkästchen im Dialog "Notschlafstellen auswählen" (Übersicht) sind jetzt einheitlich wie im Rest der Anwendung gestaltet, statt als unstylisierte Browser-Kontrollkästchen angezeigt zu werden.
+- Die Auswahl einer Scanner-Datei beim Dokument-Hochladen zeigt jetzt einheitlich gestaltete Radio-Buttons, statt unstylisierter Browser-Radio-Buttons.
+- Die E-Mail-Adressfelder unter Einstellungen → E-Mail-Empfänger sind jetzt einheitlich wie die übrigen Eingabefelder der Anwendung gestaltet.
 
 ## [1.16.0] - 2026-08-31
 - Der Abschnitt "Länder" im Benutzerhandbuch zeigt jetzt auch einen Screenshot der Verwaltungsseite, statt nur eine reine Textbeschreibung.

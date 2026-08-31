@@ -1,9 +1,12 @@
-// `appearance="outline"` (the app-wide default, kept here for its permanent floating label - see
-// the template) has no field background of its own, unlike `appearance="fill"`: on this card's
-// purple background the field would otherwise blend in with nothing to mark it as an input
-// surface. `border-radius` matches the notched outline's own corners so the fill doesn't poke out
-// past the border.
-:host ::ng-deep .mat-mdc-text-field-wrapper {
-  background-color: white;
-  border-radius: 4px;
+@use '@angular/material' as mat;
+
+// The app-wide `form-field-density(-4)` (angular-material-theme.scss) hides a `fill` field's
+// floating label outright once its computed height drops below 52px - Material's own tokens, not
+// a bug - which is exactly the "Anzahl der Mitarbeiter"/"Personen in Notschlafstellen" bug this
+// works around (see the template). `form-field-density` only ever emits CSS custom properties, so
+// scoping the mixin under `:host` overrides them for this card's fields alone, without touching
+// the compact density every other field in the app still uses. -1 is the least dense step (52px)
+// that stays under that 52px cliff.
+:host {
+  @include mat.form-field-density(-1);
 }

@@ -21,9 +21,9 @@ describe('Dashboard', () => {
 
     // select shelters to calculate person count
     cy.byTestId('dashboard-select-shelters-button').click();
-    cy.byTestId('selectable-shelter-row-0').click();
-    cy.byTestId('selectable-shelter-row-1').click();
-    cy.byTestId('selectable-shelter-row-2').click();
+    cy.byTestId('selectable-shelter-row-0').find('input[type="checkbox"]').click({force: true});
+    cy.byTestId('selectable-shelter-row-1').find('input[type="checkbox"]').click({force: true});
+    cy.byTestId('selectable-shelter-row-2').find('input[type="checkbox"]').click({force: true});
     cy.byTestId('selectshelters-save-button').click();
     cy.byTestId('distribution-statistics-persons-in-shelter-input')
       .find('input')
