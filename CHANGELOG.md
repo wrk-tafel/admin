@@ -13,8 +13,13 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - In der mobilen Warenerfassung werden Eingaben bei schnellem Filialwechsel oder einem Routenwechsel während des Ladens jetzt nicht mehr fälschlich einer falschen Filiale zugeordnet.
 - Das Speichern einer reinen Retourware-Freitextzeile in der mobilen Warenerfassung entfernt jetzt korrekt die Markierung "Nicht gespeichert", statt weiterhin fälschlich vor ungespeicherten Änderungen zu warnen.
 - Das Abrutschen vom Plus/Minus-Button während des Gedrückthaltens in der Warenmengen-Eingabe verschluckt jetzt nicht mehr den nächsten Tastendruck.
+- Die Felder "Anzahl der Mitarbeiter" und "Personen in Notschlafstellen" im Statistik-Bereich sowie "Notizen zur Ausgabe" im Anmerkungen-Bereich der Übersicht behalten jetzt ihre Beschriftung, sobald ein Wert eingegeben ist, statt sie wie einen reinen Platzhalter verschwinden zu lassen.
+- Die Kontrollkästchen im Dialog "Notschlafstellen auswählen" (Übersicht) sind jetzt einheitlich wie im Rest der Anwendung gestaltet, statt als unstylisierte Browser-Kontrollkästchen angezeigt zu werden.
+- Die Auswahl einer Scanner-Datei beim Dokument-Hochladen zeigt jetzt einheitlich gestaltete Radio-Buttons, statt unstylisierter Browser-Radio-Buttons.
+- Die E-Mail-Adressfelder unter Einstellungen → E-Mail-Empfänger sind jetzt einheitlich wie die übrigen Eingabefelder der Anwendung gestaltet.
+- Die Ticketnummer-Zuweisung in der Kunden-Detailansicht ist jetzt Teil des Kopfbereichs (in derselben Zeile wie die Status-Chips), statt als eigener Bereich zwischen Kopfbereich und Tabs zu stehen.
 
-## [1.16.1] - 2026-08-31
+## [1.16.0] - 2026-08-31
 - Der Abschnitt "Länder" im Benutzerhandbuch zeigt jetzt auch einen Screenshot der Verwaltungsseite, statt nur eine reine Textbeschreibung.
 - Zwei gleichzeitige Speicherungen der Warenmenge in der Warenerfassung für unterschiedliche Filialen derselben Route (z. B. Handy und Desktop) überschreiben sich jetzt nicht mehr gegenseitig, statt bereits erfasste Mengen stillschweigend zu verlieren.
 - Ein Wechsel der Route in der Warenerfassung fragt bei noch nicht gespeicherten Eingaben jetzt vorher nach Bestätigung, statt diese stillschweigend zu verwerfen.

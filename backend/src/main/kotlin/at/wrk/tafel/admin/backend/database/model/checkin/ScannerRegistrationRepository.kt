@@ -10,11 +10,12 @@ import java.time.LocalDateTime
 interface ScannerRegistrationRepository : JpaRepository<ScannerRegistrationEntity, Long> {
 
     /**
-     * Finds the smallest gap in the existing `scanner_id` sequence, falling back to `MAX + 1`
-     * only if there is none. Scanner ids are reused, not monotonically increasing: combined with
-     * the hourly cleanup of registrations older than 2 days, an id freed up two days ago will be
-     * handed out again to the next new registration - don't assume a higher id was registered
-     * more recently.
+     * Finds the smallest gap in the `scanner_id` sequence, including below the smallest id
+     * currently in use - a virtual row at 0 is unioned in first so that e.g. existing ids `{5, 6}`
+     * yield `1`, not `7`. Falls back to `MAX + 1` only if there is no gap at all. Scanner ids are
+     * reused, not monotonically increasing: combined with the hourly cleanup of registrations older
+     * than 2 days, an id freed up two days ago will be handed out again to the next new
+     * registration - don't assume a higher id was registered more recently.
      */
     @Query(
         value = """
@@ -23,7 +24,11 @@ interface ScannerRegistrationRepository : JpaRepository<ScannerRegistrationEntit
                     SELECT t.scanner_id + 1
                     FROM (
                     SELECT scanner_id, LEAD(scanner_id) OVER (ORDER BY scanner_id) AS next_scanner_id
-                    FROM scanner_registrations
+                    FROM (
+                        SELECT 0 AS scanner_id
+                        UNION ALL
+                        SELECT scanner_id FROM scanner_registrations
+                    ) ids
                     ) t
                     WHERE next_scanner_id IS NULL OR next_scanner_id > t.scanner_id + 1
                     ORDER BY t.scanner_id

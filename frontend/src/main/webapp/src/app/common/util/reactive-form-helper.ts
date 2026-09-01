@@ -17,18 +17,3 @@ import {AbstractControl} from '@angular/forms';
 export function isControlInvalid(control: AbstractControl): boolean {
   return control.invalid && control.touched;
 }
-
-/**
- * Check if a reactive form control should be shown as valid.
- *
- * @param control The reactive form control (or group/array)
- *
- * @example
- * ```html
- * <!-- In template -->
- * <input formControlName="lastname" [class.is-valid]="isControlValid(lastname)">
- * ```
- */
-export function isControlValid(control: AbstractControl): boolean {
-  return control.valid && (control.dirty || control.touched);
-}

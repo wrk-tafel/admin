@@ -9,17 +9,19 @@
             }
             <div class="flex flex-row items-start gap-2">
               <div class="shrink-0">
-                <input
-                  type="checkbox"
+                <mat-checkbox
+                  #shelterCheckbox
                   [formControl]="selectedShelters.controls[idx]"
-                  [id]="'shelter-' + shelter.id"
                   [attr.testid]="'selectable-shelter-row-' + idx"
-                >
+                ></mat-checkbox>
               </div>
               <div class="flex-grow text-left text-wrap">
                 <strong>{{ shelter.name }}</strong>
                 <br>
-                <label [for]="'shelter-' + shelter.id">
+                <!-- [for] targets the checkbox's own generated input id (mat-checkbox wraps its
+                     [id] input into "<id>-input" for the actual native input), not a manually
+                     assigned one, so this stays correct if that internal naming ever changes. -->
+                <label [for]="shelterCheckbox.inputId">
                   {{ formatStreet(shelter) }}
                   <br>
                   {{ shelter.addressPostalCode }} {{ shelter.addressCity }}
