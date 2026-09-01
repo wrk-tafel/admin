@@ -156,7 +156,9 @@ export class MailRecipientsComponent {
   /**
    * A freshly added address is submitted with id null and only gets a real id once persisted - patch
    * it into the still-mounted form (rather than reloading, which would reset the selected tab) so the
-   * row becomes immediately deletable via removeAddress() without a page refresh.
+   * row becomes immediately deletable via removeAddress() without a page refresh. Matched by address
+   * value rather than array position - the backend's response order isn't guaranteed to match the
+   * form's, and pairing by index would silently assign the wrong row's id.
    */
   private applySavedIds(response: MailRecipients) {
     this.mailRecipientArray.controls.forEach(mailTypeGroup => {
@@ -173,19 +175,20 @@ export class MailRecipientsComponent {
             .filter((id): id is number => id !== null)
         );
 
-        const newlyAssignedIds = response.mailRecipients
+        const newlyAssignedEntries = response.mailRecipients
           .filter(recipient => recipient.mailType === mailType)
           .flatMap(recipient => recipient.recipients)
           .filter(recipient => recipient.recipientType === recipientType)
           .flatMap(recipient => recipient.addresses)
-          .map(address => address.id)
-          .filter((id): id is number => id !== null && !knownIds.has(id));
+          .filter((address): address is MailRecipientAddressItem & { id: number } => address.id !== null && !knownIds.has(address.id));
 
         const unsavedGroups = addressesArray.controls.filter(addressGroup => addressGroup.get('id')!.value === null);
-        unsavedGroups.forEach((addressGroup, index) => {
-          const assignedId = newlyAssignedIds[index];
-          if (assignedId !== undefined) {
-            addressGroup.get('id')!.setValue(assignedId, {emitEvent: false});
+        unsavedGroups.forEach(addressGroup => {
+          const addressValue = addressGroup.get('address')!.value as string;
+          const matchIndex = newlyAssignedEntries.findIndex(entry => entry.address === addressValue);
+          if (matchIndex !== -1) {
+            const [matchedEntry] = newlyAssignedEntries.splice(matchIndex, 1);
+            addressGroup.get('id')!.setValue(matchedEntry.id, {emitEvent: false});
           }
         });
       });

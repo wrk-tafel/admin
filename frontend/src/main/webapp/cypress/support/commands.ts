@@ -407,13 +407,15 @@ Cypress.Commands.add(
   'createDummyUser',
   (): Cypress.Chainable<Cypress.Response<UserData>> =>
     cy.getAnyRandomNumber().then(randomNumber => {
+      const password = testUserPassword(randomNumber);
       const data: UserData = {
         username: 'username-' + randomNumber,
         personnelNumber: randomNumber.toString(),
         firstname: 'firstname-' + randomNumber,
         lastname: 'lastname-' + randomNumber,
         enabled: true,
-        password: testUserPassword(randomNumber),
+        password: password,
+        passwordRepeat: password,
         passwordChangeRequired: false,
         permissions: []
       };

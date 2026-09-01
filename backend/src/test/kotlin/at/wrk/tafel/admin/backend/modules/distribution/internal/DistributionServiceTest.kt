@@ -652,6 +652,24 @@ internal class DistributionServiceTest {
     }
 
     /**
+     * Regression guard (issue #3602): without taking CLOSE_DISTRIBUTION, this check-in could
+     * straddle an in-flight closeDistribution() - turning getCurrentDistribution()!! into an NPE, or
+     * committing after DistributionEndedEventListener already read the closing distribution's
+     * households, silently excluding this one from that day's statistics/cost-contribution tracking.
+     */
+    @Test
+    fun `assign customer takes the CLOSE_DISTRIBUTION lock before the assign lock`() {
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { householdRepository.findByHouseholdId(any()) } returns testHouseholdEntity1
+        every { distributionHouseholdRepository.save(any()) } returns mockk()
+
+        service.assignHouseholdToDistribution(householdId = 1L, ticketNumber = 200)
+
+        verify(exactly = 1) { advisoryLockService.acquireLock(AdvisoryLockKey.CLOSE_DISTRIBUTION) }
+    }
+
+    /**
      * The repository's conditional UPDATE is what decides whether this check-in was the first one -
      * a returned 1 means this caller won the stamp, so it is the one that announces the phase.
      */
@@ -1465,6 +1483,20 @@ internal class DistributionServiceTest {
         verify(exactly = 1) { distributionHouseholdRepository.delete(testDistributionHouseholdEntity2) }
     }
 
+    /**
+     * Regression guard (issue #3602): a bare `getCurrentDistribution()!!` used to turn a distribution
+     * closing between the interceptor's check and this read into an unguarded NPE (500) instead of
+     * the graceful conflict every other "already closed" path returns.
+     */
+    @Test
+    fun `delete current ticket when the distribution was already closed reports a conflict instead of throwing an NPE`() {
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+
+        val exception = assertThrows<ConflictException> { service.deleteCurrentTicket(1L) }
+
+        assertThat(exception.body.detail).isEqualTo("Ausgabe bereits geschlossen!")
+    }
+
     @Test
     fun `update statistic data of distribution`() {
         val updatedEmployeeCount = 100
@@ -1510,6 +1542,15 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `update statistic data when the distribution was already closed reports a conflict instead of throwing an NPE`() {
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+
+        val exception = assertThrows<ConflictException> { service.updateDistributionStatisticData(1, emptyList()) }
+
+        assertThat(exception.body.detail).isEqualTo("Ausgabe bereits geschlossen!")
+    }
+
+    @Test
     fun `update notes data of distribution`() {
         val notes = "  test notes, easy peasy  "
 
@@ -1524,6 +1565,15 @@ internal class DistributionServiceTest {
 
         val updatedDistributionEntity = updatedDistributionEntitySlot.captured
         assertThat(updatedDistributionEntity.notes).isEqualTo(notes.trim())
+    }
+
+    @Test
+    fun `update notes data when the distribution was already closed reports a conflict instead of throwing an NPE`() {
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+
+        val exception = assertThrows<ConflictException> { service.updateDistributionNoteData("notes") }
+
+        assertThat(exception.body.detail).isEqualTo("Ausgabe bereits geschlossen!")
     }
 
     @Test

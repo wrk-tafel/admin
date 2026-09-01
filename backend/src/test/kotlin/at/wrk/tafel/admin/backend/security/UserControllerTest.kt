@@ -8,6 +8,8 @@ import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
@@ -68,6 +70,9 @@ class UserControllerTest {
 
     @RelaxedMockK
     private lateinit var response: HttpServletResponse
+
+    @RelaxedMockK
+    private lateinit var advisoryLockService: AdvisoryLockService
 
     @InjectMockKs
     private lateinit var controller: UserController
@@ -481,6 +486,20 @@ class UserControllerTest {
         verify(exactly = 1) { userDetailsManager.createUser(testUser) }
     }
 
+    @Test
+    fun `create user with passwords not matching`() {
+        every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy")
+        every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
+
+        val exception = assertThrows<BusinessRuleException> {
+            controller.createUser(user = testUserRequest.copy(password = "123", passwordRepeat = "456"))
+        }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(exception.body.detail).isEqualTo("Passwörter stimmen nicht überein!")
+        verify(exactly = 0) { userDetailsManager.createUser(any()) }
+    }
+
     /**
      * ADMINISTRATOR implies every other permission, so being allowed to hand it out is being allowed
      * to grant yourself everything. USER_MANAGEMENT alone must therefore not be enough - otherwise
@@ -705,6 +724,30 @@ class UserControllerTest {
 
         verify(exactly = 0) { userDetailsManager.anotherEnabledAdministratorExists(any()) }
         verify(exactly = 1) { userDetailsManager.deleteUser(testUser.username) }
+    }
+
+    /**
+     * Regression guard (issue #3602): the last-administrator check used to be a plain
+     * check-then-act with no lock, so two concurrent deletes with exactly two enabled
+     * administrators left could each see "another administrator exists" and both succeed.
+     */
+    @Test
+    fun `delete user removing an administrator takes the LAST_ADMINISTRATOR_SAFEGUARD lock`() {
+        every { userDetailsManager.loadUserById(any()) } returns administratorUser()
+        every { userDetailsManager.anotherEnabledAdministratorExists(any()) } returns true
+
+        controller.deleteUser(userId = testUser.id!!)
+
+        verify(exactly = 1) { advisoryLockService.acquireLock(AdvisoryLockKey.LAST_ADMINISTRATOR_SAFEGUARD) }
+    }
+
+    @Test
+    fun `delete user who is not an administrator doesn't take the LAST_ADMINISTRATOR_SAFEGUARD lock`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        controller.deleteUser(userId = testUser.id!!)
+
+        verify(exactly = 0) { advisoryLockService.acquireLock(any()) }
     }
 
     private fun administratorUser() = testUser.copy(

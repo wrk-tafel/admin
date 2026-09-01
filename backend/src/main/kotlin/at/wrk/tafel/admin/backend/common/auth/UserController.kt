@@ -16,6 +16,8 @@ import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
@@ -50,6 +52,7 @@ class UserController(
     private val userExportService: UserExportService,
     private val staffPrivacyNoticeService: StaffPrivacyNoticeService,
     private val jwtTokenService: JwtTokenService,
+    private val advisoryLockService: AdvisoryLockService,
 ) {
 
     companion object {
@@ -255,6 +258,10 @@ class UserController(
     ): ResponseEntity<UserResponse> {
         validateIfUserExists(user)
         validateAdministratorAssignment(requested = user.permissions, current = emptyList())
+
+        if (user.password != user.passwordRepeat) {
+            throw BusinessRuleException("Passwörter stimmen nicht überein!")
+        }
 
         try {
             val tafelUser = mapToTafelUser(user)
@@ -525,6 +532,12 @@ class UserController(
      *
      * A [ConflictException] rather than a permission error: the caller may well be allowed to do
      * this in general, it is the resulting state that is not permitted.
+     *
+     * Takes LAST_ADMINISTRATOR_SAFEGUARD before checking: this is a check-then-act against the
+     * count of enabled administrators, and without a lock two concurrent deletes/disables with
+     * exactly two left could each see "another administrator exists" before either commits, and
+     * both succeed - leaving zero (issue #3602). The lock is held until this call's own transaction
+     * commits, so the next caller's count already reflects this one's outcome.
      */
     private fun validateNotLastAdministrator(userId: Long, existingUser: TafelUser) {
         val isActiveAdministrator = existingUser.enabled &&
@@ -533,6 +546,7 @@ class UserController(
             return
         }
 
+        advisoryLockService.acquireLock(AdvisoryLockKey.LAST_ADMINISTRATOR_SAFEGUARD)
         if (!userDetailsManager.anotherEnabledAdministratorExists(userId)) {
             throw ConflictException(
                 "Es muss mindestens ein aktiver Benutzer mit der Berechtigung " +

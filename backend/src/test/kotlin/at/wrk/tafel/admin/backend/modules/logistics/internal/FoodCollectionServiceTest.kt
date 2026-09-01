@@ -280,6 +280,10 @@ class FoodCollectionServiceTest {
         assertThat(foodCollection.car!!.id).isEqualTo(data.carId)
         assertThat(foodCollection.driver!!.id).isEqualTo(data.driverId)
         assertThat(foodCollection.coDriver!!.id).isEqualTo(data.coDriverId)
+
+        verify(exactly = 1) {
+            advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM, any<() -> Unit>())
+        }
     }
 
     @Test
@@ -305,6 +309,53 @@ class FoodCollectionServiceTest {
         assertThat(foodCollection.id).isEqualTo(existingCollection.id)
         assertThat(foodCollection.kmStart).isEqualTo(1000)
         assertThat(foodCollection.kmEnd).isEqualTo(2000)
+
+        verify(exactly = 1) {
+            advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM, any<() -> Unit>())
+        }
+    }
+
+    /**
+     * Regression guard (issue #3602): saveRouteData/saveKm used to take no lock at all, so their
+     * find-or-create of the route's food_collections row could race saveItems/saveItemsPerShop/
+     * patchItem (or each other) on the `(distribution_id, route_id)` unique constraint.
+     */
+    @Test
+    fun `save route data takes the same advisory lock as saveKm and the item write paths`() {
+        val routeId = 123L
+        val data = FoodCollectionSaveRouteRequest(carId = testCar1.id!!, driverId = 1L, coDriverId = 2L)
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { employeeRepository.findByIdOrNull(data.driverId) } returns testEmployee1
+        every { employeeRepository.findByIdOrNull(data.coDriverId) } returns testEmployee2
+        every { foodCollectionRepository.save(any()) } returns mockk()
+        every { carRepository.findByIdOrNull(testCar1.id!!) } returns testCar1
+
+        service.saveRouteData(routeId = routeId, data = data)
+
+        verify(exactly = 1) {
+            advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM, any<() -> Unit>())
+        }
+    }
+
+    @Test
+    fun `save km takes the same advisory lock as saveRouteData and the item write paths`() {
+        val routeId = 123L
+        val data = FoodCollectionSaveKmRequest(kmStart = 1000, kmEnd = 2000)
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            foodCollections = emptyList()
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { foodCollectionRepository.save(any()) } returns mockk()
+
+        service.saveKm(routeId = routeId, data = data)
+
+        verify(exactly = 1) {
+            advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM, any<() -> Unit>())
+        }
     }
 
     @Test

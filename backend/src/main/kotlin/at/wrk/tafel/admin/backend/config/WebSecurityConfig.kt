@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
@@ -58,6 +59,7 @@ class WebSecurityConfig(
     private val auditLogRepository: AuditLogRepository,
     private val auditActorProvider: AuditActorProvider,
     private val clock: Clock,
+    private val advisoryLockService: AdvisoryLockService,
 ) {
 
     companion object {
@@ -254,6 +256,7 @@ class WebSecurityConfig(
         auditLogRepository,
         auditActorProvider,
         clock,
+        advisoryLockService,
     )
 
     @Bean

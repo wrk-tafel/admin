@@ -170,6 +170,7 @@ describe('User Search', () => {
         lastname: 'lastname-' + randomNumber,
         enabled: true,
         password: testUserPassword(randomNumber),
+        passwordRepeat: testUserPassword(randomNumber),
         passwordChangeRequired: true,
         permissions: []
       }).then((response) => {
