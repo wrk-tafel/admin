@@ -10,6 +10,9 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Ein manueller erneuter Versand der Statistik-Mails berücksichtigt jetzt nur beendete Ausgaben, statt eine noch laufende Ausgabe fälschlich als abgeschlossenen Tag mit auszuweisen.
 - Der CSV-Export der Tagesreports und Spenden zeigt bei einem erneuten Mail-Versand einer älteren Ausgabe deren Zeile jetzt an der richtigen Stelle der Jahresübersicht an, statt immer als letzte Zeile.
 - Der CSV-Export "Verteilung Nationalitäten" zeigt jetzt getrennte Spalten für Haushalte und Personen an, statt in der Spalte "Haushalte" tatsächlich Personen zu zählen.
+- Die Anmeldung (Check-in) funktioniert jetzt auch für Benutzer:innen, die ausschließlich die Berechtigung "Anmeldung" besitzen, statt mit einer Zugriffsfehlermeldung abzubrechen.
+- Die Warnung administrativer Konten bei ungewöhnlich vielen Datenzugriffen berücksichtigt jetzt eine laufende Ausgabe mit einer höheren Schwelle, statt bei jedem regulären Ausgabetag auszulösen.
+- Ein minimaler Layoutfehler auf der gedruckten Bezugskarte, der zu einer Warnung bei jeder Erstellung eines neuen Haushalts führte, wurde behoben.
 
 ## [1.16.1] - 2026-08-31
 - Ein Haushalt, der in derselben Ausgabe sowohl "Neu" als auch "Verlängert" ist, wird in der Kundenübersicht jetzt korrekt in beiden Zeilen bedienbar angezeigt, statt zu einem defekten Klickverhalten zu führen.

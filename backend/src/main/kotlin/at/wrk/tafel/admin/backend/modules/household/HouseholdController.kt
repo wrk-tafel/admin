@@ -95,8 +95,10 @@ class HouseholdController(
         return householdService.updateHousehold(householdId, household, force, isSupervisor)
     }
 
+    // Also reachable with CHECKIN alone: checking a customer in inherently requires reading their
+    // household record (the check-in screen loads it via this same endpoint) - see #3623.
     @GetMapping("/{householdId}")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAnyAuthority('CUSTOMER', 'CHECKIN')")
     fun getHousehold(@PathVariable householdId: Long): HouseholdResponse = householdService.findByHouseholdId(householdId)
         ?: throw NotFoundException("Kunde Nr. $householdId nicht gefunden!")
 
