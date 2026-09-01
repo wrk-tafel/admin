@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
-import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdExportService
@@ -67,12 +66,6 @@ class HouseholdController(
     ): ResponseEntity<HouseholdCreationResponse> {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
-
-        household.id?.let {
-            if (householdService.existsByHouseholdId(it)) {
-                throw ConflictException("Kunde Nr. $it bereits vorhanden!")
-            }
-        }
 
         val response = householdService.createHousehold(household, force, isSupervisor)
         return ResponseEntity.status(HttpStatus.CREATED).body(response)

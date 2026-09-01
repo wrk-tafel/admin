@@ -12,7 +12,16 @@ interface DistributionRepository : JpaRepository<DistributionEntity, Long> {
 
     fun findFirstByEndedAtIsNotNullOrderByStartedAtDesc(): DistributionEntity?
 
-    @Query("SELECT d from Distribution d where year(d.startedAt) = :year order by d.startedAt asc")
+    /**
+     * Only ever-ended distributions - the statistic CSV exporters (`DailyReportsExporter`,
+     * `FoodCollectionsExporter`) treat every row from this query as a finished day. Without this
+     * filter, a manual mail resend (`DistributionService.sendMails`) running while a *new*
+     * distribution is open would pull in that still-open distribution's always-present but empty
+     * statistic row as if it were a completed one - the automatic post-close path never hit this
+     * because the just-closed distribution is always the one query callers filter out by id, and
+     * nothing else can be open at that moment - see issue #3599.
+     */
+    @Query("SELECT d from Distribution d where year(d.startedAt) = :year and d.endedAt is not null order by d.startedAt asc")
     fun getDistributionsForYear(@Param("year") year: Int): List<DistributionEntity>
 
     fun getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc(): List<DistributionEntity>

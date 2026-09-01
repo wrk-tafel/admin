@@ -5,6 +5,13 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Ein aus dem Scanner-Ordner importiertes Dokument verschwindet jetzt sofort aus der Dateiliste, statt erst beim nächsten Aktualisierungsintervall.
+- Die nächtliche Bereinigung verwaister Dokumentdateien bricht jetzt ab, wenn ungewöhnlich viele Dateien als verwaist erscheinen (z. B. nach einer Änderung des Speicherpfads), statt versehentlich alle Dokumente zu löschen.
+- Ein manueller erneuter Versand der Statistik-Mails berücksichtigt jetzt nur beendete Ausgaben, statt eine noch laufende Ausgabe fälschlich als abgeschlossenen Tag mit auszuweisen.
+- Der CSV-Export der Tagesreports und Spenden zeigt bei einem erneuten Mail-Versand einer älteren Ausgabe deren Zeile jetzt an der richtigen Stelle der Jahresübersicht an, statt immer als letzte Zeile.
+- Der CSV-Export "Verteilung Nationalitäten" zeigt jetzt getrennte Spalten für Haushalte und Personen an, statt in der Spalte "Haushalte" tatsächlich Personen zu zählen.
+
+## [1.16.1] - 2026-08-31
 - Ein Haushalt, der in derselben Ausgabe sowohl "Neu" als auch "Verlängert" ist, wird in der Kundenübersicht jetzt korrekt in beiden Zeilen bedienbar angezeigt, statt zu einem defekten Klickverhalten zu führen.
 - Beim Übernehmen von Personen aus dem Anspruch-Schnellcheck in "Kunden anlegen" wird die Familienbeihilfe-Kennzeichnung jetzt korrekt der tatsächlich als Hauptperson übernommenen Person zugeordnet, statt bei einer leer gelassenen ersten Zeile stillschweigend verloren zu gehen.
 - Eine Person ohne erfasstes Geburtsdatum wird beim Check-in jetzt nicht mehr fälschlich als Kleinkind mitgezählt.

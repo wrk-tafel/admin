@@ -16,6 +16,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory3
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute2Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute3Entity
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute4Entity
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -66,7 +67,11 @@ class FoodCollectionsExporterTest {
             )
         }
 
-        val currentDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+        // Deliberately later than distribution1's plain `now()` rather than another bare `now()`:
+        // two distributions created within the same test method can otherwise land microseconds
+        // apart, making the expected row order flaky depending on real-clock precision rather than
+        // on the sorting this test actually verifies.
+        val currentDistribution = DistributionEntity(startedAt = LocalDateTime.now().plusHours(1), startedByUser = testUserEntity).apply {
             id = 123
             foodCollections = listOf(
                 testFoodCollectionRoute2Entity,
@@ -76,7 +81,7 @@ class FoodCollectionsExporterTest {
         currentDistribution.statistic = currentStatistic
 
         // the repository returns every distribution of the year including the one currently being
-        // closed - the exporter has to filter that one out itself, not rely on the repository mock
+        // exported - the exporter has to filter that one out itself, not rely on the repository mock
         every { distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year) } returns listOf(
             distribution1,
             distribution2,
@@ -129,6 +134,42 @@ class FoodCollectionsExporterTest {
                 ),
                 listOf("Datum", "Route", "Spender", "Category 1", "Category 2", "Category 3"),
             ),
+        )
+    }
+
+    /**
+     * A manual resend can target an older, already-ended distribution while a newer one exists
+     * (e.g. after it) - its rows must land in their chronological position, not always last, see
+     * issue #3599.
+     */
+    @Test
+    fun `current distribution's rows land in chronological order, not always last`() {
+        every { foodCategoryRepository.findAll() } returns listOf(testFoodCategory1)
+
+        // both single shop/single item routes, so each distribution contributes exactly one row -
+        // keeps the assertion below about row order rather than about food-collection fan-out
+        val laterDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 111
+            foodCollections = listOf(testFoodCollectionRoute2Entity)
+        }
+
+        val currentDistribution = DistributionEntity(startedAt = LocalDateTime.now().minusDays(1), startedByUser = testUserEntity).apply {
+            id = 123
+            foodCollections = listOf(testFoodCollectionRoute4Entity)
+        }
+        val currentStatistic = DistributionStatisticEntity(distribution = currentDistribution)
+        currentDistribution.statistic = currentStatistic
+
+        every { distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year) } returns listOf(
+            laterDistribution,
+            currentDistribution,
+        )
+
+        val rows = exporter.getRows(currentStatistic)
+
+        assertThat(rows.drop(2).map { it[0] }).containsExactly(
+            currentDistribution.startedAt!!.format(DATE_FORMATTER),
+            laterDistribution.startedAt!!.format(DATE_FORMATTER),
         )
     }
 

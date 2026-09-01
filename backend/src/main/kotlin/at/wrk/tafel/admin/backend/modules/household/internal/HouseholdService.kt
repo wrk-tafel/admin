@@ -275,18 +275,24 @@ class HouseholdService(
     private fun saveWithMainPerson(entity: HouseholdEntity): HouseholdEntity {
         val mainPerson = entity.persons.firstOrNull { it.isMainPerson }
 
-        // The main person row already exists - a single save is enough.
-        if (mainPerson?.id != null) {
-            entity.mainPerson = mainPerson
+        // The stored main person is unchanged (same row still flagged main) - a single save is enough.
+        if (mainPerson?.id != null && mainPerson.id == entity.mainPerson?.id) {
             return householdRepository.saveAndFlush(entity)
         }
 
-        // Brand new main person: write the household without the pointer first, then its persons,
-        // and only afterwards point the household at its main person.
+        // Every other case - a brand-new household's first main person, an existing household
+        // gaining a freshly-added main person, or the main person flag swapped between two already
+        // stored persons - clears the flag/pointer in its own flush first and only then flips the
+        // real main person's flag to true. Flushing the new true row (an INSERT or an UPDATE) in the
+        // same batch as clearing the old one's flag leaves the order to Hibernate's flush plan, which
+        // can write the new row before the old one turns false and trip `uq_persons_household_main`
+        // (a partial unique index, so not DEFERRABLE) non-deterministically - see issue #3600.
+        mainPerson?.isMainPerson = false
         entity.mainPerson = null
         val savedEntity = householdRepository.saveAndFlush(entity)
 
-        savedEntity.mainPerson = savedEntity.persons.firstOrNull { it.isMainPerson }
+        mainPerson?.isMainPerson = true
+        savedEntity.mainPerson = mainPerson
         return householdRepository.saveAndFlush(savedEntity)
     }
 
