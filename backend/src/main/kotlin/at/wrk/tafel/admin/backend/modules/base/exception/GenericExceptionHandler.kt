@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.base.exception
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import jakarta.servlet.RequestDispatcher
+import org.apache.catalina.connector.ClientAbortException
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpHeaders
@@ -227,6 +228,27 @@ class GenericExceptionHandler(
             originalException ?: ex,
         )
 
+        return null
+    }
+
+    /**
+     * [ClientAbortException] is Tomcat's `IOException` for a client aborting a response mid-write -
+     * navigating away, closing a tab, or a flaky mobile connection during a static-asset download
+     * (e.g. a JS bundle served by `ResourceHttpRequestHandler`). It's the synchronous sibling of
+     * [AsyncRequestNotUsableException] above: the response is already unusable, so without this it
+     * falls through to [handleGenericException] and is logged as a full ERROR stack trace for a
+     * routine disconnect, and then a *second* failure follows when the generic handler's `ProblemDetail`
+     * body can't be written onto a response already committed to the resource's own `Content-Type`
+     * (see [handleHttpMessageNotWritable]).
+     *
+     * Logged at debug and returns no body for the same reason as [handleAsyncRequestNotUsableException]:
+     * attempting to render anything onto an already-unusable response would just fail again.
+     * [ClientAbortException] is Tomcat-specific, but matching on it directly is fine here - the
+     * application only ever runs on Tomcat.
+     */
+    @ExceptionHandler(ClientAbortException::class)
+    fun handleClientAbortException(exception: ClientAbortException, request: WebRequest): ResponseEntity<Any>? {
+        log.debug("Client aborted the connection mid-response", exception)
         return null
     }
 

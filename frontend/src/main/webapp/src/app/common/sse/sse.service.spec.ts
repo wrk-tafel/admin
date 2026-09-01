@@ -55,6 +55,7 @@ describe('SseService', () => {
   afterEach(() => {
     globalThis.EventSource = originalEventSource;
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   function setup() {
@@ -99,6 +100,85 @@ describe('SseService', () => {
 
     expect(FakeEventSource.instances).toHaveLength(2);
     expect(FakeEventSource.latest()).not.toBe(firstInstance);
+  });
+
+  // Routine SSE lifecycle (idle proxy timeout, screen off, a blip) must not be captured as a client
+  // error and reported to the backend - only a console.warn/error is captured, so the first drop of
+  // a streak has to log below that. See #3617.
+  it('logs the first reconnect of a streak below the captured console levels', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const service = setup();
+    service.listen('/sse/dashboard').subscribe();
+
+    const firstInstance = FakeEventSource.latest();
+    firstInstance.readyState = FakeEventSource.CLOSED;
+    firstInstance.onerror!({} as Event);
+
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it('escalates to a captured console.error once reconnecting keeps failing without a successful reopen', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const service = setup();
+    service.listen('/sse/dashboard').subscribe();
+
+    const firstInstance = FakeEventSource.latest();
+    firstInstance.readyState = FakeEventSource.CLOSED;
+    firstInstance.onerror!({} as Event);
+    vi.advanceTimersByTime(1000);
+
+    const secondInstance = FakeEventSource.latest();
+    secondInstance.readyState = FakeEventSource.CLOSED;
+    secondInstance.onerror!({} as Event);
+
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('resets the failure streak after a successful reopen, so the next drop logs below the captured levels again', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const service = setup();
+    service.listen('/sse/dashboard').subscribe();
+
+    const firstInstance = FakeEventSource.latest();
+    firstInstance.readyState = FakeEventSource.CLOSED;
+    firstInstance.onerror!({} as Event);
+    vi.advanceTimersByTime(1000);
+
+    FakeEventSource.latest().readyState = FakeEventSource.OPEN;
+    FakeEventSource.latest().onopen!();
+
+    logSpy.mockClear();
+    errorSpy.mockClear();
+
+    FakeEventSource.latest().readyState = FakeEventSource.CLOSED;
+    FakeEventSource.latest().onerror!({} as Event);
+
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  // A network-level failure never reaching CLOSED must escalate to a captured console.error only
+  // once the grace period proves the drop is persistent, not on every onerror the browser fires
+  // while retrying on its own.
+  it('logs a captured console.error only after the CONNECTING grace period elapses without recovering', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const service = setup();
+    service.listen('/sse/dashboard').subscribe();
+
+    const firstInstance = FakeEventSource.latest();
+    firstInstance.readyState = FakeEventSource.CONNECTING;
+    firstInstance.onerror!({} as Event);
+
+    vi.advanceTimersByTime(4999);
+    expect(errorSpy).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(errorSpy).toHaveBeenCalledTimes(1);
   });
 
   it('does not open a replacement EventSource on a transient error while the browser is still retrying (readyState CONNECTING)', () => {

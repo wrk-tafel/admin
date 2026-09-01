@@ -10,6 +10,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import jakarta.servlet.RequestDispatcher
+import org.apache.catalina.connector.ClientAbortException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -323,6 +324,15 @@ internal class GenericExceptionHandlerTest {
         val exception = AsyncRequestNotUsableException("response no longer usable")
 
         val response = exceptionHandler.handleAsyncRequestNotUsableException(exception, request)
+
+        assertThat(response).isNull()
+    }
+
+    @Test
+    fun `handles ClientAbortException without throwing and returns no body`() {
+        val exception = ClientAbortException(java.io.IOException("Broken pipe"))
+
+        val response = exceptionHandler.handleClientAbortException(exception, request)
 
         assertThat(response).isNull()
     }

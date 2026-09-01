@@ -139,6 +139,12 @@ class SseOutboxService(
 
         sseEmitter.onTimeout {
             cleanup()
+            // Without this, an idle timeout leaves the async request neither completed nor errored,
+            // so Spring MVC eventually raises AsyncRequestTimeoutException on it and answers with a
+            // 503 logged at WARN (see GenericExceptionHandler.handleExceptionInternal) - for what is
+            // a routine idle SSE stream ending, not a failure. Completing it here instead ends the
+            // response normally; the client's EventSource reconnects either way.
+            sseEmitter.complete()
         }
         sseEmitter.onCompletion {
             cleanup()
