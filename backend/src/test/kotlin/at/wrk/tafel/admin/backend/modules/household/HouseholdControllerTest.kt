@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.household
 
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
-import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.*
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorDetails
@@ -265,23 +264,18 @@ class HouseholdControllerTest {
         }
     }
 
+    /**
+     * A create request's own `id` (however it got there) is not honored - household numbers are
+     * always drawn from `household_id_sequence` (see `HouseholdConverter`) - so nothing on the create
+     * path checks it against existing households, unlike `updateHousehold`'s path-vs-body check below.
+     */
     @Test
-    fun `create household - given id and exists already`() {
-        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns true
-
-        val exception = assertThrows<ConflictException> { controller.createHousehold(false, testHouseholdRequest) }
-
-        assertThat(exception.body.detail).isEqualTo("Kunde Nr. 100 bereits vorhanden!")
-    }
-
-    @Test
-    fun `create household - missing id so the household should be created`() {
-        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns false
-
+    fun `create household - id carried by the request is ignored`() {
         val response = controller.createHousehold(false, testHouseholdRequest)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
         verify { householdService.createHousehold(testHouseholdRequest, false, false) }
+        verify(exactly = 0) { householdService.existsByHouseholdId(any()) }
     }
 
     @Test
@@ -294,8 +288,6 @@ class HouseholdControllerTest {
         )
         SecurityContextHolder.getContext().authentication = supervisorAuth
 
-        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns false
-
         controller.createHousehold(true, testHouseholdRequest)
 
         verify { householdService.createHousehold(testHouseholdRequest, true, true) }
@@ -303,8 +295,6 @@ class HouseholdControllerTest {
 
     @Test
     fun `create household - force defaults to false when omitted`() {
-        every { householdService.existsByHouseholdId(testHouseholdRequest.id!!) } returns false
-
         controller.createHousehold(household = testHouseholdRequest)
 
         verify { householdService.createHousehold(testHouseholdRequest, false, false) }

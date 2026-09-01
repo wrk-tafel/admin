@@ -566,6 +566,9 @@ class HouseholdServiceTest {
             id = 555
         }
         testHouseholdEntity.persons = mutableListOf(existingMainPerson)
+        // Reflects what a real load actually returns: the household's main-person pointer already
+        // points at its current main person - unchanged by this update.
+        testHouseholdEntity.mainPerson = existingMainPerson
         every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
         every { householdConverter.mapHouseholdToEntity(any(), any()) } returns testHouseholdEntity
         every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse

@@ -38,12 +38,15 @@ class HouseholdConverter(
     fun mapHouseholdToEntity(householdUpdate: HouseholdRequest, storedEntity: HouseholdEntity? = null): HouseholdEntity {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val userEntity = userRepository.findByUsername(user.username!!)
-        // A household's business number is immutable once assigned - the update path (storedEntity
-        // given) never touches it, however householdUpdate.id was supplied, so a request body can
-        // never renumber or hijack another household's number (see HouseholdController.updateHousehold,
-        // which also rejects a body id that disagrees with the path id outright).
+        // A household's business number is immutable once assigned and always drawn from
+        // household_id_sequence - a create request's own `id` is ignored (the same "no id to
+        // resolve against yet" treatment a create request's person ids already get below), never
+        // honored: a client-chosen number would sit outside the sequence and eventually collide with
+        // it once the sequence catches up (issue #3600). The update path (storedEntity given) never
+        // touches it either way - see HouseholdController.updateHousehold, which also rejects a body
+        // id that disagrees with the path id outright.
         val householdEntity = storedEntity ?: HouseholdEntity(
-            householdId = householdUpdate.id ?: householdRepository.getNextHouseholdSequenceValue(),
+            householdId = householdRepository.getNextHouseholdSequenceValue(),
             validUntil = householdUpdate.validUntil ?: LocalDate.now(),
         )
 
@@ -110,12 +113,29 @@ class HouseholdConverter(
         // households.main_person_id never points at a row scheduled for orphan removal.
         val storedMainPerson = householdEntity.persons.firstOrNull { it.isMainPerson }
         // A person id is only ever resolved against this household's own, already-loaded persons -
-        // never a global lookup - so a request can neither re-parent another household's person onto
-        // this one nor point two request entries at the same stored row. The frontend never sends the
-        // main person's own id (see customer-api.service.ts's mapCustomerToHousehold), so a
-        // main-person entry without one still falls back to the stored main person row; every other
-        // id is required to actually belong to this household.
+        // never a global lookup - so a request can never re-parent another household's person onto
+        // this one. The frontend never sends the main person's own id (see customer-api.service.ts's
+        // mapCustomerToHousehold), so a main-person entry without one still falls back to the stored
+        // main person row; every other id is required to actually belong to this household.
         val storedPersonsById = householdEntity.persons.filter { it.id != null }.associateBy { it.id }
+
+        // Two request entries pointing at the same stored row would otherwise resolve to the same
+        // PersonEntity and silently collapse into one - the second entry's fields overwriting the
+        // first's - leaving the household with one fewer person than the request sent. Checked here
+        // rather than relying on `mappedPersons.size` afterwards, since collapsing already lost the
+        // information needed to tell which id was duplicated.
+        if (storedEntity != null) {
+            val duplicatePersonId = householdUpdate.persons
+                .mapNotNull { it.id }
+                .groupingBy { it }
+                .eachCount()
+                .filterValues { it > 1 }
+                .keys
+                .firstOrNull()
+            if (duplicatePersonId != null) {
+                throw BusinessRuleException("Person (ID: $duplicatePersonId) wird mehrfach im Request referenziert!")
+            }
+        }
 
         val mappedPersons = householdUpdate.persons.map { person ->
             // A household being created has no stored persons to resolve against at all - any id in

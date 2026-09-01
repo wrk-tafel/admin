@@ -55,11 +55,17 @@ class CountryDistributionExporterTest {
                         LocalDateTime.now().format(DATE_FORMATTER)
                     } - Verteilung Nationalitäten",
                 ),
-                listOf("Nationalität", "Haushalte", "Prozent"),
-                listOf("Österreich", "2", "33,33"),
-                listOf("Deutschland", "2", "33,33"),
-                listOf("Frankreich", "1", "16,67"),
-                listOf("Schweiz", "1", "16,67"),
+                listOf("Nationalität", "Prozent", "Haushalte", "Personen"),
+                // Haushalte/Prozent count by household (its main person's country) - Österreich has
+                // 2 of the 4 households (testHousehold1, testHousehold3); Personen counts every
+                // household member instead, so Deutschland's 2 persons (testHousehold1's additional
+                // person + testHousehold4's main person) outnumber its single household, and Schweiz
+                // has a person (testHousehold4's additional person) without ever being a household's
+                // main person's country at all - see issue #3599.
+                listOf("Österreich", "50,00", "2", "2"),
+                listOf("Frankreich", "25,00", "1", "1"),
+                listOf("Deutschland", "25,00", "1", "2"),
+                listOf("Schweiz", "0,00", "0", "1"),
             ),
         )
     }
@@ -96,7 +102,7 @@ class CountryDistributionExporterTest {
 
         assertThat(rows.drop(2)).isEqualTo(
             listOf(
-                listOf(testCountry1.name, "1", "100,00"),
+                listOf(testCountry1.name, "100,00", "1", "1"),
             ),
         )
     }
@@ -130,7 +136,7 @@ class CountryDistributionExporterTest {
 
         assertThat(rows.drop(2)).isEqualTo(
             listOf(
-                listOf(testCountry1.name, "1", "100,00"),
+                listOf(testCountry1.name, "100,00", "1", "1"),
             ),
         )
     }
@@ -157,7 +163,7 @@ class CountryDistributionExporterTest {
                         LocalDateTime.now().format(DATE_FORMATTER)
                     } - Verteilung Nationalitäten",
                 ),
-                listOf("Nationalität", "Haushalte", "Prozent"),
+                listOf("Nationalität", "Prozent", "Haushalte", "Personen"),
             ),
         )
     }

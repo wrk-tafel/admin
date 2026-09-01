@@ -62,16 +62,21 @@ in the mailed export set without any other wiring change:
   *current* distribution only. Ages are taken as of `distribution.startedAt`, not as of the export run, so
   re-exporting an old distribution reproduces the buckets it had rather than shifting everyone forward.
 - **`CountryDistributionExporter`** (`TOeT_Verteilung_Nationalitaeten`) – Same idea, grouped by
-  `Person.country`, current distribution only.
+  `Person.country`, current distribution only. `Haushalte`/`Prozent` count and rank by household (its
+  main person's country); the separate `Personen` column counts every household member instead, same
+  `Haushalte`-vs-`Personen` split as `AgeDistributionExporter`.
 - **`HouseholdSizeDistributionExporter`** (`TOeT_Verteilung_Haushaltsgroesse`) – Distribution of household
   sizes, current distribution only. One row per size 1..10, plus an `11+` overflow row for anything larger -
   without it the percentages wouldn't add up to the household total whenever a larger household exists.
-- **`DailyReportsExporter`** (`TOeT_Tagesreports`) – The odd one out: pulls **every distribution of the
-  current calendar year** via `distributionRepository.getDistributionsForYear(...)` and emits one row per
-  past distribution plus a row for the current one, i.e. a running year-to-date table, not just a snapshot of
-  today. The distribution being closed is already in that repository result (its statistic is saved before
-  this mail is composed), so both exporters filter it out by id from the "previous" set before appending it
-  separately as the current row - otherwise it would appear twice. The year queried is
+- **`DailyReportsExporter`** (`TOeT_Tagesreports`) – The odd one out: pulls **every ended distribution of the
+  current calendar year** via `distributionRepository.getDistributionsForYear(...)` (which only ever returns
+  `endedAt is not null` rows, so a manual mail resend running while a new distribution is open never picks up
+  that still-open one) and emits one row per distribution, i.e. a running year-to-date table, not just a
+  snapshot of today. The distribution being exported is already in that repository result (its statistic is
+  saved before this mail is composed), so both exporters filter it out by id and merge it back in using the
+  `currentStatistic` passed into `getRows` rather than `distribution.statistic` - then sort the whole merged
+  set by `startedAt` together, since the distribution being exported is not necessarily the most recent one
+  of the year (a manual resend can target an older, already-ended distribution). The year queried is
   `currentStatistic.distribution.startedAt.year`, not the export run's calendar year, so re-sending a report
   for a December distribution in January still lists the right year's rows.
 - **`FoodCollectionsExporter`** (`TOeT_Spenden`) – Also year-to-date (same `getDistributionsForYear` pattern).
