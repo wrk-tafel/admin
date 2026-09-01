@@ -8,6 +8,8 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -75,6 +77,7 @@ class HouseholdService(
     private val auditLogRepository: AuditLogRepository,
     private val auditActorProvider: AuditActorProvider,
     private val clock: Clock,
+    private val advisoryLockService: AdvisoryLockService,
 ) {
 
     companion object {
@@ -810,9 +813,13 @@ class HouseholdService(
      * Records a payment against the household's pending Unkostenbeitrag. A `null` amount pays off
      * the full pending amount; overpayment (amount greater than what's pending) simply clamps the
      * result at zero instead of being rejected.
+     *
+     * Locked (PAY_COST_CONTRIBUTION) because this is a plain read-modify-write with no `@Version` -
+     * without it, two operators recording partial payments at the same moment would both read the
+     * same pending amount and one payment would be silently lost (issue #3602).
      */
     @Transactional
-    fun payCostContribution(householdId: Long, amount: BigDecimal?): HouseholdResponse {
+    fun payCostContribution(householdId: Long, amount: BigDecimal?): HouseholdResponse = advisoryLockService.withLock(AdvisoryLockKey.PAY_COST_CONTRIBUTION) {
         val entity = householdRepository.getReferenceByHouseholdId(householdId)
         entity.pendingCostContribution = if (amount != null) {
             (entity.pendingCostContribution - amount).coerceAtLeast(BigDecimal.ZERO)
@@ -822,7 +829,7 @@ class HouseholdService(
 
         val savedEntity = householdRepository.saveAndFlush(entity)
         log.info("Paid cost contribution for household {}, remaining pending amount: {}", householdId, savedEntity.pendingCostContribution)
-        return householdConverter.mapEntityToHousehold(savedEntity)
+        householdConverter.mapEntityToHousehold(savedEntity)
     }
 
     /**

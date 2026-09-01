@@ -120,7 +120,7 @@ internal class MailSenderServiceTest {
         val fromAddress = "from-address"
         every { properties.mail!!.from } returns fromAddress
         every { properties.mail!!.subjectPrefix } returns null
-        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns emptyList()
+        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns listOf(testMailRecipient_DR_TO1)
 
         val subject = "Änderung äöüß"
         val text = "Liebe Grüße äöüß €"
@@ -144,7 +144,7 @@ internal class MailSenderServiceTest {
         every { properties.mail!!.from } returns fromAddress
         every { properties.mail!!.subjectPrefix } returns null
 
-        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns emptyList()
+        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns listOf(testMailRecipient_DR_TO1)
 
         val subject = "subj"
         service.sendTextMail(MailType.DAILY_REPORT, subject, "txt")
@@ -332,6 +332,34 @@ internal class MailSenderServiceTest {
     }
 
     /**
+     * A mail type with nobody configured to receive it (no `mail_recipients` row, no
+     * `defaultRecipientsBcc`) would otherwise be composed and queued anyway, guaranteed to fail
+     * `mailSender.send` with "No recipient addresses" through the outbox's full retry cycle - see
+     * issue #3604.
+     */
+    @Test
+    fun `sendTextMail skipped when no recipients are configured at all`() {
+        every { properties.mail!!.from } returns "from-address"
+        every { properties.mail?.defaultRecipientsBcc } returns emptyList()
+        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns emptyList()
+
+        service.sendTextMail(MailType.DAILY_REPORT, "subject", "text")
+
+        verify(exactly = 0) { mailOutboxService.enqueue(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `sendTextMail sent when there are no mail_recipients but a default bcc is configured`() {
+        every { properties.mail!!.from } returns "from-address"
+        every { properties.mail?.defaultRecipientsBcc } returns listOf("archive@localhost")
+        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns emptyList()
+
+        service.sendTextMail(MailType.DAILY_REPORT, "subject", "text")
+
+        verify { mailOutboxService.enqueue(any(), any(), any(), any()) }
+    }
+
+    /**
      * The outbox queues each mail with a human label of what produced it - see
      * `MailOutboxService.enqueue`'s `mailType` parameter - so a mail given up on can be named without
      * quoting its subject (issue #3511). This is what the outbox itself has no way to derive.
@@ -339,7 +367,7 @@ internal class MailSenderServiceTest {
     @Test
     fun `sendTextMail and sendHtmlMail label the mail by its MailType, for a failed-delivery notification to name it by`() {
         every { properties.mail!!.from } returns "from-address"
-        every { mailRecipientRepository.findAllByMailType(any()) } returns emptyList()
+        every { mailRecipientRepository.findAllByMailType(any()) } returns listOf(testMailRecipient_DR_TO1)
         every { templateEngine.process(any<String>(), any<Context>()) } returns "rendered content"
 
         listOf(

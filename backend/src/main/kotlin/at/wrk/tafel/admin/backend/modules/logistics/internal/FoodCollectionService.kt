@@ -72,37 +72,45 @@ class FoodCollectionService(
 
     @Transactional
     fun saveRouteData(routeId: Long, data: FoodCollectionSaveRouteRequest) {
-        val distribution = distributionRepository.getCurrentDistribution()!!
+        // shares PATCH_FOOD_COLLECTION_ITEM with every other path that can create this route's
+        // food_collections row - without it, this find-or-create races saveKm's (or another
+        // concurrent saveRouteData's) on the same (distribution_id, route_id) unique constraint
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            val distribution = distributionRepository.getCurrentDistribution()!!
 
-        foodCollectionRepository.save(mapRouteData(distribution, routeId, data))
-        log.info(
-            "Saved food collection route data for route {} (distribution: {}, car: {}, driver: {}, coDriver: {})",
-            routeId,
-            distribution.id,
-            data.carId,
-            data.driverId,
-            data.coDriverId,
-        )
-        publishIfFoodCollectionCompleted(distribution.id!!)
+            foodCollectionRepository.save(mapRouteData(distribution, routeId, data))
+            log.info(
+                "Saved food collection route data for route {} (distribution: {}, car: {}, driver: {}, coDriver: {})",
+                routeId,
+                distribution.id,
+                data.carId,
+                data.driverId,
+                data.coDriverId,
+            )
+            publishIfFoodCollectionCompleted(distribution.id!!)
+        }
     }
 
     @Transactional
     fun saveKm(routeId: Long, data: FoodCollectionSaveKmRequest) {
-        val distribution = distributionRepository.getCurrentDistribution()!!
+        // see saveRouteData - same find-or-create race on the food_collections row
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            val distribution = distributionRepository.getCurrentDistribution()!!
 
-        val foodCollectionEntity = getOrCreateFoodCollectionEntity(distribution, routeId)
-        foodCollectionEntity.kmStart = data.kmStart
-        foodCollectionEntity.kmEnd = data.kmEnd
+            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distribution, routeId)
+            foodCollectionEntity.kmStart = data.kmStart
+            foodCollectionEntity.kmEnd = data.kmEnd
 
-        foodCollectionRepository.save(foodCollectionEntity)
-        log.info(
-            "Saved food collection km for route {} (distribution: {}, kmStart: {}, kmEnd: {})",
-            routeId,
-            distribution.id,
-            data.kmStart,
-            data.kmEnd,
-        )
-        publishIfFoodCollectionCompleted(distribution.id!!)
+            foodCollectionRepository.save(foodCollectionEntity)
+            log.info(
+                "Saved food collection km for route {} (distribution: {}, kmStart: {}, kmEnd: {})",
+                routeId,
+                distribution.id,
+                data.kmStart,
+                data.kmEnd,
+            )
+            publishIfFoodCollectionCompleted(distribution.id!!)
+        }
     }
 
     @Transactional

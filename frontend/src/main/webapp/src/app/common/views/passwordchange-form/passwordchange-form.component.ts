@@ -232,9 +232,12 @@ export class PasswordChangeFormComponent {
       ),
       catchError(
         (error: HttpErrorResponse) => {
-          const errorBody = error.error as ChangePasswordResponse;
-          this.errorMessage.set(errorBody.message);
-          this.errorMessageDetails.set(errorBody.details || []);
+          // On a network/gateway failure (status 0, or a 502 HTML page from a proxy) error.error is
+          // a ProgressEvent or plain string, not the expected ChangePasswordResponse - fall back to a
+          // generic message rather than rendering no feedback at all (issue #3603).
+          const errorBody = error.error as ChangePasswordResponse | null | undefined;
+          this.errorMessage.set(errorBody?.message ?? 'Passwort konnte nicht geändert werden!');
+          this.errorMessageDetails.set(errorBody?.details || []);
           this.successMessage.set(null);
           return throwError(() => false);
         }

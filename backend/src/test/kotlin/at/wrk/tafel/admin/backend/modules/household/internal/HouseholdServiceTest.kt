@@ -7,6 +7,8 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
@@ -113,6 +115,9 @@ class HouseholdServiceTest {
     @RelaxedMockK
     private lateinit var auditActorProvider: AuditActorProvider
 
+    @RelaxedMockK
+    private lateinit var advisoryLockService: AdvisoryLockService
+
     private val clock: Clock = Clock.fixed(Instant.parse("2026-08-27T10:00:00Z"), ZoneId.of("UTC"))
 
     @InjectMockKs
@@ -129,6 +134,10 @@ class HouseholdServiceTest {
 
         every { countryRepository.findById(testCountry1.id!!) } returns Optional.of(testCountry1)
         every { userRepository.findByUsername(testUserEntity.username!!) } returns testUserEntity
+
+        every { advisoryLockService.withLock(any(), any<() -> Any?>()) } answers {
+            secondArg<() -> Any?>().invoke()
+        }
     }
 
     @AfterEach
@@ -1624,6 +1633,26 @@ class HouseholdServiceTest {
 
         assertThat(result).isEqualTo(testHouseholdResponse)
         assertThat(testHouseholdEntity.pendingCostContribution).isEqualTo(BigDecimal.ZERO)
+    }
+
+    /**
+     * Regression guard (issue #3602): payCostContribution used to be a plain read-modify-write with
+     * no locking, so two concurrent partial payments could both read the same pending amount and one
+     * payment would be silently lost.
+     */
+    @Test
+    fun `pay cost contribution takes the PAY_COST_CONTRIBUTION advisory lock`() {
+        val householdId = 123L
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now()).apply { pendingCostContribution = BigDecimal("20.00") }
+        every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns mockk(relaxed = true)
+
+        service.payCostContribution(householdId, BigDecimal("4.00"))
+
+        verify(exactly = 1) {
+            advisoryLockService.withLock(AdvisoryLockKey.PAY_COST_CONTRIBUTION, any<() -> HouseholdResponse>())
+        }
     }
 
     @Test

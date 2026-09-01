@@ -93,6 +93,28 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.errorMessageDetails()).toEqual(errorResponse.details);
   });
 
+  /**
+   * A network/gateway failure (offline, or a 502 from a proxy) hands back a ProgressEvent or an HTML
+   * string as error.error, not a ChangePasswordResponse - errorMessage must still render something
+   * rather than silently staying unset (issue #3603).
+   */
+  it('changePassword falls back to a generic message on a network/gateway failure', () => {
+    component.passwordFormModel.set({
+      currentPassword: 'CURR',
+      newPassword: 'NEW',
+      newRepeatedPassword: 'NEW'
+    });
+
+    component.changePassword().subscribe({error: () => undefined});
+
+    const req = httpMock.expectOne('/users/change-password');
+    req.error(new ProgressEvent('error'), {status: 0, statusText: 'Unknown Error'});
+    httpMock.verify();
+
+    expect(component.errorMessage()).toBe('Passwort konnte nicht geändert werden!');
+    expect(component.errorMessageDetails()).toEqual([]);
+  });
+
   it('changePassword should set successMessage and clear errorMessages', () => {
     component.passwordFormModel.set({
       currentPassword: 'CURR',

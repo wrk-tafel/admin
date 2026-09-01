@@ -18,6 +18,14 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Auswahl einer Scanner-Datei beim Dokument-Hochladen zeigt jetzt einheitlich gestaltete Radio-Buttons, statt unstylisierter Browser-Radio-Buttons.
 - Die E-Mail-Adressfelder unter Einstellungen → E-Mail-Empfänger sind jetzt einheitlich wie die übrigen Eingabefelder der Anwendung gestaltet.
 - Die Ticketnummer-Zuweisung in der Kunden-Detailansicht ist jetzt Teil des Kopfbereichs (in derselben Zeile wie die Status-Chips), statt als eigener Bereich zwischen Kopfbereich und Tabs zu stehen.
+- Eine E-Mail-Art ganz ohne konfigurierte Empfänger (z. B. der Tagesreport vor der Einrichtung) wird jetzt beim Versand übersprungen, statt erfolglos mehrfach wiederholt zu werden und dabei eine irreführende Fehlermeldung an Administrator:innen auszulösen.
+- Das Entfernen einer gerade erst gespeicherten E-Mail-Adresse unter Einstellungen → E-Mail-Empfänger löscht jetzt zuverlässig die richtige Adresse, statt möglicherweise eine andere gleichzeitig gespeicherte zu entfernen.
+- Beim Anlegen eines Benutzerkontos werden nicht übereinstimmende Passwort-Eingaben jetzt wie beim Bearbeiten abgelehnt, statt das Konto stillschweigend mit dem falsch wiederholten Passwort anzulegen.
+- Ein Netzwerk- oder Serverfehler beim Ändern des Passworts zeigt jetzt eine Fehlermeldung an, statt ohne jede Rückmeldung wirkungslos zu bleiben.
+- Zwei gleichzeitig erfasste Teilzahlungen des Unkostenbeitrags für denselben Haushalt werden jetzt beide berücksichtigt, statt dass eine der beiden Zahlungen stillschweigend verloren geht.
+- Ein gleichzeitiges Löschen oder Deaktivieren der letzten beiden aktiven Administrator-Konten führt jetzt zuverlässig dazu, dass mindestens eines erhalten bleibt, statt dass am Ende kein Administrator-Konto mehr übrig ist.
+- Ein gleichzeitiges Speichern der Routendaten bzw. Kilometerstände in der Warenerfassung für dieselbe Route führt jetzt nicht mehr zu einem unerwarteten Fehler.
+- Ein Check-in oder eine Ticket-Aktion, die genau mit dem Schließen der Ausgabe zusammenfällt, führt jetzt zu einer verständlichen Meldung statt zu einem unerwarteten Fehler bzw. einem stillschweigend nicht berücksichtigten Unkostenbeitrag.
 
 ## [1.16.0] - 2026-08-31
 - Der Abschnitt "Länder" im Benutzerhandbuch zeigt jetzt auch einen Screenshot der Verwaltungsseite, statt nur eine reine Textbeschreibung.
