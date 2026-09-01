@@ -39,7 +39,14 @@
                         </fo:block>
                     </fo:table-cell>
                     <fo:table-cell>
-                        <fo:block-container border-left="0.5mm solid {$tafelAccent}" height="8cm">
+                        <!--
+                            min-height, not height: the surrounding idcard-document.xsl page-level
+                            container is what fixes the card at 8cm for the physical cut line: this
+                            one only has to reach that same height when its own (entirely static)
+                            content is shorter, never clip it when the content is fractionally
+                            taller - see #3622.
+                        -->
+                        <fo:block-container border-left="0.5mm solid {$tafelAccent}" min-height="8cm">
                             <xsl:call-template name="outside-front"/>
                         </fo:block-container>
                     </fo:table-cell>
@@ -105,10 +112,10 @@
                     Padding on the fo:table-cell (not on the fo:block-container it wraps - FOP
                     doesn't honor padding on a block-container nested in a table-cell, content
                     renders flush against it regardless) is what keeps text off the card edge / the
-                    accent divider. That padding sits outside the block-container's own 8cm
-                    (=cut-strip height), so the container's height is reduced by the same top+bottom
-                    padding to keep the row's total at 8cm - otherwise it overflows past the dashed
-                    cut line on the outside page.
+                    accent divider. That padding sits outside the block-container's own 7.4cm
+                    (=cut-strip height minus that padding), so the container's height is reduced by
+                    the same top+bottom padding to keep the row's total at 8cm - otherwise it
+                    overflows past the dashed cut line on the outside page.
                 -->
                 <fo:table-row>
                     <fo:table-cell padding-top="4mm" padding-bottom="2mm" padding-left="4mm" padding-right="3mm">

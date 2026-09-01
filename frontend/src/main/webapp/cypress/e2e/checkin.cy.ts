@@ -331,6 +331,26 @@ describe('CheckIn', () => {
     assertDashboardCustomerCount(0);
   });
 
+  it('a CHECKIN-only user can look up a customer and complete a check-in', () => {
+    // checkin1 holds only CHECKIN, no CUSTOMER - GET /api/households/{id} (which this screen's
+    // customer lookup calls) must accept that alone, not just CUSTOMER (#3623).
+    cy.login('checkin1', '12345');
+    cy.visit('/anmeldung/annahme');
+
+    searchCustomer(100);
+    cy.byTestId('customerDetailPanel').should('be.visible');
+
+    assignTicket(30);
+    assertFormReset();
+
+    cy.visit('/anmeldung/annahme');
+    searchCustomer(100);
+    cy.byTestId('ticketNumberInput').should('have.value', '30');
+
+    // restore the default session - afterEach's closeDistribution needs permissions checkin1 lacks
+    cy.loginDefault();
+  });
+
   it('undo the last check-in from the persistent "zuletzt angenommen" line', () => {
     searchCustomer(100);
     assignTicket(10);

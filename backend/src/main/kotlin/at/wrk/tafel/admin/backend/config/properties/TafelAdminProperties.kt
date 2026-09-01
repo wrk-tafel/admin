@@ -355,6 +355,20 @@ class TafelAdminAuditBreachDetectionProperties {
     var readThreshold: Int = 20
 
     /**
+     * [readThreshold]'s replacement for the trailing hour if a distribution is currently active
+     * (started, not yet closed) when the check runs - an operator working a check-in station reads
+     * one household per ticket, so [readThreshold]'s normal-office calibration fires on every single
+     * distribution day and trains administrators to ignore the notification precisely when it
+     * matters (issue #3624). Deliberately a second flat number rather than excluding check-in reads
+     * from the tally altogether: `audit_log` has no record of which screen triggered a given
+     * household `READ` (the check-in screen and the customer module call the same
+     * `GET /api/households/{id}`, see #3623), so there is nothing to weigh those reads down by short
+     * of tagging every audit entry with its originating screen. Set to 0 (or less) to switch the
+     * check off entirely while a distribution is active, same convention as [readThreshold].
+     */
+    var readThresholdDuringDistribution: Int = 100
+
+    /**
      * What one `READ` of a bulk household report (above-limit, overview, duplicates, merge preview -
      * `AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE` and friends) counts as against [readThreshold],
      * instead of the 1 every other entity type counts as. One such read pulls every matching household

@@ -391,9 +391,19 @@ off). Deliberately just a fixed
 threshold rather than anomaly detection: an application this size has no learned "normal" to compare
 against, and a detector nobody understands is a detector nobody trusts.
 
+The threshold switches to `tafeladmin.audit.breachDetection.readThresholdDuringDistribution` (default
+100) whenever a distribution is active (started, not yet closed) when the check runs: a check-in
+operator working a food handout reads one household per ticket, which routinely cleared the
+normal-office threshold of 20 on every single distribution day and would have trained administrators
+to ignore the notification precisely when it mattered (issue #3624). There is no per-read signal to
+weigh a check-in read down by instead - the check-in screen and the customer module read a household
+through the same endpoint - so this is a second flat number for the one predictable, legitimate
+spike, not a general anomaly allowance.
+
 What remains open: this covers one realistic case — a single account reading an unusual volume — not
-every way a breach could look, and whether a fixed threshold is the right long-term answer (versus,
-say, per-role baselines) is a judgement call rather than a settled one.
+every way a breach could look, and whether a fixed threshold (now two, one of them time-boxed to a
+distribution) is the right long-term answer (versus, say, per-role baselines) is a judgement call
+rather than a settled one.
 
 ### G12 A staff data-subject request can now be answered from the application
 
