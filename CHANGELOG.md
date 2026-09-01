@@ -5,6 +5,16 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Ein Haushalt, der in derselben Ausgabe sowohl "Neu" als auch "Verlängert" ist, wird in der Kundenübersicht jetzt korrekt in beiden Zeilen bedienbar angezeigt, statt zu einem defekten Klickverhalten zu führen.
+- Beim Übernehmen von Personen aus dem Anspruch-Schnellcheck in "Kunden anlegen" wird die Familienbeihilfe-Kennzeichnung jetzt korrekt der tatsächlich als Hauptperson übernommenen Person zugeordnet, statt bei einer leer gelassenen ersten Zeile stillschweigend verloren zu gehen.
+- Eine Person ohne erfasstes Geburtsdatum wird beim Check-in jetzt nicht mehr fälschlich als Kleinkind mitgezählt.
+- Ein schneller Wechsel zwischen zwei Kundendetailseiten zeigt jetzt zuverlässig die Ticketnummer des aktuell angezeigten Kunden an, statt möglicherweise die einer zuvor angezeigten Person.
+- Die Eingabe der Mitarbeiter:innen-Anzahl im Statistik-Eingabefeld des Dashboards wird bei einem ungültigen Wert (0 oder leer) jetzt nicht mehr gespeichert, statt trotz angezeigtem Fehler zu speichern.
+- In der mobilen Warenerfassung werden Eingaben bei schnellem Filialwechsel oder einem Routenwechsel während des Ladens jetzt nicht mehr fälschlich einer falschen Filiale zugeordnet.
+- Das Speichern einer reinen Retourware-Freitextzeile in der mobilen Warenerfassung entfernt jetzt korrekt die Markierung "Nicht gespeichert", statt weiterhin fälschlich vor ungespeicherten Änderungen zu warnen.
+- Das Abrutschen vom Plus/Minus-Button während des Gedrückthaltens in der Warenmengen-Eingabe verschluckt jetzt nicht mehr den nächsten Tastendruck.
+
+## [1.16.1] - 2026-08-31
 - Der Abschnitt "Länder" im Benutzerhandbuch zeigt jetzt auch einen Screenshot der Verwaltungsseite, statt nur eine reine Textbeschreibung.
 - Zwei gleichzeitige Speicherungen der Warenmenge in der Warenerfassung für unterschiedliche Filialen derselben Route (z. B. Handy und Desktop) überschreiben sich jetzt nicht mehr gegenseitig, statt bereits erfasste Mengen stillschweigend zu verlieren.
 - Ein Wechsel der Route in der Warenerfassung fragt bei noch nicht gespeicherten Eingaben jetzt vorher nach Bestätigung, statt diese stillschweigend zu verwerfen.

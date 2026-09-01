@@ -1,7 +1,7 @@
 import {Component, computed, effect, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
-import {toSignal} from '@angular/core/rxjs-interop';
+import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
 import {BreakpointObserver} from '@angular/cdk/layout';
-import {map} from 'rxjs';
+import {catchError, map, of, Subject, switchMap} from 'rxjs';
 import {Router} from '@angular/router';
 import dayjs from 'dayjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -219,6 +219,12 @@ export class CustomerDetailComponent {
 
   uploadDocumentPanel = viewChild(UploadDocumentPanelComponent);
 
+  // A slower earlier ticket lookup could otherwise land after a faster later one (e.g. quickly
+  // navigating between two customer details reusing this component) and show the wrong ticket
+  // number - routing every fetch through this switchMap cancels a still-pending older lookup the
+  // moment a newer one starts.
+  private readonly ticketFetchTrigger = new Subject<number | null>();
+
   constructor() {
     // Process notes when the notes response changes (from input or local updates)
     effect(() => {
@@ -237,17 +243,20 @@ export class CustomerDetailComponent {
     });
 
     // Fetch current ticket when distribution is active and customer data is loaded
+    this.ticketFetchTrigger.pipe(
+      switchMap(customerId => customerId
+        ? this.distributionTicketApiService.getCurrentTicketForCustomer(customerId).pipe(
+          map(response => response.ticketNumber),
+          catchError(() => of(null))
+        )
+        : of(null)),
+      takeUntilDestroyed()
+    ).subscribe(ticketNumber => this.ticketNumber.set(ticketNumber));
+
     effect(() => {
       const isActive = this.isDistributionActive();
       const customer = this.customerData();
-      if (isActive && customer?.id) {
-        this.distributionTicketApiService.getCurrentTicketForCustomer(customer.id).subscribe({
-          next: (response) => this.ticketNumber.set(response.ticketNumber),
-          error: () => this.ticketNumber.set(null)
-        });
-      } else {
-        this.ticketNumber.set(null);
-      }
+      this.ticketFetchTrigger.next(isActive && customer?.id ? customer.id : null);
     });
   }
 

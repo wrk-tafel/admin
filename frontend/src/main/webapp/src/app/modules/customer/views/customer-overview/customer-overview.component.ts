@@ -183,8 +183,8 @@ export class CustomerOverviewComponent {
     return this.isCustomerValid(customer) ? 'Gültig' : 'Ungültig';
   }
 
-  trackByRow(index: number, row: OverviewRow): number | undefined {
-    return row.item.customer.id;
+  trackByRow(index: number, row: OverviewRow): string {
+    return `${row.type}-${row.item.customer.id}`;
   }
 
   trackByDistributionId(index: number, item: DistributionItem): number {

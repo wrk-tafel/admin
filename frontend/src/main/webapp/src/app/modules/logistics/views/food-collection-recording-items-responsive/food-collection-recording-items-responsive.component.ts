@@ -1,5 +1,5 @@
 import {Component, computed, DestroyRef, effect, inject, input, model, signal, untracked} from '@angular/core';
-import {toSignal} from '@angular/core/rxjs-interop';
+import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
 
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FoodReturnCategory} from '../../../../api/food-return-categories-api.service';
@@ -12,7 +12,6 @@ import {MatIcon} from '@angular/material/icon';
 import {
   FoodCollectionCategoryWithAmount,
   FoodCollectionItem,
-  FoodCollectionItemsPerShopResponse,
   FoodCollectionReturnItem,
   FoodCollectionReturnItemAmount,
   FoodCollectionsApiService,
@@ -32,7 +31,7 @@ import {
   duplicateDescriptionValidator,
   RETURN_ITEM_DESCRIPTION_MAX_LENGTH
 } from '../../services/food-collection-return-items';
-import {Observable} from 'rxjs';
+import {catchError, map, Observable, of, Subject, switchMap} from 'rxjs';
 import {TabStatus} from '../../services/food-collection-tab-status';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
@@ -85,6 +84,11 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   // Recompute trigger for returnItems.dirty below - a plain FormArray property, not a signal.
   private readonly returnItemsChangeTick = toSignal(this.returnItems.valueChanges, {initialValue: null});
 
+  // markReturnItemsSaved() below calls markAsPristine(), which never emits valueChanges, and can
+  // also leave returnCategoryValuesDirty unchanged (already false when only a free-text row was
+  // edited) - bumped there instead so tabStatus always re-evaluates after a save.
+  private readonly savedTick = signal(0);
+
   // The predefined return-category counters are signals, not a reactive form, so unlike returnItems
   // they need their own explicit dirty flag: set on every user edit, cleared once a shop's data has
   // been (re)loaded or successfully sent - see onReturnCategoryValueChange/applyReturnItems/markReturnItemsSaved.
@@ -95,7 +99,35 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   /** True for a few seconds right after the offline queue has flushed, for a "Synchronisiert ✓" hint. */
   readonly justSynced = signal(false);
 
+  // A slower earlier getItemsPerShop response could otherwise land after a faster later one (rapid
+  // "Weiter" taps) or arrive once a route switch is already in progress and rebind edits to a wrong
+  // (route, shop) pair (see #3527/#3530) - routing every load through this switchMap cancels a
+  // still-pending older load the moment a newer one starts.
+  private readonly shopSelectionTrigger = new Subject<{shop: Shop; routeId: number; shopId: number}>();
+
   constructor() {
+    this.shopSelectionTrigger.pipe(
+      switchMap(({shop, routeId, shopId}) => this.foodCollectionsApiService.getItemsPerShop(routeId, shopId).pipe(
+        // `data` can legitimately be null/empty (e.g. a 204 for a shop with nothing recorded yet)
+        // without the request having failed - keep that apart from an actual HTTP error below.
+        map(data => ({shop, routeId, failed: false as const, data})),
+        catchError(() => of({shop, routeId, failed: true as const, data: null}))
+      )),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(({shop, routeId, failed, data}) => {
+      // the route may have been switched away from while this request was in flight - the result
+      // then belongs to a shop selection that is no longer shown, so it must not be applied
+      if (this.selectedRouteData()?.route.id !== routeId) {
+        return;
+      }
+
+      if (failed) {
+        this.applyFallbackShopValues(shop, 'Laden fehlgeschlagen, zuletzt bekannter Stand wird angezeigt.');
+      } else {
+        this.applyShopValues(shop, data?.items ?? [], data?.returnItems ?? []);
+      }
+    });
+
     // Only a transition from "something was pending" to "nothing is" counts as a sync just having
     // happened - a route that has always had nothing queued must not show this on load.
     effect(() => {
@@ -312,15 +344,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       return;
     }
 
-    const observer = {
-      next: (data: FoodCollectionItemsPerShopResponse) => {
-        this.applyShopValues(shop, data?.items ?? [], data?.returnItems ?? []);
-      },
-      error: () => {
-        this.applyFallbackShopValues(shop, 'Laden fehlgeschlagen, zuletzt bekannter Stand wird angezeigt.');
-      }
-    };
-    this.foodCollectionsApiService.getItemsPerShop(routeId, shopId).subscribe(observer);
+    this.shopSelectionTrigger.next({shop, routeId, shopId});
   }
 
   private sendReturnItemsOfCurrentShop() {
@@ -466,11 +490,13 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   markReturnItemsSaved() {
     this.returnCategoryValuesDirty.set(false);
     this.returnItems.markAsPristine();
+    this.savedTick.update(tick => tick + 1);
   }
 
   /** Badge shown on the "Waren" tab label - see {@link TabStatus}. */
   readonly tabStatus = computed<TabStatus | undefined>(() => {
     this.returnItemsChangeTick();
+    this.savedTick();
 
     const pending = this.pendingSyncCount();
     const hasCategoryData = Object.values(this.categoryValues()).some(value => value > 0);

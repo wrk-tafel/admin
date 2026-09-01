@@ -52,6 +52,31 @@ describe('Dashboard', () => {
     cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
   });
 
+  it('does not save statistics when employee count is invalid', () => {
+    cy.intercept('POST', '/api/distributions/statistics').as('saveStatistics');
+
+    cy.byTestId('distribution-start-button').click();
+    cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
+
+    // empty employee count
+    cy.byTestId('distribution-statistics-save-button').click();
+    cy.byTestId('distribution-statistics-employee-count-input').should('contain.text', 'Pflichtfeld');
+    cy.get('@saveStatistics.all').should('have.length', 0);
+
+    // employee count of 0
+    cy.byTestId('distribution-statistics-employee-count-input').find('input').type('0');
+    cy.byTestId('distribution-statistics-save-button').click();
+    cy.byTestId('distribution-statistics-employee-count-input').should('contain.text', 'Muss mindestens 1 sein');
+    cy.get('@saveStatistics.all').should('have.length', 0);
+
+    // a valid value saves normally
+    cy.byTestId('distribution-statistics-employee-count-input').find('input').clear().type('5');
+    cy.byTestId('distribution-statistics-save-button').click();
+    cy.wait('@saveStatistics');
+
+    cy.closeDistribution();
+  });
+
   it('download customer list', () => {
     cy.byTestId('download-customerlist-button').should('not.exist');
     cy.createDistribution();

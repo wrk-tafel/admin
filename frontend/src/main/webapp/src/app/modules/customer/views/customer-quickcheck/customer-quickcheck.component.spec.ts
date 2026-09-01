@@ -150,6 +150,29 @@ describe('CustomerQuickCheckComponent', () => {
     });
   });
 
+  it('forces receivesFamilyAllowance false on whichever person ends up first when an earlier row is left empty', () => {
+    apiService.quickCheck.mockReturnValue(of(testValidationResult));
+
+    const fixture = TestBed.createComponent(CustomerQuickCheckComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const firstChildBirthDate = dayjs().subtract(10, 'years').startOf('day').toDate();
+    const secondChildBirthDate = dayjs().subtract(5, 'years').startOf('day').toDate();
+
+    // row 0 (the would-be main person) is left empty; rows 1+2 default to receivesFamilyAllowance
+    // true, as children handed over to "Kunden anlegen" typically would
+    component.personField(1).birthDate().value.set(firstChildBirthDate);
+    component.personField(2).birthDate().value.set(secondChildBirthDate);
+
+    component.check();
+
+    expect(apiService.quickCheck).toHaveBeenCalledWith([
+      {birthDate: firstChildBirthDate, income: undefined, receivesFamilyAllowance: false},
+      {birthDate: secondChildBirthDate, income: undefined, receivesFamilyAllowance: true}
+    ]);
+  });
+
   it('hands only persons with a birthdate over to the "Kunden anlegen" link state', () => {
     const fixture = TestBed.createComponent(CustomerQuickCheckComponent);
     const component = fixture.componentInstance;

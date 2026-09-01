@@ -3,7 +3,7 @@ import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
 import dayjs from 'dayjs';
-import {of, throwError} from 'rxjs';
+import {of, Subject, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender, CustomerUpdateResponse} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
@@ -929,6 +929,36 @@ describe('CustomerDetailComponent', () => {
 
     expect(ticketInput).toBeTruthy();
     expect(assignButton).toBeTruthy();
+  });
+
+  it('a slower earlier ticket lookup does not overwrite a faster later one', async () => {
+    currentDistributionSignal.set({id: 1, startedAt: new Date()});
+    const firstLookup = new Subject<{ticketNumber: number | null}>();
+    const secondLookup = new Subject<{ticketNumber: number | null}>();
+    distributionTicketApiService.getCurrentTicketForCustomer
+      .mockReturnValueOnce(firstLookup)
+      .mockReturnValueOnce(secondLookup);
+
+    const otherCustomer: CustomerData = {...mockCustomer, id: 999};
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // navigating to another customer's detail (same reused component) starts a second lookup
+    // before the first one has resolved
+    fixture.componentRef.setInput('customerData', otherCustomer);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // the newer lookup resolves first, the older/slower one lands after - it must not win
+    secondLookup.next({ticketNumber: 99});
+    firstLookup.next({ticketNumber: 1});
+
+    expect(fixture.componentInstance.ticketNumber()).toBe(99);
   });
 
   it('ticket number displayed when already assigned', async () => {

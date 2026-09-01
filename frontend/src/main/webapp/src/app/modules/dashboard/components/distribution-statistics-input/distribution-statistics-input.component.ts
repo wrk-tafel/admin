@@ -110,6 +110,9 @@ export class DistributionStatisticsInputComponent {
 
   save() {
     this.form.markAllAsTouched();
+    if (this.form.invalid) {
+      return;
+    }
 
     const observer = {
       next: () => {
