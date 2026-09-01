@@ -34,6 +34,18 @@ class FlywayImportTestdataCallback(
         private const val PLACEHOLDER_STYLESHEET_PATH = "/pdf-templates/testdata/placeholder-document.xsl"
     }
 
+    /**
+     * `context` is deliberately nullable here even though [Callback.supports] doesn't declare it
+     * so: Flyway's own deprecation check for the `CREATE_SCHEMA` event - the one this override
+     * exists to opt out of - calls `supports(CREATE_SCHEMA, null)` with a literal `null`
+     * ([FlywayExecutor.prepareCallbacks]), and Kotlin inserts a null-check on every non-nullable
+     * parameter regardless of whether the body uses it, so a non-nullable `Context` here throws an
+     * NPE straight out of Flyway's own callback preparation - confirmed by
+     * [at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionSnapshotFieldsIT] and every
+     * other integration test failing at context startup.
+     */
+    override fun supports(event: Event, context: Context?): Boolean = event == Event.AFTER_MIGRATE
+
     override fun handle(event: Event, context: Context) {
         if (testdataEnabled && event == Event.AFTER_MIGRATE) {
             LOGGER.info("Importing testdata ...")
