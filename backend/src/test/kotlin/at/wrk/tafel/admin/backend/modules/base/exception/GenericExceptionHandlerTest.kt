@@ -358,6 +358,20 @@ internal class GenericExceptionHandlerTest {
     }
 
     @Test
+    fun `handles HttpMessageNotWritableException for a non-servlet WebRequest with a placeholder method`() {
+        val plainWebRequest = mockk<WebRequest>(relaxed = true)
+        every { plainWebRequest.getDescription(false) } returns "uri=/dummy-path"
+        val exception = HttpMessageNotWritableException("could not write response")
+
+        val response = exceptionHandler.handleHttpMessageNotWritable(exception, HttpHeaders.EMPTY, HttpStatus.INTERNAL_SERVER_ERROR, plainWebRequest)
+
+        assertThat(response).isNull()
+        val logEvent = logAppender.list.single()
+        assertThat(logEvent.formattedMessage).contains("?").contains("uri=/dummy-path")
+        assertThat(logEvent.throwableProxy.message).isEqualTo(exception.message)
+    }
+
+    @Test
     fun `handles exception in SSE properly`() {
         every { request.getHeader("Accept") } returns "text/event-stream"
         val exception = IllegalArgumentException("test-msg")
