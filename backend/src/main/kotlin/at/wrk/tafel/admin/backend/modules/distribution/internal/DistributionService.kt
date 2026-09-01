@@ -531,24 +531,31 @@ class DistributionService(
             currentStatistic.employeeCount = employeeCount
 
             val selectedShelters = shelterRepository.findAllById(selectedShelterIds).toList()
+            // Mutate the existing collection in place - reassigning `shelters` to a brand-new list
+            // detaches Hibernate's live PersistentBag from the field, and orphanRemoval = true then
+            // fails the flush with "collection ... was no longer referenced", surfacing to the
+            // caller as an UnexpectedRollbackException once this whole method runs inside one
+            // transaction/session (issue #3602's @Transactional addition exposed this).
             currentStatistic.shelters.clear()
-            currentStatistic.shelters = selectedShelters.map {
-                DistributionStatisticShelterEntity(
-                    statistic = currentStatistic,
-                    name = it.name,
-                    addressStreet = it.addressStreet,
-                    addressHouseNumber = it.addressHouseNumber,
-                    addressPostalCode = it.addressPostalCode,
-                    addressCity = it.addressCity,
-                    personsCount = it.personsCount,
-                    sortOrder = it.sortOrder,
-                ).apply {
-                    createdAt = LocalDateTime.now()
-                    updatedAt = LocalDateTime.now()
-                    addressStairway = it.addressStairway
-                    addressDoor = it.addressDoor
-                }
-            }.toMutableList()
+            currentStatistic.shelters.addAll(
+                selectedShelters.map {
+                    DistributionStatisticShelterEntity(
+                        statistic = currentStatistic,
+                        name = it.name,
+                        addressStreet = it.addressStreet,
+                        addressHouseNumber = it.addressHouseNumber,
+                        addressPostalCode = it.addressPostalCode,
+                        addressCity = it.addressCity,
+                        personsCount = it.personsCount,
+                        sortOrder = it.sortOrder,
+                    ).apply {
+                        createdAt = LocalDateTime.now()
+                        updatedAt = LocalDateTime.now()
+                        addressStairway = it.addressStairway
+                        addressDoor = it.addressDoor
+                    }
+                },
+            )
 
             distributionRepository.save(currentDistribution)
         }
