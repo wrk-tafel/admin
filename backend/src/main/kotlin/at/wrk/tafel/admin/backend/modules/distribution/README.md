@@ -162,14 +162,16 @@ It's registered globally in `config/WebMvcConfig.kt` for *every* controller in t
 outside this module, e.g. `logistics/FoodCollectionsController`), not just `distribution`'s own
 controllers.
 
-**Gotcha:** this check only runs for requests dispatched through Spring MVC. Several `DistributionService`
-methods (`getCurrentTicketNumber`, `reopenAndGetPreviousTicket`, `closeCurrentTicketAndGetNext`,
-`assignHouseholdToDistribution`, `generateHouseholdListPdf`, `updateDistributionStatisticData`,
-`updateDistributionNoteData`) call `getCurrentDistribution()!!` with a force-unwrap, assuming a
-distribution is active. That assumption is only safe because every controller entry point into these
-methods is annotated with `@TafelActiveDistributionRequired`. If you add a new caller that bypasses the
-controller layer (another service, a `@Scheduled` job, a test calling the service directly without an
-active distribution), you'll get an `NPE`, not the friendly `BusinessRuleException`.
+**Gotcha:** this check only runs for requests dispatched through Spring MVC, so several
+`DistributionService` methods (`getCurrentTicketNumber`, `reopenAndGetPreviousTicket`,
+`closeCurrentTicketAndGetNext`, `deleteCurrentTicket`, `assignHouseholdToDistribution`,
+`generateHouseholdListPdf`, `updateDistributionStatisticData`, `updateDistributionNoteData`) can still
+be reached with no active distribution - by a caller that bypasses the controller layer (another
+service, a `@Scheduled` job, a test calling the service directly), or by the interceptor's check
+passing just before a concurrent `closeDistribution()` commits. Each of these methods reads
+`getCurrentDistribution() ?: throw ConflictException("Ausgabe bereits geschlossen!")` rather than
+force-unwrapping with `!!`, so that window surfaces as the same 409 every other "already closed" path
+returns, not an unguarded `NPE` (issue #3602).
 
 ## Advisory locks: `CREATE_DISTRIBUTION` / `CLOSE_DISTRIBUTION` / `ASSIGN_HOUSEHOLD_TO_DISTRIBUTION`
 
@@ -182,6 +184,15 @@ doesn't wait; it fails immediately with a user-facing message ("Eine neue Ausgab
 gestartet...", "Die Ausgabe wird gerade geschlossen...") telling the user to reload. This is a
 deliberate UX choice: two admins double-clicking "start"/"close" at the same time should get a clear
 error, not a hung request.
+
+`assignHouseholdToDistribution()` additionally takes `CLOSE_DISTRIBUTION` itself - the **blocking**
+variant (`acquireLock`), before its own `ASSIGN_HOUSEHOLD_TO_DISTRIBUTION` lock. Without it, a
+check-in could commit its `distributions_households` insert *after* `DistributionEndedEventListener`
+already read the closing distribution's households, silently excluding that household from the day's
+statistics and cost-contribution tracking (issue #3602). A check-in racing an in-flight close simply
+waits for the close's transaction (and its synchronous event-listener chain) to finish, rather than
+getting the try-lock's immediate failure - a check-in has no "reload and retry" affordance the way the
+start/close buttons do.
 
 `closeDistribution()` also has a subtlety around transactions: inside the lock, it commits `endedAt` in
 its own `REQUIRES_NEW` transaction *before* publishing `DistributionEndedEvent` (which triggers the

@@ -230,17 +230,20 @@ This is the most involved sub-area — it records what a route's team actually p
   `advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS)`. Hibernate
   rewrites the whole element collection on any change, so a concurrent per-shop save for another
   shop of the same route would otherwise drop the rows this one just wrote.
-- **Race condition guard:** `saveItems()`, `saveItemsPerShop()` and `patchItem()` all wrap their
+- **Race condition guard:** `saveRouteData()`, `saveKm()`, `saveItems()`, `saveItemsPerShop()` and
+  `patchItem()` all wrap their find-or-create of the `(distribution, route)` row and/or their
   read-modify-write (or, for `saveItems`, outright replace) of `items` in the same
   `advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM)` (lock id `4000L` in
   `AdvisoryLockKey`). Without a shared lock, a mobile per-shop save for one shop, a mobile save for
   another shop of the same route, and the desktop autosave's `PATCH /items` would each read the
   same `items` snapshot and the later commit would silently drop the earlier one's rows;
   `patchItem`'s own original hazard (two concurrent patches for the same category/shop both
-  inserting and violating the `food_collections_items_pk` unique constraint) is the same
-  read-modify-write race with a duplicate key instead of lost data as the visible symptom. If you
-  add another read-modify-write path against `items`, it needs this lock too.
-  See `database/common/lock/README.md` for the advisory-lock mechanism itself.
+  inserting and violating the `food_collections_items_pk` unique constraint), and `saveRouteData`/
+  `saveKm`'s (two concurrent saves for a route with no row yet both inserting and violating
+  `food_collections_uk`), are the same underlying race with a duplicate key instead of lost data as
+  the visible symptom (issue #3602). If you add another read-modify-write or find-or-create path
+  against a food collection's row, it needs this lock too. See `database/common/lock/README.md` for
+  the advisory-lock mechanism itself.
 - **Shop-belongs-to-route guard:** every path that writes an item/return item under a caller-given
   `shopId` validates it against `route.stops` via `validateShopIsRouteStop` before saving —
   including the route-level bulk endpoints (`saveItems`, `saveReturnItems`), which validate every
