@@ -5,6 +5,13 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Felder "Anzahl der Mitarbeiter" und "Personen in Notschlafstellen" im Statistik-Bereich sowie "Notizen zur Ausgabe" im Anmerkungen-Bereich der Übersicht behalten jetzt ihre Beschriftung, sobald ein Wert eingegeben ist, statt sie wie einen reinen Platzhalter verschwinden zu lassen.
+- Die Kontrollkästchen im Dialog "Notschlafstellen auswählen" (Übersicht) sind jetzt einheitlich wie im Rest der Anwendung gestaltet, statt als unstylisierte Browser-Kontrollkästchen angezeigt zu werden.
+- Die Auswahl einer Scanner-Datei beim Dokument-Hochladen zeigt jetzt einheitlich gestaltete Radio-Buttons, statt unstylisierter Browser-Radio-Buttons.
+- Die E-Mail-Adressfelder unter Einstellungen → E-Mail-Empfänger sind jetzt einheitlich wie die übrigen Eingabefelder der Anwendung gestaltet.
+- Die Ticketnummer-Zuweisung in der Kunden-Detailansicht ist jetzt Teil des Kopfbereichs (in derselben Zeile wie die Status-Chips), statt als eigener Bereich zwischen Kopfbereich und Tabs zu stehen.
+
+## [1.16.0] - 2026-08-31
 - Der Abschnitt "Länder" im Benutzerhandbuch zeigt jetzt auch einen Screenshot der Verwaltungsseite, statt nur eine reine Textbeschreibung.
 - Zwei gleichzeitige Speicherungen der Warenmenge in der Warenerfassung für unterschiedliche Filialen derselben Route (z. B. Handy und Desktop) überschreiben sich jetzt nicht mehr gegenseitig, statt bereits erfasste Mengen stillschweigend zu verlieren.
 - Ein Wechsel der Route in der Warenerfassung fragt bei noch nicht gespeicherten Eingaben jetzt vorher nach Bestätigung, statt diese stillschweigend zu verwerfen.

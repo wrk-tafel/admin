@@ -21,9 +21,9 @@ describe('Dashboard', () => {
 
     // select shelters to calculate person count
     cy.byTestId('dashboard-select-shelters-button').click();
-    cy.byTestId('selectable-shelter-row-0').click();
-    cy.byTestId('selectable-shelter-row-1').click();
-    cy.byTestId('selectable-shelter-row-2').click();
+    cy.byTestId('selectable-shelter-row-0').find('input[type="checkbox"]').click({force: true});
+    cy.byTestId('selectable-shelter-row-1').find('input[type="checkbox"]').click({force: true});
+    cy.byTestId('selectable-shelter-row-2').find('input[type="checkbox"]').click({force: true});
     cy.byTestId('selectshelters-save-button').click();
     cy.byTestId('distribution-statistics-persons-in-shelter-input')
       .find('input')
@@ -50,6 +50,29 @@ describe('Dashboard', () => {
     cy.byTestId('distribution-close-dialog-ok-button').click();
     cy.byTestId('distribution-close-validation-dialog-ok-button').click();
     cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
+  });
+
+  it('statistic and notes fields keep their label visible once a value is entered', () => {
+    cy.createDistribution();
+
+    cy.byTestId('distribution-statistics-employee-count-input')
+      .find('.mat-mdc-floating-label')
+      .should('be.visible')
+      .and('contain.text', 'Anzahl der Mitarbeiter');
+    cy.byTestId('distribution-statistics-employee-count-input').type('100');
+    cy.byTestId('distribution-statistics-employee-count-input')
+      .find('.mat-mdc-floating-label')
+      .should('be.visible')
+      .and('contain.text', 'Anzahl der Mitarbeiter');
+
+    cy.byTestId('distribution-notes-textarea').type('Test note');
+    cy.byTestId('distribution-notes-textarea')
+      .parents('mat-form-field')
+      .find('.mat-mdc-floating-label')
+      .should('be.visible')
+      .and('contain.text', 'Notizen zur Ausgabe');
+
+    cy.closeDistribution();
   });
 
   it('download customer list', () => {

@@ -1,0 +1,12 @@
+@use '@angular/material' as mat;
+
+// The app-wide `form-field-density(-4)` (angular-material-theme.scss) hides a `fill` field's
+// floating label outright once its computed height drops below 52px - Material's own tokens, not
+// a bug - which is exactly the "Anzahl der Mitarbeiter"/"Personen in Notschlafstellen" bug this
+// works around (see the template). `form-field-density` only ever emits CSS custom properties, so
+// scoping the mixin under `:host` overrides them for this card's fields alone, without touching
+// the compact density every other field in the app still uses. -1 is the least dense step (52px)
+// that stays under that 52px cliff.
+:host {
+  @include mat.form-field-density(-1);
+}

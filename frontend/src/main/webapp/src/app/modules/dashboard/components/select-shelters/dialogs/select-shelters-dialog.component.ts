@@ -4,6 +4,7 @@ import {FormArray, FormBuilder, FormControl, ReactiveFormsModule} from '@angular
 import {ShelterItem} from '../../../../../api/shelter-api.service';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {MatButton} from '@angular/material/button';
+import {MatCheckbox} from '@angular/material/checkbox';
 
 export interface SelectSheltersDialogData {
   sheltersList: ShelterItem[];
@@ -16,7 +17,8 @@ export interface SelectSheltersDialogData {
   imports: [
     TafelDialogComponent,
     ReactiveFormsModule,
-    MatButton
+    MatButton,
+    MatCheckbox
   ]
 })
 export class SelectSheltersDialogComponent {
