@@ -62,6 +62,7 @@ class DistributionService(
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val logger = LoggerFactory.getLogger(DistributionService::class.java)
+        private const val ALREADY_CLOSED_MESSAGE = "Ausgabe bereits geschlossen!"
     }
 
     fun getDistributions(): List<DistributionEntity> = distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc()
@@ -167,7 +168,7 @@ class DistributionService(
     ) {
         advisoryLockService.acquireLock(AdvisoryLockKey.CLOSE_DISTRIBUTION)
         advisoryLockService.withLock(AdvisoryLockKey.ASSIGN_HOUSEHOLD_TO_DISTRIBUTION) {
-            val distribution = getCurrentDistribution() ?: throw ConflictException("Ausgabe bereits geschlossen!")
+            val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
             val household = householdRepository.findByHouseholdId(householdId)
                 ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
@@ -206,7 +207,7 @@ class DistributionService(
      */
     @Transactional
     fun generateHouseholdListPdf(): HouseholdListPdfResult? {
-        val currentDistribution = distributionRepository.getCurrentDistribution() ?: throw ConflictException("Ausgabe bereits geschlossen!")
+        val currentDistribution = distributionRepository.getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
         val formattedDate = DATE_FORMATTER.format(currentDistribution.startedAt)
 
@@ -250,7 +251,7 @@ class DistributionService(
 
     @Transactional(readOnly = true)
     fun getCurrentTicketNumber(householdId: Long? = null): DistributionHouseholdEntity? {
-        val distribution = getCurrentDistribution() ?: throw ConflictException("Ausgabe bereits geschlossen!")
+        val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
         return getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
     }
@@ -273,7 +274,7 @@ class DistributionService(
 
     @Transactional
     fun reopenAndGetPreviousTicket(): TicketScreenTicketResponse {
-        val distribution = getCurrentDistribution() ?: throw ConflictException("Ausgabe bereits geschlossen!")
+        val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
         val distributionHouseholdEntity = getLastProcessedDistributionHouseholdEntity(distribution)
 
@@ -291,7 +292,7 @@ class DistributionService(
 
     @Transactional
     fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean?): TicketScreenTicketResponse {
-        val distribution = getCurrentDistribution() ?: throw ConflictException("Ausgabe bereits geschlossen!")
+        val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
         val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution)
 
@@ -357,7 +358,7 @@ class DistributionService(
 
     @Transactional
     fun deleteCurrentTicket(householdId: Long): Boolean {
-        val distribution = getCurrentDistribution() ?: throw ConflictException("Ausgabe bereits geschlossen!")
+        val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
         val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
 
@@ -436,7 +437,7 @@ class DistributionService(
                 // committed - getCurrentDistribution() is then null. A ConflictException here surfaces
                 // as 409 instead of the NPE an unguarded `!!` would produce.
                 val currentDistribution = distributionRepository.getCurrentDistribution()
-                    ?: throw ConflictException("Ausgabe bereits geschlossen!")
+                    ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
                 currentDistribution.endedAt = LocalDateTime.now()
                 currentDistribution.endedByUser =
                     authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
@@ -522,7 +523,7 @@ class DistributionService(
         employeeCount: Int,
         selectedShelterIds: List<Long>,
     ) {
-        val currentDistribution = distributionRepository.getCurrentDistribution() ?: throw ConflictException("Ausgabe bereits geschlossen!")
+        val currentDistribution = distributionRepository.getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
         val currentStatistic = currentDistribution.statistic
         if (currentStatistic == null) {
@@ -563,7 +564,7 @@ class DistributionService(
 
     @Transactional
     fun updateDistributionNoteData(notes: String) {
-        val currentDistribution = distributionRepository.getCurrentDistribution() ?: throw ConflictException("Ausgabe bereits geschlossen!")
+        val currentDistribution = distributionRepository.getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
         currentDistribution.notes = notes.trim().ifBlank { null }
 
