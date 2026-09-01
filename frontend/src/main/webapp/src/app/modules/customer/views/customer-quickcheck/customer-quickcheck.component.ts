@@ -153,18 +153,19 @@ export class CustomerQuickCheckComponent {
   }
 
   /**
-   * The wire shape of the entered persons, dropping any still missing their birthdate. The first
-   * form person stands in for the main person, which never contributes a family allowance on the
-   * customer form either - its checkbox simply doesn't exist here.
+   * The wire shape of the entered persons, dropping any still missing their birthdate first so
+   * the index-0 special case below lands on the person that actually ends up first in the
+   * resulting list. That first person stands in for the main person, which never contributes a
+   * family allowance on the customer form either - its checkbox simply doesn't exist here.
    */
   private mapToRequestPersons(persons: QuickCheckPersonFormItem[]): QuickCheckPersonData[] {
     return persons
-      .map((person, index): QuickCheckPersonData | null => person.birthDate ? {
+      .filter((person): person is QuickCheckPersonFormItem & {birthDate: Date} => !!person.birthDate)
+      .map((person, index): QuickCheckPersonData => ({
         birthDate: person.birthDate,
         income: person.income ?? undefined,
         receivesFamilyAllowance: index === 0 ? false : person.receivesFamilyAllowance
-      } : null)
-      .filter((person): person is QuickCheckPersonData => person !== null);
+      }));
   }
 
   protected readonly visibleErrorMessages = visibleErrorMessages;

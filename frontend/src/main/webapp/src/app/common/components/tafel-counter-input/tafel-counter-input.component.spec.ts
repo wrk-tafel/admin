@@ -76,6 +76,33 @@ describe('TafelCounterInputComponent', () => {
     }
   });
 
+  it('sliding off the button mid-hold does not swallow the next genuine tap', () => {
+    vi.useFakeTimers();
+    try {
+      const fixture = TestBed.createComponent(TafelCounterInputComponent);
+      fixture.componentRef.setInput('testId', 'category-1');
+      fixture.componentRef.setInput('label', 'Warenmenge Backwaren');
+      fixture.componentRef.setInput('key', 1);
+      fixture.componentRef.setInput('value', 0);
+      fixture.detectChanges();
+
+      const component = fixture.componentInstance;
+      component.startHoldIncrement();
+      vi.advanceTimersByTime(500); // HOLD_DELAY_MS: the hold has now started auto-repeating
+      expect(component.currentValue()).toBe(1);
+
+      // the finger slides off the button before releasing - pointerleave stops the hold, but no
+      // click ever follows to consume the suppression flag
+      component.onHoldPointerLeave();
+
+      // a later genuine tap, possibly on the other button, must still register
+      component.onIncrementClick();
+      expect(component.currentValue()).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('decrement repeats the same way while held', () => {
     vi.useFakeTimers();
     try {

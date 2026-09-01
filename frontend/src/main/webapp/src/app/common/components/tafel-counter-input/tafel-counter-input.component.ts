@@ -113,6 +113,17 @@ export class TafelCounterInputComponent {
     this.repeatIntervalId = undefined;
   }
 
+  /**
+   * Called on `pointerleave` instead of plain `stopHold()`: sliding off the button mid-hold stops
+   * the repeat without a `click` ever following to consume {@link suppressNextClick} - unlike a
+   * `pointerup` in place, which `click` follows right after and consumes it itself. Left set, the
+   * next genuine tap on either button would be silently swallowed (see #3605).
+   */
+  onHoldPointerLeave() {
+    this.stopHold();
+    this.suppressNextClick = false;
+  }
+
 }
 
 export interface TafelCounterInputValueChange {

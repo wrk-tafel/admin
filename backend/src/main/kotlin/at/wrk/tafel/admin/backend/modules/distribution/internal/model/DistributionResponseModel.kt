@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import jakarta.validation.constraints.Positive
-import jakarta.validation.constraints.PositiveOrZero
 import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
@@ -37,7 +36,7 @@ data class TicketNumberResponse(
 
 @ExcludeFromTestCoverage
 data class DistributionStatisticRequest(
-    @field:PositiveOrZero
+    @field:Positive
     val employeeCount: Int,
     val selectedShelterIds: List<Long>,
 )

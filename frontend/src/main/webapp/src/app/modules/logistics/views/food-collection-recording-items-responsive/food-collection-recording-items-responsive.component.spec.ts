@@ -8,7 +8,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 import {FoodCollectionOfflineQueueService} from '../../services/food-collection-offline-queue.service';
 import {ConnectivityService} from '../../../../common/connectivity/connectivity.service';
 import {signal} from '@angular/core';
-import {of} from 'rxjs';
+import {of, Subject, throwError} from 'rxjs';
 
 describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
   let offlineQueueService: {
@@ -383,11 +383,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     };
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    const getItemsSpy = vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue({
-      subscribe: (observer: any) => {
-        observer.next(mockItemsData);
-      }
-    } as any);
+    const getItemsSpy = vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue(of(mockItemsData) as any);
 
     component.selectShop(mockShops[1]);
 
@@ -395,6 +391,30 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(component.currentShop()).toBe(mockShops[1]);
     expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(3);
     expect(component.categoryValues()[mockFoodCategories[1].id]).toBe(0);
+  });
+
+  it('treats a null/empty response (e.g. a 204 for a shop with nothing recorded yet) as success, not a load failure', () => {
+    const mockRouteData = {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}};
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue(of(null) as any);
+
+    const toastr = TestBed.inject(TafelToastrService);
+    const toastSpy = vi.spyOn(toastr, 'warning');
+
+    component.selectShop(mockShops[1]);
+
+    expect(component.currentShop()).toBe(mockShops[1]);
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(0);
+    expect(toastSpy).not.toHaveBeenCalled();
   });
 
   it('falls back to the route-level snapshot and shows a warning when selectShop fails', () => {
@@ -417,11 +437,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue({
-      subscribe: (observer: any) => {
-        observer.error('Error loading data');
-      }
-    } as any);
+    vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue(throwError(() => new Error('Error loading data')) as any);
 
     const toastr = TestBed.inject(TafelToastrService);
     const toastSpy = vi.spyOn(toastr, 'warning');
@@ -431,6 +447,62 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(component.currentShop()).toBe(mockShops[1]);
     expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(6);
     expect(toastSpy).toHaveBeenCalledWith('Laden fehlgeschlagen, zuletzt bekannter Stand wird angezeigt.');
+  });
+
+  it('a slower earlier shop load does not overwrite a faster later one (rapid shop switches)', () => {
+    const mockRouteData = {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}};
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    const firstLoad = new Subject<any>();
+    const secondLoad = new Subject<any>();
+    vi.spyOn(apiService, 'getItemsPerShop')
+      .mockReturnValueOnce(firstLoad)
+      .mockReturnValueOnce(secondLoad);
+
+    component.selectShop(mockShops[0]);
+    component.selectShop(mockShops[1]);
+
+    // the faster, later request (shop 1) resolves first
+    secondLoad.next({items: [{shopId: mockShops[1].id, categoryId: mockFoodCategories[0].id, amount: 5}]});
+    // the slower, earlier request (shop 0) resolves after - it must not win
+    firstLoad.next({items: [{shopId: mockShops[0].id, categoryId: mockFoodCategories[0].id, amount: 1}]});
+
+    expect(component.currentShop()).toBe(mockShops[1]);
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(5);
+  });
+
+  it('discards a shop-load response that arrives after the route has already been switched away from', () => {
+    const otherRoute = {id: 999, name: 'Other Route'};
+    const otherShop = {id: 888, number: 9, name: 'Other Shop', address: 'Other Address'};
+
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    const staleLoad = new Subject<any>();
+    vi.spyOn(apiService, 'getItemsPerShop').mockReturnValueOnce(staleLoad);
+
+    component.selectShop(mockShops[0]);
+
+    // the route is switched away from while the shop-0 load for the old route is still in flight
+    componentRef.setInput('selectedRouteData', {route: otherRoute, shops: [otherShop], foodCollectionData: {items: []}});
+
+    staleLoad.next({items: [{shopId: mockShops[0].id, categoryId: mockFoodCategories[0].id, amount: 9}]});
+
+    expect(component.currentShop()).not.toBe(mockShops[0]);
   });
 
   it('skips the live request and uses the fallback directly when offline', () => {
@@ -709,6 +781,26 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(component.tabStatus()).toBe('unsaved');
 
     component.markReturnItemsSaved();
+    expect(component.tabStatus()).toBe('complete');
+  });
+
+  it('tabStatus - complete after saving a free-text-only edit, even though that never flips returnCategoryValuesDirty', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    component.currentShop.set(mockShops[0]);
+    component.addReturnItem('Sonstiges', 3);
+    // simulates the user actually having typed into the row, as markAsDirty() would from a real input event
+    component.returnItems.at(0).get('description')!.markAsDirty();
+    expect(component.tabStatus()).toBe('unsaved');
+
+    component.markReturnItemsSaved();
+
     expect(component.tabStatus()).toBe('complete');
   });
 

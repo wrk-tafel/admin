@@ -5,6 +5,14 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Ein Haushalt, der in derselben Ausgabe sowohl "Neu" als auch "Verlängert" ist, wird in der Kundenübersicht jetzt korrekt in beiden Zeilen bedienbar angezeigt, statt zu einem defekten Klickverhalten zu führen.
+- Beim Übernehmen von Personen aus dem Anspruch-Schnellcheck in "Kunden anlegen" wird die Familienbeihilfe-Kennzeichnung jetzt korrekt der tatsächlich als Hauptperson übernommenen Person zugeordnet, statt bei einer leer gelassenen ersten Zeile stillschweigend verloren zu gehen.
+- Eine Person ohne erfasstes Geburtsdatum wird beim Check-in jetzt nicht mehr fälschlich als Kleinkind mitgezählt.
+- Ein schneller Wechsel zwischen zwei Kundendetailseiten zeigt jetzt zuverlässig die Ticketnummer des aktuell angezeigten Kunden an, statt möglicherweise die einer zuvor angezeigten Person.
+- Die Eingabe der Mitarbeiter:innen-Anzahl im Statistik-Eingabefeld des Dashboards wird bei einem ungültigen Wert (0 oder leer) jetzt nicht mehr gespeichert, statt trotz angezeigtem Fehler zu speichern.
+- In der mobilen Warenerfassung werden Eingaben bei schnellem Filialwechsel oder einem Routenwechsel während des Ladens jetzt nicht mehr fälschlich einer falschen Filiale zugeordnet.
+- Das Speichern einer reinen Retourware-Freitextzeile in der mobilen Warenerfassung entfernt jetzt korrekt die Markierung "Nicht gespeichert", statt weiterhin fälschlich vor ungespeicherten Änderungen zu warnen.
+- Das Abrutschen vom Plus/Minus-Button während des Gedrückthaltens in der Warenmengen-Eingabe verschluckt jetzt nicht mehr den nächsten Tastendruck.
 - Die Felder "Anzahl der Mitarbeiter" und "Personen in Notschlafstellen" im Statistik-Bereich sowie "Notizen zur Ausgabe" im Anmerkungen-Bereich der Übersicht behalten jetzt ihre Beschriftung, sobald ein Wert eingegeben ist, statt sie wie einen reinen Platzhalter verschwinden zu lassen.
 - Die Kontrollkästchen im Dialog "Notschlafstellen auswählen" (Übersicht) sind jetzt einheitlich wie im Rest der Anwendung gestaltet, statt als unstylisierte Browser-Kontrollkästchen angezeigt zu werden.
 - Die Auswahl einer Scanner-Datei beim Dokument-Hochladen zeigt jetzt einheitlich gestaltete Radio-Buttons, statt unstylisierter Browser-Radio-Buttons.
