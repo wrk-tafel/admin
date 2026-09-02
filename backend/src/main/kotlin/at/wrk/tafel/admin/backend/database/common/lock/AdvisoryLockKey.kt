@@ -11,9 +11,9 @@ enum class AdvisoryLockKey(val lockId: Long) {
     LOGIN_ATTEMPT_IP_TRACKING(3100L),
 
     // serializes every write path that can find-or-create a food collection's row (saveRouteData,
-    // saveKm, saveItems, saveItemsPerShop, patchItem) to avoid duplicate-key races on the
-    // (distribution_id, route_id) unique constraint, and read-modify-write races on its items,
-    // when multiple saves for the same route/shop overlap
+    // saveKm, saveItems, saveItemsPerShop, patchItem, saveReturnItems, saveReturnItemsPerShop) to
+    // avoid duplicate-key races on the (distribution_id, route_id) unique constraint, and
+    // read-modify-write races on its items, when multiple saves for the same route/shop overlap
     PATCH_FOOD_COLLECTION_ITEM(4000L),
 
     // serializes scanner registration's gap-filling scanner-id lookup to avoid
@@ -22,7 +22,8 @@ enum class AdvisoryLockKey(val lockId: Long) {
 
     // serializes the per-shop replace of a food collection's free-text return items: the whole
     // element collection is rewritten on every save, so concurrent saves for different shops of
-    // the same route would otherwise drop each other's rows
+    // the same route would otherwise drop each other's rows. Held nested inside
+    // PATCH_FOOD_COLLECTION_ITEM by both callers - see that key's comment
     SAVE_FOOD_COLLECTION_RETURN_ITEMS(6000L),
 
     // serializes the upsert-by-endpoint of a push subscription: `endpoint` is UNIQUE and the

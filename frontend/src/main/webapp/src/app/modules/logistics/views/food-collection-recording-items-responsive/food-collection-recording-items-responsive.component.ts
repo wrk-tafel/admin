@@ -362,10 +362,19 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       return;
     }
 
-    const request = this.returnItemsSaveRequest(this.currentSelection);
+    const sentSelection = this.currentSelection;
+    const request = this.returnItemsSaveRequest(sentSelection);
     if (request) {
       request.subscribe({
-        next: () => this.markReturnItemsSaved(),
+        next: () => {
+          // the shop on screen may already have moved on by the time this response arrives (a
+          // faster getItemsPerShop load for the next shop can land first) - clearing dirty state
+          // then would wipe edits already made to the *new* shop's return items, not the ones
+          // this request actually sent (see #3628)
+          if (this.currentSelection?.routeId === sentSelection?.routeId && this.currentSelection?.shopId === sentSelection?.shopId) {
+            this.markReturnItemsSaved();
+          }
+        },
         error: () => {
           this.toastr.error('Retourware konnte nicht gespeichert werden!');
         }

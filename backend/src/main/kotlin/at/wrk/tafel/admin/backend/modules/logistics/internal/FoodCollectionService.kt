@@ -157,14 +157,20 @@ class FoodCollectionService(
 
     @Transactional
     fun saveReturnItems(routeId: Long, data: FoodCollectionSaveReturnItemsRequest) {
-        advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
-            val distributionEntity = distributionRepository.getCurrentDistribution()!!
+        // outer PATCH_FOOD_COLLECTION_ITEM lock serializes this find-or-create against every other
+        // path that can create this route's food_collections row (#3628) - the inner
+        // SAVE_FOOD_COLLECTION_RETURN_ITEMS lock still serializes it against saveReturnItemsPerShop,
+        // which rewrites the same returnItems element collection
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
+                val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
-            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
-            data.returnItems.forEach { validateShopIsRouteStop(foodCollectionEntity.route, it.shopId) }
-            foodCollectionEntity.returnItems = mapReturnItemsToEntity(data.returnItems)
+                val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+                data.returnItems.forEach { validateShopIsRouteStop(foodCollectionEntity.route, it.shopId) }
+                foodCollectionEntity.returnItems = mapReturnItemsToEntity(data.returnItems)
 
-            foodCollectionRepository.save(foodCollectionEntity)
+                foodCollectionRepository.save(foodCollectionEntity)
+            }
         }
     }
 
@@ -174,27 +180,32 @@ class FoodCollectionService(
         shopId: Long,
         data: FoodCollectionSaveReturnItemsPerShopRequest,
     ) {
-        // the whole element collection is rewritten below, so a concurrent save for another shop
-        // of the same route would drop the rows this one just wrote (and vice versa)
-        advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
-            val distributionEntity = distributionRepository.getCurrentDistribution()!!
+        // outer PATCH_FOOD_COLLECTION_ITEM lock serializes this find-or-create against every other
+        // path that can create this route's food_collections row (#3628) - the inner
+        // SAVE_FOOD_COLLECTION_RETURN_ITEMS lock still serializes it against a concurrent save for
+        // another shop of the same route (and against saveReturnItems), since the whole element
+        // collection is rewritten below and would otherwise drop the rows the other one just wrote
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
+                val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
-            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
-            validateShopIsRouteStop(foodCollectionEntity.route, shopId)
-            val otherShopsReturnItems = foodCollectionEntity.returnItems
-                ?.filter { it.shop.id != shopId } ?: emptyList()
-            val shopReturnItems = mapReturnItemsToEntity(
-                data.returnItems.map {
-                    FoodCollectionReturnItem(
-                        shopId = shopId,
-                        description = it.description,
-                        amount = it.amount,
-                    )
-                },
-            )
+                val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+                validateShopIsRouteStop(foodCollectionEntity.route, shopId)
+                val otherShopsReturnItems = foodCollectionEntity.returnItems
+                    ?.filter { it.shop.id != shopId } ?: emptyList()
+                val shopReturnItems = mapReturnItemsToEntity(
+                    data.returnItems.map {
+                        FoodCollectionReturnItem(
+                            shopId = shopId,
+                            description = it.description,
+                            amount = it.amount,
+                        )
+                    },
+                )
 
-            foodCollectionEntity.returnItems = otherShopsReturnItems + shopReturnItems
-            foodCollectionRepository.save(foodCollectionEntity)
+                foodCollectionEntity.returnItems = otherShopsReturnItems + shopReturnItems
+                foodCollectionRepository.save(foodCollectionEntity)
+            }
         }
     }
 
