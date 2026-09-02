@@ -136,6 +136,16 @@ export class RouteGuidanceComponent {
 
   private readonly _guidance = signal<RouteGuidanceData | undefined>(undefined);
   protected readonly guidance = this._guidance.asReadonly();
+
+  // The picker is only ever used once per drive, so it collapses into a one-line summary as soon as
+  // a route's guidance has actually loaded - open again while there is nothing loaded yet (no route
+  // picked, or a pick still in flight/failed) or while explicitly reopened via openRoutePicker().
+  private readonly routePickerManuallyOpened = signal(false);
+  protected readonly routePickerOpen = computed(() => !this.guidance() || this.routePickerManuallyOpened());
+
+  protected openRoutePicker() {
+    this.routePickerManuallyOpened.set(true);
+  }
   // the stop whose request is still on its way (online only - an offline tick is applied locally
   // right away), so its buttons can't be pressed twice
   protected readonly pendingStopId = signal<number | undefined>(undefined);
@@ -333,6 +343,7 @@ export class RouteGuidanceComponent {
     this.selectedRoute = route;
     this._guidance.set(undefined);
     this.persistSelectedRouteId(route?.id);
+    this.routePickerManuallyOpened.set(false);
     void this.wakeLockService.release();
     if (!route) {
       return;

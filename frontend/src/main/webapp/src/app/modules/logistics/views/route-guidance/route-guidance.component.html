@@ -1,24 +1,34 @@
 <mat-card class="w-full">
-  <mat-card-header class="mb-2">
-    <mat-card-title>
-      <h2 class="tafel-h5 mb-0 mt-1">
-        Routen-Navi
-        <tafel-info-tooltip [text]="infoText" testId="guidance-info-tooltip"></tafel-info-tooltip>
-      </h2>
-    </mat-card-title>
-  </mat-card-header>
   <mat-card-content>
-    <mat-form-field class="w-full max-w-md">
-      <mat-label>Route auswählen</mat-label>
-      <mat-select testid="routeInput" [ngModel]="selectedRoute" (ngModelChange)="onSelectedRouteChange($event)">
-        <mat-option [value]="undefined">Bitte auswählen</mat-option>
-        @for (route of routeList().routes; track route.id) {
-          <mat-option [value]="route" [attr.testid]="'routeInput-option-' + route.id">{{ route.name }}</mat-option>
-        }
-      </mat-select>
-      <mat-icon matPrefix svgIcon="route"
-                class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
-    </mat-form-field>
+    <!-- the page's own title already sits in the app header above this card (TafelTitleStrategy) -
+         repeating "Routen-Navi" here would only cost a line's worth of height for nothing new. -->
+    @if (routePickerOpen()) {
+      <mat-form-field class="w-full max-w-md" subscriptSizing="dynamic">
+        <mat-label>Route auswählen</mat-label>
+        <mat-select testid="routeInput" [ngModel]="selectedRoute" (ngModelChange)="onSelectedRouteChange($event)">
+          <mat-option [value]="undefined">Bitte auswählen</mat-option>
+          @for (route of routeList().routes; track route.id) {
+            <mat-option [value]="route" [attr.testid]="'routeInput-option-' + route.id">{{ route.name }}</mat-option>
+          }
+        </mat-select>
+        <mat-icon matPrefix svgIcon="route"
+                  class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
+        <tafel-info-tooltip matSuffix [text]="infoText" testId="guidance-info-tooltip"></tafel-info-tooltip>
+      </mat-form-field>
+    } @else {
+      <!-- the picker is only ever used once per drive - once a route is loaded, it collapses into
+           this one-line summary instead of permanently costing a whole form field's height at every
+           stop. Tapping it (or clearing the route) brings the picker back. -->
+      <div class="mb-3 flex w-full items-center gap-2">
+        <button type="button" class="flex flex-1 items-center gap-2 text-start" testid="route-picker-summary"
+                (click)="openRoutePicker()">
+          <mat-icon svgIcon="route" class="text-slate-500"></mat-icon>
+          <span class="tafel-h5 mb-0 flex-1 font-medium text-slate-900">{{ selectedRoute?.name }}</span>
+          <span class="text-xs text-slate-600">Route wechseln</span>
+        </button>
+        <tafel-info-tooltip [text]="infoText" testId="guidance-info-tooltip"></tafel-info-tooltip>
+      </div>
+    }
 
     @if (guidance()?.routeNote; as routeNote) {
       <!-- collapsed by default - not every route has a note worth reading before departure, and a

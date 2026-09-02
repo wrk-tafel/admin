@@ -29,6 +29,13 @@ describe('Route Guidance', () => {
   });
 
   function selectRoute(name: string) {
+    // the picker collapses into a one-line summary once a route has loaded (it's only used once
+    // per drive) - reopen it first if a prior selection in this test already collapsed it
+    cy.get('body').then($body => {
+      if ($body.find('[testid="route-picker-summary"]').length > 0) {
+        cy.byTestId('route-picker-summary').click();
+      }
+    });
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains(name).click();
     cy.byTestId('guidance-stop').should('be.visible');
@@ -237,6 +244,22 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-route-note').should('not.exist');
   });
 
+  it('collapses the route picker into a summary once loaded, and reopens it to change route', () => {
+    cy.byTestId('routeInput').should('be.visible');
+
+    selectRoute2();
+
+    cy.byTestId('routeInput').should('not.exist');
+    cy.byTestId('route-picker-summary').should('be.visible').and('contain.text', 'Route 2');
+
+    cy.byTestId('route-picker-summary').click();
+    cy.byTestId('routeInput').should('be.visible').and('contain.text', 'Route 2');
+    cy.byTestId('route-picker-summary').should('not.exist');
+
+    // reopened but nothing re-selected yet - still shows the previous route's stop underneath
+    cy.byTestId('guidance-stop').should('be.visible');
+  });
+
   it('pages between stops with a swipe, in addition to the buttons', () => {
     selectRoute2();
 
@@ -295,7 +318,9 @@ describe('Route Guidance', () => {
 
     cy.visit('/logistik/routen-navi');
 
-    cy.byTestId('routeInput').should('contain.text', 'Route 3');
+    // guidance for the remembered route loads without any interaction, so the picker is already
+    // collapsed into its summary by the time the page settles - never the open select itself
+    cy.byTestId('route-picker-summary').should('contain.text', 'Route 3');
     cy.byTestId('guidance-stop').should('be.visible');
   });
 
@@ -376,6 +401,14 @@ describe('Route Guidance', () => {
       selectRoute('Route 1');
       cy.byTestId('guidance-route-note-toggle').click();
       cy.byTestId('guidance-route-note').should('be.visible');
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations with the route picker reopened to change route', () => {
+      selectRoute2();
+      cy.byTestId('route-picker-summary').click();
+      cy.byTestId('routeInput').should('be.visible');
 
       cy.checkAccessibility(MAIN_CONTENT);
     });

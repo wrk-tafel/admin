@@ -761,6 +761,55 @@ describe('RouteGuidanceComponent', () => {
     });
   });
 
+  describe('route picker (collapses once used)', () => {
+    it('starts open and collapses once the route guidance has loaded', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      expect(component['routePickerOpen']()).toBe(true);
+
+      component['onSelectedRouteChange'](testRoute);
+      expect(component['routePickerOpen']()).toBe(false);
+    });
+
+    it('stays open while a pick is still loading, and while the load has failed', () => {
+      const guidance$ = new Subject<RouteGuidanceData>();
+      routeApiMock.getRouteGuidance = vi.fn(() => guidance$.asObservable());
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+
+      component['onSelectedRouteChange'](testRoute);
+      expect(component['routePickerOpen']()).toBe(true);
+
+      routeApiMock.getRouteGuidance = vi.fn(() => throwError(() => new Error('failed')));
+      component['onSelectedRouteChange'](otherRoute);
+      expect(component['routePickerOpen']()).toBe(true);
+    });
+
+    it('reopens via openRoutePicker and closes again once the next route loads', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      expect(component['routePickerOpen']()).toBe(false);
+
+      component['openRoutePicker']();
+      expect(component['routePickerOpen']()).toBe(true);
+
+      component['onSelectedRouteChange'](otherRoute);
+      expect(component['routePickerOpen']()).toBe(false);
+    });
+
+    it('reopens when the selection is cleared', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      expect(component['routePickerOpen']()).toBe(false);
+
+      component['onSelectedRouteChange'](undefined);
+
+      expect(component['routePickerOpen']()).toBe(true);
+    });
+  });
+
   describe('route note', () => {
     it('starts collapsed and toggles open', () => {
       routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({...guidance, routeNote: 'Schlüssel abholen'}));
