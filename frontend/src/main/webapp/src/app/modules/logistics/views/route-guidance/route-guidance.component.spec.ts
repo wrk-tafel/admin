@@ -509,6 +509,72 @@ describe('RouteGuidanceComponent', () => {
     });
   });
 
+  describe('swipe paging (a shortcut for Zurück/Weiter)', () => {
+    function touch(x: number, y: number): TouchEvent {
+      return {changedTouches: [{clientX: x, clientY: y}]} as unknown as TouchEvent;
+    }
+
+    it('pages to the next stop on a leftward swipe', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      component['onStopTouchStart'](touch(300, 400));
+      component['onStopTouchEnd'](touch(200, 400));
+
+      expect(component['currentIndex']()).toBe(1);
+      expect(routeApiMock.setStopCompletion).not.toHaveBeenCalled();
+    });
+
+    it('pages to the previous stop on a rightward swipe', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      component['goToNextStop']();
+
+      component['onStopTouchStart'](touch(100, 400));
+      component['onStopTouchEnd'](touch(220, 400));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+
+    it('ignores a swipe that does not travel far enough', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      component['onStopTouchStart'](touch(200, 400));
+      component['onStopTouchEnd'](touch(220, 400));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+
+    it('ignores a mostly-vertical swipe (a scroll, not a page-turn)', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      component['onStopTouchStart'](touch(200, 300));
+      component['onStopTouchEnd'](touch(260, 500));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+
+    it('does not page while a completion request is still in flight', () => {
+      const pendingCompletion = new Subject<RouteGuidanceStop>();
+      routeApiMock.setStopCompletion = vi.fn(() => pendingCompletion.asObservable());
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      component['completeCurrentStop'](); // pendingStopId set, mutationDisabled() true until it resolves
+
+      component['onStopTouchStart'](touch(300, 400));
+      component['onStopTouchEnd'](touch(200, 400));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+  });
+
   describe('completion (online)', () => {
     it('completes the current stop and advances to the next one', () => {
       const fixture = createComponent();
@@ -667,6 +733,36 @@ describe('RouteGuidanceComponent', () => {
       fixture.detectChanges();
 
       expect(component['stopViews']()[0].stop.completed).toBe(false);
+    });
+  });
+
+  describe('route note', () => {
+    it('starts collapsed and toggles open', () => {
+      routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({...guidance, routeNote: 'Schlüssel abholen'}));
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      expect(component['routeNoteExpanded']()).toBe(false);
+
+      component['toggleRouteNoteExpanded']();
+      expect(component['routeNoteExpanded']()).toBe(true);
+
+      component['toggleRouteNoteExpanded']();
+      expect(component['routeNoteExpanded']()).toBe(false);
+    });
+
+    it('collapses again once a different route is loaded', () => {
+      routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({...guidance, routeNote: 'Schlüssel abholen'}));
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      component['toggleRouteNoteExpanded']();
+      expect(component['routeNoteExpanded']()).toBe(true);
+
+      component['onSelectedRouteChange'](otherRoute);
+
+      expect(component['routeNoteExpanded']()).toBe(false);
     });
   });
 

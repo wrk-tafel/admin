@@ -51,15 +51,23 @@ const MAX_MAP_STOPS = 10;
 // per user, so the picker opens on it again without anyone having to select it every morning.
 const SELECTED_ROUTE_STORAGE_KEY = 'tafel.routeGuidance.selectedRouteId';
 
+// A swipe on the stop card has to travel at least this far horizontally before it counts as a
+// page-turn rather than a tap or a scroll's sideways jitter.
+const SWIPE_MIN_DISTANCE_PX = 50;
+// ...and it has to be clearly more horizontal than vertical, so a vertical scroll gesture is never
+// mistaken for one.
+const SWIPE_HORIZONTAL_RATIO = 1.5;
+
 
 // What the screen would otherwise have to explain in a paragraph above the stop. It sits in a
 // tooltip instead: on a phone in a van the stop itself has to be the first thing on the screen.
 const INFO_TEXT =
   'Die Stopps einer Route, einer nach dem anderen in der Reihenfolge, in der sie angefahren werden. '
-  + '"Zurück" und "Weiter" blättern frei zwischen den Stopps, ohne etwas abzuhaken. "Stopp erledigt" '
-  + 'hakt den angezeigten Stopp ab und springt automatisch zum nächsten Stopp. "Rückgängig machen" '
-  + 'nimmt das Abhaken wieder zurück, ohne dabei zu blättern. Ohne Verbindung werden Häkchen '
-  + 'zwischengespeichert und automatisch übertragen, sobald wieder online.';
+  + '"Zurück" und "Weiter" blättern frei zwischen den Stopps, ohne etwas abzuhaken - genauso wie ein '
+  + 'Wischen nach links bzw. rechts auf dem Stopp. "Stopp erledigt" hakt den angezeigten Stopp ab und '
+  + 'springt automatisch zum nächsten Stopp. "Rückgängig machen" nimmt das Abhaken wieder zurück, '
+  + 'ohne dabei zu blättern. Ohne Verbindung werden Häkchen zwischengespeichert und automatisch '
+  + 'übertragen, sobald wieder online.';
 
 interface StopView {
   stop: RouteGuidanceStop;
@@ -144,6 +152,16 @@ export class RouteGuidanceComponent {
 
   protected toggleRemainingRouteExpanded() {
     this.remainingRouteExpanded.update(expanded => !expanded);
+  }
+
+  // collapsed by default, same reasoning as remainingRouteExpanded above - not every route has a
+  // note worth reading, and it sits right under the route picker precisely so it is the first thing
+  // a driver can check before setting off, not something permanently in the way after that. Reset
+  // per route selection (see the routeSelection$ subscription) so each route starts unread again.
+  protected readonly routeNoteExpanded = signal(false);
+
+  protected toggleRouteNoteExpanded() {
+    this.routeNoteExpanded.update(expanded => !expanded);
   }
 
   // the day the boxes now going back were collected, formatted the way the rest of the app writes a
@@ -288,6 +306,7 @@ export class RouteGuidanceComponent {
       takeUntilDestroyed()
     ).subscribe(guidance => {
       this._guidance.set(guidance);
+      this.routeNoteExpanded.set(false);
       // open where the driver actually is - the first stop not done yet, or the last one when the
       // whole route is finished
       const firstOpenIndex = guidance.stops.findIndex(stop => !stop.completed);
@@ -330,6 +349,40 @@ export class RouteGuidanceComponent {
   protected goToStop(index: number) {
     if (index >= 0 && index < this.stops().length) {
       this._currentIndex.set(index);
+    }
+  }
+
+  private touchStartX = 0;
+  private touchStartY = 0;
+
+  protected onStopTouchStart(event: TouchEvent) {
+    const touch = event.changedTouches[0];
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+  }
+
+  /**
+   * A shortcut for Zurück/Weiter, not a replacement - those buttons and the stepper dots stay
+   * exactly as they are, since a swipe reaches neither a keyboard nor a screen reader. Gated on
+   * mutationDisabled() the same way the paging buttons already are, so a swipe cannot page away
+   * from a stop whose completion request is still in flight.
+   */
+  protected onStopTouchEnd(event: TouchEvent) {
+    if (this.mutationDisabled()) {
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - this.touchStartX;
+    const deltaY = touch.clientY - this.touchStartY;
+    if (Math.abs(deltaX) < SWIPE_MIN_DISTANCE_PX || Math.abs(deltaX) < Math.abs(deltaY) * SWIPE_HORIZONTAL_RATIO) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      this.goToNextStop();
+    } else {
+      this.goToPreviousStop();
     }
   }
 

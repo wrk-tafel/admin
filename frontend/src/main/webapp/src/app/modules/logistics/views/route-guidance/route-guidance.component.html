@@ -20,6 +20,27 @@
                 class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
     </mat-form-field>
 
+    @if (guidance()?.routeNote; as routeNote) {
+      <!-- collapsed by default - not every route has a note worth reading before departure, and a
+           driver who doesn't need it should not have to scroll past it on every visit -->
+      <button type="button" class="mb-1 flex items-center gap-2 text-sm font-medium text-amber-800"
+              testid="guidance-route-note-toggle"
+              [attr.aria-expanded]="routeNoteExpanded()"
+              aria-controls="guidance-route-note-panel"
+              (click)="toggleRouteNoteExpanded()">
+        <mat-icon svgIcon="sticky_note_2" class="text-amber-600"></mat-icon>
+        Notiz zur Route
+        <mat-icon [svgIcon]="routeNoteExpanded() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                  class="text-amber-600"></mat-icon>
+      </button>
+      <div id="guidance-route-note-panel" role="region" aria-labelledby="guidance-route-note-toggle"
+           class="mb-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" testid="guidance-route-note"
+           [hidden]="!routeNoteExpanded()">
+        <mat-icon svgIcon="sticky_note_2" class="mt-0.5"></mat-icon>
+        <span class="whitespace-pre-line">{{ routeNote }}</span>
+      </div>
+    }
+
     @if (!isOnline()) {
       <!-- shown whenever the device is offline, not only once a route is picked - a driver who
            opens the screen already offline should know right away that ticks will be queued -->
@@ -32,14 +53,7 @@
       </div>
     }
 
-    @if (guidance(); as routeGuidance) {
-      @if (routeGuidance.routeNote) {
-        <div class="mb-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" testid="guidance-route-note">
-          <mat-icon svgIcon="sticky_note_2" class="mt-0.5"></mat-icon>
-          <span class="whitespace-pre-line">{{ routeGuidance.routeNote }}</span>
-        </div>
-      }
-
+    @if (guidance()) {
       @if (returnItemsFrom(); as returnDate) {
         <div class="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900"
              testid="guidance-return-summary">
@@ -136,7 +150,8 @@
       @if (currentStop(); as view) {
         <!-- one stop at a time, paged with the buttons below - see the component's class doc -->
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm" testid="guidance-stop"
-             role="group" [attr.aria-label]="'Stopp ' + (currentIndex() + 1) + ' von ' + stops().length">
+             role="group" [attr.aria-label]="'Stopp ' + (currentIndex() + 1) + ' von ' + stops().length"
+             (touchstart)="onStopTouchStart($event)" (touchend)="onStopTouchEnd($event)">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             <span class="text-sm font-semibold text-slate-500" testid="guidance-stop-position">
               Stopp {{ currentIndex() + 1 }} von {{ stops().length }}

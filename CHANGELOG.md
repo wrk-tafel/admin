@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Das Routen-Navi bietet bei mehr als zehn offenen Stopps jetzt mehrere Karten-Links zu je zehn Stopps an, statt die restliche Route nur bis zum zehnten Stopp abzudecken, und öffnet die Navigation zu einer Filiale wahlweise auch in Apple Maps.
+- Das Routen-Navi lässt sich am Handy jetzt auch durch Wischen nach links/rechts zwischen Stopps blättern, und eine Routennotiz sowie die Karten-Links für die restliche Route werden erst nach Antippen eingeblendet, statt den aktuellen Stopp dauerhaft zu verdrängen.
 
 ## [1.16.2] - 2026-09-02
 - Ein aus dem Scanner-Ordner importiertes Dokument verschwindet jetzt sofort aus der Dateiliste, statt erst beim nächsten Aktualisierungsintervall.

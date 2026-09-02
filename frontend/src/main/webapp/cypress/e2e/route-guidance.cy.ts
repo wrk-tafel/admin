@@ -221,6 +221,45 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-whole-route-chunked-hint').should('not.exist');
   });
 
+  // Route 1 is the only testdata route with a note ("Notiz 1"); route 2/3 have none.
+  it('keeps the route note collapsed until tapped, and shows no toggle for a route without one', () => {
+    selectRoute('Route 1');
+
+    cy.byTestId('guidance-route-note-toggle').should('have.attr', 'aria-expanded', 'false');
+    cy.byTestId('guidance-route-note').should('not.be.visible');
+
+    cy.byTestId('guidance-route-note-toggle').click();
+    cy.byTestId('guidance-route-note-toggle').should('have.attr', 'aria-expanded', 'true');
+    cy.byTestId('guidance-route-note').should('be.visible').and('contain.text', 'Notiz 1');
+
+    selectRoute2();
+    cy.byTestId('guidance-route-note-toggle').should('not.exist');
+    cy.byTestId('guidance-route-note').should('not.exist');
+  });
+
+  it('pages between stops with a swipe, in addition to the buttons', () => {
+    selectRoute2();
+
+    cy.byTestId('guidance-stop')
+      .trigger('touchstart', {changedTouches: [{clientX: 300, clientY: 400}]})
+      .trigger('touchend', {changedTouches: [{clientX: 100, clientY: 400}]});
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
+
+    cy.byTestId('guidance-stop')
+      .trigger('touchstart', {changedTouches: [{clientX: 100, clientY: 400}]})
+      .trigger('touchend', {changedTouches: [{clientX: 300, clientY: 400}]});
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+
+    // a short swipe (below the distance threshold) does not page
+    cy.byTestId('guidance-stop')
+      .trigger('touchstart', {changedTouches: [{clientX: 200, clientY: 400}]})
+      .trigger('touchend', {changedTouches: [{clientX: 215, clientY: 400}]});
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+
+    // paging via swipe records nothing, same as the Zurück/Weiter buttons
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
+  });
+
   it('gives an overview of every stop as tappable dots, jumping straight to the one tapped', () => {
     selectRoute2();
 
@@ -311,6 +350,14 @@ describe('Route Guidance', () => {
       selectRoute2();
       cy.byTestId('guidance-whole-route-toggle').click();
       cy.byTestId('guidance-whole-route-button').should('be.visible');
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations with the route note panel expanded', () => {
+      selectRoute('Route 1');
+      cy.byTestId('guidance-route-note-toggle').click();
+      cy.byTestId('guidance-route-note').should('be.visible');
 
       cy.checkAccessibility(MAIN_CONTENT);
     });
