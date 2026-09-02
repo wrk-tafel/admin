@@ -57,6 +57,11 @@ const SWIPE_MIN_DISTANCE_PX = 50;
 // ...and it has to be clearly more horizontal than vertical, so a vertical scroll gesture is never
 // mistaken for one.
 const SWIPE_HORIZONTAL_RATIO = 1.5;
+// A swipe starting this close to either screen edge is left alone - that strip is where a mobile
+// browser's own edge-swipe "back"/"forward" gesture lives, and it has no way to be suppressed short
+// of calling preventDefault() on every touch (which would also break the page's own vertical
+// scroll). Better to let the browser have its gesture there than to fire both at once.
+const SWIPE_EDGE_EXCLUSION_PX = 24;
 
 
 // What the screen would otherwise have to explain in a paragraph above the stop. It sits in a
@@ -365,10 +370,14 @@ export class RouteGuidanceComponent {
    * A shortcut for Zurück/Weiter, not a replacement - those buttons and the stepper dots stay
    * exactly as they are, since a swipe reaches neither a keyboard nor a screen reader. Gated on
    * mutationDisabled() the same way the paging buttons already are, so a swipe cannot page away
-   * from a stop whose completion request is still in flight.
+   * from a stop whose completion request is still in flight. Also skipped for a gesture that started
+   * in the edge-exclusion strip - see SWIPE_EDGE_EXCLUSION_PX.
    */
   protected onStopTouchEnd(event: TouchEvent) {
     if (this.mutationDisabled()) {
+      return;
+    }
+    if (this.touchStartX < SWIPE_EDGE_EXCLUSION_PX || this.touchStartX > this.window.innerWidth - SWIPE_EDGE_EXCLUSION_PX) {
       return;
     }
 

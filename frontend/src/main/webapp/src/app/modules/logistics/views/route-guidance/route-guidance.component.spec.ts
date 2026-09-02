@@ -77,6 +77,7 @@ describe('RouteGuidanceComponent', () => {
   let windowMock: {
     localStorage: {getItem: ReturnType<typeof vi.fn>; setItem: ReturnType<typeof vi.fn>; removeItem: ReturnType<typeof vi.fn>};
     document: {addEventListener: ReturnType<typeof vi.fn>; removeEventListener: ReturnType<typeof vi.fn>; visibilityState: string};
+    innerWidth: number;
   };
   let wakeLockMock: {request: ReturnType<typeof vi.fn>; release: ReturnType<typeof vi.fn>};
   let offlineQueueMock: {
@@ -133,7 +134,8 @@ describe('RouteGuidanceComponent', () => {
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
         visibilityState: 'visible'
-      }
+      },
+      innerWidth: 400
     };
 
     TestBed.configureTestingModule({
@@ -556,6 +558,29 @@ describe('RouteGuidanceComponent', () => {
 
       component['onStopTouchStart'](touch(200, 300));
       component['onStopTouchEnd'](touch(260, 500));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+
+    it('leaves a swipe starting near the left screen edge to the browser\'s own back gesture', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      component['onStopTouchStart'](touch(10, 400));
+      component['onStopTouchEnd'](touch(120, 400));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+
+    it('leaves a swipe starting near the right screen edge alone too', () => {
+      // windowMock.innerWidth is 400
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      component['onStopTouchStart'](touch(390, 400));
+      component['onStopTouchEnd'](touch(280, 400));
 
       expect(component['currentIndex']()).toBe(0);
     });

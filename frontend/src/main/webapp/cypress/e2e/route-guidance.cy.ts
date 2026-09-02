@@ -260,6 +260,24 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
   });
 
+  it('leaves a swipe starting near either screen edge to the browser\'s own edge-swipe gesture', () => {
+    // iphone-7 is 375px wide - a fixed, known width so "near the edge" is unambiguous
+    cy.viewport(PHONE_VIEWPORT);
+    selectRoute2();
+
+    // near the left edge - would otherwise read as a rightward (previous-stop) swipe
+    cy.byTestId('guidance-stop')
+      .trigger('touchstart', {changedTouches: [{clientX: 10, clientY: 400}]})
+      .trigger('touchend', {changedTouches: [{clientX: 120, clientY: 400}]});
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+
+    // near the right edge - would otherwise read as a leftward (next-stop) swipe
+    cy.byTestId('guidance-stop')
+      .trigger('touchstart', {changedTouches: [{clientX: 365, clientY: 400}]})
+      .trigger('touchend', {changedTouches: [{clientX: 255, clientY: 400}]});
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+  });
+
   it('gives an overview of every stop as tappable dots, jumping straight to the one tapped', () => {
     selectRoute2();
 
