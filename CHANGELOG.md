@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Das Routen-Navi bietet bei mehr als zehn offenen Stopps jetzt mehrere Karten-Links zu je zehn Stopps an, statt die restliche Route nur bis zum zehnten Stopp abzudecken, und öffnet die Navigation zu einer Filiale wahlweise auch in Apple Maps.
+
+## [1.16.2] - 2026-09-02
 - Ein aus dem Scanner-Ordner importiertes Dokument verschwindet jetzt sofort aus der Dateiliste, statt erst beim nächsten Aktualisierungsintervall.
 - Die nächtliche Bereinigung verwaister Dokumentdateien bricht jetzt ab, wenn ungewöhnlich viele Dateien als verwaist erscheinen (z. B. nach einer Änderung des Speicherpfads), statt versehentlich alle Dokumente zu löschen.
 - Ein manueller erneuter Versand der Statistik-Mails berücksichtigt jetzt nur beendete Ausgaben, statt eine noch laufende Ausgabe fälschlich als abgeschlossenen Tag mit auszuweisen.

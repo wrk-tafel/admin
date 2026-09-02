@@ -188,6 +188,15 @@
                 Navigation starten
               </a>
             }
+            @if (view.appleMapsNavigationUrl) {
+              <!-- Google's link opens the Google Maps app when installed - this is the path for a
+                   driver on iOS who prefers Apple's own app instead -->
+              <a matButton="outlined" class="w-full sm:w-auto" testid="guidance-navigate-apple-button"
+                 [href]="view.appleMapsNavigationUrl" target="_blank" rel="noopener noreferrer"
+                 [attr.aria-label]="view.appleMapsNavigationLabel">
+                Apple Maps
+              </a>
+            }
             @if (view.completedLabel) {
               <span class="text-sm" [class.text-green-700]="!view.pending" [class.text-amber-700]="view.pending"
                     testid="guidance-completed-label">
@@ -250,17 +259,21 @@
 
       <!-- below the stop on purpose: it plans the rest of the drive, which is not what the driver
            standing at this stop needs first -->
-      @if (remainingRouteUrl(); as remainingUrl) {
+      @if (remainingRouteLinks().length > 0) {
         <div class="mt-6 border-t border-slate-200 pt-4">
-          <a matButton="filled" testid="guidance-whole-route-button" [href]="remainingUrl"
-             target="_blank" rel="noopener noreferrer"
-             aria-label="Restliche Route in Karte öffnen (in neuem Tab)">
-            <mat-icon svgIcon="directions" class="me-2"></mat-icon>
-            Restliche Route in Karte öffnen
-          </a>
-          @if (remainingRouteTruncatedHint(); as truncatedHint) {
-            <p class="mt-2 text-sm text-slate-600" testid="guidance-whole-route-truncated">
-              {{ truncatedHint }}
+          <div class="flex flex-wrap gap-3">
+            @for (link of remainingRouteLinks(); track link.label) {
+              <a matButton="filled" testid="guidance-whole-route-button" [href]="link.url"
+                 target="_blank" rel="noopener noreferrer"
+                 [attr.aria-label]="link.label + ' (in neuem Tab)'">
+                <mat-icon svgIcon="directions" class="me-2"></mat-icon>
+                {{ link.label }}
+              </a>
+            }
+          </div>
+          @if (remainingRouteChunkedHint(); as chunkedHint) {
+            <p class="mt-2 text-sm text-slate-600" testid="guidance-whole-route-chunked-hint">
+              {{ chunkedHint }}
             </p>
           }
         </div>

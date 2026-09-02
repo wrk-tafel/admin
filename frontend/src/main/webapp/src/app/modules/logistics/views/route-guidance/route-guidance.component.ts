@@ -35,11 +35,15 @@ import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {ConnectivityService} from '../../../../common/connectivity/connectivity.service';
 import {ScreenWakeLockService} from '../../../../common/wake-lock/screen-wake-lock.service';
 import {RouteGuidanceOfflineQueueService} from '../../services/route-guidance-offline-queue.service';
-import {buildSingleDestinationMapsUrl, MAPS_DIRECTIONS_URL} from '../../../../common/util/maps-url.util';
+import {
+  buildSingleDestinationAppleMapsUrl,
+  buildSingleDestinationMapsUrl,
+  MAPS_DIRECTIONS_URL
+} from '../../../../common/util/maps-url.util';
 
 // Google's directions URL takes an origin, a destination and at most 9 waypoints, so a single link
-// can cover 10 stops. Longer routes are opened in the map app in one chunk and the rest is driven
-// stop by stop from the list.
+// can cover 10 stops. A route with more open stops than that gets one link per chunk of up to
+// MAX_MAP_STOPS stops instead - see remainingRouteLinks.
 const MAX_MAP_STOPS = 10;
 
 // A device drives the same route with the same team most days - remembered per browser/device, not
@@ -62,6 +66,8 @@ interface StopView {
   title: string;
   navigationUrl?: string;
   navigationLabel?: string;
+  appleMapsNavigationUrl?: string;
+  appleMapsNavigationLabel?: string;
   completedLabel?: string;
   isNext: boolean;
   // a completion tick for this stop is queued locally and not yet confirmed by the server - see
@@ -198,34 +204,47 @@ export class RouteGuidanceComponent {
     () => this.stops().filter(stop => !stop.completed && stop.shop).map(stop => stop.shop as RouteGuidanceShop)
   );
 
-  protected readonly remainingRouteUrl = computed(() => {
-    const addresses = this.remainingShopStops().slice(0, MAX_MAP_STOPS).map(shop => shop.address);
+  /**
+   * One link per chunk of up to MAX_MAP_STOPS remaining stops, instead of a single link truncated
+   * at the first ten - a route with more open stops than that used to leave everything past the
+   * tenth to be navigated singly. Each chunk's URL uses the maps app's default origin (current
+   * location), so the chunks need no overlap: the driver opens the next one once the previous
+   * chunk's stops are done. Numbering is relative to the remaining open stops, not the whole route.
+   */
+  protected readonly remainingRouteLinks = computed<{ label: string; url: string }[]>(() => {
+    const addresses = this.remainingShopStops().map(shop => shop.address);
     if (addresses.length === 0) {
-      return undefined;
+      return [];
     }
 
+    const chunks: string[][] = [];
+    for (let start = 0; start < addresses.length; start += MAX_MAP_STOPS) {
+      chunks.push(addresses.slice(start, start + MAX_MAP_STOPS));
+    }
+
+    return chunks.map((chunkAddresses, index) => ({
+      label: chunks.length === 1
+        ? 'Restliche Route in Karte öffnen'
+        : `Stopps ${index * MAX_MAP_STOPS + 1}–${index * MAX_MAP_STOPS + chunkAddresses.length} in Karte öffnen`,
+      url: this.buildDirectionsUrl(chunkAddresses)
+    }));
+  });
+
+  /** Only set once the remaining stops no longer fit into a single link - explains why several
+   * buttons appear instead of one. */
+  protected readonly remainingRouteChunkedHint = computed(() =>
+    this.remainingRouteLinks().length > 1
+      ? 'Die Route ist auf mehrere Links mit je bis zu 10 Stopps aufgeteilt. Nächsten Link öffnen, '
+        + 'sobald die Stopps des vorigen erledigt sind.'
+      : undefined
+  );
+
+  private buildDirectionsUrl(addresses: string[]): string {
     const destination = encodeURIComponent(addresses[addresses.length - 1]);
     const waypoints = addresses.slice(0, -1).map(address => encodeURIComponent(address));
     const waypointsParam = waypoints.length > 0 ? `&waypoints=${waypoints.join('%7C')}` : '';
     return `${MAPS_DIRECTIONS_URL}&destination=${destination}${waypointsParam}&travelmode=driving`;
-  });
-
-  /**
-   * Only set when the link does not reach the end of the route, and it says what is and is not
-   * covered: "the map is short" would read as if the link were unusable, when in fact it takes the
-   * driver through the next ten stops and only what comes after them has to be navigated singly.
-   */
-  protected readonly remainingRouteTruncatedHint = computed(() => {
-    const overflow = this.remainingShopStops().length - MAX_MAP_STOPS;
-    if (overflow <= 0) {
-      return undefined;
-    }
-
-    const covered = `Die Karte führt über die nächsten ${MAX_MAP_STOPS} Stopps.`;
-    return overflow === 1
-      ? `${covered} Der Stopp danach ist einzeln zu navigieren.`
-      : `${covered} Die ${overflow} Stopps danach sind einzeln zu navigieren.`;
-  });
+  }
 
   private hasRestoredRoute = false;
 
@@ -449,6 +468,10 @@ export class RouteGuidanceComponent {
       // hears the same label the sighted one reads, with the destination appended
       navigationLabel: stop.shop
         ? `Navigation starten zu ${stop.shop.name}, ${stop.shop.address} (in neuem Tab)`
+        : undefined,
+      appleMapsNavigationUrl: stop.shop ? buildSingleDestinationAppleMapsUrl(stop.shop.address) : undefined,
+      appleMapsNavigationLabel: stop.shop
+        ? `In Apple Maps navigieren zu ${stop.shop.name}, ${stop.shop.address} (in neuem Tab)`
         : undefined,
       completedLabel: pending
         ? 'Ausstehend - wird synchronisiert, sobald wieder online'

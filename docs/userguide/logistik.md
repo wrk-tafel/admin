@@ -28,9 +28,9 @@ Sobald alle Stopps bis auf den letzten abgehakt sind, wird automatisch eine [Pus
 
 Der abgehakte Fortschritt ist außerdem auf der [Übersicht](README.md#übersicht-dashboard) unter "Routen unterwegs" sichtbar — allerdings erst, sobald an diesem Tag der erste Stopp abgehakt wurde. Wird das Routen-Navi an einem Tag nicht verwendet, bleibt dieser Bereich der Übersicht ganz aus.
 
-**Navigation starten** öffnet die Navigation zur jeweiligen Filiale in der Karten-App des Geräts (am Handy die installierte Karten-App, am Computer die Karte im Browser). Am Fortschritt ändert das nichts — abgehakt wird ausschließlich über die Knöpfe **Stopp erledigt**/**Rückgängig machen**.
+**Navigation starten** öffnet die Navigation zur jeweiligen Filiale in der Karten-App des Geräts (am Handy die installierte Karten-App, am Computer die Karte im Browser). Daneben öffnet **Apple Maps** dieselbe Adresse gezielt in Apples eigener Karten-App, für Fahrer:innen auf iOS, die diese der Standard-Karten-App vorziehen. An keinem der beiden Knöpfe hängt der Fortschritt — abgehakt wird ausschließlich über die Knöpfe **Stopp erledigt**/**Rückgängig machen**.
 
-**Restliche Route in Karte öffnen** unterhalb der Stopps übergibt gleich mehrere noch offene Stopps als eine Fahrt an die Karten-App. Bis zu zehn Stopps passen in eine solche Fahrt; sind noch mehr offen, steht darunter, wie viele Stopps danach einzeln zu navigieren sind.
+**Restliche Route in Karte öffnen** unterhalb der Stopps übergibt gleich mehrere noch offene Stopps als eine Fahrt an die Karten-App. In eine solche Fahrt passen bis zu zehn Stopps; sind mehr als zehn Stopps offen, erscheint statt eines einzelnen Knopfes ein Knopf je zehn Stopps (z. B. "Stopps 1–10 in Karte öffnen", "Stopps 11–15 in Karte öffnen") — jeder startet vom aktuellen Standort, der nächste wird erst geöffnet, sobald die Stopps des vorigen erledigt sind.
 
 Abgehakte Stopps gelten für den **jeweiligen Tag** und sind auch auf anderen Geräten sichtbar — ein zweites Handy oder die Zentrale sehen denselben Stand. Am nächsten Tag beginnt die Route wieder mit lauter offenen Stopps. Wird eine Route zwischenzeitlich unter [Einstellungen → Routen](einstellungen.md#routen) bearbeitet, geht der Fortschritt des Tages für diese Route verloren, da die Stopps dabei neu angelegt werden.
 

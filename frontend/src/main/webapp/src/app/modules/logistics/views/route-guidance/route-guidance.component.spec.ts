@@ -271,8 +271,12 @@ describe('RouteGuidanceComponent', () => {
     expect(firstStop.navigationUrl)
       .toBe('https://www.google.com/maps/dir/?api=1&destination=Hauptstra%C3%9Fe%205%2C%201010%20Wien&travelmode=driving');
     expect(firstStop.navigationLabel).toContain('Navigation starten zu Lidl');
+    expect(firstStop.appleMapsNavigationUrl)
+      .toBe('https://maps.apple.com/?daddr=Hauptstra%C3%9Fe%205%2C%201010%20Wien&dirflg=d');
+    expect(firstStop.appleMapsNavigationLabel).toContain('In Apple Maps navigieren zu Lidl');
     expect(secondStop.title).toBe('Stopp ohne Filiale');
     expect(secondStop.navigationUrl).toBeUndefined();
+    expect(secondStop.appleMapsNavigationUrl).toBeUndefined();
   });
 
   it('names the buttons after what pressing them does', () => {
@@ -298,11 +302,14 @@ describe('RouteGuidanceComponent', () => {
     const component = fixture.componentInstance;
     component['onSelectedRouteChange'](testRoute);
 
-    expect(component['remainingRouteUrl']()).toBe(
+    const links = component['remainingRouteLinks']();
+    expect(links.length).toBe(1);
+    expect(links[0].label).toBe('Restliche Route in Karte öffnen');
+    expect(links[0].url).toBe(
       'https://www.google.com/maps/dir/?api=1&destination=Nebengasse%202%2C%201020%20Wien' +
       '&waypoints=Hauptstra%C3%9Fe%205%2C%201010%20Wien&travelmode=driving'
     );
-    expect(component['remainingRouteTruncatedHint']()).toBeUndefined();
+    expect(component['remainingRouteChunkedHint']()).toBeUndefined();
   });
 
   it('leaves out the directions link when every stop is done', () => {
@@ -315,10 +322,10 @@ describe('RouteGuidanceComponent', () => {
 
     component['onSelectedRouteChange'](testRoute);
 
-    expect(component['remainingRouteUrl']()).toBeUndefined();
+    expect(component['remainingRouteLinks']()).toEqual([]);
   });
 
-  it('caps the directions link at ten stops and says so', () => {
+  it('chunks the directions link into groups of ten stops for longer routes', () => {
     const manyStops: RouteGuidanceStop[] = Array.from({length: 12}, (_, index) => ({
       stopId: 300 + index,
       time: `1${index < 10 ? '0' : '1'}:00:00`,
@@ -338,11 +345,18 @@ describe('RouteGuidanceComponent', () => {
 
     component['onSelectedRouteChange'](testRoute);
 
-    const url = component['remainingRouteUrl']()!;
-    expect(url).toContain('destination=Gasse%209%2C%201010%20Wien');
-    expect(url.match(/%7C/g)?.length).toBe(8);
-    expect(component['remainingRouteTruncatedHint']())
-      .toBe('Die Karte führt über die nächsten 10 Stopps. Die 2 Stopps danach sind einzeln zu navigieren.');
+    const links = component['remainingRouteLinks']();
+    expect(links.length).toBe(2);
+    expect(links[0].label).toBe('Stopps 1–10 in Karte öffnen');
+    expect(links[0].url).toContain('destination=Gasse%209%2C%201010%20Wien');
+    expect(links[0].url.match(/%7C/g)?.length).toBe(8);
+    expect(links[1].label).toBe('Stopps 11–12 in Karte öffnen');
+    expect(links[1].url).toContain('destination=Gasse%2011%2C%201010%20Wien');
+    expect(links[1].url).toContain('waypoints=Gasse%2010%2C%201010%20Wien');
+    expect(component['remainingRouteChunkedHint']()).toBe(
+      'Die Route ist auf mehrere Links mit je bis zu 10 Stopps aufgeteilt. Nächsten Link öffnen, '
+      + 'sobald die Stopps des vorigen erledigt sind.'
+    );
   });
 
   it('shows one stop at a time and opens on the first one still to do', () => {

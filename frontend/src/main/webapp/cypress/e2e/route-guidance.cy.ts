@@ -3,7 +3,12 @@ import {MAIN_CONTENT} from '../support/accessibility';
 
 // Route 2 from the testdata: a shop stop, a stop without a shop, and a second shop stop.
 // Route 3: two shop stops, and the seeded return boxes the screen hands back.
-const STOP_IDS_BY_ROUTE: Record<number, number[]> = {2: [200, 210, 220], 3: [300, 310]};
+// Route 1: fifteen shop stops - the one route long enough to exercise chunked map links.
+const STOP_IDS_BY_ROUTE: Record<number, number[]> = {
+  1: Array.from({length: 15}, (_, index) => index + 1),
+  2: [200, 210, 220],
+  3: [300, 310]
+};
 
 const SELECTED_ROUTE_STORAGE_KEY = 'tafel.routeGuidance.selectedRouteId';
 
@@ -156,7 +161,7 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-stop-return-items').should('not.exist');
   });
 
-  it('offers a map link per stop and one for the rest of the route', () => {
+  it('offers a map link per stop, in Google and Apple Maps, and one for the rest of the route', () => {
     selectRoute2();
 
     cy.byTestId('guidance-navigate-button')
@@ -164,14 +169,45 @@ describe('Route Guidance', () => {
       .should('have.attr', 'href')
       .and('contain', 'https://www.google.com/maps/dir/?api=1&destination=')
       .and('contain', 'Kudlichgasse%204%2C%201130%20Wien');
+    cy.byTestId('guidance-navigate-apple-button')
+      .should('have.attr', 'target', '_blank')
+      .should('have.attr', 'href')
+      .and('contain', 'https://maps.apple.com/?daddr=')
+      .and('contain', 'Kudlichgasse%204%2C%201130%20Wien');
 
     cy.byTestId('guidance-whole-route-button')
+      .should('have.length', 1)
+      .should('contain.text', 'Restliche Route in Karte öffnen')
       .should('have.attr', 'href')
       .and('contain', 'destination=Simmeringer%20Hauptstra%C3%9Fe%205%2C%201140%20Wien')
       .and('contain', 'waypoints=Kudlichgasse%204%2C%201130%20Wien');
 
-    // only three stops, so nothing is cut off
-    cy.byTestId('guidance-whole-route-truncated').should('not.exist');
+    // only three stops, so nothing is chunked
+    cy.byTestId('guidance-whole-route-chunked-hint').should('not.exist');
+  });
+
+  it('chunks the remaining-route link into groups of ten stops for a route with more than that many open', () => {
+    selectRoute('Route 1');
+
+    cy.byTestId('guidance-whole-route-button').should('have.length', 2);
+    cy.byTestId('guidance-whole-route-button').eq(0)
+      .should('contain.text', 'Stopps 1–10 in Karte öffnen')
+      .should('have.attr', 'href')
+      .and('contain', 'https://www.google.com/maps/dir/?api=1&destination=');
+    cy.byTestId('guidance-whole-route-button').eq(1)
+      .should('contain.text', 'Stopps 11–15 in Karte öffnen')
+      .should('have.attr', 'href')
+      .and('contain', 'https://www.google.com/maps/dir/?api=1&destination=');
+    cy.byTestId('guidance-whole-route-chunked-hint').scrollIntoView().should('be.visible');
+
+    // completing stops down to ten or fewer open collapses back to a single, unnumbered link
+    for (let i = 0; i < 6; i++) {
+      cy.byTestId('guidance-complete-button').click();
+    }
+    cy.byTestId('guidance-whole-route-button')
+      .should('have.length', 1)
+      .should('contain.text', 'Restliche Route in Karte öffnen');
+    cy.byTestId('guidance-whole-route-chunked-hint').should('not.exist');
   });
 
   it('gives an overview of every stop as tappable dots, jumping straight to the one tapped', () => {
