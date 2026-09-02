@@ -36,7 +36,6 @@ class StatisticsService(
 
     companion object {
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-        private val INTEGER_FORMATTER = NumberFormat.getIntegerInstance()
 
         private const val MIN_AGE = 0
         private const val MAX_AGE = 120
@@ -139,7 +138,9 @@ class StatisticsService(
         value: Long,
         unit: String? = null,
     ): StatisticsDetail = detail(
-        title = INTEGER_FORMATTER.format(value).withUnit(unit),
+        // created per call, not shared - NumberFormat is documented as not thread-safe, and this
+        // method runs on every GET /api/statistics/data and generate-csv request (#3629)
+        title = NumberFormat.getIntegerInstance().format(value).withUnit(unit),
         subTitle = subTitle,
         value = value.toDouble(),
         unit = unit,
@@ -477,7 +478,7 @@ class StatisticsService(
             listOf("Alleinerzieher (Haushalte)", data.singleParentHouseholds.title),
             listOf("Notschlafstellen (Anzahl)", data.sheltersCount.title),
             listOf("Notschlafstellen (Durchschnitt pro Ausgabe)", data.sheltersAverage.title),
-            listOf("Notschlafstellen (versorgte Personen pro Ausgabe)", data.sheltersPersonsCount.title),
+            listOf("Notschlafstellen (versorgte Personen gesamt)", data.sheltersPersonsCount.title),
             listOf("Spender (Anzahl)", data.shopsCount.title),
             listOf("Warenmenge (Gesamt)", data.shopItemsTotal.title),
             listOf("Warenmenge (Durchschnitt pro Spender)", data.shopItemsAverage.title),

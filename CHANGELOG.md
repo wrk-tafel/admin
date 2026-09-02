@@ -18,6 +18,9 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Suche in "Anmelde-Versuche" behandelt `%` und `_` in der Eingabe jetzt als normale Zeichen, statt sie als Platzhalter zu verwenden.
 - Die Aktionen "Kunde sperren/entsperren/deaktivieren" bieten bei einem noch nicht geprüften möglichen Duplikat bzw. einem zu hohen Einkommen jetzt denselben Bestätigungsdialog wie das Verlängern an, statt wirkungslos mit einer irreführenden Fehlermeldung abzubrechen.
 - Ein nicht als Ticket lesbarer QR-Code (z. B. ein Dokument oder ein Poster) löst am Scanner jetzt keine wiederholt aufblitzende Rückmeldung mehr aus und wird nicht mehr fälschlich als ungültige Zahl an den Server gesendet.
+- CSV-Exporte maskieren jetzt Zellen, die mit einem Formelzeichen (=, +, -, @) beginnen, statt sie unverändert zu exportieren und damit eine Formelausführung beim Öffnen in Excel zu riskieren.
+- Der CSV-Export der Statistiken bezeichnet die Zeile der in Notschlafstellen versorgten Personen jetzt korrekt als Gesamtsumme des Zeitraums, statt fälschlich als Durchschnitt pro Ausgabe.
+- Erfasste Retourware bei der Warenerfassung geht jetzt nicht mehr verloren, wenn ein gerade gespeicherter Wechsel der Filiale mit einer weiteren gleichzeitigen Speicherung derselben Route zusammentrifft oder wenn eine verzögerte Serverantwort erst nach dem Wechsel zur nächsten Filiale eintrifft.
 - Ein gleichzeitiges Erfassen einer Zahlung und das automatische Vormerken des Unkostenbeitrags beim Beenden derselben Ausgabe führt jetzt nicht mehr dazu, dass eine der beiden Änderungen verloren geht.
 - Das Bearbeiten eines Haushalts kann nicht mehr über einen speziell konstruierten API-Aufruf dazu führen, dass der Haushalt am Ende ohne Hauptperson gespeichert wird.
 

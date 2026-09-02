@@ -262,6 +262,43 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(component.returnItems.length).toBe(0);
   });
 
+  it('does not clear the new shop\'s dirty return items when the previous shop\'s save resolves late', () => {
+    // Regression test for #3628: a slower response to the outgoing shop's return-items save must
+    // not clear dirty state that, by the time it arrives, already belongs to the shop switched to.
+    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsResponsiveComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+
+    componentRef.setInput('foodCategories', mockFoodCategories);
+    componentRef.setInput('foodReturnCategories', mockFoodReturnCategories);
+    componentRef.setInput('selectedRouteData', {route: mockRoute, shops: mockShops, foodCollectionData: {items: []}});
+
+    component.currentShop.set(mockShops[0]);
+    (component as any).currentSelection = {routeId: mockRoute.id, shopId: mockShops[0].id};
+    component.addReturnItem('Bananenkartons', 2);
+    component.returnItems.markAsDirty();
+
+    const apiService = TestBed.inject(FoodCollectionsApiService);
+    const saveReturnItems$ = new Subject<void>();
+    vi.spyOn(apiService, 'saveReturnItemsPerShop').mockReturnValue(saveReturnItems$.asObservable());
+    vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue(of({items: [], returnItems: []}) as any);
+
+    // switching to shop 1 fires the (still-pending) save for shop 0 and loads shop 1 synchronously
+    component.selectShop(mockShops[1]);
+    expect(component.returnItems.pristine).toBe(true);
+
+    // the codriver edits shop 1's own return items before shop 0's save resolves
+    component.addReturnItem('Frisches Gemüse', 1);
+    component.returnItems.markAsDirty();
+
+    // shop 0's slow save finally resolves
+    saveReturnItems$.next();
+    saveReturnItems$.complete();
+
+    // shop 1's just-made edit must still be considered unsaved
+    expect(component.returnItems.dirty).toBe(true);
+  });
+
   it('sends the outgoing shop\'s return items under its own route, not the newly selected route', () => {
     // Regression test for #3527: selectedRouteData() already points at the new route by the time
     // the outgoing shop's return items are sent, so the request must not be built from it.

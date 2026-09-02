@@ -235,6 +235,44 @@ describe('Food Collection Recording', () => {
     completeRouteViaApi();
   });
 
+  it('mobile: keeps a shop\'s freshly edited return items marked unsaved when the previous shop\'s save resolves late', () => {
+    // Regression test for #3628: a slow response to the outgoing shop's return-items save must not
+    // clear dirty state that, by the time it arrives, already belongs to the shop switched to.
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    cy.intercept('POST', '**/food-collections/routes/*/shops/*/return-items', (req) => {
+      req.on('response', (res) => {
+        res.setDelay(500);
+      });
+    }).as('saveReturnItemsPerShop');
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+    cy.byTestId('select-items-tab').click();
+    cy.byTestId('shop-title').should('contain.text', 'Lidl');
+
+    // route 2 needs at least one recorded amount of its own, or afterEach's closeDistribution()
+    // refuses it as unvollständig
+    cy.byTestId('category-1-input').type('1');
+    cy.byTestId('return-category-11-increment-button').click();
+
+    cy.byTestId('next-shop-button').click();
+    cy.byTestId('shop-title').should('contain.text', 'Denns BioMarkt');
+
+    // edit the new shop's return items before the previous shop's (delayed) save resolves
+    cy.byTestId('return-category-11-increment-button').click();
+    cy.byTestId('waren-tab-status-unsaved').scrollIntoView().should('be.visible');
+
+    cy.wait('@saveReturnItemsPerShop');
+
+    // the new shop's edit must still be considered unsaved, not wiped by the late response
+    cy.byTestId('waren-tab-status-unsaved').scrollIntoView().should('be.visible');
+    cy.byTestId('return-category-11-input').should('have.value', '1');
+
+    completeRouteViaApi();
+  });
+
   it('desktop: skips an invalid Warenmenge cell without blocking the rest of the save', () => {
     // Regression test for #3559: an invalid Warenmenge cell used to be sent anyway (failing the
     // backend's validation and aborting km/base data too) and, when skipped, was mislabelled

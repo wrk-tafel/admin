@@ -19,7 +19,6 @@ class FoodCollectionsExporter(
 
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-        private val NUMBER_FORMATTER = NumberFormat.getNumberInstance()
     }
 
     override fun getName(): String = "TOeT_Spenden"
@@ -98,7 +97,10 @@ class FoodCollectionsExporter(
                     sortedCategories.forEach { (category, _) ->
                         val itemPerCategory = itemsForShop.firstOrNull { it.category.id == category.id }
                         val weight = itemPerCategory?.weight ?: BigDecimal.ZERO
-                        columns.add(NUMBER_FORMATTER.format(weight))
+                        // created per call, not shared - NumberFormat is documented as not
+                        // thread-safe, and a manual mail resend can overlap the automatic
+                        // post-close export (#3629)
+                        columns.add(NumberFormat.getNumberInstance().format(weight))
                     }
 
                     rows.add(columns)
