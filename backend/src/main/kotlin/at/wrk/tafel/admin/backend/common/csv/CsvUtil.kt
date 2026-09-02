@@ -13,8 +13,11 @@ object CsvUtil {
     // Characters Excel/Sheets/LibreOffice treat as a formula prefix - a cell starting with one of
     // these executes as a formula the moment the file is opened, rather than showing as the plain
     // text it actually is (CWE-1236). Several exported columns carry free text a data subject
-    // supplied (e.g. a household member's name), so this cannot be assumed safe.
-    private val FORMULA_TRIGGER_CHARS = charArrayOf('=', '+', '-', '@')
+    // supplied (e.g. a household member's name), so this cannot be assumed safe. Tab (0x09) and
+    // carriage return (0x0D) are on the OWASP CSV Injection list alongside the four visible
+    // characters: Excel strips leading whitespace/control characters before evaluating a cell, so
+    // "\t=1+1" would otherwise bypass a check that only looked at the literal first character.
+    private val FORMULA_TRIGGER_CHARS = charArrayOf('=', '+', '-', '@', '\t', '\r')
 
     fun writeRowsToByteArray(rows: List<List<String>>): ByteArray {
         val byteArrayOutputStream = ByteArrayOutputStream()
