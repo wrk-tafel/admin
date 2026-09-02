@@ -89,6 +89,8 @@ class UserExportService(
             PushNotificationType.USER_LOCKED_OUT to "Benutzer gesperrt",
             PushNotificationType.REPORT_MAIL_FAILED to "E-Mail nicht versendet",
             PushNotificationType.EXCESSIVE_READ_ACCESS to "Ungewöhnlich viele Zugriffe",
+            PushNotificationType.SCANNER_FILES_EXPIRING to "Gescannte Dateien werden bald gelöscht",
+            PushNotificationType.RETENTION_RUN to "Bereinigungsjob auffällig",
         )
     }
 

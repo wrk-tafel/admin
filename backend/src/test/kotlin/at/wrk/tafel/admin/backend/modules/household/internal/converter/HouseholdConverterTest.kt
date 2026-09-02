@@ -559,6 +559,28 @@ internal class HouseholdConverterTest {
             .hasMessageContaining("2")
     }
 
+    /**
+     * An id-less main-person entry resolves to the stored main person row, same as an entry
+     * explicitly carrying that row's id - so the two must be rejected as duplicates just like two
+     * explicit-id entries are, or they would silently collapse onto the same [PersonEntity] and
+     * leave the household without a flagged main person - see issue #3633.
+     */
+    @Test
+    fun `update household rejects an id-less main-person entry alongside an explicit reference to the stored main person`() {
+        val storedMainPersonId = 1L
+        val updatedHousehold = testHousehold.copy(
+            persons = listOf(
+                testMainPerson.copy(id = null),
+                testHousehold.additionalPersons()[0].copy(id = storedMainPersonId, isMainPerson = false),
+                testHousehold.additionalPersons()[1],
+            ),
+        )
+
+        assertThatThrownBy { converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1) }
+            .isInstanceOf(BusinessRuleException::class.java)
+            .hasMessageContaining("1")
+    }
+
     @Test
     fun `create ignores any id carried by the request, even a value that collides with an existing household's person`() {
         // a household being created has nothing to resolve an id against yet - some callers reuse a

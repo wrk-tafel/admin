@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.database.model.auth
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -29,8 +30,18 @@ class LoginAttemptEntity(
 
     interface Specs {
         companion object {
-            fun usernameLike(usernamePattern: String): Specification<LoginAttemptEntity> = Specification { root: Root<LoginAttemptEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                cb.like(cb.lower(root["username"]), usernamePattern.lowercase())
+            /**
+             * [searchInput] is the raw (already trimmed/lower-cased by the caller) search term, not a
+             * pre-built `LIKE` pattern - `%`/`_`/`\` in it are escaped the same way
+             * [SearchTextSpecs.matches] escapes them, so a username containing one of those characters
+             * is searched for literally instead of as a wildcard.
+             */
+            fun usernameLike(searchInput: String): Specification<LoginAttemptEntity> = Specification { root: Root<LoginAttemptEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                cb.like(
+                    cb.lower(root["username"]),
+                    "%${SearchTextSpecs.escapeLikeWildcards(searchInput.lowercase())}%",
+                    SearchTextSpecs.LIKE_ESCAPE_CHARACTER,
+                )
             }
 
             fun lockedOnly(now: LocalDateTime): Specification<LoginAttemptEntity> = Specification { root: Root<LoginAttemptEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->

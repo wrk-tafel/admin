@@ -368,6 +368,26 @@ class DistributionService(
                 "Deleted ticket ${it.ticketNumber} " +
                     "(household: ${it.household.householdId}, distribution: ID ${distribution.id})",
             )
+
+            // Deleting the last unprocessed ticket reaches the same "everyone served" state as
+            // processing it (see closeCurrentTicketAndGetNext), but without going through that method
+            // - so it has to mark completion here too, or AllTicketsProcessedEvent never fires for
+            // this distribution. `distribution.households` is the already-loaded collection from
+            // getFirstUnprocessedDistributionHouseholdEntity above, so the just-deleted entity is
+            // excluded by id rather than relying on the delete having removed it from that collection.
+            val remainingHouseholds = distribution.households.filter { entity -> entity.id != it.id }
+            val unprocessedTicketsRemain = remainingHouseholds.any { entity -> entity.processed == false }
+            if (!unprocessedTicketsRemain &&
+                distributionRepository.markTicketsCompleted(distribution.id!!, LocalDateTime.now()) == 1
+            ) {
+                eventPublisher.publishEvent(
+                    AllTicketsProcessedEvent(
+                        distributionId = distribution.id!!,
+                        ticketCount = remainingHouseholds.size,
+                    ),
+                )
+            }
+
             true
         } ?: false
     }

@@ -13,6 +13,13 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Die Anmeldung (Check-in) funktioniert jetzt auch für Benutzer:innen, die ausschließlich die Berechtigung "Anmeldung" besitzen, statt mit einer Zugriffsfehlermeldung abzubrechen.
 - Die Warnung administrativer Konten bei ungewöhnlich vielen Datenzugriffen berücksichtigt jetzt eine laufende Ausgabe mit einer höheren Schwelle, statt bei jedem regulären Ausgabetag auszulösen.
 - Ein minimaler Layoutfehler auf der gedruckten Bezugskarte, der zu einer Warnung bei jeder Erstellung eines neuen Haushalts führte, wurde behoben.
+- Das Löschen des letzten offenen Tickets löst jetzt ebenfalls die Benachrichtigung "Alle Kunden abgearbeitet" aus, statt sie ganz ausfallen zu lassen.
+- Der GDPR-Datenexport eines Benutzerkontos zeigt jetzt für alle Benachrichtigungsarten die deutsche Bezeichnung an, statt für zwei davon den internen Systemnamen.
+- Die Suche in "Anmelde-Versuche" behandelt `%` und `_` in der Eingabe jetzt als normale Zeichen, statt sie als Platzhalter zu verwenden.
+- Die Aktionen "Kunde sperren/entsperren/deaktivieren" bieten bei einem noch nicht geprüften möglichen Duplikat bzw. einem zu hohen Einkommen jetzt denselben Bestätigungsdialog wie das Verlängern an, statt wirkungslos mit einer irreführenden Fehlermeldung abzubrechen.
+- Ein nicht als Ticket lesbarer QR-Code (z. B. ein Dokument oder ein Poster) löst am Scanner jetzt keine wiederholt aufblitzende Rückmeldung mehr aus und wird nicht mehr fälschlich als ungültige Zahl an den Server gesendet.
+- Ein gleichzeitiges Erfassen einer Zahlung und das automatische Vormerken des Unkostenbeitrags beim Beenden derselben Ausgabe führt jetzt nicht mehr dazu, dass eine der beiden Änderungen verloren geht.
+- Das Bearbeiten eines Haushalts kann nicht mehr über einen speziell konstruierten API-Aufruf dazu führen, dass der Haushalt am Ende ohne Hauptperson gespeichert wird.
 
 ## [1.16.1] - 2026-08-31
 - Ein Haushalt, der in derselben Ausgabe sowohl "Neu" als auch "Verlängert" ist, wird in der Kundenübersicht jetzt korrekt in beiden Zeilen bedienbar angezeigt, statt zu einem defekten Klickverhalten zu führen.

@@ -123,10 +123,13 @@ class HouseholdConverter(
         // PersonEntity and silently collapse into one - the second entry's fields overwriting the
         // first's - leaving the household with one fewer person than the request sent. Checked here
         // rather than relying on `mappedPersons.size` afterwards, since collapsing already lost the
-        // information needed to tell which id was duplicated.
+        // information needed to tell which id was duplicated. An id-less main-person entry resolves
+        // to the stored main person row just like the mapping below does, so it counts as referencing
+        // that row too - otherwise it and an explicit-id entry for that same row would both resolve to
+        // the same PersonEntity without ever being flagged as duplicates.
         if (storedEntity != null) {
             val duplicatePersonId = householdUpdate.persons
-                .mapNotNull { it.id }
+                .mapNotNull { person -> person.id ?: storedMainPerson?.id?.takeIf { person.isMainPerson } }
                 .groupingBy { it }
                 .eachCount()
                 .filterValues { it > 1 }
