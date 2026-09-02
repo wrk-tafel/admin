@@ -64,6 +64,43 @@
         </div>
       }
 
+      <!-- grouped with the banners above, not with the current stop below: this plans the rest of
+           the drive, which is a different question from "what do I do right now". Collapsed by
+           default (see remainingRouteExpanded) so it does not compete with the current stop for
+           space until a driver actually wants to look ahead. -->
+      @if (remainingRouteLinks().length > 0) {
+        <div class="tafel-panel mb-4">
+          <button type="button" class="flex w-full items-center gap-2 px-3 py-2 text-start text-sm font-medium text-slate-700"
+                  testid="guidance-whole-route-toggle"
+                  [attr.aria-expanded]="remainingRouteExpanded()"
+                  aria-controls="guidance-whole-route-panel"
+                  (click)="toggleRemainingRouteExpanded()">
+            <mat-icon svgIcon="directions" class="text-slate-400"></mat-icon>
+            Restliche Route planen
+            <mat-icon [svgIcon]="remainingRouteExpanded() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                      class="ms-auto text-slate-500"></mat-icon>
+          </button>
+          <div id="guidance-whole-route-panel" role="region" aria-labelledby="guidance-whole-route-toggle"
+               class="px-3 pb-3" [hidden]="!remainingRouteExpanded()">
+            <div class="flex flex-wrap gap-3">
+              @for (link of remainingRouteLinks(); track link.label) {
+                <a matButton="filled" testid="guidance-whole-route-button" [href]="link.url"
+                   target="_blank" rel="noopener noreferrer"
+                   [attr.aria-label]="link.label + ' (in neuem Tab)'">
+                  <mat-icon svgIcon="directions" class="me-2"></mat-icon>
+                  {{ link.label }}
+                </a>
+              }
+            </div>
+            @if (remainingRouteChunkedHint(); as chunkedHint) {
+              <p class="mt-2 text-sm text-slate-600" testid="guidance-whole-route-chunked-hint">
+                {{ chunkedHint }}
+              </p>
+            }
+          </div>
+        </div>
+      }
+
       @if (stops().length > 0) {
         <!-- Orientation at a glance: which stops are done/current/still open, tappable to jump
              straight to one - without this, "how far along am I" meant paging through every stop. -->
@@ -89,15 +126,10 @@
         </div>
 
         <!-- directly above the stop, because that is what it is about: how far along the route the
-             stop on screen is. The bar carries the same figure as the counter - at the wheel the
-             share done is read off a fill, not off two numbers -->
-        <div class="mb-4">
-          <div class="flex justify-end text-sm text-slate-500" testid="guidance-summary">
-            {{ progressLabel() }}
-          </div>
-          <mat-progress-bar class="!mt-1 !h-2 !rounded-full" mode="determinate" testid="guidance-progress"
-                            [value]="completedPercent()" [attr.aria-label]="progressLabel()">
-          </mat-progress-bar>
+             stop on screen is. The dots above already show the same progress per stop - this is
+             just the figure spelled out as a fast-to-read count. -->
+        <div class="mb-4 flex justify-end text-sm text-slate-500" testid="guidance-summary">
+          {{ progressLabel() }}
         </div>
       }
 
@@ -163,13 +195,14 @@
           }
 
           @if (view.stop.returnItems.length > 0) {
-            <div class="mt-3 rounded-md border border-blue-200 bg-blue-50 p-3 text-blue-900"
-                 testid="guidance-stop-return-items">
-              <div class="flex items-center gap-2 font-semibold">
-                <mat-icon svgIcon="inventory_2"></mat-icon>
+            <!-- a plain detail row like address/phone/contact above, not a second boxed callout -
+                 the route-level "Retourware mitnehmen" banner already carries that visual weight -->
+            <div class="mt-3 text-slate-700" testid="guidance-stop-return-items">
+              <div class="flex items-center gap-2 font-medium">
+                <mat-icon svgIcon="inventory_2" class="text-slate-400"></mat-icon>
                 Retourware abgeben
               </div>
-              <ul class="ms-5 mt-1 list-disc">
+              <ul class="ms-7 mt-0.5 list-disc">
                 @for (item of view.stop.returnItems; track item.description) {
                   <li>{{ item.amount }} × {{ item.description }}</li>
                 }
@@ -178,25 +211,28 @@
           }
 
           <div class="mt-4 flex flex-wrap items-center gap-3">
-            @if (view.navigationUrl) {
-              <!-- purely the map app: progress is recorded exclusively via the completion button
-                   below -->
-              <a matButton="filled" class="w-full sm:w-auto" testid="guidance-navigate-button"
-                 [href]="view.navigationUrl" target="_blank" rel="noopener noreferrer"
-                 [attr.aria-label]="view.navigationLabel">
-                <mat-icon svgIcon="directions" class="me-2"></mat-icon>
-                Navigation starten
-              </a>
-            }
-            @if (view.appleMapsNavigationUrl) {
-              <!-- Google's link opens the Google Maps app when installed - this is the path for a
-                   driver on iOS who prefers Apple's own app instead -->
-              <a matButton="outlined" class="w-full sm:w-auto" testid="guidance-navigate-apple-button"
-                 [href]="view.appleMapsNavigationUrl" target="_blank" rel="noopener noreferrer"
-                 [attr.aria-label]="view.appleMapsNavigationLabel">
-                Apple Maps
-              </a>
-            }
+            <div class="flex w-full items-stretch gap-3 sm:w-auto">
+              @if (view.navigationUrl) {
+                <!-- purely the map app: progress is recorded exclusively via the completion button
+                     below -->
+                <a matButton="filled" class="flex-1 sm:flex-none" testid="guidance-navigate-button"
+                   [href]="view.navigationUrl" target="_blank" rel="noopener noreferrer"
+                   [attr.aria-label]="view.navigationLabel">
+                  <mat-icon svgIcon="directions" class="me-2"></mat-icon>
+                  Navigation starten
+                </a>
+              }
+              @if (view.appleMapsNavigationUrl) {
+                <!-- Google's link opens the Google Maps app when installed - this is the path for a
+                     driver on iOS who prefers Apple's own app instead. Kept compact and next to the
+                     primary button rather than a second full-width one below it. -->
+                <a matButton="outlined" class="shrink-0" testid="guidance-navigate-apple-button"
+                   [href]="view.appleMapsNavigationUrl" target="_blank" rel="noopener noreferrer"
+                   [attr.aria-label]="view.appleMapsNavigationLabel">
+                  Apple Maps
+                </a>
+              }
+            </div>
             @if (view.completedLabel) {
               <span class="text-sm" [class.text-green-700]="!view.pending" [class.text-amber-700]="view.pending"
                     testid="guidance-completed-label">
@@ -257,33 +293,10 @@
         </div>
       }
 
-      <!-- below the stop on purpose: it plans the rest of the drive, which is not what the driver
-           standing at this stop needs first -->
-      @if (remainingRouteLinks().length > 0) {
-        <div class="mt-6 border-t border-slate-200 pt-4">
-          <div class="flex flex-wrap gap-3">
-            @for (link of remainingRouteLinks(); track link.label) {
-              <a matButton="filled" testid="guidance-whole-route-button" [href]="link.url"
-                 target="_blank" rel="noopener noreferrer"
-                 [attr.aria-label]="link.label + ' (in neuem Tab)'">
-                <mat-icon svgIcon="directions" class="me-2"></mat-icon>
-                {{ link.label }}
-              </a>
-            }
-          </div>
-          @if (remainingRouteChunkedHint(); as chunkedHint) {
-            <p class="mt-2 text-sm text-slate-600" testid="guidance-whole-route-chunked-hint">
-              {{ chunkedHint }}
-            </p>
-          }
-        </div>
-      }
-
       <!-- Reserves the space the fixed action bar occupies on a phone, at the very end of the
-           scrollable content - not right after the stop card, which would only clear the bar for
-           the stop card itself and still leave this "Restliche Route" section (or, without it, the
-           stop card's own last line) sitting behind the bar once scrolled all the way down. Not
-           needed from `sm` up, where the bar sits in the normal flow instead. -->
+           scrollable content - not right after the stop card, which would leave the stop card's own
+           last line sitting behind the bar once scrolled all the way down. Not needed from `sm` up,
+           where the bar sits in the normal flow instead. -->
       @if (currentStop()) {
         <div class="h-32 sm:hidden" aria-hidden="true"></div>
       }

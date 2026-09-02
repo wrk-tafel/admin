@@ -50,7 +50,6 @@ describe('Route Guidance', () => {
     selectRoute2();
 
     cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
-    cy.byTestId('guidance-progress').should('have.attr', 'aria-valuenow', '0');
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
     cy.byTestId('guidance-stop').should('contain.text', '12:00').should('contain.text', 'Lidl');
     cy.byTestId('guidance-stop-address').should('contain.text', 'Kudlichgasse 4, 1130 Wien');
@@ -175,8 +174,15 @@ describe('Route Guidance', () => {
       .and('contain', 'https://maps.apple.com/?daddr=')
       .and('contain', 'Kudlichgasse%204%2C%201130%20Wien');
 
+    // collapsed by default - planning the rest of the drive is not part of the per-stop flow
+    cy.byTestId('guidance-whole-route-toggle').should('have.attr', 'aria-expanded', 'false');
+    cy.byTestId('guidance-whole-route-button').should('not.be.visible');
+
+    cy.byTestId('guidance-whole-route-toggle').click();
+    cy.byTestId('guidance-whole-route-toggle').should('have.attr', 'aria-expanded', 'true');
     cy.byTestId('guidance-whole-route-button')
       .should('have.length', 1)
+      .should('be.visible')
       .should('contain.text', 'Restliche Route in Karte öffnen')
       .should('have.attr', 'href')
       .and('contain', 'destination=Simmeringer%20Hauptstra%C3%9Fe%205%2C%201140%20Wien')
@@ -184,10 +190,15 @@ describe('Route Guidance', () => {
 
     // only three stops, so nothing is chunked
     cy.byTestId('guidance-whole-route-chunked-hint').should('not.exist');
+
+    cy.byTestId('guidance-whole-route-toggle').click();
+    cy.byTestId('guidance-whole-route-toggle').should('have.attr', 'aria-expanded', 'false');
+    cy.byTestId('guidance-whole-route-button').should('not.be.visible');
   });
 
   it('chunks the remaining-route link into groups of ten stops for a route with more than that many open', () => {
     selectRoute('Route 1');
+    cy.byTestId('guidance-whole-route-toggle').click();
 
     cy.byTestId('guidance-whole-route-button').should('have.length', 2);
     cy.byTestId('guidance-whole-route-button').eq(0)
@@ -198,7 +209,7 @@ describe('Route Guidance', () => {
       .should('contain.text', 'Stopps 11–15 in Karte öffnen')
       .should('have.attr', 'href')
       .and('contain', 'https://www.google.com/maps/dir/?api=1&destination=');
-    cy.byTestId('guidance-whole-route-chunked-hint').scrollIntoView().should('be.visible');
+    cy.byTestId('guidance-whole-route-chunked-hint').should('be.visible');
 
     // completing stops down to ten or fewer open collapses back to a single, unnumbered link
     for (let i = 0; i < 6; i++) {
@@ -292,6 +303,14 @@ describe('Route Guidance', () => {
       // completing pages to the next stop - page back to check the completed one itself
       cy.byTestId('guidance-previous-button').click();
       cy.byTestId('guidance-done-badge').should('be.visible');
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations with the remaining-route panel expanded', () => {
+      selectRoute2();
+      cy.byTestId('guidance-whole-route-toggle').click();
+      cy.byTestId('guidance-whole-route-button').should('be.visible');
 
       cy.checkAccessibility(MAIN_CONTENT);
     });

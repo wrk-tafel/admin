@@ -233,7 +233,7 @@ describe('RouteGuidanceComponent', () => {
     expect(component['completedCount']()).toBe(1);
   });
 
-  it('turns the counter into a percentage for the progress bar', () => {
+  it('counts progress for the summary line', () => {
     const fixture = createComponent();
     const component = fixture.componentInstance;
     routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
@@ -245,7 +245,6 @@ describe('RouteGuidanceComponent', () => {
     fixture.detectChanges();
 
     expect(component['progressLabel']()).toBe('1 von 3 Stopps erledigt');
-    expect(component['completedPercent']()).toBe(33);
   });
 
   it('reports no progress at all for a route without stops', () => {
@@ -256,7 +255,7 @@ describe('RouteGuidanceComponent', () => {
     component['onSelectedRouteChange'](testRoute);
     fixture.detectChanges();
 
-    expect(component['completedPercent']()).toBe(0);
+    expect(component['progressLabel']()).toBe('0 von 0 Stopps erledigt');
   });
 
   it('builds a stop view with the labels the template renders', () => {
@@ -357,6 +356,20 @@ describe('RouteGuidanceComponent', () => {
       'Die Route ist auf mehrere Links mit je bis zu 10 Stopps aufgeteilt. Nächsten Link öffnen, '
       + 'sobald die Stopps des vorigen erledigt sind.'
     );
+  });
+
+  it('starts with the remaining-route panel collapsed and toggles it open', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    expect(component['remainingRouteExpanded']()).toBe(false);
+
+    component['toggleRemainingRouteExpanded']();
+    expect(component['remainingRouteExpanded']()).toBe(true);
+
+    component['toggleRemainingRouteExpanded']();
+    expect(component['remainingRouteExpanded']()).toBe(false);
   });
 
   it('shows one stop at a time and opens on the first one still to do', () => {

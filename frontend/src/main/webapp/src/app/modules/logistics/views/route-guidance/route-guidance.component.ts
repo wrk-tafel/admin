@@ -6,7 +6,6 @@ import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatProgressBar} from '@angular/material/progress-bar';
 import {MatSelectModule} from '@angular/material/select';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
@@ -21,6 +20,8 @@ import callIcon from '@material-symbols/svg-400/outlined/call-fill.svg';
 import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
 import restartAltIcon from '@material-symbols/svg-400/outlined/restart_alt-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
+import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
+import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
 import {
   RouteApiService,
   RouteData,
@@ -83,7 +84,6 @@ interface StopView {
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatProgressBar,
     MatSelectModule,
     MatIcon,
     TafelInfoTooltipComponent
@@ -101,7 +101,9 @@ export class RouteGuidanceComponent {
     call: callIcon,
     route: routeIcon,
     restart_alt: restartAltIcon,
-    person: personIcon
+    person: personIcon,
+    keyboard_arrow_up: keyboardArrowUpIcon,
+    keyboard_arrow_down: keyboardArrowDownIcon
   });
 
   routeList = model.required<RouteList>();
@@ -129,15 +131,20 @@ export class RouteGuidanceComponent {
   protected readonly completedCount = computed(() => this.stops().filter(stop => stop.completed).length);
   protected readonly unassignedReturnItems = computed(() => this._guidance()?.unassignedReturnItems ?? []);
 
-  protected readonly completedPercent = computed(() => {
-    const total = this.stops().length;
-    return total === 0 ? 0 : Math.round((this.completedCount() / total) * 100);
-  });
-
-  // one sentence for both the counter and the bar's accessible name, so the two cannot drift apart
+  // read off the stepper dots plus this one line - a separate percentage bar restated the same
+  // figure a second way without adding anything a driver could not already see in the dots
   protected readonly progressLabel = computed(
     () => `${this.completedCount()} von ${this.stops().length} Stopps erledigt`
   );
+
+  // collapsed by default: planning the rest of the drive is occasional (start of shift, a lull
+  // between stops), not part of the per-stop flow, so it should not compete with the current stop
+  // for space on every render
+  protected readonly remainingRouteExpanded = signal(false);
+
+  protected toggleRemainingRouteExpanded() {
+    this.remainingRouteExpanded.update(expanded => !expanded);
+  }
 
   // the day the boxes now going back were collected, formatted the way the rest of the app writes a
   // date; undefined when the last trip brought nothing back
