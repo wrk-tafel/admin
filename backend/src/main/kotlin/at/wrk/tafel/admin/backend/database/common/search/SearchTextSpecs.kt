@@ -25,7 +25,7 @@ object SearchTextSpecs {
     const val SEARCH_TEXT_ATTRIBUTE = "searchText"
 
     private const val EXACT_MATCH_SCORE = 1.0f
-    private const val LIKE_ESCAPE_CHARACTER = '\\'
+    const val LIKE_ESCAPE_CHARACTER = '\\'
 
     fun matches(
         cb: CriteriaBuilder,
@@ -65,9 +65,11 @@ object SearchTextSpecs {
 
     /**
      * `%` and `_` are ordinary characters in a name or an e-mail address - without escaping them a
-     * search for `_` would return every row.
+     * search for `_` would return every row. Public so any other `LIKE`-based search (e.g.
+     * `LoginAttemptEntity.Specs.usernameLike`) can reuse the same escaping instead of feeding user
+     * input straight into a pattern.
      */
-    private fun escapeLikeWildcards(searchTerm: String): String = searchTerm
+    fun escapeLikeWildcards(searchTerm: String): String = searchTerm
         .replace("\\", "\\\\")
         .replace("%", "\\%")
         .replace("_", "\\_")

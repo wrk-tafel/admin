@@ -363,7 +363,7 @@ export class CustomerDetailComponent {
     });
   }
 
-  openConfirmUpdateCustomerDialog(customerData: CustomerData, message: string) {
+  openConfirmUpdateCustomerDialog(customerData: CustomerData, message: string, successMessage: string, errorTitle: string) {
     this.dialog.open(ConfirmCustomerSaveDialog, {
       data: {
         message: message
@@ -373,13 +373,36 @@ export class CustomerDetailComponent {
         this.customerApiService.updateCustomer(customerData, true, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
           next: (response: CustomerUpdateResponse) => {
             this.customerData.set(response.data);
-            this.toastr.success('Kunde wurde verlängert!');
+            this.toastr.success(successMessage);
           },
           error: (error: HttpErrorResponse) => {
-            this.toastr.error(extractErrorMessage(error), 'Verlängerung fehlgeschlagen!');
+            this.toastr.error(extractErrorMessage(error), errorTitle);
           },
         });
       }
+    });
+  }
+
+  /**
+   * Shared by every action that round-trips the full customer record through `updateCustomer`
+   * (prolong/disable/lock/unlock): the backend rejects an unreviewed duplicate candidate or an
+   * above-limit income with a 409 *before* saving, so a plain unhandled request would dead-end
+   * silently on those two states - see issue #3636. [updatedCustomerData] already carries whatever
+   * the action just changed (e.g. a freshly entered lock reason), so it survives into the retry
+   * unchanged.
+   */
+  private updateCustomerWithConflictRetry(updatedCustomerData: CustomerData, successMessage: string, errorTitle: string) {
+    this.customerApiService.updateCustomer(updatedCustomerData, false, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+      next: (response: CustomerUpdateResponse) => {
+        this.customerData.set(response.data);
+      },
+      error: (error: HttpErrorResponse) => {
+        if (error.status === 409) {
+          this.openConfirmUpdateCustomerDialog(updatedCustomerData, extractErrorMessage(error), successMessage, errorTitle);
+        } else {
+          this.toastr.error(extractErrorMessage(error), errorTitle);
+        }
+      },
     });
   }
 
@@ -390,21 +413,7 @@ export class CustomerDetailComponent {
       validUntil: newValidUntilDate
     };
 
-    const observer = {
-      next: (response: CustomerUpdateResponse) => {
-        const customer = response.data;
-        this.customerData.set(customer);
-      },
-      error: (error: HttpErrorResponse) => {
-        if (error.status === 409) {
-          this.openConfirmUpdateCustomerDialog(updatedCustomerData, extractErrorMessage(error));
-        } else {
-          this.toastr.error(extractErrorMessage(error), 'Verlängerung fehlgeschlagen!');
-        }
-      },
-    };
-
-    this.customerApiService.updateCustomer(updatedCustomerData, false, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe(observer);
+    this.updateCustomerWithConflictRetry(updatedCustomerData, 'Kunde wurde verlängert!', 'Verlängerung fehlgeschlagen!');
   }
 
   disableCustomer() {
@@ -413,10 +422,7 @@ export class CustomerDetailComponent {
       validUntil: dayjs().subtract(1, 'day').endOf('day').toDate()
     };
 
-    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(response => {
-      const customer = response.data;
-      this.customerData.set(customer);
-    });
+    this.updateCustomerWithConflictRetry(updatedCustomerData, 'Kunde wurde deaktiviert!', 'Deaktivieren fehlgeschlagen!');
   }
 
   openLockCustomerDialog() {
@@ -427,10 +433,7 @@ export class CustomerDetailComponent {
           locked: true,
           lockReason: reason
         };
-        this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(response => {
-          const customer = response.data;
-          this.customerData.set(customer);
-        });
+        this.updateCustomerWithConflictRetry(updatedCustomerData, 'Kunde wurde gesperrt!', 'Sperren fehlgeschlagen!');
       }
     });
   }
@@ -443,10 +446,7 @@ export class CustomerDetailComponent {
       lockReason: null
     };
 
-    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(response => {
-      const customer = response.data;
-      this.customerData.set(customer);
-    });
+    this.updateCustomerWithConflictRetry(updatedCustomerData, 'Kunde wurde entsperrt!', 'Entsperren fehlgeschlagen!');
   }
 
   openPayCostContributionDialog() {

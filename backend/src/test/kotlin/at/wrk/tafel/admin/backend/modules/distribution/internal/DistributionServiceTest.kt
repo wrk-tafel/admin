@@ -1484,6 +1484,39 @@ internal class DistributionServiceTest {
     }
 
     /**
+     * Deleting (rather than processing) the last unprocessed ticket reaches the same "everyone
+     * served" state as closing it, but via a different code path - see issue #3637.
+     */
+    @Test
+    fun `deleting the last unprocessed ticket publishes AllTicketsProcessedEvent`() {
+        val distribution = distributionWithUnprocessedTickets(count = 1)
+        every { distributionRepository.markTicketsCompleted(distribution.id!!, any()) } returns 1
+
+        service.deleteCurrentTicket(testHouseholdEntity1.householdId)
+
+        verify { eventPublisher.publishEvent(AllTicketsProcessedEvent(distributionId = distribution.id!!, ticketCount = 0)) }
+    }
+
+    @Test
+    fun `deleting a ticket with others still unprocessed publishes no AllTicketsProcessedEvent`() {
+        distributionWithUnprocessedTickets(count = 2)
+
+        service.deleteCurrentTicket(testHouseholdEntity1.householdId)
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<AllTicketsProcessedEvent>()) }
+    }
+
+    @Test
+    fun `deleting the last unprocessed ticket a second time publishes no second AllTicketsProcessedEvent`() {
+        distributionWithUnprocessedTickets(count = 1)
+        every { distributionRepository.markTicketsCompleted(any(), any()) } returns 0
+
+        service.deleteCurrentTicket(testHouseholdEntity1.householdId)
+
+        verify(exactly = 0) { eventPublisher.publishEvent(any<AllTicketsProcessedEvent>()) }
+    }
+
+    /**
      * Regression guard (issue #3602): a bare `getCurrentDistribution()!!` used to turn a distribution
      * closing between the interceptor's check and this read into an unguarded NPE (500) instead of
      * the graceful conflict every other "already closed" path returns.

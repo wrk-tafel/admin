@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.statistic
 
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
@@ -18,6 +20,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -33,8 +36,18 @@ class MissingCostContributionServiceTest {
     @RelaxedMockK
     private lateinit var staticValueRepository: StaticValueRepository
 
+    @RelaxedMockK
+    private lateinit var advisoryLockService: AdvisoryLockService
+
     @InjectMockKs
     private lateinit var service: MissingCostContributionService
+
+    @BeforeEach
+    fun beforeEach() {
+        every { advisoryLockService.withLock(any(), any<() -> Any?>()) } answers {
+            secondArg<() -> Any?>().invoke()
+        }
+    }
 
     @Test
     fun `processed missing cost contributions`() {
@@ -74,6 +87,10 @@ class MissingCostContributionServiceTest {
         verify(exactly = 0) {
             householdRepository.save(testDistributionHouseholdEntity3.household!!)
             householdRepository.save(testDistributionHouseholdEntity4.household!!)
+        }
+
+        verify(exactly = 2) {
+            advisoryLockService.withLock(AdvisoryLockKey.PAY_COST_CONTRIBUTION, any<() -> Any?>())
         }
     }
 

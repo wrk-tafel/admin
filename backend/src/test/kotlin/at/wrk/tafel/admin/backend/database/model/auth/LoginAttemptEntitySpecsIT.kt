@@ -28,9 +28,32 @@ class LoginAttemptEntitySpecsIT : TafelBaseIntegrationTest() {
         val notMatching = persist(username = "other-${generateRandomLong()}")
         testEntityManager.flush()
 
-        val result = loginAttemptRepository.findAll(LoginAttemptEntity.Specs.usernameLike("%${tag.uppercase()}%"))
+        val result = loginAttemptRepository.findAll(LoginAttemptEntity.Specs.usernameLike(tag.uppercase()))
 
         assertThat(result.map { it.id }).contains(matching.id).doesNotContain(notMatching.id)
+    }
+
+    @Test
+    fun `usernameLike escapes LIKE wildcards, so an underscore in the search term is matched literally`() {
+        val tag = generateRandomLong()
+        val matching = persist(username = "a_b-$tag")
+        val wildcardVictim = persist(username = "axb-$tag")
+        testEntityManager.flush()
+
+        val result = loginAttemptRepository.findAll(LoginAttemptEntity.Specs.usernameLike("a_b-$tag"))
+
+        assertThat(result.map { it.id }).contains(matching.id).doesNotContain(wildcardVictim.id)
+    }
+
+    @Test
+    fun `usernameLike escapes LIKE wildcards, so a lone percent sign does not match every row`() {
+        persist(username = "unrelated-${generateRandomLong()}")
+        val matching = persist(username = "has-a-%-sign-${generateRandomLong()}")
+        testEntityManager.flush()
+
+        val result = loginAttemptRepository.findAll(LoginAttemptEntity.Specs.usernameLike("%"))
+
+        assertThat(result.map { it.id }).containsExactly(matching.id)
     }
 
     @Test
@@ -52,7 +75,7 @@ class LoginAttemptEntitySpecsIT : TafelBaseIntegrationTest() {
         val locked = persist(username = "locked-$tag", lastFailureAt = now.minusMinutes(10), lockedUntil = now.plusMinutes(5))
         testEntityManager.flush()
 
-        val spec = LoginAttemptEntity.Specs.orderByLockedFirst(where(LoginAttemptEntity.Specs.usernameLike("%$tag%")), now)
+        val spec = LoginAttemptEntity.Specs.orderByLockedFirst(where(LoginAttemptEntity.Specs.usernameLike("$tag")), now)
         val result = loginAttemptRepository.findAll(spec)
 
         assertThat(result.map { it.id }).containsExactly(locked.id, unlocked.id)
@@ -65,7 +88,7 @@ class LoginAttemptEntitySpecsIT : TafelBaseIntegrationTest() {
         val newer = persist(username = "newer-$tag", lastFailureAt = now.minusMinutes(1))
         testEntityManager.flush()
 
-        val spec = LoginAttemptEntity.Specs.orderByLockedFirst(where(LoginAttemptEntity.Specs.usernameLike("%$tag%")), now)
+        val spec = LoginAttemptEntity.Specs.orderByLockedFirst(where(LoginAttemptEntity.Specs.usernameLike("$tag")), now)
         val result = loginAttemptRepository.findAll(spec)
 
         assertThat(result.map { it.id }).containsExactly(newer.id, older.id)
@@ -80,7 +103,7 @@ class LoginAttemptEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val spec = LoginAttemptEntity.Specs.orderByLockedFirst(
-            where(LoginAttemptEntity.Specs.usernameLike("%$tag%")),
+            where(LoginAttemptEntity.Specs.usernameLike("$tag")),
             now,
             sortBy = "username",
             sortDirection = "asc",
@@ -98,7 +121,7 @@ class LoginAttemptEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val spec = LoginAttemptEntity.Specs.orderByLockedFirst(
-            where(LoginAttemptEntity.Specs.usernameLike("%$tag%")),
+            where(LoginAttemptEntity.Specs.usernameLike("$tag")),
             now,
             sortBy = "username",
             sortDirection = null,
@@ -116,7 +139,7 @@ class LoginAttemptEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val spec = LoginAttemptEntity.Specs.orderByLockedFirst(
-            where(LoginAttemptEntity.Specs.usernameLike("%$tag%")),
+            where(LoginAttemptEntity.Specs.usernameLike("$tag")),
             now,
             sortBy = "failureCount",
             sortDirection = "asc",

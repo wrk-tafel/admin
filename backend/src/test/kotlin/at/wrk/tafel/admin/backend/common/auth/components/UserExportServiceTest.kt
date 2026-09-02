@@ -167,6 +167,40 @@ internal class UserExportServiceTest {
         assertThat(jsonNode.get("logins").size()).isGreaterThan(0)
     }
 
+    /**
+     * Guards against a new [PushNotificationType] value shipping without a matching German label -
+     * without this, the export's `type = ... ?: type.name` fallback would silently leak the raw enum
+     * constant into a document meant for a data subject (issue #3637).
+     */
+    @Test
+    fun `export user by username - renders a German label for every push notification type, never the raw enum name`() {
+        val userEntity = testUserEntity.apply {
+            authorities.forEach { it.createdBy = testUserEntity.id }
+        }
+        every { userRepository.findByUsername("test-username") } returns userEntity
+        every { userRepository.findAllById(listOf(testUserEntity.id!!)) } returns listOf(testUserEntity)
+        every { pushPreferencesRepository.findByUserId(userEntity.id!!) } returns PushPreferencesEntity().apply { enabled = false }
+        every { pushSubscriptionRepository.findAllByUserId(userEntity.id!!) } returns emptyList()
+        every { pushTypePreferenceRepository.findAllByUserId(userEntity.id!!) } returns PushNotificationType.entries.map { type ->
+            PushTypePreferenceEntity().apply {
+                notificationType = type
+                enabled = false
+            }
+        }
+        every { loginAttemptRepository.findByUsername("test-username") } returns null
+        every {
+            auditLogRepository.findAllByBusinessKeyAndEntityTypeInOrderByOccurredAtDescIdDesc(any(), any(), any())
+        } returns PageImpl(emptyList())
+
+        val result = service.exportUserByUsername("test-username")
+
+        val jsonNode = jsonMapper.readTree(result!!.bytes.let { zipEntries(it).getValue("daten.json") })
+        val preferencesNode = jsonNode.get("pushTypePreferences")
+        val renderedTypes = (0 until preferencesNode.size()).map { preferencesNode.get(it).get("type").asString() }
+        assertThat(renderedTypes).hasSize(PushNotificationType.entries.size)
+        assertThat(renderedTypes).doesNotContainAnyElementsOf(PushNotificationType.entries.map { it.name })
+    }
+
     @Test
     fun `export user by username - unknown username returns null`() {
         every { userRepository.findByUsername("unknown") } returns null

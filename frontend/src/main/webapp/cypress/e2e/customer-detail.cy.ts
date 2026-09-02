@@ -1087,6 +1087,32 @@ describe('Customer Detail', () => {
       });
     });
 
+    it('lock customer with invalid income triggers confirm dialog when supervisor, keeping the entered lock reason', () => {
+      cy.createDummyCustomer(10000, true).then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('lock-info-banner').should('not.exist');
+
+        openEditMenu();
+        cy.byTestId('lockCustomerButton').click();
+        cy.byTestId('lockreason-input-text').type('dummy lockreason');
+        cy.byTestId('lock-customer-dialog').within(() => {
+          cy.byTestId('okButton').click();
+        });
+
+        // Should trigger confirm dialog instead of dead-ending on the 409 - see issue #3636
+        cy.byTestId('confirm-customer-save-dialog')
+          .should('be.visible')
+          .within(() => {
+            cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)');
+            cy.byTestId('ok-button').click();
+          });
+
+        cy.byTestId('lock-info-banner').should('exist').and('contain.text', 'dummy lockreason');
+      });
+    });
+
     it('should display confirm dialog with correct message and allow cancellation', () => {
       cy.createDummyCustomer().then((response) => {
         const customerId = response.body.data.id;

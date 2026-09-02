@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.statistic
 
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
@@ -30,6 +32,7 @@ import java.time.LocalDate
 class MissingCostContributionService(
     private val householdRepository: HouseholdRepository,
     private val staticValueRepository: StaticValueRepository,
+    private val advisoryLockService: AdvisoryLockService,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(MissingCostContributionService::class.java)
@@ -53,10 +56,13 @@ class MissingCostContributionService(
         }
     }
 
+    // Locked (PAY_COST_CONTRIBUTION) for the same reason as HouseholdService.payCostContribution:
+    // pendingCostContribution has no `@Version`, so this plain read-modify-write would otherwise race
+    // a concurrent payment recorded while this post-processing transaction is still open (issue #3634).
     private fun addPendingCostContribution(
         household: HouseholdEntity,
         costContributionValue: StaticValueEntity,
-    ) {
+    ) = advisoryLockService.withLock(AdvisoryLockKey.PAY_COST_CONTRIBUTION) {
         val householdEntity = householdRepository.findByIdOrNull(household.id!!)
         if (householdEntity != null) {
             val currentPendingCostContribution = householdEntity.pendingCostContribution
