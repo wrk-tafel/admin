@@ -72,37 +72,45 @@ class FoodCollectionService(
 
     @Transactional
     fun saveRouteData(routeId: Long, data: FoodCollectionSaveRouteRequest) {
-        val distribution = distributionRepository.getCurrentDistribution()!!
+        // shares PATCH_FOOD_COLLECTION_ITEM with every other path that can create this route's
+        // food_collections row - without it, this find-or-create races saveKm's (or another
+        // concurrent saveRouteData's) on the same (distribution_id, route_id) unique constraint
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            val distribution = distributionRepository.getCurrentDistribution()!!
 
-        foodCollectionRepository.save(mapRouteData(distribution, routeId, data))
-        log.info(
-            "Saved food collection route data for route {} (distribution: {}, car: {}, driver: {}, coDriver: {})",
-            routeId,
-            distribution.id,
-            data.carId,
-            data.driverId,
-            data.coDriverId,
-        )
-        publishIfFoodCollectionCompleted(distribution.id!!)
+            foodCollectionRepository.save(mapRouteData(distribution, routeId, data))
+            log.info(
+                "Saved food collection route data for route {} (distribution: {}, car: {}, driver: {}, coDriver: {})",
+                routeId,
+                distribution.id,
+                data.carId,
+                data.driverId,
+                data.coDriverId,
+            )
+            publishIfFoodCollectionCompleted(distribution.id!!)
+        }
     }
 
     @Transactional
     fun saveKm(routeId: Long, data: FoodCollectionSaveKmRequest) {
-        val distribution = distributionRepository.getCurrentDistribution()!!
+        // see saveRouteData - same find-or-create race on the food_collections row
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            val distribution = distributionRepository.getCurrentDistribution()!!
 
-        val foodCollectionEntity = getOrCreateFoodCollectionEntity(distribution, routeId)
-        foodCollectionEntity.kmStart = data.kmStart
-        foodCollectionEntity.kmEnd = data.kmEnd
+            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distribution, routeId)
+            foodCollectionEntity.kmStart = data.kmStart
+            foodCollectionEntity.kmEnd = data.kmEnd
 
-        foodCollectionRepository.save(foodCollectionEntity)
-        log.info(
-            "Saved food collection km for route {} (distribution: {}, kmStart: {}, kmEnd: {})",
-            routeId,
-            distribution.id,
-            data.kmStart,
-            data.kmEnd,
-        )
-        publishIfFoodCollectionCompleted(distribution.id!!)
+            foodCollectionRepository.save(foodCollectionEntity)
+            log.info(
+                "Saved food collection km for route {} (distribution: {}, kmStart: {}, kmEnd: {})",
+                routeId,
+                distribution.id,
+                data.kmStart,
+                data.kmEnd,
+            )
+            publishIfFoodCollectionCompleted(distribution.id!!)
+        }
     }
 
     @Transactional
@@ -149,14 +157,20 @@ class FoodCollectionService(
 
     @Transactional
     fun saveReturnItems(routeId: Long, data: FoodCollectionSaveReturnItemsRequest) {
-        advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
-            val distributionEntity = distributionRepository.getCurrentDistribution()!!
+        // outer PATCH_FOOD_COLLECTION_ITEM lock serializes this find-or-create against every other
+        // path that can create this route's food_collections row (#3628) - the inner
+        // SAVE_FOOD_COLLECTION_RETURN_ITEMS lock still serializes it against saveReturnItemsPerShop,
+        // which rewrites the same returnItems element collection
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
+                val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
-            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
-            data.returnItems.forEach { validateShopIsRouteStop(foodCollectionEntity.route, it.shopId) }
-            foodCollectionEntity.returnItems = mapReturnItemsToEntity(data.returnItems)
+                val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+                data.returnItems.forEach { validateShopIsRouteStop(foodCollectionEntity.route, it.shopId) }
+                foodCollectionEntity.returnItems = mapReturnItemsToEntity(data.returnItems)
 
-            foodCollectionRepository.save(foodCollectionEntity)
+                foodCollectionRepository.save(foodCollectionEntity)
+            }
         }
     }
 
@@ -166,27 +180,32 @@ class FoodCollectionService(
         shopId: Long,
         data: FoodCollectionSaveReturnItemsPerShopRequest,
     ) {
-        // the whole element collection is rewritten below, so a concurrent save for another shop
-        // of the same route would drop the rows this one just wrote (and vice versa)
-        advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
-            val distributionEntity = distributionRepository.getCurrentDistribution()!!
+        // outer PATCH_FOOD_COLLECTION_ITEM lock serializes this find-or-create against every other
+        // path that can create this route's food_collections row (#3628) - the inner
+        // SAVE_FOOD_COLLECTION_RETURN_ITEMS lock still serializes it against a concurrent save for
+        // another shop of the same route (and against saveReturnItems), since the whole element
+        // collection is rewritten below and would otherwise drop the rows the other one just wrote
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
+                val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
-            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
-            validateShopIsRouteStop(foodCollectionEntity.route, shopId)
-            val otherShopsReturnItems = foodCollectionEntity.returnItems
-                ?.filter { it.shop.id != shopId } ?: emptyList()
-            val shopReturnItems = mapReturnItemsToEntity(
-                data.returnItems.map {
-                    FoodCollectionReturnItem(
-                        shopId = shopId,
-                        description = it.description,
-                        amount = it.amount,
-                    )
-                },
-            )
+                val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
+                validateShopIsRouteStop(foodCollectionEntity.route, shopId)
+                val otherShopsReturnItems = foodCollectionEntity.returnItems
+                    ?.filter { it.shop.id != shopId } ?: emptyList()
+                val shopReturnItems = mapReturnItemsToEntity(
+                    data.returnItems.map {
+                        FoodCollectionReturnItem(
+                            shopId = shopId,
+                            description = it.description,
+                            amount = it.amount,
+                        )
+                    },
+                )
 
-            foodCollectionEntity.returnItems = otherShopsReturnItems + shopReturnItems
-            foodCollectionRepository.save(foodCollectionEntity)
+                foodCollectionEntity.returnItems = otherShopsReturnItems + shopReturnItems
+                foodCollectionRepository.save(foodCollectionEntity)
+            }
         }
     }
 

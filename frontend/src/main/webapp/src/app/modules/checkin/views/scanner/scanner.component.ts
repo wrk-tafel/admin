@@ -24,6 +24,12 @@ const SCAN_FEEDBACK_DURATION_MS = 2000;
 // after this cooldown elapses is treated as a fresh scan again.
 const RESCAN_COOLDOWN_MS = 3000;
 
+// A ticket QR code's payload is always a plain non-negative integer (the ticket number). Anything
+// else (a poster, a document, a customer's phone) must never reach the `+decodedText` conversion
+// below - it would decode to NaN, which breaks the rescan-cooldown's `===` comparison (NaN !== NaN)
+// and would be posted to a backend endpoint that only accepts a Long.
+const NUMERIC_QR_CODE_PATTERN = /^\d+$/;
+
 @Component({
   selector: 'tafel-scanner',
   templateUrl: 'scanner.component.html',
@@ -229,6 +235,9 @@ export class ScannerComponent {
   private lastFeedbackAt = 0;
 
   qrCodeReaderSuccessCallback = (decodedText: string) => {
+    if (!NUMERIC_QR_CODE_PATTERN.test(decodedText)) {
+      return;
+    }
     const value = +decodedText;
 
     const now = Date.now();

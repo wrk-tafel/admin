@@ -674,7 +674,8 @@ describe('Customer Detail', () => {
         cy.byTestId('documentTypeInput-option-OTHER').click();
 
         cy.byTestId('documentSourceScanner').click();
-        cy.byTestId('scannerFile-' + scannerFileName, {timeout: 10000}).should('be.visible').click();
+        cy.byTestId('scannerFile-' + scannerFileName, {timeout: 10000}).should('be.visible')
+          .find('input[type="radio"]').click({force: true});
         cy.byTestId('okButton').click();
 
         // the imported document's filename is derived from the document type + import time, not
@@ -789,7 +790,8 @@ describe('Customer Detail', () => {
 
         cy.byTestId('documentSourceScanner').click();
         // deliberately select the OLDER file (not the default/newest one)
-        cy.byTestId('scannerFile-' + olderFileName, {timeout: 10000}).should('be.visible').click();
+        cy.byTestId('scannerFile-' + olderFileName, {timeout: 10000}).should('be.visible')
+          .find('input[type="radio"]').click({force: true});
         cy.byTestId('okButton').click();
 
         cy.byTestId('document-0-fileNameText').should('be.visible').invoke('text').then((fileName) => {
@@ -1082,6 +1084,32 @@ describe('Customer Detail', () => {
 
           cy.byTestId('validUntilText').should('have.text', expectedAfterSecondProlong);
         });
+      });
+    });
+
+    it('lock customer with invalid income triggers confirm dialog when supervisor, keeping the entered lock reason', () => {
+      cy.createDummyCustomer(10000, true).then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        cy.byTestId('lock-info-banner').should('not.exist');
+
+        openEditMenu();
+        cy.byTestId('lockCustomerButton').click();
+        cy.byTestId('lockreason-input-text').type('dummy lockreason');
+        cy.byTestId('lock-customer-dialog').within(() => {
+          cy.byTestId('okButton').click();
+        });
+
+        // Should trigger confirm dialog instead of dead-ending on the 409 - see issue #3636
+        cy.byTestId('confirm-customer-save-dialog')
+          .should('be.visible')
+          .within(() => {
+            cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)');
+            cy.byTestId('ok-button').click();
+          });
+
+        cy.byTestId('lock-info-banner').should('exist').and('contain.text', 'dummy lockreason');
       });
     });
 

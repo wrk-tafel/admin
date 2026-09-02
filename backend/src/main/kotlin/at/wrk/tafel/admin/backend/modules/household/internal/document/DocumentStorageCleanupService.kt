@@ -30,6 +30,20 @@ class DocumentStorageCleanupService(
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(DocumentStorageCleanupService::class.java)
+
+        // `storagePath` is stored as an absolute path (DocumentStorageService.store), so if
+        // `documentsPath` is ever re-mounted at a different path - or the same share addressed via a
+        // different spelling - every stored path mismatches this walk's, and every referenced file
+        // would look orphaned even though none of them actually are. Real staleness only ever affects
+        // a minority of a deployment's documents at a time; a walk where most referenced files can't
+        // be found on disk is a sign the comparison itself is broken, not that the folder needs
+        // emptying.
+        private const val ORPHAN_RATIO_ABORT_THRESHOLD = 0.5
+
+        // Below this many known documents the ratio above is too noisy to mean anything (a single
+        // household with one genuinely stale reference is already a 100% "orphan ratio"), so small
+        // deployments skip the guard entirely and fall back to the plain per-file comparison.
+        private const val MIN_KNOWN_PATHS_FOR_GUARD = 20
     }
 
     /**
@@ -56,18 +70,36 @@ class DocumentStorageCleanupService(
         }
 
         val knownPaths = documentRepository.findAllStoragePaths().toSet()
+
+        val allFiles: List<Path> = Files.walk(documentsRoot).use { stream ->
+            stream.filter { Files.isRegularFile(it) }.toList()
+        }
+        val filePathStrings = allFiles.map { it.toAbsolutePath().toString() }.toSet()
+
+        if (knownPaths.size >= MIN_KNOWN_PATHS_FOR_GUARD) {
+            val missingCount = knownPaths.count { it !in filePathStrings }
+            val missingRatio = missingCount.toDouble() / knownPaths.size
+            if (missingRatio > ORPHAN_RATIO_ABORT_THRESHOLD) {
+                logger.error(
+                    "Aborting document storage cleanup: {} of {} referenced storagePaths ({}) don't " +
+                        "match a file on disk - this looks like documentsPath was remounted/renamed " +
+                        "rather than an actual pile-up of stale files, skipping deletion to avoid a " +
+                        "mass data loss.",
+                    missingCount,
+                    knownPaths.size,
+                    missingRatio,
+                )
+                return
+            }
+        }
+
         // A file is written to disk (DocumentStorageService.store) before its DB row is committed
         // (HouseholdDocumentService.uploadDocument/importFromScannerFile) - skipping anything newer
         // than this avoids deleting a just-uploaded file out from under a request still in flight.
         val cutoff = Instant.now().minus(tafelAdminProperties.storage.orphanedFileMinAge)
-
-        val orphanedFiles: List<Path> = Files.walk(documentsRoot).use { stream ->
-            stream
-                .filter { Files.isRegularFile(it) }
-                .filter { it.toAbsolutePath().toString() !in knownPaths }
-                .filter { Files.getLastModifiedTime(it).toInstant().isBefore(cutoff) }
-                .toList()
-        }
+        val orphanedFiles = allFiles
+            .filter { it.toAbsolutePath().toString() !in knownPaths }
+            .filter { Files.getLastModifiedTime(it).toInstant().isBefore(cutoff) }
 
         orphanedFiles.forEach { deleteOrphanedFile(it) }
     }

@@ -299,9 +299,13 @@ internal class HouseholdConverterTest {
 
     @Test
     fun `map to new entity`() {
+        every { householdRepository.getNextHouseholdSequenceValue() } returns 555
+
         val result = converter.mapHouseholdToEntity(testHouseholdForCreate)
 
-        assertThat(result.householdId).isEqualTo(100)
+        // the request's own id (100, same as testHousehold's) is never honored on create - the
+        // household number always comes from household_id_sequence, see issue #3600
+        assertThat(result.householdId).isEqualTo(555)
         assertThat(result.addressStreet).isEqualTo("Test-Straße")
         assertThat(result.singleParent).isTrue()
         assertThat(result.persons).hasSize(3)
@@ -532,6 +536,49 @@ internal class HouseholdConverterTest {
         assertThat(result.persons.count { it.isMainPerson }).isEqualTo(1)
         assertThat(result.persons.first { it.id == newMainPersonId }.isMainPerson).isTrue()
         assertThat(result.persons.first { it.id == oldMainPersonId }.isMainPerson).isFalse()
+    }
+
+    /**
+     * Two request entries pointing at the same stored person id would otherwise both resolve to the
+     * same [PersonEntity] and silently collapse into one row, the second entry's fields overwriting
+     * the first's - see issue #3600.
+     */
+    @Test
+    fun `update household rejects two request entries pointing at the same stored person`() {
+        val duplicatedPersonId = 2L
+        val updatedHousehold = testHousehold.copy(
+            persons = listOf(
+                testMainPerson,
+                testHousehold.additionalPersons()[0].copy(id = duplicatedPersonId),
+                testHousehold.additionalPersons()[1].copy(id = duplicatedPersonId),
+            ),
+        )
+
+        assertThatThrownBy { converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1) }
+            .isInstanceOf(BusinessRuleException::class.java)
+            .hasMessageContaining("2")
+    }
+
+    /**
+     * An id-less main-person entry resolves to the stored main person row, same as an entry
+     * explicitly carrying that row's id - so the two must be rejected as duplicates just like two
+     * explicit-id entries are, or they would silently collapse onto the same [PersonEntity] and
+     * leave the household without a flagged main person - see issue #3633.
+     */
+    @Test
+    fun `update household rejects an id-less main-person entry alongside an explicit reference to the stored main person`() {
+        val storedMainPersonId = 1L
+        val updatedHousehold = testHousehold.copy(
+            persons = listOf(
+                testMainPerson.copy(id = null),
+                testHousehold.additionalPersons()[0].copy(id = storedMainPersonId, isMainPerson = false),
+                testHousehold.additionalPersons()[1],
+            ),
+        )
+
+        assertThatThrownBy { converter.mapHouseholdToEntity(updatedHousehold, testHouseholdEntity1) }
+            .isInstanceOf(BusinessRuleException::class.java)
+            .hasMessageContaining("1")
     }
 
     @Test

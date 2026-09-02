@@ -177,7 +177,7 @@ export class CheckinComponent {
 
     return customer.additionalPersons
       .filter((person) => !person.excludeFromHousehold)
-      .filter((person) => dayjs().diff(person.birthDate, 'years') < 3).length;
+      .filter((person) => !!person.birthDate && dayjs().diff(person.birthDate, 'years') < 3).length;
   });
 
   trackByScannerId(scannerId: number) {

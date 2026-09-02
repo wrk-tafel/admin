@@ -5,6 +5,7 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatSelectModule} from '@angular/material/select';
+import {MatRadioModule} from '@angular/material/radio';
 import {FormsModule} from '@angular/forms';
 import {Subscription} from 'rxjs';
 import {MatIcon} from '@angular/material/icon';
@@ -23,7 +24,8 @@ type DocumentSource = 'upload' | 'scanner';
 @Component({
   selector: 'tafel-upload-document-panel',
   imports: [
-    CommonModule, MatButtonModule, MatButtonToggleModule, MatCardModule, MatFormFieldModule, MatSelectModule, FormsModule, MatIcon
+    CommonModule, MatButtonModule, MatButtonToggleModule, MatCardModule, MatFormFieldModule, MatSelectModule, MatRadioModule,
+    FormsModule, MatIcon
   ],
   templateUrl: 'upload-document-panel.component.html',
 })

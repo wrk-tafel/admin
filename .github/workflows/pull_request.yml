@@ -101,7 +101,12 @@ jobs:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: [build, version]
     with:
-      imageTags: ${{ needs.version.outputs.version }}
+      # the mutable "dev" tag always points at the most recently built candidate for that
+      # environment, which is what cleanup.yml keys off to protect it regardless of how many
+      # newer commit-SHA-tagged images have since piled up (#3631)
+      imageTags: |
+        ${{ needs.version.outputs.version }}
+        dev
       version: ${{ needs.version.outputs.version }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}

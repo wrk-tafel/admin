@@ -331,6 +331,7 @@ class SseOutboxServiceTest {
                 eventCallback = callbackSlot.captured,
             )
         }
+        verify { sseEmitter.complete() }
     }
 
     @Test

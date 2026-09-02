@@ -134,6 +134,24 @@ internal class ConfigFileReloadServiceTest {
     }
 
     /**
+     * A refresh that fails must not consume the fingerprint of the edit that triggered it - otherwise
+     * the next tick sees the file as unchanged and a transiently failed reload is never retried, even
+     * though nothing about the file changes again.
+     */
+    @Test
+    fun `a failed refresh is retried on the next tick instead of being forgotten`() {
+        every { contextRefresher.refresh() } throws IllegalStateException("broken config") andThen setOf("tafeladmin.environmentLabel")
+        val service = startWithConfigFile("tafeladmin:\n  environmentLabel: TEST\n")
+
+        touchConfigFile("tafeladmin:\n  environmentLabel: RETRY\n")
+        service.reloadChangedConfigFiles()
+        service.reloadChangedConfigFiles()
+
+        verify(exactly = 2) { contextRefresher.refresh() }
+        assertThat(publishedEvents).singleElement()
+    }
+
+    /**
      * The production file always exists at startup, but an `optional:` location may point at a file
      * that only appears later - it has to be watched from the moment it shows up, not from the next
      * restart.

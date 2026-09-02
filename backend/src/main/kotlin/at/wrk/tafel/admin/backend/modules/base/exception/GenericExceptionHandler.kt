@@ -2,6 +2,8 @@ package at.wrk.tafel.admin.backend.modules.base.exception
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
+import jakarta.servlet.RequestDispatcher
+import org.apache.catalina.connector.ClientAbortException
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpHeaders
@@ -10,6 +12,7 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotWritableException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.ErrorResponse
@@ -189,6 +192,63 @@ class GenericExceptionHandler(
         request: WebRequest,
     ): ResponseEntity<Any>? {
         log.debug("Async request/response no longer usable, client likely disconnected", ex)
+        return null
+    }
+
+    /**
+     * [HttpMessageNotWritableException] reaching here means Spring's message converters could not
+     * write *any* body onto this response - which for an SSE endpoint happens when something else
+     * already failed earlier in the same request and the servlet container's default `/error` page
+     * (`BasicErrorController`) tried to write its standard `LinkedHashMap` error body onto a response
+     * whose `Content-Type` is already committed to `text/event-stream` from an earlier SSE event.
+     * That failed write is only ever the *secondary* symptom - see issue #3619, where it was the only
+     * thing logged and the exception that actually triggered the `/error` dispatch never appeared
+     * anywhere. The servlet container stashes that original exception as the
+     * [RequestDispatcher.ERROR_EXCEPTION] request attribute for exactly this situation (the same
+     * attribute `DefaultErrorAttributes` reads to build the body that then failed to write), so
+     * reading it here is the only way to recover and log it before it's lost for good.
+     *
+     * Returns no body: the response is unusable for the same reason [ex] itself was thrown, so
+     * attempting to render anything here would only fail the same way again.
+     */
+    public override fun handleHttpMessageNotWritable(
+        ex: HttpMessageNotWritableException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest,
+    ): ResponseEntity<Any>? {
+        val servletRequest = (request as? ServletWebRequest)?.request
+        val originalException = servletRequest?.getAttribute(RequestDispatcher.ERROR_EXCEPTION) as? Throwable
+
+        log.error(
+            "{} {} could not write any response body ({}) - original exception that triggered this:",
+            sanitizeForLog(servletRequest?.method ?: "?"),
+            sanitizeForLog(request.getDescription(false)),
+            sanitizeForLog(ex.message),
+            originalException ?: ex,
+        )
+
+        return null
+    }
+
+    /**
+     * [ClientAbortException] is Tomcat's `IOException` for a client aborting a response mid-write -
+     * navigating away, closing a tab, or a flaky mobile connection during a static-asset download
+     * (e.g. a JS bundle served by `ResourceHttpRequestHandler`). It's the synchronous sibling of
+     * [AsyncRequestNotUsableException] above: the response is already unusable, so without this it
+     * falls through to [handleGenericException] and is logged as a full ERROR stack trace for a
+     * routine disconnect, and then a *second* failure follows when the generic handler's `ProblemDetail`
+     * body can't be written onto a response already committed to the resource's own `Content-Type`
+     * (see [handleHttpMessageNotWritable]).
+     *
+     * Logged at debug and returns no body for the same reason as [handleAsyncRequestNotUsableException]:
+     * attempting to render anything onto an already-unusable response would just fail again.
+     * [ClientAbortException] is Tomcat-specific, but matching on it directly is fine here - the
+     * application only ever runs on Tomcat.
+     */
+    @ExceptionHandler(ClientAbortException::class)
+    fun handleClientAbortException(exception: ClientAbortException, request: WebRequest): ResponseEntity<Any>? {
+        log.debug("Client aborted the connection mid-response", exception)
         return null
     }
 

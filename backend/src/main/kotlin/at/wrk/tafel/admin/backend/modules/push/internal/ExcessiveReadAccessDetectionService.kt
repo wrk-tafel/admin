@@ -5,6 +5,8 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
@@ -35,10 +37,17 @@ import java.time.LocalDateTime
  * every household it returned in a single request, not one, so it weighs in as
  * `tafeladmin.audit.breachDetection.bulkReadWeight` instead (GDPR gap G24, issue #3507) - see
  * [at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository.findActorsWithOperationCountAbove].
+ *
+ * The threshold itself switches to `tafeladmin.audit.breachDetection.readThresholdDuringDistribution`
+ * while a distribution is active: an operator working a check-in station reads one household per
+ * ticket, which routinely clears the normal-office `readThreshold` every single distribution day and
+ * would otherwise train administrators to ignore the notification precisely when it matters (issue
+ * #3624).
  */
 @Component
 class ExcessiveReadAccessDetectionService(
     private val auditLogRepository: AuditLogRepository,
+    private val distributionRepository: DistributionRepository,
     private val pushBroadcastService: PushBroadcastService,
     private val tafelAdminProperties: TafelAdminProperties,
     private val clock: Clock,
@@ -50,9 +59,18 @@ class ExcessiveReadAccessDetectionService(
     @Scheduled(cron = "\${tafeladmin.audit.breachDetectionCron:0 0 * * * *}")
     @SchedulerLock(name = "excessiveReadAccessDetection", lockAtMostFor = "PT5M", lockAtLeastFor = "PT5M")
     fun detectExcessiveReadAccess() {
-        val threshold = tafelAdminProperties.audit.breachDetection.readThreshold
+        val breachDetection = tafelAdminProperties.audit.breachDetection
+        // A distribution active right now was, for all practical purposes, also active for the
+        // trailing hour this run checks - the cron already only claims hourly, not minute-level,
+        // precision (see the class doc), so this doesn't need to look at when exactly it started.
+        val distributionActive = distributionRepository.getCurrentDistribution() != null
+        val threshold = if (distributionActive) breachDetection.readThresholdDuringDistribution else breachDetection.readThreshold
         if (threshold <= 0) {
-            logger.debug("Read-access breach detection is disabled (readThreshold={})", threshold)
+            logger.debug(
+                "Read-access breach detection is disabled (threshold={}, distributionActive={})",
+                threshold,
+                distributionActive,
+            )
             return
         }
 

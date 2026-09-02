@@ -43,26 +43,24 @@ class DailyReportsExporter(
         )
 
         val currentDistribution = currentStatistic.distribution
-        val previousDistributions = distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year)
+        val otherDistributions = distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year)
             .filter { it.id != currentDistribution.id }
+
+        // Merged and sorted together rather than "every other distribution, then the current one
+        // appended last": the current distribution being exported isn't necessarily the year's most
+        // recent one (a manual resend can target an older, already-ended distribution while a newer
+        // one is open), so appending it unconditionally would put its row out of chronological order.
+        val rows = (otherDistributions + currentDistribution)
             .sortedBy { it.startedAt }
-
-        val previousRows = previousDistributions.mapNotNull { distribution ->
-            val distributionStatistic = distribution.statistic
-            if (distributionStatistic != null) {
-                generateStatisticColumns(distribution, distributionStatistic)
-            } else {
-                null
+            .mapNotNull { distribution ->
+                if (distribution.id == currentDistribution.id) {
+                    generateStatisticColumns(distribution, currentStatistic)
+                } else {
+                    distribution.statistic?.let { generateStatisticColumns(distribution, it) }
+                }
             }
-        }
-        val currentRows = generateStatisticColumns(currentDistribution, currentStatistic)
 
-        val result = mutableListOf(descriptionHeaderRow, columnsHeaderRow)
-        if (previousRows.isNotEmpty()) {
-            result += previousRows
-        }
-        result += currentRows
-        return result
+        return listOf(descriptionHeaderRow, columnsHeaderRow) + rows
     }
 
     private fun generateStatisticColumns(

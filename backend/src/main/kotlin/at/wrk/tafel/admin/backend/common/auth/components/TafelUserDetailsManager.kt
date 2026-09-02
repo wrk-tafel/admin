@@ -9,6 +9,8 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
@@ -53,6 +55,7 @@ class TafelUserDetailsManager(
     private val auditLogRepository: AuditLogRepository,
     private val auditActorProvider: AuditActorProvider,
     private val clock: Clock,
+    private val advisoryLockService: AdvisoryLockService,
 ) : UserDetailsManager {
 
     fun loadUserById(userId: Long): TafelUser? = userRepository.findById(userId)
@@ -118,16 +121,22 @@ class TafelUserDetailsManager(
      * central data-subject-request screen (issue #3396) is a second caller of `deleteUser` that must
      * not be able to bypass it. Returns `false` rather than throwing when the user no longer exists,
      * so a caller acting on a stale search result can treat it the same as "already gone".
+     *
+     * Takes LAST_ADMINISTRATOR_SAFEGUARD before checking, same as `UserController.deleteUser`'s own
+     * path - see that lock's KDoc for why this check-then-act needs it.
      */
     fun deleteUserById(userId: Long): Boolean {
         val tafelUser = loadUserById(userId) ?: return false
 
         val isActiveAdministrator = tafelUser.enabled &&
             tafelUser.authorities.any { it.authority == UserPermissions.ADMINISTRATOR.key }
-        if (isActiveAdministrator && !anotherEnabledAdministratorExists(userId)) {
-            throw ConflictException(
-                "Es muss mindestens ein aktiver Benutzer mit der Berechtigung \"${UserPermissions.ADMINISTRATOR.title}\" verbleiben!",
-            )
+        if (isActiveAdministrator) {
+            advisoryLockService.acquireLock(AdvisoryLockKey.LAST_ADMINISTRATOR_SAFEGUARD)
+            if (!anotherEnabledAdministratorExists(userId)) {
+                throw ConflictException(
+                    "Es muss mindestens ein aktiver Benutzer mit der Berechtigung \"${UserPermissions.ADMINISTRATOR.title}\" verbleiben!",
+                )
+            }
         }
 
         deleteUser(tafelUser.username)

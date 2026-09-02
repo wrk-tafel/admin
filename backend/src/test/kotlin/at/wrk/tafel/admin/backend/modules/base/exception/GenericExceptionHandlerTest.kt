@@ -9,6 +9,8 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
+import jakarta.servlet.RequestDispatcher
+import org.apache.catalina.connector.ClientAbortException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -22,6 +24,7 @@ import org.springframework.http.HttpInputMessage
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.http.converter.HttpMessageNotWritableException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -323,6 +326,59 @@ internal class GenericExceptionHandlerTest {
         val response = exceptionHandler.handleAsyncRequestNotUsableException(exception, request)
 
         assertThat(response).isNull()
+    }
+
+    @Test
+    fun `handles ClientAbortException without throwing and returns no body`() {
+        val exception = ClientAbortException(java.io.IOException("Broken pipe"))
+
+        val response = exceptionHandler.handleClientAbortException(exception, request)
+
+        assertThat(response).isNull()
+    }
+
+    @Test
+    fun `handles HttpMessageNotWritableException by logging the original error-dispatch exception and returning no body`() {
+        val originalException = IllegalStateException("something failed while streaming")
+        every { request.request.getAttribute(RequestDispatcher.ERROR_EXCEPTION) } returns originalException
+        every { request.request.method } returns "GET"
+        val exception = HttpMessageNotWritableException(
+            "No converter for [class java.util.LinkedHashMap] with preset Content-Type 'text/event-stream'",
+        )
+
+        val response = exceptionHandler.handleHttpMessageNotWritable(exception, HttpHeaders.EMPTY, HttpStatus.INTERNAL_SERVER_ERROR, request)
+
+        assertThat(response).isNull()
+        val logEvent = logAppender.list.single()
+        assertThat(logEvent.level).isEqualTo(Level.ERROR)
+        assertThat(logEvent.formattedMessage).contains("GET").contains("uri=/dummy-path")
+        assertThat(logEvent.throwableProxy.message).isEqualTo(originalException.message)
+    }
+
+    @Test
+    fun `handles HttpMessageNotWritableException by logging itself when the request carries no original exception`() {
+        every { request.request.getAttribute(RequestDispatcher.ERROR_EXCEPTION) } returns null
+        val exception = HttpMessageNotWritableException("could not write response")
+
+        val response = exceptionHandler.handleHttpMessageNotWritable(exception, HttpHeaders.EMPTY, HttpStatus.INTERNAL_SERVER_ERROR, request)
+
+        assertThat(response).isNull()
+        val logEvent = logAppender.list.single()
+        assertThat(logEvent.throwableProxy.message).isEqualTo(exception.message)
+    }
+
+    @Test
+    fun `handles HttpMessageNotWritableException for a non-servlet WebRequest with a placeholder method`() {
+        val plainWebRequest = mockk<WebRequest>(relaxed = true)
+        every { plainWebRequest.getDescription(false) } returns "uri=/dummy-path"
+        val exception = HttpMessageNotWritableException("could not write response")
+
+        val response = exceptionHandler.handleHttpMessageNotWritable(exception, HttpHeaders.EMPTY, HttpStatus.INTERNAL_SERVER_ERROR, plainWebRequest)
+
+        assertThat(response).isNull()
+        val logEvent = logAppender.list.single()
+        assertThat(logEvent.formattedMessage).contains("?").contains("uri=/dummy-path")
+        assertThat(logEvent.throwableProxy.message).isEqualTo(exception.message)
     }
 
     @Test

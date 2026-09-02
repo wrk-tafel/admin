@@ -60,15 +60,19 @@
       @if (scannerFiles().length === 0) {
         <div testid="noScannerFiles">Keine Dateien vorhanden</div>
       }
-      <!-- the radios only carry their own file name; the group needs the heading above it as its
-           name, which is a plain <span> and labels nothing on its own -->
-      <div role="radiogroup" aria-labelledby="scannerFilesLabel">
+      <!-- the radio buttons only carry their own file name; the group needs the heading above it
+           as its name, which is a plain <span> and labels nothing on its own -->
+      <mat-radio-group aria-labelledby="scannerFilesLabel" [value]="selectedScannerFileName()"
+                        (change)="selectedScannerFileName.set($event.value)">
         @for (file of scannerFiles(); track file.fileName) {
           <div class="flex items-center gap-2 mb-1">
-            <input type="radio" name="scannerFile" [id]="'scannerFile-' + file.fileName"
-                   [attr.testid]="'scannerFile-' + file.fileName"
-                   [checked]="selectedScannerFileName() === file.fileName"
-                   (change)="selectedScannerFileName.set(file.fileName)">
+            <mat-radio-button [value]="file.fileName" [attr.testid]="'scannerFile-' + file.fileName"
+                               class="min-w-0 flex-1">
+              <div class="font-bold" [attr.testid]="'scannerFile-' + file.fileName + '-displayName'">{{ file.displayName }}</div>
+              <div class="text-sm text-gray-500 truncate" [title]="file.fileName">
+                {{ file.modifiedAt | date:'dd.MM.yyyy HH:mm:ss' }} · {{ (file.sizeBytes / 1024) | number:'1.0-0' }} KB
+              </div>
+            </mat-radio-button>
             <!-- title is a last-resort name source and is not surfaced on keyboard focus, and the
                  same one on every row would not say which file it previews either -->
             <a [attr.testid]="'scannerFilePreview-' + file.fileName" [href]="scannerFileContentUrl(file.fileName)"
@@ -77,15 +81,9 @@
                [attr.aria-label]="'Vorschau von ' + file.displayName + ' öffnen (in neuem Tab)'">
               <mat-icon svgIcon="visibility" class="block"></mat-icon>
             </a>
-            <label [for]="'scannerFile-' + file.fileName" class="min-w-0">
-              <div class="font-bold" [attr.testid]="'scannerFile-' + file.fileName + '-displayName'">{{ file.displayName }}</div>
-              <div class="text-sm text-gray-500 truncate" [title]="file.fileName">
-                {{ file.modifiedAt | date:'dd.MM.yyyy HH:mm:ss' }} · {{ (file.sizeBytes / 1024) | number:'1.0-0' }} KB
-              </div>
-            </label>
           </div>
         }
-      </div>
+      </mat-radio-group>
     }
   </mat-card-content>
   <mat-card-actions>

@@ -19,7 +19,6 @@ class FoodCollectionsExporter(
 
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-        private val NUMBER_FORMATTER = NumberFormat.getNumberInstance()
     }
 
     override fun getName(): String = "TOeT_Spenden"
@@ -29,22 +28,25 @@ class FoodCollectionsExporter(
             listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)")
 
         val currentDistribution = currentStatistic.distribution
-        val distributions = distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year)
+        val otherDistributions = distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year)
             .filter { it.id != currentDistribution.id }
-            .sortedBy { it.startedAt }
+
+        // Merged and sorted together rather than "every other distribution, then the current one
+        // appended last": the current distribution being exported isn't necessarily the year's most
+        // recent one (a manual resend can target an older, already-ended distribution while a newer
+        // one is open), so appending it unconditionally would put its rows out of chronological
+        // order.
+        val distributions = (otherDistributions + currentDistribution).sortedBy { it.startedAt }
 
         // `food_categories` holds only weighed donation categories now - return boxes are counted
         // by free-text description on the food collection itself and live in their own table, so
         // they never show up in this donation weight export
-        val sortedCategories = sortedCategoriesWithDisplayName(distributions + currentDistribution)
+        val sortedCategories = sortedCategoriesWithDisplayName(distributions)
         val columnsHeaderRow = generateHeaderFromCategories(sortedCategories)
 
-        val previousRows = distributions.flatMap { distribution ->
-            calculateFoodCollections(sortedCategories, distribution)
-        }
-        val currentRows = calculateFoodCollections(sortedCategories, currentDistribution)
+        val rows = distributions.flatMap { distribution -> calculateFoodCollections(sortedCategories, distribution) }
 
-        return listOf(descriptionHeaderRow, columnsHeaderRow) + previousRows + currentRows
+        return listOf(descriptionHeaderRow, columnsHeaderRow) + rows
     }
 
     /**
@@ -95,7 +97,10 @@ class FoodCollectionsExporter(
                     sortedCategories.forEach { (category, _) ->
                         val itemPerCategory = itemsForShop.firstOrNull { it.category.id == category.id }
                         val weight = itemPerCategory?.weight ?: BigDecimal.ZERO
-                        columns.add(NUMBER_FORMATTER.format(weight))
+                        // created per call, not shared - NumberFormat is documented as not
+                        // thread-safe, and a manual mail resend can overlap the automatic
+                        // post-close export (#3629)
+                        columns.add(NumberFormat.getNumberInstance().format(weight))
                     }
 
                     rows.add(columns)

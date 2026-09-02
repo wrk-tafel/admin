@@ -162,6 +162,14 @@ must keep the same rules), and only the requested page's households are mapped t
 `HouseholdResponse`, since that mapping resolves the issuer, the `lockedBy` user and every person's
 country.
 
+**Race condition guard:** `payCostContribution` wraps its read-modify-write of
+`pendingCostContribution` in `advisoryLockService.withLock(AdvisoryLockKey.PAY_COST_CONTRIBUTION)`
+(lock id `10000L` in `AdvisoryLockKey`) - there is no `@Version` on `HouseholdEntity`, so without a
+lock two operators recording partial payments at the same moment would both read the same pending
+amount and one payment would be silently lost (issue #3602). `editCostContribution` (a direct
+overwrite rather than a subtraction) is deliberately not locked the same way - its last-write-wins
+behavior is the intended outcome for a manual correction.
+
 ### `HouseholdConverter` (`internal/converter`)
 Bidirectional mapping between the API-facing `Household`/`Person` models and
 `HouseholdEntity`/`PersonEntity`. `mapHouseholdToEntity` also:

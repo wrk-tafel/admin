@@ -51,6 +51,31 @@ internal class TimestampTimezoneConversionIT : TafelBaseIntegrationTest() {
         }
     }
 
+    /**
+     * R__00116 only converts the naive `timestamp` columns that exist when it runs - as a repeatable
+     * migration, it re-runs on a checksum change, not because some later migration added a new naive
+     * `timestamp` column, so nothing about Flyway catches that gap on its own. This test is what
+     * actually catches it: a future migration that adds a `timestamp without time zone` column
+     * outside the excluded set below fails here, at the point the schema itself changed.
+     */
+    @Test
+    fun `no naive timestamp columns exist beyond the ones deliberately excluded from R__00116`() {
+        val excludedColumns = setOf(
+            "flyway_schema_history" to "installed_on",
+            "shedlock" to "lock_until",
+            "shedlock" to "locked_at",
+        )
+
+        val naiveTimestampColumns = jdbcTemplate.queryForList(
+            """
+                SELECT table_name, column_name FROM information_schema.columns
+                WHERE table_schema = 'public' AND data_type = 'timestamp without time zone'
+            """,
+        ).map { it["table_name"] to it["column_name"] }.toSet()
+
+        assertThat(naiveTimestampColumns).isEqualTo(excludedColumns)
+    }
+
     @Test
     fun `distributions started_at is still indexed by its Vienna calendar date, via the immutable vienna_date wrapper`() {
         val indexDefinition = jdbcTemplate.queryForObject(

@@ -5,7 +5,9 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditActorOperationCountProjection
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -25,6 +27,9 @@ internal class ExcessiveReadAccessDetectionServiceTest {
     private lateinit var auditLogRepository: AuditLogRepository
 
     @RelaxedMockK
+    private lateinit var distributionRepository: DistributionRepository
+
+    @RelaxedMockK
     private lateinit var pushBroadcastService: PushBroadcastService
 
     private lateinit var properties: TafelAdminProperties
@@ -37,7 +42,8 @@ internal class ExcessiveReadAccessDetectionServiceTest {
     @BeforeEach
     fun beforeEach() {
         properties = TafelAdminProperties().apply { audit.breachDetection.readThreshold = 20 }
-        service = ExcessiveReadAccessDetectionService(auditLogRepository, pushBroadcastService, properties, clock)
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+        service = ExcessiveReadAccessDetectionService(auditLogRepository, distributionRepository, pushBroadcastService, properties, clock)
     }
 
     private fun offender(username: String, readCount: Long) = object : AuditActorOperationCountProjection {
@@ -116,6 +122,38 @@ internal class ExcessiveReadAccessDetectionServiceTest {
     @Test
     fun `is switched off when the threshold is not positive`() {
         properties.audit.breachDetection.readThreshold = 0
+
+        service.detectExcessiveReadAccess()
+
+        verify(exactly = 0) { auditLogRepository.findActorsWithOperationCountAbove(any(), any(), any(), any(), any()) }
+        verify(exactly = 0) { pushBroadcastService.broadcast(any(), any(), any()) }
+    }
+
+    @Test
+    fun `uses the higher distribution threshold while a distribution is active`() {
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        properties.audit.breachDetection.readThresholdDuringDistribution = 100
+        every {
+            auditLogRepository.findActorsWithOperationCountAbove(any(), any(), any(), any(), any())
+        } returns emptyList()
+
+        service.detectExcessiveReadAccess()
+
+        verify {
+            auditLogRepository.findActorsWithOperationCountAbove(
+                AuditOperation.READ,
+                any(),
+                100L,
+                AuditScope.bulkReportEntityTypes,
+                any(),
+            )
+        }
+    }
+
+    @Test
+    fun `is switched off during a distribution when the distribution threshold is not positive, even if the normal threshold is set`() {
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        properties.audit.breachDetection.readThresholdDuringDistribution = 0
 
         service.detectExcessiveReadAccess()
 

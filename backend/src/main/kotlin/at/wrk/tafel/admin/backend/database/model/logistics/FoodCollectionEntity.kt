@@ -25,8 +25,8 @@ class FoodCollectionEntity(
 
     @ManyToOne
     @JoinColumn(name = "route_id", nullable = false)
-    final var route: RouteEntity = route
-        private set
+    var route: RouteEntity = route
+        protected set
 
     /**
      * The route's name at the time this collection was last recorded, stored rather than derived on
@@ -34,10 +34,15 @@ class FoodCollectionEntity(
      * "Route" column of the TOeT_Spenden export for distributions that already happened whenever a
      * route gets renamed - the same reason [FoodCollectionItemEntity.weight] is stored instead of
      * recomputed.
+     *
+     * Neither property is declared `final`: a final getter prevents Hibernate from building a lazy
+     * proxy for the whole entity (HHH000305), so every association targeting [FoodCollectionEntity]
+     * would be fetched eagerly instead. `protected set` still keeps [updateRoute] the only way for
+     * outside callers to change the pair.
      */
     @Column(name = "route_name", nullable = false)
-    final var routeName: String = route.name
-        private set
+    var routeName: String = route.name
+        protected set
 
     /** The only way to change [route], so [routeName] can never fall out of sync with it. */
     fun updateRoute(newRoute: RouteEntity) {

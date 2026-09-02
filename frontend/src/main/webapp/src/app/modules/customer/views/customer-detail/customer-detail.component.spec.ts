@@ -3,7 +3,7 @@ import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
 import dayjs from 'dayjs';
-import {of, throwError} from 'rxjs';
+import {of, Subject, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender, CustomerUpdateResponse} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
@@ -32,6 +32,7 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 import {
   ConfirmCustomerSaveDialog
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
+import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {
   EditCostContributionDialogComponent
@@ -620,8 +621,44 @@ describe('CustomerDetailComponent', () => {
 
     component.disableCustomer();
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
     expect(component.customerData()).toEqual(expectedCustomerData);
+  });
+
+  it('disable customer with 409 conflict shows confirmation dialog', () => {
+    const expectedCustomerData = {
+      ...mockCustomer,
+      validUntil: dayjs().subtract(1, 'day').endOf('day').toDate()
+    };
+
+    customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
+      status: 409,
+      error: {
+        detail: 'Conflict: customer was updated by another user',
+        body: { data: mockCustomer, errorMsg: 'Conflict: customer was updated by another user' }
+      }
+    })));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({
+      afterClosed: vi.fn().mockReturnValue(of(false))
+    } as any);
+
+    component.disableCustomer();
+
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
+    expect(matDialog.open).toHaveBeenCalledWith(ConfirmCustomerSaveDialog, {
+      data: {
+        message: 'Conflict: customer was updated by another user'
+      }
+    });
   });
 
   it('lock customer', () => {
@@ -649,8 +686,49 @@ describe('CustomerDetailComponent', () => {
 
     component.openLockCustomerDialog();
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
     expect(component.customerData()).toEqual(expectedCustomerData);
+  });
+
+  it('lock customer with 409 conflict shows confirmation dialog and keeps the entered lock reason', () => {
+    const lockReasonText = 'locked due to lorem ipsum';
+    const expectedCustomerData = {
+      ...mockCustomer,
+      locked: true,
+      lockReason: lockReasonText
+    };
+
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockImplementation((component: unknown) => {
+      if (component === LockCustomerDialogComponent) {
+        return {afterClosed: () => of(lockReasonText)} as any;
+      }
+      return {afterClosed: vi.fn().mockReturnValue(of(false))} as any;
+    });
+
+    customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
+      status: 409,
+      error: {
+        detail: 'Conflict: customer was updated by another user',
+        body: { data: mockCustomer, errorMsg: 'Conflict: customer was updated by another user' }
+      }
+    })));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.openLockCustomerDialog();
+
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
+    expect(matDialog.open).toHaveBeenCalledWith(ConfirmCustomerSaveDialog, {
+      data: {
+        message: 'Conflict: customer was updated by another user'
+      }
+    });
   });
 
   it('unlock customer', () => {
@@ -680,8 +758,52 @@ describe('CustomerDetailComponent', () => {
 
     component.unlockCustomer();
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
     expect(component.customerData()).toEqual(expectedCustomerData);
+  });
+
+  it('unlock customer with 409 conflict shows confirmation dialog', () => {
+    const lockedCustomer = {
+      ...mockCustomer,
+      locked: true,
+      lockedBy: 'whoever',
+      lockReason: 'lock-text'
+    };
+    const expectedCustomerData = {
+      ...lockedCustomer,
+      locked: false,
+      lockedBy: null,
+      lockReason: null
+    };
+
+    customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
+      status: 409,
+      error: {
+        detail: 'Conflict: customer was updated by another user',
+        body: { data: lockedCustomer, errorMsg: 'Conflict: customer was updated by another user' }
+      }
+    })));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', lockedCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({
+      afterClosed: vi.fn().mockReturnValue(of(false))
+    } as any);
+
+    component.unlockCustomer();
+
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
+    expect(matDialog.open).toHaveBeenCalledWith(ConfirmCustomerSaveDialog, {
+      data: {
+        message: 'Conflict: customer was updated by another user'
+      }
+    });
   });
 
   it('add new note to customer', () => {
@@ -931,6 +1053,36 @@ describe('CustomerDetailComponent', () => {
     expect(assignButton).toBeTruthy();
   });
 
+  it('a slower earlier ticket lookup does not overwrite a faster later one', async () => {
+    currentDistributionSignal.set({id: 1, startedAt: new Date()});
+    const firstLookup = new Subject<{ticketNumber: number | null}>();
+    const secondLookup = new Subject<{ticketNumber: number | null}>();
+    distributionTicketApiService.getCurrentTicketForCustomer
+      .mockReturnValueOnce(firstLookup)
+      .mockReturnValueOnce(secondLookup);
+
+    const otherCustomer: CustomerData = {...mockCustomer, id: 999};
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // navigating to another customer's detail (same reused component) starts a second lookup
+    // before the first one has resolved
+    fixture.componentRef.setInput('customerData', otherCustomer);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // the newer lookup resolves first, the older/slower one lands after - it must not win
+    secondLookup.next({ticketNumber: 99});
+    firstLookup.next({ticketNumber: 1});
+
+    expect(fixture.componentInstance.ticketNumber()).toBe(99);
+  });
+
   it('ticket number displayed when already assigned', async () => {
     currentDistributionSignal.set({id: 1, startedAt: new Date()});
     distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({ticketNumber: 42}));
@@ -1012,7 +1164,7 @@ describe('CustomerDetailComponent', () => {
       afterClosed: vi.fn().mockReturnValue(of(true))
     } as any);
 
-    component.openConfirmUpdateCustomerDialog(mockCustomer, mockMessage);
+    component.openConfirmUpdateCustomerDialog(mockCustomer, mockMessage, 'Kunde wurde verlängert!', 'Verlängerung fehlgeschlagen!');
 
     expect(matDialog.open).toHaveBeenCalledWith(ConfirmCustomerSaveDialog, {
       data: {
@@ -1037,7 +1189,7 @@ describe('CustomerDetailComponent', () => {
       afterClosed: vi.fn().mockReturnValue(of(true))
     } as any);
 
-    component.openConfirmUpdateCustomerDialog(mockCustomer, mockMessage);
+    component.openConfirmUpdateCustomerDialog(mockCustomer, mockMessage, 'Kunde wurde verlängert!', 'Verlängerung fehlgeschlagen!');
 
     expect(matDialog.open).toHaveBeenCalledWith(ConfirmCustomerSaveDialog, {
       data: {
@@ -1045,6 +1197,31 @@ describe('CustomerDetailComponent', () => {
       }
     });
     expect(customerApiService.updateCustomer).toHaveBeenCalledWith(mockCustomer, true, expect.anything());
+    expect(toastr.success).toHaveBeenCalledWith('Kunde wurde verlängert!');
+  });
+
+  it('openConfirmUpdateCustomerDialog shows the given error title when the retry itself fails', () => {
+    const mockMessage = 'Customer has been updated by another user. Do you want to proceed?';
+    customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
+      status: 500,
+      error: { detail: 'Internal server error' }
+    })));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({
+      afterClosed: vi.fn().mockReturnValue(of(true))
+    } as any);
+
+    component.openConfirmUpdateCustomerDialog(mockCustomer, mockMessage, 'Kunde wurde gesperrt!', 'Sperren fehlgeschlagen!');
+
+    expect(toastr.error).toHaveBeenCalledWith('Internal server error', 'Sperren fehlgeschlagen!');
   });
 
   it('openConfirmUpdateCustomerDialog does not call API when dialog is cancelled', () => {
@@ -1062,7 +1239,7 @@ describe('CustomerDetailComponent', () => {
       afterClosed: vi.fn().mockReturnValue(of(false))
     } as any);
 
-    component.openConfirmUpdateCustomerDialog(mockCustomer, mockMessage);
+    component.openConfirmUpdateCustomerDialog(mockCustomer, mockMessage, 'Kunde wurde verlängert!', 'Verlängerung fehlgeschlagen!');
 
     expect(matDialog.open).toHaveBeenCalled();
     expect(customerApiService.updateCustomer).not.toHaveBeenCalled();

@@ -12,6 +12,8 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
@@ -88,6 +90,9 @@ class TafelUserDetailsManagerTest {
 
     @RelaxedMockK
     private lateinit var auditActorProvider: AuditActorProvider
+
+    @RelaxedMockK
+    private lateinit var advisoryLockService: AdvisoryLockService
 
     private val clock: Clock = Clock.fixed(Instant.parse("2026-08-28T10:00:00Z"), ZoneId.of("UTC"))
 
@@ -832,6 +837,7 @@ class TafelUserDetailsManagerTest {
         assertThat(result).isTrue
         verify { userRepository.delete(testUserEntity) }
         verify(exactly = 0) { userRepository.countOtherEnabledUsersWithAuthority(any(), any()) }
+        verify(exactly = 0) { advisoryLockService.acquireLock(any()) }
     }
 
     @Test
@@ -852,6 +858,7 @@ class TafelUserDetailsManagerTest {
 
         assertThat(exception.body.detail).isEqualTo("Es muss mindestens ein aktiver Benutzer mit der Berechtigung \"Administrator\" verbleiben!")
         verify(exactly = 0) { userRepository.delete(any<UserEntity>()) }
+        verify(exactly = 1) { advisoryLockService.acquireLock(AdvisoryLockKey.LAST_ADMINISTRATOR_SAFEGUARD) }
     }
 
     @Test
@@ -873,6 +880,7 @@ class TafelUserDetailsManagerTest {
 
         assertThat(result).isTrue
         verify { userRepository.delete(administratorEntity) }
+        verify(exactly = 1) { advisoryLockService.acquireLock(AdvisoryLockKey.LAST_ADMINISTRATOR_SAFEGUARD) }
     }
 
     /**

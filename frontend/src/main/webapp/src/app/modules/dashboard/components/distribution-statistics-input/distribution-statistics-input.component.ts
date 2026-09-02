@@ -16,6 +16,7 @@ import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-inf
 @Component({
   selector: 'tafel-distribution-statistics-input',
   templateUrl: 'distribution-statistics-input.component.html',
+  styleUrl: 'distribution-statistics-input.component.scss',
   imports: [
     MatCard,
     MatCardHeader,
@@ -110,6 +111,9 @@ export class DistributionStatisticsInputComponent {
 
   save() {
     this.form.markAllAsTouched();
+    if (this.form.invalid) {
+      return;
+    }
 
     const observer = {
       next: () => {

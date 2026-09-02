@@ -7,11 +7,14 @@
   <!-- `!flex`: Material's own `.mat-mdc-card-content { display: block }` is a single class like
        the utility and comes later in the cascade, so a plain `flex` here does nothing. -->
   <mat-card-content class="!flex flex-col">
+    <!-- appearance="fill" kept (over the app-wide outline default, see app.config.ts) for its
+         label sitting fully inside the filled box - an outline field's label instead floats up
+         into the notch cut into its border, which needs a background of its own to mask this
+         card's purple showing through, and even a corrected one still reads as a patch stuck
+         above the field. What actually hid this label - Material's density(-4) setting used
+         across the app, applied to fill fields only, below density -3 (see the .scss) - is
+         overridden locally instead. -->
     <mat-form-field class="w-full lg:flex-1" appearance="fill">
-      <!--
-        A placeholder was standing in for the label, and a placeholder is gone the moment the field
-        holds anything - which is exactly when a screen-reader user asks what field they are in.
-      -->
       <mat-label>Notizen zur Ausgabe</mat-label>
       <textarea
         matInput

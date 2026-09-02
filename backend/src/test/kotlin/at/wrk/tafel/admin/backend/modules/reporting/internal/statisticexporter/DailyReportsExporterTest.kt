@@ -36,7 +36,10 @@ class DailyReportsExporterTest {
 
     @Test
     fun `exported properly`() {
-        val currentDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+        // Deliberately distinct, non-"now()" timestamps: two distributions created within the same
+        // test method can otherwise land microseconds apart, making the expected row order flaky
+        // depending on real-clock precision rather than on the sorting this test actually verifies.
+        val currentDistribution = DistributionEntity(startedAt = LocalDateTime.now().minusDays(1), startedByUser = testUserEntity).apply {
             id = 123
         }
         val currentStatistic = DistributionStatisticEntity(distribution = currentDistribution).apply {
@@ -108,7 +111,7 @@ class DailyReportsExporterTest {
         currentDistribution.statistic = currentStatistic
 
         // the repository returns every distribution of the year including the one currently being
-        // closed - the exporter has to filter that one out itself, not rely on the repository mock
+        // exported - the exporter has to filter that one out itself, not rely on the repository mock
         every { distributionRepository.getDistributionsForYear(currentDistribution.startedAt.year) } returns listOf(
             previousDistribution1,
             previousDistribution2,
@@ -120,6 +123,10 @@ class DailyReportsExporterTest {
 
         val rows = exporter.getRows(currentStatistic)
 
+        // The current distribution (now-1d) sits chronologically between previousDistribution2
+        // (now-7d) and previousDistribution1 (now) - a manual resend of an older, already-ended
+        // distribution while a newer one exists must not always append the current row last, see
+        // issue #3599.
         assertThat(rows).isEqualTo(
             listOf(
                 listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tagesreports"),
@@ -134,14 +141,14 @@ class DailyReportsExporterTest {
                     "15", "3", "12", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
                 ),
                 listOf(
-                    previousDistribution1.startedAt!!.format(DATE_FORMATTER),
-                    previousDistribution1.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
-                    "5", "3", "2", "3", "4", "5", "6", "7", "8", "0", "9", "10", "11.1", "12", "13",
-                ),
-                listOf(
                     currentDistribution.startedAt!!.format(DATE_FORMATTER),
                     currentDistribution.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
                     "12", "0", "12", "11", "10", "9", "8", "7", "6", "0", "5", "4", "3.1", "2", "1",
+                ),
+                listOf(
+                    previousDistribution1.startedAt!!.format(DATE_FORMATTER),
+                    previousDistribution1.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
+                    "5", "3", "2", "3", "4", "5", "6", "7", "8", "0", "9", "10", "11.1", "12", "13",
                 ),
             ),
         )

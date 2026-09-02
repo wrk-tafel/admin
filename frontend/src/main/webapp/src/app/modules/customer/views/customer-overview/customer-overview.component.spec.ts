@@ -145,11 +145,16 @@ describe('CustomerOverviewComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', customerId]);
   });
 
-  it('trackByRow returns the row customer id', () => {
+  it('trackByRow includes the row type so a household in both lists gets distinct keys', () => {
     const fixture = TestBed.createComponent(CustomerOverviewComponent);
     const component = fixture.componentInstance;
 
-    expect(component.trackByRow(0, {type: 'NEW', item: mockNewItem})).toEqual(mockNewItem.customer.id);
+    const newKey = component.trackByRow(0, {type: 'NEW', item: mockNewItem});
+    const renewedKey = component.trackByRow(1, {type: 'RENEWED', item: mockNewItem});
+
+    expect(newKey).toEqual(`NEW-${mockNewItem.customer.id}`);
+    expect(renewedKey).toEqual(`RENEWED-${mockNewItem.customer.id}`);
+    expect(newKey).not.toEqual(renewedKey);
   });
 
   it('trackByDistributionId returns the distribution id', () => {

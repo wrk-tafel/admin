@@ -45,6 +45,7 @@ export class SseService {
       let reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
       let reconnectDelay = RECONNECT_DELAY_MIN_MILLIS;
       let disconnectGraceTimeoutId: ReturnType<typeof setTimeout> | null = null;
+      let consecutiveFailures = 0;
 
       const clearDisconnectGrace = () => {
         if (disconnectGraceTimeoutId !== null) {
@@ -58,8 +59,9 @@ export class SseService {
 
         eventSource.onopen = () => {
           // Only a connection that actually opened proves the backend is reachable again, so the
-          // backoff is reset here rather than on the attempt being made.
+          // backoff and failure streak are reset here rather than on the attempt being made.
           reconnectDelay = RECONNECT_DELAY_MIN_MILLIS;
+          consecutiveFailures = 0;
           clearDisconnectGrace();
 
           if (connectionStateCallback) {
@@ -79,9 +81,7 @@ export class SseService {
           }
         };
 
-        eventSource.onerror = (error) => {
-          console.error('SSE connection error', error);
-
+        eventSource.onerror = () => {
           if (eventSource?.readyState === EventSource.CLOSED) {
             clearDisconnectGrace();
 
@@ -89,18 +89,24 @@ export class SseService {
               connectionStateCallback(false);
             }
 
-            console.warn('SSE connection permanently closed, trying to reconnect...');
             reconnect();
           } else if (eventSource?.readyState === EventSource.CONNECTING && disconnectGraceTimeoutId === null) {
             // A network-level failure leaves the native EventSource retrying in CONNECTING forever
             // rather than ever reaching CLOSED, so the branch above never fires for it and nothing
             // would otherwise report the drop - see #3530. Report it as disconnected once the grace
-            // period has passed without the browser's own retry succeeding.
+            // period has passed without the browser's own retry succeeding - the only place in this
+            // branch where the drop is proven persistent rather than a blip the browser recovers
+            // from on its own, so it's also the only place here worth a captured `console.error`.
             disconnectGraceTimeoutId = setTimeout(() => {
               disconnectGraceTimeoutId = null;
 
-              if (eventSource?.readyState !== EventSource.OPEN && connectionStateCallback) {
-                connectionStateCallback(false);
+              if (eventSource?.readyState !== EventSource.OPEN) {
+                if (connectionStateCallback) {
+                  connectionStateCallback(false);
+                }
+                console.error(
+                  `SSE connection to ${url} not recovered within ${DISCONNECT_GRACE_MILLIS}ms (readyState=${eventSource?.readyState})`
+                );
               }
             }, DISCONNECT_GRACE_MILLIS);
           }
@@ -114,6 +120,22 @@ export class SseService {
         // open with nothing holding a reference to close it.
         if (reconnectTimeoutId !== null) {
           return;
+        }
+
+        // A single drop that reconnects right away is routine SSE lifecycle (proxy idle timeout,
+        // phone screen off, a brief network blip) and self-heals via the retry below - logging it
+        // via `console.warn`/`console.error` would mean `ClientErrorReportingService` reports it as
+        // a client error on every one of these, which is most of `app.log`'s WARN volume in
+        // practice (`ClientLogService.captureConsoleMessages` only intercepts those two levels, not
+        // `console.log`). Only a *repeated* failure without a successful reopen in between is
+        // escalated to a captured `console.error`.
+        consecutiveFailures++;
+        if (consecutiveFailures > 1) {
+          console.error(
+            `SSE connection to ${url} still failing after ${consecutiveFailures} attempts, retrying in ${reconnectDelay}ms`
+          );
+        } else {
+          console.log(`SSE connection to ${url} closed, trying to reconnect...`);
         }
 
         if (eventSource) {

@@ -119,6 +119,21 @@ describe('ScannerComponent', () => {
         expect(component.lastScanResult()).toBe(12345);
     });
 
+    it('qrCodeReaderSuccessCallback ignores a non-numeric decoded code instead of sending NaN', async () => {
+        // Regression test (issue #3635): a non-ticket QR code (a poster, a document, a customer's
+        // phone) decodes to text that isn't a plain number - `+decodedText` would otherwise be NaN,
+        // which the backend rejects (it only accepts a Long) and which breaks the rescan-cooldown's
+        // `===` comparison (NaN !== NaN), so the code must never reach that conversion at all.
+        component.lastScanResult.set(undefined);
+        component.scannerId.set(111);
+
+        component.qrCodeReaderSuccessCallback('not-a-ticket-code');
+        await fixture.whenStable();
+
+        expect(scannerApiService.sendScanResult).not.toHaveBeenCalled();
+        expect(component.lastScanResult()).toBeUndefined();
+    });
+
     it('scan decoded before scannerId resolves is still sent once scannerId becomes available', async () => {
         // Regression test: camera startup and scanner registration run concurrently, so a QR
         // code can be decoded before scannerId() resolves. The send must not be dropped, and
@@ -313,6 +328,20 @@ describe('ScannerComponent', () => {
             component.qrCodeReaderSuccessCallback('12345');
 
             expect(component.scanFeedback()).toEqual({ value: 12345, isDuplicate: true });
+        });
+
+        it('never shows feedback for a non-numeric decoded code, however often it re-decodes', () => {
+            // Regression test (issue #3635): before validating the decoded text, every re-decode of
+            // a non-ticket code (zxing re-decodes roughly every 250ms while it stays in frame) passed
+            // the rescan-cooldown check - `NaN === NaN` is false - so the full-screen flash kept
+            // retriggering several times a second for as long as the code stayed in frame.
+            component.lastScanResult.set(undefined);
+
+            component.qrCodeReaderSuccessCallback('not-a-ticket-code');
+            component.qrCodeReaderSuccessCallback('not-a-ticket-code');
+            component.qrCodeReaderSuccessCallback('not-a-ticket-code');
+
+            expect(component.scanFeedback()).toBeUndefined();
         });
     });
 

@@ -10,8 +10,10 @@ enum class AdvisoryLockKey(val lockId: Long) {
     // serializes concurrent IP-scoped login-failure updates across instances - see LOGIN_ATTEMPT_TRACKING
     LOGIN_ATTEMPT_IP_TRACKING(3100L),
 
-    // serializes read-modify-write updates to a food collection's items to avoid
-    // duplicate-key races when multiple patches for the same route/shop overlap
+    // serializes every write path that can find-or-create a food collection's row (saveRouteData,
+    // saveKm, saveItems, saveItemsPerShop, patchItem, saveReturnItems, saveReturnItemsPerShop) to
+    // avoid duplicate-key races on the (distribution_id, route_id) unique constraint, and
+    // read-modify-write races on its items, when multiple saves for the same route/shop overlap
     PATCH_FOOD_COLLECTION_ITEM(4000L),
 
     // serializes scanner registration's gap-filling scanner-id lookup to avoid
@@ -20,7 +22,8 @@ enum class AdvisoryLockKey(val lockId: Long) {
 
     // serializes the per-shop replace of a food collection's free-text return items: the whole
     // element collection is rewritten on every save, so concurrent saves for different shops of
-    // the same route would otherwise drop each other's rows
+    // the same route would otherwise drop each other's rows. Held nested inside
+    // PATCH_FOOD_COLLECTION_ITEM by both callers - see that key's comment
     SAVE_FOOD_COLLECTION_RETURN_ITEMS(6000L),
 
     // serializes the upsert-by-endpoint of a push subscription: `endpoint` is UNIQUE and the
@@ -39,4 +42,15 @@ enum class AdvisoryLockKey(val lockId: Long) {
     // would otherwise both find nothing and both insert, with the loser failing on a duplicate key
     // instead of getting back the completion the other one just recorded
     ROUTE_STOP_COMPLETION(9000L),
+
+    // serializes the read-modify-write of a household's pendingCostContribution in payCostContribution:
+    // without it, two operators recording partial payments at the same time both read the same
+    // pending amount and one payment is silently lost instead of both being subtracted
+    PAY_COST_CONTRIBUTION(10000L),
+
+    // serializes the last-active-administrator safeguard's check-then-act (UserController.deleteUser/
+    // updateUser, TafelUserDetailsManager.deleteUserById): without it, two concurrent deletes/disables
+    // with exactly two enabled administrators left could each see "another administrator exists"
+    // before either commits, letting both succeed and leaving zero administrators
+    LAST_ADMINISTRATOR_SAFEGUARD(11000L),
 }

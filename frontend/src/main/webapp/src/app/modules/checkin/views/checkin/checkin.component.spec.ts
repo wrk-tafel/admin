@@ -908,6 +908,24 @@ describe('CheckinComponent', () => {
         expect(component.infantCount()).toBe(1);
     });
 
+    it('infantCount does not count a person with no birthdate', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+
+        component.processCustomer({
+            id: 133,
+            gender: Gender.MALE,
+            address: {street: 's', houseNumber: '1', postalCode: 1020, city: 'Wien'},
+            validUntil: dayjs().add(3, 'months').toDate(),
+            additionalPersons: [
+                {birthDate: undefined, excludeFromHousehold: false} as any
+            ]
+        });
+
+        expect(component.infantCount()).toBe(0);
+    });
+
     it('customerStateDatePrefix distinguishes an expired from a running validity', () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;

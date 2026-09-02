@@ -121,6 +121,53 @@ describe('MailRecipients', () => {
         expect(toastr.error).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
     });
 
+    /**
+     * Regression guard (issue #3604): saved ids used to be paired to unsaved rows purely by array
+     * index, so a backend response ordering the new addresses differently than the form assigned the
+     * wrong id to the wrong row - a subsequent delete of one row then removed the other address's DB
+     * record instead.
+     */
+    it('applySavedIds matches newly saved ids to rows by address value, not array position', () => {
+        const fixture = TestBed.createComponent(MailRecipientsComponent);
+        const component = fixture.componentInstance;
+        apiService.getMailRecipients.mockReturnValue(of(testData));
+        fixture.detectChanges(); // Trigger effect in constructor
+
+        component.addAddress(0, 0);
+        component.addAddress(0, 0);
+        const addresses = component.getAddressesOfRecipientTypeIndex(0, 0);
+        addresses.at(1).get('address')!.setValue('new1@test.com');
+        addresses.at(2).get('address')!.setValue('new2@test.com');
+
+        vi.spyOn(component.form, 'valid', 'get').mockReturnValue(true);
+
+        // the backend returns the two new addresses in the opposite order to how they were added
+        const responseData: MailRecipients = {
+            mailRecipients: [
+                {
+                    mailType: MailTypeEnum.DAILY_REPORT,
+                    recipients: [
+                        {
+                            recipientType: RecipientTypeEnum.TO,
+                            addresses: [
+                                {id: 1, address: 'to1@test.com'},
+                                {id: 20, address: 'new2@test.com'},
+                                {id: 10, address: 'new1@test.com'}
+                            ]
+                        }
+                    ]
+                },
+                testData.mailRecipients[1]
+            ]
+        };
+        apiService.saveMailRecipients.mockReturnValue(of(responseData));
+
+        component.save();
+
+        expect(addresses.at(1).get('id')!.value).toBe(10);
+        expect(addresses.at(2).get('id')!.value).toBe(20);
+    });
+
     it('add address', () => {
         const fixture = TestBed.createComponent(MailRecipientsComponent);
         const component = fixture.componentInstance;

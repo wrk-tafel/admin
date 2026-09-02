@@ -135,7 +135,7 @@ class LoginAttemptService(
         sortDirection: String? = null,
     ): Page<LoginAttemptItem> {
         val now = now()
-        var spec = LoginAttemptEntity.Specs.usernameLike("%${searchInput?.trim()?.lowercase().orEmpty()}%")
+        var spec = LoginAttemptEntity.Specs.usernameLike(searchInput?.trim()?.lowercase().orEmpty())
         if (lockedOnly) {
             spec = spec.and(LoginAttemptEntity.Specs.lockedOnly(now))
         }

@@ -19,6 +19,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
+import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -379,9 +380,13 @@ internal class HouseholdDocumentServiceTest {
      * Inside a real (Spring-managed) transaction, removing the scanner file must wait for the
      * commit: deleting it ahead of time would lose the scan for good if the transaction then rolled
      * back, leaving neither the imported document nor the original scanner file - see issue #3531.
+     * The immediate SSE refresh has to wait for the same commit and, within it, has to run after the
+     * file is actually deleted - published while the file is still on the share, the listing it
+     * compares against still contains it, so nothing looks changed and no notification goes out -
+     * see issue #3601.
      */
     @Test
-    fun `import from scanner file defers the scanner file deletion until the transaction commits`() {
+    fun `import from scanner file defers the scanner file deletion and the SSE refresh until the transaction commits, refresh after deletion`() {
         every { scannerFileService.read("scan1.pdf") } returns PDF_MAGIC_BYTES + "scanned-content".toByteArray()
         every { scannerFileService.resolveContentType("scan1.pdf") } returns "application/pdf"
 
@@ -391,10 +396,14 @@ internal class HouseholdDocumentServiceTest {
 
             // still on the scanner share - the transaction hasn't committed yet
             verify(exactly = 0) { scannerFileService.delete(any()) }
+            verify(exactly = 0) { documentScannerWatcherService.publishIfChanged() }
 
             TransactionSynchronizationUtils.invokeAfterCommit(TransactionSynchronizationManager.getSynchronizations())
 
-            verify(exactly = 1) { scannerFileService.delete("scan1.pdf") }
+            verifyOrder {
+                scannerFileService.delete("scan1.pdf")
+                documentScannerWatcherService.publishIfChanged()
+            }
         } finally {
             TransactionSynchronizationManager.clearSynchronization()
         }

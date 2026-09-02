@@ -36,8 +36,18 @@ class DistributionResponseModelTest {
     }
 
     @Test
-    fun `distribution statistic data with no shelters selected is valid`() {
+    fun `distribution statistic data with zero count is invalid`() {
         val data = DistributionStatisticRequest(employeeCount = 0, selectedShelterIds = emptyList())
+
+        val violations = validator.validate(data)
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }
+            .containsExactly("employeeCount")
+    }
+
+    @Test
+    fun `distribution statistic data with no shelters selected is valid`() {
+        val data = DistributionStatisticRequest(employeeCount = 1, selectedShelterIds = emptyList())
 
         val violations = validator.validate(data)
 
@@ -46,7 +56,7 @@ class DistributionResponseModelTest {
 
     @Test
     fun `distribution statistic data with valid values is valid`() {
-        val data = DistributionStatisticRequest(employeeCount = 0, selectedShelterIds = listOf(1L))
+        val data = DistributionStatisticRequest(employeeCount = 1, selectedShelterIds = listOf(1L))
 
         val violations = validator.validate(data)
 

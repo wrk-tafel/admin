@@ -5,6 +5,49 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Ein aus dem Scanner-Ordner importiertes Dokument verschwindet jetzt sofort aus der Dateiliste, statt erst beim nächsten Aktualisierungsintervall.
+- Die nächtliche Bereinigung verwaister Dokumentdateien bricht jetzt ab, wenn ungewöhnlich viele Dateien als verwaist erscheinen (z. B. nach einer Änderung des Speicherpfads), statt versehentlich alle Dokumente zu löschen.
+- Ein manueller erneuter Versand der Statistik-Mails berücksichtigt jetzt nur beendete Ausgaben, statt eine noch laufende Ausgabe fälschlich als abgeschlossenen Tag mit auszuweisen.
+- Der CSV-Export der Tagesreports und Spenden zeigt bei einem erneuten Mail-Versand einer älteren Ausgabe deren Zeile jetzt an der richtigen Stelle der Jahresübersicht an, statt immer als letzte Zeile.
+- Der CSV-Export "Verteilung Nationalitäten" zeigt jetzt getrennte Spalten für Haushalte und Personen an, statt in der Spalte "Haushalte" tatsächlich Personen zu zählen.
+- Die Anmeldung (Check-in) funktioniert jetzt auch für Benutzer:innen, die ausschließlich die Berechtigung "Anmeldung" besitzen, statt mit einer Zugriffsfehlermeldung abzubrechen.
+- Die Warnung administrativer Konten bei ungewöhnlich vielen Datenzugriffen berücksichtigt jetzt eine laufende Ausgabe mit einer höheren Schwelle, statt bei jedem regulären Ausgabetag auszulösen.
+- Ein minimaler Layoutfehler auf der gedruckten Bezugskarte, der zu einer Warnung bei jeder Erstellung eines neuen Haushalts führte, wurde behoben.
+- Das Löschen des letzten offenen Tickets löst jetzt ebenfalls die Benachrichtigung "Alle Kunden abgearbeitet" aus, statt sie ganz ausfallen zu lassen.
+- Der GDPR-Datenexport eines Benutzerkontos zeigt jetzt für alle Benachrichtigungsarten die deutsche Bezeichnung an, statt für zwei davon den internen Systemnamen.
+- Die Suche in "Anmelde-Versuche" behandelt `%` und `_` in der Eingabe jetzt als normale Zeichen, statt sie als Platzhalter zu verwenden.
+- Die Aktionen "Kunde sperren/entsperren/deaktivieren" bieten bei einem noch nicht geprüften möglichen Duplikat bzw. einem zu hohen Einkommen jetzt denselben Bestätigungsdialog wie das Verlängern an, statt wirkungslos mit einer irreführenden Fehlermeldung abzubrechen.
+- Ein nicht als Ticket lesbarer QR-Code (z. B. ein Dokument oder ein Poster) löst am Scanner jetzt keine wiederholt aufblitzende Rückmeldung mehr aus und wird nicht mehr fälschlich als ungültige Zahl an den Server gesendet.
+- CSV-Exporte maskieren jetzt Zellen, die mit einem Formelzeichen (=, +, -, @) beginnen, statt sie unverändert zu exportieren und damit eine Formelausführung beim Öffnen in Excel zu riskieren.
+- Der CSV-Export der Statistiken bezeichnet die Zeile der in Notschlafstellen versorgten Personen jetzt korrekt als Gesamtsumme des Zeitraums, statt fälschlich als Durchschnitt pro Ausgabe.
+- Erfasste Retourware bei der Warenerfassung geht jetzt nicht mehr verloren, wenn ein gerade gespeicherter Wechsel der Filiale mit einer weiteren gleichzeitigen Speicherung derselben Route zusammentrifft oder wenn eine verzögerte Serverantwort erst nach dem Wechsel zur nächsten Filiale eintrifft.
+- Ein gleichzeitiges Erfassen einer Zahlung und das automatische Vormerken des Unkostenbeitrags beim Beenden derselben Ausgabe führt jetzt nicht mehr dazu, dass eine der beiden Änderungen verloren geht.
+- Das Bearbeiten eines Haushalts kann nicht mehr über einen speziell konstruierten API-Aufruf dazu führen, dass der Haushalt am Ende ohne Hauptperson gespeichert wird.
+
+## [1.16.1] - 2026-08-31
+- Ein Haushalt, der in derselben Ausgabe sowohl "Neu" als auch "Verlängert" ist, wird in der Kundenübersicht jetzt korrekt in beiden Zeilen bedienbar angezeigt, statt zu einem defekten Klickverhalten zu führen.
+- Beim Übernehmen von Personen aus dem Anspruch-Schnellcheck in "Kunden anlegen" wird die Familienbeihilfe-Kennzeichnung jetzt korrekt der tatsächlich als Hauptperson übernommenen Person zugeordnet, statt bei einer leer gelassenen ersten Zeile stillschweigend verloren zu gehen.
+- Eine Person ohne erfasstes Geburtsdatum wird beim Check-in jetzt nicht mehr fälschlich als Kleinkind mitgezählt.
+- Ein schneller Wechsel zwischen zwei Kundendetailseiten zeigt jetzt zuverlässig die Ticketnummer des aktuell angezeigten Kunden an, statt möglicherweise die einer zuvor angezeigten Person.
+- Die Eingabe der Mitarbeiter:innen-Anzahl im Statistik-Eingabefeld des Dashboards wird bei einem ungültigen Wert (0 oder leer) jetzt nicht mehr gespeichert, statt trotz angezeigtem Fehler zu speichern.
+- In der mobilen Warenerfassung werden Eingaben bei schnellem Filialwechsel oder einem Routenwechsel während des Ladens jetzt nicht mehr fälschlich einer falschen Filiale zugeordnet.
+- Das Speichern einer reinen Retourware-Freitextzeile in der mobilen Warenerfassung entfernt jetzt korrekt die Markierung "Nicht gespeichert", statt weiterhin fälschlich vor ungespeicherten Änderungen zu warnen.
+- Das Abrutschen vom Plus/Minus-Button während des Gedrückthaltens in der Warenmengen-Eingabe verschluckt jetzt nicht mehr den nächsten Tastendruck.
+- Die Felder "Anzahl der Mitarbeiter" und "Personen in Notschlafstellen" im Statistik-Bereich sowie "Notizen zur Ausgabe" im Anmerkungen-Bereich der Übersicht behalten jetzt ihre Beschriftung, sobald ein Wert eingegeben ist, statt sie wie einen reinen Platzhalter verschwinden zu lassen.
+- Die Kontrollkästchen im Dialog "Notschlafstellen auswählen" (Übersicht) sind jetzt einheitlich wie im Rest der Anwendung gestaltet, statt als unstylisierte Browser-Kontrollkästchen angezeigt zu werden.
+- Die Auswahl einer Scanner-Datei beim Dokument-Hochladen zeigt jetzt einheitlich gestaltete Radio-Buttons, statt unstylisierter Browser-Radio-Buttons.
+- Die E-Mail-Adressfelder unter Einstellungen → E-Mail-Empfänger sind jetzt einheitlich wie die übrigen Eingabefelder der Anwendung gestaltet.
+- Die Ticketnummer-Zuweisung in der Kunden-Detailansicht ist jetzt Teil des Kopfbereichs (in derselben Zeile wie die Status-Chips), statt als eigener Bereich zwischen Kopfbereich und Tabs zu stehen.
+- Eine E-Mail-Art ganz ohne konfigurierte Empfänger (z. B. der Tagesreport vor der Einrichtung) wird jetzt beim Versand übersprungen, statt erfolglos mehrfach wiederholt zu werden und dabei eine irreführende Fehlermeldung an Administrator:innen auszulösen.
+- Das Entfernen einer gerade erst gespeicherten E-Mail-Adresse unter Einstellungen → E-Mail-Empfänger löscht jetzt zuverlässig die richtige Adresse, statt möglicherweise eine andere gleichzeitig gespeicherte zu entfernen.
+- Beim Anlegen eines Benutzerkontos werden nicht übereinstimmende Passwort-Eingaben jetzt wie beim Bearbeiten abgelehnt, statt das Konto stillschweigend mit dem falsch wiederholten Passwort anzulegen.
+- Ein Netzwerk- oder Serverfehler beim Ändern des Passworts zeigt jetzt eine Fehlermeldung an, statt ohne jede Rückmeldung wirkungslos zu bleiben.
+- Zwei gleichzeitig erfasste Teilzahlungen des Unkostenbeitrags für denselben Haushalt werden jetzt beide berücksichtigt, statt dass eine der beiden Zahlungen stillschweigend verloren geht.
+- Ein gleichzeitiges Löschen oder Deaktivieren der letzten beiden aktiven Administrator-Konten führt jetzt zuverlässig dazu, dass mindestens eines erhalten bleibt, statt dass am Ende kein Administrator-Konto mehr übrig ist.
+- Ein gleichzeitiges Speichern der Routendaten bzw. Kilometerstände in der Warenerfassung für dieselbe Route führt jetzt nicht mehr zu einem unerwarteten Fehler.
+- Ein Check-in oder eine Ticket-Aktion, die genau mit dem Schließen der Ausgabe zusammenfällt, führt jetzt zu einer verständlichen Meldung statt zu einem unerwarteten Fehler bzw. einem stillschweigend nicht berücksichtigten Unkostenbeitrag.
+
+## [1.16.0] - 2026-08-31
 - Der Abschnitt "Länder" im Benutzerhandbuch zeigt jetzt auch einen Screenshot der Verwaltungsseite, statt nur eine reine Textbeschreibung.
 - Zwei gleichzeitige Speicherungen der Warenmenge in der Warenerfassung für unterschiedliche Filialen derselben Route (z. B. Handy und Desktop) überschreiben sich jetzt nicht mehr gegenseitig, statt bereits erfasste Mengen stillschweigend zu verlieren.
 - Ein Wechsel der Route in der Warenerfassung fragt bei noch nicht gespeicherten Eingaben jetzt vorher nach Bestätigung, statt diese stillschweigend zu verwerfen.

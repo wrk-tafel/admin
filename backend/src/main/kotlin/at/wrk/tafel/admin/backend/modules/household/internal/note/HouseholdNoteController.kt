@@ -22,7 +22,10 @@ class HouseholdNoteController(
     private val service: HouseholdNoteService,
 ) {
 
+    // Also reachable with CHECKIN alone: the check-in screen loads a household's notes as part of
+    // its normal customer lookup (its "Aktuellste Notiz" preview) - writes stay CUSTOMER-only (#3623).
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('CUSTOMER', 'CHECKIN')")
     fun getNotes(
         @PathVariable householdId: Long,
         @RequestParam("page") page: Int?,

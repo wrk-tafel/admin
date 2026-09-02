@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
-import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdExportService
@@ -68,12 +67,6 @@ class HouseholdController(
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 
-        household.id?.let {
-            if (householdService.existsByHouseholdId(it)) {
-                throw ConflictException("Kunde Nr. $it bereits vorhanden!")
-            }
-        }
-
         val response = householdService.createHousehold(household, force, isSupervisor)
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
@@ -102,8 +95,10 @@ class HouseholdController(
         return householdService.updateHousehold(householdId, household, force, isSupervisor)
     }
 
+    // Also reachable with CHECKIN alone: checking a customer in inherently requires reading their
+    // household record (the check-in screen loads it via this same endpoint) - see #3623.
     @GetMapping("/{householdId}")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
+    @PreAuthorize("hasAnyAuthority('CUSTOMER', 'CHECKIN')")
     fun getHousehold(@PathVariable householdId: Long): HouseholdResponse = householdService.findByHouseholdId(householdId)
         ?: throw NotFoundException("Kunde Nr. $householdId nicht gefunden!")
 

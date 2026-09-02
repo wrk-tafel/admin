@@ -145,8 +145,13 @@ class HouseholdDocumentService(
         // Deferred to afterCommit (see deleteFileAfterCommit): removing the scanner file immediately
         // would lose the scan for good if the transaction rolled back afterwards (e.g. a later step
         // in the same request failing), leaving neither the imported document nor the original file.
-        deleteFileAfterCommit { scannerFileService.delete(fileName) }
-        documentScannerWatcherService.publishIfChanged()
+        // publishIfChanged() has to run after that deletion, not before: called while the file is
+        // still on the share, the listing it compares against still contains it, so nothing looks
+        // changed and no SSE notification goes out.
+        deleteFileAfterCommit {
+            scannerFileService.delete(fileName)
+            documentScannerWatcherService.publishIfChanged()
+        }
 
         return mapToItem(savedEntity)
     }
