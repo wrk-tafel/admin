@@ -12,3 +12,13 @@ export const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1';
 export function buildSingleDestinationMapsUrl(address: string): string {
   return `${MAPS_DIRECTIONS_URL}&destination=${encodeURIComponent(address)}&travelmode=driving`;
 }
+
+/**
+ * An Apple Maps driving-directions link to a single address - for a driver on iOS who prefers
+ * Apple's own app over the Google Maps deep link above (which opens the Google Maps app when one
+ * is installed, or Google's web map otherwise). Apple's URL scheme has no multi-waypoint
+ * equivalent, so this stays single-destination only; a route's remaining-stops link is Google-only.
+ */
+export function buildSingleDestinationAppleMapsUrl(address: string): string {
+  return `https://maps.apple.com/?daddr=${encodeURIComponent(address)}&dirflg=d`;
+}

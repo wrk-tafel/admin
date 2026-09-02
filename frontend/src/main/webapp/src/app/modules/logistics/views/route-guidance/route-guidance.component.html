@@ -1,24 +1,55 @@
 <mat-card class="w-full">
-  <mat-card-header class="mb-2">
-    <mat-card-title>
-      <h2 class="tafel-h5 mb-0 mt-1">
-        Routen-Navi
-        <tafel-info-tooltip [text]="infoText" testId="guidance-info-tooltip"></tafel-info-tooltip>
-      </h2>
-    </mat-card-title>
-  </mat-card-header>
   <mat-card-content>
-    <mat-form-field class="w-full max-w-md">
-      <mat-label>Route auswählen</mat-label>
-      <mat-select testid="routeInput" [ngModel]="selectedRoute" (ngModelChange)="onSelectedRouteChange($event)">
-        <mat-option [value]="undefined">Bitte auswählen</mat-option>
-        @for (route of routeList().routes; track route.id) {
-          <mat-option [value]="route" [attr.testid]="'routeInput-option-' + route.id">{{ route.name }}</mat-option>
-        }
-      </mat-select>
-      <mat-icon matPrefix svgIcon="route"
-                class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
-    </mat-form-field>
+    <!-- the page's own title already sits in the app header above this card (TafelTitleStrategy) -
+         repeating "Routen-Navi" here would only cost a line's worth of height for nothing new. -->
+    @if (routePickerOpen()) {
+      <mat-form-field class="mb-3 w-full max-w-md" subscriptSizing="dynamic">
+        <mat-label>Route auswählen</mat-label>
+        <mat-select testid="routeInput" [ngModel]="selectedRoute" (ngModelChange)="onSelectedRouteChange($event)">
+          <mat-option [value]="undefined">Bitte auswählen</mat-option>
+          @for (route of routeList().routes; track route.id) {
+            <mat-option [value]="route" [attr.testid]="'routeInput-option-' + route.id">{{ route.name }}</mat-option>
+          }
+        </mat-select>
+        <mat-icon matPrefix svgIcon="route"
+                  class="!flex !items-center !justify-center !leading-none !w-5 !h-5 !p-1.5 text-slate-500"></mat-icon>
+        <tafel-info-tooltip matSuffix [text]="infoText" testId="guidance-info-tooltip"></tafel-info-tooltip>
+      </mat-form-field>
+    } @else {
+      <!-- the picker is only ever used once per drive - once a route is loaded, it collapses into
+           this one-line summary instead of permanently costing a whole form field's height at every
+           stop. Tapping it (or clearing the route) brings the picker back. -->
+      <div class="mb-3 flex w-full items-center gap-2">
+        <button type="button" class="flex flex-1 items-center gap-2 text-start" testid="route-picker-summary"
+                (click)="openRoutePicker()">
+          <mat-icon svgIcon="route" class="text-slate-500"></mat-icon>
+          <span class="tafel-h5 mb-0 flex-1 font-medium text-slate-900">{{ selectedRoute?.name }}</span>
+          <span class="text-xs text-slate-600">Route wechseln</span>
+        </button>
+        <tafel-info-tooltip [text]="infoText" testId="guidance-info-tooltip"></tafel-info-tooltip>
+      </div>
+    }
+
+    @if (guidance()?.routeNote; as routeNote) {
+      <!-- collapsed by default - not every route has a note worth reading before departure, and a
+           driver who doesn't need it should not have to scroll past it on every visit -->
+      <button type="button" class="mb-3 flex items-center gap-2 text-sm font-medium text-amber-800"
+              testid="guidance-route-note-toggle"
+              [attr.aria-expanded]="routeNoteExpanded()"
+              aria-controls="guidance-route-note-panel"
+              (click)="toggleRouteNoteExpanded()">
+        <mat-icon svgIcon="sticky_note_2" class="text-amber-600"></mat-icon>
+        Notiz zur Route
+        <mat-icon [svgIcon]="routeNoteExpanded() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                  class="text-amber-600"></mat-icon>
+      </button>
+      <div id="guidance-route-note-panel" role="region" aria-labelledby="guidance-route-note-toggle"
+           class="mb-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" testid="guidance-route-note"
+           [hidden]="!routeNoteExpanded()">
+        <mat-icon svgIcon="sticky_note_2" class="mt-0.5"></mat-icon>
+        <span class="whitespace-pre-line">{{ routeNote }}</span>
+      </div>
+    }
 
     @if (!isOnline()) {
       <!-- shown whenever the device is offline, not only once a route is picked - a driver who
@@ -32,14 +63,7 @@
       </div>
     }
 
-    @if (guidance(); as routeGuidance) {
-      @if (routeGuidance.routeNote) {
-        <div class="mb-4 flex gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-900" testid="guidance-route-note">
-          <mat-icon svgIcon="sticky_note_2" class="mt-0.5"></mat-icon>
-          <span class="whitespace-pre-line">{{ routeGuidance.routeNote }}</span>
-        </div>
-      }
-
+    @if (guidance()) {
       @if (returnItemsFrom(); as returnDate) {
         <div class="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900"
              testid="guidance-return-summary">
@@ -61,6 +85,43 @@
               </ul>
             </div>
           }
+        </div>
+      }
+
+      <!-- grouped with the banners above, not with the current stop below: this plans the rest of
+           the drive, which is a different question from "what do I do right now". Collapsed by
+           default (see remainingRouteExpanded) so it does not compete with the current stop for
+           space until a driver actually wants to look ahead. -->
+      @if (remainingRouteLinks().length > 0) {
+        <div class="tafel-panel mb-4">
+          <button type="button" class="flex w-full items-center gap-2 px-3 py-2 text-start text-sm font-medium text-slate-700"
+                  testid="guidance-whole-route-toggle"
+                  [attr.aria-expanded]="remainingRouteExpanded()"
+                  aria-controls="guidance-whole-route-panel"
+                  (click)="toggleRemainingRouteExpanded()">
+            <mat-icon svgIcon="directions" class="text-slate-400"></mat-icon>
+            Restliche Route planen
+            <mat-icon [svgIcon]="remainingRouteExpanded() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                      class="ms-auto text-slate-500"></mat-icon>
+          </button>
+          <div id="guidance-whole-route-panel" role="region" aria-labelledby="guidance-whole-route-toggle"
+               class="px-3 pb-3" [hidden]="!remainingRouteExpanded()">
+            <div class="flex flex-wrap gap-3">
+              @for (link of remainingRouteLinks(); track link.label) {
+                <a matButton="filled" testid="guidance-whole-route-button" [href]="link.url"
+                   target="_blank" rel="noopener noreferrer"
+                   [attr.aria-label]="link.label + ' (in neuem Tab)'">
+                  <mat-icon svgIcon="directions" class="me-2"></mat-icon>
+                  {{ link.label }}
+                </a>
+              }
+            </div>
+            @if (remainingRouteChunkedHint(); as chunkedHint) {
+              <p class="mt-2 text-sm text-slate-600" testid="guidance-whole-route-chunked-hint">
+                {{ chunkedHint }}
+              </p>
+            }
+          </div>
         </div>
       }
 
@@ -89,22 +150,18 @@
         </div>
 
         <!-- directly above the stop, because that is what it is about: how far along the route the
-             stop on screen is. The bar carries the same figure as the counter - at the wheel the
-             share done is read off a fill, not off two numbers -->
-        <div class="mb-4">
-          <div class="flex justify-end text-sm text-slate-500" testid="guidance-summary">
-            {{ progressLabel() }}
-          </div>
-          <mat-progress-bar class="!mt-1 !h-2 !rounded-full" mode="determinate" testid="guidance-progress"
-                            [value]="completedPercent()" [attr.aria-label]="progressLabel()">
-          </mat-progress-bar>
+             stop on screen is. The dots above already show the same progress per stop - this is
+             just the figure spelled out as a fast-to-read count. -->
+        <div class="mb-4 flex justify-end text-sm text-slate-500" testid="guidance-summary">
+          {{ progressLabel() }}
         </div>
       }
 
       @if (currentStop(); as view) {
         <!-- one stop at a time, paged with the buttons below - see the component's class doc -->
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm" testid="guidance-stop"
-             role="group" [attr.aria-label]="'Stopp ' + (currentIndex() + 1) + ' von ' + stops().length">
+             role="group" [attr.aria-label]="'Stopp ' + (currentIndex() + 1) + ' von ' + stops().length"
+             (touchstart)="onStopTouchStart($event)" (touchend)="onStopTouchEnd($event)">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             <span class="text-sm font-semibold text-slate-500" testid="guidance-stop-position">
               Stopp {{ currentIndex() + 1 }} von {{ stops().length }}
@@ -163,13 +220,14 @@
           }
 
           @if (view.stop.returnItems.length > 0) {
-            <div class="mt-3 rounded-md border border-blue-200 bg-blue-50 p-3 text-blue-900"
-                 testid="guidance-stop-return-items">
-              <div class="flex items-center gap-2 font-semibold">
-                <mat-icon svgIcon="inventory_2"></mat-icon>
+            <!-- a plain detail row like address/phone/contact above, not a second boxed callout -
+                 the route-level "Retourware mitnehmen" banner already carries that visual weight -->
+            <div class="mt-3 text-slate-700" testid="guidance-stop-return-items">
+              <div class="flex items-center gap-2 font-medium">
+                <mat-icon svgIcon="inventory_2" class="text-slate-400"></mat-icon>
                 Retourware abgeben
               </div>
-              <ul class="ms-5 mt-1 list-disc">
+              <ul class="ms-7 mt-0.5 list-disc">
                 @for (item of view.stop.returnItems; track item.description) {
                   <li>{{ item.amount }} × {{ item.description }}</li>
                 }
@@ -178,16 +236,28 @@
           }
 
           <div class="mt-4 flex flex-wrap items-center gap-3">
-            @if (view.navigationUrl) {
-              <!-- purely the map app: progress is recorded exclusively via the completion button
-                   below -->
-              <a matButton="filled" class="w-full sm:w-auto" testid="guidance-navigate-button"
-                 [href]="view.navigationUrl" target="_blank" rel="noopener noreferrer"
-                 [attr.aria-label]="view.navigationLabel">
-                <mat-icon svgIcon="directions" class="me-2"></mat-icon>
-                Navigation starten
-              </a>
-            }
+            <div class="flex w-full items-stretch gap-3 sm:w-auto">
+              @if (view.navigationUrl) {
+                <!-- purely the map app: progress is recorded exclusively via the completion button
+                     below -->
+                <a matButton="filled" class="flex-1 sm:flex-none" testid="guidance-navigate-button"
+                   [href]="view.navigationUrl" target="_blank" rel="noopener noreferrer"
+                   [attr.aria-label]="view.navigationLabel">
+                  <mat-icon svgIcon="directions" class="me-2"></mat-icon>
+                  Navigation starten
+                </a>
+              }
+              @if (view.appleMapsNavigationUrl) {
+                <!-- Google's link opens the Google Maps app when installed - this is the path for a
+                     driver on iOS who prefers Apple's own app instead. Kept compact and next to the
+                     primary button rather than a second full-width one below it. -->
+                <a matButton="outlined" class="shrink-0" testid="guidance-navigate-apple-button"
+                   [href]="view.appleMapsNavigationUrl" target="_blank" rel="noopener noreferrer"
+                   [attr.aria-label]="view.appleMapsNavigationLabel">
+                  Apple Maps
+                </a>
+              }
+            </div>
             @if (view.completedLabel) {
               <span class="text-sm" [class.text-green-700]="!view.pending" [class.text-amber-700]="view.pending"
                     testid="guidance-completed-label">
@@ -247,33 +317,15 @@
           <span>Für diese Route sind keine Stopps hinterlegt.</span>
         </div>
       }
-
-      <!-- below the stop on purpose: it plans the rest of the drive, which is not what the driver
-           standing at this stop needs first -->
-      @if (remainingRouteUrl(); as remainingUrl) {
-        <div class="mt-6 border-t border-slate-200 pt-4">
-          <a matButton="filled" testid="guidance-whole-route-button" [href]="remainingUrl"
-             target="_blank" rel="noopener noreferrer"
-             aria-label="Restliche Route in Karte öffnen (in neuem Tab)">
-            <mat-icon svgIcon="directions" class="me-2"></mat-icon>
-            Restliche Route in Karte öffnen
-          </a>
-          @if (remainingRouteTruncatedHint(); as truncatedHint) {
-            <p class="mt-2 text-sm text-slate-600" testid="guidance-whole-route-truncated">
-              {{ truncatedHint }}
-            </p>
-          }
-        </div>
-      }
-
-      <!-- Reserves the space the fixed action bar occupies on a phone, at the very end of the
-           scrollable content - not right after the stop card, which would only clear the bar for
-           the stop card itself and still leave this "Restliche Route" section (or, without it, the
-           stop card's own last line) sitting behind the bar once scrolled all the way down. Not
-           needed from `sm` up, where the bar sits in the normal flow instead. -->
-      @if (currentStop()) {
-        <div class="h-32 sm:hidden" aria-hidden="true"></div>
-      }
     }
   </mat-card-content>
 </mat-card>
+
+<!-- Reserves the space the fixed action bar occupies on a phone, at the very end of the
+     scrollable content - not right after the stop card, which would leave the stop card's own last
+     line sitting behind the bar once scrolled all the way down. Outside the card on purpose: inside
+     mat-card-content this empty space stretched the card's own visible border/background well past
+     its actual content. Not needed from `sm` up, where the bar sits in the normal flow instead. -->
+@if (currentStop()) {
+  <div class="h-32 sm:hidden" aria-hidden="true"></div>
+}
