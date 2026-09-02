@@ -6,7 +6,6 @@ import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatProgressBar} from '@angular/material/progress-bar';
 import {MatSelectModule} from '@angular/material/select';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
@@ -21,6 +20,8 @@ import callIcon from '@material-symbols/svg-400/outlined/call-fill.svg';
 import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
 import restartAltIcon from '@material-symbols/svg-400/outlined/restart_alt-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
+import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
+import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
 import {
   RouteApiService,
   RouteData,
@@ -35,26 +36,43 @@ import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {ConnectivityService} from '../../../../common/connectivity/connectivity.service';
 import {ScreenWakeLockService} from '../../../../common/wake-lock/screen-wake-lock.service';
 import {RouteGuidanceOfflineQueueService} from '../../services/route-guidance-offline-queue.service';
-import {buildSingleDestinationMapsUrl, MAPS_DIRECTIONS_URL} from '../../../../common/util/maps-url.util';
+import {
+  buildSingleDestinationAppleMapsUrl,
+  buildSingleDestinationMapsUrl,
+  MAPS_DIRECTIONS_URL
+} from '../../../../common/util/maps-url.util';
 
 // Google's directions URL takes an origin, a destination and at most 9 waypoints, so a single link
-// can cover 10 stops. Longer routes are opened in the map app in one chunk and the rest is driven
-// stop by stop from the list.
+// can cover 10 stops. A route with more open stops than that gets one link per chunk of up to
+// MAX_MAP_STOPS stops instead - see remainingRouteLinks.
 const MAX_MAP_STOPS = 10;
 
 // A device drives the same route with the same team most days - remembered per browser/device, not
 // per user, so the picker opens on it again without anyone having to select it every morning.
 const SELECTED_ROUTE_STORAGE_KEY = 'tafel.routeGuidance.selectedRouteId';
 
+// A swipe on the stop card has to travel at least this far horizontally before it counts as a
+// page-turn rather than a tap or a scroll's sideways jitter.
+const SWIPE_MIN_DISTANCE_PX = 50;
+// ...and it has to be clearly more horizontal than vertical, so a vertical scroll gesture is never
+// mistaken for one.
+const SWIPE_HORIZONTAL_RATIO = 1.5;
+// A swipe starting this close to either screen edge is left alone - that strip is where a mobile
+// browser's own edge-swipe "back"/"forward" gesture lives, and it has no way to be suppressed short
+// of calling preventDefault() on every touch (which would also break the page's own vertical
+// scroll). Better to let the browser have its gesture there than to fire both at once.
+const SWIPE_EDGE_EXCLUSION_PX = 24;
+
 
 // What the screen would otherwise have to explain in a paragraph above the stop. It sits in a
 // tooltip instead: on a phone in a van the stop itself has to be the first thing on the screen.
 const INFO_TEXT =
   'Die Stopps einer Route, einer nach dem anderen in der Reihenfolge, in der sie angefahren werden. '
-  + '"Zurück" und "Weiter" blättern frei zwischen den Stopps, ohne etwas abzuhaken. "Stopp erledigt" '
-  + 'hakt den angezeigten Stopp ab und springt automatisch zum nächsten Stopp. "Rückgängig machen" '
-  + 'nimmt das Abhaken wieder zurück, ohne dabei zu blättern. Ohne Verbindung werden Häkchen '
-  + 'zwischengespeichert und automatisch übertragen, sobald wieder online.';
+  + '"Zurück" und "Weiter" blättern frei zwischen den Stopps, ohne etwas abzuhaken - genauso wie ein '
+  + 'Wischen nach links bzw. rechts auf dem Stopp. "Stopp erledigt" hakt den angezeigten Stopp ab und '
+  + 'springt automatisch zum nächsten Stopp. "Rückgängig machen" nimmt das Abhaken wieder zurück, '
+  + 'ohne dabei zu blättern. Ohne Verbindung werden Häkchen zwischengespeichert und automatisch '
+  + 'übertragen, sobald wieder online.';
 
 interface StopView {
   stop: RouteGuidanceStop;
@@ -62,6 +80,8 @@ interface StopView {
   title: string;
   navigationUrl?: string;
   navigationLabel?: string;
+  appleMapsNavigationUrl?: string;
+  appleMapsNavigationLabel?: string;
   completedLabel?: string;
   isNext: boolean;
   // a completion tick for this stop is queued locally and not yet confirmed by the server - see
@@ -77,7 +97,6 @@ interface StopView {
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatProgressBar,
     MatSelectModule,
     MatIcon,
     TafelInfoTooltipComponent
@@ -95,7 +114,9 @@ export class RouteGuidanceComponent {
     call: callIcon,
     route: routeIcon,
     restart_alt: restartAltIcon,
-    person: personIcon
+    person: personIcon,
+    keyboard_arrow_up: keyboardArrowUpIcon,
+    keyboard_arrow_down: keyboardArrowDownIcon
   });
 
   routeList = model.required<RouteList>();
@@ -115,6 +136,16 @@ export class RouteGuidanceComponent {
 
   private readonly _guidance = signal<RouteGuidanceData | undefined>(undefined);
   protected readonly guidance = this._guidance.asReadonly();
+
+  // The picker is only ever used once per drive, so it collapses into a one-line summary as soon as
+  // a route's guidance has actually loaded - open again while there is nothing loaded yet (no route
+  // picked, or a pick still in flight/failed) or while explicitly reopened via openRoutePicker().
+  private readonly routePickerManuallyOpened = signal(false);
+  protected readonly routePickerOpen = computed(() => !this.guidance() || this.routePickerManuallyOpened());
+
+  protected openRoutePicker() {
+    this.routePickerManuallyOpened.set(true);
+  }
   // the stop whose request is still on its way (online only - an offline tick is applied locally
   // right away), so its buttons can't be pressed twice
   protected readonly pendingStopId = signal<number | undefined>(undefined);
@@ -123,15 +154,30 @@ export class RouteGuidanceComponent {
   protected readonly completedCount = computed(() => this.stops().filter(stop => stop.completed).length);
   protected readonly unassignedReturnItems = computed(() => this._guidance()?.unassignedReturnItems ?? []);
 
-  protected readonly completedPercent = computed(() => {
-    const total = this.stops().length;
-    return total === 0 ? 0 : Math.round((this.completedCount() / total) * 100);
-  });
-
-  // one sentence for both the counter and the bar's accessible name, so the two cannot drift apart
+  // read off the stepper dots plus this one line - a separate percentage bar restated the same
+  // figure a second way without adding anything a driver could not already see in the dots
   protected readonly progressLabel = computed(
     () => `${this.completedCount()} von ${this.stops().length} Stopps erledigt`
   );
+
+  // collapsed by default: planning the rest of the drive is occasional (start of shift, a lull
+  // between stops), not part of the per-stop flow, so it should not compete with the current stop
+  // for space on every render
+  protected readonly remainingRouteExpanded = signal(false);
+
+  protected toggleRemainingRouteExpanded() {
+    this.remainingRouteExpanded.update(expanded => !expanded);
+  }
+
+  // collapsed by default, same reasoning as remainingRouteExpanded above - not every route has a
+  // note worth reading, and it sits right under the route picker precisely so it is the first thing
+  // a driver can check before setting off, not something permanently in the way after that. Reset
+  // per route selection (see the routeSelection$ subscription) so each route starts unread again.
+  protected readonly routeNoteExpanded = signal(false);
+
+  protected toggleRouteNoteExpanded() {
+    this.routeNoteExpanded.update(expanded => !expanded);
+  }
 
   // the day the boxes now going back were collected, formatted the way the rest of the app writes a
   // date; undefined when the last trip brought nothing back
@@ -198,34 +244,47 @@ export class RouteGuidanceComponent {
     () => this.stops().filter(stop => !stop.completed && stop.shop).map(stop => stop.shop as RouteGuidanceShop)
   );
 
-  protected readonly remainingRouteUrl = computed(() => {
-    const addresses = this.remainingShopStops().slice(0, MAX_MAP_STOPS).map(shop => shop.address);
+  /**
+   * One link per chunk of up to MAX_MAP_STOPS remaining stops, instead of a single link truncated
+   * at the first ten - a route with more open stops than that used to leave everything past the
+   * tenth to be navigated singly. Each chunk's URL uses the maps app's default origin (current
+   * location), so the chunks need no overlap: the driver opens the next one once the previous
+   * chunk's stops are done. Numbering is relative to the remaining open stops, not the whole route.
+   */
+  protected readonly remainingRouteLinks = computed<{ label: string; url: string }[]>(() => {
+    const addresses = this.remainingShopStops().map(shop => shop.address);
     if (addresses.length === 0) {
-      return undefined;
+      return [];
     }
 
+    const chunks: string[][] = [];
+    for (let start = 0; start < addresses.length; start += MAX_MAP_STOPS) {
+      chunks.push(addresses.slice(start, start + MAX_MAP_STOPS));
+    }
+
+    return chunks.map((chunkAddresses, index) => ({
+      label: chunks.length === 1
+        ? 'Restliche Route in Karte öffnen'
+        : `Stopps ${index * MAX_MAP_STOPS + 1}–${index * MAX_MAP_STOPS + chunkAddresses.length} in Karte öffnen`,
+      url: this.buildDirectionsUrl(chunkAddresses)
+    }));
+  });
+
+  /** Only set once the remaining stops no longer fit into a single link - explains why several
+   * buttons appear instead of one. */
+  protected readonly remainingRouteChunkedHint = computed(() =>
+    this.remainingRouteLinks().length > 1
+      ? 'Die Route ist auf mehrere Links mit je bis zu 10 Stopps aufgeteilt. Nächsten Link öffnen, '
+        + 'sobald die Stopps des vorigen erledigt sind.'
+      : undefined
+  );
+
+  private buildDirectionsUrl(addresses: string[]): string {
     const destination = encodeURIComponent(addresses[addresses.length - 1]);
     const waypoints = addresses.slice(0, -1).map(address => encodeURIComponent(address));
     const waypointsParam = waypoints.length > 0 ? `&waypoints=${waypoints.join('%7C')}` : '';
     return `${MAPS_DIRECTIONS_URL}&destination=${destination}${waypointsParam}&travelmode=driving`;
-  });
-
-  /**
-   * Only set when the link does not reach the end of the route, and it says what is and is not
-   * covered: "the map is short" would read as if the link were unusable, when in fact it takes the
-   * driver through the next ten stops and only what comes after them has to be navigated singly.
-   */
-  protected readonly remainingRouteTruncatedHint = computed(() => {
-    const overflow = this.remainingShopStops().length - MAX_MAP_STOPS;
-    if (overflow <= 0) {
-      return undefined;
-    }
-
-    const covered = `Die Karte führt über die nächsten ${MAX_MAP_STOPS} Stopps.`;
-    return overflow === 1
-      ? `${covered} Der Stopp danach ist einzeln zu navigieren.`
-      : `${covered} Die ${overflow} Stopps danach sind einzeln zu navigieren.`;
-  });
+  }
 
   private hasRestoredRoute = false;
 
@@ -262,6 +321,7 @@ export class RouteGuidanceComponent {
       takeUntilDestroyed()
     ).subscribe(guidance => {
       this._guidance.set(guidance);
+      this.routeNoteExpanded.set(false);
       // open where the driver actually is - the first stop not done yet, or the last one when the
       // whole route is finished
       const firstOpenIndex = guidance.stops.findIndex(stop => !stop.completed);
@@ -283,6 +343,7 @@ export class RouteGuidanceComponent {
     this.selectedRoute = route;
     this._guidance.set(undefined);
     this.persistSelectedRouteId(route?.id);
+    this.routePickerManuallyOpened.set(false);
     void this.wakeLockService.release();
     if (!route) {
       return;
@@ -304,6 +365,44 @@ export class RouteGuidanceComponent {
   protected goToStop(index: number) {
     if (index >= 0 && index < this.stops().length) {
       this._currentIndex.set(index);
+    }
+  }
+
+  private touchStartX = 0;
+  private touchStartY = 0;
+
+  protected onStopTouchStart(event: TouchEvent) {
+    const touch = event.changedTouches[0];
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+  }
+
+  /**
+   * A shortcut for Zurück/Weiter, not a replacement - those buttons and the stepper dots stay
+   * exactly as they are, since a swipe reaches neither a keyboard nor a screen reader. Gated on
+   * mutationDisabled() the same way the paging buttons already are, so a swipe cannot page away
+   * from a stop whose completion request is still in flight. Also skipped for a gesture that started
+   * in the edge-exclusion strip - see SWIPE_EDGE_EXCLUSION_PX.
+   */
+  protected onStopTouchEnd(event: TouchEvent) {
+    if (this.mutationDisabled()) {
+      return;
+    }
+    if (this.touchStartX < SWIPE_EDGE_EXCLUSION_PX || this.touchStartX > this.window.innerWidth - SWIPE_EDGE_EXCLUSION_PX) {
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - this.touchStartX;
+    const deltaY = touch.clientY - this.touchStartY;
+    if (Math.abs(deltaX) < SWIPE_MIN_DISTANCE_PX || Math.abs(deltaX) < Math.abs(deltaY) * SWIPE_HORIZONTAL_RATIO) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      this.goToNextStop();
+    } else {
+      this.goToPreviousStop();
     }
   }
 
@@ -449,6 +548,10 @@ export class RouteGuidanceComponent {
       // hears the same label the sighted one reads, with the destination appended
       navigationLabel: stop.shop
         ? `Navigation starten zu ${stop.shop.name}, ${stop.shop.address} (in neuem Tab)`
+        : undefined,
+      appleMapsNavigationUrl: stop.shop ? buildSingleDestinationAppleMapsUrl(stop.shop.address) : undefined,
+      appleMapsNavigationLabel: stop.shop
+        ? `In Apple Maps navigieren zu ${stop.shop.name}, ${stop.shop.address} (in neuem Tab)`
         : undefined,
       completedLabel: pending
         ? 'Ausstehend - wird synchronisiert, sobald wieder online'

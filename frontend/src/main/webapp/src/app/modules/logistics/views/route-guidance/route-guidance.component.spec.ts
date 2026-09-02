@@ -77,6 +77,7 @@ describe('RouteGuidanceComponent', () => {
   let windowMock: {
     localStorage: {getItem: ReturnType<typeof vi.fn>; setItem: ReturnType<typeof vi.fn>; removeItem: ReturnType<typeof vi.fn>};
     document: {addEventListener: ReturnType<typeof vi.fn>; removeEventListener: ReturnType<typeof vi.fn>; visibilityState: string};
+    innerWidth: number;
   };
   let wakeLockMock: {request: ReturnType<typeof vi.fn>; release: ReturnType<typeof vi.fn>};
   let offlineQueueMock: {
@@ -133,7 +134,8 @@ describe('RouteGuidanceComponent', () => {
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
         visibilityState: 'visible'
-      }
+      },
+      innerWidth: 400
     };
 
     TestBed.configureTestingModule({
@@ -233,7 +235,7 @@ describe('RouteGuidanceComponent', () => {
     expect(component['completedCount']()).toBe(1);
   });
 
-  it('turns the counter into a percentage for the progress bar', () => {
+  it('counts progress for the summary line', () => {
     const fixture = createComponent();
     const component = fixture.componentInstance;
     routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
@@ -245,7 +247,6 @@ describe('RouteGuidanceComponent', () => {
     fixture.detectChanges();
 
     expect(component['progressLabel']()).toBe('1 von 3 Stopps erledigt');
-    expect(component['completedPercent']()).toBe(33);
   });
 
   it('reports no progress at all for a route without stops', () => {
@@ -256,7 +257,7 @@ describe('RouteGuidanceComponent', () => {
     component['onSelectedRouteChange'](testRoute);
     fixture.detectChanges();
 
-    expect(component['completedPercent']()).toBe(0);
+    expect(component['progressLabel']()).toBe('0 von 0 Stopps erledigt');
   });
 
   it('builds a stop view with the labels the template renders', () => {
@@ -271,8 +272,12 @@ describe('RouteGuidanceComponent', () => {
     expect(firstStop.navigationUrl)
       .toBe('https://www.google.com/maps/dir/?api=1&destination=Hauptstra%C3%9Fe%205%2C%201010%20Wien&travelmode=driving');
     expect(firstStop.navigationLabel).toContain('Navigation starten zu Lidl');
+    expect(firstStop.appleMapsNavigationUrl)
+      .toBe('https://maps.apple.com/?daddr=Hauptstra%C3%9Fe%205%2C%201010%20Wien&dirflg=d');
+    expect(firstStop.appleMapsNavigationLabel).toContain('In Apple Maps navigieren zu Lidl');
     expect(secondStop.title).toBe('Stopp ohne Filiale');
     expect(secondStop.navigationUrl).toBeUndefined();
+    expect(secondStop.appleMapsNavigationUrl).toBeUndefined();
   });
 
   it('names the buttons after what pressing them does', () => {
@@ -298,11 +303,14 @@ describe('RouteGuidanceComponent', () => {
     const component = fixture.componentInstance;
     component['onSelectedRouteChange'](testRoute);
 
-    expect(component['remainingRouteUrl']()).toBe(
+    const links = component['remainingRouteLinks']();
+    expect(links.length).toBe(1);
+    expect(links[0].label).toBe('Restliche Route in Karte öffnen');
+    expect(links[0].url).toBe(
       'https://www.google.com/maps/dir/?api=1&destination=Nebengasse%202%2C%201020%20Wien' +
       '&waypoints=Hauptstra%C3%9Fe%205%2C%201010%20Wien&travelmode=driving'
     );
-    expect(component['remainingRouteTruncatedHint']()).toBeUndefined();
+    expect(component['remainingRouteChunkedHint']()).toBeUndefined();
   });
 
   it('leaves out the directions link when every stop is done', () => {
@@ -315,10 +323,10 @@ describe('RouteGuidanceComponent', () => {
 
     component['onSelectedRouteChange'](testRoute);
 
-    expect(component['remainingRouteUrl']()).toBeUndefined();
+    expect(component['remainingRouteLinks']()).toEqual([]);
   });
 
-  it('caps the directions link at ten stops and says so', () => {
+  it('chunks the directions link into groups of ten stops for longer routes', () => {
     const manyStops: RouteGuidanceStop[] = Array.from({length: 12}, (_, index) => ({
       stopId: 300 + index,
       time: `1${index < 10 ? '0' : '1'}:00:00`,
@@ -338,11 +346,32 @@ describe('RouteGuidanceComponent', () => {
 
     component['onSelectedRouteChange'](testRoute);
 
-    const url = component['remainingRouteUrl']()!;
-    expect(url).toContain('destination=Gasse%209%2C%201010%20Wien');
-    expect(url.match(/%7C/g)?.length).toBe(8);
-    expect(component['remainingRouteTruncatedHint']())
-      .toBe('Die Karte führt über die nächsten 10 Stopps. Die 2 Stopps danach sind einzeln zu navigieren.');
+    const links = component['remainingRouteLinks']();
+    expect(links.length).toBe(2);
+    expect(links[0].label).toBe('Stopps 1–10 in Karte öffnen');
+    expect(links[0].url).toContain('destination=Gasse%209%2C%201010%20Wien');
+    expect(links[0].url.match(/%7C/g)?.length).toBe(8);
+    expect(links[1].label).toBe('Stopps 11–12 in Karte öffnen');
+    expect(links[1].url).toContain('destination=Gasse%2011%2C%201010%20Wien');
+    expect(links[1].url).toContain('waypoints=Gasse%2010%2C%201010%20Wien');
+    expect(component['remainingRouteChunkedHint']()).toBe(
+      'Die Route ist auf mehrere Links mit je bis zu 10 Stopps aufgeteilt. Nächsten Link öffnen, '
+      + 'sobald die Stopps des vorigen erledigt sind.'
+    );
+  });
+
+  it('starts with the remaining-route panel collapsed and toggles it open', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    expect(component['remainingRouteExpanded']()).toBe(false);
+
+    component['toggleRemainingRouteExpanded']();
+    expect(component['remainingRouteExpanded']()).toBe(true);
+
+    component['toggleRemainingRouteExpanded']();
+    expect(component['remainingRouteExpanded']()).toBe(false);
   });
 
   it('shows one stop at a time and opens on the first one still to do', () => {
@@ -479,6 +508,95 @@ describe('RouteGuidanceComponent', () => {
       expect(component['currentIndex']()).toBe(0);
       expect(routeApiMock.setStopCompletion).not.toHaveBeenCalled();
       expect(component['stopViews']()[0].stop.completed).toBe(true);
+    });
+  });
+
+  describe('swipe paging (a shortcut for Zurück/Weiter)', () => {
+    function touch(x: number, y: number): TouchEvent {
+      return {changedTouches: [{clientX: x, clientY: y}]} as unknown as TouchEvent;
+    }
+
+    it('pages to the next stop on a leftward swipe', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      component['onStopTouchStart'](touch(300, 400));
+      component['onStopTouchEnd'](touch(200, 400));
+
+      expect(component['currentIndex']()).toBe(1);
+      expect(routeApiMock.setStopCompletion).not.toHaveBeenCalled();
+    });
+
+    it('pages to the previous stop on a rightward swipe', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      component['goToNextStop']();
+
+      component['onStopTouchStart'](touch(100, 400));
+      component['onStopTouchEnd'](touch(220, 400));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+
+    it('ignores a swipe that does not travel far enough', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      component['onStopTouchStart'](touch(200, 400));
+      component['onStopTouchEnd'](touch(220, 400));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+
+    it('ignores a mostly-vertical swipe (a scroll, not a page-turn)', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      component['onStopTouchStart'](touch(200, 300));
+      component['onStopTouchEnd'](touch(260, 500));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+
+    it('leaves a swipe starting near the left screen edge to the browser\'s own back gesture', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      component['onStopTouchStart'](touch(10, 400));
+      component['onStopTouchEnd'](touch(120, 400));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+
+    it('leaves a swipe starting near the right screen edge alone too', () => {
+      // windowMock.innerWidth is 400
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      component['onStopTouchStart'](touch(390, 400));
+      component['onStopTouchEnd'](touch(280, 400));
+
+      expect(component['currentIndex']()).toBe(0);
+    });
+
+    it('does not page while a completion request is still in flight', () => {
+      const pendingCompletion = new Subject<RouteGuidanceStop>();
+      routeApiMock.setStopCompletion = vi.fn(() => pendingCompletion.asObservable());
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      component['completeCurrentStop'](); // pendingStopId set, mutationDisabled() true until it resolves
+
+      component['onStopTouchStart'](touch(300, 400));
+      component['onStopTouchEnd'](touch(200, 400));
+
+      expect(component['currentIndex']()).toBe(0);
     });
   });
 
@@ -640,6 +758,85 @@ describe('RouteGuidanceComponent', () => {
       fixture.detectChanges();
 
       expect(component['stopViews']()[0].stop.completed).toBe(false);
+    });
+  });
+
+  describe('route picker (collapses once used)', () => {
+    it('starts open and collapses once the route guidance has loaded', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      expect(component['routePickerOpen']()).toBe(true);
+
+      component['onSelectedRouteChange'](testRoute);
+      expect(component['routePickerOpen']()).toBe(false);
+    });
+
+    it('stays open while a pick is still loading, and while the load has failed', () => {
+      const guidance$ = new Subject<RouteGuidanceData>();
+      routeApiMock.getRouteGuidance = vi.fn(() => guidance$.asObservable());
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+
+      component['onSelectedRouteChange'](testRoute);
+      expect(component['routePickerOpen']()).toBe(true);
+
+      routeApiMock.getRouteGuidance = vi.fn(() => throwError(() => new Error('failed')));
+      component['onSelectedRouteChange'](otherRoute);
+      expect(component['routePickerOpen']()).toBe(true);
+    });
+
+    it('reopens via openRoutePicker and closes again once the next route loads', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      expect(component['routePickerOpen']()).toBe(false);
+
+      component['openRoutePicker']();
+      expect(component['routePickerOpen']()).toBe(true);
+
+      component['onSelectedRouteChange'](otherRoute);
+      expect(component['routePickerOpen']()).toBe(false);
+    });
+
+    it('reopens when the selection is cleared', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      expect(component['routePickerOpen']()).toBe(false);
+
+      component['onSelectedRouteChange'](undefined);
+
+      expect(component['routePickerOpen']()).toBe(true);
+    });
+  });
+
+  describe('route note', () => {
+    it('starts collapsed and toggles open', () => {
+      routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({...guidance, routeNote: 'Schlüssel abholen'}));
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+
+      expect(component['routeNoteExpanded']()).toBe(false);
+
+      component['toggleRouteNoteExpanded']();
+      expect(component['routeNoteExpanded']()).toBe(true);
+
+      component['toggleRouteNoteExpanded']();
+      expect(component['routeNoteExpanded']()).toBe(false);
+    });
+
+    it('collapses again once a different route is loaded', () => {
+      routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({...guidance, routeNote: 'Schlüssel abholen'}));
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      component['onSelectedRouteChange'](testRoute);
+      component['toggleRouteNoteExpanded']();
+      expect(component['routeNoteExpanded']()).toBe(true);
+
+      component['onSelectedRouteChange'](otherRoute);
+
+      expect(component['routeNoteExpanded']()).toBe(false);
     });
   });
 

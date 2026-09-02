@@ -3,7 +3,12 @@ import {MAIN_CONTENT} from '../support/accessibility';
 
 // Route 2 from the testdata: a shop stop, a stop without a shop, and a second shop stop.
 // Route 3: two shop stops, and the seeded return boxes the screen hands back.
-const STOP_IDS_BY_ROUTE: Record<number, number[]> = {2: [200, 210, 220], 3: [300, 310]};
+// Route 1: fifteen shop stops - the one route long enough to exercise chunked map links.
+const STOP_IDS_BY_ROUTE: Record<number, number[]> = {
+  1: Array.from({length: 15}, (_, index) => index + 1),
+  2: [200, 210, 220],
+  3: [300, 310]
+};
 
 const SELECTED_ROUTE_STORAGE_KEY = 'tafel.routeGuidance.selectedRouteId';
 
@@ -24,6 +29,13 @@ describe('Route Guidance', () => {
   });
 
   function selectRoute(name: string) {
+    // the picker collapses into a one-line summary once a route has loaded (it's only used once
+    // per drive) - reopen it first if a prior selection in this test already collapsed it
+    cy.get('body').then($body => {
+      if ($body.find('[testid="route-picker-summary"]').length > 0) {
+        cy.byTestId('route-picker-summary').click();
+      }
+    });
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains(name).click();
     cy.byTestId('guidance-stop').should('be.visible');
@@ -45,7 +57,6 @@ describe('Route Guidance', () => {
     selectRoute2();
 
     cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
-    cy.byTestId('guidance-progress').should('have.attr', 'aria-valuenow', '0');
     cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
     cy.byTestId('guidance-stop').should('contain.text', '12:00').should('contain.text', 'Lidl');
     cy.byTestId('guidance-stop-address').should('contain.text', 'Kudlichgasse 4, 1130 Wien');
@@ -156,7 +167,7 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-stop-return-items').should('not.exist');
   });
 
-  it('offers a map link per stop and one for the rest of the route', () => {
+  it('offers a map link per stop, in Google and Apple Maps, and one for the rest of the route', () => {
     selectRoute2();
 
     cy.byTestId('guidance-navigate-button')
@@ -164,14 +175,130 @@ describe('Route Guidance', () => {
       .should('have.attr', 'href')
       .and('contain', 'https://www.google.com/maps/dir/?api=1&destination=')
       .and('contain', 'Kudlichgasse%204%2C%201130%20Wien');
+    cy.byTestId('guidance-navigate-apple-button')
+      .should('have.attr', 'target', '_blank')
+      .should('have.attr', 'href')
+      .and('contain', 'https://maps.apple.com/?daddr=')
+      .and('contain', 'Kudlichgasse%204%2C%201130%20Wien');
 
+    // collapsed by default - planning the rest of the drive is not part of the per-stop flow
+    cy.byTestId('guidance-whole-route-toggle').should('have.attr', 'aria-expanded', 'false');
+    cy.byTestId('guidance-whole-route-button').should('not.be.visible');
+
+    cy.byTestId('guidance-whole-route-toggle').click();
+    cy.byTestId('guidance-whole-route-toggle').should('have.attr', 'aria-expanded', 'true');
     cy.byTestId('guidance-whole-route-button')
+      .should('have.length', 1)
+      .should('be.visible')
+      .should('contain.text', 'Restliche Route in Karte öffnen')
       .should('have.attr', 'href')
       .and('contain', 'destination=Simmeringer%20Hauptstra%C3%9Fe%205%2C%201140%20Wien')
       .and('contain', 'waypoints=Kudlichgasse%204%2C%201130%20Wien');
 
-    // only three stops, so nothing is cut off
-    cy.byTestId('guidance-whole-route-truncated').should('not.exist');
+    // only three stops, so nothing is chunked
+    cy.byTestId('guidance-whole-route-chunked-hint').should('not.exist');
+
+    cy.byTestId('guidance-whole-route-toggle').click();
+    cy.byTestId('guidance-whole-route-toggle').should('have.attr', 'aria-expanded', 'false');
+    cy.byTestId('guidance-whole-route-button').should('not.be.visible');
+  });
+
+  it('chunks the remaining-route link into groups of ten stops for a route with more than that many open', () => {
+    selectRoute('Route 1');
+    cy.byTestId('guidance-whole-route-toggle').click();
+
+    cy.byTestId('guidance-whole-route-button').should('have.length', 2);
+    cy.byTestId('guidance-whole-route-button').eq(0)
+      .should('contain.text', 'Stopps 1–10 in Karte öffnen')
+      .should('have.attr', 'href')
+      .and('contain', 'https://www.google.com/maps/dir/?api=1&destination=');
+    cy.byTestId('guidance-whole-route-button').eq(1)
+      .should('contain.text', 'Stopps 11–15 in Karte öffnen')
+      .should('have.attr', 'href')
+      .and('contain', 'https://www.google.com/maps/dir/?api=1&destination=');
+    cy.byTestId('guidance-whole-route-chunked-hint').should('be.visible');
+
+    // completing stops down to ten or fewer open collapses back to a single, unnumbered link
+    for (let i = 0; i < 6; i++) {
+      cy.byTestId('guidance-complete-button').click();
+    }
+    cy.byTestId('guidance-whole-route-button')
+      .should('have.length', 1)
+      .should('contain.text', 'Restliche Route in Karte öffnen');
+    cy.byTestId('guidance-whole-route-chunked-hint').should('not.exist');
+  });
+
+  // Route 1 is the only testdata route with a note ("Notiz 1"); route 2/3 have none.
+  it('keeps the route note collapsed until tapped, and shows no toggle for a route without one', () => {
+    selectRoute('Route 1');
+
+    cy.byTestId('guidance-route-note-toggle').should('have.attr', 'aria-expanded', 'false');
+    cy.byTestId('guidance-route-note').should('not.be.visible');
+
+    cy.byTestId('guidance-route-note-toggle').click();
+    cy.byTestId('guidance-route-note-toggle').should('have.attr', 'aria-expanded', 'true');
+    cy.byTestId('guidance-route-note').should('be.visible').and('contain.text', 'Notiz 1');
+
+    selectRoute2();
+    cy.byTestId('guidance-route-note-toggle').should('not.exist');
+    cy.byTestId('guidance-route-note').should('not.exist');
+  });
+
+  it('collapses the route picker into a summary once loaded, and reopens it to change route', () => {
+    cy.byTestId('routeInput').should('be.visible');
+
+    selectRoute2();
+
+    cy.byTestId('routeInput').should('not.exist');
+    cy.byTestId('route-picker-summary').should('be.visible').and('contain.text', 'Route 2');
+
+    cy.byTestId('route-picker-summary').click();
+    cy.byTestId('routeInput').should('be.visible').and('contain.text', 'Route 2');
+    cy.byTestId('route-picker-summary').should('not.exist');
+
+    // reopened but nothing re-selected yet - still shows the previous route's stop underneath
+    cy.byTestId('guidance-stop').should('be.visible');
+  });
+
+  it('pages between stops with a swipe, in addition to the buttons', () => {
+    selectRoute2();
+
+    cy.byTestId('guidance-stop')
+      .trigger('touchstart', {changedTouches: [{clientX: 300, clientY: 400}]})
+      .trigger('touchend', {changedTouches: [{clientX: 100, clientY: 400}]});
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 2 von 3');
+
+    cy.byTestId('guidance-stop')
+      .trigger('touchstart', {changedTouches: [{clientX: 100, clientY: 400}]})
+      .trigger('touchend', {changedTouches: [{clientX: 300, clientY: 400}]});
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+
+    // a short swipe (below the distance threshold) does not page
+    cy.byTestId('guidance-stop')
+      .trigger('touchstart', {changedTouches: [{clientX: 200, clientY: 400}]})
+      .trigger('touchend', {changedTouches: [{clientX: 215, clientY: 400}]});
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+
+    // paging via swipe records nothing, same as the Zurück/Weiter buttons
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 3 Stopps erledigt');
+  });
+
+  it('leaves a swipe starting near either screen edge to the browser\'s own edge-swipe gesture', () => {
+    // iphone-7 is 375px wide - a fixed, known width so "near the edge" is unambiguous
+    cy.viewport(PHONE_VIEWPORT);
+    selectRoute2();
+
+    // near the left edge - would otherwise read as a rightward (previous-stop) swipe
+    cy.byTestId('guidance-stop')
+      .trigger('touchstart', {changedTouches: [{clientX: 10, clientY: 400}]})
+      .trigger('touchend', {changedTouches: [{clientX: 120, clientY: 400}]});
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
+
+    // near the right edge - would otherwise read as a leftward (next-stop) swipe
+    cy.byTestId('guidance-stop')
+      .trigger('touchstart', {changedTouches: [{clientX: 365, clientY: 400}]})
+      .trigger('touchend', {changedTouches: [{clientX: 255, clientY: 400}]});
+    cy.byTestId('guidance-stop-position').should('contain.text', 'Stopp 1 von 3');
   });
 
   it('gives an overview of every stop as tappable dots, jumping straight to the one tapped', () => {
@@ -191,7 +318,9 @@ describe('Route Guidance', () => {
 
     cy.visit('/logistik/routen-navi');
 
-    cy.byTestId('routeInput').should('contain.text', 'Route 3');
+    // guidance for the remembered route loads without any interaction, so the picker is already
+    // collapsed into its summary by the time the page settles - never the open select itself
+    cy.byTestId('route-picker-summary').should('contain.text', 'Route 3');
     cy.byTestId('guidance-stop').should('be.visible');
   });
 
@@ -256,6 +385,30 @@ describe('Route Guidance', () => {
       // completing pages to the next stop - page back to check the completed one itself
       cy.byTestId('guidance-previous-button').click();
       cy.byTestId('guidance-done-badge').should('be.visible');
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations with the remaining-route panel expanded', () => {
+      selectRoute2();
+      cy.byTestId('guidance-whole-route-toggle').click();
+      cy.byTestId('guidance-whole-route-button').should('be.visible');
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations with the route note panel expanded', () => {
+      selectRoute('Route 1');
+      cy.byTestId('guidance-route-note-toggle').click();
+      cy.byTestId('guidance-route-note').should('be.visible');
+
+      cy.checkAccessibility(MAIN_CONTENT);
+    });
+
+    it('has no violations with the route picker reopened to change route', () => {
+      selectRoute2();
+      cy.byTestId('route-picker-summary').click();
+      cy.byTestId('routeInput').should('be.visible');
 
       cy.checkAccessibility(MAIN_CONTENT);
     });
