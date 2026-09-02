@@ -3,7 +3,7 @@
     <!-- the page's own title already sits in the app header above this card (TafelTitleStrategy) -
          repeating "Routen-Navi" here would only cost a line's worth of height for nothing new. -->
     @if (routePickerOpen()) {
-      <mat-form-field class="w-full max-w-md" subscriptSizing="dynamic">
+      <mat-form-field class="mb-3 w-full max-w-md" subscriptSizing="dynamic">
         <mat-label>Route auswählen</mat-label>
         <mat-select testid="routeInput" [ngModel]="selectedRoute" (ngModelChange)="onSelectedRouteChange($event)">
           <mat-option [value]="undefined">Bitte auswählen</mat-option>
@@ -33,7 +33,7 @@
     @if (guidance()?.routeNote; as routeNote) {
       <!-- collapsed by default - not every route has a note worth reading before departure, and a
            driver who doesn't need it should not have to scroll past it on every visit -->
-      <button type="button" class="mb-1 flex items-center gap-2 text-sm font-medium text-amber-800"
+      <button type="button" class="mb-3 flex items-center gap-2 text-sm font-medium text-amber-800"
               testid="guidance-route-note-toggle"
               [attr.aria-expanded]="routeNoteExpanded()"
               aria-controls="guidance-route-note-panel"
@@ -317,14 +317,15 @@
           <span>Für diese Route sind keine Stopps hinterlegt.</span>
         </div>
       }
-
-      <!-- Reserves the space the fixed action bar occupies on a phone, at the very end of the
-           scrollable content - not right after the stop card, which would leave the stop card's own
-           last line sitting behind the bar once scrolled all the way down. Not needed from `sm` up,
-           where the bar sits in the normal flow instead. -->
-      @if (currentStop()) {
-        <div class="h-32 sm:hidden" aria-hidden="true"></div>
-      }
     }
   </mat-card-content>
 </mat-card>
+
+<!-- Reserves the space the fixed action bar occupies on a phone, at the very end of the
+     scrollable content - not right after the stop card, which would leave the stop card's own last
+     line sitting behind the bar once scrolled all the way down. Outside the card on purpose: inside
+     mat-card-content this empty space stretched the card's own visible border/background well past
+     its actual content. Not needed from `sm` up, where the bar sits in the normal flow instead. -->
+@if (currentStop()) {
+  <div class="h-32 sm:hidden" aria-hidden="true"></div>
+}
