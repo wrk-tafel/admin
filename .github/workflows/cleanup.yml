@@ -48,9 +48,16 @@ jobs:
           min-versions-to-keep: 0
       # Every PR/main-push build tags its image with an immutable short commit
       # SHA (see pull_request.yml/main_push.yml), so these otherwise accumulate
-      # forever. Keep the most recent 2 - the currently deployed dev and test
-      # images - and prune the rest; release images ("latest" and semver
-      # version tags) must be kept indefinitely.
+      # forever. Keep the most recent 2 as a rollback margin and prune the
+      # rest; release images ("latest" and semver version tags) must be kept
+      # indefinitely.
+      #
+      # The images actually deployed to dev/test are protected explicitly via
+      # the mutable "dev"/"test" tags pull_request.yml/main_push.yml push
+      # alongside the commit SHA, not by recency: dev is redeployed by every
+      # PR build while test only follows main/release, so counting "the most
+      # recent 2" across all pipelines could otherwise prune the SHA still
+      # running on test once as few as two newer PR-only images existed (#3631).
       #
       # This used to be actions/delete-package-versions with an `ignore-versions`
       # regex meant to protect "latest"/semver tags. That action tests the regex
@@ -76,7 +83,7 @@ jobs:
             protected=false
             IFS=',' read -ra tag_list <<< "$tags"
             for t in "${tag_list[@]}"; do
-              if [[ "$t" =~ ^(latest|[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+              if [[ "$t" =~ ^(latest|dev|test|[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
                 protected=true
                 break
               fi

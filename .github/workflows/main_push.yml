@@ -57,7 +57,13 @@ jobs:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: [build, test, version, sonar, e2e-test]
     with:
-      imageTags: ${{ needs.version.outputs.version }}
+      # the mutable "dev"/"test" tags always point at the most recently built candidate for that
+      # environment, which is what cleanup.yml keys off to protect it regardless of how many newer
+      # commit-SHA-tagged PR images have since piled up (#3631)
+      imageTags: |
+        ${{ needs.version.outputs.version }}
+        test
+        dev
       version: ${{ needs.version.outputs.version }}
       scanImage: true
     secrets:
