@@ -448,7 +448,7 @@ internal class StatisticsServiceTest {
         assertThat(lines[4]).isEqualTo("Alleinerzieher (Haushalte);30")
         assertThat(lines[5]).isEqualTo("Notschlafstellen (Anzahl);60")
         assertThat(lines[6]).isEqualTo("Notschlafstellen (Durchschnitt pro Ausgabe);20,00")
-        assertThat(lines[7]).isEqualTo("Notschlafstellen (versorgte Personen pro Ausgabe);60")
+        assertThat(lines[7]).isEqualTo("Notschlafstellen (versorgte Personen gesamt);60")
         assertThat(lines[8]).isEqualTo("Spender (Anzahl);10")
         assertThat(lines[9]).isEqualTo("Warenmenge (Gesamt);60 kg")
         assertThat(lines[10]).isEqualTo("Warenmenge (Durchschnitt pro Spender);6,00 kg")
