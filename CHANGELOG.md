@@ -5,6 +5,8 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+
+## [1.17.0] - 2026-09-02
 - Das Routen-Navi bietet bei mehr als zehn offenen Stopps jetzt mehrere Karten-Links zu je zehn Stopps an, statt die restliche Route nur bis zum zehnten Stopp abzudecken, und öffnet die Navigation zu einer Filiale wahlweise auch in Apple Maps.
 - Das Routen-Navi lässt sich am Handy jetzt auch durch Wischen nach links/rechts zwischen Stopps blättern, und eine Routennotiz sowie die Karten-Links für die restliche Route werden erst nach Antippen eingeblendet, statt den aktuellen Stopp dauerhaft zu verdrängen.
 - Die Routenauswahl im Routen-Navi klappt jetzt zu einer einzeiligen Zusammenfassung zusammen, sobald eine Route geladen ist, statt dauerhaft die volle Auswahlbox anzuzeigen.
