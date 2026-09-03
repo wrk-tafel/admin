@@ -53,9 +53,9 @@ FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c4
 # would eventually vanish from the index and break the build outright once Alpine ships the next fix.
 RUN apk add --no-cache --upgrade libssl3 libcrypto3
 ARG VERSION=dev
-ARG BUILD_TIME=unknown
+ARG BUILD_DATE=unknown
 ENV TAFELADMIN_VERSION=$VERSION
-ENV TAFELADMIN_BUILD_TIME=$BUILD_TIME
+ENV TAFELADMIN_BUILD_DATE=$BUILD_DATE
 VOLUME /app/config
 VOLUME /app/logs
 VOLUME /app/documents

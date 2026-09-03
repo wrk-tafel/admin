@@ -86,7 +86,7 @@ jobs:
             version="${version:0:7}"
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          echo "buildDate=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
       - name: Build and push docker image
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
@@ -95,7 +95,7 @@ jobs:
           tags: ${{ steps.tags.outputs.tags }}
           build-args: |
             VERSION=${{ steps.metadata.outputs.version }}
-            BUILD_TIME=${{ steps.metadata.outputs.buildTime }}
+            BUILD_DATE=${{ steps.metadata.outputs.buildDate }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max

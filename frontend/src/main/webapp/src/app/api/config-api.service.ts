@@ -49,7 +49,7 @@ export class ConfigApiService {
 
 export interface AppConfig {
   version: string;
-  buildTime: string;
+  buildDate: string;
   /**
    * Whether this environment has the scanner folder configured and switched on
    * (`tafeladmin.storage.scannerPath` / `tafeladmin.features.scannerFolderEnabled`). False means the "Scanner" document

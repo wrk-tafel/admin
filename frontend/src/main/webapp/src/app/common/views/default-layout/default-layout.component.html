@@ -134,8 +134,8 @@
     @if (!effectiveCollapsed() && appConfig(); as info) {
       <div class="border-t border-gray-700 px-4 pt-2 pb-2 text-xs text-gray-400 shrink-0 text-center">
         <div class="truncate">{{ info.version }}</div>
-        @if (info.buildTime !== 'unknown') {
-          <div class="truncate">{{ info.buildTime | date: 'dd.MM.yyyy HH:mm' }}</div>
+        @if (info.buildDate !== 'unknown') {
+          <div class="truncate">{{ info.buildDate | date: 'dd.MM.yyyy' }}</div>
         }
       </div>
     }

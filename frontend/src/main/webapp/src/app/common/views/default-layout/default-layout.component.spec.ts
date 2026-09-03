@@ -40,7 +40,7 @@ function configureModule(mobile: boolean) {
     const configApiServiceSpy = {
         observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
             .mockReturnValue(of({
-                version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, environmentLabel: ''
+                version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true, environmentLabel: ''
             }))
     };
 
@@ -108,7 +108,7 @@ describe('DefaultLayoutComponent', () => {
         fixture.detectChanges();
 
         expect(component.appConfig()).toEqual({
-            version: '1.0.0', buildTime: '2026-07-28T15:30:00Z', scannerFolderEnabled: true, environmentLabel: ''
+            version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true, environmentLabel: ''
         });
     });
 
@@ -119,6 +119,15 @@ describe('DefaultLayoutComponent', () => {
         const text = fixture.nativeElement.textContent;
         expect(text).toContain('1.0.0');
         expect(text).not.toContain('v1.0.0');
+    });
+
+    it('shows the build date without a time', () => {
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        fixture.detectChanges();
+
+        const text = fixture.nativeElement.textContent;
+        expect(text).toMatch(/\d{2}\.\d{2}\.\d{4}/);
+        expect(text).not.toMatch(/\d{2}:\d{2}/);
     });
 
     it('hides the version footer when the sidebar is collapsed', () => {
