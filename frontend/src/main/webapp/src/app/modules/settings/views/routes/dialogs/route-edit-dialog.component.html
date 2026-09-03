@@ -93,7 +93,7 @@
                          [ngModel]="shopDisplayText(i)" [ngModelOptions]="{standalone: true}"
                          (ngModelChange)="onShopInput(i, $event)"
                          (blur)="onShopBlur(i)">
-                  <mat-autocomplete #stopShopAutocomplete="matAutocomplete"
+                  <mat-autocomplete #stopShopAutocomplete="matAutocomplete" [displayWith]="shopAutocompleteDisplay"
                                     (optionSelected)="onShopSelected(i, $event.option.value)">
                     @for (shop of shopOptions(i); track shop?.id ?? 'none') {
                       <mat-option [value]="shop">{{ shopOptionLabel(shop) }}</mat-option>

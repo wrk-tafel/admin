@@ -118,6 +118,37 @@ describe('RouteEditDialogComponent', () => {
     expect(dialogRef.close).toHaveBeenCalledWith();
   });
 
+  describe('shopAutocompleteDisplay', () => {
+
+    // MatAutocompleteTrigger writes a selected option's raw value straight into the native input
+    // via this function, bypassing shopDisplayText() - see the method's own doc comment. Without
+    // this passthrough/formatting, re-picking the already-selected shop showed "[object Object]".
+    it('passes an already-formatted string through unchanged', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['shopAutocompleteDisplay']('100 - Billa')).toBe('100 - Billa');
+    });
+
+    it('formats a raw shop value the same way the option list does', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['shopAutocompleteDisplay'](testShop)).toBe('100 - Billa');
+    });
+
+    it('formats a raw null value as "Keine Filiale"', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['shopAutocompleteDisplay'](null)).toBe('Keine Filiale');
+    });
+
+  });
+
   describe('live stop order preview', () => {
 
     it('shows the stops in time order even though they were entered out of order', async () => {

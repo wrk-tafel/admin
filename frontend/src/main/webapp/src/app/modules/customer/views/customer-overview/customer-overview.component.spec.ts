@@ -191,6 +191,37 @@ describe('CustomerOverviewComponent', () => {
 
       expect(component.distributionDisplayText()).toEqual(component.distributionLabel(mockDistributionsResponse.items[0]));
     });
+
+    // MatAutocompleteTrigger writes a selected option's raw value straight into the native input
+    // via this function, bypassing distributionDisplayText() - see the property's own doc comment.
+    // Without this passthrough/formatting, re-picking the already-selected distribution showed its
+    // raw id instead of the formatted label.
+    describe('distributionAutocompleteDisplay', () => {
+      it('passes an already-formatted string through unchanged', () => {
+        const fixture = TestBed.createComponent(CustomerOverviewComponent);
+
+        expect(fixture.componentInstance.distributionAutocompleteDisplay('Sa, 08.08.2026')).toEqual('Sa, 08.08.2026');
+      });
+
+      it('formats a raw distribution id the same way the option list does', () => {
+        const fixture = TestBed.createComponent(CustomerOverviewComponent);
+        const component = fixture.componentInstance;
+        fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+        fixture.detectChanges();
+
+        expect(component.distributionAutocompleteDisplay(mockDistributionsResponse.items[0].id))
+          .toEqual(component.distributionLabel(mockDistributionsResponse.items[0]));
+      });
+
+      it('formats an unknown id as an empty string', () => {
+        const fixture = TestBed.createComponent(CustomerOverviewComponent);
+        const component = fixture.componentInstance;
+        fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+        fixture.detectChanges();
+
+        expect(component.distributionAutocompleteDisplay(-1)).toEqual('');
+      });
+    });
   });
 
   describe('counts and merged/filtered rows', () => {

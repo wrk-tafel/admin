@@ -25,6 +25,7 @@
                  (ngModelChange)="onDistributionInput($event)"
                  (blur)="onDistributionBlur()">
           <mat-autocomplete #overviewDistributionAutocomplete="matAutocomplete"
+                            [displayWith]="distributionAutocompleteDisplay"
                             (optionSelected)="onDistributionSelected($event.option.value)">
             @for (distribution of distributionOptions(); track distribution.id) {
               <!-- text tight against the tags: Angular collapses the indentation into leading/trailing

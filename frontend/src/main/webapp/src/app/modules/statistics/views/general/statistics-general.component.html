@@ -73,6 +73,7 @@
                        (ngModelChange)="onDistributionInput($event)"
                        (blur)="onDistributionBlur()">
                 <mat-autocomplete #distributionAutocomplete="matAutocomplete"
+                                  [displayWith]="distributionAutocompleteDisplay"
                                   (optionSelected)="onDistributionSelected($event.option.value)">
                   @for (distribution of distributionOptions(); track distribution?.startDate ?? 'none') {
                     @if (distribution) {
@@ -80,7 +81,9 @@
                            number belongs to is usually remembered as "der Samstag", not as a date -->
                       <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate">{{ distributionLabel(distribution) }}</mat-option>
                     } @else {
-                      <mat-option [value]="undefined"></mat-option>
+                      <!-- visually blank on purpose - it clears the field back to "no distribution
+                           chosen" - but still needs a name a screen reader can announce -->
+                      <mat-option [value]="undefined" aria-label="Keine Auswahl"></mat-option>
                     }
                   }
                 </mat-autocomplete>

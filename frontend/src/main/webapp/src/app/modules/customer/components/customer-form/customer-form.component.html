@@ -51,7 +51,7 @@
                  [ngModel]="mainCountryDisplayText()" [ngModelOptions]="{standalone: true}"
                  (ngModelChange)="onMainCountryInput($event)"
                  (blur)="onMainCountryBlur()">
-          <mat-autocomplete #mainCountryAutocomplete="matAutocomplete"
+          <mat-autocomplete #mainCountryAutocomplete="matAutocomplete" [displayWith]="countryAutocompleteDisplay"
                             (optionSelected)="onMainCountrySelected($event.option.value)">
             @for (countryItem of mainCountryGroups().frequentlyUsed; track countryItem.id) {
               <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
@@ -277,6 +277,7 @@
                              (ngModelChange)="onPersonCountryInput(i, $event)"
                              (blur)="onPersonCountryBlur(i)">
                       <mat-autocomplete #personCountryAutocomplete="matAutocomplete"
+                                        [displayWith]="countryAutocompleteDisplay"
                                         (optionSelected)="onPersonCountrySelected(i, $event.option.value)">
                         @for (countryItem of personCountryGroups(i).frequentlyUsed; track countryItem.id) {
                           <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">

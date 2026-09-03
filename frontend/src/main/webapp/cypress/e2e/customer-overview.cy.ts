@@ -217,6 +217,16 @@ describe('Customer Overview', () => {
 
           cy.contains('[testid^="overview-id-"]', firstCustomer.id!.toString()).should('exist');
           cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('not.exist');
+
+          // re-picking the already-selected distribution must not leave its raw value's toString()
+          // behind - MatAutocompleteTrigger writes a selected option straight into the input,
+          // bypassing Angular's own binding, so this only self-corrects when [displayWith] formats
+          // that raw value too (#3654)
+          cy.byTestId('overviewDistributionInput').invoke('val').then((selectedLabel) => {
+            cy.byTestId('overviewDistributionInput').click();
+            cy.byTestId('overviewDistributionInput-option-' + firstDistributionId).click();
+            cy.byTestId('overviewDistributionInput').should('have.value', selectedLabel);
+          });
         });
       });
     });

@@ -117,4 +117,31 @@ describe('SendMailsComponent', () => {
     expect(distributionApiService.sendMails).toHaveBeenCalledWith(testDistributions[1].id);
   });
 
+  describe('distributionAutocompleteDisplay', () => {
+
+    // MatAutocompleteTrigger writes a selected option's raw value straight into the native input
+    // via this function, bypassing distributionDisplayText() - see the property's own doc comment.
+    // Without this passthrough/formatting, re-picking the already-selected distribution showed
+    // "[object Object]".
+    it('passes an already-formatted string through unchanged', () => {
+      const fixture = TestBed.createComponent(SendMailsComponent);
+
+      expect(fixture.componentInstance['distributionAutocompleteDisplay']('01.01.2026')).toBe('01.01.2026');
+    });
+
+    it('formats a raw distribution value the same way the option list does', () => {
+      const fixture = TestBed.createComponent(SendMailsComponent);
+      const component = fixture.componentInstance;
+
+      expect(component['distributionAutocompleteDisplay'](testDistributions[0])).toBe(component.distributionLabel(testDistributions[0]));
+    });
+
+    it('formats a raw null value as an empty string', () => {
+      const fixture = TestBed.createComponent(SendMailsComponent);
+
+      expect(fixture.componentInstance['distributionAutocompleteDisplay'](null)).toBe('');
+    });
+
+  });
+
 });

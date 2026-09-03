@@ -76,6 +76,19 @@ export class SendMailsComponent {
     this.distributionFilterOverride.set(null);
   }
 
+  /**
+   * `MatAutocompleteTrigger` writes a selected option's raw value straight into the native input
+   * itself - bypassing `distributionDisplayText` - whenever the bound value changes, and also
+   * whenever it doesn't (e.g. re-picking the already-selected option): Angular's own template
+   * binding then skips the write-back because `distributionDisplayText()` didn't change, leaving
+   * the raw value's `toString()` ("[object Object]") stuck in the field. `displayWith` is what
+   * `MatAutocompleteTrigger` itself calls to render any value, selection included, so routing it
+   * through the same label function closes that gap. Our own writes already pass a formatted
+   * string through unchanged.
+   */
+  protected readonly distributionAutocompleteDisplay = (value: DistributionItem | string | null): string =>
+    typeof value === 'string' ? value : this.distributionLabel(value);
+
   initialLoadEffect = effect(() => {
     this.distributionApiService.getDistributions().subscribe((response) => {
       const distributions = response.items;

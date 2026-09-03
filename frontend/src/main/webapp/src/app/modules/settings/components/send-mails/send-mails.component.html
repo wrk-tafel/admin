@@ -24,6 +24,7 @@
                (ngModelChange)="onDistributionInput($event)"
                (blur)="onDistributionBlur()">
         <mat-autocomplete #sendMailsDistributionAutocomplete="matAutocomplete"
+                          [displayWith]="distributionAutocompleteDisplay"
                           (optionSelected)="onDistributionSelected($event.option.value)">
           @for (distribution of distributionOptions(); track distribution.id) {
             <mat-option [value]="distribution" [attr.testid]="'sendMailsDistributionInput-option-' + distribution.id">{{ distributionLabel(distribution) }}</mat-option>

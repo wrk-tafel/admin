@@ -108,6 +108,19 @@ export class StatisticsGeneralComponent {
   }
 
   /**
+   * `MatAutocompleteTrigger` writes a selected option's raw value straight into the native input
+   * itself - bypassing `distributionDisplayText` - whenever the bound value changes, and also
+   * whenever it doesn't (e.g. re-picking the already-selected option): Angular's own template
+   * binding then skips the write-back because `distributionDisplayText()` didn't change, leaving
+   * the raw value's `toString()` ("[object Object]") stuck in the field. `displayWith` is what
+   * `MatAutocompleteTrigger` itself calls to render any value, selection included, so routing it
+   * through the same label function closes that gap. Our own writes already pass a formatted
+   * string through unchanged.
+   */
+  distributionAutocompleteDisplay = (value: StatisticsDistribution | string | undefined): string =>
+    typeof value === 'string' ? value : this.distributionLabel(value);
+
+  /**
    * A range read "von 01.06. bis 01.01." matches nothing, and a date input cleared mid-edit holds
    * no date at all - both are rejected here rather than sent, so the last valid answer stays on
    * screen while the second date is still being typed.

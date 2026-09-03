@@ -210,6 +210,18 @@ export class RouteEditDialogComponent {
     return shop ? `${shop.number} - ${shop.name}` : 'Keine Filiale';
   }
 
+  /**
+   * `MatAutocompleteTrigger` writes a selected option's raw value straight into the native input
+   * itself - bypassing `shopDisplayText` - whenever the bound value changes, and also whenever it
+   * doesn't (e.g. re-picking the already-selected option): Angular's own template binding then
+   * skips the write-back because `shopDisplayText(i)` didn't change, leaving the raw value's
+   * `toString()` ("[object Object]") stuck in the field. `displayWith` is what `MatAutocompleteTrigger`
+   * itself calls to render any value, selection included, so routing it through the same label
+   * function closes that gap. Our own writes already pass a formatted string through unchanged.
+   */
+  protected readonly shopAutocompleteDisplay = (value: ShopItem | string | null): string =>
+    typeof value === 'string' ? value : this.shopOptionLabel(value);
+
   protected onShopInput(index: number, value: string) {
     this.setShopFilterOverride(index, value);
   }

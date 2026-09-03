@@ -333,6 +333,19 @@ export class CustomerFormComponent {
   }
 
   /**
+   * `MatAutocompleteTrigger` writes a selected option's raw value straight into the native input
+   * itself - bypassing `countryDisplayText` - whenever the bound value changes, and also whenever
+   * it doesn't (e.g. re-picking the already-selected country): Angular's own template binding then
+   * skips the write-back because the display text didn't change, leaving the raw `CountryData`'s
+   * `toString()` ("[object Object]") stuck in the field. `displayWith` is what
+   * `MatAutocompleteTrigger` itself calls to render any value, selection included, so routing it
+   * through the country's name closes that gap. Our own writes already pass a formatted string
+   * through unchanged.
+   */
+  protected readonly countryAutocompleteDisplay = (value: CountryData | string | null): string =>
+    typeof value === 'string' ? value : (value?.name ?? '');
+
+  /**
    * The unfiltered dropdown groups countries into "frequently used" then the rest, split by a
    * divider - once the operator has typed a filter query, that split stops meaning anything, so a
    * matching search just returns a flat list instead.

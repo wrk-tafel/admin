@@ -285,4 +285,27 @@ describe('CustomerFormComponent', () => {
     }));
   });
 
+  // MatAutocompleteTrigger writes a selected option's raw value straight into the native input via
+  // this function, bypassing countryDisplayText() - see the property's own doc comment. Without
+  // this passthrough/formatting, re-picking the already-selected country showed "[object Object]".
+  describe('countryAutocompleteDisplay', () => {
+    it('passes an already-formatted string through unchanged', () => {
+      const fixture = TestBed.createComponent(CustomerFormComponent);
+
+      expect(fixture.componentInstance['countryAutocompleteDisplay']('Österreich')).toEqual('Österreich');
+    });
+
+    it('formats a raw country value as its name', () => {
+      const fixture = TestBed.createComponent(CustomerFormComponent);
+
+      expect(fixture.componentInstance['countryAutocompleteDisplay'](mockCountryList[0])).toEqual('Österreich');
+    });
+
+    it('formats a raw null value as an empty string', () => {
+      const fixture = TestBed.createComponent(CustomerFormComponent);
+
+      expect(fixture.componentInstance['countryAutocompleteDisplay'](null)).toEqual('');
+    });
+  });
+
 });

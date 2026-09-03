@@ -199,6 +199,37 @@ describe('StatisticsGeneralComponent', () => {
       .toBeNull();
   });
 
+  describe('distributionAutocompleteDisplay', () => {
+
+    // MatAutocompleteTrigger writes a selected option's raw value straight into the native input
+    // via this function, bypassing distributionDisplayText() - see the property's own doc comment.
+    // Without this passthrough/formatting, re-picking the already-selected distribution showed
+    // "[object Object]".
+    it('passes an already-formatted string through unchanged', () => {
+      const fixture = createComponent();
+      respond(fixture, 1, 1);
+
+      expect(fixture.componentInstance.distributionAutocompleteDisplay('Montag, 08.08.2026')).toEqual('Montag, 08.08.2026');
+    });
+
+    it('formats a raw distribution value the same way the option list does', () => {
+      const fixture = createComponent();
+      respond(fixture, 1, 1);
+      const distribution = settings.distributions[0];
+
+      expect(fixture.componentInstance.distributionAutocompleteDisplay(distribution))
+        .toEqual(fixture.componentInstance.distributionLabel(distribution));
+    });
+
+    it('formats a raw undefined value as an empty string', () => {
+      const fixture = createComponent();
+      respond(fixture, 1, 1);
+
+      expect(fixture.componentInstance.distributionAutocompleteDisplay(undefined)).toEqual('');
+    });
+
+  });
+
   it('rejects an inverted custom range instead of requesting it', () => {
     const fixture = createComponent();
     respond(fixture, 100, 80);

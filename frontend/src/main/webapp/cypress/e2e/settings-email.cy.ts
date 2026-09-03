@@ -23,6 +23,30 @@ describe('Settings - Email - Resend distribution mails', () => {
     });
   });
 
+  // MatAutocompleteTrigger writes a selected option straight into the input, bypassing Angular's
+  // own binding, so re-picking the already-selected distribution only self-corrects when
+  // [displayWith] formats that raw value too - without it, the raw value's toString() was left
+  // behind (#3654).
+  it('re-picking the already-selected distribution keeps its formatted label, not the raw value', () => {
+    cy.request('POST', '/api/distributions/new').then((createResponse) => {
+      const distributionId = createResponse.body.distribution.id;
+      cy.closeDistribution();
+
+      cy.visit('/einstellungen/email');
+
+      // select it explicitly first - the default preselection is the newest distribution, which
+      // this one is not guaranteed to be if another test's distribution ties on the same second
+      cy.byTestId('sendMailsDistributionInput').click();
+      cy.byTestId('sendMailsDistributionInput-option-' + distributionId).click();
+
+      cy.byTestId('sendMailsDistributionInput').invoke('val').then((selectedLabel) => {
+        cy.byTestId('sendMailsDistributionInput').click();
+        cy.byTestId('sendMailsDistributionInput-option-' + distributionId).click();
+        cy.byTestId('sendMailsDistributionInput').should('have.value', selectedLabel);
+      });
+    });
+  });
+
   it('narrows the list to distributions matching the typed text', () => {
     cy.request('POST', '/api/distributions/new').then((createResponse) => {
       const distributionId = createResponse.body.distribution.id;

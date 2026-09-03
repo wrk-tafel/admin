@@ -210,6 +210,16 @@ describe('Statistics General', () => {
     cy.get('mat-option').eq(1).click();
 
     cy.contains(`Zeitraum: ${today} - ${today}`).should('be.visible');
+
+    // re-picking the already-selected distribution must not leave its raw value's toString()
+    // behind - MatAutocompleteTrigger writes a selected option straight into the input, bypassing
+    // Angular's own binding, so this only self-corrects when [displayWith] formats that raw value
+    // too (#3654)
+    cy.byTestId('distributionDateInput').invoke('val').then((selectedLabel) => {
+      cy.byTestId('distributionDateInput').click();
+      cy.get('mat-option').eq(1).click();
+      cy.byTestId('distributionDateInput').should('have.value', selectedLabel);
+    });
   });
 
   it('exports the statistics as csv for the selected range', () => {
