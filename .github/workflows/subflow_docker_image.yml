@@ -29,7 +29,8 @@ jobs:
     permissions:
       contents: read
       packages: write
-      security-events: write
+    outputs:
+      primaryTag: ${{ steps.tags.outputs.primaryTag }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -88,16 +89,30 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+  scan:
+    if: inputs.scanImage
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.githubToken }}
       - name: Scan image for vulnerabilities
-        if: inputs.scanImage
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: ${{ steps.tags.outputs.primaryTag }}
+          image-ref: ${{ needs.build.outputs.primaryTag }}
           format: sarif
           output: trivy-results.sarif
           ignore-unfixed: true
       - name: Upload scan results to the Security tab
-        if: always() && inputs.scanImage
+        if: always()
         uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
         with:
           sarif_file: trivy-results.sarif
