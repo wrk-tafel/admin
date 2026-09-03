@@ -99,7 +99,20 @@ export class StatisticsGeneralComponent {
     return distribution ? this.datePipe.transform(distribution.startDate, 'EEEE, dd.MM.yyyy') ?? '' : '';
   }
 
-  onDistributionInput(value: string): void {
+  /**
+   * `MatAutocompleteTrigger` fires its `ControlValueAccessor` onChange - wired to `(ngModelChange)`
+   * - with a selected option's raw value on selection, not just with typed text; that runs *before*
+   * `(optionSelected)` (see `_setValueAndClose` in Angular Material's autocomplete source), so a
+   * selection would otherwise briefly overwrite the filter override with a `StatisticsDistribution`
+   * object instead of a string. `distributionOptions` calls `.trim()` on that override to build the
+   * filtered list, so a non-string override throws there - which can leave the panel showing no
+   * options at all if anything reads the computed signal in that window (#3654). Only genuinely
+   * typed text narrows the list; a selection is `onDistributionSelected`'s job.
+   */
+  onDistributionInput(value: string | StatisticsDistribution): void {
+    if (typeof value !== 'string') {
+      return;
+    }
     this.distributionFilterOverride.set(value);
   }
 

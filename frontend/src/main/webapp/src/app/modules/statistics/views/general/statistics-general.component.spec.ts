@@ -230,6 +230,34 @@ describe('StatisticsGeneralComponent', () => {
 
   });
 
+  describe('onDistributionInput', () => {
+
+    // MatAutocompleteTrigger's ControlValueAccessor onChange fires with a selected option's raw
+    // value on selection too, not just with typed text - see onDistributionInput's own doc comment.
+    // Storing that raw value as the filter override broke distributionOptions(), which calls
+    // .trim() on it expecting a string.
+    it('ignores a raw distribution value instead of storing it as the filter override', () => {
+      const fixture = createComponent();
+      respond(fixture, 1, 1);
+      const distribution = settings.distributions[0];
+
+      fixture.componentInstance.onDistributionInput(distribution);
+
+      expect(() => fixture.componentInstance.distributionOptions()).not.toThrow();
+      expect(fixture.componentInstance.distributionDisplayText()).not.toEqual(distribution);
+    });
+
+    it('still applies genuinely typed text as the filter override', () => {
+      const fixture = createComponent();
+      respond(fixture, 1, 1);
+
+      fixture.componentInstance.onDistributionInput('08.08');
+
+      expect(fixture.componentInstance.distributionDisplayText()).toEqual('08.08');
+    });
+
+  });
+
   it('rejects an inverted custom range instead of requesting it', () => {
     const fixture = createComponent();
     respond(fixture, 100, 80);

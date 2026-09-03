@@ -216,7 +216,9 @@ describe('Statistics General', () => {
     // Angular's own binding, so this only self-corrects when [displayWith] formats that raw value
     // too (#3654)
     cy.byTestId('distributionDateInput').invoke('val').then((selectedLabel) => {
-      cy.byTestId('distributionDateInput').click();
+      // clear first: reopening with the committed label already in the field would filter the
+      // list down to just its own match(es), and eq(1) can miss if only one distribution matches
+      cy.byTestId('distributionDateInput').clear().click();
       cy.get('mat-option').eq(1).click();
       cy.byTestId('distributionDateInput').should('have.value', selectedLabel);
     });

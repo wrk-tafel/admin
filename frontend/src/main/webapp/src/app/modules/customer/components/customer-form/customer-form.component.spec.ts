@@ -308,4 +308,31 @@ describe('CustomerFormComponent', () => {
     });
   });
 
+  // MatAutocompleteTrigger's ControlValueAccessor onChange fires with a selected option's raw value
+  // on selection too, not just with typed text - see onMainCountryInput's own doc comment. Storing
+  // that raw value as the filter override broke mainCountryGroups(), which calls .trim() on it
+  // expecting a string.
+  describe('onMainCountryInput', () => {
+    it('ignores a raw country value instead of storing it as the filter override', () => {
+      const fixture = TestBed.createComponent(CustomerFormComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.onMainCountryInput(mockCountryList[0]);
+
+      expect(() => component.mainCountryGroups()).not.toThrow();
+      expect(component.mainCountryDisplayText()).not.toEqual(mockCountryList[0]);
+    });
+
+    it('still applies genuinely typed text as the filter override', () => {
+      const fixture = TestBed.createComponent(CustomerFormComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      component.onMainCountryInput('Öst');
+
+      expect(component.mainCountryDisplayText()).toEqual('Öst');
+    });
+  });
+
 });

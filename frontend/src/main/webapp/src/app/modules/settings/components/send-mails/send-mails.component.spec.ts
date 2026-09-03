@@ -144,4 +144,34 @@ describe('SendMailsComponent', () => {
 
   });
 
+  describe('onDistributionInput', () => {
+
+    // MatAutocompleteTrigger's ControlValueAccessor onChange fires with a selected option's raw
+    // value on selection too, not just with typed text - see onDistributionInput's own doc comment.
+    // Storing that raw value as the filter override broke distributionOptions(), which calls
+    // .trim() on it expecting a string.
+    it('ignores a raw distribution value instead of storing it as the filter override', () => {
+      distributionApiService.getDistributions.mockReturnValue(of({items: testDistributions}));
+
+      const fixture = TestBed.createComponent(SendMailsComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.onDistributionInput(testDistributions[0]);
+
+      expect(() => component.distributionOptions()).not.toThrow();
+      expect(component.distributionDisplayText()).not.toEqual(testDistributions[0]);
+    });
+
+    it('still applies genuinely typed text as the filter override', () => {
+      const fixture = TestBed.createComponent(SendMailsComponent);
+      const component = fixture.componentInstance;
+
+      component.onDistributionInput('01.01');
+
+      expect(component.distributionDisplayText()).toBe('01.01');
+    });
+
+  });
+
 });

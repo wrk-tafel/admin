@@ -280,7 +280,20 @@ export class CustomerFormComponent {
     this.countryDisplayText(MAIN_COUNTRY_KEY, this.customerForm.country().value()));
   mainCountryGroups = computed(() => this.groupCountries(this.mainCountryDisplayText()));
 
-  onMainCountryInput(value: string) {
+  /**
+   * `MatAutocompleteTrigger` fires its `ControlValueAccessor` onChange - wired to `(ngModelChange)`
+   * - with a selected option's raw value on selection, not just with typed text; that runs *before*
+   * `(optionSelected)` (see `_setValueAndClose` in Angular Material's autocomplete source), so a
+   * selection would otherwise briefly overwrite the filter override with a `CountryData` object
+   * instead of a string. `mainCountryGroups`/`personCountryGroups` call `.trim()` on that override
+   * to build the filtered list, so a non-string override throws there - which can leave the panel
+   * showing no options at all if anything reads the computed signal in that window (#3654). Only
+   * genuinely typed text narrows the list; a selection is `onMainCountrySelected`'s job.
+   */
+  onMainCountryInput(value: string | CountryData) {
+    if (typeof value !== 'string') {
+      return;
+    }
     this.setCountryFilterOverride(MAIN_COUNTRY_KEY, value);
   }
 
@@ -303,7 +316,11 @@ export class CustomerFormComponent {
     return this.groupCountries(this.personCountryDisplayText(index));
   }
 
-  onPersonCountryInput(index: number, value: string) {
+  // Same reasoning as onMainCountryInput above.
+  onPersonCountryInput(index: number, value: string | CountryData) {
+    if (typeof value !== 'string') {
+      return;
+    }
     const person = this.formModel().additionalPersons[index];
     if (person) {
       this.setCountryFilterOverride(person.key, value);

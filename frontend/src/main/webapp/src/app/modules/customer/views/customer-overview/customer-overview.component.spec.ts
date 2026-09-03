@@ -179,6 +179,22 @@ describe('CustomerOverviewComponent', () => {
       expect(component.distributionOptions()).toEqual([mockDistributionsResponse.items[1]]);
     });
 
+    // MatAutocompleteTrigger's ControlValueAccessor onChange fires with a selected option's raw
+    // value (here, the distribution's raw id) on selection too, not just with typed text - see
+    // onDistributionInput's own doc comment. Storing that raw value as the filter override broke
+    // distributionOptions(), which calls .trim() on it expecting a string.
+    it('ignores a raw distribution id instead of storing it as the filter override', () => {
+      const fixture = TestBed.createComponent(CustomerOverviewComponent);
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+      fixture.detectChanges();
+
+      component.onDistributionInput(mockDistributionsResponse.items[0].id);
+
+      expect(() => component.distributionOptions()).not.toThrow();
+      expect(component.distributionDisplayText()).not.toEqual(mockDistributionsResponse.items[0].id);
+    });
+
     it('reverts to the selected distribution\'s label once the field is left without picking one', () => {
       const fixture = TestBed.createComponent(CustomerOverviewComponent);
       const component = fixture.componentInstance;

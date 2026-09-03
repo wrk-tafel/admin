@@ -222,7 +222,20 @@ export class RouteEditDialogComponent {
   protected readonly shopAutocompleteDisplay = (value: ShopItem | string | null): string =>
     typeof value === 'string' ? value : this.shopOptionLabel(value);
 
-  protected onShopInput(index: number, value: string) {
+  /**
+   * `MatAutocompleteTrigger` fires its `ControlValueAccessor` onChange - wired to `(ngModelChange)`
+   * - with a selected option's raw value on selection, not just with typed text; that runs *before*
+   * `(optionSelected)` (see `_setValueAndClose` in Angular Material's autocomplete source), so a
+   * selection would otherwise briefly overwrite the filter override with a `ShopItem`/`null` value
+   * instead of a string. `shopOptions` calls `.trim()` on that override to build the filtered list,
+   * so a non-string override throws there - which can leave the panel showing no options at all if
+   * anything reads the computed signal in that window (#3654). Only genuinely typed text narrows
+   * the list; a selection is `onShopSelected`'s job.
+   */
+  protected onShopInput(index: number, value: string | ShopItem | null) {
+    if (typeof value !== 'string') {
+      return;
+    }
     this.setShopFilterOverride(index, value);
   }
 
