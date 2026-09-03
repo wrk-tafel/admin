@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Angabe zum Build unter der Version in der Seitenleiste sowie in den technischen Infos einer Support-Anfrage zeigt jetzt nur noch das Datum, statt Datum und Uhrzeit.
 
 ## [1.17.0] - 2026-09-02
 - Das Routen-Navi bietet bei mehr als zehn offenen Stopps jetzt mehrere Karten-Links zu je zehn Stopps an, statt die restliche Route nur bis zum zehnten Stopp abzudecken, und öffnet die Navigation zu einer Filiale wahlweise auch in Apple Maps.

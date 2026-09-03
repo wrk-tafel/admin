@@ -11,7 +11,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
  */
 fun TafelAdminProperties.toConfigResponse(): ConfigResponse = ConfigResponse(
     version = version,
-    buildTime = buildTime,
+    buildDate = buildDate,
     scannerFolderEnabled = scannerFolderAvailable,
     environmentLabel = environmentLabel.trim(),
 )
@@ -19,7 +19,7 @@ fun TafelAdminProperties.toConfigResponse(): ConfigResponse = ConfigResponse(
 @ExcludeFromTestCoverage
 data class ConfigResponse(
     val version: String,
-    val buildTime: String,
+    val buildDate: String,
     /**
      * Whether this environment offers the scanner-folder document source (see
      * `TafelAdminProperties.scannerFolderAvailable`). The frontend hides the "Scanner"

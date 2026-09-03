@@ -29,7 +29,7 @@ while this module is the read-only HTTP view of it for the frontend.
 - [`ConfigSseController`](ConfigSseController.kt): `GET /api/sse/config`, which pushes the config
   again whenever it changes in the backend. It emits nothing on subscribe — `GET /api/config` is
   what a page load reads, this carries only the deltas after it.
-- [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildTime, scannerFolderEnabled)`
+- [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildDate, scannerFolderEnabled)`
   and `PublicConfigResponse(environmentLabel)`, plus the one `TafelAdminProperties.toConfigResponse()`
   mapping both the endpoint and the push side use, so the two can't report different things about the
   same deployment.
@@ -60,10 +60,10 @@ behind authentication.
 
 ## Where the values come from
 
-`version`/`buildTime` default to `"dev"`/`"unknown"` and are overridden by the
-`TAFELADMIN_VERSION`/`TAFELADMIN_BUILD_TIME` env vars baked into the Docker image at build time —
-the former from the git tag computed in `.github/workflows/release.yml`, the latter a UTC timestamp
-computed at the moment the image is built in `.github/workflows/subflow_docker_image.yml` (see
+`version`/`buildDate` default to `"dev"`/`"unknown"` and are overridden by the
+`TAFELADMIN_VERSION`/`TAFELADMIN_BUILD_DATE` env vars baked into the Docker image at build time —
+the former from the git tag computed in `.github/workflows/release.yml`, the latter the UTC date
+(`yyyy-MM-dd`) on which the image is built in `.github/workflows/subflow_docker_image.yml` (see
 `_build/Dockerfile`). They are displayed at the bottom of the sidebar in `DefaultLayoutComponent`.
 
 `scannerFolderEnabled` mirrors `TafelAdminProperties.scannerFolderAvailable`

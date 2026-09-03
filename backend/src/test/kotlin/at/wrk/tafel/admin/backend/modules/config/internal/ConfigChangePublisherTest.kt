@@ -19,7 +19,7 @@ internal class ConfigChangePublisherTest {
 
     private val properties = TafelAdminProperties().apply {
         version = "1.2.3"
-        buildTime = "2026-07-28T15:30:00Z"
+        buildDate = "2026-07-28"
         storage.scannerPath = "/mnt/scanner"
     }
 
@@ -37,7 +37,7 @@ internal class ConfigChangePublisherTest {
                 ConfigChangePublisher.NOTIFICATION_NAME,
                 ConfigResponse(
                     version = "1.2.3",
-                    buildTime = "2026-07-28T15:30:00Z",
+                    buildDate = "2026-07-28",
                     scannerFolderEnabled = false,
                     environmentLabel = "",
                 ),
@@ -74,7 +74,7 @@ internal class ConfigChangePublisherTest {
                 ConfigChangePublisher.NOTIFICATION_NAME,
                 ConfigResponse(
                     version = "1.2.3",
-                    buildTime = "2026-07-28T15:30:00Z",
+                    buildDate = "2026-07-28",
                     scannerFolderEnabled = false,
                     environmentLabel = "",
                 ),
@@ -83,7 +83,7 @@ internal class ConfigChangePublisherTest {
                 ConfigChangePublisher.NOTIFICATION_NAME,
                 ConfigResponse(
                     version = "1.2.3",
-                    buildTime = "2026-07-28T15:30:00Z",
+                    buildDate = "2026-07-28",
                     scannerFolderEnabled = true,
                     environmentLabel = "",
                 ),
