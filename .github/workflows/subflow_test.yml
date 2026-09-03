@@ -13,11 +13,21 @@ on:
         type: boolean
         required: false
         default: true
+      backend:
+        description: 'Run the backend tests - pass false only on a pull request that cannot affect the backend, and see the note on the job below before doing so'
+        type: boolean
+        required: false
+        default: true
 
 jobs:
   test-backend:
-    # Deliberately not gated on whether the backend changed: the sonar analysis consumes the jacoco
-    # report uploaded below, and an analysis without it reports the whole backend as uncovered.
+    # This job is the pipeline's longest (~7 minutes) and it also feeds the sonar analysis, which
+    # consumes the jacoco report uploaded below - an analysis without it reports the whole backend as
+    # uncovered. It is therefore gated only where that is harmless, which is a pull request whose
+    # diff cannot touch the backend: SonarCloud's pull-request analyses measure new code, and a
+    # frontend-only pull request adds no backend line to measure. The push pipelines pass nothing
+    # here and keep running it, so the coverage stored for `main` always comes from a real run.
+    if: ${{ github.event_name == 'workflow_dispatch' || inputs.backend }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

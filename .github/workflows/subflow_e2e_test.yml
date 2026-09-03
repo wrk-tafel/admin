@@ -1,15 +1,28 @@
 name: E2E Test
 
-# Every spec file gets its own shard, so the suite runs with full parallelism instead of grouping
-# several files per runner. The spec list is discovered from cypress/e2e/ at run time rather than
-# hand-maintained (unlike the lighthouse workflow's route shards, which can't be derived from files
-# since a route doesn't map 1:1 onto one) - adding a spec file needs no change here. Each shard
-# starts its own backend/database and only ever runs its own spec file, so shards can't interfere
-# with each other's state.
+# The spec list is discovered from cypress/e2e/ at run time rather than hand-maintained (unlike the
+# lighthouse workflow's route shards, which can't be derived from files since a route doesn't map
+# 1:1 onto one), then dealt round-robin into SHARD_COUNT groups - adding a spec file needs no change
+# here.
+#
+# One spec per shard was the earlier layout, and it bought less than it looks: the shards do not
+# actually start together. On a measured run their start times were spread over 447 seconds, i.e.
+# roughly eight of them running at a time, so forty shards each paid the ~67s of setup below
+# (Postgres service, npm ci, cypress binary, artifacts) while queueing for a slot anyway. Grouping
+# the specs into about as many shards as genuinely run in parallel pays that setup once per group
+# instead of once per spec.
+#
+# Isolation is unchanged: the backend is restarted for every spec, and under the e2e profile a
+# startup wipes and re-creates the schema before Flyway re-applies the migrations and the testdata
+# (`flyway.clean-disabled: false`, see application-e2e.yml). A spec therefore begins against the
+# same fresh database it did when it had a runner to itself - the runner is shared, the state is not.
 
 env:
   JAVA_VERSION: '26'
   JAVA_DISTRIBUTION: 'corretto'
+  # Chosen to match the parallelism the runners actually grant this workflow (see above), so a shard
+  # queues rather than the suite serialising. Raising it past that just re-buys the per-shard setup.
+  SHARD_COUNT: '8'
 
 on:
   workflow_dispatch:
@@ -20,25 +33,40 @@ jobs:
     name: discover specs
     runs-on: ubuntu-latest
     outputs:
-      specs: ${{ steps.list.outputs.specs }}
+      shards: ${{ steps.list.outputs.shards }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: list
         working-directory: frontend/src/main/webapp/cypress/e2e
         run: |
-          specs=$(ls *.cy.ts | sed 's/\.cy\.ts$//' | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "specs=${specs}" >> "$GITHUB_OUTPUT"
+          # Dealt round-robin (group_by on the index modulo the shard count) rather than cut into
+          # contiguous chunks: spec runtimes differ by a factor of three, so alternating spreads the
+          # slow ones instead of landing them in one shard. `ls -S` deals the big files first, which
+          # makes this the classic longest-processing-time split - file size is only a proxy for
+          # runtime, but a good one here: the two longest-running specs (customer-detail,
+          # food-collection-recording) are also the two largest files by some margin. Alphabetical
+          # order put both on the same shard and left it ~45% slower than the rest.
+          shards=$(ls -S *.cy.ts | sed 's/\.cy\.ts$//' \
+            | jq -R -s -c --argjson n "${SHARD_COUNT}" '
+                split("\n")
+                | map(select(length > 0))
+                | to_entries
+                | group_by(.key % $n)
+                | to_entries
+                | map({ id: (.key + 1), specs: (.value | map(.value) | join(" ")) })')
+          echo "shards=${shards}" >> "$GITHUB_OUTPUT"
+          echo "$shards" | jq -r '.[] | "shard \(.id): \(.specs)"' >> "$GITHUB_STEP_SUMMARY"
 
   run:
-    name: run (${{ matrix.spec }})
+    name: run (shard ${{ matrix.shard.id }})
     needs: discover-specs
     runs-on: ubuntu-latest
     strategy:
-      # One spec failing says nothing about the others, and a run that stops at the first red
+      # One shard failing says nothing about the others, and a run that stops at the first red
       # shard reports only a fraction of what it covered.
       fail-fast: false
       matrix:
-        spec: ${{ fromJson(needs.discover-specs.outputs.specs) }}
+        shard: ${{ fromJson(needs.discover-specs.outputs.shards) }}
     services:
       postgres:
         image: postgres:18-bookworm
@@ -74,8 +102,7 @@ jobs:
       # setup-node's `cache: npm` covers ~/.npm, but the Cypress binary is not an npm package - it
       # lives in its own cache and is normally fetched by a postinstall script that `npm ci
       # --ignore-scripts` deliberately skips (ADR-0019). Without this, every shard re-downloads the
-      # same ~200 MB binary, which with one shard per spec file means paying for it dozens of times
-      # per run. Keyed on the lockfile, which is what pins the Cypress version.
+      # same ~200 MB binary. Keyed on the lockfile, which is what pins the Cypress version.
       - name: Cache the cypress binary
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -86,15 +113,41 @@ jobs:
         run: node_modules/.bin/cypress install
         working-directory: frontend/src/main/webapp
       - name: Run cypress
+        env:
+          SPECS: ${{ matrix.shard.specs }}
         run: |
-          java -Dspring.profiles.active=e2e -jar ./artifact/admin-backend.jar &
-          cd frontend/src/main/webapp
-          npm run cy:run-ci -- --spec "cypress/e2e/${{ matrix.spec }}.cy.ts"
+          # One backend per spec, torn down before the next starts: that restart is what re-runs
+          # Flyway's clean+migrate+testdata, so each spec gets the fresh database it would have had
+          # on a shard of its own. `wait-on tcp:8080` inside cy:run-ci is what waits for it - Tomcat
+          # binds the port only after the migrations have run.
+          failed=""
+          for spec in $SPECS; do
+            echo "::group::$spec"
+            java -Dspring.profiles.active=e2e -jar ./artifact/admin-backend.jar > "backend-${spec}.log" 2>&1 &
+            backend=$!
+
+            (cd frontend/src/main/webapp && npm run cy:run-ci -- --spec "cypress/e2e/${spec}.cy.ts") \
+              || failed="${failed} ${spec}"
+
+            # `wait` and not just `kill`: the next spec's backend cannot bind 8080 until this one has
+            # released it, and wait-on would otherwise see the dying process's port and start against
+            # it. A killed process exits non-zero, which is not a failure of anything here.
+            kill "$backend" 2>/dev/null || true
+            wait "$backend" 2>/dev/null || true
+            echo "::endgroup::"
+          done
+
+          if [ -n "$failed" ]; then
+            echo "::error title=E2E specs failed::${failed}"
+            echo "Failed specs on this shard:${failed}" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: cypress-results-${{ matrix.spec }}
+          name: cypress-results-shard-${{ matrix.shard.id }}
           path: |
             ./frontend/src/main/webapp/cypress/screenshots/
             ./frontend/src/main/webapp/cypress/videos/
+            ./backend-*.log
           retention-days: 1

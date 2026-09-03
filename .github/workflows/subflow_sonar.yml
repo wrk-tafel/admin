@@ -27,7 +27,13 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      # Absent when the backend tests were skipped, which subflow_test.yml only allows for a pull
+      # request that cannot touch the backend. Sonar then analyses without backend coverage, which
+      # for such a pull request measures nothing it would have measured anyway - there is no new
+      # backend line in the diff. Not fatal, so the analysis still runs and still reports on the
+      # frontend code that did change.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        continue-on-error: true
         with:
           name: backend-jacoco-report
           path: ./backend/build/reports/jacoco/test

@@ -689,9 +689,11 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   pipeline proves a pipeline change), and the callers skip the jobs that can say nothing about it.
   So a docs-only change — or a PR title/description edit, which re-triggers the workflow with
   unchanged commits — runs nothing but `commitlint`/`pr-title-lint`, and a run showing build, test,
-  e2e and deploy as *skipped* is the intended outcome, not a broken pipeline. The one job not gated
-  on its own area is the backend unit test: the Sonar analysis consumes its jacoco report, so it
-  runs for any application change, frontend-only included. `release.yml` is deliberately ungated —
+  e2e and deploy as *skipped* is the intended outcome, not a broken pipeline. The backend unit test
+  is gated only on a pull request (ADR-0056): the Sonar analysis consumes its jacoco report, so
+  every push to `main` runs it whatever changed, and only a pull request that cannot touch the
+  backend skips it — which is why `subflow_sonar.yml` tolerates that report being missing.
+  `release.yml` is deliberately ungated —
   every release produces a new version tag, image and userguide PDF regardless of what changed.
   Two jobs are gated on *who* opened the pull request rather than on what it touched: `deploy-dev`
   and, with it, `build-push-image` are skipped for Dependabot, since a pull-request image exists

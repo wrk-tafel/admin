@@ -2,6 +2,11 @@
 
 **Status:** accepted · **Recorded:** 2026-08-09
 
+> **Note:** "every pipeline run ... fed by a JaCoCo coverage report" is narrowed by
+> [ADR-0056](0056-backend-coverage-skipped-on-a-frontend-only-pull-request.md): a pull request whose
+> diff cannot touch the backend skips the backend suite and is analysed without that report. Every
+> push to `main` and every release still produces one, and nothing else below changes.
+
 ## Context
 
 Code quality on a volunteer project degrades quietly. Nobody decides to lower the standard; it slips
