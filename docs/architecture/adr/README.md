@@ -83,7 +83,8 @@ instead, so a number's position in a group says nothing about its age.
 | [0014](0014-integration-tests-against-real-postgres.md) | Integration tests against real PostgreSQL via Testcontainers | accepted |
 | [0030](0030-conventions-enforced-by-archunit.md) | Structural conventions enforced by ArchUnit tests | accepted |
 | [0031](0031-sonarcloud-quality-gate-with-explicit-coverage-opt-out.md) | SonarCloud quality gate with an explicit coverage opt-out | accepted |
-| [0036](0036-page-performance-index-in-the-pipeline.md) | Page performance rated by Lighthouse, with thresholds that fail the build | accepted |
+| [0036](0036-page-performance-index-in-the-pipeline.md) | Page performance rated by Lighthouse, with thresholds that fail the build | accepted (pull-request gating superseded by [0055](0055-lighthouse-runs-after-the-merge-not-on-every-pull-request.md)) |
+| [0055](0055-lighthouse-runs-after-the-merge-not-on-every-pull-request.md) | Lighthouse rates the frontend after the merge, not on every pull request | accepted |
 | [0037](0037-eager-bundle-bounded-by-its-own-build-check.md) | The eager bundle bounded by a build check of its own | accepted |
 | [0038](0038-axe-assertions-in-the-e2e-suite.md) | Post-interaction accessibility asserted by axe inside the e2e suite | accepted |
 | [0039](0039-audit-trail-as-an-append-only-log-written-by-the-application.md) | Audit trail as one append-only `audit_log` table, written by the application | accepted |

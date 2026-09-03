@@ -62,6 +62,12 @@ jobs:
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
+  lighthouse:
+    # Ungated like every other job here: a release rates the frontend it is about to ship, whatever
+    # changed since the last one. Not a dependency of the release or the deploys - a page-performance
+    # threshold is a signal to act on, not a reason to hold a release back.
+    uses: ./.github/workflows/subflow_lighthouse.yml
+    needs: build
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: [build, test, e2e-test, version]

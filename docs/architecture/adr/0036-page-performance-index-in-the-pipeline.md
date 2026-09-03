@@ -2,6 +2,12 @@
 
 **Status:** accepted · **Recorded:** 2026-08-09
 
+> **Note:** *when* these jobs run — on every frontend pull request — is superseded by
+> [ADR-0055](0055-lighthouse-runs-after-the-merge-not-on-every-pull-request.md). They now run on
+> `main` and on a release instead. What they measure, how, and the thresholds they enforce are
+> unchanged, so everything below still describes the jobs as they are; only the sentences about
+> failing "the pull request that introduced it" have moved a step later.
+
 ## Context
 
 Nothing measured how fast the application loads ([#3104](https://github.com/wrk-tafel/admin/issues/3104)).

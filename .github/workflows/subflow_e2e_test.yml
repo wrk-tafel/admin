@@ -71,7 +71,18 @@ jobs:
           path: ./static
       - run: npm ci --ignore-scripts
         working-directory: frontend/src/main/webapp
+      # setup-node's `cache: npm` covers ~/.npm, but the Cypress binary is not an npm package - it
+      # lives in its own cache and is normally fetched by a postinstall script that `npm ci
+      # --ignore-scripts` deliberately skips (ADR-0019). Without this, every shard re-downloads the
+      # same ~200 MB binary, which with one shard per spec file means paying for it dozens of times
+      # per run. Keyed on the lockfile, which is what pins the Cypress version.
+      - name: Cache the cypress binary
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('frontend/src/main/webapp/package-lock.json') }}
       - name: Install cypress binary
+        # A no-op on a cache hit ("Cypress ... is installed"), the download on a miss.
         run: node_modules/.bin/cypress install
         working-directory: frontend/src/main/webapp
       - name: Run cypress
