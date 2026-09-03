@@ -338,6 +338,14 @@ describe('Settings - Routes', () => {
       cy.checkAccessibility('[testid="routes-row-0"]');
     });
 
+    it('has no violations with a stop\'s shop autocomplete open', () => {
+      cy.byTestId('addRouteButton').click();
+      cy.byTestId('route-stop-add-button').click();
+      cy.byTestId('route-stop-shop-select-0').click();
+
+      cy.checkAutocompleteAccessibility();
+    });
+
   });
 
 });

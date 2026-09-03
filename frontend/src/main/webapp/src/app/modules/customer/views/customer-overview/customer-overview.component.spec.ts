@@ -157,11 +157,40 @@ describe('CustomerOverviewComponent', () => {
     expect(newKey).not.toEqual(renewedKey);
   });
 
-  it('trackByDistributionId returns the distribution id', () => {
-    const fixture = TestBed.createComponent(CustomerOverviewComponent);
-    const component = fixture.componentInstance;
+  describe('distribution autocomplete', () => {
+    it('shows the selected distribution\'s label once data has loaded', () => {
+      const fixture = TestBed.createComponent(CustomerOverviewComponent);
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('customerOverviewData', mockCustomerOverviewResponse);
+      fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+      fixture.detectChanges();
 
-    expect(component.trackByDistributionId(0, mockDistributionsResponse.items[0])).toEqual(mockDistributionsResponse.items[0].id);
+      expect(component.distributionDisplayText()).toEqual(component.distributionLabel(mockDistributionsResponse.items[0]));
+    });
+
+    it('narrows the option list to entries matching the typed text', () => {
+      const fixture = TestBed.createComponent(CustomerOverviewComponent);
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+      fixture.detectChanges();
+
+      component.onDistributionInput('24.12');
+
+      expect(component.distributionOptions()).toEqual([mockDistributionsResponse.items[1]]);
+    });
+
+    it('reverts to the selected distribution\'s label once the field is left without picking one', () => {
+      const fixture = TestBed.createComponent(CustomerOverviewComponent);
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('customerOverviewData', mockCustomerOverviewResponse);
+      fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+      fixture.detectChanges();
+
+      component.onDistributionInput('24.12');
+      component.onDistributionBlur();
+
+      expect(component.distributionDisplayText()).toEqual(component.distributionLabel(mockDistributionsResponse.items[0]));
+    });
   });
 
   describe('counts and merged/filtered rows', () => {

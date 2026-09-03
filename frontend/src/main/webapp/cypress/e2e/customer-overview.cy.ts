@@ -202,9 +202,10 @@ describe('Customer Overview', () => {
 
           cy.visit('/kunden/uebersicht');
 
-          // defaults to the newest closed distribution, with its date visible in the selector
+          // defaults to the newest closed distribution, with its date visible in the field - an
+          // autocomplete input, so its value (not its text content) carries the current selection
           cy.byTestId('overviewDistributionInput')
-            .invoke('text').should('match', /\S+, \d{2}\.\d{2}\.\d{4}/);
+            .invoke('val').should('match', /\S+, \d{2}\.\d{2}\.\d{4}/);
           cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('exist');
           cy.contains('[testid^="overview-id-"]', firstCustomer.id!.toString()).should('not.exist');
 
@@ -331,6 +332,18 @@ describe('Customer Overview', () => {
         cy.contains('mat-card', response.body.data.lastname).scrollIntoView().should('be.visible');
 
         cy.checkAccessibility(MAIN_CONTENT);
+      });
+    });
+
+    it('has no violations with the distribution autocomplete open', () => {
+      cy.createDistribution();
+
+      cy.createDummyCustomer().then(() => {
+        cy.closeDistribution();
+        cy.visit('/kunden/uebersicht');
+
+        cy.byTestId('overviewDistributionInput').click();
+        cy.checkAutocompleteAccessibility();
       });
     });
 

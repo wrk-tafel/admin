@@ -320,6 +320,12 @@ describe('Statistics General', () => {
       cy.checkAccessibility(MAIN_CONTENT);
     });
 
+    it('has no violations with the distribution autocomplete open', () => {
+      cy.byTestId('dateRangeModeInput').contains('Ausgabe').click();
+      cy.byTestId('distributionDateInput').click();
+      cy.checkAutocompleteAccessibility();
+    });
+
   });
 
 });

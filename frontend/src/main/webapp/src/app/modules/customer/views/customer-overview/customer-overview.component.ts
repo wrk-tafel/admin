@@ -8,11 +8,12 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatTableModule} from '@angular/material/table';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatSelectModule} from '@angular/material/select';
+import {MatInputModule} from '@angular/material/input';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatButtonToggleChange, MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {FormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
+import {CommonModule, DatePipe} from '@angular/common';
 import {MatIcon} from '@angular/material/icon';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
@@ -41,12 +42,14 @@ export interface OverviewRow {
 @Component({
   selector: 'tafel-customer-overview',
   templateUrl: 'customer-overview.component.html',
+  providers: [DatePipe],
   imports: [
     MatCardModule,
     MatButtonModule,
     MatTableModule,
     MatFormFieldModule,
-    MatSelectModule,
+    MatInputModule,
+    MatAutocompleteModule,
     MatButtonToggleModule,
     FormsModule,
     CommonModule,
@@ -127,8 +130,46 @@ export class CustomerOverviewComponent {
   private readonly customerApiService = inject(CustomerApiService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly router = inject(Router);
+  private readonly datePipe = inject(DatePipe);
+
+  /**
+   * Free-typed override text for the distribution autocomplete - present only while the user is
+   * actively narrowing the list; absent (falling back to the selected distribution's label) once a
+   * selection commits or the field is left without one - same pattern as the customer form's
+   * country autocomplete.
+   */
+  private readonly distributionFilterOverride = signal<string | null>(null);
+
+  private readonly selectedDistributionItem = computed(() => {
+    const items = this.distributionsDataInput()?.items ?? [];
+    return items.find(distribution => distribution.id === this.selectedDistributionId()) ?? null;
+  });
+
+  distributionDisplayText = computed(() =>
+    this.distributionFilterOverride() ?? this.distributionLabel(this.selectedDistributionItem()));
+
+  // Distributions accumulate for as long as the Tafel runs, so - unlike a small, static dropdown -
+  // this list gets an autocomplete rather than a plain select.
+  distributionOptions = computed(() => {
+    const term = this.distributionDisplayText().trim().toLowerCase();
+    const items = this.distributionsDataInput()?.items ?? [];
+    return term ? items.filter(distribution => this.distributionLabel(distribution).toLowerCase().includes(term)) : items;
+  });
+
+  distributionLabel(distribution: DistributionItem | null): string {
+    return distribution ? this.datePipe.transform(distribution.startedAt, 'EE, dd.MM.yyyy') ?? '' : '';
+  }
+
+  onDistributionInput(value: string): void {
+    this.distributionFilterOverride.set(value);
+  }
+
+  onDistributionBlur(): void {
+    this.distributionFilterOverride.set(null);
+  }
 
   onDistributionSelected(distributionId: number) {
+    this.distributionFilterOverride.set(null);
     this.selectedDistributionId.set(distributionId);
     this.customerApiService.getCustomersOverview(distributionId)
       .subscribe((response: CustomerOverviewResponse) => this.customerOverviewData.set(response));
@@ -185,10 +226,6 @@ export class CustomerOverviewComponent {
 
   trackByRow(index: number, row: OverviewRow): string {
     return `${row.type}-${row.item.customer.id}`;
-  }
-
-  trackByDistributionId(index: number, item: DistributionItem): number {
-    return item.id;
   }
 
   displayedColumns = ['type', 'id', 'name', 'address', 'persons', 'validity', 'date', 'actions'];

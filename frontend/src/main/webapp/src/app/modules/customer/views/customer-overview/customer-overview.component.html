@@ -17,15 +17,22 @@
         </button>
 
         <mat-form-field subscriptSizing="dynamic" class="w-full">
-          <mat-select testid="overviewDistributionInput" aria-label="Ausgabe" [ngModel]="selectedDistributionId()"
-                      (ngModelChange)="onDistributionSelected($event)">
-            @for (distribution of distributionsDataInput()?.items; track trackByDistributionId($index, distribution)) {
+          <!-- an autocomplete rather than a plain select: this list accumulates for as long as the
+               Tafel runs, so it needs to stay searchable rather than scrolled through -->
+          <input matInput type="text" autocomplete="off" testid="overviewDistributionInput" aria-label="Ausgabe"
+                 [matAutocomplete]="overviewDistributionAutocomplete"
+                 [ngModel]="distributionDisplayText()" [ngModelOptions]="{standalone: true}"
+                 (ngModelChange)="onDistributionInput($event)"
+                 (blur)="onDistributionBlur()">
+          <mat-autocomplete #overviewDistributionAutocomplete="matAutocomplete"
+                            (optionSelected)="onDistributionSelected($event.option.value)">
+            @for (distribution of distributionOptions(); track distribution.id) {
               <!-- text tight against the tags: Angular collapses the indentation into leading/trailing
                    spaces otherwise, and the e2e spec matches this label with an anchored pattern -->
               <mat-option [value]="distribution.id"
-                          [attr.testid]="'overviewDistributionInput-option-' + distribution.id">{{ distribution.startedAt | date : 'EE, dd.MM.yyyy' }}</mat-option>
+                          [attr.testid]="'overviewDistributionInput-option-' + distribution.id">{{ distributionLabel(distribution) }}</mat-option>
             }
-          </mat-select>
+          </mat-autocomplete>
         </mat-form-field>
 
         <button type="button" matIconButton testid="overview-distribution-next-button"

@@ -86,12 +86,19 @@
 
                 <mat-form-field class="min-w-48 flex-1" subscriptSizing="dynamic">
                   <mat-label>Filiale</mat-label>
-                  <mat-select formControlName="shopId" [attr.testid]="'route-stop-shop-select-' + i">
-                    <mat-option [value]="null">Keine Filiale</mat-option>
-                    @for (shop of shops; track shop.id) {
-                      <mat-option [value]="shop.id">{{ shop.number }} - {{ shop.name }}</mat-option>
+                  <!-- an autocomplete rather than a plain select: a route can have many stops and
+                       the shop list only grows, so it needs to stay searchable -->
+                  <input matInput type="text" autocomplete="off" [attr.testid]="'route-stop-shop-select-' + i"
+                         [matAutocomplete]="stopShopAutocomplete"
+                         [ngModel]="shopDisplayText(i)" [ngModelOptions]="{standalone: true}"
+                         (ngModelChange)="onShopInput(i, $event)"
+                         (blur)="onShopBlur(i)">
+                  <mat-autocomplete #stopShopAutocomplete="matAutocomplete"
+                                    (optionSelected)="onShopSelected(i, $event.option.value)">
+                    @for (shop of shopOptions(i); track shop?.id ?? 'none') {
+                      <mat-option [value]="shop">{{ shopOptionLabel(shop) }}</mat-option>
                     }
-                  </mat-select>
+                  </mat-autocomplete>
                 </mat-form-field>
 
                 <button type="button" matButton="filled" class="button-danger"

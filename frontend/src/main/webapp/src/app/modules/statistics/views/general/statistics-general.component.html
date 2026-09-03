@@ -64,17 +64,26 @@
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
               <span id="distributionLabel">Ausgabe</span>
               <mat-form-field subscriptSizing="dynamic" class="w-full sm:w-64">
-                <mat-select testid="distributionDateInput"
-                            aria-labelledby="distributionLabel"
-                            [ngModel]="selectedDistribution()"
-                            (ngModelChange)="onDistributionSelected($event)">
-                  <mat-option [value]="undefined"></mat-option>
-                  @for (distribution of settings()?.distributions; track distribution.startDate) {
-                    <!-- the weekday tells the distributions apart at a glance: which of them a number
-                         belongs to is usually remembered as "der Samstag", not as a date -->
-                    <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate">{{ distribution.startDate | date : 'EEEE, dd.MM.yyyy' }}</mat-option>
+                <!-- an autocomplete rather than a plain select: the list grows by one every week the
+                     app runs, so it needs to stay searchable rather than scrolled through -->
+                <input matInput type="text" autocomplete="off" testid="distributionDateInput"
+                       aria-labelledby="distributionLabel"
+                       [matAutocomplete]="distributionAutocomplete"
+                       [ngModel]="distributionDisplayText()" [ngModelOptions]="{standalone: true}"
+                       (ngModelChange)="onDistributionInput($event)"
+                       (blur)="onDistributionBlur()">
+                <mat-autocomplete #distributionAutocomplete="matAutocomplete"
+                                  (optionSelected)="onDistributionSelected($event.option.value)">
+                  @for (distribution of distributionOptions(); track distribution?.startDate ?? 'none') {
+                    @if (distribution) {
+                      <!-- the weekday tells the distributions apart at a glance: which of them a
+                           number belongs to is usually remembered as "der Samstag", not as a date -->
+                      <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate">{{ distributionLabel(distribution) }}</mat-option>
+                    } @else {
+                      <mat-option [value]="undefined"></mat-option>
+                    }
                   }
-                </mat-select>
+                </mat-autocomplete>
               </mat-form-field>
             </div>
           }
