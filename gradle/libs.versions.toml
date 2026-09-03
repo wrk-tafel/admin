@@ -2,14 +2,14 @@
 kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"
 spring-boot = "4.1.1"
+# Transitive-only, via spring-boot-starter-tomcat - Spring Boot 4.1.1 still manages 11.0.24, vulnerable
+# to CVE-2026-65182, CVE-2026-65905 and CVE-2026-68525; all three are fixed in 11.0.25.
+tomcat = "11.0.25"
 spring-modulith = "2.1.1"
 # Release train "Oakwood" - the first line compatible with Spring Boot 4.1. Only spring-cloud-context
 # is used from it (see backend/build.gradle.kts), not the config server/client or the bus.
 spring-cloud = "2025.1.3"
 jackson = "3.2.2"
-# Legacy Jackson 2.x line, pulled in transitively (jjwt-jackson, swagger-core-jakarta) alongside the Jackson 3.x
-# used directly by this project. Pinned separately to patch known CVEs in that transitive line.
-jackson-legacy = "2.22.2"
 jjwt = "0.13.0"
 postgresql = "42.7.13"
 bouncycastle = "1.85.2"
@@ -79,10 +79,14 @@ flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql
 # Micrometer
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 
+# Tomcat
+tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat" }
+tomcat-embed-el = { module = "org.apache.tomcat.embed:tomcat-embed-el", version.ref = "tomcat" }
+tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websocket", version.ref = "tomcat" }
+
 # Jackson
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jackson-dataformat-xml = { module = "tools.jackson.dataformat:jackson-dataformat-xml", version.ref = "jackson" }
-jackson-databind-legacy = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-legacy" }
 
 # Database
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }

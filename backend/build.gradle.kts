@@ -47,11 +47,15 @@ dependencyLocking {
 
 dependencies {
     constraints {
-        // Transitive-only Jackson 2.x line (via jjwt-jackson / swagger-core-jakarta), separate from the
-        // Jackson 3.x used directly in this project. Locked resolution pulled in 2.21.4, vulnerable to
-        // GHSA-mhm7-754m-9p8w, CVE-2026-54515 and CVE-2026-59889; all three are fixed in 2.21.5.
-        implementation(libs.jackson.databind.legacy) {
-            because("Fixes GHSA-mhm7-754m-9p8w, CVE-2026-54515, CVE-2026-59889 (JsonView bypass / ignored-properties issues)")
+        // Transitive-only, via spring-boot-starter-tomcat. Spring Boot 4.1.1 still manages 11.0.24.
+        implementation(libs.tomcat.embed.core) {
+            because("Fixes CVE-2026-65182, CVE-2026-65905, CVE-2026-68525 (FORM auth bypass, DIGEST replay, security constraint bypass)")
+        }
+        implementation(libs.tomcat.embed.el) {
+            because("Keep in lockstep with tomcat-embed-core")
+        }
+        implementation(libs.tomcat.embed.websocket) {
+            because("Keep in lockstep with tomcat-embed-core")
         }
     }
 
