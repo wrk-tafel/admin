@@ -24,6 +24,10 @@ jobs:
     with:
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
   sonar:
+    # A leaf: nothing waits for this. It needs `test` only because it consumes the jacoco report that
+    # job uploads - it reports, and with `sonar.qualitygate.wait: false` (see build.gradle.kts) it
+    # cannot even fail on the gate's verdict, so the only thing gating anything on it would buy is a
+    # SonarCloud outage blocking a deploy.
     uses: ./.github/workflows/subflow_sonar.yml
     needs: test
     secrets:
@@ -47,7 +51,7 @@ jobs:
   # build/test, and GitHub skips a job whose dependency was skipped.
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
-    needs: [build, test, sonar, e2e-test]
+    needs: [build, test, e2e-test]
     with:
       # the mutable "dev"/"test" tags always point at the most recently built candidate for that
       # environment, which is what cleanup.yml keys off to protect it regardless of how many newer
