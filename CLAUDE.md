@@ -354,7 +354,11 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 ### Frontend Tests
 - Unit tests: Vitest (`.spec.ts` files in `src/app/`)
 - Run unit tests: `npm test` (from frontend/src/main/webapp)
-- Run headless: `npm run test-ci`
+- Run headless: `npm run test-ci` — this is also the only run that collects coverage (`--coverage`;
+  settings in `vitest-base.config.ts`), writing `coverage/ng/lcov.info` for SonarCloud. The `ng`
+  segment is the Angular project name and the unit-test builder offers no way to change it, so the
+  `sonar.javascript.lcov.reportPaths` property and the CI artifact both follow that path. A plain
+  `npm test` deliberately collects nothing, to stay fast
 - Run specific test: `npm test -- --include="src/app/common/sse/sse.service.spec.ts"`
 - E2E tests: Cypress (in `frontend/src/main/webapp/cypress/e2e/`)
 - Run E2E: `npm run cy:run-ci` (requires backend running on port 8080)
@@ -689,10 +693,15 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   pipeline proves a pipeline change), and the callers skip the jobs that can say nothing about it.
   So a docs-only change — or a PR title/description edit, which re-triggers the workflow with
   unchanged commits — runs nothing but `commitlint`/`pr-title-lint`, and a run showing build, test,
-  e2e and deploy as *skipped* is the intended outcome, not a broken pipeline. The one job not gated
-  on its own area is the backend unit test: the Sonar analysis consumes its jacoco report, so it
-  runs for any application change, frontend-only included. `release.yml` is deliberately ungated —
+  e2e and deploy as *skipped* is the intended outcome, not a broken pipeline. The backend unit test
+  is gated only on a pull request (ADR-0056): the Sonar analysis consumes its jacoco report, so
+  every push to `main` runs it whatever changed, and only a pull request that cannot touch the
+  backend skips it — which is why `subflow_sonar.yml` tolerates that report being missing.
+  `release.yml` is deliberately ungated —
   every release produces a new version tag, image and userguide PDF regardless of what changed.
+  Two jobs are gated on *who* opened the pull request rather than on what it touched: `deploy-dev`
+  and, with it, `build-push-image` are skipped for Dependabot, since a pull-request image exists
+  only to be deployed to dev. And `lighthouse` doesn't run on a pull request at all (ADR-0055).
 - **Accessibility is gated three times, and no one of them replaces another.**
   1. `eslint.config.js` extends `angular.configs.templateAccessibility` for `**/*.html`, so
      `ng lint` (the `lint-frontend` CI job, which already covers `src/**/*.html`) fails on a click
@@ -703,7 +712,9 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   2. The `lighthouse` job's `pages` sweep enforces axe at score 1 against a real backend, so it
      does compute real accessible names — but only over what a route renders for the e2e fixtures
      on load: it never opens a dialog, never expands a panel, never switches a tab and never sees
-     a component no route in its matrix reaches.
+     a component no route in its matrix reaches. It also runs **only on `main` and on a release**,
+     not on a pull request (ADR-0055), so it is the one layer here that reports after the merge
+     rather than on the change itself.
   3. `cypress/support/accessibility.ts` runs axe inside the e2e suite (`cypress-axe`), at the
      states the specs navigate to — which is the only place a control that exists solely after an
      interaction gets audited at all. `cy.checkDialogAccessibility()` /
@@ -723,8 +734,12 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   the page's second level at an `h5`'s size. Screens behind the login have no page heading of their
   own; the shell renders the route title as the one `h1`.
 - **Page Performance Gate**: the `lighthouse` job (`subflow_lighthouse.yml`) runs Lighthouse CI over
-  the built frontend and **fails** when a threshold is crossed. It only runs when the frontend
-  changed, and it is not a dependency of the deploy jobs. The decision behind it is
+  the built frontend and **fails** when a threshold is crossed. It runs from `main_push.yml` (when
+  the frontend changed) and `release.yml` (ungated) — **not on a pull request**, so a red Lighthouse
+  run reports on something already merged; see
+  [ADR-0055](docs/architecture/adr/0055-lighthouse-runs-after-the-merge-not-on-every-pull-request.md)
+  for why, and what carries the accessibility load on a pull request instead. It is not a dependency
+  of the deploy jobs. What it measures is
   [ADR-0036](docs/architecture/adr/0036-page-performance-index-in-the-pipeline.md). Two jobs, two
   questions:
   - `shell` audits the login page served straight from the `frontend-dist` artifact by lhci's own

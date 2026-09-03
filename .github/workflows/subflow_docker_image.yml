@@ -7,18 +7,20 @@ on:
   workflow_call:
     inputs:
       imageTags:
-        description: 'Newline-separated list of tags to push the image as, e.g. "latest\n1.0.0"'
+        description: 'Newline-separated list of tags to push the image as, e.g. "latest\n1.0.0". A tag that is a full commit SHA is shortened to 7 chars, so a caller can pass github.sha straight through.'
         type: string
         required: true
       version:
         description: 'Baked into the image as TAFELADMIN_VERSION and shown in the frontend UI, e.g. "1.0.0", or a full commit SHA for non-release builds (auto-shortened to 7 chars below)'
         type: string
         required: true
-      scanImage:
-        description: 'Scan the built image for vulnerabilities and upload results to the Security tab. GitHub only surfaces code-scanning alerts there for branches with their own analysis history (main, release), so pass true only from those pipelines - scanning PR builds would produce results nobody can see.'
-        type: boolean
-        required: false
-        default: false
+    outputs:
+      imageRef:
+        description: 'Fully qualified reference of the pushed image, for a caller that wants to scan or otherwise act on it (see subflow_image_scan.yml)'
+        value: ${{ jobs.build.outputs.primaryTag }}
+      version:
+        description: 'The version as it was actually baked in and tagged - i.e. shortened when a full commit SHA was passed. This is the tag a deploy has to ask for.'
+        value: ${{ jobs.build.outputs.version }}
     secrets:
       githubToken:
         required: true
@@ -29,7 +31,9 @@ jobs:
     permissions:
       contents: read
       packages: write
-      security-events: write
+    outputs:
+      primaryTag: ${{ steps.tags.outputs.primaryTag }}
+      version: ${{ steps.metadata.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -53,16 +57,23 @@ jobs:
         env:
           IMAGE_TAGS: ${{ inputs.imageTags }}
         run: |
+          # A full commit SHA (40 hex chars) becomes the conventional 7, matching what the metadata
+          # step below bakes in as the version. This is what lets a caller pass github.sha straight
+          # through instead of running a whole job to compute `${SHA:0:7}` - GitHub expressions have
+          # no substring function. A release semver or a mutable name like "dev" passes through.
+          shorten() {
+            if [[ "$1" =~ ^[0-9a-f]{40}$ ]]; then printf '%s' "${1:0:7}"; else printf '%s' "$1"; fi
+          }
           {
             echo 'tags<<EOF'
             while IFS= read -r tag; do
-              [ -n "$tag" ] && echo "${REGISTRY}/wrk-tafel/admin:${tag}"
+              [ -n "$tag" ] && echo "${REGISTRY}/wrk-tafel/admin:$(shorten "$tag")"
             done <<< "${IMAGE_TAGS}"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
-          # Any one of the pushed tags refers to the same image, so the scan step below just
-          # needs the first one to have something to pull.
-          echo "primaryTag=${REGISTRY}/wrk-tafel/admin:$(head -n1 <<< "${IMAGE_TAGS}")" >> "$GITHUB_OUTPUT"
+          # Any one of the pushed tags refers to the same image, so a caller that wants to pull it
+          # (the scan workflow) just needs the first one.
+          echo "primaryTag=${REGISTRY}/wrk-tafel/admin:$(shorten "$(head -n1 <<< "${IMAGE_TAGS}")")" >> "$GITHUB_OUTPUT"
       - name: Determine build metadata
         id: metadata
         env:
@@ -88,16 +99,3 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Scan image for vulnerabilities
-        if: inputs.scanImage
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          image-ref: ${{ steps.tags.outputs.primaryTag }}
-          format: sarif
-          output: trivy-results.sarif
-          ignore-unfixed: true
-      - name: Upload scan results to the Security tab
-        if: always() && inputs.scanImage
-        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
-        with:
-          sarif_file: trivy-results.sarif

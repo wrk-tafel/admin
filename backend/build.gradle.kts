@@ -47,6 +47,15 @@ dependencyLocking {
 
 dependencies {
     constraints {
+        // Transitive-only Jackson 2.x line (via jjwt-jackson / swagger-core-jakarta), separate from the
+        // Jackson 3.x used directly in this project. Natural resolution lands on 2.22.0, which is newer
+        // than the spring-boot-bom's managed 2.21.5 but does NOT carry the CVE-2026-54515/CVE-2026-59889
+        // fix - that fix forked into 2.21.5 and 2.22.1, skipping 2.22.0 - so this has to pin an exact
+        // known-fixed version rather than relying on "newest transitively resolved" being safe.
+        implementation(libs.jackson.databind.legacy) {
+            because("Fixes GHSA-mhm7-754m-9p8w, CVE-2026-54515, CVE-2026-59889 (JsonView bypass / ignored-properties issues)")
+        }
+
         // Transitive-only, via spring-boot-starter-tomcat. Spring Boot 4.1.1 still manages 11.0.24.
         implementation(libs.tomcat.embed.core) {
             because("Fixes CVE-2026-65182, CVE-2026-65905, CVE-2026-68525 (FORM auth bypass, DIGEST replay, security constraint bypass)")
