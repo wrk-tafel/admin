@@ -65,16 +65,9 @@ jobs:
     if: needs.changes.outputs.app == 'true'
     with:
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
-  version:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-      - name: Determine short commit SHA
-        id: version
-        env:
-          FULL_SHA: ${{ github.event.pull_request.head.sha }}
-        run: echo "version=${FULL_SHA:0:7}" >> "$GITHUB_OUTPUT"
+      # Only a pull request skips the backend suite, and only when the diff cannot reach it - see
+      # the note on that job. main_push.yml deliberately passes nothing and always runs it.
+      backend: ${{ needs.changes.outputs.backend == 'true' }}
   sonar:
     uses: ./.github/workflows/subflow_sonar.yml
     needs: test
@@ -95,37 +88,36 @@ jobs:
     with:
       backend: ${{ needs.changes.outputs.backend == 'true' }}
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
-  # sonar, build-push-image, e2e-test and deploy-dev need no gate of their own: they depend on
-  # build/test, and GitHub skips a job whose dependency was skipped.
+  # sonar and e2e-test need no gate of their own: they depend on build/test, and GitHub skips a job
+  # whose dependency was skipped. The image and the deploy below carry one anyway, for who rather
+  # than for what changed.
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
-    needs: [build, version]
+    needs: build
+    # On a pull request the image exists only to be deployed to dev, and deploy-dev below never runs
+    # for Dependabot. Building and pushing one anyway costs a runner and leaves a tag in the registry
+    # for cleanup.yml to reap, so the two carry the same condition.
+    if: github.actor != 'dependabot[bot]'
     with:
       # the mutable "dev" tag always points at the most recently built candidate for that
       # environment, which is what cleanup.yml keys off to protect it regardless of how many
       # newer commit-SHA-tagged images have since piled up (#3631)
       imageTags: |
-        ${{ needs.version.outputs.version }}
+        ${{ github.event.pull_request.head.sha }}
         dev
-      version: ${{ needs.version.outputs.version }}
+      version: ${{ github.event.pull_request.head.sha }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
-  lighthouse:
-    # Rates the built frontend bundle and enforces the thresholds in lighthouserc.cjs. Gated on the
-    # frontend rather than on the application as a whole: a backend-only change ships the identical
-    # bundle, so re-measuring it can only produce runner noise.
-    uses: ./.github/workflows/subflow_lighthouse.yml
-    needs: [changes, build]
-    if: needs.changes.outputs.frontend == 'true'
   deploy-dev:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: [build-push-image, version]
+    needs: build-push-image
     with:
       environment: dev
-      version: ${{ needs.version.outputs.version }}
+      # The shortened SHA the image was actually tagged with, resolved by the build workflow.
+      version: ${{ needs.build-push-image.outputs.version }}
     concurrency:
       group: dev-environment
     secrets:

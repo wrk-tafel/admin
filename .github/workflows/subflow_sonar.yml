@@ -27,10 +27,22 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      # Both reports are absent whenever the job that produces them was skipped, which
+      # subflow_test.yml allows for a change that cannot reach that half of the codebase (the
+      # backend one only on a pull request - see ADR-0056). Sonar then analyses without that side's
+      # coverage, which for such a change measures nothing it would have measured anyway: there is
+      # no new line in the diff on that side. Neither download is fatal, so the analysis still runs
+      # and still reports on the code that did change.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        continue-on-error: true
         with:
           name: backend-jacoco-report
           path: ./backend/build/reports/jacoco/test
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        continue-on-error: true
+        with:
+          name: frontend-lcov-report
+          path: ./frontend/src/main/webapp/coverage/ng
       - name: Analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

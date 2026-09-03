@@ -23,15 +23,11 @@ jobs:
     if: needs.changes.outputs.app == 'true'
     with:
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
-  version:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-      - name: Determine short commit SHA
-        id: version
-        run: echo "version=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
   sonar:
+    # A leaf: nothing waits for this. It needs `test` only because it consumes the jacoco report that
+    # job uploads - it reports, and with `sonar.qualitygate.wait: false` (see build.gradle.kts) it
+    # cannot even fail on the gate's verdict, so the only thing gating anything on it would buy is a
+    # SonarCloud outage blocking a deploy.
     uses: ./.github/workflows/subflow_sonar.yml
     needs: test
     secrets:
@@ -55,16 +51,16 @@ jobs:
   # build/test, and GitHub skips a job whose dependency was skipped.
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
-    needs: [build, test, version, sonar, e2e-test]
+    needs: [build, test, e2e-test]
     with:
       # the mutable "dev"/"test" tags always point at the most recently built candidate for that
       # environment, which is what cleanup.yml keys off to protect it regardless of how many newer
       # commit-SHA-tagged PR images have since piled up (#3631)
       imageTags: |
-        ${{ needs.version.outputs.version }}
+        ${{ github.sha }}
         test
         dev
-      version: ${{ needs.version.outputs.version }}
+      version: ${{ github.sha }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   scan-image:
@@ -81,9 +77,10 @@ jobs:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
   lighthouse:
-    # Same gate as on a pull request: only a frontend change can move these numbers. Deliberately not
-    # a dependency of deploy-test below - a page-performance threshold is a signal to act on, not a
-    # reason to hold a merged change back from the test environment.
+    # This pipeline and the release one are the only two that rate the frontend - a pull request does
+    # not, see ADR-0055. Gated on the frontend having changed, since only that can move these
+    # numbers. Deliberately not a dependency of deploy-test below - a page-performance threshold is a
+    # signal to act on, not a reason to hold a merged change back from the test environment.
     uses: ./.github/workflows/subflow_lighthouse.yml
     needs: [changes, build]
     if: needs.changes.outputs.frontend == 'true'
@@ -92,10 +89,11 @@ jobs:
     # main is the "must be green" pipeline: unlike PRs, deployment requires
     # backend+frontend unit tests AND e2e to have passed, not just a
     # successful build
-    needs: [build-push-image, test, e2e-test, version]
+    needs: [build-push-image, test, e2e-test]
     with:
       environment: test
-      version: ${{ needs.version.outputs.version }}
+      # The shortened SHA the image was actually tagged with, resolved by the build workflow.
+      version: ${{ needs.build-push-image.outputs.version }}
     concurrency:
       group: test-environment
     secrets:
@@ -106,10 +104,11 @@ jobs:
     # Same build and the same gates as deploy-test above: dev follows main so the two environments
     # run what was merged, and a pull-request deploy to dev is only ever a temporary detour from it.
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: [build-push-image, test, e2e-test, version]
+    needs: [build-push-image, test, e2e-test]
     with:
       environment: dev
-      version: ${{ needs.version.outputs.version }}
+      # The shortened SHA the image was actually tagged with, resolved by the build workflow.
+      version: ${{ needs.build-push-image.outputs.version }}
     concurrency:
       group: dev-environment
     secrets:
