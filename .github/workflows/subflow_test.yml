@@ -70,3 +70,12 @@ jobs:
       - name: Frontend test
         run: npm run test-ci
         working-directory: frontend/src/main/webapp
+      # The counterpart to the backend's jacoco report above: without this the lcov path configured
+      # in the root build.gradle.kts never exists in the sonar job's workspace, and frontend coverage
+      # is silently missing from the analysis (#3652).
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: frontend-lcov-report
+          path: ./frontend/src/main/webapp/coverage/ng/lcov.info
+          if-no-files-found: error
+          retention-days: 1

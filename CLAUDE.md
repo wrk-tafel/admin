@@ -354,7 +354,11 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 ### Frontend Tests
 - Unit tests: Vitest (`.spec.ts` files in `src/app/`)
 - Run unit tests: `npm test` (from frontend/src/main/webapp)
-- Run headless: `npm run test-ci`
+- Run headless: `npm run test-ci` — this is also the only run that collects coverage (`--coverage`;
+  settings in `vitest-base.config.ts`), writing `coverage/ng/lcov.info` for SonarCloud. The `ng`
+  segment is the Angular project name and the unit-test builder offers no way to change it, so the
+  `sonar.javascript.lcov.reportPaths` property and the CI artifact both follow that path. A plain
+  `npm test` deliberately collects nothing, to stay fast
 - Run specific test: `npm test -- --include="src/app/common/sse/sse.service.spec.ts"`
 - E2E tests: Cypress (in `frontend/src/main/webapp/cypress/e2e/`)
 - Run E2E: `npm run cy:run-ci` (requires backend running on port 8080)
