@@ -28,7 +28,7 @@ import java.time.Period
 @ExcludeFromTestCoverage
 class TafelAdminProperties {
     var version: String = "dev"
-    var buildTime: String = "unknown"
+    var buildDate: String = "unknown"
 
     // Set per-deployment (e.g. "DEV", "TEST", empty for prod) alongside server.relativeBaseUrl -
     // dev/test/prod share one origin at different path prefixes, so without this the PWA install

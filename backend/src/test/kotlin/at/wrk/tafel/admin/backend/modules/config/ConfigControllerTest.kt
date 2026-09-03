@@ -11,7 +11,7 @@ class ConfigControllerTest {
         val controller = ConfigController(
             TafelAdminProperties().apply {
                 version = "1.2.3"
-                buildTime = "2026-07-28T15:30:00Z"
+                buildDate = "2026-07-28"
                 storage.scannerPath = "/mnt/scanner"
             },
         )
@@ -21,7 +21,7 @@ class ConfigControllerTest {
         assertThat(response).isEqualTo(
             ConfigResponse(
                 version = "1.2.3",
-                buildTime = "2026-07-28T15:30:00Z",
+                buildDate = "2026-07-28",
                 scannerFolderEnabled = true,
                 environmentLabel = "",
             ),
@@ -63,7 +63,7 @@ class ConfigControllerTest {
         assertThat(controller.getConfig()).isEqualTo(
             ConfigResponse(
                 version = "1.2.3",
-                buildTime = "unknown",
+                buildDate = "unknown",
                 scannerFolderEnabled = true,
                 environmentLabel = "",
             ),

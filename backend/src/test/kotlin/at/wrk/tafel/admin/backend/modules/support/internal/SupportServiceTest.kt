@@ -119,7 +119,7 @@ class SupportServiceTest {
     fun `collects reporter, build and browser context as diagnostics`() {
         val properties = propertiesWithRecipients("support@localhost").apply {
             version = "1.2.3"
-            buildTime = "2026-03-20T10:00:00Z"
+            buildDate = "2026-03-20"
             environmentLabel = "TEST"
         }
         val service = SupportService(properties, mailSenderService, userRepository, clock)
@@ -152,7 +152,7 @@ class SupportServiceTest {
                 reportedBy = "test-user (Max Mustermann)",
                 reportedAt = "22.03.2026 10:15:30",
                 version = "1.2.3",
-                buildTime = "2026-03-20T10:00:00Z",
+                buildDate = "2026-03-20",
                 environmentLabel = "TEST",
                 page = "http://localhost/kunden/suchen",
                 userAgent = "Mozilla/5.0",

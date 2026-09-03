@@ -222,11 +222,11 @@ springdoc:
   swagger-ui.enabled: false
 
 tafeladmin:
-  # Overridden by the TAFELADMIN_VERSION/TAFELADMIN_BUILD_TIME env vars baked into the Docker
+  # Overridden by the TAFELADMIN_VERSION/TAFELADMIN_BUILD_DATE env vars baked into the Docker
   # image at build time (see _build/Dockerfile and .github/workflows/subflow_docker_image.yml);
   # these defaults only apply to local/dev runs started outside that image.
   version: dev
-  buildTime: unknown
+  buildDate: unknown
   environmentLabel: ""
   # The audit trail (audit_log) - see ADR-0039. `enabled` and `retentionDays` are read per use and
   # therefore take effect on a running deployment; `cleanupCron` does not, because @Scheduled fixes
