@@ -70,7 +70,16 @@ jobs:
         latest
         ${{ needs.version.outputs.version }}
       version: ${{ needs.version.outputs.version }}
-      scanImage: true
+    secrets:
+      githubToken: ${{ secrets.GITHUB_TOKEN }}
+  scan-image:
+    # Deliberately not a dependency of the release or the deploy jobs - the image being scanned is
+    # already built and pushed, and a vulnerability report is a signal to act on rather than a reason
+    # to hold a release back. It therefore runs alongside them, not in front of them.
+    uses: ./.github/workflows/subflow_image_scan.yml
+    needs: build-push-image
+    with:
+      imageRef: ${{ needs.build-push-image.outputs.imageRef }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   userguide-pdf:

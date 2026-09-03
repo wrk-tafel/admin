@@ -1,0 +1,54 @@
+name: Scan the docker image for vulnerabilities
+
+env:
+  REGISTRY: ghcr.io
+
+# Called as a job of its own next to the deploys rather than from inside
+# subflow_docker_image.yml: a reusable workflow's invocation only completes once every job in it
+# has, so a scan job living in there would sit between the image build and every `needs:
+# build-push-image` deploy. The scan reports on an image that is already pushed and is informational
+# (it uploads findings, it does not fail on them), so it runs alongside the deploys instead of
+# holding them up - the same reasoning that keeps the lighthouse job out of the deploy chain.
+#
+# Only worth calling from the main and release pipelines: GitHub surfaces code-scanning alerts for
+# branches that have their own analysis history, so scanning a pull-request build would produce
+# results nobody can see.
+on:
+  workflow_call:
+    inputs:
+      imageRef:
+        description: 'Fully qualified image reference to scan, as returned by subflow_docker_image.yml''s imageRef output'
+        type: string
+        required: true
+    secrets:
+      githubToken:
+        required: true
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Pulling the image to scan it; the image was pushed by the build job, nothing is written here.
+      packages: read
+      # Uploading the SARIF report to the Security tab.
+      security-events: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.githubToken }}
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ inputs.imageRef }}
+          format: sarif
+          output: trivy-results.sarif
+          ignore-unfixed: true
+      - name: Upload scan results to the Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
+        with:
+          sarif_file: trivy-results.sarif
