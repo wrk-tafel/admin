@@ -53,15 +53,22 @@
                  (blur)="onMainCountryBlur()">
           <mat-autocomplete #mainCountryAutocomplete="matAutocomplete" [displayWith]="countryAutocompleteDisplay"
                             (optionSelected)="onMainCountrySelected($event.option.value)">
+            <!-- mousedown, not click: a plain click handler would be too late - without preventing
+                 the default here, mousedown alone blurs the input, which (blur)="onMainCountryBlur()"
+                 reacts to by re-filtering the option list against the reverted committed value. That
+                 can remove this very option from the list before the browser gets to fire its click,
+                 so the click - and the selection - never happens (#3654). -->
             @for (countryItem of mainCountryGroups().frequentlyUsed; track countryItem.id) {
-              <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+              <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id"
+                          (mousedown)="$event.preventDefault()">
                 {{countryItem.name}}</mat-option>
             }
             @if (mainCountryGroups().frequentlyUsed.length && mainCountryGroups().remaining.length) {
               <mat-divider testid="countryInput-divider"></mat-divider>
             }
             @for (countryItem of mainCountryGroups().remaining; track countryItem.id) {
-              <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+              <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id"
+                          (mousedown)="$event.preventDefault()">
                 {{countryItem.name}}</mat-option>
             }
           </mat-autocomplete>
@@ -279,15 +286,19 @@
                       <mat-autocomplete #personCountryAutocomplete="matAutocomplete"
                                         [displayWith]="countryAutocompleteDisplay"
                                         (optionSelected)="onPersonCountrySelected(i, $event.option.value)">
+                        <!-- mousedown, not click: a plain click handler would be too late - see the
+                             main country autocomplete's identical comment above (#3654). -->
                         @for (countryItem of personCountryGroups(i).frequentlyUsed; track countryItem.id) {
-                          <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                          <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id"
+                                      (mousedown)="$event.preventDefault()">
                             {{countryItem.name}}</mat-option>
                         }
                         @if (personCountryGroups(i).frequentlyUsed.length && personCountryGroups(i).remaining.length) {
                           <mat-divider testid="countryInput-divider"></mat-divider>
                         }
                         @for (countryItem of personCountryGroups(i).remaining; track countryItem.id) {
-                          <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id">
+                          <mat-option [value]="countryItem" [attr.testid]="'countryInput-option-' + countryItem.id"
+                                      (mousedown)="$event.preventDefault()">
                             {{countryItem.name}}</mat-option>
                         }
                       </mat-autocomplete>

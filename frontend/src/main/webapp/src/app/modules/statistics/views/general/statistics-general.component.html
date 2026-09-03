@@ -75,15 +75,21 @@
                 <mat-autocomplete #distributionAutocomplete="matAutocomplete"
                                   [displayWith]="distributionAutocompleteDisplay"
                                   (optionSelected)="onDistributionSelected($event.option.value)">
+                  <!-- mousedown, not click: a plain click handler would be too late - mousedown alone
+                       blurs the input, which (blur)="onDistributionBlur()" reacts to by re-filtering
+                       the option list against the reverted committed value. That can remove this very
+                       option from the list before the browser gets to fire its click, so the click -
+                       and the selection - never happens (#3654). -->
                   @for (distribution of distributionOptions(); track distribution?.startDate ?? 'none') {
                     @if (distribution) {
                       <!-- the weekday tells the distributions apart at a glance: which of them a
                            number belongs to is usually remembered as "der Samstag", not as a date -->
-                      <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate">{{ distributionLabel(distribution) }}</mat-option>
+                      <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate"
+                                  (mousedown)="$event.preventDefault()">{{ distributionLabel(distribution) }}</mat-option>
                     } @else {
                       <!-- visually blank on purpose - it clears the field back to "no distribution
                            chosen" - but still needs a name a screen reader can announce -->
-                      <mat-option [value]="undefined" aria-label="Keine Auswahl"></mat-option>
+                      <mat-option [value]="undefined" aria-label="Keine Auswahl" (mousedown)="$event.preventDefault()"></mat-option>
                     }
                   }
                 </mat-autocomplete>
