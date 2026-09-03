@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Auswahl einer Ausgabe (Statistik, erneuter Mail-Versand, Kunden-Übersicht) und einer Filiale bei einem Routenstopp lässt sich jetzt durch Eingabe eingrenzen, statt nur aus einer langen Liste ausgewählt zu werden.
+
+## [1.18.0] - 2026-09-03
 - Die Angabe zum Build unter der Version in der Seitenleiste sowie in den technischen Infos einer Support-Anfrage zeigt jetzt nur noch das Datum, statt Datum und Uhrzeit.
 
 ## [1.17.0] - 2026-09-02

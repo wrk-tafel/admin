@@ -118,6 +118,85 @@ describe('RouteEditDialogComponent', () => {
     expect(dialogRef.close).toHaveBeenCalledWith();
   });
 
+  describe('shopAutocompleteDisplay', () => {
+
+    // MatAutocompleteTrigger writes a selected option's raw value straight into the native input
+    // via this function, bypassing shopDisplayText() - see the method's own doc comment. Without
+    // this passthrough/formatting, re-picking the already-selected shop showed "[object Object]".
+    it('passes an already-formatted string through unchanged', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['shopAutocompleteDisplay']('100 - Billa')).toBe('100 - Billa');
+    });
+
+    it('formats a raw shop value the same way the option list does', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['shopAutocompleteDisplay'](testShop)).toBe('100 - Billa');
+    });
+
+    it('formats a raw null value as "Keine Filiale"', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['shopAutocompleteDisplay'](null)).toBe('Keine Filiale');
+    });
+
+  });
+
+  describe('onShopInput', () => {
+
+    // MatAutocompleteTrigger's ControlValueAccessor onChange fires with a selected option's raw
+    // value on selection too, not just with typed text - see onShopInput's own doc comment. Storing
+    // that raw value as the filter override broke shopOptions(), which calls .trim() on it
+    // expecting a string.
+    it('ignores a raw shop value instead of storing it as the filter override', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      component.addStop();
+
+      component['onShopInput'](0, testShop);
+
+      expect(() => component['shopOptions'](0)).not.toThrow();
+      expect(component['shopDisplayText'](0)).not.toEqual(testShop);
+    });
+
+    it('ignores a raw null value instead of storing it as the filter override', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      component.addStop();
+      component.stops.at(0).patchValue({shopId: testShop.id});
+
+      component['onShopInput'](0, null);
+
+      // a genuine typed-empty clear (a string) would narrow the list to everything; a raw null
+      // from a selection must not - the committed shop's label must still be showing
+      expect(component['shopDisplayText'](0)).toBe('100 - Billa');
+    });
+
+    it('still applies genuinely typed text as the filter override', async () => {
+      await configure({route: undefined, shops: [testShop]});
+      const fixture = TestBed.createComponent(RouteEditDialogComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      component.addStop();
+
+      component['onShopInput'](0, 'Bil');
+
+      expect(component['shopDisplayText'](0)).toBe('Bil');
+    });
+
+  });
+
   describe('live stop order preview', () => {
 
     it('shows the stops in time order even though they were entered out of order', async () => {

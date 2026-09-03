@@ -16,17 +16,30 @@
 
       <mat-form-field class="w-full" subscriptSizing="dynamic">
         <mat-label>Ausgabe vom:</mat-label>
-        <mat-select [value]="selectedDistribution()" (selectionChange)="selectedDistribution.set($event.value)">
-          @for (distribution of distributions(); track distribution) {
-            <mat-option [value]="distribution">
-              {{ distribution.startedAt | date : 'dd.MM.yyyy' }}
-            </mat-option>
+        <!-- an autocomplete rather than a plain select: this list accumulates for as long as the
+             Tafel runs, so it needs to stay searchable rather than scrolled through -->
+        <input matInput type="text" autocomplete="off" testid="sendMailsDistributionInput"
+               [matAutocomplete]="sendMailsDistributionAutocomplete"
+               [ngModel]="distributionDisplayText()" [ngModelOptions]="{standalone: true}"
+               (ngModelChange)="onDistributionInput($event)"
+               (blur)="onDistributionBlur()">
+        <mat-autocomplete #sendMailsDistributionAutocomplete="matAutocomplete"
+                          [displayWith]="distributionAutocompleteDisplay"
+                          (optionSelected)="onDistributionSelected($event.option.value)">
+          <!-- mousedown, not click: a plain click handler would be too late - mousedown alone blurs
+               the input, which (blur)="onDistributionBlur()" reacts to by re-filtering the option
+               list against the reverted committed value. That can remove this very option from the
+               list before the browser gets to fire its click, so the click - and the selection -
+               never happens (#3654). -->
+          @for (distribution of distributionOptions(); track distribution.id) {
+            <mat-option [value]="distribution" [attr.testid]="'sendMailsDistributionInput-option-' + distribution.id"
+                        (mousedown)="$event.preventDefault()">{{ distributionLabel(distribution) }}</mat-option>
           }
-        </mat-select>
+        </mat-autocomplete>
       </mat-form-field>
     </mat-card-content>
     <mat-card-footer>
-      <button matButton="filled"
+      <button matButton="filled" testid="send-mails-button"
               [disabled]="!selectedDistribution()"
               (click)="sendMails()">
         E-Mails erneut senden

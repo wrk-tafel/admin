@@ -280,7 +280,20 @@ export class CustomerFormComponent {
     this.countryDisplayText(MAIN_COUNTRY_KEY, this.customerForm.country().value()));
   mainCountryGroups = computed(() => this.groupCountries(this.mainCountryDisplayText()));
 
-  onMainCountryInput(value: string) {
+  /**
+   * `MatAutocompleteTrigger` fires its `ControlValueAccessor` onChange - wired to `(ngModelChange)`
+   * - with a selected option's raw value on selection, not just with typed text; that runs *before*
+   * `(optionSelected)` (see `_setValueAndClose` in Angular Material's autocomplete source), so a
+   * selection would otherwise briefly overwrite the filter override with a `CountryData` object
+   * instead of a string. `mainCountryGroups`/`personCountryGroups` call `.trim()` on that override
+   * to build the filtered list, so a non-string override throws there - which can leave the panel
+   * showing no options at all if anything reads the computed signal in that window (#3654). Only
+   * genuinely typed text narrows the list; a selection is `onMainCountrySelected`'s job.
+   */
+  onMainCountryInput(value: string | CountryData) {
+    if (typeof value !== 'string') {
+      return;
+    }
     this.setCountryFilterOverride(MAIN_COUNTRY_KEY, value);
   }
 
@@ -303,7 +316,11 @@ export class CustomerFormComponent {
     return this.groupCountries(this.personCountryDisplayText(index));
   }
 
-  onPersonCountryInput(index: number, value: string) {
+  // Same reasoning as onMainCountryInput above.
+  onPersonCountryInput(index: number, value: string | CountryData) {
+    if (typeof value !== 'string') {
+      return;
+    }
     const person = this.formModel().additionalPersons[index];
     if (person) {
       this.setCountryFilterOverride(person.key, value);
@@ -331,6 +348,19 @@ export class CustomerFormComponent {
   private countryDisplayText(key: string | number, committed: CountryData | null): string {
     return this.countryFilterOverrides().get(key) ?? (committed?.name ?? '');
   }
+
+  /**
+   * `MatAutocompleteTrigger` writes a selected option's raw value straight into the native input
+   * itself - bypassing `countryDisplayText` - whenever the bound value changes, and also whenever
+   * it doesn't (e.g. re-picking the already-selected country): Angular's own template binding then
+   * skips the write-back because the display text didn't change, leaving the raw `CountryData`'s
+   * `toString()` ("[object Object]") stuck in the field. `displayWith` is what
+   * `MatAutocompleteTrigger` itself calls to render any value, selection included, so routing it
+   * through the country's name closes that gap. Our own writes already pass a formatted string
+   * through unchanged.
+   */
+  protected readonly countryAutocompleteDisplay = (value: CountryData | string | null): string =>
+    typeof value === 'string' ? value : (value?.name ?? '');
 
   /**
    * The unfiltered dropdown groups countries into "frequently used" then the rest, split by a

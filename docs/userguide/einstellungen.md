@@ -31,7 +31,7 @@ Unter **Einstellungen → E-Mail** werden die Empfänger (An/CC/BCC) für automa
 
 Auf schmalen Bildschirmen stehen An, CC und BCC nicht nebeneinander, sondern durch Trennlinien getrennt untereinander.
 
-Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (Dropdown, standardmäßig die aktuellste) der zugehörige Tagesreport erneut versendet werden.
+Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (durchsuchbares Eingabefeld, standardmäßig die aktuellste) der zugehörige Tagesreport erneut versendet werden.
 
 <a id="notschlafstellen"></a>
 
@@ -166,7 +166,7 @@ Jede Route ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt s
 
 Der Link **Route in Karte öffnen** setzt dieselbe Kartenroute wie das Routen-Navi zusammen — alle Stopps mit Filiale, in der gefahrenen Reihenfolge — und öffnet sie in einem neuen Tab; er ist der schnellste Weg, eine Stopp-Reihenfolge auf Plausibilität zu prüfen. Bei mehr als 10 Stopps mit Filiale deckt die Karte nur die ersten 10 ab; ein Hinweistext darunter nennt, wie viele danach einzeln zu navigieren sind (dieselbe Grenze wie beim Routen-Navi selbst).
 
-Rechts in jeder Zeile stehen — wie bei den [Filialen](#filialen) — der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet; dafür muss die Route nicht aufgeklappt werden. Im Bearbeiten-Dialog wird über **Stopp hinzufügen** je Stopp eine **Uhrzeit**, eine **Filiale** und eine **Beschreibung** erfasst; das Papierkorb-Symbol entfernt einen Stopp wieder. Die Uhrzeit bestimmt die Reihenfolge der Stopps — sowohl in der Routenliste als auch in der [Warenerfassung](logistik.md); eine eigene Sortierung per Drag & Drop gibt es hier daher nicht. Zur Auswahl stehen alle aktiven [Filialen](#filialen); mit "Keine Filiale" lässt sich auch ein Stopp ohne Warenabholung (z. B. eine Pause) eintragen — bei einem solchen Stopp steht in der Liste die Beschreibung anstelle der Filiale.
+Rechts in jeder Zeile stehen — wie bei den [Filialen](#filialen) — der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet; dafür muss die Route nicht aufgeklappt werden. Im Bearbeiten-Dialog wird über **Stopp hinzufügen** je Stopp eine **Uhrzeit**, eine **Filiale** und eine **Beschreibung** erfasst; das Papierkorb-Symbol entfernt einen Stopp wieder. Die Uhrzeit bestimmt die Reihenfolge der Stopps — sowohl in der Routenliste als auch in der [Warenerfassung](logistik.md); eine eigene Sortierung per Drag & Drop gibt es hier daher nicht. Das **Filiale**-Feld ist durchsuchbar und bietet zur Auswahl alle aktiven [Filialen](#filialen); mit "Keine Filiale" lässt sich auch ein Stopp ohne Warenabholung (z. B. eine Pause) eintragen — bei einem solchen Stopp steht in der Liste die Beschreibung anstelle der Filiale.
 
 Da Stopps in beliebiger Reihenfolge eingegeben und erst beim Speichern nach Uhrzeit sortiert werden, zeigt der Dialog unterhalb der Stopp-Liste live die **gefahrene Reihenfolge** — so, wie sie das Fahrer-Team später sieht, auch bevor gespeichert wird. Direkt darüber weist ein gelber Hinweis auf auffällige Eingaben hin: eine Filiale, die mehrfach als Stopp eingetragen ist, ein Stopp ohne Uhrzeit oder ein ungewöhnlich kurzer (wenige Minuten) oder ungewöhnlich langer (mehrere Stunden) Zeitabstand zwischen zwei benachbarten Stopps — typische Tippfehler. Dieser Hinweis blockiert das Speichern nicht, sondern macht nur vorab auf eine mögliche Ursache aufmerksam.
 

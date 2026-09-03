@@ -199,6 +199,65 @@ describe('StatisticsGeneralComponent', () => {
       .toBeNull();
   });
 
+  describe('distributionAutocompleteDisplay', () => {
+
+    // MatAutocompleteTrigger writes a selected option's raw value straight into the native input
+    // via this function, bypassing distributionDisplayText() - see the property's own doc comment.
+    // Without this passthrough/formatting, re-picking the already-selected distribution showed
+    // "[object Object]".
+    it('passes an already-formatted string through unchanged', () => {
+      const fixture = createComponent();
+      respond(fixture, 1, 1);
+
+      expect(fixture.componentInstance.distributionAutocompleteDisplay('Montag, 08.08.2026')).toEqual('Montag, 08.08.2026');
+    });
+
+    it('formats a raw distribution value the same way the option list does', () => {
+      const fixture = createComponent();
+      respond(fixture, 1, 1);
+      const distribution = settings.distributions[0];
+
+      expect(fixture.componentInstance.distributionAutocompleteDisplay(distribution))
+        .toEqual(fixture.componentInstance.distributionLabel(distribution));
+    });
+
+    it('formats a raw undefined value as an empty string', () => {
+      const fixture = createComponent();
+      respond(fixture, 1, 1);
+
+      expect(fixture.componentInstance.distributionAutocompleteDisplay(undefined)).toEqual('');
+    });
+
+  });
+
+  describe('onDistributionInput', () => {
+
+    // MatAutocompleteTrigger's ControlValueAccessor onChange fires with a selected option's raw
+    // value on selection too, not just with typed text - see onDistributionInput's own doc comment.
+    // Storing that raw value as the filter override broke distributionOptions(), which calls
+    // .trim() on it expecting a string.
+    it('ignores a raw distribution value instead of storing it as the filter override', () => {
+      const fixture = createComponent();
+      respond(fixture, 1, 1);
+      const distribution = settings.distributions[0];
+
+      fixture.componentInstance.onDistributionInput(distribution);
+
+      expect(() => fixture.componentInstance.distributionOptions()).not.toThrow();
+      expect(fixture.componentInstance.distributionDisplayText()).not.toEqual(distribution);
+    });
+
+    it('still applies genuinely typed text as the filter override', () => {
+      const fixture = createComponent();
+      respond(fixture, 1, 1);
+
+      fixture.componentInstance.onDistributionInput('08.08');
+
+      expect(fixture.componentInstance.distributionDisplayText()).toEqual('08.08');
+    });
+
+  });
+
   it('rejects an inverted custom range instead of requesting it', () => {
     const fixture = createComponent();
     respond(fixture, 100, 80);

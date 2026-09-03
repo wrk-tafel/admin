@@ -1,11 +1,11 @@
-import {ChangeDetectorRef, Component, computed, inject} from '@angular/core';
+import {ChangeDetectorRef, Component, computed, inject, signal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import type {Observable} from 'rxjs';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {FormArray, FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormArray, FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {MatSelectModule} from '@angular/material/select';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatButton} from '@angular/material/button';
 import {MatTooltip} from '@angular/material/tooltip';
@@ -58,10 +58,11 @@ function timeToMinutes(time: string): number {
   templateUrl: 'route-edit-dialog.component.html',
   imports: [
     TafelDialogComponent,
+    FormsModule,
     ReactiveFormsModule,
+    MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatSlideToggleModule,
     MatButton,
     MatTooltip,
@@ -79,6 +80,15 @@ export class RouteEditDialogComponent {
   protected readonly title = this.data.route ? 'Route bearbeiten' : 'Route anlegen';
   protected readonly shops = this.data.shops;
   private readonly shopsById = new Map(this.shops.map(shop => [shop.id, shop]));
+
+  /**
+   * Free-typed override text for a stop's shop autocomplete, keyed by the stop's index - present
+   * only while the user is actively narrowing the list; absent (falling back to the stop's
+   * currently committed shop) once a selection commits, on blur without one, or on initial load.
+   * Same pattern as the customer form's country autocomplete, so a half-typed search never
+   * overwrites - or gets validated as - the actual selection.
+   */
+  private readonly shopFilterOverrides = signal<Map<number, string>>(new Map());
 
   form = this.fb.group({
     id: [this.data.route?.id],
@@ -173,6 +183,84 @@ export class RouteEditDialogComponent {
     return stop.description?.trim() ? stop.description.trim() : 'Ohne Filiale';
   }
 
+  /**
+   * A stop's shop field, an autocomplete rather than a plain select since a route can have dozens
+   * of stops and the shop list only grows: unset shows blank (matching the country autocomplete's
+   * "nothing chosen yet" look) rather than a literal "Keine Filiale" placeholder text, so the
+   * unfiltered option list - "Keine Filiale" itself included - is what a click on an empty field
+   * shows.
+   */
+  protected shopDisplayText(index: number): string {
+    const override = this.shopFilterOverrides().get(index);
+    if (override !== undefined) {
+      return override;
+    }
+    const shopId = this.stops.at(index).get('shopId')?.value ?? null;
+    const shop = shopId != null ? this.shopsById.get(shopId) : undefined;
+    return shop ? this.shopOptionLabel(shop) : '';
+  }
+
+  protected shopOptions(index: number): (ShopItem | null)[] {
+    const options: (ShopItem | null)[] = [null, ...this.shops];
+    const term = this.shopDisplayText(index).trim().toLowerCase();
+    return term ? options.filter(shop => this.shopOptionLabel(shop).toLowerCase().includes(term)) : options;
+  }
+
+  protected shopOptionLabel(shop: ShopItem | null): string {
+    return shop ? `${shop.number} - ${shop.name}` : 'Keine Filiale';
+  }
+
+  /**
+   * `MatAutocompleteTrigger` writes a selected option's raw value straight into the native input
+   * itself - bypassing `shopDisplayText` - whenever the bound value changes, and also whenever it
+   * doesn't (e.g. re-picking the already-selected option): Angular's own template binding then
+   * skips the write-back because `shopDisplayText(i)` didn't change, leaving the raw value's
+   * `toString()` ("[object Object]") stuck in the field. `displayWith` is what `MatAutocompleteTrigger`
+   * itself calls to render any value, selection included, so routing it through the same label
+   * function closes that gap. Our own writes already pass a formatted string through unchanged.
+   */
+  protected readonly shopAutocompleteDisplay = (value: ShopItem | string | null): string =>
+    typeof value === 'string' ? value : this.shopOptionLabel(value);
+
+  /**
+   * `MatAutocompleteTrigger` fires its `ControlValueAccessor` onChange - wired to `(ngModelChange)`
+   * - with a selected option's raw value on selection, not just with typed text; that runs *before*
+   * `(optionSelected)` (see `_setValueAndClose` in Angular Material's autocomplete source), so a
+   * selection would otherwise briefly overwrite the filter override with a `ShopItem`/`null` value
+   * instead of a string. `shopOptions` calls `.trim()` on that override to build the filtered list,
+   * so a non-string override throws there - which can leave the panel showing no options at all if
+   * anything reads the computed signal in that window (#3654). Only genuinely typed text narrows
+   * the list; a selection is `onShopSelected`'s job.
+   */
+  protected onShopInput(index: number, value: string | ShopItem | null) {
+    if (typeof value !== 'string') {
+      return;
+    }
+    this.setShopFilterOverride(index, value);
+  }
+
+  protected onShopSelected(index: number, shop: ShopItem | null) {
+    this.stops.at(index).get('shopId')?.setValue(shop?.id ?? null);
+    this.setShopFilterOverride(index, null);
+  }
+
+  protected onShopBlur(index: number) {
+    this.stops.at(index).get('shopId')?.markAsTouched();
+    this.setShopFilterOverride(index, null);
+  }
+
+  private setShopFilterOverride(index: number, value: string | null) {
+    this.shopFilterOverrides.update(map => {
+      const next = new Map(map);
+      if (value === null) {
+        next.delete(index);
+      } else {
+        next.set(index, value);
+      }
+      return next;
+    });
+  }
+
   addStop() {
     this.stops.push(this.createStopGroup());
     this.stops.updateValueAndValidity();
@@ -190,6 +278,10 @@ export class RouteEditDialogComponent {
     this.stops.updateValueAndValidity();
     this.form.updateValueAndValidity();
     this.cd.detectChanges();
+
+    // Every remaining stop's index shifts by one from here on - a leftover override would end up
+    // narrowing a different stop's shop list than the one it was typed into.
+    this.shopFilterOverrides.set(new Map());
   }
 
   save() {
