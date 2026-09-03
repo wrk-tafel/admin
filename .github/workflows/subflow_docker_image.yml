@@ -14,11 +14,10 @@ on:
         description: 'Baked into the image as TAFELADMIN_VERSION and shown in the frontend UI, e.g. "1.0.0", or a full commit SHA for non-release builds (auto-shortened to 7 chars below)'
         type: string
         required: true
-      scanImage:
-        description: 'Scan the built image for vulnerabilities and upload results to the Security tab. GitHub only surfaces code-scanning alerts there for branches with their own analysis history (main, release), so pass true only from those pipelines - scanning PR builds would produce results nobody can see.'
-        type: boolean
-        required: false
-        default: false
+    outputs:
+      imageRef:
+        description: 'Fully qualified reference of the pushed image, for a caller that wants to scan or otherwise act on it (see subflow_image_scan.yml)'
+        value: ${{ jobs.build.outputs.primaryTag }}
     secrets:
       githubToken:
         required: true
@@ -89,30 +88,3 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-  scan:
-    if: inputs.scanImage
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
-      security-events: write
-    steps:
-      - name: Log in to the Container registry
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.githubToken }}
-      - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          image-ref: ${{ needs.build.outputs.primaryTag }}
-          format: sarif
-          output: trivy-results.sarif
-          ignore-unfixed: true
-      - name: Upload scan results to the Security tab
-        if: always()
-        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
-        with:
-          sarif_file: trivy-results.sarif

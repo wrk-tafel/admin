@@ -65,7 +65,16 @@ jobs:
         test
         dev
       version: ${{ needs.version.outputs.version }}
-      scanImage: true
+    secrets:
+      githubToken: ${{ secrets.GITHUB_TOKEN }}
+  scan-image:
+    # Deliberately not a dependency of the deploy jobs below - the image is already built and pushed
+    # at this point, and a vulnerability report is a signal to act on rather than a reason to hold a
+    # merged change back from dev/test. It therefore runs alongside them, not in front of them.
+    uses: ./.github/workflows/subflow_image_scan.yml
+    needs: build-push-image
+    with:
+      imageRef: ${{ needs.build-push-image.outputs.imageRef }}
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   e2e-test:
