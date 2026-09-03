@@ -281,6 +281,13 @@ describe('Customer Creation', () => {
     cy.get('mat-option').contains('Deutschland').click();
     cy.byTestId('countryInput').should('have.value', 'Deutschland');
 
+    // re-picking the already-selected country must not leave its raw value's toString() behind -
+    // MatAutocompleteTrigger writes a selected option straight into the input, bypassing Angular's
+    // own binding, so this only self-corrects when [displayWith] formats that raw value too (#3654)
+    cy.byTestId('countryInput').click();
+    cy.get('mat-option').contains('Deutschland').click();
+    cy.byTestId('countryInput').should('have.value', 'Deutschland');
+
     // typing without picking a result must not silently commit the typed text as the selection
     cy.byTestId('countryInput').clear().type('xyz-gibt-es-nicht');
     cy.get('mat-option').should('not.exist');

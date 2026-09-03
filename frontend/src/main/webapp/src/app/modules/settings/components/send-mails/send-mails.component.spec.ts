@@ -117,4 +117,61 @@ describe('SendMailsComponent', () => {
     expect(distributionApiService.sendMails).toHaveBeenCalledWith(testDistributions[1].id);
   });
 
+  describe('distributionAutocompleteDisplay', () => {
+
+    // MatAutocompleteTrigger writes a selected option's raw value straight into the native input
+    // via this function, bypassing distributionDisplayText() - see the property's own doc comment.
+    // Without this passthrough/formatting, re-picking the already-selected distribution showed
+    // "[object Object]".
+    it('passes an already-formatted string through unchanged', () => {
+      const fixture = TestBed.createComponent(SendMailsComponent);
+
+      expect(fixture.componentInstance['distributionAutocompleteDisplay']('01.01.2026')).toBe('01.01.2026');
+    });
+
+    it('formats a raw distribution value the same way the option list does', () => {
+      const fixture = TestBed.createComponent(SendMailsComponent);
+      const component = fixture.componentInstance;
+
+      expect(component['distributionAutocompleteDisplay'](testDistributions[0])).toBe(component.distributionLabel(testDistributions[0]));
+    });
+
+    it('formats a raw null value as an empty string', () => {
+      const fixture = TestBed.createComponent(SendMailsComponent);
+
+      expect(fixture.componentInstance['distributionAutocompleteDisplay'](null)).toBe('');
+    });
+
+  });
+
+  describe('onDistributionInput', () => {
+
+    // MatAutocompleteTrigger's ControlValueAccessor onChange fires with a selected option's raw
+    // value on selection too, not just with typed text - see onDistributionInput's own doc comment.
+    // Storing that raw value as the filter override broke distributionOptions(), which calls
+    // .trim() on it expecting a string.
+    it('ignores a raw distribution value instead of storing it as the filter override', () => {
+      distributionApiService.getDistributions.mockReturnValue(of({items: testDistributions}));
+
+      const fixture = TestBed.createComponent(SendMailsComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.onDistributionInput(testDistributions[0]);
+
+      expect(() => component.distributionOptions()).not.toThrow();
+      expect(component.distributionDisplayText()).not.toEqual(testDistributions[0]);
+    });
+
+    it('still applies genuinely typed text as the filter override', () => {
+      const fixture = TestBed.createComponent(SendMailsComponent);
+      const component = fixture.componentInstance;
+
+      component.onDistributionInput('01.01');
+
+      expect(component.distributionDisplayText()).toBe('01.01');
+    });
+
+  });
+
 });

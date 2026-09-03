@@ -6,7 +6,7 @@ Der Bereich "Statistiken" liefert Auswertungen über die Kunden und Haushalte. D
 
 ## Allgemeine Statistik
 
-Unter **Statistiken → Allgemein** kann der Auswertungszeitraum über die Buttons **Aktuelles Jahr**, **Vorjahr**, **Jahr**, **Aktuelles Monat**, **Ausgabe** (Auswahl einer konkreten, bereits erfassten Ausgabe aus einer Liste — mit Wochentag, damit die Ausgaben leichter auseinanderzuhalten sind) oder **Benutzerdefiniert** eingeschränkt werden. "Aktuelles Jahr" (die Voreinstellung) und "Vorjahr" brauchen keine weitere Eingabe; nur bei "Jahr" wird zusätzlich das gewünschte Jahr gewählt. Der tatsächlich zugrunde gelegte Zeitraum wird oberhalb der Kennzahlen als "Zeitraum: TT.MM.JJJJ - TT.MM.JJJJ" angezeigt.
+Unter **Statistiken → Allgemein** kann der Auswertungszeitraum über die Buttons **Aktuelles Jahr**, **Vorjahr**, **Jahr**, **Aktuelles Monat**, **Ausgabe** (Auswahl einer konkreten, bereits erfassten Ausgabe über ein durchsuchbares Eingabefeld — mit Wochentag, damit die Ausgaben leichter auseinanderzuhalten sind; ein Tippen im Feld grenzt die lange, stetig wachsende Liste ein) oder **Benutzerdefiniert** eingeschränkt werden. "Aktuelles Jahr" (die Voreinstellung) und "Vorjahr" brauchen keine weitere Eingabe; nur bei "Jahr" wird zusätzlich das gewünschte Jahr gewählt. Der tatsächlich zugrunde gelegte Zeitraum wird oberhalb der Kennzahlen als "Zeitraum: TT.MM.JJJJ - TT.MM.JJJJ" angezeigt.
 
 Bei **Benutzerdefiniert** muss "von" vor "bis" liegen. Ist das nicht der Fall oder fehlt ein Datum, erscheint ein Hinweis und die zuletzt gültige Auswertung bleibt stehen.
 

@@ -2,6 +2,7 @@ import {Component, computed, inject, input, signal} from '@angular/core';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
@@ -14,7 +15,7 @@ import {
 } from '../../../../api/statistics-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
-import {CommonModule} from '@angular/common';
+import {CommonModule, DatePipe} from '@angular/common';
 import {catchError, filter, forkJoin, map, Observable, of, switchMap, tap} from 'rxjs';
 import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
 import {StatisticsPanelComponent} from '../../components/statistics-panel.component';
@@ -36,6 +37,7 @@ const DATE_FORMAT = 'DD.MM.YYYY';
 @Component({
   selector: 'tafel-statistics-general',
   templateUrl: 'statistics-general.component.html',
+  providers: [DatePipe],
   imports: [
     CommonModule,
     MatCardModule,
@@ -43,6 +45,7 @@ const DATE_FORMAT = 'DD.MM.YYYY';
     ReactiveFormsModule,
     MatButtonModule,
     MatButtonToggleModule,
+    MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -56,6 +59,7 @@ export class StatisticsGeneralComponent {
   readonly settings = input<StatisticsSettings>();
   private readonly statisticsApiService = inject(StatisticsApiService);
   private readonly fileHelperService = inject(FileHelperService);
+  private readonly datePipe = inject(DatePipe);
 
   _dateRangeFrom = signal<Date>(dayjs().startOf('year').toDate());
   _dateRangeTo = signal<Date>(dayjs().toDate());
@@ -67,6 +71,67 @@ export class StatisticsGeneralComponent {
   selectedMode = signal<DateRangeMode>('currentYear');
   selectedYear = signal<number>(dayjs().year());
   selectedDistribution = signal<StatisticsDistribution | undefined>(undefined);
+
+  /**
+   * Free-typed override text for the distribution autocomplete - present only while the user is
+   * actively narrowing the list; absent (falling back to the selected distribution's label) once a
+   * selection commits, on blur without one, or on initial load - same pattern as the customer form's
+   * country autocomplete, so a half-typed search never overwrites the actual selection.
+   */
+  private readonly distributionFilterOverride = signal<string | null>(null);
+
+  distributionDisplayText = computed(() =>
+    this.distributionFilterOverride() ?? this.distributionLabel(this.selectedDistribution()));
+
+  /**
+   * The distributions list grows by one every week the app runs, so - unlike the small, static
+   * dropdowns elsewhere on this screen - it gets an autocomplete rather than a plain select. The
+   * leading `undefined` entry mirrors the select's blank option, so the field can be cleared back to
+   * "no distribution chosen" the same way it always could.
+   */
+  distributionOptions = computed(() => {
+    const options: (StatisticsDistribution | undefined)[] = [undefined, ...(this.settings()?.distributions ?? [])];
+    const term = this.distributionDisplayText().trim().toLowerCase();
+    return term ? options.filter(distribution => this.distributionLabel(distribution).toLowerCase().includes(term)) : options;
+  });
+
+  distributionLabel(distribution: StatisticsDistribution | undefined): string {
+    return distribution ? this.datePipe.transform(distribution.startDate, 'EEEE, dd.MM.yyyy') ?? '' : '';
+  }
+
+  /**
+   * `MatAutocompleteTrigger` fires its `ControlValueAccessor` onChange - wired to `(ngModelChange)`
+   * - with a selected option's raw value on selection, not just with typed text; that runs *before*
+   * `(optionSelected)` (see `_setValueAndClose` in Angular Material's autocomplete source), so a
+   * selection would otherwise briefly overwrite the filter override with a `StatisticsDistribution`
+   * object instead of a string. `distributionOptions` calls `.trim()` on that override to build the
+   * filtered list, so a non-string override throws there - which can leave the panel showing no
+   * options at all if anything reads the computed signal in that window (#3654). Only genuinely
+   * typed text narrows the list; a selection is `onDistributionSelected`'s job.
+   */
+  onDistributionInput(value: string | StatisticsDistribution): void {
+    if (typeof value !== 'string') {
+      return;
+    }
+    this.distributionFilterOverride.set(value);
+  }
+
+  onDistributionBlur(): void {
+    this.distributionFilterOverride.set(null);
+  }
+
+  /**
+   * `MatAutocompleteTrigger` writes a selected option's raw value straight into the native input
+   * itself - bypassing `distributionDisplayText` - whenever the bound value changes, and also
+   * whenever it doesn't (e.g. re-picking the already-selected option): Angular's own template
+   * binding then skips the write-back because `distributionDisplayText()` didn't change, leaving
+   * the raw value's `toString()` ("[object Object]") stuck in the field. `displayWith` is what
+   * `MatAutocompleteTrigger` itself calls to render any value, selection included, so routing it
+   * through the same label function closes that gap. Our own writes already pass a formatted
+   * string through unchanged.
+   */
+  distributionAutocompleteDisplay = (value: StatisticsDistribution | string | undefined): string =>
+    typeof value === 'string' ? value : this.distributionLabel(value);
 
   /**
    * A range read "von 01.06. bis 01.01." matches nothing, and a date input cleared mid-edit holds
@@ -236,6 +301,7 @@ export class StatisticsGeneralComponent {
 
   onDistributionSelected(distribution: StatisticsDistribution | undefined): void {
     this.selectedDistribution.set(distribution);
+    this.distributionFilterOverride.set(null);
     if (distribution) {
       this._dateRangeFrom.set(new Date(distribution.startDate));
       this._dateRangeTo.set(new Date(distribution.endDate));

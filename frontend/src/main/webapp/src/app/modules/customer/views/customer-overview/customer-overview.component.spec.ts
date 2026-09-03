@@ -157,11 +157,87 @@ describe('CustomerOverviewComponent', () => {
     expect(newKey).not.toEqual(renewedKey);
   });
 
-  it('trackByDistributionId returns the distribution id', () => {
-    const fixture = TestBed.createComponent(CustomerOverviewComponent);
-    const component = fixture.componentInstance;
+  describe('distribution autocomplete', () => {
+    it('shows the selected distribution\'s label once data has loaded', () => {
+      const fixture = TestBed.createComponent(CustomerOverviewComponent);
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('customerOverviewData', mockCustomerOverviewResponse);
+      fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+      fixture.detectChanges();
 
-    expect(component.trackByDistributionId(0, mockDistributionsResponse.items[0])).toEqual(mockDistributionsResponse.items[0].id);
+      expect(component.distributionDisplayText()).toEqual(component.distributionLabel(mockDistributionsResponse.items[0]));
+    });
+
+    it('narrows the option list to entries matching the typed text', () => {
+      const fixture = TestBed.createComponent(CustomerOverviewComponent);
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+      fixture.detectChanges();
+
+      component.onDistributionInput('24.12');
+
+      expect(component.distributionOptions()).toEqual([mockDistributionsResponse.items[1]]);
+    });
+
+    // MatAutocompleteTrigger's ControlValueAccessor onChange fires with a selected option's raw
+    // value (here, the distribution's raw id) on selection too, not just with typed text - see
+    // onDistributionInput's own doc comment. Storing that raw value as the filter override broke
+    // distributionOptions(), which calls .trim() on it expecting a string.
+    it('ignores a raw distribution id instead of storing it as the filter override', () => {
+      const fixture = TestBed.createComponent(CustomerOverviewComponent);
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+      fixture.detectChanges();
+
+      component.onDistributionInput(mockDistributionsResponse.items[0].id);
+
+      expect(() => component.distributionOptions()).not.toThrow();
+      expect(component.distributionDisplayText()).not.toEqual(mockDistributionsResponse.items[0].id);
+    });
+
+    it('reverts to the selected distribution\'s label once the field is left without picking one', () => {
+      const fixture = TestBed.createComponent(CustomerOverviewComponent);
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('customerOverviewData', mockCustomerOverviewResponse);
+      fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+      fixture.detectChanges();
+
+      component.onDistributionInput('24.12');
+      component.onDistributionBlur();
+
+      expect(component.distributionDisplayText()).toEqual(component.distributionLabel(mockDistributionsResponse.items[0]));
+    });
+
+    // MatAutocompleteTrigger writes a selected option's raw value straight into the native input
+    // via this function, bypassing distributionDisplayText() - see the property's own doc comment.
+    // Without this passthrough/formatting, re-picking the already-selected distribution showed its
+    // raw id instead of the formatted label.
+    describe('distributionAutocompleteDisplay', () => {
+      it('passes an already-formatted string through unchanged', () => {
+        const fixture = TestBed.createComponent(CustomerOverviewComponent);
+
+        expect(fixture.componentInstance.distributionAutocompleteDisplay('Sa, 08.08.2026')).toEqual('Sa, 08.08.2026');
+      });
+
+      it('formats a raw distribution id the same way the option list does', () => {
+        const fixture = TestBed.createComponent(CustomerOverviewComponent);
+        const component = fixture.componentInstance;
+        fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+        fixture.detectChanges();
+
+        expect(component.distributionAutocompleteDisplay(mockDistributionsResponse.items[0].id))
+          .toEqual(component.distributionLabel(mockDistributionsResponse.items[0]));
+      });
+
+      it('formats an unknown id as an empty string', () => {
+        const fixture = TestBed.createComponent(CustomerOverviewComponent);
+        const component = fixture.componentInstance;
+        fixture.componentRef.setInput('distributionsData', mockDistributionsResponse);
+        fixture.detectChanges();
+
+        expect(component.distributionAutocompleteDisplay(-1)).toEqual('');
+      });
+    });
   });
 
   describe('counts and merged/filtered rows', () => {

@@ -86,12 +86,24 @@
 
                 <mat-form-field class="min-w-48 flex-1" subscriptSizing="dynamic">
                   <mat-label>Filiale</mat-label>
-                  <mat-select formControlName="shopId" [attr.testid]="'route-stop-shop-select-' + i">
-                    <mat-option [value]="null">Keine Filiale</mat-option>
-                    @for (shop of shops; track shop.id) {
-                      <mat-option [value]="shop.id">{{ shop.number }} - {{ shop.name }}</mat-option>
+                  <!-- an autocomplete rather than a plain select: a route can have many stops and
+                       the shop list only grows, so it needs to stay searchable -->
+                  <input matInput type="text" autocomplete="off" [attr.testid]="'route-stop-shop-select-' + i"
+                         [matAutocomplete]="stopShopAutocomplete"
+                         [ngModel]="shopDisplayText(i)" [ngModelOptions]="{standalone: true}"
+                         (ngModelChange)="onShopInput(i, $event)"
+                         (blur)="onShopBlur(i)">
+                  <mat-autocomplete #stopShopAutocomplete="matAutocomplete" [displayWith]="shopAutocompleteDisplay"
+                                    (optionSelected)="onShopSelected(i, $event.option.value)">
+                    <!-- mousedown, not click: a plain click handler would be too late - mousedown
+                         alone blurs the input, which (blur)="onShopBlur(i)" reacts to by re-filtering
+                         the option list against the reverted committed value. That can remove this
+                         very option from the list before the browser gets to fire its click, so the
+                         click - and the selection - never happens (#3654). -->
+                    @for (shop of shopOptions(i); track shop?.id ?? 'none') {
+                      <mat-option [value]="shop" (mousedown)="$event.preventDefault()">{{ shopOptionLabel(shop) }}</mat-option>
                     }
-                  </mat-select>
+                  </mat-autocomplete>
                 </mat-form-field>
 
                 <button type="button" matButton="filled" class="button-danger"

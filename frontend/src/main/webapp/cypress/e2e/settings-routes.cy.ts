@@ -59,6 +59,44 @@ describe('Settings - Routes', () => {
     });
   });
 
+  // MatAutocompleteTrigger writes a selected option straight into the input, bypassing Angular's
+  // own binding, so re-picking the already-selected shop only self-corrects when [displayWith]
+  // formats that raw value too - without it, the raw value's toString() was left behind (#3654).
+  it('re-picking the already-selected shop keeps its formatted label, not the raw value', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const name = 'E2E Route reselect ' + randomId;
+      createRoute(name, '90.3', ['08:00']);
+      cy.contains('.toast-message', 'erstellt').should('be.visible');
+
+      routePanel(name).find('[testid^="editRouteButton-"]').click();
+
+      cy.byTestId('route-stop-shop-select-0').invoke('val').then((selectedShop) => {
+        cy.byTestId('route-stop-shop-select-0').click();
+        cy.get('mat-option').contains(selectedShop as string).click();
+        cy.byTestId('route-stop-shop-select-0').should('have.value', selectedShop);
+      });
+    });
+  });
+
+  // Same defect as the shop field above, but on the "Keine Filiale" (null) option specifically.
+  it('re-picking "Keine Filiale" on a stop keeps that label, not a blank field', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      cy.byTestId('addRouteButton').click();
+      cy.byTestId('route-number-input').should('be.visible').type('90.4');
+      cy.byTestId('route-name-input').type('E2E Route ohne Filiale ' + randomId);
+      cy.byTestId('route-stop-add-button').click();
+      cy.byTestId('route-stop-time-input-0').type('08:00');
+
+      cy.byTestId('route-stop-shop-select-0').click();
+      cy.get('mat-option').contains('Keine Filiale').click();
+      cy.byTestId('route-stop-shop-select-0').should('have.value', 'Keine Filiale');
+
+      cy.byTestId('route-stop-shop-select-0').click();
+      cy.get('mat-option').contains('Keine Filiale').click();
+      cy.byTestId('route-stop-shop-select-0').should('have.value', 'Keine Filiale');
+    });
+  });
+
   it('rejects two stops at the same time', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       createRoute('E2E Route doppelt ' + randomId, '90.2', ['09:00', '09:00']);
@@ -336,6 +374,14 @@ describe('Settings - Routes', () => {
       cy.byTestId('route-stops-0').should('be.visible');
 
       cy.checkAccessibility('[testid="routes-row-0"]');
+    });
+
+    it('has no violations with a stop\'s shop autocomplete open', () => {
+      cy.byTestId('addRouteButton').click();
+      cy.byTestId('route-stop-add-button').click();
+      cy.byTestId('route-stop-shop-select-0').click();
+
+      cy.checkAutocompleteAccessibility();
     });
 
   });
