@@ -10,6 +10,12 @@ spring-modulith = "2.1.1"
 # is used from it (see backend/build.gradle.kts), not the config server/client or the bus.
 spring-cloud = "2025.1.3"
 jackson = "3.2.2"
+# Legacy Jackson 2.x line, pulled in transitively (jjwt-jackson, swagger-core-jakarta) alongside the Jackson 3.x
+# used directly by this project. Pinned separately to patch known CVEs in that transitive line: the fix for
+# CVE-2026-54515/CVE-2026-59889 landed in 2.21.5 and, separately, in 2.22.1 - a plain "use the newest available"
+# 2.22.0 sits in the gap between those two lines and is still vulnerable, so this has to name an exact version
+# rather than relying on the spring-boot-bom's managed 2.21.5 being a floor.
+jackson-legacy = "2.22.2"
 jjwt = "0.13.0"
 postgresql = "42.7.13"
 bouncycastle = "1.85.2"
@@ -87,6 +93,7 @@ tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websoc
 # Jackson
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jackson-dataformat-xml = { module = "tools.jackson.dataformat:jackson-dataformat-xml", version.ref = "jackson" }
+jackson-databind-legacy = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-legacy" }
 
 # Database
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
