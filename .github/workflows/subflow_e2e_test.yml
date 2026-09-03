@@ -46,7 +46,9 @@ jobs:
           # runtime, but a good one here: the two longest-running specs (customer-detail,
           # food-collection-recording) are also the two largest files by some margin. Alphabetical
           # order put both on the same shard and left it ~45% slower than the rest.
-          shards=$(ls -S *.cy.ts | sed 's/\.cy\.ts$//' \
+          # `--` ends option parsing, so a spec file whose name began with a dash could not be read
+          # as an ls flag (githubactions:S6573).
+          shards=$(ls -S -- *.cy.ts | sed 's/\.cy\.ts$//' \
             | jq -R -s -c --argjson n "${SHARD_COUNT}" '
                 split("\n")
                 | map(select(length > 0))
