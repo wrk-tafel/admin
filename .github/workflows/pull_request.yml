@@ -4,6 +4,15 @@ on:
   pull_request:
     types: [ opened, edited, reopened, synchronize ]
 
+# A later push or a title/description edit makes an in-progress run's outcome moot, but letting it
+# finish anyway would post its checks alongside - or after - the newer run's, and GitHub's merge box
+# shows each check name's *most recent* conclusion on the head SHA. So a still-running older run
+# racing a newer one is exactly how a stale or partial result ends up shadowing the real one. Only
+# one run per pull request is ever useful, so cancel whichever one is still going.
+concurrency:
+  group: pull-request-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   commitlint:
     runs-on: ubuntu-latest
