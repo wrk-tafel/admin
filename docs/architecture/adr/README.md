@@ -105,6 +105,7 @@ decided. They live one level up, in `docs/architecture/`:
 |---|---|
 | [`gdpr-compliance.md`](../gdpr-compliance.md) | What the application does with personal data, and where that falls short of the GDPR ([#3124](https://github.com/wrk-tafel/admin/issues/3124)) |
 | [`rls-postgres-evaluation.md`](../rls-postgres-evaluation.md) | Whether Postgres Row Level Security makes sense given this application's single-tenant, permission-not-row access model ([#3411](https://github.com/wrk-tafel/admin/issues/3411)) |
+| [`openspec-evaluation.md`](../openspec-evaluation.md) | Whether the OpenSpec spec-driven-development toolkit would be beneficial here, given the existing ADR/skill-based propose-implement-review workflow ([#3671](https://github.com/wrk-tafel/admin/issues/3671)) |
 
 ## Reference
 
