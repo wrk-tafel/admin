@@ -47,21 +47,7 @@ jobs:
           # range that was pushed. A manual workflow_dispatch run carries neither.
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          EVENT_ACTION: ${{ github.event.action }}
-          # Only set when a pull request "edited" event changed the base branch, i.e. when the
-          # edit actually changed the diff rather than just the title or the description.
-          BASE_REF_CHANGED_FROM: ${{ github.event.changes.base.ref.from }}
         run: |
-          if [ "$EVENT_ACTION" = "edited" ] && [ -z "$BASE_REF_CHANGED_FROM" ]; then
-            # Editing a pull request's title or description re-triggers the whole workflow while
-            # the commits stay exactly as they were validated before. Only the title lint has to
-            # look at this again, so report no changed area at all.
-            echo "Pull request title/description edit - no file change to validate."
-            echo "metadataEditOnly=true" >> "$GITHUB_OUTPUT"
-            : > changed-files.txt
-            exit 0
-          fi
-
           if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
             echo "No comparable base commit - every area is treated as changed."
             exit 0
@@ -85,8 +71,6 @@ jobs:
 
       - name: Classify the changed files
         id: classify
-        env:
-          METADATA_EDIT_ONLY: ${{ steps.diff.outputs.metadataEditOnly }}
         run: |
           backend=false
           frontend=false
@@ -145,20 +129,14 @@ jobs:
           {
             echo "### Detected changes"
             echo ""
-            if [ "$METADATA_EDIT_ONLY" = true ]; then
-              echo "This run was triggered by an edit to the pull request's title or description."
-              echo "The commits are unchanged, so everything but the title lint is skipped and the"
-              echo "build, test and analysis results of the previous run still apply."
-            else
-              echo "| Area | Changed |"
-              echo "| --- | --- |"
-              echo "| Backend | $backend |"
-              echo "| Frontend | $frontend |"
-              echo "| Docker image | $docker |"
-              if [ "$app" = false ]; then
-                echo ""
-                echo "Nothing that affects the application changed - build, tests, lint, analysis,"
-                echo "image and deployment are skipped."
-              fi
+            echo "| Area | Changed |"
+            echo "| --- | --- |"
+            echo "| Backend | $backend |"
+            echo "| Frontend | $frontend |"
+            echo "| Docker image | $docker |"
+            if [ "$app" = false ]; then
+              echo ""
+              echo "Nothing that affects the application changed - build, tests, lint, analysis,"
+              echo "image and deployment are skipped."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
