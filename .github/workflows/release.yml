@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
       - name: Determine next version from Conventional Commits since the last tag
         id: version
-        uses: paulhatch/semantic-version@502226b17e3e242e4befd0a45690fcbb27dd1373 # v6.0.3
+        uses: paulhatch/semantic-version@4d6da96a9bc3116da3613309a11ff75fba58eb8d # v6.0.4
         with:
           tag_prefix: ""
       # CHANGELOG.md is maintained by hand, one bullet per user-facing change, always added under

@@ -18,7 +18,7 @@ jackson = "3.2.2"
 jackson-legacy = "2.22.2"
 jjwt = "0.13.0"
 postgresql = "42.7.13"
-bouncycastle = "1.85.2"
+bouncycastle = "1.86"
 apache-fop = "2.11"
 qrcode-kotlin = "4.5.0"
 passay = "2.0.0"
@@ -29,7 +29,7 @@ springdoc-openapi = "3.1.1"
 spring-retry = "2.0.13"
 # Runs the scheduled jobs that are not row-based once per cluster. Stores its lock in the same
 # PostgreSQL as everything else (ADR-0003) - a library, not another piece of infrastructure.
-shedlock = "7.10.0"
+shedlock = "7.10.1"
 
 # Test dependency versions
 archunit = "1.5.0"
