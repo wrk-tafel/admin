@@ -27,20 +27,30 @@ import java.time.LocalDate
  *
  * A pair is flagged as a possible duplicate when, on the main person's name and the household
  * address, both:
- * - `soundex(household_duplicate_name_key(firstname, lastname))` matches (phonetic match,
- *   tolerant of spelling variants), and
- * - the Levenshtein distance of the two `household_duplicate_name_key` values is below 4, and
- *   the Levenshtein distance of the concatenated street/house-number/door is below 10.
+ * - `soundex(duplicate_name_key)` matches (phonetic match, tolerant of spelling variants), and
+ * - the Levenshtein distance of the two `duplicate_name_key` values is below 4, and the
+ *   Levenshtein distance of the concatenated street/house-number/door is below 10.
  *
- * `household_duplicate_name_key` (a SQL function, `R__00118_duplicate_detection_name_key.sql`)
- * lower-cases the combined firstname+lastname and sorts its words into a canonical order before
- * concatenating them. Comparing per-field (`soundex(lastname)` against `soundex(lastname)`,
- * `soundex(firstname)` against `soundex(firstname)`) instead of on this sorted key would miss a
- * pair where the same words are split across firstname/lastname differently between the two
- * registrations - e.g. a double surname where one record puts the second word in `lastname` and
- * the other puts it in `firstname`: the leading letter soundex keys off would differ, and
- * levenshtein would see a block transposition rather than a small edit, so neither field's
- * per-field comparison would match even though a human reads the two names as identical.
+ * `persons.duplicate_name_key` (`R__00119_duplicate_name_key_persisted.sql`) lower-cases a
+ * person's combined firstname+lastname and sorts its words into a canonical order, kept in sync by
+ * a trigger - the same pattern as the `search_text` columns from `R__00088_fulltext_search.sql`.
+ * Comparing per-field (`soundex(lastname)` against `soundex(lastname)`, `soundex(firstname)`
+ * against `soundex(firstname)`) instead of on this sorted key would miss a pair where the same
+ * words are split across firstname/lastname differently between the two registrations - e.g. a
+ * double surname where one record puts the second word in `lastname` and the other puts it in
+ * `firstname`: the leading letter soundex keys off would differ, and levenshtein would see a block
+ * transposition rather than a small edit, so neither field's per-field comparison would match even
+ * though a human reads the two names as identical.
+ *
+ * `duplicate_name_key` is persisted rather than computed inline (`household_duplicate_name_key(
+ * firstname, lastname)`, also in `R__00118`/`R__00119`) precisely because [DUPLICATE_CONDITIONS]
+ * evaluates it across every household pair: that function's body is a `SELECT` over
+ * `unnest()`/`string_agg()`, which Postgres cannot inline into the calling query the way it inlines
+ * a plain expression, so calling it per pair instead of reading an already-computed column turned
+ * this query into a multi-second load once run against production's household count.
+ * `household_duplicate_name_key` itself is still used directly in [MAIN_PERSON_SIMILARITY_SQL]/
+ * [PERSON_SIMILARITY_SQL] for the literal not-yet-saved value [findPotentialDuplicates] checks,
+ * where it runs once per call rather than once per household pair.
  *
  * Implemented as raw SQL (via [JdbcTemplate]) rather than JPA/Specifications because `soundex`
  * and `levenshtein` are Postgres functions with no JPQL equivalent; the query self-joins
@@ -67,8 +77,7 @@ class HouseholdDuplicationService(
         private val MAIN_PERSON_CTE = """
             WITH household AS (SELECT h.id,
                                       h.household_id,
-                                      p.firstname,
-                                      p.lastname,
+                                      p.duplicate_name_key,
                                       h.address_street,
                                       h.address_housenumber,
                                       h.address_door
@@ -76,8 +85,7 @@ class HouseholdDuplicationService(
                                         JOIN persons p ON p.id = h.main_person_id),
                  compare AS (SELECT h.id,
                                     h.household_id,
-                                    p.firstname,
-                                    p.lastname,
+                                    p.duplicate_name_key,
                                     h.address_street,
                                     h.address_housenumber,
                                     h.address_door
@@ -88,12 +96,8 @@ class HouseholdDuplicationService(
         private val DUPLICATE_CONDITIONS = """
             WHERE household.household_id < compare.household_id
               AND household.id <> compare.id
-              AND soundex(household_duplicate_name_key(household.firstname, household.lastname))
-                  = soundex(household_duplicate_name_key(compare.firstname, compare.lastname))
-              AND levenshtein(
-                          household_duplicate_name_key(household.firstname, household.lastname),
-                          household_duplicate_name_key(compare.firstname, compare.lastname)
-                  ) < 4
+              AND soundex(household.duplicate_name_key) = soundex(compare.duplicate_name_key)
+              AND levenshtein(household.duplicate_name_key, compare.duplicate_name_key) < 4
               AND levenshtein(
                           lower(
                                   concat(household.address_street,
@@ -130,12 +134,8 @@ class HouseholdDuplicationService(
             FROM households h
                      JOIN persons p ON p.id = h.main_person_id
             WHERE (?::bigint IS NULL OR h.household_id <> ?::bigint)
-              AND soundex(household_duplicate_name_key(p.firstname, p.lastname))
-                  = soundex(household_duplicate_name_key(?::text, ?::text))
-              AND levenshtein(
-                          household_duplicate_name_key(p.firstname, p.lastname),
-                          household_duplicate_name_key(?::text, ?::text)
-                  ) < 4
+              AND soundex(p.duplicate_name_key) = soundex(household_duplicate_name_key(?::text, ?::text))
+              AND levenshtein(p.duplicate_name_key, household_duplicate_name_key(?::text, ?::text)) < 4
               AND levenshtein(
                           lower(concat(h.address_street, h.address_housenumber, h.address_door)),
                           lower(concat(?::text, ?::text, ?::text))
@@ -159,12 +159,8 @@ class HouseholdDuplicationService(
                      JOIN households h ON h.id = p.household_id
             WHERE (?::bigint IS NULL OR h.household_id <> ?::bigint)
               AND p.birth_date = ?::date
-              AND soundex(household_duplicate_name_key(p.firstname, p.lastname))
-                  = soundex(household_duplicate_name_key(?::text, ?::text))
-              AND levenshtein(
-                          household_duplicate_name_key(p.firstname, p.lastname),
-                          household_duplicate_name_key(?::text, ?::text)
-                  ) < 4
+              AND soundex(p.duplicate_name_key) = soundex(household_duplicate_name_key(?::text, ?::text))
+              AND levenshtein(p.duplicate_name_key, household_duplicate_name_key(?::text, ?::text)) < 4
               AND (
                   ?::bigint IS NULL OR NOT EXISTS (
                       SELECT 1

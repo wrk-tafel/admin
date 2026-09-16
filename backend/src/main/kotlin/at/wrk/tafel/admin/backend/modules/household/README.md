@@ -254,19 +254,29 @@ never the business `householdId` - mixing the two is the most likely silent bug 
 ### `HouseholdDuplicationService` (`internal`)
 Finds potential duplicate households via a raw SQL query (`JdbcTemplate`, not JPA) comparing every
 household's main person against every other household's main person:
-- `soundex(household_duplicate_name_key(firstname, lastname))` must match (phonetic equality),
-  **and**
-- `levenshtein` between the two `household_duplicate_name_key` values must be `< 4`, **and**
+- `soundex(duplicate_name_key)` must match (phonetic equality), **and**
+- `levenshtein` between the two `duplicate_name_key` values must be `< 4`, **and**
 - `levenshtein(lower(street+housenumber+door))` between the two addresses must be `< 10`.
 
-`household_duplicate_name_key(firstname, lastname)` (a SQL function,
-`R__00118_duplicate_detection_name_key.sql`) lower-cases the combined name and sorts its words into
-a canonical order before concatenating them, rather than comparing `firstname`/`lastname` as two
-separate fields. That makes the match independent of which of the two fields a word landed in - a
-double surname where one registration puts the second word in `lastname` and another puts it in
-`firstname` still normalizes to the same key, where comparing the raw fields directly would fail:
-soundex keys off the leading letter (which differs once the word order differs), and levenshtein
-would see a block transposition rather than a small edit.
+`persons.duplicate_name_key` (`R__00119_duplicate_name_key_persisted.sql`) lower-cases a person's
+combined firstname+lastname and sorts its words into a canonical order, kept in sync by a trigger -
+rather than comparing `firstname`/`lastname` as two separate fields. That makes the match
+independent of which of the two fields a word landed in - a double surname where one registration
+puts the second word in `lastname` and another puts it in `firstname` still normalizes to the same
+key, where comparing the raw fields directly would fail: soundex keys off the leading letter (which
+differs once the word order differs), and levenshtein would see a block transposition rather than a
+small edit.
+
+It is a persisted, trigger-maintained column - the same pattern as the `search_text` columns from
+`R__00088_fulltext_search.sql` - rather than a value computed inline at query time
+(`household_duplicate_name_key(firstname, lastname)`, the SQL function backing both the trigger and
+`duplicate_name_key`'s initial backfill, in `R__00118_duplicate_detection_name_key.sql`). That
+function's body is a `SELECT` over `unnest()`/`string_agg()`, which Postgres cannot inline into the
+calling query the way it inlines a plain expression - evaluating it per household pair in this
+self-join, instead of reading an already-computed column, turned this query into a multi-second load
+once run against production's household count. `household_duplicate_name_key` is still called
+directly in `MAIN_PERSON_SIMILARITY_SQL`/`PERSON_SIMILARITY_SQL` for the literal not-yet-saved value
+`findPotentialDuplicates` checks, where the cost of one non-inlined call per request is negligible.
 
 Both conditions must hold - phonetically-similar names at very different addresses (or vice versa)
 are not flagged. Since firstname/lastname now live on `persons` rather than `households`, the query
