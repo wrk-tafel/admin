@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Seite "Kunden-Duplikate" lädt jetzt zuverlässig schnell, auch direkt nach einem Deployment.
+
+## [1.19.3] - 2026-09-16
 - Die Seite "Kunden-Duplikate" lädt wieder in gewohnter Geschwindigkeit, statt mehrere Sekunden zu benötigen.
 - Die Schwelle für die Benachrichtigung "Ungewöhnlich viele Zugriffe" wurde angehoben, damit das Durchsehen mehrerer Seiten der jetzt zuverlässigeren Kunden-Duplikate-Erkennung nicht fälschlich als auffälliger Zugriff gemeldet wird.
 

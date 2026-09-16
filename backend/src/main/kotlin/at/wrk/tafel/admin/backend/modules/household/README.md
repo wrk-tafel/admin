@@ -278,6 +278,13 @@ once run against production's household count. `household_duplicate_name_key` is
 directly in `MAIN_PERSON_SIMILARITY_SQL`/`PERSON_SIMILARITY_SQL` for the literal not-yet-saved value
 `findPotentialDuplicates` checks, where the cost of one non-inlined call per request is negligible.
 
+`R__00120_duplicate_name_key_analyze.sql` runs `analyze persons` as its own follow-up migration: the
+bulk backfill and the new functional index in `R__00119` don't by themselves update the planner's
+statistics for the new column, so the self-join's join-selectivity estimate for
+`soundex(duplicate_name_key) = soundex(duplicate_name_key)` can still be working off pre-migration
+stats until autovacuum's analyze threshold happens to fire - which can make the query slower right
+after a deploy, not faster.
+
 Both conditions must hold - phonetically-similar names at very different addresses (or vice versa)
 are not flagged. Since firstname/lastname now live on `persons` rather than `households`, the query
 joins through `households.main_person_id` (see the `MAIN_PERSON_CTE` companion constant) rather than
