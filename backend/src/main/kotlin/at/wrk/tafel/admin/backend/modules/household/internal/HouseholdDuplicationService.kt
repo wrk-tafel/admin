@@ -318,15 +318,28 @@ class HouseholdDuplicationService(
         """.trimIndent()
         val totalCount = jdbcTemplate.query(rowCountSql, SingleColumnRowMapper<Long>()).first() ?: 0
 
+        // `matches` is deliberately MATERIALIZED: matching pairs are rare (a handful out of every
+        // few thousand households) and can sit anywhere in the household_id range, so an
+        // `ORDER BY household_id DESC LIMIT n` on the un-materialized join tempts the planner into
+        // driving off a backward index scan on household_id in the hope of stopping after the
+        // first match - which, since matches are sparse, means it walks most of the table anyway,
+        // evaluating the expensive address levenshtein() filter on nearly every household pair
+        // before the cheap soundex-indexed name filter ever narrows anything down. Materializing
+        // forces the join+group to run once as a whole (the cheap soundex-first plan the row-count
+        // query above already gets), with only the small resulting match set left to sort/paginate.
         val sql = """
-            $MAIN_PERSON_CTE
-            SELECT household.household_id                                                                      as householdId,
-                   string_agg(compare.household_id::character varying, ',' order by compare.household_id desc) as compareHouseholdIdList
-            FROM household,
-                 compare
-            $DUPLICATE_CONDITIONS
-            group by household.id, household.household_id
-            order by household.household_id desc
+            $MAIN_PERSON_CTE,
+                 matches AS MATERIALIZED (
+                     SELECT household.household_id                                                                      as householdId,
+                            string_agg(compare.household_id::character varying, ',' order by compare.household_id desc) as compareHouseholdIdList
+                     FROM household,
+                          compare
+                     $DUPLICATE_CONDITIONS
+                     group by household.id, household.household_id
+                 )
+            SELECT householdId, compareHouseholdIdList
+            FROM matches
+            order by householdId desc
             LIMIT ${pageable.pageSize} OFFSET ${pageable.offset}
         """.trimIndent()
 
