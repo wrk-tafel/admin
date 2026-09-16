@@ -254,9 +254,19 @@ never the business `householdId` - mixing the two is the most likely silent bug 
 ### `HouseholdDuplicationService` (`internal`)
 Finds potential duplicate households via a raw SQL query (`JdbcTemplate`, not JPA) comparing every
 household's main person against every other household's main person:
-- `soundex(lastname)` / `soundex(firstname)` must match (phonetic equality), **and**
-- `levenshtein(lower(firstname+lastname))` between the two full names must be `< 4`, **and**
+- `soundex(household_duplicate_name_key(firstname, lastname))` must match (phonetic equality),
+  **and**
+- `levenshtein` between the two `household_duplicate_name_key` values must be `< 4`, **and**
 - `levenshtein(lower(street+housenumber+door))` between the two addresses must be `< 10`.
+
+`household_duplicate_name_key(firstname, lastname)` (a SQL function,
+`R__00118_duplicate_detection_name_key.sql`) lower-cases the combined name and sorts its words into
+a canonical order before concatenating them, rather than comparing `firstname`/`lastname` as two
+separate fields. That makes the match independent of which of the two fields a word landed in - a
+double surname where one registration puts the second word in `lastname` and another puts it in
+`firstname` still normalizes to the same key, where comparing the raw fields directly would fail:
+soundex keys off the leading letter (which differs once the word order differs), and levenshtein
+would see a block transposition rather than a small edit.
 
 Both conditions must hold - phonetically-similar names at very different addresses (or vice versa)
 are not flagged. Since firstname/lastname now live on `persons` rather than `households`, the query
