@@ -386,10 +386,17 @@ duty impossible to discharge with any accuracy.
 `ExcessiveReadAccessDetectionService` (`modules/push/internal`) now runs hourly
 (`tafeladmin.audit.breachDetectionCron`, under a ShedLock) and pushes a
 notification to administrators when one user's `AuditOperation.READ` count in the trailing hour
-exceeds `tafeladmin.audit.breachDetection.readThreshold` (default 20; 0 or less switches the check
+exceeds `tafeladmin.audit.breachDetection.readThreshold` (default 50; 0 or less switches the check
 off). Deliberately just a fixed
 threshold rather than anomaly detection: an application this size has no learned "normal" to compare
 against, and a detector nobody understands is a detector nobody trusts.
+
+Raised from the original 20 once `HouseholdDuplicationService`'s fuzzy match started correctly
+finding every household-name duplicate instead of missing pairs whose words were split across
+firstname/lastname differently (issue #3687): `/kunden/duplikate` is paginated one duplicate group
+per page, each counted at `bulkReadWeight` (see [G24](#g24-bulk-household-reports-now-record-their-own-auditoperation-read-weighted-in-breach-detection))
+against this threshold, so reviewing a now-larger, correctly-detected backlog in one sitting needs
+several page loads and shouldn't itself read as a breach.
 
 The threshold switches to `tafeladmin.audit.breachDetection.readThresholdDuringDistribution` (default
 100) whenever a distribution is active (started, not yet closed) when the check runs: a check-in

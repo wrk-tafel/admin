@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Die Seite "Kunden-Duplikate" lädt wieder in gewohnter Geschwindigkeit, statt mehrere Sekunden zu benötigen.
+- Die Schwelle für die Benachrichtigung "Ungewöhnlich viele Zugriffe" wurde angehoben, damit das Durchsehen mehrerer Seiten der jetzt zuverlässigeren Kunden-Duplikate-Erkennung nicht fälschlich als auffälliger Zugriff gemeldet wird.
 
 ## [1.19.2] - 2026-09-16
 - Die Duplikatserkennung bei Kund:innen erkennt jetzt auch dann ein mögliches Duplikat, wenn ein doppelter Nachname bei den beiden Einträgen unterschiedlich auf Vor- und Nachname aufgeteilt wurde.
