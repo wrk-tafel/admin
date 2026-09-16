@@ -244,7 +244,12 @@ tafeladmin:
   # breachDetection.readThreshold - GDPR gap G11's threshold check (ExcessiveReadAccessDetectionService):
   # more than this many weighted READ entries by one user within the trailing hour notifies
   # administrators via push. Read per use, so it can be tuned on a running deployment; 0 or less
-  # switches the check off.
+  # switches the check off. Raised from 20 to 50 once HouseholdDuplicationService's fuzzy match
+  # started correctly surfacing every household-name duplicate instead of missing pairs split
+  # across firstname/lastname differently (issue #3687): `/kunden/duplikate` is paginated one
+  # duplicate group per page, each counted at `bulkReadWeight` against this threshold, so reviewing
+  # a now-larger, correctly-detected backlog in one sitting is expected to need several page loads
+  # and shouldn't itself read as a breach.
   # breachDetection.readThresholdDuringDistribution - readThreshold's replacement while a
   # distribution is active (started, not yet closed): a check-in operator reads one household per
   # ticket, which routinely clears the normal-office threshold on every distribution day (issue
@@ -275,7 +280,7 @@ tafeladmin:
     cleanupCron: "0 0 5 * * *"
     readDedupeWindow: 5m
     breachDetection:
-      readThreshold: 20
+      readThreshold: 50
       readThresholdDuringDistribution: 100
       bulkReadWeight: 10
     breachDetectionCron: "0 0 * * * *"

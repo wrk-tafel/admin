@@ -352,7 +352,7 @@ class TafelAdminAuditBreachDetectionProperties {
      * application this size has no "normal" to compare against, and a threshold nobody understands is
      * one nobody trusts. Set to 0 (or less) to switch the check off entirely.
      */
-    var readThreshold: Int = 20
+    var readThreshold: Int = 50
 
     /**
      * [readThreshold]'s replacement for the trailing hour if a distribution is currently active
