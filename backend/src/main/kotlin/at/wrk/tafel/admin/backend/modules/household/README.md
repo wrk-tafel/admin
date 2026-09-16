@@ -291,6 +291,19 @@ joins through `households.main_person_id` (see the `MAIN_PERSON_CTE` companion c
 reading name columns directly off `households`. Pagination here is one duplicate *group* per page
 (`PageRequest.of(page, 1)`), not one household per page.
 
+`loadDuplicates`'s paginated data query wraps the join+group in a `MATERIALIZED` CTE (`matches`)
+before applying `ORDER BY household_id DESC LIMIT ... OFFSET ...`, rather than ordering/limiting the
+join directly. Matching pairs are rare - a handful out of every few thousand households - and can
+sit anywhere in the `household_id` range, so an un-materialized `ORDER BY household_id DESC LIMIT n`
+tempts the planner into driving off a backward index scan on `household_id`, hoping to stop after the
+first match: since matches are sparse, that plan ends up walking most of the table anyway, evaluating
+the expensive address `levenshtein()` filter against nearly every household pair before the cheap
+soundex-indexed name filter (`idx_persons_duplicate_name_key`) ever narrows anything down - the
+reverse of the filter order the row-count query's own plan already gets right, and, on production's
+household count, the difference between tens of milliseconds and several seconds. Forcing
+materialization makes the join+group run once as a whole with that cheap-filter-first plan, leaving
+only the small resulting match set to sort/paginate.
+
 The self-join condition anchors each match on the *smaller* `household_id`
 (`household.household_id < compare.household_id`, not `<>`) so an unordered pair {A, B} surfaces as
 exactly one row - anchored on whichever of A/B has the lower id - instead of two mirrored rows (once
