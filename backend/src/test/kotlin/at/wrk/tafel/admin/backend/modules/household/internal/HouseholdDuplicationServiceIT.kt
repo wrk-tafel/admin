@@ -64,6 +64,23 @@ class HouseholdDuplicationServiceIT : TafelBaseIntegrationTest() {
 
     @Test
     @Transactional
+    fun `a duplicate pair is surfaced when a double surname is split across firstname-lastname differently`() {
+        val household1 = persistHousehold(firstname = "Anna", lastname = "Muster Beispiel", street = "Hauptstraße", houseNumber = "5")
+        val household2 = persistHousehold(firstname = "Anna Beispiel", lastname = "Muster", street = "Hauptstraße", houseNumber = "5")
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdDuplicationService.findDuplicates(page = null)
+
+        assertThat(result.totalCount).isEqualTo(1)
+        val item = result.items.single()
+        val idsInResult = listOf(item.household.id) + item.similarHouseholds.map { it.id }
+        assertThat(idsInResult).containsExactlyInAnyOrder(household1.householdId, household2.householdId)
+    }
+
+    @Test
+    @Transactional
     fun `a dismissed pair no longer shows up as a duplicate`() {
         val household1 = persistHousehold(firstname = "Maria", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
         val household2 = persistHousehold(firstname = "Marie", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
@@ -126,6 +143,28 @@ class HouseholdDuplicationServiceIT : TafelBaseIntegrationTest() {
         val result = householdDuplicationService.findPotentialDuplicates(
             mainPersonFirstname = "Marie",
             mainPersonLastname = "Huber",
+            addressStreet = "Hauptstraße",
+            addressHouseNumber = "5",
+            addressDoor = null,
+            persons = emptyList(),
+            excludeHouseholdId = null,
+        )
+
+        assertThat(result).hasSize(1)
+        assertThat(result.single().householdId).isEqualTo(household1.householdId)
+    }
+
+    @Test
+    @Transactional
+    fun `findPotentialDuplicates - main person match found when a double surname is split differently`() {
+        val household1 = persistHousehold(firstname = "Anna", lastname = "Muster Beispiel", street = "Hauptstraße", houseNumber = "5")
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdDuplicationService.findPotentialDuplicates(
+            mainPersonFirstname = "Anna Beispiel",
+            mainPersonLastname = "Muster",
             addressStreet = "Hauptstraße",
             addressHouseNumber = "5",
             addressDoor = null,

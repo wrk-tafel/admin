@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Duplikatserkennung bei Kund:innen erkennt jetzt auch dann ein mögliches Duplikat, wenn ein doppelter Nachname bei den beiden Einträgen unterschiedlich auf Vor- und Nachname aufgeteilt wurde.
+
+## [1.19.0] - 2026-09-03
 - Die Auswahl einer Ausgabe (Statistik, erneuter Mail-Versand, Kunden-Übersicht) und einer Filiale bei einem Routenstopp lässt sich jetzt durch Eingabe eingrenzen, statt nur aus einer langen Liste ausgewählt zu werden.
 
 ## [1.18.0] - 2026-09-03
