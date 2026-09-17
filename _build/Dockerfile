@@ -1,4 +1,4 @@
-FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c437a8c5a951512724297b7 AS builder
+FROM amazoncorretto:27-alpine@sha256:eb901291ad1d6cfe6ed09554df203ed4165c69da78133e6150a5b4b287a939da AS builder
 WORKDIR /builder
 COPY ./artifact/admin-backend.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted \
@@ -11,7 +11,7 @@ RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination 
 # #2881). The trainer must launch the app the exact same way the final ENTRYPOINT does (JarLauncher over
 # the extracted layered jar, not a plain `java -jar`) - CDS is classpath-layout sensitive, and a mismatch
 # here would silently produce a dead archive that never gets used at runtime.
-FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c437a8c5a951512724297b7 AS cds-trainer
+FROM amazoncorretto:27-alpine@sha256:eb901291ad1d6cfe6ed09554df203ed4165c69da78133e6150a5b4b287a939da AS cds-trainer
 # Version matches what's actually run everywhere else (docker-compose.yml, Testcontainers, e2e/
 # lighthouse CI - all postgres:18-bookworm), so the CDS training run boots against the same major
 # version the app is deployed against. fuzzystrmatch (used by household duplicate detection, see
@@ -43,7 +43,7 @@ RUN su postgres -c "pg_ctl -D '$PGDATA' -o \"-c listen_addresses=localhost\" -w 
          org.springframework.boot.loader.launch.JarLauncher --spring.profiles.active=local \
     && su postgres -c "pg_ctl -D '$PGDATA' -w stop"
 
-FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c437a8c5a951512724297b7
+FROM amazoncorretto:27-alpine@sha256:eb901291ad1d6cfe6ed09554df203ed4165c69da78133e6150a5b4b287a939da
 # The base image is pinned by digest so every build - local or CI, today or in a year - produces the
 # same image, rather than silently picking up whatever Alpine packages happen to be current that day.
 # The cost is that a fixed digest also fixes its bundled package versions, so a patched CVE (e.g.
