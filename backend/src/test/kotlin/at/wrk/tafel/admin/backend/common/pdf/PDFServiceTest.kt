@@ -1,5 +1,9 @@
 package at.wrk.tafel.admin.backend.common.pdf
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import com.fasterxml.jackson.annotation.JsonRootName
 import com.github.romankh3.image.comparison.ImageComparison
@@ -13,6 +17,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
@@ -103,6 +108,68 @@ internal class PDFServiceTest {
                 assertThat(PDFTextStripper().getText(document)).contains("Test ${index + 1}")
             }
         }
+    }
+
+    @Test
+    fun `generated pdf is logged with template and subject`() {
+        val logEvents = captureLogEvents {
+            PDFService().generatePdf(
+                data = DummyData(text = "Test 123"),
+                stylesheetPath = "/pdf-references/distribution/sample.xsl",
+                subject = "household 4101",
+            )
+        }
+
+        assertThat(logEvents).hasSize(1)
+        assertThat(logEvents.single().level).isEqualTo(Level.INFO)
+        assertThat(logEvents.single().formattedMessage)
+            .startsWith("Generated PDF sample.xsl (household 4101) in ")
+            .contains(" ms (")
+            .endsWith(" bytes)")
+    }
+
+    @Test
+    fun `generated pdf without subject is logged with template only`() {
+        val logEvents = captureLogEvents {
+            PDFService().generatePdf(
+                data = DummyData(text = "Test 123"),
+                stylesheetPath = "/pdf-references/distribution/sample.xsl",
+            )
+        }
+
+        assertThat(logEvents.single().formattedMessage).startsWith("Generated PDF sample.xsl in ")
+    }
+
+    @Test
+    fun `fop layout warning is attributed to template and subject`() {
+        val logEvents = captureLogEvents {
+            PDFService().generatePdf(
+                data = DummyData(text = "x".repeat(400)),
+                stylesheetPath = "/pdf-references/distribution/sample.xsl",
+                subject = "household 4101",
+            )
+        }
+
+        val warnings = logEvents.filter { it.level == Level.WARN }
+        assertThat(warnings).isNotEmpty
+        assertThat(warnings).allSatisfy {
+            assertThat(it.formattedMessage).startsWith("PDF sample.xsl (household 4101): ")
+        }
+        assertThat(warnings.first().formattedMessage).contains("exceed the available area")
+        // Warnings come before the line that reports the finished document, so they sit under it in the log.
+        assertThat(logEvents.last().formattedMessage).startsWith("Generated PDF sample.xsl (household 4101)")
+    }
+
+    private fun captureLogEvents(block: () -> Unit): List<ILoggingEvent> {
+        val logger = LoggerFactory.getLogger(PDFService::class.java) as Logger
+        val appender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(appender)
+        try {
+            block()
+        } finally {
+            logger.detachAppender(appender)
+        }
+        return appender.list.toList()
     }
 
     @Test
