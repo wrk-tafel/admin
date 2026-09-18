@@ -39,14 +39,7 @@
                         </fo:block>
                     </fo:table-cell>
                     <fo:table-cell>
-                        <!--
-                            min-height, not height: the surrounding idcard-document.xsl page-level
-                            container is what fixes the card at 8cm for the physical cut line: this
-                            one only has to reach that same height when its own (entirely static)
-                            content is shorter, never clip it when the content is fractionally
-                            taller - see #3622.
-                        -->
-                        <fo:block-container border-left="0.5mm solid {$tafelAccent}" min-height="8cm">
+                        <fo:block-container border-left="0.5mm solid {$tafelAccent}" height="8cm">
                             <xsl:call-template name="outside-front"/>
                         </fo:block-container>
                     </fo:table-cell>
@@ -133,9 +126,17 @@
             </fo:table-body>
         </fo:table>
     </xsl:template>
+    <!--
+        The 7.4cm container this renders into is fixed, and only the *static* rows fill it - a value
+        that wraps adds a whole line of its own on top. "Ausgestellt von" does in practice (personnel
+        number, first and last name are wider than its half-width cell), and a long last/first name
+        can too. The tight row spacing (1.5mm, heading 2mm) is the slack that absorbs two such
+        wraps; loosening it makes FOP log a viewport overflow on every print, which
+        HouseholdPdfServiceTest asserts against.
+    -->
     <xsl:template name="inside-left">
         <fo:block>
-            <fo:block font-size="11pt" font-weight="bold" color="{$tafelInk}" space-after="3mm">
+            <fo:block font-size="11pt" font-weight="bold" color="{$tafelInk}" space-after="2mm">
                 Hauptbezieher
             </fo:block>
             <fo:table table-layout="fixed" width="100%">
@@ -143,13 +144,13 @@
                 <fo:table-column column-width="50%"/>
                 <fo:table-body>
                     <fo:table-row>
-                        <fo:table-cell padding-right="2mm" padding-bottom="3mm">
+                        <fo:table-cell padding-right="2mm" padding-bottom="1.5mm">
                             <xsl:call-template name="field-with-label">
                                 <xsl:with-param name="value" select="customer/lastname"/>
                                 <xsl:with-param name="label" select="'Nachname'"/>
                             </xsl:call-template>
                         </fo:table-cell>
-                        <fo:table-cell padding-bottom="3mm">
+                        <fo:table-cell padding-bottom="1.5mm">
                             <xsl:call-template name="field-with-label">
                                 <xsl:with-param name="value" select="customer/firstname"/>
                                 <xsl:with-param name="label" select="'Vorname'"/>
@@ -157,7 +158,7 @@
                         </fo:table-cell>
                     </fo:table-row>
                     <fo:table-row>
-                        <fo:table-cell number-columns-spanned="2" padding-bottom="3mm">
+                        <fo:table-cell number-columns-spanned="2" padding-bottom="1.5mm">
                             <xsl:call-template name="field-with-label">
                                 <xsl:with-param name="value" select="customer/birthDate"/>
                                 <xsl:with-param name="label" select="'Geburtsdatum'"/>
@@ -165,7 +166,7 @@
                         </fo:table-cell>
                     </fo:table-row>
                     <fo:table-row>
-                        <fo:table-cell number-columns-spanned="2" padding-bottom="3mm">
+                        <fo:table-cell number-columns-spanned="2" padding-bottom="1.5mm">
                             <xsl:variable name="streetValue">
                                 <xsl:value-of select="customer/address/street"/>
                                 <xsl:if test="customer/address/houseNumber != '-'">
@@ -188,13 +189,13 @@
                         </fo:table-cell>
                     </fo:table-row>
                     <fo:table-row>
-                        <fo:table-cell padding-right="2mm" padding-bottom="3mm">
+                        <fo:table-cell padding-right="2mm" padding-bottom="1.5mm">
                             <xsl:call-template name="field-with-label">
                                 <xsl:with-param name="value" select="customer/address/postalCode"/>
                                 <xsl:with-param name="label" select="'PLZ'"/>
                             </xsl:call-template>
                         </fo:table-cell>
-                        <fo:table-cell padding-bottom="3mm">
+                        <fo:table-cell padding-bottom="1.5mm">
                             <xsl:call-template name="field-with-label">
                                 <xsl:with-param name="value" select="customer/address/city"/>
                                 <xsl:with-param name="label" select="'Ort'"/>

@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Ein fehlgeschlagener Klick auf "Tag starten" oder "Annehmen" im Check-in erzeugt keinen zusätzlichen, nichtssagenden Fehlereintrag "Fehler: [object Object]" im Protokoll mehr, und unerwartete Fehler nennen jetzt Status und Adresse der Anfrage.
+- Die gedruckte Bezugskarte passt jetzt auch bei langen Namen (z. B. bei "Ausgestellt von") in ihren Streifen, und die rote Trennlinie der Außenseite reicht wieder bis zur Schnittkante.
 
 ## [1.19.5] - 2026-09-16
 - Die Seite "Kunden-Duplikate" lädt jetzt in jedem Fall schnell, statt bei wenigen, weit gestreuten Duplikaten mehrere Sekunden zu benötigen.
