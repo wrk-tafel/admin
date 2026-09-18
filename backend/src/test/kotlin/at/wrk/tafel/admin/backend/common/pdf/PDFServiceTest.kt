@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonRootName
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils
+import org.apache.fop.events.Event
+import org.apache.fop.events.model.EventSeverity
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -159,6 +161,43 @@ internal class PDFServiceTest {
         // Warnings come before the line that reports the finished document, so they sit under it in the log.
         assertThat(logEvents.last().formattedMessage).startsWith("Generated PDF sample.xsl (household 4101)")
     }
+
+    @Test
+    fun `blank subject is logged with template only`() {
+        val logEvents = captureLogEvents {
+            PDFService().generatePdf(
+                data = DummyData(text = "Test 123"),
+                stylesheetPath = "/pdf-references/distribution/sample.xsl",
+                subject = " ",
+            )
+        }
+
+        assertThat(logEvents.single().formattedMessage).startsWith("Generated PDF sample.xsl in ")
+    }
+
+    @Test
+    fun `fop error event is logged as error with its cause and fatal event is left to the caller`() {
+        val cause = IllegalStateException("boom")
+        val listener = PDFService.LabelledLoggingEventListener("sample.xsl (household 4101)")
+
+        val logEvents = captureLogEvents {
+            listener.processEvent(fontEvent(EventSeverity.ERROR, cause))
+            listener.processEvent(fontEvent(EventSeverity.FATAL, cause))
+        }
+
+        assertThat(logEvents).hasSize(1)
+        assertThat(logEvents.single().level).isEqualTo(Level.ERROR)
+        assertThat(logEvents.single().formattedMessage)
+            .startsWith("PDF sample.xsl (household 4101): Unable to load font file: file:/fonts/a.ttf.")
+        assertThat(logEvents.single().throwableProxy.message).isEqualTo("boom")
+    }
+
+    private fun fontEvent(severity: EventSeverity, cause: Throwable) = Event(
+        this,
+        "org.apache.fop.fonts.FontEventProducer.fontLoadingErrorAtAutoDetection",
+        severity,
+        mapOf("fontURL" to "file:/fonts/a.ttf", "e" to cause),
+    )
 
     private fun captureLogEvents(block: () -> Unit): List<ILoggingEvent> {
         val logger = LoggerFactory.getLogger(PDFService::class.java) as Logger

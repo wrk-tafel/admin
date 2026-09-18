@@ -155,7 +155,7 @@ class PDFService {
      * FOP's own logging listener writes them unattributed, and one is created per document because
      * the [label] differs.
      */
-    private class LabelledLoggingEventListener(private val label: String) : EventListener {
+    internal class LabelledLoggingEventListener(private val label: String) : EventListener {
         override fun processEvent(event: Event) {
             val message = "PDF $label: ${EventFormatter.format(event)}"
             when (event.severity) {
