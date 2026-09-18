@@ -1,10 +1,10 @@
 package at.wrk.tafel.admin.backend.common.pdf
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import com.fasterxml.jackson.annotation.JsonRootName
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
