@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die gedruckte Bezugskarte passt jetzt auch bei langen Namen (z. B. bei "Ausgestellt von") in ihren Streifen, und die rote Trennlinie der Außenseite reicht wieder bis zur Schnittkante.
+
+## [1.19.5] - 2026-09-16
 - Die Seite "Kunden-Duplikate" lädt jetzt in jedem Fall schnell, statt bei wenigen, weit gestreuten Duplikaten mehrere Sekunden zu benötigen.
 
 ## [1.19.4] - 2026-09-16

@@ -11,6 +11,9 @@ import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils
+import org.apache.fop.events.Event
+import org.apache.fop.events.EventListener
+import org.apache.fop.events.model.EventSeverity
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
@@ -170,6 +173,47 @@ class HouseholdPdfServiceTest {
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
         document.close()
+    }
+
+    /**
+     * FOP only *logs* an overflow, so a card whose content is taller than its fixed 8 cm cut strip
+     * still renders and every image comparison above still matches - the warning shows up in
+     * `app.log` on every print instead (#3622, #3697). Runs every household PDF through the real
+     * templates and bundled logo and fails on any FOP warning or error.
+     *
+     * The issuer and last name are deliberately long: "Ausgestellt von" is `<personnel number>
+     * <first name> <last name>`, wider than its half-width cell, so a real employee's name wraps to a
+     * second line. That extra line, not anything static in the template, is what overflowed the
+     * inside panel's fixed container by 4157 millipoints in production - the short placeholder
+     * employee in [beforeEach] never wraps and never showed it.
+     */
+    @Test
+    fun `generate household pdfs - fop reports no overflow or other warning`() {
+        testHousehold.issuer =
+            EmployeeEntity(personnelNumber = "8712", firstname = "Maximiliane", lastname = "Musterfrau-Beispiel")
+        testHousehold.mainPerson!!.lastname = "Musterfrau-Beispiel-Hofmann"
+
+        val fopEvents = mutableListOf<String>()
+        val recordingPdfService = object : PDFService() {
+            override fun generatePdf(data: Any, stylesheetPath: String, eventListener: EventListener?): ByteArray =
+                super.generatePdf(
+                    data,
+                    stylesheetPath,
+                    EventListener { event: Event ->
+                        if (event.severity != EventSeverity.INFO) {
+                            fopEvents += "$stylesheetPath: ${event.eventID} ${event.params}"
+                        }
+                    },
+                )
+        }
+        val recordingService = HouseholdPdfService(recordingPdfService, clock, tafelAdminProperties)
+
+        recordingService.generateIdCardPdf(testHousehold)
+        recordingService.generateMasterdataPdf(testHousehold)
+        recordingService.generatePrivacyNoticePdf(testHousehold)
+        recordingService.generatePrivacyNoticeTemplatePdf()
+
+        assertThat(fopEvents).isEmpty()
     }
 
     /**

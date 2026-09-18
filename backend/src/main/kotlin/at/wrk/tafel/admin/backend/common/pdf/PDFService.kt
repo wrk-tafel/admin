@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.common.pdf
 import org.apache.fop.apps.FopConfParser
 import org.apache.fop.apps.FopFactory
 import org.apache.fop.apps.MimeConstants
+import org.apache.fop.events.EventListener
 import org.springframework.stereotype.Service
 import tools.jackson.dataformat.xml.XmlMapper
 import java.io.ByteArrayInputStream
@@ -87,7 +88,12 @@ class PDFService {
         }
     }
 
-    fun generatePdf(data: Any, stylesheetPath: String): ByteArray {
+    /**
+     * [eventListener] is offered every FOP event (overflow, missing glyph, unresolved image, ...) in
+     * addition to FOP's own logging, which stays on either way. Production callers have no use for
+     * it; it exists so a test can fail on a warning that would otherwise only surface in `app.log`.
+     */
+    fun generatePdf(data: Any, stylesheetPath: String, eventListener: EventListener? = null): ByteArray {
         val xmlOutStream = ByteArrayOutputStream()
         xmlOutStream.use {
             xmlMapper.writeValue(it, data)
@@ -105,7 +111,9 @@ class PDFService {
                 // other. Only the construction is serialized - the rendering below, which is where
                 // the time goes, stays concurrent.
                 val fop = synchronized(fopFactory) {
-                    fopFactory.newFop(MimeConstants.MIME_PDF, fopFactory.newFOUserAgent(), out)
+                    val userAgent = fopFactory.newFOUserAgent()
+                    eventListener?.let { userAgent.eventBroadcaster.addEventListener(it) }
+                    fopFactory.newFop(MimeConstants.MIME_PDF, userAgent, out)
                 }
 
                 val transformer = compiledStylesheet(stylesheetPath).newTransformer()
