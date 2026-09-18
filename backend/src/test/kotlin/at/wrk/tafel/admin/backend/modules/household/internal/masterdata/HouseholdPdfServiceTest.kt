@@ -200,17 +200,16 @@ class HouseholdPdfServiceTest {
                 stylesheetPath: String,
                 subject: String?,
                 eventListener: EventListener?,
-            ): ByteArray =
-                super.generatePdf(
-                    data,
-                    stylesheetPath,
-                    subject,
-                    EventListener { event: Event ->
-                        if (event.severity != EventSeverity.INFO) {
-                            fopEvents += "$stylesheetPath: ${event.eventID} ${event.params}"
-                        }
-                    },
-                )
+            ): ByteArray = super.generatePdf(
+                data,
+                stylesheetPath,
+                subject,
+                EventListener { event: Event ->
+                    if (event.severity != EventSeverity.INFO) {
+                        fopEvents += "$stylesheetPath: ${event.eventID} ${event.params}"
+                    }
+                },
+            )
         }
         val recordingService = HouseholdPdfService(recordingPdfService, clock, tafelAdminProperties)
 
