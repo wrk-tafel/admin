@@ -1,3 +1,4 @@
+import {HttpErrorResponse} from '@angular/common/http';
 import {Service} from '@angular/core';
 import {Observable, Subject} from 'rxjs';
 
@@ -134,7 +135,11 @@ export function describeError(error: unknown): string {
   if (error instanceof Error) {
     return `${error.name}: ${error.message}`;
   }
-  return `Fehler: ${String(error)}`;
+  // not an `Error` subclass, so `String()` would give "[object Object]"
+  if (error instanceof HttpErrorResponse) {
+    return `Fehler: HTTP ${error.status} - ${error.url ?? 'unbekannte URL'}`;
+  }
+  return `Fehler: ${stringify(error)}`;
 }
 
 /** One `console.warn`/`console.error` argument as a line of text, whatever type it happens to be. */
@@ -145,9 +150,17 @@ function describeConsoleArg(arg: unknown): string {
   if (typeof arg === 'string') {
     return arg;
   }
+  return stringify(arg);
+}
+
+/** JSON where the value has one, `String()` where it does not (circular structures, `undefined`, ...). */
+function stringify(value: unknown): string {
+  if (typeof value === 'string') {
+    return value;
+  }
   try {
-    return JSON.stringify(arg);
+    return JSON.stringify(value) ?? String(value);
   } catch {
-    return String(arg);
+    return String(value);
   }
 }

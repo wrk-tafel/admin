@@ -195,10 +195,16 @@ class HouseholdPdfServiceTest {
 
         val fopEvents = mutableListOf<String>()
         val recordingPdfService = object : PDFService() {
-            override fun generatePdf(data: Any, stylesheetPath: String, eventListener: EventListener?): ByteArray =
+            override fun generatePdf(
+                data: Any,
+                stylesheetPath: String,
+                subject: String?,
+                eventListener: EventListener?,
+            ): ByteArray =
                 super.generatePdf(
                     data,
                     stylesheetPath,
+                    subject,
                     EventListener { event: Event ->
                         if (event.severity != EventSeverity.INFO) {
                             fopEvents += "$stylesheetPath: ${event.eventID} ${event.params}"

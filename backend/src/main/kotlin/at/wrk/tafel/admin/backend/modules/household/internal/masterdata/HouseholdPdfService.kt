@@ -31,12 +31,12 @@ class HouseholdPdfService(
 
     fun generateMasterdataPdf(household: HouseholdEntity): ByteArray {
         val data = createHouseholdPdfData(household)
-        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/masterdata-document.xsl")
+        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/masterdata-document.xsl", "household ${household.householdId}")
     }
 
     fun generateIdCardPdf(household: HouseholdEntity): ByteArray {
         val data = createHouseholdPdfData(household)
-        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/idcard-document.xsl")
+        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/idcard-document.xsl", "household ${household.householdId}")
     }
 
     /**
@@ -58,7 +58,7 @@ class HouseholdPdfService(
             generatedAt = LocalDate.now(clock).format(DATE_FORMATTER),
             auditRetentionDays = tafelAdminProperties.audit.retentionDays.toString(),
         )
-        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl")
+        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/privacy-notice-document.xsl", "household ${household.householdId}")
     }
 
     /**

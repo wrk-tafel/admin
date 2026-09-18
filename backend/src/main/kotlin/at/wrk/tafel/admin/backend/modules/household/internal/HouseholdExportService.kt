@@ -289,7 +289,7 @@ class HouseholdExportService(
             attendances = attendanceRows,
             documents = documentRows,
         )
-        return pdfService.generatePdf(data, PDF_STYLESHEET_PATH)
+        return pdfService.generatePdf(data, PDF_STYLESHEET_PATH, householdId?.let { "household $it" })
     }
 
     private fun loadLogoBytes(): ByteArray = IOUtils.toByteArray(javaClass.getResourceAsStream(LOGO_RESOURCE_PATH))

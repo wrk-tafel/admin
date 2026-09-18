@@ -2,7 +2,8 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DistributionApiService, DistributionCloseValidationResult, DistributionItem } from '../../../../api/distribution-api.service';
 import { DistributionStateComponent } from './distribution-state.component';
-import { EMPTY, of } from 'rxjs';
+import { EMPTY, of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { GlobalStateService } from '../../../../common/state/global-state.service';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { signal } from '@angular/core';
@@ -84,6 +85,20 @@ describe('DistributionStateComponent', () => {
         const component = fixture.componentInstance;
 
         component.createNewDistribution();
+
+        expect(distributionApiService.createNewDistribution).toHaveBeenCalled();
+    });
+
+    it('create new distribution raises no uncaught error when the request fails', async () => {
+        globalStateService.getCurrentDistribution.mockReturnValue(signal(null).asReadonly());
+        distributionApiService.createNewDistribution.mockReturnValue(throwError(() => new HttpErrorResponse({status: 409})));
+
+        const fixture = TestBed.createComponent(DistributionStateComponent);
+
+        fixture.componentInstance.createNewDistribution();
+        // RxJS rethrows an error nobody subscribed to on a timer - wait for it, so vitest would
+        // report it as an unhandled error and fail the run
+        await new Promise(resolve => setTimeout(resolve));
 
         expect(distributionApiService.createNewDistribution).toHaveBeenCalled();
     });
