@@ -329,6 +329,10 @@ export class CheckinComponent {
           this.lastAcceptedCheckin.set({customerId, ticketNumber});
           this.showUndoToast(customerId, ticketNumber);
           this.cancel();
+        },
+        // the interceptor's error toast is the whole presentation a failed check-in needs - without
+        // this callback the rethrown HttpErrorResponse would escape as an uncaught application error
+        error: () => {
         }
       };
       this.distributionApiService.assignCustomer(customerId, ticketNumber).subscribe(observer);
@@ -343,6 +347,9 @@ export class CheckinComponent {
         this.ticketNumberEdit.set(undefined);
         this.toastr.success('Ticket-Nummer gelöscht!');
         this.ticketNumberInputRef()?.nativeElement?.focus?.();
+      },
+      // the interceptor already toasted and recorded the failure
+      error: () => {
       }
     };
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer()!.id!).subscribe(observer);
@@ -361,9 +368,14 @@ export class CheckinComponent {
       return;
     }
 
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(last.customerId).subscribe(() => {
-      this.lastAcceptedCheckin.set(undefined);
-      this.toastr.success(`Ticket ${last.ticketNumber} von Kunde Nr. ${last.customerId} wurde rückgängig gemacht.`);
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(last.customerId).subscribe({
+      next: () => {
+        this.lastAcceptedCheckin.set(undefined);
+        this.toastr.success(`Ticket ${last.ticketNumber} von Kunde Nr. ${last.customerId} wurde rückgängig gemacht.`);
+      },
+      // the interceptor already toasted and recorded the failure
+      error: () => {
+      }
     });
   }
 

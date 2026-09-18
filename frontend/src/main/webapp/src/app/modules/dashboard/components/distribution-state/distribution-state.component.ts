@@ -33,7 +33,13 @@ export class DistributionStateComponent {
   });
 
   createNewDistribution() {
-    this.distributionApiService.createNewDistribution().subscribe();
+    this.distributionApiService.createNewDistribution().subscribe({
+      // the interceptor's error toast is the whole presentation a rejected start needs (e.g. 409
+      // "Ausgabe bereits gestartet!") - without this callback the rethrown HttpErrorResponse would
+      // escape as an uncaught application error and be reported a second time
+      error: () => {
+      }
+    });
   }
 
   openCloseDistributionDialog() {
@@ -57,6 +63,9 @@ export class DistributionStateComponent {
           });
         }
       },
+      // the interceptor already toasted and recorded the failure
+      error: () => {
+      }
     });
   }
 }

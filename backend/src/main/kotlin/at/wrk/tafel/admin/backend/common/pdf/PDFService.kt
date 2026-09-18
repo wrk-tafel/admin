@@ -3,6 +3,11 @@ package at.wrk.tafel.admin.backend.common.pdf
 import org.apache.fop.apps.FopConfParser
 import org.apache.fop.apps.FopFactory
 import org.apache.fop.apps.MimeConstants
+import org.apache.fop.events.Event
+import org.apache.fop.events.EventFormatter
+import org.apache.fop.events.EventListener
+import org.apache.fop.events.model.EventSeverity
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import tools.jackson.dataformat.xml.XmlMapper
 import java.io.ByteArrayInputStream
@@ -19,6 +24,8 @@ import javax.xml.transform.stream.StreamSource
 class PDFService {
 
     companion object {
+        private val log = LoggerFactory.getLogger(PDFService::class.java)
+
         private val xmlMapper = XmlMapper()
 
         private val fopFactory: FopFactory by lazy { buildFopFactory() }
@@ -87,7 +94,25 @@ class PDFService {
         }
     }
 
-    fun generatePdf(data: Any, stylesheetPath: String): ByteArray {
+    /**
+     * Renders [data] through the stylesheet at [stylesheetPath] and logs one INFO line per document.
+     * [subject] names what the document is about (e.g. `household 4101`) and is added to that line
+     * and to every FOP warning, so a layout warning can be traced to the document and record it came
+     * from. It must be an identifier only - no names or addresses (GDPR).
+     *
+     * [eventListener] is offered every FOP event (overflow, missing glyph, unresolved image, ...) in
+     * addition to the logging above, which stays on either way. Production callers have no use for
+     * it; it exists so a test can fail on a warning that would otherwise only surface in `app.log`.
+     */
+    fun generatePdf(
+        data: Any,
+        stylesheetPath: String,
+        subject: String? = null,
+        eventListener: EventListener? = null,
+    ): ByteArray {
+        val label = documentLabel(stylesheetPath, subject)
+        val startedAt = System.nanoTime()
+
         val xmlOutStream = ByteArrayOutputStream()
         xmlOutStream.use {
             xmlMapper.writeValue(it, data)
@@ -105,7 +130,12 @@ class PDFService {
                 // other. Only the construction is serialized - the rendering below, which is where
                 // the time goes, stays concurrent.
                 val fop = synchronized(fopFactory) {
-                    fopFactory.newFop(MimeConstants.MIME_PDF, fopFactory.newFOUserAgent(), out)
+                    val userAgent = fopFactory.newFOUserAgent()
+                    // With a listener registered FOP does not install its own logging one, whose
+                    // messages carry no hint of which document they belong to.
+                    userAgent.eventBroadcaster.addEventListener(LabelledLoggingEventListener(label))
+                    eventListener?.let { userAgent.eventBroadcaster.addEventListener(it) }
+                    fopFactory.newFop(MimeConstants.MIME_PDF, userAgent, out)
                 }
 
                 val transformer = compiledStylesheet(stylesheetPath).newTransformer()
@@ -114,7 +144,38 @@ class PDFService {
                 transformer.transform(xmlSource, res)
             }
 
-            return outStream.toByteArray()
+            val pdfBytes = outStream.toByteArray()
+            log.info(
+                "Generated PDF {} in {} ms ({} bytes)",
+                label,
+                (System.nanoTime() - startedAt) / 1_000_000,
+                pdfBytes.size,
+            )
+            return pdfBytes
+        }
+    }
+
+    private fun documentLabel(stylesheetPath: String, subject: String?): String {
+        val template = stylesheetPath.substringAfterLast('/')
+        return if (subject.isNullOrBlank()) template else "$template ($subject)"
+    }
+
+    /**
+     * Sends FOP's events to the application log, each prefixed with the document being rendered.
+     * FOP's own logging listener writes them unattributed, and one is created per document because
+     * the [label] differs.
+     */
+    internal class LabelledLoggingEventListener(private val label: String) : EventListener {
+        override fun processEvent(event: Event) {
+            val message = "PDF $label: ${EventFormatter.format(event)}"
+            when (event.severity) {
+                EventSeverity.INFO -> log.debug(message)
+                EventSeverity.WARN -> log.warn(message)
+                EventSeverity.ERROR -> log.error(message, event.getParam("e") as? Throwable)
+                // A fatal event is followed by the exception that aborts the rendering, which the
+                // caller reports.
+                else -> Unit
+            }
         }
     }
 }
