@@ -2,6 +2,7 @@ import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {CheckinComponent, CustomerState, ScanResult} from './checkin.component';
 import {CommonModule} from '@angular/common';
+import {HttpErrorResponse} from '@angular/common/http';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {CustomerApiService, Gender} from '../../../../api/customer-api.service';
 import {EMPTY, of, throwError} from 'rxjs';
@@ -806,6 +807,37 @@ describe('CheckinComponent', () => {
             undefined,
             {action: 'Rückgängig', durationMs: 8000}
         );
+    });
+
+    it('assign customer keeps the customer on screen and raises no uncaught error when the request fails', async () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+        fixture.detectChanges();
+
+        component.processCustomer({
+            id: 133,
+            lastname: 'Mustermann',
+            firstname: 'Max',
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
+            gender: Gender.MALE,
+            address: {street: 'Teststraße', houseNumber: '123A', door: '21', postalCode: 1020, city: 'Wien'},
+            employer: 'test employer',
+            income: 1000,
+            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
+            additionalPersons: []
+        });
+        component.ticketNumber.set(55);
+
+        distributionApiService.assignCustomer.mockReturnValue(throwError(() => new HttpErrorResponse({status: 409})));
+
+        component.assignCustomer();
+        // RxJS rethrows an error nobody subscribed to on a timer - wait for it, so vitest would
+        // report it as an unhandled error and fail the run
+        await new Promise(resolve => setTimeout(resolve));
+
+        expect(component.customer()).toBeDefined();
+        expect(component.lastAcceptedCheckin()).toBeUndefined();
     });
 
     it('undo action from the confirmation toast deletes the ticket again', async () => {

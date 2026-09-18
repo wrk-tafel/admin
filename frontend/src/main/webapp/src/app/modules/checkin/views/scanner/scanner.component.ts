@@ -227,7 +227,11 @@ export class ScannerComponent {
     const scannerId = this.scannerId();
     const lastScanResult = this.lastScanResult();
     if (scannerId !== undefined && lastScanResult !== undefined) {
-      this.scannerApiService.sendScanResult(scannerId, lastScanResult).subscribe();
+      this.scannerApiService.sendScanResult(scannerId, lastScanResult).subscribe({
+        // the interceptor already toasted and recorded the failure
+        error: () => {
+        }
+      });
     }
   });
 
