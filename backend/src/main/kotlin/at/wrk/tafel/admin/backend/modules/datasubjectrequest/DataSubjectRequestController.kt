@@ -7,11 +7,9 @@ import org.springframework.core.io.InputStreamResource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.io.ByteArrayInputStream
 
@@ -29,8 +27,8 @@ class DataSubjectRequestController(
     private val dataSubjectRequestService: DataSubjectRequestService,
 ) {
 
-    @GetMapping("/search")
-    fun search(@RequestParam searchInput: String): DataSubjectMatchListResponse = dataSubjectRequestService.search(searchInput)
+    @PostMapping("/search")
+    fun search(@Valid @RequestBody request: DataSubjectSearchRequest): DataSubjectMatchListResponse = dataSubjectRequestService.search(request.searchInput)
 
     /**
      * The GDPR Art. 15/20 combined data takeout for one or more selected matches - one ZIP even for

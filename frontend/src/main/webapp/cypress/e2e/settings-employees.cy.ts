@@ -18,12 +18,12 @@ describe('Settings - Employees', () => {
     // flight when the intercept below is registered, and the click-triggered request race with it.
     cy.byTestId('employees-row-0').should('exist');
 
-    cy.intercept('GET', /\/api\/employees(\?|$)/).as('sortedEmployees');
+    cy.intercept('POST', '/api/employees/search').as('sortedEmployees');
     cy.contains('th', 'Nachname').click();
-    cy.wait('@sortedEmployees').its('request.url').should('include', 'sortBy=lastname').and('include', 'sortDirection=asc');
+    cy.wait('@sortedEmployees').its('request.body').should('deep.include', {sortBy: 'lastname', sortDirection: 'asc'});
 
     cy.contains('th', 'Nachname').click();
-    cy.wait('@sortedEmployees').its('request.url').should('include', 'sortBy=lastname').and('include', 'sortDirection=desc');
+    cy.wait('@sortedEmployees').its('request.body').should('deep.include', {sortBy: 'lastname', sortDirection: 'desc'});
   });
 
   it('paginates through the employee list', () => {

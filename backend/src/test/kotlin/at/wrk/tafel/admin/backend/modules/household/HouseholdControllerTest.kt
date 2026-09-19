@@ -427,7 +427,7 @@ class HouseholdControllerTest {
     }
 
     @Test
-    fun `get households - mapped correctly`() {
+    fun `search households - mapped correctly`() {
         val testSearchResult = HouseholdSearchResult(
             items = listOf(testHouseholdResponse),
             totalCount = 123,
@@ -451,16 +451,20 @@ class HouseholdControllerTest {
             )
         } returns testSearchResult
 
-        val response = controller.getHouseholds(
-            searchInput = " muster ",
-            page = testSearchResult.currentPage,
-            postProcessing = true,
-            costContribution = true,
-            valid = true,
-            locked = true,
-            missingPrivacyNotice = true,
-            willBeDeletedSoon = true,
-            privacyNoticeOutdated = true,
+        val response = controller.searchHouseholds(
+            HouseholdSearchRequest(
+                searchInput = " muster ",
+                page = testSearchResult.currentPage,
+                filters = HouseholdSearchFilters(
+                    postProcessing = true,
+                    costContribution = true,
+                    valid = true,
+                    locked = true,
+                    missingPrivacyNotice = true,
+                    willBeDeletedSoon = true,
+                    privacyNoticeOutdated = true,
+                ),
+            ),
         )
 
         verify {
@@ -482,7 +486,7 @@ class HouseholdControllerTest {
     }
 
     @Test
-    fun `get households - sortBy and sortDirection are forwarded`() {
+    fun `search households - sortBy and sortDirection are forwarded`() {
         val testSearchResult = HouseholdSearchResult(
             items = listOf(testHouseholdResponse),
             totalCount = 123,
@@ -501,7 +505,7 @@ class HouseholdControllerTest {
             )
         } returns testSearchResult
 
-        val response = controller.getHouseholds(sortBy = "name", sortDirection = "asc")
+        val response = controller.searchHouseholds(HouseholdSearchRequest(sortBy = "name", sortDirection = "asc"))
 
         verify {
             householdService.getHouseholds(
@@ -517,7 +521,7 @@ class HouseholdControllerTest {
     }
 
     @Test
-    fun `get households - all filters default when omitted`() {
+    fun `search households - all filters default when omitted`() {
         val testSearchResult = HouseholdSearchResult(
             items = listOf(testHouseholdResponse),
             totalCount = 123,
@@ -529,7 +533,7 @@ class HouseholdControllerTest {
             householdService.getHouseholds(null, null, HouseholdSearchFilters())
         } returns testSearchResult
 
-        val response = controller.getHouseholds()
+        val response = controller.searchHouseholds(HouseholdSearchRequest())
 
         verify {
             householdService.getHouseholds(

@@ -18,6 +18,32 @@ data class ChangePasswordResponse(
     val details: List<String>? = emptyList(),
 )
 
+/**
+ * Bound to `POST /users/search`'s body rather than `?searchInput=...` query parameters - see
+ * ADR-0057 (GDPR gap G25, issue #3506/#3703: a search term is a name, and a query string ends up in
+ * the never-rotated `access.log`).
+ */
+@ExcludeFromTestCoverage
+data class UserSearchRequest(
+    val searchInput: String? = null,
+    val enabled: Boolean? = null,
+    val page: Int? = null,
+    val pageSize: Int? = null,
+    val sortBy: String? = null,
+    val sortDirection: String? = null,
+)
+
+/** Bound to `POST /users/login-attempts/search`'s body - same reasoning as [UserSearchRequest]. */
+@ExcludeFromTestCoverage
+data class LoginAttemptSearchRequest(
+    val searchInput: String? = null,
+    val lockedOnly: Boolean? = null,
+    val page: Int? = null,
+    val pageSize: Int? = null,
+    val sortBy: String? = null,
+    val sortDirection: String? = null,
+)
+
 @ExcludeFromTestCoverage
 data class UserRequest(
     val id: Long?,

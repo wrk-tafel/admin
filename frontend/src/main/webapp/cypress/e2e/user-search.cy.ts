@@ -102,7 +102,7 @@ describe('User Search', () => {
       // behind, same reasoning as the customer search's cost-contribution filter test.
       cy.byTestId('searchInputText').type(user.lastname);
       clickSearchAndWaitForResult();
-      cy.intercept('GET', /\/api\/users(\?|$)/).as('statusFilterSearch');
+      cy.intercept('POST', '/api/users/search').as('statusFilterSearch');
       cy.byTestId('status-filter-deaktiviert').click();
       cy.wait('@statusFilterSearch');
 
@@ -116,7 +116,7 @@ describe('User Search', () => {
 
       cy.byTestId('searchInputText').type(user.lastname);
       clickSearchAndWaitForResult();
-      cy.intercept('GET', /\/api\/users(\?|$)/).as('statusFilterSearch');
+      cy.intercept('POST', '/api/users/search').as('statusFilterSearch');
       cy.byTestId('status-filter-alle').click();
       cy.wait('@statusFilterSearch');
 
@@ -139,12 +139,12 @@ describe('User Search', () => {
       clickSearchAndWaitForResult();
       cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
 
-      cy.intercept('GET', /\/api\/users(\?|$)/).as('sortedSearch');
+      cy.intercept('POST', '/api/users/search').as('sortedSearch');
       cy.contains('th', 'Name').click();
-      cy.wait('@sortedSearch').its('request.url').should('include', 'sortBy=name').and('include', 'sortDirection=asc');
+      cy.wait('@sortedSearch').its('request.body').should('deep.include', {sortBy: 'name', sortDirection: 'asc'});
 
       cy.contains('th', 'Name').click();
-      cy.wait('@sortedSearch').its('request.url').should('include', 'sortBy=name').and('include', 'sortDirection=desc');
+      cy.wait('@sortedSearch').its('request.body').should('deep.include', {sortBy: 'name', sortDirection: 'desc'});
 
       // still present after sorting - it is a reorder of the same filtered result, not a new search
       cy.get(`a[href$="/benutzer/detail/${user.id}"]`).filterDisplayed().should('have.length', 1);
@@ -288,7 +288,7 @@ describe('User Search', () => {
    * same reasoning as the customer search's own helper.
    */
   function clickSearchAndWaitForResult() {
-    cy.intercept('GET', /\/api\/users(\?|$)/).as('userSearch');
+    cy.intercept('POST', '/api/users/search').as('userSearch');
     cy.byTestId('search-button').click();
     cy.wait('@userSearch');
   }

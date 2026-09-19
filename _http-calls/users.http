@@ -27,13 +27,30 @@ POST {{baseApiPath}}/users/logout
 GET {{baseApiPath}}/users/info
 
 ### Search for users (username, name or personnel number - fuzzy)
-GET {{baseApiPath}}/users?searchInput=muster
+# The term goes in the body, not a ?searchInput=... query parameter - see ADR-0057 (GDPR gap G25).
+POST {{baseApiPath}}/users/search
+Content-Type: application/json
+
+{
+  "searchInput": "muster"
+}
 
 ### Search for users (fuzzy search combined with the filter)
-GET {{baseApiPath}}/users?searchInput=muster&enabled=true
+POST {{baseApiPath}}/users/search
+Content-Type: application/json
+
+{
+  "searchInput": "muster",
+  "enabled": true
+}
 
 ### Search for users (enabled)
-GET {{baseApiPath}}/users?enabled=true
+POST {{baseApiPath}}/users/search
+Content-Type: application/json
+
+{
+  "enabled": true
+}
 
 ### Get user 300
 GET {{baseApiPath}}/users/300
@@ -88,10 +105,19 @@ GET {{baseApiPath}}/users/permissions
 Content-Type: application/json
 
 ### Get login attempts
-GET {{baseApiPath}}/users/login-attempts
+POST {{baseApiPath}}/users/login-attempts/search
+Content-Type: application/json
+
+{}
 
 ### Get login attempts of a searched username, currently locked ones only
-GET {{baseApiPath}}/users/login-attempts?searchInput=hans&lockedOnly=true
+POST {{baseApiPath}}/users/login-attempts/search
+Content-Type: application/json
+
+{
+  "searchInput": "hans",
+  "lockedOnly": true
+}
 
 ### Get the configured lockout rule
 GET {{baseApiPath}}/users/login-attempts/settings
