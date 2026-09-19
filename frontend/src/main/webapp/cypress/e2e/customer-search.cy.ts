@@ -230,9 +230,29 @@ describe('Customer Search', () => {
       cy.byTestId('filter-costContribution').click();
       cy.wait('@costContributionSearch');
 
+      // The open amount itself is a column of the result, not just the reason the row is listed.
+      cy.get(`a[href$="/kunden/detail/${customerId}"]`).filterDisplayed()
+        .closest('tr')
+        .find('[testid^="searchresult-pendingCostContribution-"]')
+        .should('contain.text', '€');
+
       clickSearchAndOpenExpectedResult(customerId, {alreadySearched: true});
 
       cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
+    });
+  });
+
+  it('shows a dash instead of an amount for a customer without an open cost contribution', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+
+      cy.get(`a[href$="/kunden/detail/${customer.id}"]`).filterDisplayed()
+        .closest('tr')
+        .find('[testid^="searchresult-pendingCostContribution-"]')
+        .should(($cell) => expect($cell.text().trim()).to.equal('-'));
     });
   });
 
