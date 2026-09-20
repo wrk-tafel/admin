@@ -24,6 +24,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionClosed
 import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.events.FoodHandoutStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionUpdateResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.TicketScreenTicketResponse
@@ -422,28 +423,32 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `current distribution item found`() {
+    fun `current distribution update carries the registered customer count`() {
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { distributionHouseholdRepository.countAllByDistributionId(activeDistribution.id!!) } returns 42
 
-        val distributionItem = service.getCurrentDistributionItem()
+        val update = service.getCurrentDistributionUpdate()
 
-        assertThat(distributionItem).isEqualTo(
-            DistributionItem(
-                id = activeDistribution.id!!,
-                startedAt = activeDistribution.startedAt!!,
-                endedAt = activeDistribution.endedAt,
+        assertThat(update).isEqualTo(
+            DistributionUpdateResponse(
+                distribution = DistributionItem(
+                    id = activeDistribution.id!!,
+                    startedAt = activeDistribution.startedAt!!,
+                    endedAt = activeDistribution.endedAt,
+                ),
+                registeredCustomers = 42,
             ),
         )
     }
 
     @Test
-    fun `current distribution item not found`() {
+    fun `current distribution update without an open distribution has no count`() {
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
-        val distributionItem = service.getCurrentDistributionItem()
+        val update = service.getCurrentDistributionUpdate()
 
-        assertThat(distributionItem).isNull()
+        assertThat(update).isEqualTo(DistributionUpdateResponse(distribution = null, registeredCustomers = null))
     }
 
     @Test

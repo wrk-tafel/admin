@@ -24,6 +24,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.events.DistributionStarte
 import at.wrk.tafel.admin.backend.modules.distribution.events.FoodHandoutStartedEvent
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionUpdateResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.HouseholdListPdfResult
@@ -133,7 +134,15 @@ class DistributionService(
     @Transactional(readOnly = true)
     fun getCurrentDistribution(): DistributionEntity? = distributionRepository.getCurrentDistribution()
 
-    fun getCurrentDistributionItem(): DistributionItem? = getCurrentDistribution()?.let { mapDistribution(it) }
+    /** The open distribution together with its registered-household count, as the header shows it. */
+    @Transactional(readOnly = true)
+    fun getCurrentDistributionUpdate(): DistributionUpdateResponse {
+        val distribution = getCurrentDistribution() ?: return DistributionUpdateResponse(distribution = null)
+        return DistributionUpdateResponse(
+            distribution = mapDistribution(distribution),
+            registeredCustomers = distributionHouseholdRepository.countAllByDistributionId(distribution.id!!),
+        )
+    }
 
     fun hasCurrentDistribution(): Boolean = getCurrentDistribution() != null
 

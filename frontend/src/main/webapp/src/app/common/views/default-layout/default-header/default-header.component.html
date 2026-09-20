@@ -49,20 +49,30 @@
         visible indication, since the sidebar starts closed there. The real `h1` (sr-only, rendered
         by the shell's `<main>`) already gives a screen reader that information, so this is
         `aria-hidden` rather than a second heading announcing the same title twice.
-        Centered on desktop (`lg`, matching the sidebar's own mobile/desktop breakpoint): positioned
-        absolutely against the header's `relative` outer wrapper so it sits in the middle of the
-        whole header regardless of how wide the button groups either side of it are, rather than
-        just centered in the leftover space next to them.
+        Centered only on very wide screens (`2xl`): positioned absolutely against the header's
+        `relative` outer wrapper so it sits in the middle of the whole header regardless of how wide
+        the button groups either side of it are. Any narrower, the right-hand group (clock, distribution
+        state, registered customers, connection) reaches past the middle of the header, so the title
+        stays in the flow next to the buttons and truncates instead of running under it.
       -->
       @if (pageTitle()) {
         <!-- text tight against the tags: the indentation would otherwise collapse into leading/
              trailing spaces, and the e2e spec asserts this title's exact text -->
         <span aria-hidden="true" testid="page-title"
-              class="truncate text-sm font-semibold text-slate-700 lg:absolute lg:left-1/2 lg:top-1/2 lg:max-w-[40%] lg:-translate-x-1/2 lg:-translate-y-1/2">{{ pageTitle() }}</span>
+              class="truncate text-sm font-semibold text-slate-700 2xl:absolute 2xl:left-1/2 2xl:top-1/2 2xl:max-w-[40%] 2xl:-translate-x-1/2 2xl:-translate-y-1/2">{{ pageTitle() }}</span>
       }
     </div>
 
-    <div class="flex items-center gap-2 sm:gap-6 shrink-0">
+    <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+      <!--
+        The taskbar clock is missing on any second screen the app runs on (Linux only draws it on the
+        primary one), so the time lives here. Hidden below `sm`: a phone has its own clock in the status
+        bar, and on a phone the header has no room for it next to the page title, which is the only
+        visible indication of the open page there.
+        Deliberately not a live region: it changes every minute and nobody wants that announced.
+      -->
+      <time testid="header-clock" class="hidden sm:inline text-sm font-semibold tabular-nums text-slate-700">{{ clockText() }}</time>
+
       <!--
         Distribution state matters everywhere in this app (e.g. "Annahme"/"Waren-Eingabe" require an
         active one), so it is shown permanently here rather than only on the dashboard. `role="status"`
@@ -79,6 +89,16 @@
           <span class="hidden sm:inline"> · {{ distribution()!.startedAt | date: 'HH:mm' }}</span>
         }
       </span>
+
+      <!--
+        A separate badge, not part of the live region above: it changes with every customer that gets
+        registered, and announcing each of those to a screen reader while staff are working through the
+        intake would drown out everything else. Hidden below `xl`: from there down the header has no room for
+        it next to the page title, and the dashboard still shows the figure.
+      -->
+      @if (registeredCustomers() !== null) {
+        <span class="badge badge-success hidden xl:inline" testid="registered-customers-badge">{{ registeredCustomers() }} {{ registeredCustomers() === 1 ? 'Kunde' : 'Kunden' }} angemeldet</span>
+      }
 
       <!--
         Green against red was the only thing that told the two states apart, which is no difference at
