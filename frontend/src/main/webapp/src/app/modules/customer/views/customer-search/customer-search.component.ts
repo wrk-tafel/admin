@@ -307,6 +307,10 @@ export class CustomerSearchComponent {
     return !!customer.validUntil && !dayjs(customer.validUntil).startOf('day').isBefore(dayjs().startOf('day'));
   }
 
+  hasPendingCostContribution(customer: CustomerData): boolean {
+    return (customer.pendingCostContribution ?? 0) > 0;
+  }
+
   personsCount(customer: CustomerData): number {
     return 1 + (customer.additionalPersons ?? []).filter(person => !person.excludeFromHousehold).length;
   }
@@ -399,7 +403,9 @@ export class CustomerSearchComponent {
   }
 
   // columns for mat-table
-  displayedColumns = ['icon', 'id', 'name', 'birthDate', 'address', 'personsCount', 'issuedAt', 'validUntil', 'actions'];
+  displayedColumns = [
+    'icon', 'id', 'name', 'birthDate', 'address', 'personsCount', 'issuedAt', 'validUntil', 'pendingCostContribution', 'actions'
+  ];
 
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 }

@@ -562,6 +562,45 @@ describe('CustomerSearchComponent', () => {
     expect(fixture.debugElement.query(By.css('[testid="searchresult-personsCount-0"]')).nativeElement.textContent).toBe('2');
   });
 
+  describe('open cost contribution', () => {
+
+    it('lists the pending amount as a column, formatted as euro', () => {
+      apiService.searchCustomer.mockReturnValue(of({
+        ...searchCustomerMockResponse,
+        items: [{...testCustomer, pendingCostContribution: 12.5}]
+      }));
+      const {fixture} = createComponent();
+      fixture.detectChanges();
+
+      const cell = fixture.debugElement.query(By.css('[testid="searchresult-pendingCostContribution-0"]')).nativeElement;
+      expect(cell.textContent.trim()).toMatch(/^12,50\s€$/);
+    });
+
+    it.each([undefined, 0])('shows a dash instead of an amount when the pending amount is %s', (amount) => {
+      apiService.searchCustomer.mockReturnValue(of({
+        ...searchCustomerMockResponse,
+        items: [{...testCustomer, pendingCostContribution: amount}]
+      }));
+      const {fixture} = createComponent();
+      fixture.detectChanges();
+
+      const cell = fixture.debugElement.query(By.css('[testid="searchresult-pendingCostContribution-0"]')).nativeElement;
+      expect(cell.textContent.trim()).toBe('-');
+    });
+
+    it('shows the amount on the mobile card too', () => {
+      apiService.searchCustomer.mockReturnValue(of({
+        ...searchCustomerMockResponse,
+        items: [{...testCustomer, pendingCostContribution: 12.5}]
+      }));
+      const {fixture} = createComponent();
+      fixture.detectChanges();
+
+      const cell = fixture.debugElement.query(By.css('[testid="searchresult-card-pendingCostContribution-42"]')).nativeElement;
+      expect(cell.textContent.trim()).toMatch(/^12,50\s€$/);
+    });
+  });
+
   it('downloads the reference-less privacy notice template', () => {
     const response = new HttpResponse({
       status: 200,
