@@ -54,7 +54,6 @@ internal class HouseholdConverterTest {
 
     private val testCountry = CountryItem(
         id = 1,
-        code = "AT",
         name = "Österreich",
     )
 
@@ -276,7 +275,6 @@ internal class HouseholdConverterTest {
         assertThat(mainPerson.country).isEqualTo(
             CountryItem(
                 id = testCountry1.id!!,
-                code = testCountry1.code!!,
                 name = testCountry1.name!!,
             ),
         )

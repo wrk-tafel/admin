@@ -9,9 +9,9 @@ import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('SettingsCountriesComponent', () => {
-  const testCountry1: CountryAdminData = {id: 1, code: 'AT', name: 'Österreich', enabled: true};
-  const testCountry2: CountryAdminData = {id: 2, code: 'DE', name: 'Deutschland', enabled: true};
-  const disabledCountry: CountryAdminData = {id: 3, code: 'XX', name: 'Verschwundenland', enabled: false};
+  const testCountry1: CountryAdminData = {id: 1, name: 'Österreich', enabled: true};
+  const testCountry2: CountryAdminData = {id: 2, name: 'Deutschland', enabled: true};
+  const disabledCountry: CountryAdminData = {id: 3, name: 'Verschwundenland', enabled: false};
 
   let countryApiMock: Partial<CountryApiService>;
   let toastrMock: Partial<TafelToastrService>;
@@ -61,7 +61,7 @@ describe('SettingsCountriesComponent', () => {
     expect(component['visibleCountries']().map(c => c.id)).toEqual([testCountry2.id, testCountry1.id]);
   });
 
-  it('startEdit() enters edit mode for the given row and prefills the name and code', () => {
+  it('startEdit() enters edit mode for the given row and prefills the name', () => {
     const fixture = TestBed.createComponent(SettingsCountriesComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
@@ -70,7 +70,6 @@ describe('SettingsCountriesComponent', () => {
 
     expect(component['editingId']()).toBe(testCountry1.id);
     expect(component['nameControl'].value).toBe(testCountry1.name);
-    expect(component['codeControl'].value).toBe(testCountry1.code);
   });
 
   it('cancelEdit() leaves edit mode without saving', () => {
@@ -85,42 +84,40 @@ describe('SettingsCountriesComponent', () => {
     expect(countryApiMock.updateCountry).not.toHaveBeenCalled();
   });
 
-  it('saveEdit() sends the trimmed name and uppercased code, shows a success toast and reloads', () => {
+  it('saveEdit() sends the trimmed name, shows a success toast and reloads', () => {
     const fixture = TestBed.createComponent(SettingsCountriesComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
     component['startEdit'](testCountry1);
     component['nameControl'].setValue(' Updated Name ');
-    component['codeControl'].setValue(' xy ');
     component['saveEdit'](testCountry1);
 
     expect(countryApiMock.updateCountry).toHaveBeenCalledWith(testCountry1.id, {
       ...testCountry1,
-      code: 'XY',
       name: 'Updated Name'
     });
     expect(toastrMock.success).toHaveBeenCalled();
     expect(component['editingId']()).toBeNull();
   });
 
-  it('saveEdit() refuses a code that is not exactly two letters', () => {
+  it('saveEdit() refuses a blank name', () => {
     const fixture = TestBed.createComponent(SettingsCountriesComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
     component['startEdit'](testCountry1);
-    component['codeControl'].setValue('XYZ');
+    component['nameControl'].setValue('   ');
     component['saveEdit'](testCountry1);
 
     expect(countryApiMock.updateCountry).not.toHaveBeenCalled();
-    expect(component['codeControl'].touched).toBe(true);
+    expect(component['nameControl'].touched).toBe(true);
     expect(component['editingId']()).toBe(testCountry1.id);
   });
 
-  it('saveEdit() surfaces the backend error message (e.g. a duplicate code) in the toast', () => {
+  it('saveEdit() surfaces the backend error message (e.g. a duplicate name) in the toast', () => {
     countryApiMock.updateCountry = vi.fn(() => throwError(() =>
-      new HttpErrorResponse({status: 400, error: {detail: 'Länder-Code DE ist bereits vergeben!'}})
+      new HttpErrorResponse({status: 400, error: {detail: 'Das Land Deutschland existiert bereits!'}})
     ));
 
     const fixture = TestBed.createComponent(SettingsCountriesComponent);
@@ -130,11 +127,11 @@ describe('SettingsCountriesComponent', () => {
     component['startEdit'](testCountry1);
     component['saveEdit'](testCountry1);
 
-    expect(toastrMock.error).toHaveBeenCalledWith('Länder-Code DE ist bereits vergeben!', 'Speichern fehlgeschlagen');
+    expect(toastrMock.error).toHaveBeenCalledWith('Das Land Deutschland existiert bereits!', 'Speichern fehlgeschlagen');
   });
 
   it('addCountry() creates the country returned by the dialog, shows a success toast and reloads', () => {
-    const created: CountryCreateData = {code: 'ZZ', name: 'Neuland', enabled: true};
+    const created: CountryCreateData = {name: 'Neuland', enabled: true};
     matDialogMock.open = vi.fn(() => ({afterClosed: () => of(created)})) as any;
 
     const fixture = TestBed.createComponent(SettingsCountriesComponent);
@@ -157,11 +154,11 @@ describe('SettingsCountriesComponent', () => {
     expect(countryApiMock.createCountry).not.toHaveBeenCalled();
   });
 
-  it('addCountry() surfaces the backend error message (e.g. a duplicate code) in the toast', () => {
-    const created: CountryCreateData = {code: 'AT', name: 'Duplikat', enabled: true};
+  it('addCountry() surfaces the backend error message (e.g. a duplicate name) in the toast', () => {
+    const created: CountryCreateData = {name: 'Österreich', enabled: true};
     matDialogMock.open = vi.fn(() => ({afterClosed: () => of(created)})) as any;
     countryApiMock.createCountry = vi.fn(() => throwError(() =>
-      new HttpErrorResponse({status: 400, error: {detail: 'Länder-Code AT ist bereits vergeben!'}})
+      new HttpErrorResponse({status: 400, error: {detail: 'Das Land Österreich existiert bereits!'}})
     ));
 
     const fixture = TestBed.createComponent(SettingsCountriesComponent);
@@ -170,7 +167,7 @@ describe('SettingsCountriesComponent', () => {
 
     component['addCountry']();
 
-    expect(toastrMock.error).toHaveBeenCalledWith('Länder-Code AT ist bereits vergeben!', 'Erstellen fehlgeschlagen');
+    expect(toastrMock.error).toHaveBeenCalledWith('Das Land Österreich existiert bereits!', 'Erstellen fehlgeschlagen');
   });
 
   it('toggleCountryVisibility() updates the enabled flag', () => {
@@ -204,7 +201,7 @@ describe('SettingsCountriesComponent', () => {
     expect(component['visibleCountries']().map(c => c.id)).toEqual([disabledCountry.id]);
   });
 
-  it('the search box narrows the list by name or code', () => {
+  it('the search box narrows the list by name', () => {
     const fixture = TestBed.createComponent(SettingsCountriesComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
@@ -212,7 +209,7 @@ describe('SettingsCountriesComponent', () => {
     component['searchControl'].setValue('deutsch');
     expect(component['visibleCountries']().map(c => c.id)).toEqual([testCountry2.id]);
 
-    component['searchControl'].setValue('at');
+    component['searchControl'].setValue('reich');
     expect(component['visibleCountries']().map(c => c.id)).toEqual([testCountry1.id]);
   });
 

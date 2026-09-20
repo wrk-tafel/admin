@@ -8,7 +8,7 @@ import java.time.LocalDate
 
 class HouseholdResponseModelTest {
 
-    private val country = CountryItem(id = 1, code = "AT", name = "Austria")
+    private val country = CountryItem(id = 1, name = "Austria")
 
     private fun validAddress() = HouseholdAddress(
         street = "Street",

@@ -4,7 +4,7 @@ import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {Gender} from '../support/commands';
 import {MAIN_CONTENT} from '../support/accessibility';
 
-const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
+const AUSTRIA = {id: 165, name: 'Österreich'};
 
 describe('Customer Search', () => {
 

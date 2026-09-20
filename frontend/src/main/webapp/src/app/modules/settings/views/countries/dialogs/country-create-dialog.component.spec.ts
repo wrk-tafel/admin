@@ -31,21 +31,20 @@ describe('CountryCreateDialogComponent', () => {
     fixture.detectChanges();
 
     expect(component.form.value).toMatchObject({
-      code: '',
       name: '',
       enabled: true
     });
   });
 
-  it('save() closes dialog with the uppercased code when valid', () => {
+  it('save() closes dialog with the trimmed name when valid', () => {
     const fixture = TestBed.createComponent(CountryCreateDialogComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    component.form.patchValue({code: 'zz', name: 'Neuland'});
+    component.form.patchValue({name: ' Neuland '});
     component.save();
 
-    expect(dialogRef.close).toHaveBeenCalledWith({code: 'ZZ', name: 'Neuland', enabled: true});
+    expect(dialogRef.close).toHaveBeenCalledWith({name: 'Neuland', enabled: true});
   });
 
   it('save() does not close dialog when invalid', () => {
@@ -58,16 +57,16 @@ describe('CountryCreateDialogComponent', () => {
     expect(dialogRef.close).not.toHaveBeenCalled();
   });
 
-  it('save() rejects a code that is not exactly two letters', () => {
+  it('save() rejects a name longer than 50 characters', () => {
     const fixture = TestBed.createComponent(CountryCreateDialogComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    component.form.patchValue({code: 'ABC', name: 'Neuland'});
+    component.form.patchValue({name: 'N'.repeat(51)});
     component.save();
 
     expect(dialogRef.close).not.toHaveBeenCalled();
-    expect(component.form.controls.code.invalid).toBe(true);
+    expect(component.form.controls.name.invalid).toBe(true);
   });
 
   it('cancel() closes dialog without data', () => {

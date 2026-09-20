@@ -14,7 +14,6 @@ data class CountryListResponse(
 @ExcludeFromTestCoverage
 data class CountryItem(
     val id: Long,
-    val code: String,
     val name: String,
 )
 
@@ -26,9 +25,7 @@ data class CountryAdminListResponse(
 @ExcludeFromTestCoverage
 data class CountryRequest(
     @field:NotBlank
-    @field:Size(min = 2, max = 2)
-    val code: String,
-    @field:NotBlank
+    @field:Size(max = 50)
     val name: String,
     val enabled: Boolean,
 )
@@ -36,7 +33,6 @@ data class CountryRequest(
 @ExcludeFromTestCoverage
 data class CountryResponse(
     val id: Long,
-    val code: String,
     val name: String,
     val enabled: Boolean,
 )

@@ -18,8 +18,8 @@ import java.time.LocalDateTime
 
 class HouseholdMergePlannerTest {
 
-    private val testCountry = CountryEntity(code = "AT", name = "Austria").apply { id = 1 }
-    private val otherCountry = CountryEntity(code = "DE", name = "Germany").apply { id = 2 }
+    private val testCountry = CountryEntity(name = "Austria").apply { id = 1 }
+    private val otherCountry = CountryEntity(name = "Germany").apply { id = 2 }
 
     private val fakePersonMapper: (PersonEntity) -> Person = { p ->
         Person(
@@ -29,7 +29,7 @@ class HouseholdMergePlannerTest {
             lastname = p.lastname,
             birthDate = p.birthDate,
             gender = null,
-            country = CountryItem(id = 1, code = "AT", name = "Austria"),
+            country = CountryItem(id = 1, name = "Austria"),
             employer = p.employer,
             income = p.income,
             incomeDue = p.incomeDue,

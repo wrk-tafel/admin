@@ -35,7 +35,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
   const testCountry = {
     id: 0,
-    code: 'AT',
     name: 'Österreich'
   };
   const testCustomerData: CustomerData = {

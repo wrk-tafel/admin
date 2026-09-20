@@ -81,6 +81,6 @@ object TestdataGenerator {
     fun createCountry(): CountryEntity {
         val randomNumber = generateRandomLong()
 
-        return CountryEntity(code = "00", name = "Country-$randomNumber")
+        return CountryEntity(name = "Country-$randomNumber")
     }
 }

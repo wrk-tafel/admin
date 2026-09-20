@@ -3,7 +3,7 @@ import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {MAIN_CONTENT} from '../support/accessibility';
 import {Gender} from '../support/commands';
 
-const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
+const AUSTRIA = {id: 165, name: 'Österreich'};
 
 describe('CheckIn', () => {
 

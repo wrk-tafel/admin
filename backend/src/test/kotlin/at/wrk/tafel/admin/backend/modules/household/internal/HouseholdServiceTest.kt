@@ -123,7 +123,7 @@ class HouseholdServiceTest {
     @InjectMockKs
     private lateinit var service: HouseholdService
 
-    private val testCountry = CountryItem(id = testCountry1.id!!, code = testCountry1.code!!, name = testCountry1.name!!)
+    private val testCountry = CountryItem(id = testCountry1.id!!, name = testCountry1.name!!)
 
     @BeforeEach
     fun beforeEach() {

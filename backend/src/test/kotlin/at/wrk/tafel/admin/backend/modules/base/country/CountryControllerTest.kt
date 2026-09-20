@@ -20,8 +20,8 @@ class CountryControllerTest {
 
     @Test
     fun `list countries`() {
-        val country1 = CountryItem(id = 1, code = "AA", name = "Name A")
-        val country2 = CountryItem(id = 2, code = "BB", name = "Name B")
+        val country1 = CountryItem(id = 1, name = "Name A")
+        val country2 = CountryItem(id = 2, name = "Name B")
 
         every { countryService.listCountries() } returns listOf(country1, country2)
 
@@ -34,7 +34,7 @@ class CountryControllerTest {
 
     @Test
     fun `frequentlyUsedCount is capped at the fixed limit`() {
-        val countries = (1..7).map { CountryItem(id = it.toLong(), code = "C$it", name = "Country $it") }
+        val countries = (1..7).map { CountryItem(id = it.toLong(), name = "Country $it") }
 
         every { countryService.listCountries() } returns countries
 
@@ -45,8 +45,8 @@ class CountryControllerTest {
 
     @Test
     fun `list all countries for admin`() {
-        val country1 = CountryResponse(id = 1, code = "AA", name = "Name A", enabled = true)
-        val country2 = CountryResponse(id = 2, code = "BB", name = "Name B", enabled = false)
+        val country1 = CountryResponse(id = 1, name = "Name A", enabled = true)
+        val country2 = CountryResponse(id = 2, name = "Name B", enabled = false)
 
         every { countryService.listAllCountriesForAdmin() } returns listOf(country1, country2)
 
@@ -57,8 +57,8 @@ class CountryControllerTest {
 
     @Test
     fun `create country`() {
-        val request = CountryRequest(code = "ZZ", name = "Neuland", enabled = true)
-        val response = CountryResponse(id = 1, code = "ZZ", name = "Neuland", enabled = true)
+        val request = CountryRequest(name = "Neuland", enabled = true)
+        val response = CountryResponse(id = 1, name = "Neuland", enabled = true)
 
         every { countryService.createCountry(request) } returns response
 
@@ -70,8 +70,8 @@ class CountryControllerTest {
 
     @Test
     fun `update country`() {
-        val request = CountryRequest(code = "AA", name = "Neuer Name", enabled = false)
-        val response = CountryResponse(id = 1, code = "AA", name = "Neuer Name", enabled = false)
+        val request = CountryRequest(name = "Neuer Name", enabled = false)
+        val response = CountryResponse(id = 1, name = "Neuer Name", enabled = false)
 
         every { countryService.updateCountry(1, request) } returns response
 

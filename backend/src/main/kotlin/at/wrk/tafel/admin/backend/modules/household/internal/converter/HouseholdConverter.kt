@@ -241,7 +241,6 @@ class HouseholdConverter(
 
     private fun mapCountryToResponse(country: CountryEntity): CountryItem = CountryItem(
         id = country.id!!,
-        code = country.code,
         name = country.name,
     )
 }

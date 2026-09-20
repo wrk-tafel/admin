@@ -24,19 +24,16 @@ export class CountryCreateDialogComponent {
   readonly dialogRef = inject(MatDialogRef<CountryCreateDialogComponent>);
   private readonly fb = inject(FormBuilder);
 
-  // The backend rejects anything but a 2-letter code (@Size(min=2, max=2)); matched here so an
-  // invalid value never becomes a bare "Erstellen fehlgeschlagen" toast with the dialog already gone.
+  // The backend rejects a blank name or one over 50 characters (@NotBlank, @Size(max=50)); matched
+  // here so an invalid value never becomes a bare "Erstellen fehlgeschlagen" toast with the dialog
+  // already gone.
   form = this.fb.group({
-    code: ['', [Validators.required, Validators.pattern(/^[A-Za-z]{2}$/)]],
-    name: ['', [Validators.required]],
+    name: ['', [Validators.required, Validators.maxLength(50)]],
     enabled: [true]
   });
 
   save() {
-    // trimmed/uppercased before validating, not after - otherwise surrounding whitespace (e.g. a
-    // pasted " zz ") fails the exactly-two-letters pattern and save() silently no-ops
-    const trimmedCode = (this.form.controls.code.value ?? '').trim().toUpperCase();
-    this.form.controls.code.setValue(trimmedCode);
+    // trimmed before validating, not after - otherwise a whitespace-only name would pass `required`
     this.form.controls.name.setValue((this.form.controls.name.value ?? '').trim());
 
     if (!this.form.valid) {

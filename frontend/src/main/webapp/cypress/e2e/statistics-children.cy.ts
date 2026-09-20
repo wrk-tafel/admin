@@ -283,7 +283,6 @@ function createCustomerWithChildBirthDates(birthDates: Date[]) {
       gender: Gender.MALE,
       country: {
         id: 165,
-        code: 'AT',
         name: 'Österreich'
       },
       income: 1000,
@@ -304,7 +303,6 @@ function createCustomerWithChildBirthDates(birthDates: Date[]) {
         gender: Gender.MALE,
         country: {
           id: 165,
-          code: 'AT',
           name: 'Österreich'
         },
         excludeFromHousehold: false,

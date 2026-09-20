@@ -366,7 +366,6 @@ Cypress.Commands.add(
         employer: 'employer-' + randomNumber,
         country: {
           id: 165,
-          code: 'AT',
           name: 'Österreich'
         },
         income: income ?? 1000,

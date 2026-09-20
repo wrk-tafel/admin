@@ -51,7 +51,6 @@ describe('CustomerDetailComponent', () => {
 
   const mockCountry = {
     id: 0,
-    code: 'AT',
     name: 'Österreich'
   };
   const mockCustomer: CustomerData = {

@@ -91,7 +91,7 @@ export class SettingsCountriesComponent {
   private readonly _loaded = signal(false);
   protected readonly loaded = this._loaded;
 
-  displayedColumns = ['active', 'code', 'name', 'actions'];
+  displayedColumns = ['active', 'name', 'actions'];
 
   protected readonly searchControl = new FormControl('', {nonNullable: true});
   private readonly searchText = toSignal(this.searchControl.valueChanges, {initialValue: ''});
@@ -112,7 +112,7 @@ export class SettingsCountriesComponent {
     return this._countries()
       .filter(country =>
         matchesEnabledFilter(country.enabled, filter) &&
-        (search.length === 0 || country.name.toLowerCase().includes(search) || country.code.toLowerCase().includes(search))
+        (search.length === 0 || country.name.toLowerCase().includes(search))
       )
       .sort((a, b) => a.name.localeCompare(b.name));
   });
@@ -120,12 +120,11 @@ export class SettingsCountriesComponent {
   protected readonly resultCountLabel = computed(() => `${this.visibleCountries().length} von ${this.totalCount()} Ländern`);
 
   protected editingId = signal<number | null>(null);
-  protected nameControl = new FormControl<string>('', {nonNullable: true});
-  // Same shape the backend enforces (@Size(min=2, max=2)) - caught here so an invalid code never
+  // Same shape the backend enforces (@NotBlank, @Size(max=50)) - caught here so an invalid name never
   // becomes a bare "Speichern fehlgeschlagen" toast with the row already back to its read state.
-  protected codeControl = new FormControl<string>('', {
+  protected nameControl = new FormControl<string>('', {
     nonNullable: true,
-    validators: [Validators.required, Validators.pattern(/^[A-Za-z]{2}$/)]
+    validators: [Validators.required, Validators.maxLength(50)]
   });
   private nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
   private nameInputMobile = viewChild<ElementRef<HTMLInputElement>>('nameInputMobile');
@@ -163,7 +162,6 @@ export class SettingsCountriesComponent {
   protected startEdit(country: CountryAdminData) {
     this.editingId.set(country.id);
     this.nameControl.setValue(country.name);
-    this.codeControl.setValue(country.code);
   }
 
   protected cancelEdit() {
@@ -171,19 +169,17 @@ export class SettingsCountriesComponent {
   }
 
   protected saveEdit(country: CountryAdminData) {
-    // trimmed/uppercased before validating, not after - otherwise surrounding whitespace (e.g. a
-    // pasted " xy ") fails the exactly-two-letters pattern and saveEdit() silently no-ops
-    const trimmedCode = this.codeControl.value.trim().toUpperCase();
-    this.codeControl.setValue(trimmedCode);
-    if (this.codeControl.invalid) {
-      this.codeControl.markAsTouched();
+    // trimmed before validating, not after - otherwise a whitespace-only name would pass `required`
+    const trimmedName = this.nameControl.value.trim();
+    this.nameControl.setValue(trimmedName);
+    if (this.nameControl.invalid) {
+      this.nameControl.markAsTouched();
       return;
     }
 
     const updated: CountryAdminData = {
       ...country,
-      code: trimmedCode,
-      name: this.nameControl.value.trim()
+      name: trimmedName
     };
 
     this.countryApiService.updateCountry(updated.id, updated).subscribe({

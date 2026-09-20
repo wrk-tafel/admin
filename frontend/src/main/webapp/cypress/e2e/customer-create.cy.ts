@@ -129,7 +129,7 @@ describe('Customer Creation', () => {
         lastname,
         birthDate,
         gender: Gender.MALE,
-        country: {id: 165, code: 'AT', name: 'Österreich'},
+        country: {id: 165, name: 'Österreich'},
         telephoneNumber: '0123456789',
         email: 'existing.customer@test.com',
         employer: 'employer',
@@ -180,7 +180,7 @@ describe('Customer Creation', () => {
         lastname,
         birthDate,
         gender: Gender.MALE,
-        country: {id: 165, code: 'AT', name: 'Österreich'},
+        country: {id: 165, name: 'Österreich'},
         telephoneNumber: '0123456789',
         email: 'existing.duplicate@test.com',
         employer: 'employer',
@@ -235,7 +235,7 @@ describe('Customer Creation', () => {
       gender: Gender.MALE,
       employer: 'test employer',
       income: 500,
-      country: {id: 1, code: 'AF', name: 'Afghanistan'},
+      country: {id: 1, name: 'Afghanistan'},
       excludeFromHousehold: false
     });
     cy.byTestId('personform-0').should('be.visible');
@@ -250,7 +250,7 @@ describe('Customer Creation', () => {
       birthDate: getBirthDateForAge(3),
       gender: Gender.FEMALE,
       income: 0,
-      country: {id: 2, code: 'EG', name: 'Ägypten'},
+      country: {id: 2, name: 'Ägypten'},
       excludeFromHousehold: false
     });
 
@@ -376,7 +376,7 @@ describe('Customer Creation', () => {
         birthDate: getBirthDateForAge(30),
         gender: Gender.MALE,
         employer: 'Test Employer',
-        country: {id: 165, code: 'AT', name: 'Österreich'},
+        country: {id: 165, name: 'Österreich'},
         excludeFromHousehold: false
       });
 
@@ -434,7 +434,7 @@ describe('Customer Creation', () => {
       gender: Gender.MALE,
       employer: 'test employer',
       income: 500,
-      country: {id: 1, code: 'AF', name: 'Afghanistan'},
+      country: {id: 1, name: 'Afghanistan'},
       excludeFromHousehold: false
     });
     enterAdditionalPersonData(1, {
@@ -446,7 +446,7 @@ describe('Customer Creation', () => {
       birthDate: getBirthDateForAge(3),
       gender: Gender.FEMALE,
       income: 0,
-      country: {id: 2, code: 'EG', name: 'Ägypten'},
+      country: {id: 2, name: 'Ägypten'},
       excludeFromHousehold: false
     });
     enterAdditionalPersonData(2, {
@@ -457,7 +457,7 @@ describe('Customer Creation', () => {
       firstname: 'Child 2',
       birthDate: getBirthDateForAge(8),
       gender: Gender.MALE,
-      country: {id: 3, code: 'AX', name: 'Aland'},
+      country: {id: 3, name: 'Aland'},
       excludeFromHousehold: true
     });
 

@@ -14,8 +14,8 @@ describe('CustomerFormComponent', () => {
   let apiService: MockedObject<CountryApiService>;
 
   const mockCountryList = [
-    {id: 0, code: 'AT', name: 'Österreich'},
-    {id: 1, code: 'DE', name: 'Deutschland'}
+    {id: 0, name: 'Österreich'},
+    {id: 1, name: 'Deutschland'}
   ];
 
   const testCustomerData: CustomerData = {

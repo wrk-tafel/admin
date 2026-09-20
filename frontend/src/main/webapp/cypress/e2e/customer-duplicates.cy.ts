@@ -139,7 +139,7 @@ describe('Customer Duplicates', () => {
         lastname: 'Lastname' + id,
         birthDate: dayjs().subtract(30, 'year').format('YYYY-MM-DD'),
         gender: Gender.MALE,
-        country: {id: 165, code: 'AT', name: 'Österreich'},
+        country: {id: 165, name: 'Österreich'},
         excludeFromHousehold: false,
         receivesFamilyAllowance: false
       }]
@@ -389,7 +389,7 @@ describe('Customer Merge', () => {
         lastname: 'Novak',
         birthDate: dayjs().subtract(40, 'year').toDate(),
         gender: Gender.MALE,
-        country: {id: 165, code: 'AT', name: 'Österreich'},
+        country: {id: 165, name: 'Österreich'},
         excludeFromHousehold: false,
         receivesFamilyAllowance: false
       }]
@@ -420,7 +420,7 @@ describe('Customer Merge', () => {
       lastname: 'Schmidt',
       birthDate: dayjs().subtract(35, 'year').toDate(),
       gender: Gender.FEMALE,
-      country: {id: 165, code: 'AT', name: 'Österreich'},
+      country: {id: 165, name: 'Österreich'},
       excludeFromHousehold: false,
       receivesFamilyAllowance: false
     });
@@ -538,7 +538,6 @@ function createDuplicatePair(firstOverrides: Partial<CustomerData> = {}, secondO
       gender: Gender.MALE,
       country: {
         id: 165,
-        code: 'AT',
         name: 'Österreich'
       },
       income: 1000,
