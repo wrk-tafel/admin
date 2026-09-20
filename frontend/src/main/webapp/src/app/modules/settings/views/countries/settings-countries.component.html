@@ -23,8 +23,7 @@
       <mat-form-field subscriptSizing="dynamic" class="w-full max-w-md">
         <mat-label>Land suchen</mat-label>
         <mat-icon svgIcon="search" matPrefix class="ms-3 me-2 text-slate-400"></mat-icon>
-        <input matInput [formControl]="searchControl" testid="countries-search-input"
-               />
+        <input matInput [formControl]="searchControl" testid="countries-search-input"/>
         @if (searchControl.value) {
           <button matIconButton matSuffix type="button" aria-label="Suche zurücksetzen"
                   testid="countries-search-clear-button" (click)="clearSearch()">

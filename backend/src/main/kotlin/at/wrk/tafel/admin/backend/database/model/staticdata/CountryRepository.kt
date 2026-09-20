@@ -4,5 +4,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface CountryRepository : JpaRepository<CountryEntity, Long> {
     fun findByEnabledIsTrue(): List<CountryEntity>
-    fun findByNameIgnoreCase(name: String): CountryEntity?
+    fun findAllByNameIgnoreCase(name: String): List<CountryEntity>
 }

@@ -46,7 +46,9 @@ available to everyone (see [Employees are reachable two ways](#employees-are-rea
 - Backed by `CountryRepository`/`CountryEntity` in `database/model/staticdata` (table
   `static_countries`, `enabled` column added by #3585's migration, defaulting every existing row to
   `true`). A country is identified by its name alone - there is no ISO code column.
-  `CountryRepository.findByNameIgnoreCase` backs the uniqueness check above. A country disabled here is never
+  `CountryRepository.findAllByNameIgnoreCase` backs the uniqueness check above (a list, since
+  a database can already hold names that differ only in case; a save that leaves a country's name
+  unchanged skips the check). A country disabled here is never
   deleted - every person's nationality is a `NOT NULL` FK into this table across a household's
   whole history, which is a stronger "never delete" case than any of the `settings` module's other
   reference-data screens (see that module's README).

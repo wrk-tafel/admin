@@ -73,7 +73,11 @@ class CountryService(
             ?: throw NotFoundException("Country with id $countryId not found")
 
         val name = request.name.trim()
-        validateNameIsUnique(name, countryId)
+        // an unchanged name is not a new collision - it keeps a country that already shares its name
+        // with another one (possible before names were unique) editable, e.g. for its enabled toggle
+        if (name != entity.name) {
+            validateNameIsUnique(name, countryId)
+        }
 
         entity.name = name
         entity.enabled = request.enabled
@@ -84,8 +88,7 @@ class CountryService(
     }
 
     private fun validateNameIsUnique(name: String, countryId: Long?) {
-        val existingCountry = countryRepository.findByNameIgnoreCase(name)
-        if (existingCountry != null && existingCountry.id != countryId) {
+        if (countryRepository.findAllByNameIgnoreCase(name).any { it.id != countryId }) {
             throw BusinessRuleException("Das Land $name existiert bereits!")
         }
     }

@@ -18,6 +18,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -45,8 +46,8 @@ class CountryServiceTest {
 
         assertThat(countries).isEqualTo(
             listOf(
-                CountryItem(id = testCountry2.id!!, name = testCountry2.name!!),
-                CountryItem(id = testCountry1.id!!, name = testCountry1.name!!),
+                CountryItem(id = testCountry2.id!!, name = testCountry2.name),
+                CountryItem(id = testCountry1.id!!, name = testCountry1.name),
             ),
         )
     }
@@ -97,7 +98,7 @@ class CountryServiceTest {
         val existingEntity = CountryEntity(name = "Österreich").apply { id = 1 }
 
         every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
-        every { countryRepository.findByNameIgnoreCase("Neuer Name") } returns null
+        every { countryRepository.findAllByNameIgnoreCase("Neuer Name") } returns emptyList()
         every { countryRepository.save(any()) } answers { firstArg() as CountryEntity }
 
         val response = countryService.updateCountry(
@@ -126,7 +127,7 @@ class CountryServiceTest {
         val otherEntity = CountryEntity(name = "Deutschland").apply { id = 2 }
 
         every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
-        every { countryRepository.findByNameIgnoreCase("Deutschland") } returns otherEntity
+        every { countryRepository.findAllByNameIgnoreCase("Deutschland") } returns listOf(otherEntity)
 
         val exception = assertThrows<BusinessRuleException> {
             countryService.updateCountry(existingEntity.id!!, CountryRequest(name = "Deutschland", enabled = true))
@@ -139,7 +140,7 @@ class CountryServiceTest {
         val existingEntity = CountryEntity(name = "Österreich").apply { id = 1 }
 
         every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
-        every { countryRepository.findByNameIgnoreCase("österreich") } returns existingEntity
+        every { countryRepository.findAllByNameIgnoreCase("österreich") } returns listOf(existingEntity)
         every { countryRepository.save(any()) } answers { firstArg() as CountryEntity }
 
         val response = countryService.updateCountry(existingEntity.id!!, CountryRequest(name = "österreich", enabled = true))
@@ -148,8 +149,21 @@ class CountryServiceTest {
     }
 
     @Test
+    fun `update country with an unchanged name skips the uniqueness check`() {
+        val existingEntity = CountryEntity(name = "Österreich").apply { id = 1 }
+
+        every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
+        every { countryRepository.save(any()) } answers { firstArg() as CountryEntity }
+
+        val response = countryService.updateCountry(existingEntity.id!!, CountryRequest(name = "Österreich", enabled = false))
+
+        assertThat(response).isEqualTo(CountryResponse(id = 1, name = "Österreich", enabled = false))
+        verify(exactly = 0) { countryRepository.findAllByNameIgnoreCase(any()) }
+    }
+
+    @Test
     fun `create country persists a new entity with a trimmed name`() {
-        every { countryRepository.findByNameIgnoreCase("Neuland") } returns null
+        every { countryRepository.findAllByNameIgnoreCase("Neuland") } returns emptyList()
         every { countryRepository.save(any()) } answers { (firstArg() as CountryEntity).apply { id = 42 } }
 
         val response = countryService.createCountry(CountryRequest(name = " Neuland ", enabled = true))
@@ -161,7 +175,7 @@ class CountryServiceTest {
     fun `create country throws BusinessRuleException when the name is already used`() {
         val existingEntity = CountryEntity(name = "Österreich").apply { id = 1 }
 
-        every { countryRepository.findByNameIgnoreCase("österreich") } returns existingEntity
+        every { countryRepository.findAllByNameIgnoreCase("österreich") } returns listOf(existingEntity)
 
         val exception = assertThrows<BusinessRuleException> {
             countryService.createCountry(CountryRequest(name = "österreich", enabled = true))
