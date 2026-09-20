@@ -66,6 +66,8 @@ export interface DistributionListResponse {
 
 export interface DistributionItemUpdate {
   distribution: DistributionItem | null;
+  /** Households registered for the open distribution so far; absent/`null` while none is open. */
+  registeredCustomers?: number | null;
 }
 
 export interface DistributionItem {

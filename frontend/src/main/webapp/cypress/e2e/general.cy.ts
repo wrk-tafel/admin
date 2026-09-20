@@ -421,6 +421,33 @@ describe('Shell', () => {
     cy.closeDistribution();
   });
 
+  it('shows the current time in the header, whether or not a distribution is open', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('header-clock').should('be.visible').invoke('text').should('match', /^\s*\d{2}:\d{2}\s*$/);
+  });
+
+  it('shows the registered customers in the header while a distribution is open, updating as they register', () => {
+    cy.viewport(1920, 1080);
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+    cy.byTestId('registered-customers-badge').should('not.exist');
+
+    cy.createDistribution();
+    cy.byTestId('registered-customers-badge').should('be.visible').and('contain.text', '0 Kunden angemeldet');
+
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
+    cy.byTestId('registered-customers-badge').should('contain.text', '1 Kunde angemeldet');
+
+    // the same figure follows along on a screen without the dashboard's own stream
+    cy.visit('/anmeldung/annahme');
+    cy.byTestId('registered-customers-badge').should('contain.text', '1 Kunde angemeldet');
+
+    cy.closeDistribution();
+    cy.byTestId('registered-customers-badge').should('not.exist');
+  });
+
   it('disables a distribution-gated nav entry with a tooltip explaining why, instead of hiding it', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');

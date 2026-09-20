@@ -66,7 +66,9 @@ describe('DefaultHeaderComponent', () => {
                         getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState')
                           .mockReturnValue(signal(false).asReadonly()),
                         getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
-                          .mockReturnValue(signal<DistributionItem | null>(null).asReadonly())
+                          .mockReturnValue(signal<DistributionItem | null>(null).asReadonly()),
+                        getRegisteredCustomers: vi.fn().mockName('GlobalStateService.getRegisteredCustomers')
+                          .mockReturnValue(signal<number | null>(null).asReadonly())
                     }
                 },
                 {
@@ -366,6 +368,92 @@ describe('DefaultHeaderComponent', () => {
 
         const badge: HTMLElement = fixture.nativeElement.querySelector('[testid="distribution-state-badge"]');
         expect(badge.textContent!.trim()).toBe('Ausgabe geschlossen');
+    });
+
+    describe('registered customers', () => {
+        function open(registeredCustomers: number | null, endedAt?: Date) {
+            const distribution: DistributionItem = {id: 1, startedAt: new Date('2026-08-13T07:15:00'), endedAt};
+            globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(distribution).asReadonly());
+            globalStateService.getRegisteredCustomers.mockReturnValue(signal<number | null>(registeredCustomers).asReadonly());
+
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            fixture.detectChanges();
+            return fixture.nativeElement as HTMLElement;
+        }
+
+        it('shows the count next to the distribution state while one is active', () => {
+            const element = open(42);
+
+            expect(element.querySelector('[testid="registered-customers-badge"]')!.textContent!.trim()).toBe('42 Kunden angemeldet');
+        });
+
+        it('uses the singular for a single customer', () => {
+            expect(open(1).querySelector('[testid="registered-customers-badge"]')!.textContent!.trim()).toBe('1 Kunde angemeldet');
+        });
+
+        it('shows zero as a real count', () => {
+            expect(open(0).querySelector('[testid="registered-customers-badge"]')!.textContent!.trim()).toBe('0 Kunden angemeldet');
+        });
+
+        it('shows nothing before the first count arrived', () => {
+            expect(open(null).querySelector('[testid="registered-customers-badge"]')).toBeFalsy();
+        });
+
+        it('shows nothing once the distribution has ended', () => {
+            expect(open(42, new Date('2026-08-13T12:00:00')).querySelector('[testid="registered-customers-badge"]')).toBeFalsy();
+        });
+
+        it('keeps the count out of the live region, so each registration is not announced', () => {
+            const element = open(42);
+
+            const liveRegion = element.querySelector('[testid="distribution-state-badge"]')!;
+            expect(liveRegion.textContent).not.toContain('42');
+            expect(element.querySelector('[testid="registered-customers-badge"]')!.closest('[role="status"]')).toBeNull();
+        });
+    });
+
+    describe('clock', () => {
+        afterEach(() => vi.useRealTimers());
+
+        it('shows the current time in Vienna, also without an active distribution', () => {
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date('2026-09-19T10:42:20Z'));
+
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            fixture.detectChanges();
+
+            expect(fixture.nativeElement.querySelector('[testid="header-clock"]').textContent.trim()).toBe('12:42');
+        });
+
+        it('moves on at the minute boundary, not a full minute after the page loaded', async () => {
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date('2026-09-19T10:42:20Z'));
+
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            fixture.detectChanges();
+            const clock = () => fixture.nativeElement.querySelector('[testid="header-clock"]').textContent.trim();
+
+            await vi.advanceTimersByTimeAsync(39_000);
+            fixture.detectChanges();
+            expect(clock()).toBe('12:42');
+
+            await vi.advanceTimersByTimeAsync(1_000);
+            fixture.detectChanges();
+            expect(clock()).toBe('12:43');
+
+            await vi.advanceTimersByTimeAsync(60_000);
+            fixture.detectChanges();
+            expect(clock()).toBe('12:44');
+        });
+
+        it('is not a live region', () => {
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            fixture.detectChanges();
+
+            const clock: HTMLElement = fixture.nativeElement.querySelector('[testid="header-clock"]');
+            expect(clock.closest('[role="status"]')).toBeNull();
+            expect(clock.getAttribute('aria-live')).toBeNull();
+        });
     });
 
     it('shows no environment banner on production, where the label is empty', () => {

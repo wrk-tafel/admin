@@ -92,7 +92,11 @@ export class DistributionStatisticsInputComponent {
 
   employeeCountInputEffect = effect(() => {
     const employeeCount = this.employeeCountInput();
-    this.form.patchValue({'employeeCount': employeeCount});
+    // A live update of the dashboard can land while the user is still typing; it must not wipe
+    // what they entered. The field takes the server's value again once it is saved (pristine).
+    if (!this.employeeCount.dirty) {
+      this.form.patchValue({'employeeCount': employeeCount});
+    }
   });
 
   onUpdateSelectedShelters(selectedShelters: ShelterItem[]) {
@@ -117,6 +121,7 @@ export class DistributionStatisticsInputComponent {
 
     const observer = {
       next: () => {
+        this.employeeCount.markAsPristine();
         this.toastr.success('Statistik-Daten gespeichert!');
       },
       error: () => {
