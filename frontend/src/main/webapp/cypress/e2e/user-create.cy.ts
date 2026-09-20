@@ -243,7 +243,7 @@ describe('User Create', () => {
   // found", since a fixed personnel number (e.g. the 409-conflict test below) may already have been
   // created as an employee by an earlier run against the same database.
   function linkEmployee(personnelNumber: string) {
-    cy.intercept('GET', '**/employees*').as('findEmployeesForLink');
+    cy.intercept('POST', '**/employees/search').as('findEmployeesForLink');
     cy.byTestId('personnelNumberInput').type(personnelNumber);
     cy.byTestId('user-employee-search-button').click();
 

@@ -149,6 +149,17 @@
                 </td>
               </ng-container>
 
+              <ng-container matColumnDef="pendingCostContribution">
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-right">Offener Unkostenbeitrag</th>
+                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-pendingCostContribution-' + i" class="px-4 py-2 text-right">
+                  @if (hasPendingCostContribution(customer)) {
+                    <span class="font-semibold text-red-700">{{customer.pendingCostContribution | currency}}</span>
+                  } @else {
+                    -
+                  }
+                </td>
+              </ng-container>
+
               <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
                 <td mat-cell *matCellDef="let customer" class="px-4 py-2 relative">
@@ -196,6 +207,14 @@
                       <div>
                         @if (customer.validUntil) {
                           <span class="text-white px-2" [ngClass]="isValid(customer) ? 'bg-green-700' : 'bg-red-600'">{{customer.validUntil | date : 'dd.MM.yyyy'}}</span>
+                        } @else {
+                          -
+                        }
+                      </div>
+                      <div class="font-bold">Offener Unkostenbeitrag:</div>
+                      <div [attr.testid]="'searchresult-card-pendingCostContribution-' + customer.id">
+                        @if (hasPendingCostContribution(customer)) {
+                          <span class="font-semibold text-red-700">{{customer.pendingCostContribution | currency}}</span>
                         } @else {
                           -
                         }

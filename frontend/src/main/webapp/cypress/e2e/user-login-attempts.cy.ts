@@ -21,12 +21,12 @@ describe('Benutzer - Anmelde-Versuche', () => {
     // flight when the intercept below is registered, and the click-triggered request race with it.
     cy.byTestId('login-attempts-row-0').should('exist');
 
-    cy.intercept('GET', /\/api\/users\/login-attempts(\?|$)/).as('sortedLoginAttempts');
+    cy.intercept('POST', '/api/users/login-attempts/search').as('sortedLoginAttempts');
     cy.contains('th', 'Benutzername').click();
-    cy.wait('@sortedLoginAttempts').its('request.url').should('include', 'sortBy=username').and('include', 'sortDirection=asc');
+    cy.wait('@sortedLoginAttempts').its('request.body').should('deep.include', {sortBy: 'username', sortDirection: 'asc'});
 
     cy.contains('th', 'Benutzername').click();
-    cy.wait('@sortedLoginAttempts').its('request.url').should('include', 'sortBy=username').and('include', 'sortDirection=desc');
+    cy.wait('@sortedLoginAttempts').its('request.body').should('deep.include', {sortBy: 'username', sortDirection: 'desc'});
 
     // still present after sorting - it is a reorder of the same filtered result, not a new search
     cy.byTestId('login-attempts-table').should('contain.text', 'gesperrt1').and('contain.text', 'fehlversuch1');

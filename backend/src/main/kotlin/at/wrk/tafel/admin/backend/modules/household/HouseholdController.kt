@@ -8,7 +8,6 @@ import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdExportService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
-import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdSearchFilters
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import jakarta.validation.Valid
@@ -102,37 +101,16 @@ class HouseholdController(
     fun getHousehold(@PathVariable householdId: Long): HouseholdResponse = householdService.findByHouseholdId(householdId)
         ?: throw NotFoundException("Kunde Nr. $householdId nicht gefunden!")
 
-    @GetMapping
+    @PostMapping("/search")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun getHouseholds(
-        @RequestParam searchInput: String? = null,
-        @RequestParam page: Int? = null,
-        @RequestParam postProcessing: Boolean? = null,
-        @RequestParam costContribution: Boolean? = null,
-        @RequestParam valid: Boolean? = null,
-        @RequestParam locked: Boolean? = null,
-        @RequestParam missingPrivacyNotice: Boolean? = null,
-        @RequestParam willBeDeletedSoon: Boolean? = null,
-        @RequestParam privacyNoticeOutdated: Boolean? = null,
-        @RequestParam pageSize: Int? = null,
-        @RequestParam sortBy: String? = null,
-        @RequestParam sortDirection: String? = null,
-    ): PagedResponse<HouseholdResponse> {
+    fun searchHouseholds(@RequestBody request: HouseholdSearchRequest): PagedResponse<HouseholdResponse> {
         val householdSearchResult = householdService.getHouseholds(
-            searchInput = searchInput,
-            page = page,
-            filters = HouseholdSearchFilters(
-                postProcessing = postProcessing,
-                costContribution = costContribution,
-                valid = valid,
-                locked = locked,
-                missingPrivacyNotice = missingPrivacyNotice,
-                willBeDeletedSoon = willBeDeletedSoon,
-                privacyNoticeOutdated = privacyNoticeOutdated,
-            ),
-            pageSize = pageSize,
-            sortBy = sortBy,
-            sortDirection = sortDirection,
+            searchInput = request.searchInput,
+            page = request.page,
+            filters = request.filters,
+            pageSize = request.pageSize,
+            sortBy = request.sortBy,
+            sortDirection = request.sortDirection,
         )
         return PagedResponse(
             items = householdSearchResult.items,

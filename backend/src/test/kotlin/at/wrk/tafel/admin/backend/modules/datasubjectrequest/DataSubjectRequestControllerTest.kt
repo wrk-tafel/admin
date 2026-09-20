@@ -29,7 +29,7 @@ class DataSubjectRequestControllerTest {
         )
         every { dataSubjectRequestService.search("Muster") } returns response
 
-        val result = controller.search("Muster")
+        val result = controller.search(DataSubjectSearchRequest("Muster"))
 
         assertThat(result).isEqualTo(response)
     }

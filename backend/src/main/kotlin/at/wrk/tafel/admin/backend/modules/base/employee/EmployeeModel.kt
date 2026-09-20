@@ -52,3 +52,16 @@ data class EmployeeRequest(
     @field:NotBlank
     val lastname: String,
 )
+
+/**
+ * Bound to `POST /employees/search`'s body rather than `?searchInput=...` query parameters - see
+ * ADR-0057 (GDPR gap G25, issue #3506/#3703: a search term is a name, and a query string ends up in
+ * the never-rotated `access.log`).
+ */
+data class EmployeeSearchRequest(
+    val searchInput: String? = null,
+    val page: Int? = null,
+    val pageSize: Int? = null,
+    val sortBy: String? = null,
+    val sortDirection: String? = null,
+)

@@ -41,7 +41,7 @@ class EmployeeControllerTest {
         )
         every { employeeService.findEmployees("test-input", 1) } returns response
 
-        val result = employeeController.findEmployees(searchInput = "test-input", page = 1)
+        val result = employeeController.searchEmployees(EmployeeSearchRequest(searchInput = "test-input", page = 1))
 
         assertThat(result).isEqualTo(response)
     }

@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
+import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdSearchFilters
 import jakarta.validation.Valid
 import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.Email
@@ -13,6 +14,22 @@ import jakarta.validation.constraints.PositiveOrZero
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+
+/**
+ * Bound to `POST /households/search`'s body rather than sent as `?searchInput=...` query
+ * parameters - a search term is, in practice, a customer's name, and a query string ends up in the
+ * never-rotated `access.log`, the browser's history and support-mail context (GDPR gap G25, issue
+ * #3506) with no way to keep it out short of never putting it in a URL at all. See ADR-0057.
+ */
+@ExcludeFromTestCoverage
+data class HouseholdSearchRequest(
+    val searchInput: String? = null,
+    val page: Int? = null,
+    val pageSize: Int? = null,
+    val sortBy: String? = null,
+    val sortDirection: String? = null,
+    val filters: HouseholdSearchFilters = HouseholdSearchFilters(),
+)
 
 @ExcludeFromTestCoverage
 data class HouseholdCreationResponse(
