@@ -66,10 +66,12 @@
     <div class="flex items-center gap-2 sm:gap-4 shrink-0">
       <!--
         The taskbar clock is missing on any second screen the app runs on (Linux only draws it on the
-        primary one), so the time lives here, always visible - also on narrow viewports, it is short.
+        primary one), so the time lives here. Hidden below `sm`: a phone has its own clock in the status
+        bar, and on a phone the header has no room for it next to the page title, which is the only
+        visible indication of the open page there.
         Deliberately not a live region: it changes every minute and nobody wants that announced.
       -->
-      <time testid="header-clock" class="text-sm font-semibold tabular-nums text-slate-700">{{ now() | date: 'HH:mm' : 'Europe/Vienna' }}</time>
+      <time testid="header-clock" class="hidden sm:inline text-sm font-semibold tabular-nums text-slate-700">{{ clockText() }}</time>
 
       <!--
         Distribution state matters everywhere in this app (e.g. "Annahme"/"Waren-Eingabe" require an

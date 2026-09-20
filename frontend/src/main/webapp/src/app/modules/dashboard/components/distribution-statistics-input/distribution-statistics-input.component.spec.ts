@@ -70,4 +70,30 @@ describe('DistributionStatisticsInputComponent', () => {
     expect(distributionApiService.saveStatistic).toHaveBeenCalledWith(5, []);
     expect(toastr.success).toHaveBeenCalledWith('Statistik-Daten gespeichert!');
   });
+
+  it('keeps what the user is typing when a live update brings a different value', () => {
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.employeeCount.setValue(100);
+    fixture.componentInstance.employeeCount.markAsDirty();
+
+    fixture.componentRef.setInput('employeeCountInput', 7);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.employeeCount.value).toBe(100);
+  });
+
+  it('takes the value of a live update again once the entry is saved', () => {
+    distributionApiService.saveStatistic.mockReturnValue(of(undefined));
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.employeeCount.setValue(100);
+    fixture.componentInstance.employeeCount.markAsDirty();
+    fixture.componentInstance.save();
+
+    fixture.componentRef.setInput('employeeCountInput', 7);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.employeeCount.value).toBe(7);
+  });
 });

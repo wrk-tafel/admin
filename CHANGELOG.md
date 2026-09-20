@@ -6,7 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Bricht eine Live-Verbindung (Übersicht, Ausgabe, Ticket-Bildschirm) ab, steht im Anwendungsprotokoll jetzt, welche Verbindung wie lange offen war und woran sie scheiterte - bei unerwarteten Fehlern samt Stack-Trace.
-- In der Kopfzeile wird jetzt immer die aktuelle Uhrzeit angezeigt, und während einer geöffneten Ausgabe zusätzlich die Anzahl der angemeldeten Kunden, die sich live mit jeder Anmeldung aktualisiert (ab Bildschirmbreite XL).
+- In der Kopfzeile wird jetzt die aktuelle Uhrzeit angezeigt (nicht auf Smartphones), und während einer geöffneten Ausgabe zusätzlich die Anzahl der angemeldeten Kunden, die sich live mit jeder Anmeldung aktualisiert (ab Bildschirmbreite XL).
 
 ## [1.19.7] - 2026-09-18
 - Ein fehlgeschlagener Klick auf "Tag starten" oder "Annehmen" im Check-in erzeugt keinen zusätzlichen, nichtssagenden Fehlereintrag "Fehler: [object Object]" im Protokoll mehr, und unerwartete Fehler nennen jetzt Status und Adresse der Anfrage.

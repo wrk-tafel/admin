@@ -35,6 +35,10 @@ import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import linkIcon from '@material-symbols/svg-400/outlined/link-fill.svg';
 import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
 
+const CLOCK_FORMAT = new Intl.DateTimeFormat('de-AT', {
+  timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+});
+
 @Component({
   selector: 'tafel-default-header',
   templateUrl: 'default-header.component.html',
@@ -93,6 +97,9 @@ export class DefaultHeaderComponent {
     defer(() => timer(60_000 - (Date.now() % 60_000))).pipe(repeat(), map(() => new Date()), startWith(new Date())),
     {requireSync: true}
   );
+
+  /** Vienna wall-clock time as HH:mm. `DatePipe` ignores IANA zone names and falls back to the browser's zone. */
+  readonly clockText = computed(() => CLOCK_FORMAT.format(this.now()));
 
   /** The page's own title (`h1` on desktop, also shown visibly in the header on mobile). */
   readonly pageTitle = inject(TafelTitleStrategy).routeTitle;

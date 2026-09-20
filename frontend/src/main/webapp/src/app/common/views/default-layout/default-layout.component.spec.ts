@@ -35,7 +35,9 @@ function configureModule(mobile: boolean) {
     };
     const globalStateServiceSpy = {
         getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution'),
-        getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly())
+        getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly()),
+        getRegisteredCustomers: vi.fn().mockName('GlobalStateService.getRegisteredCustomers')
+            .mockReturnValue(signal<number | null>(null).asReadonly())
     };
     const configApiServiceSpy = {
         observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
@@ -125,9 +127,10 @@ describe('DefaultLayoutComponent', () => {
         const fixture = TestBed.createComponent(DefaultLayoutComponent);
         fixture.detectChanges();
 
-        const text = fixture.nativeElement.textContent;
-        expect(text).toMatch(/\d{2}\.\d{2}\.\d{4}/);
-        expect(text).not.toMatch(/\d{2}:\d{2}/);
+        const buildDate = Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('div.truncate'))
+            .map(element => element.textContent!.trim())
+            .find(text => /\d{2}\.\d{2}\.\d{4}/.test(text));
+        expect(buildDate).toBe('28.07.2026');
     });
 
     it('hides the version footer when the sidebar is collapsed', () => {

@@ -115,7 +115,7 @@ export class GlobalStateService {
     if (current === null || next === null) {
       return current === next;
     }
-    return current.id === next.id && current.startedAt === next.startedAt && current.endedAt === next.endedAt;
+    return current.id === next.id && !!current.endedAt === !!next.endedAt;
   }
 
 }
