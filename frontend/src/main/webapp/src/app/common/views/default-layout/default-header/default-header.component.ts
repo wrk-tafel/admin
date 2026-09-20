@@ -1,4 +1,5 @@
 import {Component, computed, DestroyRef, inject, output} from '@angular/core';
+import {defer, map, repeat, startWith, timer} from 'rxjs';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {HttpResponse} from '@angular/common/http';
 import {RouterLink} from '@angular/router';
@@ -74,6 +75,24 @@ export class DefaultHeaderComponent {
     const distribution = this.distribution();
     return !!distribution && !distribution.endedAt;
   });
+
+  /**
+   * Households registered for the running distribution - what the dashboard's "Kunden angemeldet"
+   * panel shows, but available here on every screen (e.g. during the intake). It arrives on the
+   * distribution stream the shell already holds, see `GlobalStateService.getRegisteredCustomers`.
+   */
+  readonly registeredCustomers = computed(() => this.distributionActive() ? this.globalStateService.getRegisteredCustomers()() : null);
+
+  /**
+   * The wall clock, ticking on the minute boundary rather than a minute after the page loaded, so
+   * the displayed minute never lags by up to 59 seconds. `defer` + `repeat` recompute the delay to the
+   * next boundary each round, which keeps it from drifting the way a fixed 60s interval would; the
+   * subscription ends with the component (`toSignal`).
+   */
+  readonly now = toSignal(
+    defer(() => timer(60_000 - (Date.now() % 60_000))).pipe(repeat(), map(() => new Date()), startWith(new Date())),
+    {requireSync: true}
+  );
 
   /** The page's own title (`h1` on desktop, also shown visibly in the header on mobile). */
   readonly pageTitle = inject(TafelTitleStrategy).routeTitle;

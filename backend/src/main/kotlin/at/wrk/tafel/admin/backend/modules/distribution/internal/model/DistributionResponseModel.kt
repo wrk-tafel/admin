@@ -12,6 +12,11 @@ data class DistributionListResponse(
 @ExcludeFromTestCoverage
 data class DistributionUpdateResponse(
     val distribution: DistributionItem?,
+    /**
+     * Households registered for [distribution] so far. `null` while none is open, and on the events
+     * that announce a start/close: those carry no count, the stream sends it separately as it changes.
+     */
+    val registeredCustomers: Int? = null,
 )
 
 @ExcludeFromTestCoverage

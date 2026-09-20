@@ -1,6 +1,6 @@
 import { GlobalStateService } from './global-state.service';
 import { DistributionItemUpdate } from '../../api/distribution-api.service';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { SseService } from '../sse/sse.service';
 import { TestBed } from '@angular/core/testing';
 
@@ -62,6 +62,54 @@ describe('GlobalStateService', () => {
         service.init();
 
         expect(sseServiceSpy.listen).toHaveBeenCalledTimes(1);
+    });
+
+    it('exposes the registered customer count of the open distribution', () => {
+        const { service, sseServiceSpy } = setup();
+        const updates = new Subject<DistributionItemUpdate>();
+        sseServiceSpy.listen.mockReturnValue(updates);
+        expect(service.getRegisteredCustomers()()).toBeNull();
+
+        service.init();
+        const distribution = { id: 123, startedAt: new Date() };
+        updates.next({ distribution, registeredCustomers: 7 });
+        expect(service.getRegisteredCustomers()()).toBe(7);
+
+        updates.next({ distribution, registeredCustomers: 8 });
+        expect(service.getRegisteredCustomers()()).toBe(8);
+
+        // a start/close event without a count must not wipe (or reset to zero) a newer count
+        updates.next({ distribution });
+        expect(service.getRegisteredCustomers()()).toBe(8);
+
+        updates.next({ distribution: null });
+        expect(service.getRegisteredCustomers()()).toBeNull();
+    });
+
+    // The server re-sends the message on every registration; effects keyed on the distribution
+    // (which reset the statistics/notes forms) must not re-run for a distribution that did not change.
+    it('keeps the distribution object while only the customer count changes', () => {
+        const { service, sseServiceSpy } = setup();
+        const updates = new Subject<DistributionItemUpdate>();
+        sseServiceSpy.listen.mockReturnValue(updates);
+        service.init();
+
+        const startedAt = new Date('2026-09-19T10:00:00Z');
+        updates.next({ distribution: { id: 123, startedAt }, registeredCustomers: 1 });
+        const first = service.getCurrentDistribution()();
+        updates.next({ distribution: { id: 123, startedAt }, registeredCustomers: 2 });
+
+        expect(service.getCurrentDistribution()()).toBe(first);
+    });
+
+    it('drops the registered customer count on reset', () => {
+        const { service, sseServiceSpy } = setup();
+        sseServiceSpy.listen.mockReturnValue(of({ distribution: { id: 1, startedAt: new Date() }, registeredCustomers: 5 }));
+        service.init();
+
+        service.reset();
+
+        expect(service.getRegisteredCustomers()()).toBeNull();
     });
 
 });
