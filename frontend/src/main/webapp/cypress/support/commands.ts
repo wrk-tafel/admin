@@ -452,7 +452,6 @@ export interface AddCustomerToDistributionRequest {
 
 export interface CountryData {
   id: number;
-  code: string;
   name: string;
 }
 

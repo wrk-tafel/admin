@@ -29,7 +29,7 @@ or if a migration outside this list stops being re-runnable.
 See issue #3632 for the full analysis of the three above.
 
 A full-set replay (copy every script to a scratch schema, migrate once, then append a comment to
-one script at a time and migrate again) turned up a further 31 migrations with the same problem -
+one script at a time and migrate again) turned up further migrations with the same problem -
 see issue #3640. They fall into two groups:
 
 ### No guard against its own first run
@@ -57,6 +57,9 @@ re-run repeats it and Postgres rejects the duplicate (or missing) target:
 Each of these was correct against the schema at the time it first ran, but a *different*, later
 migration has since changed the object it reads or writes out from under it:
 
+- **`R__00002_countries.sql`** - creates `static_countries` with a `code` column, a unique index on
+  it, and `INSERT ... ON CONFLICT (code)` for every country. `R__00121` drops that column, so a
+  re-run fails with `column "code" of relation "static_countries" does not exist`.
 - **`R__00012_add_customer_notes.sql`, `R__00013_add_customer_distribution.sql`,
   `R__00020_migration_adaptions.sql`, `R__00021_cleanup_data.sql`,
   `R__00022_add_familybonus_field.sql`, `R__00027_user_distributions_fk_cascade.sql`,
