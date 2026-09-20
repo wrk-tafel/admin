@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Ein bei der Kunden-, Benutzer-, Mitarbeiter-, Anmelde-Versuche- oder Datenauskunft-Suche eingegebener Suchbegriff landet jetzt in keinem Fall mehr im technischen Server-Zugriffsprotokoll (access.log), unabhängig von dessen Konfiguration.
+- Bricht eine Live-Verbindung (Übersicht, Ausgabe, Ticket-Bildschirm) ab, steht im Anwendungsprotokoll jetzt, welche Verbindung wie lange offen war und woran sie scheiterte - bei unerwarteten Fehlern samt Stack-Trace.
 
 ## [1.19.7] - 2026-09-18
 - Ein fehlgeschlagener Klick auf "Tag starten" oder "Annehmen" im Check-in erzeugt keinen zusätzlichen, nichtssagenden Fehlereintrag "Fehler: [object Object]" im Protokoll mehr, und unerwartete Fehler nennen jetzt Status und Adresse der Anfrage.
