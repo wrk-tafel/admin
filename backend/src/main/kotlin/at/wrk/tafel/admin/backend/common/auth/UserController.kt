@@ -220,23 +220,16 @@ class UserController(
         return ResponseEntity.ok(user)
     }
 
-    @GetMapping
+    @PostMapping("/search")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
-    fun getUsers(
-        @RequestParam searchInput: String? = null,
-        @RequestParam enabled: Boolean? = null,
-        @RequestParam page: Int? = null,
-        @RequestParam pageSize: Int? = null,
-        @RequestParam sortBy: String? = null,
-        @RequestParam sortDirection: String? = null,
-    ): PagedResponse<UserResponse> {
+    fun searchUsers(@RequestBody request: UserSearchRequest): PagedResponse<UserResponse> {
         val userSearchResult = userDetailsManager.loadUsers(
-            searchInput = searchInput,
-            enabled = enabled,
-            page = page,
-            pageSize = pageSize,
-            sortBy = sortBy,
-            sortDirection = sortDirection,
+            searchInput = request.searchInput,
+            enabled = request.enabled,
+            page = request.page,
+            pageSize = request.pageSize,
+            sortBy = request.sortBy,
+            sortDirection = request.sortDirection,
         )
         // One query for the whole page's lockout state rather than one per row - see
         // LoginAttemptService.getLockedUntil(Collection<String>).
@@ -385,29 +378,23 @@ class UserController(
         return ResponseEntity.ok(PermissionsListResponse(permissions = permissions))
     }
 
-    @GetMapping("/login-attempts")
+    @PostMapping("/login-attempts/search")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
-    fun getLoginAttempts(
-        @RequestParam searchInput: String? = null,
-        @RequestParam lockedOnly: Boolean? = null,
-        @RequestParam page: Int? = null,
-        @RequestParam pageSize: Int? = null,
-        @RequestParam sortBy: String? = null,
-        @RequestParam sortDirection: String? = null,
-    ): PagedResponse<LoginAttemptItem> {
-        val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
+    fun searchLoginAttempts(@RequestBody request: LoginAttemptSearchRequest): PagedResponse<LoginAttemptItem> {
+        val pageRequest =
+            PageRequest.of(PaginationDefaults.resolvePageIndex(request.page), PaginationDefaults.resolvePageSize(request.pageSize))
         val pagedResult = loginAttemptService.findAll(
             pageRequest = pageRequest,
-            searchInput = searchInput,
-            lockedOnly = lockedOnly ?: false,
-            sortBy = sortBy,
-            sortDirection = sortDirection,
+            searchInput = request.searchInput,
+            lockedOnly = request.lockedOnly ?: false,
+            sortBy = request.sortBy,
+            sortDirection = request.sortDirection,
         )
 
         return PagedResponse(
             items = pagedResult.content,
             totalCount = pagedResult.totalElements,
-            currentPage = page ?: 1,
+            currentPage = request.page ?: 1,
             totalPages = pagedResult.totalPages,
             pageSize = pageRequest.pageSize,
         )

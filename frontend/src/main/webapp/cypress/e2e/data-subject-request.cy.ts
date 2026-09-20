@@ -85,7 +85,7 @@ describe('Data Subject Request', () => {
   });
 
   it('shows a hint when an area\'s results were truncated at the per-area cap', () => {
-    cy.intercept('GET', '/api/data-subject-requests/search*', {
+    cy.intercept('POST', '/api/data-subject-requests/search', {
       items: [{type: 'CUSTOMER', id: 1, businessKey: '1', name: 'Truncated Example'}],
       truncated: true
     }).as('truncatedSearch');
@@ -98,7 +98,7 @@ describe('Data Subject Request', () => {
   });
 
   it('reports a not-found match by name rather than only a count on delete', () => {
-    cy.intercept('GET', '/api/data-subject-requests/search*', {
+    cy.intercept('POST', '/api/data-subject-requests/search', {
       items: [{type: 'EMPLOYEE_WITHOUT_ACCOUNT', id: 1, businessKey: 'DSR-GONE', name: 'Already Gone'}],
       truncated: false
     }).as('search');

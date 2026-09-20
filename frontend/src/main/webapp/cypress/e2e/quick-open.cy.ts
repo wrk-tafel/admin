@@ -32,7 +32,7 @@ describe('Global quick-open', () => {
   });
 
   it('opens via Ctrl+K and finds a customer by name', () => {
-    cy.intercept('GET', '/api/households*').as('searchHouseholds');
+    cy.intercept('POST', '/api/households/search').as('searchHouseholds');
 
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
@@ -96,7 +96,7 @@ describe('Global quick-open', () => {
   });
 
   it('shows the no-customers state for a query matching nothing', () => {
-    cy.intercept('GET', '/api/households*').as('searchHouseholds');
+    cy.intercept('POST', '/api/households/search').as('searchHouseholds');
 
     openPaletteViaShortcut();
     cy.byTestId('quickOpenInput').type('zzzz-gibt-es-sicher-nicht');

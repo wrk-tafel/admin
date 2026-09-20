@@ -7,6 +7,11 @@ import {PagedResponse} from '../common/api/paged-response';
 export class EmployeeApiService {
   private readonly http = inject(HttpClient);
 
+  /**
+   * Sent as a `POST /employees/search` body rather than `?searchInput=...` query parameters - a
+   * search term is, in practice, a person's name, and a query string ends up in the never-rotated
+   * access.log, the browser's history and support-mail context (GDPR gap G25, issue #3506/#3703).
+   */
   findEmployees(
     searchInput?: string,
     page?: number,
@@ -14,23 +19,14 @@ export class EmployeeApiService {
     sortBy?: string,
     sortDirection?: string
   ): Observable<EmployeeListResponse> {
-    let queryParams = new HttpParams();
-    if (searchInput) {
-      queryParams = queryParams.set('searchInput', searchInput);
-    }
-    if (page) {
-      queryParams = queryParams.set('page', page);
-    }
-    if (pageSize) {
-      queryParams = queryParams.set('pageSize', pageSize);
-    }
-    if (sortBy) {
-      queryParams = queryParams.set('sortBy', sortBy);
-    }
-    if (sortDirection) {
-      queryParams = queryParams.set('sortDirection', sortDirection);
-    }
-    return this.http.get<EmployeeListResponse>('/employees', {params: queryParams});
+    const body: EmployeeSearchRequest = {
+      searchInput: searchInput || undefined,
+      page,
+      pageSize,
+      sortBy,
+      sortDirection
+    };
+    return this.http.post<EmployeeListResponse>('/employees/search', body);
   }
 
   /**
@@ -70,6 +66,14 @@ export class EmployeeApiService {
 }
 
 export type EmployeeListResponse = PagedResponse<EmployeeData>;
+
+interface EmployeeSearchRequest {
+  searchInput?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDirection?: string;
+}
 
 export interface CreateEmployeeRequest {
   personnelNumber: string;

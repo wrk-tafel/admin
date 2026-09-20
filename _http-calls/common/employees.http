@@ -1,14 +1,33 @@
 ### Get employees
-GET {{baseApiPath}}/employees
+POST {{baseApiPath}}/employees/search
+Content-Type: application/json
+
+{}
 
 ### Find employees by searchInput (personnelNumber)
-GET {{baseApiPath}}/employees?searchInput=00000
+# The term goes in the body, not a ?searchInput=... query parameter - see ADR-0057 (GDPR gap G25).
+POST {{baseApiPath}}/employees/search
+Content-Type: application/json
+
+{
+  "searchInput": "00000"
+}
 
 ### Find employees by searchInput (firstname)
-GET {{baseApiPath}}/employees?searchInput=scan
+POST {{baseApiPath}}/employees/search
+Content-Type: application/json
+
+{
+  "searchInput": "scan"
+}
 
 ### Find employees by searchInput (lastname)
-GET {{baseApiPath}}/employees?searchInput=User
+POST {{baseApiPath}}/employees/search
+Content-Type: application/json
+
+{
+  "searchInput": "User"
+}
 
 ### Save new employee
 POST {{baseApiPath}}/employees

@@ -1,14 +1,18 @@
 package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
+import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
+import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
@@ -149,9 +153,44 @@ class SseOutboxService(
         sseEmitter.onCompletion {
             cleanup()
         }
-        sseEmitter.onError {
+        val stream = describeCurrentRequest()
+        val openedAt = System.nanoTime()
+        sseEmitter.onError { error ->
             cleanup()
+            logStreamError(stream, Duration.ofNanos(System.nanoTime() - openedAt), error)
         }
+    }
+
+    /**
+     * The one place a container-level failure of an open stream surfaces before Spring turns it into
+     * a response: the emitter's error callback gets the `Throwable` first, and the exception handlers
+     * that follow deliberately log a dropped connection at debug only (see
+     * `GenericExceptionHandler.handleAsyncRequestNotUsableException`). Left unlogged here, a burst of
+     * failed streams leaves nothing in `app.log` to say what failed - issue #3704.
+     *
+     * A broken connection ([IOException]: the client or the proxy went away) stays a one-line INFO
+     * without a stack trace - it is routine, but its class, message and how long the stream had been
+     * open are what tells a network blip from a proxy timeout. Anything else is unexpected and
+     * gets the full stack trace at WARN.
+     */
+    private fun logStreamError(stream: String, openFor: Duration, error: Throwable) {
+        if (error is IOException) {
+            logger.info(
+                "SSE stream {} ended by a broken connection after {}s: {}: {}",
+                stream,
+                openFor.seconds,
+                error::class.simpleName,
+                sanitizeForLog(error.message),
+            )
+        } else {
+            logger.warn("SSE stream $stream failed after ${openFor.seconds}s", error)
+        }
+    }
+
+    private fun describeCurrentRequest(): String {
+        val request = (RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes)?.request
+            ?: return "(unknown request)"
+        return sanitizeForLog("${request.method} ${request.requestURI}")
     }
 
     fun sendEvent(sseEmitter: SseEmitter, data: Any?) {

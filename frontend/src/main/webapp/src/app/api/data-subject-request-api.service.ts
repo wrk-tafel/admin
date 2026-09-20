@@ -1,4 +1,4 @@
-import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
+import {HttpClient, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 
@@ -12,9 +12,14 @@ import {Observable} from 'rxjs';
 export class DataSubjectRequestApiService {
   private readonly http = inject(HttpClient);
 
+  /**
+   * Sent as a `POST /data-subject-requests/search` body rather than a `?searchInput=...` query
+   * parameter - a search term is, in practice, a person's name, and a query string ends up in the
+   * never-rotated access.log, the browser's history and support-mail context (GDPR gap G25, issue
+   * #3506/#3703).
+   */
   search(searchInput: string): Observable<DataSubjectMatchListResponse> {
-    const queryParams = new HttpParams().set('searchInput', searchInput);
-    return this.http.get<DataSubjectMatchListResponse>('/data-subject-requests/search', {params: queryParams});
+    return this.http.post<DataSubjectMatchListResponse>('/data-subject-requests/search', {searchInput});
   }
 
   /** The GDPR Art. 15/20 combined data takeout - one ZIP even for a single selected match. */
