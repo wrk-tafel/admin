@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import {Gender} from '../support/commands';
 import {MAIN_CONTENT} from '../support/accessibility';
 
-const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
+const AUSTRIA = {id: 165, name: 'Österreich'};
 
 // Clicking the mat-checkbox host element itself is unreliable once its label text is long enough
 // to shift the element's center away from the actual checkbox glyph - the native input underneath

@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Länder haben unter Einstellungen → Länder keinen Code mehr, sie bestehen nur noch aus ihrem Namen; die Suche durchsucht den Namen, und ein bereits vorhandener Name wird beim Anlegen oder Umbenennen abgelehnt.
 - Die Kunden-Suche zeigt in einer neuen Spalte "Offener Unkostenbeitrag" den offenen Betrag je Kunde an - auch in der Kartenansicht auf schmalen Bildschirmen -, ein Strich steht bei Kunden ohne offenen Betrag.
 - Ein bei der Kunden-, Benutzer-, Mitarbeiter-, Anmelde-Versuche- oder Datenauskunft-Suche eingegebener Suchbegriff landet jetzt in keinem Fall mehr im technischen Server-Zugriffsprotokoll (access.log), unabhängig von dessen Konfiguration.
 - Bricht eine Live-Verbindung (Übersicht, Ausgabe, Ticket-Bildschirm) ab, steht im Anwendungsprotokoll jetzt, welche Verbindung wie lange offen war und woran sie scheiterte - bei unerwarteten Fehlern samt Stack-Trace.

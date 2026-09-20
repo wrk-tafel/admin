@@ -366,7 +366,6 @@ Cypress.Commands.add(
         employer: 'employer-' + randomNumber,
         country: {
           id: 165,
-          code: 'AT',
           name: 'Österreich'
         },
         income: income ?? 1000,
@@ -453,7 +452,6 @@ export interface AddCustomerToDistributionRequest {
 
 export interface CountryData {
   id: number;
-  code: string;
   name: string;
 }
 

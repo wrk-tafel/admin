@@ -45,7 +45,6 @@ class CountryService(
             .map {
                 CountryItem(
                     id = it.id!!,
-                    code = it.code,
                     name = it.name,
                 )
             }
@@ -56,12 +55,11 @@ class CountryService(
         .map { mapToResponse(it) }
 
     fun createCountry(request: CountryRequest): CountryResponse {
-        val code = normalizeCode(request.code)
-        validateCodeIsUnique(code, null)
+        val name = request.name.trim()
+        validateNameIsUnique(name, null)
 
         val entity = CountryEntity(
-            code = code,
-            name = request.name,
+            name = name,
             enabled = request.enabled,
         )
 
@@ -74,11 +72,14 @@ class CountryService(
         val entity = countryRepository.findByIdOrNull(countryId)
             ?: throw NotFoundException("Country with id $countryId not found")
 
-        val code = normalizeCode(request.code)
-        validateCodeIsUnique(code, countryId)
+        val name = request.name.trim()
+        // an unchanged name is not a new collision - it keeps a country that already shares its name
+        // with another one (possible before names were unique) editable, e.g. for its enabled toggle
+        if (name != entity.name) {
+            validateNameIsUnique(name, countryId)
+        }
 
-        entity.code = code
-        entity.name = request.name
+        entity.name = name
         entity.enabled = request.enabled
 
         val savedEntity = countryRepository.save(entity)
@@ -86,18 +87,14 @@ class CountryService(
         return mapToResponse(savedEntity)
     }
 
-    private fun normalizeCode(code: String): String = code.trim().uppercase()
-
-    private fun validateCodeIsUnique(code: String, countryId: Long?) {
-        val existingCountry = countryRepository.findByCode(code)
-        if (existingCountry != null && existingCountry.id != countryId) {
-            throw BusinessRuleException("Länder-Code $code ist bereits vergeben!")
+    private fun validateNameIsUnique(name: String, countryId: Long?) {
+        if (countryRepository.findAllByNameIgnoreCase(name).any { it.id != countryId }) {
+            throw BusinessRuleException("Das Land $name existiert bereits!")
         }
     }
 
     private fun mapToResponse(entity: CountryEntity) = CountryResponse(
         id = entity.id!!,
-        code = entity.code,
         name = entity.name,
         enabled = entity.enabled,
     )

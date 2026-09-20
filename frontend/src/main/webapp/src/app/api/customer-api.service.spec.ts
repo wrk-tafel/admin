@@ -21,7 +21,7 @@ describe('CustomerApiService', () => {
     firstname: 'Max',
     birthDate: birthDate,
     gender: Gender.MALE,
-    country: {id: 1, code: 'AT', name: 'Österreich'},
+    country: {id: 1, name: 'Österreich'},
     address: {
       street: 'Teststraße',
       houseNumber: '123A',
@@ -43,7 +43,7 @@ describe('CustomerApiService', () => {
         firstname: 'Kind',
         birthDate: childBirthDate,
         gender: Gender.FEMALE,
-        country: {id: 1, code: 'AT', name: 'Österreich'},
+        country: {id: 1, name: 'Österreich'},
         employer: 'test employer 2',
         income: 50,
         incomeDue: incomeDue,
@@ -75,7 +75,7 @@ describe('CustomerApiService', () => {
         firstname: 'Max',
         birthDate: birthDate,
         gender: Gender.MALE,
-        country: {id: 1, code: 'AT', name: 'Österreich'},
+        country: {id: 1, name: 'Österreich'},
         employer: 'test employer',
         income: 1000,
         incomeDue: incomeDue,
@@ -89,7 +89,7 @@ describe('CustomerApiService', () => {
         firstname: 'Kind',
         birthDate: childBirthDate,
         gender: Gender.FEMALE,
-        country: {id: 1, code: 'AT', name: 'Österreich'},
+        country: {id: 1, name: 'Österreich'},
         employer: 'test employer 2',
         income: 50,
         incomeDue: incomeDue,
@@ -199,7 +199,7 @@ describe('CustomerApiService', () => {
       lastname: 'Mustermann',
       birthDate: birthDate,
       gender: Gender.MALE,
-      country: {id: 1, code: 'AT', name: 'Österreich'},
+      country: {id: 1, name: 'Österreich'},
       employer: 'test employer',
       income: 1000,
       incomeDue: incomeDue,
@@ -232,7 +232,7 @@ describe('CustomerApiService', () => {
     expect(result!.lastname).toEqual('Mustermann');
     expect(result!.birthDate).toEqual(birthDate);
     expect(result!.gender).toEqual(Gender.MALE);
-    expect(result!.country).toEqual({id: 1, code: 'AT', name: 'Österreich'});
+    expect(result!.country).toEqual({id: 1, name: 'Österreich'});
     expect(result!.employer).toEqual('test employer');
     expect(result!.income).toEqual(1000);
     expect(result!.incomeDue).toEqual(incomeDue);

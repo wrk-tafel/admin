@@ -38,7 +38,6 @@ export interface CountryListResult {
 
 export interface CountryData {
   id: number;
-  code: string;
   name: string;
 }
 
@@ -48,13 +47,11 @@ export interface CountryList {
 
 export interface CountryAdminData {
   id: number;
-  code: string;
   name: string;
   enabled: boolean;
 }
 
 export interface CountryCreateData {
-  code: string;
   name: string;
   enabled: boolean;
 }

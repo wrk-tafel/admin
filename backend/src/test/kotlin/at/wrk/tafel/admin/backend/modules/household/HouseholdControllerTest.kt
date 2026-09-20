@@ -81,7 +81,6 @@ class HouseholdControllerTest {
                 gender = PersonGender.FEMALE,
                 country = CountryItem(
                     id = 1,
-                    code = "AT",
                     name = "Österreich",
                 ),
                 employer = "Employer 123",
@@ -100,7 +99,6 @@ class HouseholdControllerTest {
                 receivesFamilyAllowance = false,
                 country = CountryItem(
                     id = 1,
-                    code = "AT",
                     name = "Österreich",
                 ),
                 excludeFromHousehold = false,
@@ -115,7 +113,6 @@ class HouseholdControllerTest {
                 receivesFamilyAllowance = true,
                 country = CountryItem(
                     id = 1,
-                    code = "AT",
                     name = "Österreich",
                 ),
                 excludeFromHousehold = true,
