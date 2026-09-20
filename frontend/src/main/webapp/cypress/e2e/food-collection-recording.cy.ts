@@ -93,7 +93,7 @@ describe('Food Collection Recording', () => {
 
     // reopening the route must not search for the stored employees again - that search is what
     // used to open the dialog, so its absence is the actual fix and not just a symptom of it
-    cy.intercept({method: 'GET', url: /\/api\/employees(\?|$)/}).as('employeeSearchOnReopen');
+    cy.intercept('POST', '/api/employees/search').as('employeeSearchOnReopen');
 
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains('Route 1').click();

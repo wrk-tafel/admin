@@ -37,6 +37,7 @@ class RepeatableMigrationRerunSafetyTest {
          * unnoticed.
          */
         private val KNOWN_NON_RERUNNABLE_MIGRATIONS = setOf(
+            "R__00002_countries.sql",
             "R__00003_static_values.sql",
             "R__00008_static_values_2022.sql",
             "R__00010_add_more_fields_to_distribution_table.sql",

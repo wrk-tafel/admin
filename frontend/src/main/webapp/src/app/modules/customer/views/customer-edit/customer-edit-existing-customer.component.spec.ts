@@ -15,12 +15,10 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {
     id: 0,
-    code: 'AT',
     name: 'Österreich'
   };
   const testCountry2 = {
     id: 1,
-    code: 'DE',
     name: 'Deutschland'
   };
   const testCustomerData: CustomerData = {

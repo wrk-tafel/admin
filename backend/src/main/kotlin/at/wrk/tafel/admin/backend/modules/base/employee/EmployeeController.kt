@@ -29,14 +29,14 @@ class EmployeeController(
     private val employeeExportService: EmployeeExportService,
 ) {
 
-    @GetMapping
-    fun findEmployees(
-        @RequestParam searchInput: String? = null,
-        @RequestParam page: Int? = null,
-        @RequestParam pageSize: Int? = null,
-        @RequestParam sortBy: String? = null,
-        @RequestParam sortDirection: String? = null,
-    ): EmployeeListResponse = employeeService.findEmployees(searchInput, page, pageSize, sortBy, sortDirection)
+    @PostMapping("/search")
+    fun searchEmployees(@RequestBody request: EmployeeSearchRequest): EmployeeListResponse = employeeService.findEmployees(
+        request.searchInput,
+        request.page,
+        request.pageSize,
+        request.sortBy,
+        request.sortDirection,
+    )
 
     @GetMapping("/personnel-number-availability")
     fun checkPersonnelNumberAvailability(

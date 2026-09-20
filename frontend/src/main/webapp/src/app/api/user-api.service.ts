@@ -1,4 +1,4 @@
-import {HttpClient, HttpContext, HttpParams, HttpResponse} from '@angular/common/http';
+import {HttpClient, HttpContext, HttpResponse} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import {PagedResponse} from '../common/api/paged-response';
@@ -38,6 +38,11 @@ export class UserApiService {
     return this.http.get<UserData>('/users/personnel-number/' + personnelNumber, {context});
   }
 
+  /**
+   * Sent as a `POST /users/search` body rather than `?searchInput=...` query parameters - a search
+   * term is, in practice, a person's name, and a query string ends up in the never-rotated
+   * access.log, the browser's history and support-mail context (GDPR gap G25, issue #3506/#3703).
+   */
   searchUser(
     searchInput?: string | null,
     enabled?: boolean | null,
@@ -46,26 +51,15 @@ export class UserApiService {
     sortBy?: string,
     sortDirection?: string
   ): Observable<UserSearchResult> {
-    let queryParams = new HttpParams();
-    if (searchInput) {
-      queryParams = queryParams.set('searchInput', searchInput);
-    }
-    if (enabled !== null) {
-      queryParams = queryParams.set('enabled', enabled ?? '');
-    }
-    if (page) {
-      queryParams = queryParams.set('page', page);
-    }
-    if (pageSize) {
-      queryParams = queryParams.set('pageSize', pageSize);
-    }
-    if (sortBy) {
-      queryParams = queryParams.set('sortBy', sortBy);
-    }
-    if (sortDirection) {
-      queryParams = queryParams.set('sortDirection', sortDirection);
-    }
-    return this.http.get<UserSearchResult>('/users', {params: queryParams});
+    const body: UserSearchRequest = {
+      searchInput: searchInput || undefined,
+      enabled: enabled ?? undefined,
+      page,
+      pageSize,
+      sortBy,
+      sortDirection
+    };
+    return this.http.post<UserSearchResult>('/users/search', body);
   }
 
   updateUser(data: UserData, context?: HttpContext): Observable<UserData> {
@@ -88,6 +82,10 @@ export class UserApiService {
     return this.http.get<PermissionsListResponse>('/users/permissions');
   }
 
+  /**
+   * Sent as a `POST /users/login-attempts/search` body rather than `?searchInput=...` query
+   * parameters - same reasoning as {@link searchUser}.
+   */
   getLoginAttempts(
     page?: number,
     pageSize?: number,
@@ -96,26 +94,15 @@ export class UserApiService {
     sortBy?: string,
     sortDirection?: string
   ): Observable<PagedResponse<LoginAttemptItem>> {
-    let queryParams = new HttpParams();
-    if (page) {
-      queryParams = queryParams.set('page', page);
-    }
-    if (pageSize) {
-      queryParams = queryParams.set('pageSize', pageSize);
-    }
-    if (searchInput) {
-      queryParams = queryParams.set('searchInput', searchInput);
-    }
-    if (lockedOnly) {
-      queryParams = queryParams.set('lockedOnly', true);
-    }
-    if (sortBy) {
-      queryParams = queryParams.set('sortBy', sortBy);
-    }
-    if (sortDirection) {
-      queryParams = queryParams.set('sortDirection', sortDirection);
-    }
-    return this.http.get<PagedResponse<LoginAttemptItem>>('/users/login-attempts', {params: queryParams});
+    const body: LoginAttemptSearchRequest = {
+      searchInput: searchInput || undefined,
+      lockedOnly: lockedOnly || undefined,
+      page,
+      pageSize,
+      sortBy,
+      sortDirection
+    };
+    return this.http.post<PagedResponse<LoginAttemptItem>>('/users/login-attempts/search', body);
   }
 
   getLoginAttemptSettings(): Observable<LoginAttemptSettingsResponse> {
@@ -139,6 +126,24 @@ export interface ChangePasswordResponse {
 }
 
 export type UserSearchResult = PagedResponse<UserData>;
+
+interface UserSearchRequest {
+  searchInput?: string;
+  enabled?: boolean;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDirection?: string;
+}
+
+interface LoginAttemptSearchRequest {
+  searchInput?: string;
+  lockedOnly?: boolean;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDirection?: string;
+}
 
 export interface UserData {
   id?: number;

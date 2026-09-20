@@ -4,7 +4,7 @@ import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {Gender} from '../support/commands';
 import {MAIN_CONTENT} from '../support/accessibility';
 
-const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
+const AUSTRIA = {id: 165, name: 'Österreich'};
 
 describe('Customer Search', () => {
 
@@ -226,13 +226,33 @@ describe('Customer Search', () => {
       clickSearchAndWaitForResult();
       // A chip toggle re-searches on its own - a separate wait for its own answer, same reasoning
       // as clickSearchAndWaitForResult above.
-      cy.intercept('GET', /\/api\/households(\?|$)/).as('costContributionSearch');
+      cy.intercept('POST', '/api/households/search').as('costContributionSearch');
       cy.byTestId('filter-costContribution').click();
       cy.wait('@costContributionSearch');
+
+      // The open amount itself is a column of the result, not just the reason the row is listed.
+      cy.get(`a[href$="/kunden/detail/${customerId}"]`).filterDisplayed()
+        .closest('tr')
+        .find('[testid^="searchresult-pendingCostContribution-"]')
+        .should('contain.text', '€');
 
       clickSearchAndOpenExpectedResult(customerId, {alreadySearched: true});
 
       cy.request('PUT', `/api/households/${customerId}/cost-contribution`, {amount: 0});
+    });
+  });
+
+  it('shows a dash instead of an amount for a customer without an open cost contribution', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+
+      cy.get(`a[href$="/kunden/detail/${customer.id}"]`).filterDisplayed()
+        .closest('tr')
+        .find('[testid^="searchresult-pendingCostContribution-"]')
+        .should(($cell) => expect($cell.text().trim()).to.equal('-'));
     });
   });
 
@@ -260,7 +280,7 @@ describe('Customer Search', () => {
         // locked filter alone would depend on this being the only locked customer suite-wide.
         cy.byTestId('searchInputText').type(customer.lastname);
         clickSearchAndWaitForResult();
-        cy.intercept('GET', /\/api\/households(\?|$)/).as('lockedFilterSearch');
+        cy.intercept('POST', '/api/households/search').as('lockedFilterSearch');
         cy.byTestId('filter-locked').click();
         cy.wait('@lockedFilterSearch');
 
@@ -306,7 +326,7 @@ describe('Customer Search', () => {
       // Filter by lastname too - same reasoning as the cost-contribution/locked filter tests above.
       cy.byTestId('searchInputText').type(customer.lastname);
       clickSearchAndWaitForResult();
-      cy.intercept('GET', /\/api\/households(\?|$)/).as('missingPrivacyNoticeFilterSearch');
+      cy.intercept('POST', '/api/households/search').as('missingPrivacyNoticeFilterSearch');
       cy.byTestId('filter-missingPrivacyNotice').click();
       cy.wait('@missingPrivacyNoticeFilterSearch');
 
@@ -339,7 +359,7 @@ describe('Customer Search', () => {
         // Filter by lastname too - same reasoning as the cost-contribution/locked filter tests above.
         cy.byTestId('searchInputText').type(customer.lastname);
         clickSearchAndWaitForResult();
-        cy.intercept('GET', /\/api\/households(\?|$)/).as('willBeDeletedSoonFilterSearch');
+        cy.intercept('POST', '/api/households/search').as('willBeDeletedSoonFilterSearch');
         cy.byTestId('filter-willBeDeletedSoon').click();
         cy.wait('@willBeDeletedSoonFilterSearch');
 
@@ -376,7 +396,7 @@ describe('Customer Search', () => {
       cy.visit('/kunden/suchen');
       cy.byTestId('searchInputText').type(customer.lastname);
       clickSearchAndWaitForResult();
-      cy.intercept('GET', /\/api\/households(\?|$)/).as('privacyNoticeOutdatedFilterSearch');
+      cy.intercept('POST', '/api/households/search').as('privacyNoticeOutdatedFilterSearch');
       cy.byTestId('filter-privacyNoticeOutdated').click();
       cy.wait('@privacyNoticeOutdatedFilterSearch');
 
@@ -392,7 +412,7 @@ describe('Customer Search', () => {
 
       cy.byTestId('searchInputText').type(customer.lastname);
       clickSearchAndWaitForResult();
-      cy.intercept('GET', /\/api\/households(\?|$)/).as('validFilterSearch');
+      cy.intercept('POST', '/api/households/search').as('validFilterSearch');
       cy.byTestId('filter-valid').click();
       cy.wait('@validFilterSearch');
 
@@ -415,12 +435,12 @@ describe('Customer Search', () => {
       clickSearchAndWaitForResult();
       cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
 
-      cy.intercept('GET', /\/api\/households(\?|$)/).as('sortedSearch');
+      cy.intercept('POST', '/api/households/search').as('sortedSearch');
       cy.contains('th', 'Name').click();
-      cy.wait('@sortedSearch').its('request.url').should('include', 'sortBy=name').and('include', 'sortDirection=asc');
+      cy.wait('@sortedSearch').its('request.body').should('deep.include', {sortBy: 'name', sortDirection: 'asc'});
 
       cy.contains('th', 'Name').click();
-      cy.wait('@sortedSearch').its('request.url').should('include', 'sortBy=name').and('include', 'sortDirection=desc');
+      cy.wait('@sortedSearch').its('request.body').should('deep.include', {sortBy: 'name', sortDirection: 'desc'});
 
       // still present after sorting - it is a reorder of the same filtered result, not a new search
       cy.get(`a[href$="/kunden/detail/${customer.id}"]`).filterDisplayed().should('have.length', 1);
@@ -513,7 +533,7 @@ describe('Customer Search', () => {
    * on. Waiting for the response ties everything after it to the result the spec asked for.
    */
   function clickSearchAndWaitForResult() {
-    cy.intercept('GET', /\/api\/households(\?|$)/).as('customerSearch');
+    cy.intercept('POST', '/api/households/search').as('customerSearch');
     cy.byTestId('search-button').click();
     cy.wait('@customerSearch');
   }

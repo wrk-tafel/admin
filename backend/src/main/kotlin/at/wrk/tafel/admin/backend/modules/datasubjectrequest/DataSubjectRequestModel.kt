@@ -1,6 +1,18 @@
 package at.wrk.tafel.admin.backend.modules.datasubjectrequest
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import jakarta.validation.constraints.NotBlank
+
+/**
+ * Bound to `POST /data-subject-requests/search`'s body rather than a `?searchInput=...` query
+ * parameter - see ADR-0057 (GDPR gap G25, issue #3506/#3703: a search term is a name, and a query
+ * string ends up in the never-rotated `access.log`).
+ */
+@ExcludeFromTestCoverage
+data class DataSubjectSearchRequest(
+    @field:NotBlank
+    val searchInput: String,
+)
 
 /**
  * One search hit - a household, a user account, or an employee without one. [businessKey] is what

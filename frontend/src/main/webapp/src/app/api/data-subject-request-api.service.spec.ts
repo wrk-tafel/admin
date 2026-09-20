@@ -20,11 +20,11 @@ describe('DataSubjectRequestApiService', () => {
     apiService = TestBed.inject(DataSubjectRequestApiService);
   });
 
-  it('search sends the search input as a query parameter', () => {
+  it('search sends the search input in the request body', () => {
     apiService.search('Muster').subscribe();
 
-    const req = httpMock.expectOne(request => request.url === '/data-subject-requests/search');
-    expect(req.request.params.get('searchInput')).toBe('Muster');
+    const req = httpMock.expectOne({method: 'POST', url: '/data-subject-requests/search'});
+    expect(req.request.body).toEqual({searchInput: 'Muster'});
     req.flush({items: []});
     httpMock.verify();
   });

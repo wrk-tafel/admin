@@ -60,8 +60,8 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
     @BeforeEach
     fun beforeEach() {
         testUser = transactionTemplate.execute { userRepository.saveAndFlush(createUser()) }
-        // `static_countries.code` is unique and the generator always produces "00", so the country
-        // is created once and reused - these tests commit, unlike the rollback-per-test ones.
+        // These tests commit, unlike the rollback-per-test ones, so one country is reused rather than
+        // adding a row per test.
         testCountry = transactionTemplate.execute {
             countryRepository.findAll().firstOrNull() ?: countryRepository.saveAndFlush(createCountry())
         }

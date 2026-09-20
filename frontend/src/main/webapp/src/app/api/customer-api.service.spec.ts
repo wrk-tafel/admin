@@ -21,7 +21,7 @@ describe('CustomerApiService', () => {
     firstname: 'Max',
     birthDate: birthDate,
     gender: Gender.MALE,
-    country: {id: 1, code: 'AT', name: 'Österreich'},
+    country: {id: 1, name: 'Österreich'},
     address: {
       street: 'Teststraße',
       houseNumber: '123A',
@@ -43,7 +43,7 @@ describe('CustomerApiService', () => {
         firstname: 'Kind',
         birthDate: childBirthDate,
         gender: Gender.FEMALE,
-        country: {id: 1, code: 'AT', name: 'Österreich'},
+        country: {id: 1, name: 'Österreich'},
         employer: 'test employer 2',
         income: 50,
         incomeDue: incomeDue,
@@ -75,7 +75,7 @@ describe('CustomerApiService', () => {
         firstname: 'Max',
         birthDate: birthDate,
         gender: Gender.MALE,
-        country: {id: 1, code: 'AT', name: 'Österreich'},
+        country: {id: 1, name: 'Österreich'},
         employer: 'test employer',
         income: 1000,
         incomeDue: incomeDue,
@@ -89,7 +89,7 @@ describe('CustomerApiService', () => {
         firstname: 'Kind',
         birthDate: childBirthDate,
         gender: Gender.FEMALE,
-        country: {id: 1, code: 'AT', name: 'Österreich'},
+        country: {id: 1, name: 'Österreich'},
         employer: 'test employer 2',
         income: 50,
         incomeDue: incomeDue,
@@ -199,7 +199,7 @@ describe('CustomerApiService', () => {
       lastname: 'Mustermann',
       birthDate: birthDate,
       gender: Gender.MALE,
-      country: {id: 1, code: 'AT', name: 'Österreich'},
+      country: {id: 1, name: 'Österreich'},
       employer: 'test employer',
       income: 1000,
       incomeDue: incomeDue,
@@ -232,7 +232,7 @@ describe('CustomerApiService', () => {
     expect(result!.lastname).toEqual('Mustermann');
     expect(result!.birthDate).toEqual(birthDate);
     expect(result!.gender).toEqual(Gender.MALE);
-    expect(result!.country).toEqual({id: 1, code: 'AT', name: 'Österreich'});
+    expect(result!.country).toEqual({id: 1, name: 'Österreich'});
     expect(result!.employer).toEqual('test employer');
     expect(result!.income).toEqual(1000);
     expect(result!.incomeDue).toEqual(incomeDue);
@@ -284,7 +284,8 @@ describe('CustomerApiService', () => {
   it('search customer with a search input and a filter', () => {
     apiService.searchCustomer('mustermann', null, null, true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?searchInput=mustermann&valid=true'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({searchInput: 'mustermann', filters: {valid: true}});
     req.flush(null);
     httpMock.verify();
   });
@@ -293,7 +294,8 @@ describe('CustomerApiService', () => {
     let result;
     apiService.searchCustomer('mustermann').subscribe(response => result = response);
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?searchInput=mustermann'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({searchInput: 'mustermann', filters: {}});
     req.flush({items: [mockHousehold], totalCount: 1, currentPage: 1, totalPages: 1, pageSize: 25});
     httpMock.verify();
 
@@ -306,7 +308,8 @@ describe('CustomerApiService', () => {
   it('search customer with a search input only', () => {
     apiService.searchCustomer('mustermann').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?searchInput=mustermann'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({searchInput: 'mustermann', filters: {}});
     req.flush(null);
     httpMock.verify();
   });
@@ -314,7 +317,8 @@ describe('CustomerApiService', () => {
   it('search customer including postProcessing parameter', () => {
     apiService.searchCustomer(null, true, null).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?postProcessing=true'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({filters: {postProcessing: true}});
     req.flush(null);
     httpMock.verify();
   });
@@ -322,7 +326,8 @@ describe('CustomerApiService', () => {
   it('search customer including costContribution parameter', () => {
     apiService.searchCustomer(null, null, true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?costContribution=true'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({filters: {costContribution: true}});
     req.flush(null);
     httpMock.verify();
   });
@@ -330,7 +335,8 @@ describe('CustomerApiService', () => {
   it('search customer including valid parameter', () => {
     apiService.searchCustomer(null, null, null, true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?valid=true'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({filters: {valid: true}});
     req.flush(null);
     httpMock.verify();
   });
@@ -338,7 +344,8 @@ describe('CustomerApiService', () => {
   it('search customer including locked parameter', () => {
     apiService.searchCustomer(null, null, null, null, true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?locked=true'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({filters: {locked: true}});
     req.flush(null);
     httpMock.verify();
   });
@@ -346,7 +353,8 @@ describe('CustomerApiService', () => {
   it('search customer including missingPrivacyNotice parameter', () => {
     apiService.searchCustomer(null, null, null, null, null, true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?missingPrivacyNotice=true'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({filters: {missingPrivacyNotice: true}});
     req.flush(null);
     httpMock.verify();
   });
@@ -354,7 +362,8 @@ describe('CustomerApiService', () => {
   it('search customer including willBeDeletedSoon parameter', () => {
     apiService.searchCustomer(null, null, null, null, null, null, true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?willBeDeletedSoon=true'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({filters: {willBeDeletedSoon: true}});
     req.flush(null);
     httpMock.verify();
   });
@@ -362,7 +371,8 @@ describe('CustomerApiService', () => {
   it('search customer including privacyNoticeOutdated parameter', () => {
     apiService.searchCustomer(null, null, null, null, null, null, null, true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?privacyNoticeOutdated=true'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({filters: {privacyNoticeOutdated: true}});
     req.flush(null);
     httpMock.verify();
   });
@@ -370,7 +380,8 @@ describe('CustomerApiService', () => {
   it('search customer including page parameter', () => {
     apiService.searchCustomer('max', null, null, null, null, null, null, null, 3).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households?searchInput=max&page=3'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/search'});
+    expect(req.request.body).toEqual({searchInput: 'max', page: 3, filters: {}});
     req.flush(null);
     httpMock.verify();
   });

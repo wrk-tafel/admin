@@ -18,6 +18,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -45,8 +46,8 @@ class CountryServiceTest {
 
         assertThat(countries).isEqualTo(
             listOf(
-                CountryItem(id = testCountry2.id!!, code = testCountry2.code!!, name = testCountry2.name!!),
-                CountryItem(id = testCountry1.id!!, code = testCountry1.code!!, name = testCountry1.name!!),
+                CountryItem(id = testCountry2.id!!, name = testCountry2.name),
+                CountryItem(id = testCountry1.id!!, name = testCountry1.name),
             ),
         )
     }
@@ -86,27 +87,27 @@ class CountryServiceTest {
 
         assertThat(countries).isEqualTo(
             listOf(
-                CountryResponse(id = testCountry5.id!!, code = testCountry5.code, name = testCountry5.name, enabled = false),
-                CountryResponse(id = testCountry1.id!!, code = testCountry1.code, name = testCountry1.name, enabled = true),
+                CountryResponse(id = testCountry5.id!!, name = testCountry5.name, enabled = false),
+                CountryResponse(id = testCountry1.id!!, name = testCountry1.name, enabled = true),
             ),
         )
     }
 
     @Test
-    fun `update country changes code, name and enabled state`() {
-        val existingEntity = CountryEntity(code = "AT", name = "Österreich").apply { id = 1 }
+    fun `update country changes name and enabled state`() {
+        val existingEntity = CountryEntity(name = "Österreich").apply { id = 1 }
 
         every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
-        every { countryRepository.findByCode("BT") } returns null
+        every { countryRepository.findAllByNameIgnoreCase("Neuer Name") } returns emptyList()
         every { countryRepository.save(any()) } answers { firstArg() as CountryEntity }
 
         val response = countryService.updateCountry(
             existingEntity.id!!,
-            CountryRequest(code = "bt", name = "Neuer Name", enabled = false),
+            CountryRequest(name = " Neuer Name ", enabled = false),
         )
 
         assertThat(response).isEqualTo(
-            CountryResponse(id = existingEntity.id!!, code = "BT", name = "Neuer Name", enabled = false),
+            CountryResponse(id = existingEntity.id!!, name = "Neuer Name", enabled = false),
         )
     }
 
@@ -115,58 +116,71 @@ class CountryServiceTest {
         every { countryRepository.findByIdOrNull(999) } returns null
 
         val exception = assertThrows<NotFoundException> {
-            countryService.updateCountry(999, CountryRequest(code = "XX", name = "X", enabled = true))
+            countryService.updateCountry(999, CountryRequest(name = "X", enabled = true))
         }
         assertThat(exception.body.detail).isEqualTo("Country with id 999 not found")
     }
 
     @Test
-    fun `update country throws BusinessRuleException when the code is already used by another country`() {
-        val existingEntity = CountryEntity(code = "AT", name = "Österreich").apply { id = 1 }
-        val otherEntity = CountryEntity(code = "DE", name = "Deutschland").apply { id = 2 }
+    fun `update country throws BusinessRuleException when the name is already used by another country`() {
+        val existingEntity = CountryEntity(name = "Österreich").apply { id = 1 }
+        val otherEntity = CountryEntity(name = "Deutschland").apply { id = 2 }
 
         every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
-        every { countryRepository.findByCode("DE") } returns otherEntity
+        every { countryRepository.findAllByNameIgnoreCase("Deutschland") } returns listOf(otherEntity)
 
         val exception = assertThrows<BusinessRuleException> {
-            countryService.updateCountry(existingEntity.id!!, CountryRequest(code = "DE", name = "Österreich", enabled = true))
+            countryService.updateCountry(existingEntity.id!!, CountryRequest(name = "Deutschland", enabled = true))
         }
-        assertThat(exception.body.detail).isEqualTo("Länder-Code DE ist bereits vergeben!")
+        assertThat(exception.body.detail).isEqualTo("Das Land Deutschland existiert bereits!")
     }
 
     @Test
-    fun `update country keeps its own code without tripping the uniqueness check`() {
-        val existingEntity = CountryEntity(code = "AT", name = "Österreich").apply { id = 1 }
+    fun `update country keeps its own name without tripping the uniqueness check`() {
+        val existingEntity = CountryEntity(name = "Österreich").apply { id = 1 }
 
         every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
-        every { countryRepository.findByCode("AT") } returns existingEntity
+        every { countryRepository.findAllByNameIgnoreCase("österreich") } returns listOf(existingEntity)
         every { countryRepository.save(any()) } answers { firstArg() as CountryEntity }
 
-        val response = countryService.updateCountry(existingEntity.id!!, CountryRequest(code = "AT", name = "Österreich Neu", enabled = true))
+        val response = countryService.updateCountry(existingEntity.id!!, CountryRequest(name = "österreich", enabled = true))
 
-        assertThat(response.name).isEqualTo("Österreich Neu")
+        assertThat(response.name).isEqualTo("österreich")
     }
 
     @Test
-    fun `create country persists a new, normalized entity`() {
-        every { countryRepository.findByCode("ZZ") } returns null
+    fun `update country with an unchanged name skips the uniqueness check`() {
+        val existingEntity = CountryEntity(name = "Österreich").apply { id = 1 }
+
+        every { countryRepository.findByIdOrNull(existingEntity.id!!) } returns existingEntity
+        every { countryRepository.save(any()) } answers { firstArg() as CountryEntity }
+
+        val response = countryService.updateCountry(existingEntity.id!!, CountryRequest(name = "Österreich", enabled = false))
+
+        assertThat(response).isEqualTo(CountryResponse(id = 1, name = "Österreich", enabled = false))
+        verify(exactly = 0) { countryRepository.findAllByNameIgnoreCase(any()) }
+    }
+
+    @Test
+    fun `create country persists a new entity with a trimmed name`() {
+        every { countryRepository.findAllByNameIgnoreCase("Neuland") } returns emptyList()
         every { countryRepository.save(any()) } answers { (firstArg() as CountryEntity).apply { id = 42 } }
 
-        val response = countryService.createCountry(CountryRequest(code = " zz ", name = "Neuland", enabled = true))
+        val response = countryService.createCountry(CountryRequest(name = " Neuland ", enabled = true))
 
-        assertThat(response).isEqualTo(CountryResponse(id = 42, code = "ZZ", name = "Neuland", enabled = true))
+        assertThat(response).isEqualTo(CountryResponse(id = 42, name = "Neuland", enabled = true))
     }
 
     @Test
-    fun `create country throws BusinessRuleException when the code is already used`() {
-        val existingEntity = CountryEntity(code = "AT", name = "Österreich").apply { id = 1 }
+    fun `create country throws BusinessRuleException when the name is already used`() {
+        val existingEntity = CountryEntity(name = "Österreich").apply { id = 1 }
 
-        every { countryRepository.findByCode("AT") } returns existingEntity
+        every { countryRepository.findAllByNameIgnoreCase("österreich") } returns listOf(existingEntity)
 
         val exception = assertThrows<BusinessRuleException> {
-            countryService.createCountry(CountryRequest(code = "AT", name = "Duplikat", enabled = true))
+            countryService.createCountry(CountryRequest(name = "österreich", enabled = true))
         }
-        assertThat(exception.body.detail).isEqualTo("Länder-Code AT ist bereits vergeben!")
+        assertThat(exception.body.detail).isEqualTo("Das Land österreich existiert bereits!")
     }
 
     private fun testUsageCount(countryId: Long, usageCount: Long): CountryUsageCount = object : CountryUsageCount {

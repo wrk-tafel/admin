@@ -16,6 +16,7 @@ export class GlobalStateService {
   private readonly _currentDistribution: WritableSignal<DistributionItem | null> = signal(null);
   private readonly _connectionState: WritableSignal<boolean> = signal(false);
   private readonly _hasReceivedDistribution: WritableSignal<boolean> = signal(false);
+  private readonly _registeredCustomers: WritableSignal<number | null> = signal(null);
 
   private subscribed = false;
 
@@ -53,7 +54,19 @@ export class GlobalStateService {
     this.sseService.listen<DistributionItemUpdate>('/sse/distributions', connectionStateCallback).subscribe({
       next: (distributionUpdate: DistributionItemUpdate) => {
         const distributionItem = distributionUpdate.distribution;
-        this._currentDistribution.set(distributionItem);
+        // The server re-sends this message whenever the registered-customer count changes. A new
+        // object for an unchanged distribution would re-run every effect keyed on it - some of
+        // which reset a form the user is typing into - so it is only replaced when it really changed.
+        if (!this.isSameDistribution(this._currentDistribution(), distributionItem)) {
+          this._currentDistribution.set(distributionItem);
+        }
+        // A start event carries no count and can arrive after newer counts; only a closed
+        // distribution clears it, and a count only ever replaces the previous one.
+        if (!distributionItem) {
+          this._registeredCustomers.set(null);
+        } else if (distributionUpdate.registeredCustomers != null) {
+          this._registeredCustomers.set(distributionUpdate.registeredCustomers);
+        }
         this._hasReceivedDistribution.set(true);
       }
     });
@@ -61,6 +74,15 @@ export class GlobalStateService {
 
   getCurrentDistribution(): Signal<DistributionItem | null> {
     return this._currentDistribution.asReadonly();
+  }
+
+  /**
+   * Households registered for the open distribution, pushed on the same `/sse/distributions` stream
+   * so the header can show it on every screen without a stream of its own. `null` while no
+   * distribution is open or before the first message.
+   */
+  getRegisteredCustomers(): Signal<number | null> {
+    return this._registeredCustomers.asReadonly();
   }
 
   getConnectionState(): Signal<boolean> {
@@ -85,7 +107,15 @@ export class GlobalStateService {
    */
   reset(): void {
     this._currentDistribution.set(null);
+    this._registeredCustomers.set(null);
     this._hasReceivedDistribution.set(false);
+  }
+
+  private isSameDistribution(current: DistributionItem | null, next: DistributionItem | null): boolean {
+    if (current === null || next === null) {
+      return current === next;
+    }
+    return current.id === next.id && !!current.endedAt === !!next.endedAt;
   }
 
 }

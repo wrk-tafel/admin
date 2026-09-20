@@ -118,7 +118,7 @@ internal class HouseholdExportServiceTest {
                     lastname = "mustermann",
                     birthDate = LocalDate.of(1990, 1, 1),
                     gender = PersonGender.MALE,
-                    country = CountryItem(id = 1, code = "AT", name = "Österreich"),
+                    country = CountryItem(id = 1, name = "Österreich"),
                 ),
             ),
         )

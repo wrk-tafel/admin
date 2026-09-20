@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {Gender} from '../support/commands';
 
-const AUSTRIA = {id: 165, code: 'AT', name: 'Österreich'};
+const AUSTRIA = {id: 165, name: 'Österreich'};
 
 describe('Customer Edit', () => {
 

@@ -2,7 +2,12 @@ package at.wrk.tafel.admin.backend.database.common.sseoutbox
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.mockk.CapturingSlot
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -12,9 +17,14 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.within
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder
@@ -48,12 +58,23 @@ class SseOutboxServiceTest {
     private val testPayloadString = "{\"value\":123}"
     private val notificationName = "test_notification"
 
+    private lateinit var logAppender: ListAppender<ILoggingEvent>
+    private val serviceLogger = LoggerFactory.getLogger(SseOutboxService::class.java) as Logger
+
     @BeforeEach
     fun beforeEach() {
+        logAppender = ListAppender<ILoggingEvent>().apply { start() }
+        serviceLogger.addAppender(logAppender)
         service = SseOutboxService(jsonMapper, sseOutboxRepository, sseOutboxListenerService, tafelAdminProperties)
 
         every { jsonMapper.readValue(testPayloadString, TestJsonPayload::class.java) } returns testPayload
         every { jsonMapper.writeValueAsString(testPayload) } returns testPayloadString
+    }
+
+    @AfterEach
+    fun afterEach() {
+        serviceLogger.detachAppender(logAppender)
+        RequestContextHolder.resetRequestAttributes()
     }
 
     @Test
@@ -396,6 +417,63 @@ class SseOutboxServiceTest {
                 eventCallback = callbackSlot.captured,
             )
         }
+    }
+
+    @Test
+    fun `emitter error of a broken connection is logged as one line without a stack trace`() {
+        RequestContextHolder.setRequestAttributes(
+            ServletRequestAttributes(MockHttpServletRequest("GET", "/api/sse/dashboard")),
+        )
+        val onErrorSlot = registerStreamAndCaptureErrorCallback()
+
+        onErrorSlot.captured.accept(IOException("Broken pipe"))
+
+        val event = logAppender.list.single()
+        assertThat(event.level).isEqualTo(Level.INFO)
+        assertThat(event.formattedMessage)
+            .contains("GET /api/sse/dashboard")
+            .contains("IOException")
+            .contains("Broken pipe")
+        assertThat(event.throwableProxy).isNull()
+    }
+
+    @Test
+    fun `emitter error that is not a broken connection is logged with its stack trace`() {
+        RequestContextHolder.setRequestAttributes(
+            ServletRequestAttributes(MockHttpServletRequest("GET", "/api/sse/distributions")),
+        )
+        val onErrorSlot = registerStreamAndCaptureErrorCallback()
+
+        onErrorSlot.captured.accept(IllegalStateException("pool exhausted"))
+
+        val event = logAppender.list.single()
+        assertThat(event.level).isEqualTo(Level.WARN)
+        assertThat(event.formattedMessage).contains("GET /api/sse/distributions")
+        assertThat(event.throwableProxy.message).isEqualTo("pool exhausted")
+    }
+
+    @Test
+    fun `emitter error outside a request is still logged`() {
+        val onErrorSlot = registerStreamAndCaptureErrorCallback()
+
+        onErrorSlot.captured.accept(IllegalStateException("boom"))
+
+        assertThat(logAppender.list.single().formattedMessage).contains("(unknown request)")
+    }
+
+    private fun registerStreamAndCaptureErrorCallback(): CapturingSlot<Consumer<Throwable>> {
+        val onErrorSlot = slot<Consumer<Throwable>>()
+        every { sseEmitter.onTimeout(any()) } returns Unit
+        every { sseEmitter.onCompletion(any()) } returns Unit
+        every { sseEmitter.onError(capture(onErrorSlot)) } returns Unit
+
+        service.forwardNotificationEventsToSse(
+            sseEmitter = sseEmitter,
+            notificationName = notificationName,
+            resultType = TestJsonPayload::class.java,
+        )
+        logAppender.list.clear()
+        return onErrorSlot
     }
 }
 

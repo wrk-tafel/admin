@@ -94,6 +94,11 @@ export class CustomerApiService {
     return this.http.get('/households/' + id + '/export', {responseType: 'blob', observe: 'response'});
   }
 
+  /**
+   * Sent as a `POST /households/search` body rather than `?searchInput=...` query parameters - a
+   * search term is, in practice, a customer's name, and a query string ends up in the never-rotated
+   * access.log, the browser's history and support-mail context (GDPR gap G25, issue #3506/#3703).
+   */
   searchCustomer(
     searchInput?: string | null,
     postProcessing?: boolean | null,
@@ -109,44 +114,23 @@ export class CustomerApiService {
     sortDirection?: string,
     context?: HttpContext
   ): Observable<CustomerSearchResult> {
-    let queryParams = new HttpParams();
-    if (searchInput) {
-      queryParams = queryParams.set('searchInput', searchInput);
-    }
-    if (postProcessing) {
-      queryParams = queryParams.set('postProcessing', postProcessing);
-    }
-    if (costContribution) {
-      queryParams = queryParams.set('costContribution', costContribution);
-    }
-    if (valid) {
-      queryParams = queryParams.set('valid', valid);
-    }
-    if (locked) {
-      queryParams = queryParams.set('locked', locked);
-    }
-    if (missingPrivacyNotice) {
-      queryParams = queryParams.set('missingPrivacyNotice', missingPrivacyNotice);
-    }
-    if (willBeDeletedSoon) {
-      queryParams = queryParams.set('willBeDeletedSoon', willBeDeletedSoon);
-    }
-    if (privacyNoticeOutdated) {
-      queryParams = queryParams.set('privacyNoticeOutdated', privacyNoticeOutdated);
-    }
-    if (page) {
-      queryParams = queryParams.set('page', page);
-    }
-    if (pageSize) {
-      queryParams = queryParams.set('pageSize', pageSize);
-    }
-    if (sortBy) {
-      queryParams = queryParams.set('sortBy', sortBy);
-    }
-    if (sortDirection) {
-      queryParams = queryParams.set('sortDirection', sortDirection);
-    }
-    return this.http.get<HouseholdSearchResult>('/households', {params: queryParams, context}).pipe(
+    const body: HouseholdSearchRequest = {
+      searchInput: searchInput || undefined,
+      page,
+      pageSize,
+      sortBy,
+      sortDirection,
+      filters: {
+        postProcessing: postProcessing || undefined,
+        costContribution: costContribution || undefined,
+        valid: valid || undefined,
+        locked: locked || undefined,
+        missingPrivacyNotice: missingPrivacyNotice || undefined,
+        willBeDeletedSoon: willBeDeletedSoon || undefined,
+        privacyNoticeOutdated: privacyNoticeOutdated || undefined
+      }
+    };
+    return this.http.post<HouseholdSearchResult>('/households/search', body, {context}).pipe(
       map(response => ({...response, items: (response?.items ?? []).map(mapHouseholdToCustomer)}))
     );
   }
@@ -589,6 +573,25 @@ interface PersonData {
 }
 
 type HouseholdSearchResult = PagedResponse<HouseholdData>;
+
+interface HouseholdSearchRequest {
+  searchInput?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDirection?: string;
+  filters?: HouseholdSearchFiltersRequest;
+}
+
+interface HouseholdSearchFiltersRequest {
+  postProcessing?: boolean;
+  costContribution?: boolean;
+  valid?: boolean;
+  locked?: boolean;
+  missingPrivacyNotice?: boolean;
+  willBeDeletedSoon?: boolean;
+  privacyNoticeOutdated?: boolean;
+}
 
 interface HouseholdCreationResponse {
   data: HouseholdData;

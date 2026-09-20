@@ -144,9 +144,9 @@ Hält mindestens eine aktive Route an der zu deaktivierenden Filiale, erscheint 
 
 ## Länder
 
-Unter **Einstellungen → Länder** wird die Länderliste gepflegt, aus der bei einer Person die Staatsangehörigkeit ausgewählt wird. Die Liste startet mit der festen ISO-Länderliste, lässt sich aber über den grünen **+**-Button neben der Überschrift um weitere Länder erweitern; gelöscht werden kann keines. Bearbeitbar sind **Name** und **Code** über Stift-/Häkchen-Symbol — derselbe Bearbeitungsmodus wie bei [Fahrzeugen](#fahrzeuge). Der Code muss genau zwei Buchstaben haben und bereits vergebene Codes werden sowohl beim Anlegen als auch beim Ändern abgelehnt ("Länder-Code XX ist bereits vergeben!").
+Unter **Einstellungen → Länder** wird die Länderliste gepflegt, aus der bei einer Person die Staatsangehörigkeit ausgewählt wird. Die Liste startet mit der festen ISO-Länderliste, lässt sich aber über den grünen **+**-Button neben der Überschrift um weitere Länder erweitern; gelöscht werden kann keines. Ein Land besteht nur aus seinem **Namen**, der über das Stift-/Häkchen-Symbol bearbeitet wird — derselbe Bearbeitungsmodus wie bei [Fahrzeugen](#fahrzeuge). Ein bereits vergebener Name (ohne Beachtung der Groß-/Kleinschreibung) wird sowohl beim Anlegen als auch beim Ändern abgelehnt ("Das Land XY existiert bereits!").
 
-Über der Liste stehen ein **Suchfeld** (durchsucht Name und Code) und der Filter **Alle / Aktiv / Inaktiv** — bei rund 250 Einträgen die mit Abstand längste Liste in diesem Bereich. Ist die Liste durch Suche oder Filter eingeschränkt, zeigt eine Zeile darüber die Trefferzahl.
+Über der Liste stehen ein **Suchfeld** (durchsucht den Namen) und der Filter **Alle / Aktiv / Inaktiv** — bei rund 250 Einträgen die mit Abstand längste Liste in diesem Bereich. Ist die Liste durch Suche oder Filter eingeschränkt, zeigt eine Zeile darüber die Trefferzahl.
 
 ![Länder](images/einstellungen-laender.jpg)
 

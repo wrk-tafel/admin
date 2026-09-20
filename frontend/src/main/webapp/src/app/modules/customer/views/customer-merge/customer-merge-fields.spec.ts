@@ -14,7 +14,7 @@ describe('customer-merge-fields', () => {
     validUntil: new Date(),
     pendingCostContribution: 10,
     singleParent: true,
-    country: {id: 1, code: 'AT', name: 'Österreich'},
+    country: {id: 1, name: 'Österreich'},
     employer: 'employer',
     income: 500,
     incomeDue: new Date(),

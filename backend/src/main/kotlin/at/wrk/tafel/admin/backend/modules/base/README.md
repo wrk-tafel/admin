@@ -29,24 +29,26 @@ available to everyone (see [Employees are reachable two ways](#employees-are-rea
   usage-then-alphabetically sorted, for the customer module's nationality autocomplete. `GET
   /api/countries/admin`, `POST /api/countries` and `PUT /api/countries/{id}` are the admin CRUD
   surface (#3585) behind `SETTINGS`: listing every country (enabled and disabled alike,
-  alphabetically), creating a new one, and editing a country's `code`/`name`/`enabled` state.
+  alphabetically), creating a new one, and editing a country's `name`/`enabled` state.
   There is no delete endpoint - the list only ever grows, since every person's nationality is a
-  `NOT NULL` FK into it across a household's whole history (see below). `CountryService` normalizes
-  `code` to uppercase and rejects a create/update whose code is already used by another country
-  with a `BusinessRuleException` ("Länder-Code XX ist bereits vergeben!"), the same
+  `NOT NULL` FK into it across a household's whole history (see below). `CountryService` trims
+  `name` and rejects a create/update whose name (compared case-insensitively) is already used by
+  another country with a `BusinessRuleException` ("Das Land X existiert bereits!"), the same
   validate-then-save shape as `logistics::ShopService.validateNumberIsUnique`.
-- [`CountryModel.kt`](country/CountryModel.kt): exposes `CountryItem(id, code, name)` and
-  `CountryListResponse` for the read side above; `CountryRequest(code, name, enabled)` (`code`
-  validated `@NotBlank` and `@Size(min=2, max=2)`, `name` `@NotBlank`) reused for both the create
-  and update endpoints, and `CountryResponse(id, code, name, enabled)` for the admin CRUD side,
+- [`CountryModel.kt`](country/CountryModel.kt): exposes `CountryItem(id, name)` and
+  `CountryListResponse` for the read side above; `CountryRequest(name, enabled)` (`name`
+  validated `@NotBlank` and `@Size(max=50)`) reused for both the create
+  and update endpoints, and `CountryResponse(id, name, enabled)` for the admin CRUD side,
   plus `CountryAdminListResponse` wrapping the admin listing. `CountryItem` never appears as a
   standalone single-resource response or a request body - it's only ever an element of
   `CountryListResponse.items` or an embedded field on `Person`, hence the `Item` suffix rather than
   a `Request`/`Response` split.
 - Backed by `CountryRepository`/`CountryEntity` in `database/model/staticdata` (table
   `static_countries`, `enabled` column added by #3585's migration, defaulting every existing row to
-  `true`; `code` has a unique index, `uix_code`, from the original countries migration).
-  `CountryRepository.findByCode` backs the uniqueness check above. A country disabled here is never
+  `true`). A country is identified by its name alone - there is no ISO code column.
+  `CountryRepository.findAllByNameIgnoreCase` backs the uniqueness check above (a list, since
+  a database can already hold names that differ only in case; a save that leaves a country's name
+  unchanged skips the check). A country disabled here is never
   deleted - every person's nationality is a `NOT NULL` FK into this table across a household's
   whole history, which is a stronger "never delete" case than any of the `settings` module's other
   reference-data screens (see that module's README).
