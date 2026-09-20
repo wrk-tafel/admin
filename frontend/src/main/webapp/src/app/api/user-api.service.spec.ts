@@ -64,10 +64,8 @@ describe('UserApiService', () => {
   it('search user with all parameters', () => {
     apiService.searchUser('mustermann', false, 3).subscribe();
 
-    const req = httpMock.expectOne({
-      method: 'GET',
-      url: '/users?searchInput=mustermann&enabled=false&page=3'
-    });
+    const req = httpMock.expectOne({method: 'POST', url: '/users/search'});
+    expect(req.request.body).toEqual({searchInput: 'mustermann', enabled: false, page: 3});
     req.flush(null);
     httpMock.verify();
   });
@@ -75,7 +73,8 @@ describe('UserApiService', () => {
   it('search user with a search input only', () => {
     apiService.searchUser('mustermann', null).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/users?searchInput=mustermann'});
+    const req = httpMock.expectOne({method: 'POST', url: '/users/search'});
+    expect(req.request.body).toEqual({searchInput: 'mustermann'});
     req.flush(null);
     httpMock.verify();
   });
@@ -149,7 +148,8 @@ describe('UserApiService', () => {
       expect(data).toEqual(testResponse);
     });
 
-    const req = httpMock.expectOne({method: 'GET', url: '/users/login-attempts'});
+    const req = httpMock.expectOne({method: 'POST', url: '/users/login-attempts/search'});
+    expect(req.request.body).toEqual({});
     req.flush(testResponse);
     httpMock.verify();
   });
@@ -160,7 +160,8 @@ describe('UserApiService', () => {
 
     apiService.getLoginAttempts(page, pageSize).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: `/users/login-attempts?page=${page}&pageSize=${pageSize}`});
+    const req = httpMock.expectOne({method: 'POST', url: '/users/login-attempts/search'});
+    expect(req.request.body).toEqual({page, pageSize});
     req.flush({items: []});
     httpMock.verify();
   });
@@ -168,7 +169,8 @@ describe('UserApiService', () => {
   it('get login attempts filtered by username and lock state', () => {
     apiService.getLoginAttempts(1, 10, 'hans', true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/users/login-attempts?page=1&pageSize=10&searchInput=hans&lockedOnly=true'});
+    const req = httpMock.expectOne({method: 'POST', url: '/users/login-attempts/search'});
+    expect(req.request.body).toEqual({page: 1, pageSize: 10, searchInput: 'hans', lockedOnly: true});
     req.flush({items: []});
     httpMock.verify();
   });
@@ -176,7 +178,8 @@ describe('UserApiService', () => {
   it('get login attempts sorted by a column', () => {
     apiService.getLoginAttempts(1, 10, undefined, false, 'username', 'asc').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/users/login-attempts?page=1&pageSize=10&sortBy=username&sortDirection=asc'});
+    const req = httpMock.expectOne({method: 'POST', url: '/users/login-attempts/search'});
+    expect(req.request.body).toEqual({page: 1, pageSize: 10, sortBy: 'username', sortDirection: 'asc'});
     req.flush({items: []});
     httpMock.verify();
   });

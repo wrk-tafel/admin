@@ -43,6 +43,7 @@ instead, so a number's position in a group says nothing about its age.
 | # | Decision | Status |
 |---|---|---|
 | [0008](0008-rest-api-and-dto-naming-conventions.md) | REST conventions and Request/Response/Item DTO naming | accepted |
+| [0057](0057-search-endpoints-take-their-terms-in-a-post-body.md) | Search endpoints take their terms in a `POST` body, not a query string | accepted |
 | [0005](0005-server-sent-events-with-a-transactional-outbox.md) | Real-time updates via SSE fed by a transactional outbox | accepted |
 | [0041](0041-mails-sent-through-an-outbox.md) | Mails queued in the database and sent by a poller | accepted |
 | [0045](0045-one-mail-per-transaction-taken-with-skip-locked.md) | One mail per transaction, taken with `FOR UPDATE SKIP LOCKED` | accepted |

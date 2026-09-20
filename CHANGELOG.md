@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Ein bei der Kunden-, Benutzer-, Mitarbeiter-, Anmelde-Versuche- oder Datenauskunft-Suche eingegebener Suchbegriff landet jetzt in keinem Fall mehr im technischen Server-Zugriffsprotokoll (access.log), unabhängig von dessen Konfiguration.
 - Bricht eine Live-Verbindung (Übersicht, Ausgabe, Ticket-Bildschirm) ab, steht im Anwendungsprotokoll jetzt, welche Verbindung wie lange offen war und woran sie scheiterte - bei unerwarteten Fehlern samt Stack-Trace.
 
 ## [1.19.7] - 2026-09-18

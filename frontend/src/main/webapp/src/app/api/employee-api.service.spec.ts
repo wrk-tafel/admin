@@ -36,7 +36,8 @@ describe('EmployeeApiService', () => {
       expect(data).toEqual(mockResponse);
     });
 
-    const req = httpMock.expectOne({method: 'GET', url: '/employees'});
+    const req = httpMock.expectOne({method: 'POST', url: '/employees/search'});
+    expect(req.request.body).toEqual({});
     req.flush(mockResponse);
     httpMock.verify();
   });
@@ -46,7 +47,8 @@ describe('EmployeeApiService', () => {
     const page = 5;
     apiService.findEmployees(searchInput, page).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: `/employees?searchInput=${searchInput}&page=${page}`});
+    const req = httpMock.expectOne({method: 'POST', url: '/employees/search'});
+    expect(req.request.body).toEqual({searchInput, page});
     req.flush({items: []});
     httpMock.verify();
   });
@@ -54,7 +56,8 @@ describe('EmployeeApiService', () => {
   it('find employees sorted by a column', () => {
     apiService.findEmployees(undefined, 1, 10, 'lastname', 'asc').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/employees?page=1&pageSize=10&sortBy=lastname&sortDirection=asc'});
+    const req = httpMock.expectOne({method: 'POST', url: '/employees/search'});
+    expect(req.request.body).toEqual({page: 1, pageSize: 10, sortBy: 'lastname', sortDirection: 'asc'});
     req.flush({items: []});
     httpMock.verify();
   });

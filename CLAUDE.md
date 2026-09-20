@@ -642,14 +642,23 @@ When a service method needs to operate on data that's structurally identical acr
 `List<Person>`, not a `Household`) over adding overloads or a shared supertype — see
 `HouseholdService.validate`/`mapToValidationPersons`.
 
-- `/api/users`: User management
-- `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`
+A collection endpoint that supports a free-text search term is `POST .../search` with the term (and
+any paging/sort/filter fields) in the request body, never `GET .../?searchInput=...` — a search term
+is, in practice, a person's name, and a query string ends up in the never-rotated `access.log`, the
+browser's history and support-mail context with no way to keep it out short of never putting it in a
+URL at all (GDPR gap G25, issue #3506/#3703; see [ADR-0057](docs/architecture/adr/0057-search-endpoints-take-their-terms-in-a-post-body.md)).
+This applies specifically to a *search* — `GET .../{id}` for a single resource and a plain,
+term-less `GET` listing are unaffected.
+
+- `/api/users`: User management. Search is `POST /api/users/search`; `POST /api/users/login-attempts/search`
+  is the separate login-attempts (`anmelde-versuche`) search
+- `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`. Search is `POST /api/households/search`
 - `/api/households/{householdId}/notes`: Household notes
 - `/api/households/{householdId}/ticket`: Current ticket for a household in the active distribution
 - `/api/distributions`: Distribution management (SSE updates on `/api/sse/distributions`)
 - `/api/distributions/ticket-screen`: Ticket screen control (SSE on `/api/sse/distributions/ticket-screen/current`)
 - `/api/countries`: Country list
-- `/api/employees`: Employee management
+- `/api/employees`: Employee management. Search is `POST /api/employees/search`
 - `/api/scanners`: Scanner registration (SSE on `/api/sse/scanners/{scannerId}/results`)
 - `/api/routes`: Route management
 - `/api/food-categories`: Food category management
@@ -661,7 +670,7 @@ When a service method needs to operate on data that's structurally identical acr
 - `/api/support`: Mails an in-app support request (title, text, and the browser's `clientContext`) to the configured support addresses
 - `/api/client-errors`: Logs one client-side error (message, page, user agent) to `app.log` as it happens, rate-limited per IP; behind `isAuthenticated()`, no dedicated permission
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
-- `/api/data-subject-requests`: the central "Datenauskunft" screen — `/search` across households, user accounts and employees without one; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
+- `/api/data-subject-requests`: the central "Datenauskunft" screen — `POST /search` across households, user accounts and employees without one; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
 
 Authentication: Basic HTTP auth with JWT token stored in cookie.
 
@@ -778,7 +787,8 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
 - **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
 - **Fuzzy Search**: the customer and user search screens each have one free-text box (`searchInput`)
-  rather than per-field inputs. Both match against a denormalized, lower-cased `search_text` column
+  rather than per-field inputs, sent as a `POST .../search` request body rather than a query
+  parameter (ADR-0057). Both match against a denormalized, lower-cased `search_text` column
   that a database trigger keeps in sync (`R__00088_fulltext_search.sql`) — for a household that
   covers its number, the names of *all* its persons, address, phone and e-mail; for a user, username
   plus the linked employee's personnel number and name. Two modes are OR'd: `like '%term%'` for the

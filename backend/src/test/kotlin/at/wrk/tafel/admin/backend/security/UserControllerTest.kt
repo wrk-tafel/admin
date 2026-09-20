@@ -388,10 +388,12 @@ class UserControllerTest {
         } returns userSearchResult
 
         val response =
-            controller.getUsers(
-                searchInput = searchInput,
-                enabled = enabled,
-                page = page,
+            controller.searchUsers(
+                UserSearchRequest(
+                    searchInput = searchInput,
+                    enabled = enabled,
+                    page = page,
+                ),
             )
 
         assertThat(response.items).isEqualTo(listOf(testUserResponse))
@@ -430,7 +432,7 @@ class UserControllerTest {
             )
         } returns userSearchResult
 
-        val response = controller.getUsers(sortBy = "name", sortDirection = "asc")
+        val response = controller.searchUsers(UserSearchRequest(sortBy = "name", sortDirection = "asc"))
 
         assertThat(response.items).hasSize(1)
         verify(exactly = 1) {
@@ -467,7 +469,7 @@ class UserControllerTest {
             loginAttemptService.getLockedUntil(listOf(testUser.username, lockedUser.username))
         } returns mapOf(lockedUser.username to lockedUntil)
 
-        val response = controller.getUsers()
+        val response = controller.searchUsers(UserSearchRequest())
 
         assertThat(response.items).extracting<java.time.LocalDateTime?> { it.lockedUntil }
             .containsExactly(null, lockedUntil)
@@ -1092,7 +1094,7 @@ class UserControllerTest {
         val pagedResult = PageImpl(listOf(newer, older), pageRequest, 123)
         every { loginAttemptService.findAll(pageRequest, null, false) } returns pagedResult
 
-        val response = controller.getLoginAttempts()
+        val response = controller.searchLoginAttempts(LoginAttemptSearchRequest())
 
         assertThat(response).isEqualTo(
             PagedResponse(
@@ -1110,7 +1112,7 @@ class UserControllerTest {
         val pageRequest = PageRequest.of(0, 25)
         every { loginAttemptService.findAll(pageRequest, null, false) } returns PageImpl(emptyList(), pageRequest, 0)
 
-        val response = controller.getLoginAttempts(page = 1, pageSize = 25)
+        val response = controller.searchLoginAttempts(LoginAttemptSearchRequest(page = 1, pageSize = 25))
 
         assertThat(response.pageSize).isEqualTo(25)
     }
@@ -1120,7 +1122,7 @@ class UserControllerTest {
         val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
         every { loginAttemptService.findAll(pageRequest, null, false) } returns PageImpl(emptyList(), pageRequest, 0)
 
-        val response = controller.getLoginAttempts(page = 1, pageSize = 7)
+        val response = controller.searchLoginAttempts(LoginAttemptSearchRequest(page = 1, pageSize = 7))
 
         assertThat(response.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
     }
@@ -1130,7 +1132,7 @@ class UserControllerTest {
         val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
         every { loginAttemptService.findAll(pageRequest, "hans", true) } returns PageImpl(emptyList(), pageRequest, 0)
 
-        val response = controller.getLoginAttempts(searchInput = "hans", lockedOnly = true)
+        val response = controller.searchLoginAttempts(LoginAttemptSearchRequest(searchInput = "hans", lockedOnly = true))
 
         assertThat(response.totalCount).isEqualTo(0)
         verify(exactly = 1) { loginAttemptService.findAll(pageRequest, "hans", true) }
