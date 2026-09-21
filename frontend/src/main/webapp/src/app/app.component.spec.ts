@@ -5,16 +5,20 @@ import {Subject} from 'rxjs';
 import {signal} from '@angular/core';
 import {AuthenticationService} from './common/security/authentication.service';
 import {PushNotificationService} from './common/pwa/push-notification.service';
+import {ThemeService} from './common/theme/theme.service';
+import {ThemePreference} from './api/user-api.service';
 
 describe('AppComponent', () => {
   let routerEventsSubject: Subject<any>;
-  let userInfo: ReturnType<typeof signal<{ username: string; permissions: string[] } | null>>;
+  let userInfo: ReturnType<typeof signal<{ username: string; permissions: string[]; theme: ThemePreference } | null>>;
   let pushNotificationService: { syncSubscription: ReturnType<typeof vi.fn> };
+  let themeService: { adopt: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     vi.useFakeTimers();
     routerEventsSubject = new Subject();
-    userInfo = signal<{ username: string; permissions: string[] } | null>(null);
+    userInfo = signal<{ username: string; permissions: string[]; theme: ThemePreference } | null>(null);
+    themeService = {adopt: vi.fn()};
     pushNotificationService = {syncSubscription: vi.fn().mockResolvedValue(false)};
 
     TestBed.configureTestingModule({
@@ -26,7 +30,8 @@ describe('AppComponent', () => {
           }
         },
         {provide: AuthenticationService, useValue: {userInfo}},
-        {provide: PushNotificationService, useValue: pushNotificationService}
+        {provide: PushNotificationService, useValue: pushNotificationService},
+        {provide: ThemeService, useValue: themeService}
       ]
     }).compileComponents();
   });
@@ -213,7 +218,7 @@ describe('AppComponent', () => {
       const fixture = TestBed.createComponent(AppComponent);
       fixture.detectChanges();
 
-      userInfo.set({username: 'test-user', permissions: []});
+      userInfo.set({username: 'test-user', permissions: [], theme: 'SYSTEM'});
       fixture.detectChanges();
 
       expect(pushNotificationService.syncSubscription).toHaveBeenCalledOnce();
@@ -224,7 +229,7 @@ describe('AppComponent', () => {
      * is the case that actually re-registers a device after its backend row was lost.
      */
     it('syncs when the app starts up into an existing session', () => {
-      userInfo.set({username: 'test-user', permissions: []});
+      userInfo.set({username: 'test-user', permissions: [], theme: 'SYSTEM'});
 
       const fixture = TestBed.createComponent(AppComponent);
       fixture.detectChanges();
@@ -236,14 +241,42 @@ describe('AppComponent', () => {
       const fixture = TestBed.createComponent(AppComponent);
       fixture.detectChanges();
 
-      userInfo.set({username: 'test-user', permissions: []});
+      userInfo.set({username: 'test-user', permissions: [], theme: 'SYSTEM'});
       fixture.detectChanges();
       userInfo.set(null);
       fixture.detectChanges();
-      userInfo.set({username: 'other-user', permissions: []});
+      userInfo.set({username: 'other-user', permissions: [], theme: 'SYSTEM'});
       fixture.detectChanges();
 
       expect(pushNotificationService.syncSubscription).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('theme', () => {
+    it('leaves the theme alone while nobody is logged in', () => {
+      const fixture = TestBed.createComponent(AppComponent);
+      fixture.detectChanges();
+
+      expect(themeService.adopt).not.toHaveBeenCalled();
+    });
+
+    it('adopts the theme the server holds for the user once a session exists', () => {
+      const fixture = TestBed.createComponent(AppComponent);
+      fixture.detectChanges();
+
+      userInfo.set({username: 'test-user', permissions: [], theme: 'DARK'});
+      fixture.detectChanges();
+
+      expect(themeService.adopt).toHaveBeenCalledWith('DARK');
+    });
+
+    it('adopts the theme when the app starts up into an existing session', () => {
+      userInfo.set({username: 'test-user', permissions: [], theme: 'LIGHT'});
+
+      const fixture = TestBed.createComponent(AppComponent);
+      fixture.detectChanges();
+
+      expect(themeService.adopt).toHaveBeenCalledWith('LIGHT');
     });
   });
 

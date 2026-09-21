@@ -4,7 +4,7 @@
       `top-16` is the height of the application header, which is itself sticky - a day heading that
       stopped at the viewport edge would slide underneath it and be unreadable while scrolling.
     -->
-    <h3 class="tafel-h6 sticky top-16 z-[5] -mx-2 mb-0 mt-1 bg-white px-2 py-2 border-b border-slate-200"
+    <h3 class="tafel-h6 sticky top-16 z-[5] -mx-2 mb-0 mt-1 bg-[var(--tafel-surface)] px-2 py-2 border-b border-slate-200"
         [attr.testid]="'audit-day-' + g">
       @if (group.relativeLabel) {
         <span class="font-bold" [attr.testid]="'audit-day-' + g + '-relative'">{{ group.relativeLabel }}</span>

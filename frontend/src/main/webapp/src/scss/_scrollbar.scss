@@ -3,30 +3,22 @@
 @supports (scrollbar-width: thin) {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #444 transparent;
+    scrollbar-color: var(--tafel-scrollbar-thumb-hover) transparent;
   }
 }
 
 ::-webkit-scrollbar-track {
-  background: #fff;
+  background: var(--tafel-surface);
   border-radius: 100vw;
   margin-block: .2em;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #999;
-  border: .15em solid #fff;
+  background: var(--tafel-scrollbar-thumb);
+  border: .15em solid var(--tafel-surface);
   border-radius: 100vw;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444;
-}
-
-.dark-theme::-webkit-scrollbar-thumb {
-  background: #444;
-}
-
-.dark-theme::-webkit-scrollbar-thumb:hover {
-  background: #999;
+  background: var(--tafel-scrollbar-thumb-hover);
 }

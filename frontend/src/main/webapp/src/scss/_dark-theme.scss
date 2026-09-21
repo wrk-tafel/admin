@@ -1,0 +1,173 @@
+@use '@angular/material' as mat;
+
+// The dark theme. `ThemeService` puts the `dark-theme` class on <html> (and `theme-init.js` does the
+// same before the first paint), which is the only switch there is: everything below hangs off it.
+//
+// Three layers, and the reason each is done the way it is:
+//
+// 1. Material takes its colours from `--mat-sys-*`, so re-emitting those for the dark scheme turns
+//    every Material component over without touching one of them.
+// 2. The screens are styled with Tailwind's palette (`bg-slate-50`, `text-slate-500`, `border-gray-200`
+//    ...), and a utility only reads `var(--color-<family>-<step>)`. Re-pointing those variables turns
+//    every template over without a `dark:` variant on each element. The neutrals and the light tints
+//    (50-300, only ever used as a surface or a border) are swapped for their dark counterparts; the
+//    saturated 500-900 steps stay as they are, because `bg-red-600 text-white` has to remain a red
+//    button. A *text* colour in one of those steps is the exception, and is lightened below.
+//    The values are written out rather than derived from the palette: Tailwind only emits the
+//    variables a template actually uses, so `var(--color-slate-950)` is not guaranteed to exist.
+// 3. What is drawn with a literal colour goes through the `--tafel-*` variables in _theme.scss.
+//
+// Contrast: every text step below is at least 4.5:1 on --tafel-surface and --tafel-page-background.
+
+html.dark-theme {
+  color-scheme: dark;
+
+  @include mat.theme((
+    color: (
+      theme-type: dark,
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+  ));
+
+  --tafel-surface: #1b1f27;
+  --tafel-page-background: #12151b;
+  --tafel-text: rgba(232, 236, 243, .92);
+  --tafel-text-inactive: #9aa3b2;
+  --tafel-border-color: #ffffff24;
+  --tafel-background-secondary: #171a21;
+  --tafel-sidenav-hover-background: #2b3242;
+  --tafel-severity-neutral: #5d6c82;
+  --tafel-scrollbar-thumb: #4b5363;
+  --tafel-scrollbar-thumb-hover: #9aa3b2;
+
+  // Neutrals
+  --color-slate-50: #222832;
+  --color-slate-100: #2a303b;
+  --color-slate-200: #363d4a;
+  --color-slate-300: #465061;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #a3b0c4;
+  --color-slate-600: #b4c0d2;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #f1f5f9;
+  --color-slate-950: #f8fafc;
+
+  --color-gray-50: #222832;
+  --color-gray-100: #2a2f3a;
+  --color-gray-200: #363c48;
+  --color-gray-300: #4a5361;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #a8afbb;
+  --color-gray-600: #b9bfca;
+  --color-gray-700: #d1d5db;
+  --color-gray-800: #e5e7eb;
+  --color-gray-900: #f3f4f6;
+  --color-gray-950: #f9fafb;
+
+  // Light tints of the severity colours (banners, highlighted rows)
+  --color-amber-50: #2b2210;
+  --color-amber-100: #382b12;
+  --color-amber-200: #59431a;
+  --color-amber-300: #7c5c1f;
+  --color-red-50: #2c1618;
+  --color-red-100: #3a1a1d;
+  --color-red-200: #5b2327;
+  --color-red-300: #7d2d33;
+  --color-green-50: #12251a;
+  --color-green-100: #173021;
+  --color-green-200: #1f4a2f;
+  --color-green-300: #2a6a42;
+  --color-blue-50: #111f33;
+  --color-blue-100: #152848;
+  --color-blue-200: #1e3a66;
+  --color-blue-300: #2b5088;
+}
+
+// Text in the saturated steps, which the variables above deliberately leave alone.
+html.dark-theme {
+  .text-amber-600 {
+    color: #fbbf24;
+  }
+
+  .text-amber-700 {
+    color: #fbbf24;
+  }
+
+  .text-amber-800 {
+    color: #fde68a;
+  }
+
+  .text-amber-900 {
+    color: #fde68a;
+  }
+
+  .text-red-600 {
+    color: #f87171;
+  }
+
+  .text-red-700 {
+    color: #f87171;
+  }
+
+  .text-red-800 {
+    color: #fca5a5;
+  }
+
+  .text-red-900 {
+    color: #fca5a5;
+  }
+
+  .text-green-600 {
+    color: #4ade80;
+  }
+
+  .text-green-700 {
+    color: #4ade80;
+  }
+
+  .text-green-800 {
+    color: #86efac;
+  }
+
+  .text-green-900 {
+    color: #86efac;
+  }
+
+  .text-blue-600 {
+    color: #60a5fa;
+  }
+
+  .text-blue-700 {
+    color: #60a5fa;
+  }
+
+  .text-blue-800 {
+    color: #93c5fd;
+  }
+
+  .text-blue-900 {
+    color: #93c5fd;
+  }
+}
+
+// The banners take their text colour from `@apply` in tafel-banner.scss, which compiles to the
+// variable, not to a `.text-*` class - so the rule above never reaches them.
+html.dark-theme {
+  .tafel-banner-error {
+    color: #fca5a5;
+  }
+
+  .tafel-banner-success {
+    color: #86efac;
+  }
+
+  .tafel-banner-info {
+    color: #93c5fd;
+  }
+
+  .tafel-banner-warning {
+    color: #fde68a;
+  }
+}

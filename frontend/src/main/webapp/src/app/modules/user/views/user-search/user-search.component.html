@@ -102,7 +102,7 @@
                 <td mat-cell *matCellDef="let user; let i = index" class="px-4 py-2">
                   <div class="flex flex-wrap gap-1">
                     <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                          [ngClass]="user.enabled ? 'bg-green-700' : 'bg-slate-500'"
+                          [ngClass]="user.enabled ? 'bg-green-700' : 'bg-[var(--tafel-severity-neutral)]'"
                           [attr.testid]="'searchresult-enabled-' + i">{{user.enabled ? 'Aktiv' : 'Deaktiviert'}}</span>
                     @if (user.passwordChangeRequired) {
                       <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-amber-700"
@@ -157,7 +157,7 @@
                       <div class="font-bold">Status:</div>
                       <div class="flex flex-wrap gap-1">
                         <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                              [ngClass]="user.enabled ? 'bg-green-700' : 'bg-slate-500'">{{user.enabled ? 'Aktiv' : 'Deaktiviert'}}</span>
+                              [ngClass]="user.enabled ? 'bg-green-700' : 'bg-[var(--tafel-severity-neutral)]'">{{user.enabled ? 'Aktiv' : 'Deaktiviert'}}</span>
                         @if (user.passwordChangeRequired) {
                           <span class="rounded-full px-2 py-0.5 text-xs font-medium text-white bg-amber-700">Passwortänderung erforderlich</span>
                         }

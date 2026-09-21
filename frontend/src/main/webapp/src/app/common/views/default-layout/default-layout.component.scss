@@ -10,9 +10,6 @@ mat-sidenav {
   --mat-sidenav-container-text-color: rgba(255, 255, 255, .87);
   --mat-sidenav-container-shape: 0;
   --mat-sidenav-container-divider-color: transparent;
-  // A lightened tint of the container background above, rather than an unrelated Tailwind gray, so
-  // hover states read as "lighter version of this sidebar" instead of a barely-visible generic gray.
-  --tafel-sidenav-hover-background: #4a556e;
 
   &.w-16 {
     --mat-sidenav-container-width: 4rem;
@@ -37,7 +34,7 @@ mat-sidenav {
 // paints the whole content area (behind the header and router-outlet) in Material's default off-white
 // instead of the app's intended light-gray content background.
 mat-sidenav-container {
-  --mat-sidenav-content-background-color: #f5f5f5;
+  --mat-sidenav-content-background-color: var(--tafel-page-background);
 }
 
 // Written out rather than composed from `sr-only` / `focus:not-sr-only`: those two set the same
@@ -60,7 +57,7 @@ mat-sidenav-container {
     clip-path: none;
     padding: .5rem 1rem;
     border-radius: .375rem;
-    background-color: #fff;
+    background-color: var(--tafel-surface);
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
   }
 }

@@ -16,7 +16,7 @@
 // reverting the card look.
 :root {
   @include mat.card-overrides((
-    outlined-container-color: white,
+    outlined-container-color: var(--tafel-surface),
     outlined-outline-color: var(--tafel-border-color),
   ));
 }

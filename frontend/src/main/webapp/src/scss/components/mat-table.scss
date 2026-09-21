@@ -6,6 +6,6 @@
 // silently reverting the table to the tinted surface.
 :root {
   @include mat.table-overrides((
-    background-color: white,
+    background-color: var(--tafel-surface),
   ));
 }

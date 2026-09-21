@@ -415,8 +415,8 @@ export class RouteGuidanceComponent {
       return `${base} bg-green-600 border-green-600`;
     }
     return index === this._currentIndex()
-      ? `${base} bg-white border-blue-600 ring-2 ring-blue-300`
-      : `${base} bg-white border-slate-300`;
+      ? `${base} bg-[var(--tafel-surface)] border-blue-600 ring-2 ring-blue-300`
+      : `${base} bg-[var(--tafel-surface)] border-slate-300`;
   }
 
   protected completeCurrentStop() {

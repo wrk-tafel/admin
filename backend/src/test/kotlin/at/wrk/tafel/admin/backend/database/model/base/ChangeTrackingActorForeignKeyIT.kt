@@ -26,7 +26,7 @@ internal class ChangeTrackingActorForeignKeyIT : TafelBaseIntegrationTest() {
     private lateinit var userRepository: UserRepository
 
     companion object {
-        // Mirrors R__00111_change_tracking_actor_user_fk.sql's own table list.
+        // Mirrors R__00111_change_tracking_actor_user_fk.sql's own table list., plus the tables added since
         private val TABLES_WITH_CHANGE_TRACKING_ACTOR = listOf(
             "cars",
             "distributions",
@@ -54,6 +54,7 @@ internal class ChangeTrackingActorForeignKeyIT : TafelBaseIntegrationTest() {
             "users_authorities",
             "routes_stops_completions",
             "household_duplicate_dismissals",
+            "user_preferences",
         )
     }
 
