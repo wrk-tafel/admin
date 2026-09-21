@@ -74,6 +74,9 @@ class UserControllerTest {
     @RelaxedMockK
     private lateinit var advisoryLockService: AdvisoryLockService
 
+    @RelaxedMockK
+    private lateinit var userPreferencesService: UserPreferencesService
+
     @InjectMockKs
     private lateinit var controller: UserController
 
@@ -105,11 +108,32 @@ class UserControllerTest {
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+        every { userPreferencesService.getTheme(testUser.username) } returns UserTheme.DARK
 
         val response = controller.getUserInfo()
 
         assertThat(response.body?.username).isEqualTo(testUser.username)
         assertThat(response.body?.permissions).isEqualTo(testUserPermissions.map { it.key })
+        assertThat(response.body?.theme).isEqualTo(UserTheme.DARK)
+
+        SecurityContextHolder.clearContext()
+    }
+
+    @Test
+    fun `update theme of the authenticated user`() {
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+        every { userPreferencesService.updateTheme(testUser.username, UserTheme.LIGHT) } returns
+            UserThemeResponse(UserTheme.LIGHT)
+
+        val response = controller.updateTheme(UserThemeRequest(UserTheme.LIGHT))
+
+        assertThat(response.theme).isEqualTo(UserTheme.LIGHT)
+        verify { userPreferencesService.updateTheme(testUser.username, UserTheme.LIGHT) }
 
         SecurityContextHolder.clearContext()
     }

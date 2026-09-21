@@ -1,5 +1,6 @@
 import * as path from 'path';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
+import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('General', () => {
 
@@ -237,6 +238,37 @@ describe('Accessibility', () => {
     cy.checkMenuAccessibility();
   });
 
+  it('groups the user menu items under Konto, Datenschutz, Hilfe and Abmelden', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('usermenu').click();
+
+    cy.byTestId('usermenu-group-account').should('have.text', 'Konto');
+    cy.byTestId('usermenu-group-account')
+      .parent('[role="group"]')
+      .within(() => {
+        cy.byTestId('usermenu-changepassword').should('exist');
+        cy.byTestId('usermenu-pushnotifications').should('exist');
+        cy.byTestId('usermenu-theme').should('exist');
+      });
+
+    cy.byTestId('usermenu-group-privacy').should('have.text', 'Datenschutz');
+    cy.byTestId('usermenu-group-privacy')
+      .parent('[role="group"]')
+      .within(() => {
+        cy.byTestId('usermenu-export').should('exist');
+        cy.byTestId('usermenu-privacy-notice').should('exist');
+      });
+
+    cy.byTestId('usermenu-group-help').should('have.text', 'Hilfe');
+    cy.byTestId('usermenu-group-help').parent('[role="group"]').find('[testid="usermenu-userguide"]').should('exist');
+
+    // logout is a group of its own, so nobody hits it while reaching for a neighbour
+    cy.byTestId('usermenu-group-logout').should('have.text', 'Abmelden');
+    cy.byTestId('usermenu-group-logout').parent('[role="group"]').find('[testid="usermenu-logout"]').should('exist');
+  });
+
   // Links to the always-latest release asset rather than a version pinned to this checkout, so the
   // link keeps working after every release without a code change - see release.yml's
   // github-release job. Asserted on the link itself (not by following it) since it points at an
@@ -251,6 +283,48 @@ describe('Accessibility', () => {
       .should('contain.text', 'Benutzerhandbuch')
       .and('have.attr', 'href', 'https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf')
       .and('not.have.attr', 'target');
+  });
+
+  describe('theme', () => {
+    // The e2e account is shared by every spec: leaving it on the dark theme would change what all of
+    // them render and audit.
+    afterEach(() => {
+      cy.loginDefault();
+      cy.visit('/uebersicht');
+      cy.byTestId('usermenu').click();
+      cy.byTestId('usermenu-theme').click();
+      cy.byTestId('usermenu-theme-system').click();
+      cy.get('html').should('not.have.class', 'dark-theme');
+    });
+
+    it('switches to the dark theme from the user menu, keeps it per user and has no violations', () => {
+      cy.loginDefault();
+      cy.visit('/uebersicht');
+      cy.get('html').should('not.have.class', 'dark-theme');
+
+      cy.byTestId('usermenu').click();
+      cy.byTestId('usermenu-theme').should('contain.text', 'Design: System').click();
+      cy.byTestId('usermenu-theme-system').should('have.attr', 'aria-checked', 'true');
+      cy.byTestId('usermenu-theme-dark').should('have.attr', 'aria-checked', 'false').and('be.visible');
+      cy.checkAccessibility('.mat-mdc-menu-panel');
+
+      cy.byTestId('usermenu-theme-dark').click();
+      cy.get('html').should('have.class', 'dark-theme');
+
+      // Another device knows nothing of this browser's storage: the choice has to come back from
+      // the user's account, not from what this browser remembered.
+      cy.clearAllLocalStorage();
+      cy.reload();
+      cy.get('html').should('have.class', 'dark-theme');
+
+      // the shell renders only once the session is known, which is what a reload waits for
+      cy.get(MAIN_CONTENT).should('be.visible');
+      cy.checkAccessibility(MAIN_CONTENT);
+
+      cy.byTestId('usermenu').click();
+      cy.byTestId('usermenu-theme').should('contain.text', 'Design: Dunkel');
+      cy.checkMenuAccessibility();
+    });
   });
 
   // The Art. 13 GDPR privacy notice for staff (issue #3429) - self-service from the user menu,

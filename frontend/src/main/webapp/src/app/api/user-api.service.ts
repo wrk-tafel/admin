@@ -3,12 +3,20 @@ import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import {PagedResponse} from '../common/api/paged-response';
 
+/** `SYSTEM` follows the operating system's light/dark setting. */
+export type ThemePreference = 'LIGHT' | 'DARK' | 'SYSTEM';
+
 @Service()
 export class UserApiService {
   private readonly http = inject(HttpClient);
 
   changePassword(request: ChangePasswordRequest, context?: HttpContext): Observable<ChangePasswordResponse> {
     return this.http.post<ChangePasswordResponse>('/users/change-password', request, {context});
+  }
+
+  /** Saves the caller's own light/dark preference; it comes back with the user info on the next login. */
+  updateTheme(theme: ThemePreference): Observable<{ theme: ThemePreference }> {
+    return this.http.put<{ theme: ThemePreference }>('/users/theme', {theme});
   }
 
   getUserForId(userId: number): Observable<UserData> {

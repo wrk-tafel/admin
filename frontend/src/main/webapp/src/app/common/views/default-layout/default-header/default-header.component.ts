@@ -7,7 +7,7 @@ import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {DatePipe, NgClass, NgOptimizedImage} from '@angular/common';
+import {DatePipe, NgClass} from '@angular/common';
 import {MatIcon} from '@angular/material/icon';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {GlobalStateService} from '../../../state/global-state.service';
@@ -23,6 +23,8 @@ import {QuickOpenDialogComponent} from './dialogs/quick-open-dialog.component';
 import {MatButton} from '@angular/material/button';
 import {ConfigApiService} from '../../../../api/config-api.service';
 import {TafelTitleStrategy} from '../../../util/tafel-title-strategy';
+import {ThemeService} from '../../../theme/theme.service';
+import {ThemePreference} from '../../../../api/user-api.service';
 import {registerSvgIcons} from '../../../util/svg-icon.util';
 import menuIcon from '@material-symbols/svg-400/outlined/menu-fill.svg';
 import helpIcon from '@material-symbols/svg-400/outlined/help-fill.svg';
@@ -34,6 +36,11 @@ import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import linkIcon from '@material-symbols/svg-400/outlined/link-fill.svg';
 import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
+import paletteIcon from '@material-symbols/svg-400/outlined/palette-fill.svg';
+import lightModeIcon from '@material-symbols/svg-400/outlined/light_mode-fill.svg';
+import darkModeIcon from '@material-symbols/svg-400/outlined/dark_mode-fill.svg';
+import brightnessAutoIcon from '@material-symbols/svg-400/outlined/brightness_auto-fill.svg';
+import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
 
 const CLOCK_FORMAT = new Intl.DateTimeFormat('de-AT', {
   timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
@@ -48,7 +55,6 @@ const CLOCK_FORMAT = new Intl.DateTimeFormat('de-AT', {
     MatDividerModule,
     MatTooltipModule,
     NgClass,
-    NgOptimizedImage,
     MatIcon,
     MatButton,
     DatePipe
@@ -67,6 +73,7 @@ export class DefaultHeaderComponent {
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
   private readonly configApiService = inject(ConfigApiService);
+  private readonly themeService = inject(ThemeService);
 
   readonly sseConnected = this.globalStateService.getConnectionState();
 
@@ -111,6 +118,25 @@ export class DefaultHeaderComponent {
    */
   readonly environmentLabel = computed(() => this.appConfig()?.environmentLabel ?? '');
 
+  /**
+   * Two letters for the avatar: the first letters of the first two words of the username
+   * ("max.mustermann" -> "MM"), or its first two characters when it is a single word.
+   */
+  readonly userInitials = computed(() => {
+    const username = this.authenticationService.userInfo()?.username ?? '';
+    const words = username.split(/[^\p{L}\p{N}]+/u).filter(word => word.length > 0);
+    const initials = words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? '').slice(0, 2);
+    return initials.toUpperCase() || '?';
+  });
+
+  readonly themeOptions: readonly { value: ThemePreference; label: string; icon: string }[] = [
+    {value: 'LIGHT', label: 'Hell', icon: 'light_mode'},
+    {value: 'DARK', label: 'Dunkel', icon: 'dark_mode'},
+    {value: 'SYSTEM', label: 'System', icon: 'brightness_auto'},
+  ];
+  readonly themePreference = this.themeService.preference;
+  readonly themeLabel = computed(() => this.themeOptions.find(option => option.value === this.themePreference())?.label ?? '');
+
   private quickOpenDialogRef: MatDialogRef<QuickOpenDialogComponent> | null = null;
 
   /**
@@ -138,7 +164,12 @@ export class DefaultHeaderComponent {
       download: downloadIcon,
       lock: lockIcon,
       link: linkIcon,
-      link_off: linkOffIcon
+      link_off: linkOffIcon,
+      palette: paletteIcon,
+      light_mode: lightModeIcon,
+      dark_mode: darkModeIcon,
+      brightness_auto: brightnessAutoIcon,
+      check: checkIcon
     });
   }
 
@@ -154,6 +185,10 @@ export class DefaultHeaderComponent {
       position: {top: '5rem'}
     });
     this.quickOpenDialogRef.afterClosed().subscribe(() => this.quickOpenDialogRef = null);
+  }
+
+  public setTheme(preference: ThemePreference) {
+    return this.themeService.setPreference(preference);
   }
 
   public logout() {

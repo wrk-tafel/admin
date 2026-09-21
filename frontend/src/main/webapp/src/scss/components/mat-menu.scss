@@ -9,7 +9,7 @@
 // reverting a panel's look.
 :root {
   @include mat.menu-overrides((
-    container-color: white,
+    container-color: var(--tafel-surface),
     container-elevation-shadow: none,
     container-shape: 8px,
     // A divider's own margin (8px top + 8px bottom by default) sits between two items but
@@ -21,12 +21,12 @@
   ));
 
   @include mat.select-overrides((
-    panel-background-color: white,
+    panel-background-color: var(--tafel-surface),
     container-elevation-shadow: none,
   ));
 
   @include mat.autocomplete-overrides((
-    background-color: white,
+    background-color: var(--tafel-surface),
     container-elevation-shadow: none,
     container-shape: 8px,
   ));

@@ -7,6 +7,7 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../http/suppress-error-toast.token';
 import {GlobalStateService} from '../state/global-state.service';
 import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../api/problem-detail';
+import {ThemePreference} from '../../api/user-api.service';
 
 @Service()
 export class AuthenticationService {
@@ -164,4 +165,6 @@ export interface LoginResult {
 interface UserInfo {
   username: string;
   permissions: string[];
+  /** Absent when an older backend, still running during a rolling deploy, does not send it. */
+  theme?: ThemePreference;
 }

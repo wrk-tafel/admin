@@ -4,8 +4,22 @@
 // would override even an explicit utility class like `m-0` on the same element.
 @layer base {
   :root {
+    // The neutral surfaces. Everything that used to be a hard-coded white, light gray or dark
+    // border reads one of these, so the dark theme below re-points them in one place.
+    --tafel-surface: #ffffff;
+    --tafel-page-background: #f5f5f5;
+    --tafel-text: rgba(37, 43, 54, .95);
+    // #5f6368 is 6.0:1 on the white surface, still visibly quieter than body text.
+    --tafel-text-inactive: #5f6368;
     --tafel-border-color: #080A0C2D;
     --tafel-background-secondary: #212631;
+    // A lightened tint of the sidebar's own background, rather than an unrelated Tailwind gray, so
+    // hover states read as "lighter version of this sidebar" instead of a barely-visible generic gray.
+    --tafel-sidenav-hover-background: #4a556e;
+    // The colour a switched-off badge is drawn with; white text on it clears 4.5:1.
+    --tafel-severity-neutral: #62748e;
+    --tafel-scrollbar-thumb: #999;
+    --tafel-scrollbar-thumb-hover: #444;
 
     // The severity palette shared by badges, buttons, cards and dialog headers. Each colour carries
     // its own foreground because that pairing is what has to clear WCAG AA (4.5:1) - the `lighthouse`
@@ -22,8 +36,8 @@
   }
 
   body {
-    background-color: #f5f5f5;
-    color: rgba(37, 43, 54, .95);
+    background-color: var(--tafel-page-background);
+    color: var(--tafel-text);
   }
 
   .form-check-input {

@@ -6,7 +6,7 @@
   // --tafel-border-color outline an outlined mat-card draws, at the same 12px radius Material's
   // card shape token uses, so a panel inside a card looks like the same family of surface.
   .tafel-panel {
-    background-color: white;
+    background-color: var(--tafel-surface);
     border: 1px solid var(--tafel-border-color);
     border-radius: 12px;
   }

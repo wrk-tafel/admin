@@ -6,7 +6,7 @@
 // white. No custom-property equivalent exists for this default case, so it stays a raw override.
 .mat-mdc-tab-header,
 .mat-mdc-tab-body-wrapper {
-  background-color: white;
+  background-color: var(--tafel-surface);
 }
 
 // Give the whole tab group the same rounded-corner, bordered "card" look mat-card.scss uses

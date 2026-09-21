@@ -651,7 +651,8 @@ This applies specifically to a *search* — `GET .../{id}` for a single resource
 term-less `GET` listing are unaffected.
 
 - `/api/users`: User management. Search is `POST /api/users/search`; `POST /api/users/login-attempts/search`
-  is the separate login-attempts (`anmelde-versuche`) search
+  is the separate login-attempts (`anmelde-versuche`) search. `GET /api/users/info` also carries the
+  caller's light/dark `theme`, which `PUT /api/users/theme` changes (stored in `user_preferences`)
 - `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`. Search is `POST /api/households/search`
 - `/api/households/{householdId}/notes`: Household notes
 - `/api/households/{householdId}/ticket`: Current ticket for a household in the active distribution
@@ -711,6 +712,15 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
   Two jobs are gated on *who* opened the pull request rather than on what it touched: `deploy-dev`
   and, with it, `build-push-image` are skipped for Dependabot, since a pull-request image exists
   only to be deployed to dev. And `lighthouse` doesn't run on a pull request at all (ADR-0055).
+- **Light and dark theme**: `ThemeService` puts `dark-theme` on `<html>`; `assets/theme-init.js` does the
+  same before first paint (a separate file, since the CSP allows no inline script). `scss/_dark-theme.scss`
+  is everything the dark theme does: Material's `--mat-sys-*` tokens, the Tailwind palette variables
+  (neutrals and the 50-300 tints are swapped, the saturated 500-900 steps are not, so `bg-red-600
+  text-white` stays a red button) and lightened *text* in those steps. So a screen needs no `dark:`
+  variant, but it has to follow two rules: a surface is `var(--tafel-surface)` (or one of the other
+  `--tafel-*` variables in `_theme.scss`), never `bg-white` or a literal colour, and text on a surface
+  that is dark in both themes (the sidebar, the error pages) uses `text-white/NN`, not a gray step,
+  since the gray steps flip. Canvas drawing (Chart.js) reads `chartColors()` instead of a stylesheet.
 - **Accessibility is gated three times, and no one of them replaces another.**
   1. `eslint.config.js` extends `angular.configs.templateAccessibility` for `**/*.html`, so
      `ng lint` (the `lint-frontend` CI job, which already covers `src/**/*.html`) fails on a click

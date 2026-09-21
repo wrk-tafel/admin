@@ -31,7 +31,8 @@ function breakpointObserverSpy(mobile: boolean): MockedObject<BreakpointObserver
 function configureModule(mobile: boolean) {
     const authServiceSpy = {
         hasPermission: vi.fn().mockName('AuthenticationService.hasPermission'),
-        hasAnyPermission: vi.fn().mockName('AuthenticationService.hasAnyPermission')
+        hasAnyPermission: vi.fn().mockName('AuthenticationService.hasAnyPermission'),
+        userInfo: signal(null)
     };
     const globalStateServiceSpy = {
         getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution'),

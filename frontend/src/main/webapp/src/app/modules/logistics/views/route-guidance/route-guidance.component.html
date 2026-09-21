@@ -159,7 +159,7 @@
 
       @if (currentStop(); as view) {
         <!-- one stop at a time, paged with the buttons below - see the component's class doc -->
-        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm" testid="guidance-stop"
+        <div class="rounded-xl border border-slate-200 bg-[var(--tafel-surface)] p-4 shadow-sm" testid="guidance-stop"
              role="group" [attr.aria-label]="'Stopp ' + (currentIndex() + 1) + ' von ' + stops().length"
              (touchstart)="onStopTouchStart($event)" (touchend)="onStopTouchEnd($event)">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -276,7 +276,7 @@
              spare and does not need this. Deliberately the most prominent control on the screen -
              this is what a driver's thumb reaches for at every stop, and it must not require a
              scroll to find, or a hunt because it moved since the last stop. -->
-        <div class="fixed inset-x-0 bottom-0 z-10 flex flex-col gap-3 border-t border-slate-200 bg-white p-4 sm:static sm:mt-4 sm:border-0 sm:p-0">
+        <div class="fixed inset-x-0 bottom-0 z-10 flex flex-col gap-3 border-t border-slate-200 bg-[var(--tafel-surface)] p-4 sm:static sm:mt-4 sm:border-0 sm:p-0">
           <div class="grid grid-cols-2 gap-3">
             <button matButton="filled" type="button" class="!py-3 !text-base" testid="guidance-previous-button"
                     [attr.aria-label]="previousButtonLabel()"

@@ -35,7 +35,7 @@
         @if (opened()) {
           <canvas baseChart testid="statistics-detail-chart"
                   role="img" [attr.aria-label]="chartLabel()"
-                  [type]="'line'" [data]="chartData()" [options]="chartOptions"></canvas>
+                  [type]="'line'" [data]="chartData()" [options]="chartOptions()"></canvas>
         }
       </div>
 
