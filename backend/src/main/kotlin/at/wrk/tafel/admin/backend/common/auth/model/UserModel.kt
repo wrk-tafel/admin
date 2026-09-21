@@ -95,6 +95,24 @@ data class GeneratedPasswordResponse(
 data class UserInfoResponse(
     val username: String,
     val permissions: List<String>,
+    val theme: UserTheme,
+)
+
+/** How the interface is coloured; [SYSTEM] follows the operating system's light/dark setting. */
+enum class UserTheme {
+    LIGHT,
+    DARK,
+    SYSTEM,
+}
+
+@ExcludeFromTestCoverage
+data class UserThemeRequest(
+    val theme: UserTheme,
+)
+
+@ExcludeFromTestCoverage
+data class UserThemeResponse(
+    val theme: UserTheme,
 )
 
 @ExcludeFromTestCoverage

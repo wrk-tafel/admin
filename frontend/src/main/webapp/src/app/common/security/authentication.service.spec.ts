@@ -61,7 +61,7 @@ describe('AuthenticationService', () => {
 
     it('login successful', async () => {
         const loginResponseBody = { passwordChangeRequired: false };
-        const userInfoResponseBody = { username: 'test-user', permissions: ['PERM1'] };
+        const userInfoResponseBody = { username: 'test-user', permissions: ['PERM1'], theme: 'SYSTEM' };
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
@@ -106,7 +106,7 @@ describe('AuthenticationService', () => {
 
     it('login successful but passwordchange is required', async () => {
         const loginResponseBody = { passwordChangeRequired: true };
-        const userInfoResponseBody = { username: 'test-user', permissions: [] };
+        const userInfoResponseBody = { username: 'test-user', permissions: [], theme: 'SYSTEM' };
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
@@ -133,7 +133,7 @@ describe('AuthenticationService', () => {
     });
 
     it('login failed', async () => {
-        service.userInfo.set({ username: 'test123', permissions: [] });
+        service.userInfo.set({ username: 'test123', permissions: [], theme: 'SYSTEM' });
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
@@ -156,7 +156,7 @@ describe('AuthenticationService', () => {
     });
 
     it('login failed - rate limited', async () => {
-        service.userInfo.set({ username: 'test123', permissions: [] });
+        service.userInfo.set({ username: 'test123', permissions: [], theme: 'SYSTEM' });
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
@@ -255,7 +255,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasPermission - no permissions given', () => {
-        service.userInfo.set({ username: 'test123', permissions: [] });
+        service.userInfo.set({ username: 'test123', permissions: [], theme: 'SYSTEM' });
 
         const hasPermission = service.hasPermission('PERM1');
 
@@ -414,7 +414,7 @@ describe('AuthenticationService', () => {
     });
 
     it('hasAnyPermissionOf - no permissions given', () => {
-        service.userInfo.set({ username: 'test123', permissions: [] });
+        service.userInfo.set({ username: 'test123', permissions: [], theme: 'SYSTEM' });
 
         const hasPermission = service.hasAnyPermissionOf(['PERM1']);
 

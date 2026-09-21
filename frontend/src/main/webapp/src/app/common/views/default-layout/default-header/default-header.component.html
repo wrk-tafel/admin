@@ -113,41 +113,79 @@
         <span class="hidden sm:inline">Live-Verbindung</span><span class="sr-only"> {{ sseConnected() ? 'besteht' : 'unterbrochen' }}</span>
       </span>
 
+      <!--
+        The user's initials on the brand colour rather than a picture: nothing to load, nothing
+        that clashes with either theme, and it says whose menu this is. The initials are
+        decoration - the button's own label names it.
+      -->
       <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
-              class="w-9 h-9 rounded-md overflow-hidden">
-        <img ngSrc="./assets/img/user/user.svg" width="36" height="36" alt="Benutzer-Avatar" class="w-full h-full object-cover cursor-pointer"/>
+              class="w-9 h-9 rounded-full cursor-pointer">
+        <span aria-hidden="true" testid="usermenu-initials"
+              class="flex h-full w-full items-center justify-center rounded-full bg-[#5856d6] text-sm font-semibold text-white">{{ userInitials() }}</span>
       </button>
       <mat-menu #userMenu="matMenu">
-        <!-- --tafel-background-secondary (defined in _theme.scss) is the same variable the sidebar itself uses (default-layout.component.scss). -->
-        <div class="px-6 py-2 text-xs uppercase tracking-wide text-gray-100 font-semibold bg-[var(--tafel-background-secondary)]">Benutzer</div>
-        <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
-          <mat-icon svgIcon="key"></mat-icon> Passwort ändern
-        </a>
-        <a mat-menu-item [routerLink]="['/benachrichtigungen']" testid="usermenu-pushnotifications">
-          <mat-icon svgIcon="notifications"></mat-icon> Benachrichtigungen
-        </a>
-        <!-- The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363). -->
-        <button mat-menu-item testid="usermenu-export" (click)="exportUserData()">
-          <mat-icon svgIcon="download"></mat-icon> Meine Daten exportieren
-        </button>
-        <!-- The Art. 13 GDPR privacy notice for staff (issue #3429) - what is processed, not the takeout above. -->
-        <button mat-menu-item testid="usermenu-privacy-notice" (click)="downloadStaffPrivacyNotice()">
-          <mat-icon svgIcon="download"></mat-icon> Datenschutzerklärung (Mitarbeiter)
-        </button>
         <!--
-          No target="_blank"/rel: GitHub's release-asset URL always answers with
-          Content-Disposition: attachment (baked into the signed redirect it issues, not something
-          this link can override), so the browser downloads the PDF rather than navigating to it -
-          "open in a new tab" would be misleading here.
+          Four groups - the account itself, what the application holds about the user, where to
+          read up on it, and logout on its own, so nobody hits it while reaching for a neighbour.
+          Each group is a labelled `role="group"` inside the menu; the label is a heading for the eye,
+          not a menu item, so keyboard navigation still steps through the items only.
         -->
-        <a mat-menu-item href="https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf"
-           testid="usermenu-userguide">
-          <mat-icon svgIcon="book"></mat-icon> Benutzerhandbuch
-        </a>
+        <div role="group" aria-labelledby="usermenu-group-account">
+          <div id="usermenu-group-account" class="px-4 pt-3 pb-1 text-xs uppercase tracking-wide font-semibold text-[var(--tafel-text-inactive)]" testid="usermenu-group-account">Konto</div>
+          <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
+            <mat-icon svgIcon="key"></mat-icon> Passwort ändern
+          </a>
+          <a mat-menu-item [routerLink]="['/benachrichtigungen']" testid="usermenu-pushnotifications">
+            <mat-icon svgIcon="notifications"></mat-icon> Benachrichtigungen
+          </a>
+          <button mat-menu-item [matMenuTriggerFor]="themeMenu" testid="usermenu-theme">
+            <mat-icon svgIcon="palette"></mat-icon> Design: {{ themeLabel() }}
+          </button>
+        </div>
         <mat-divider></mat-divider>
-        <a mat-menu-item [routerLink]="[]" testid="usermenu-logout" (click)="logout()">
-          <mat-icon svgIcon="lock"></mat-icon> Abmelden
-        </a>
+        <div role="group" aria-labelledby="usermenu-group-privacy">
+          <div id="usermenu-group-privacy" class="px-4 pt-3 pb-1 text-xs uppercase tracking-wide font-semibold text-[var(--tafel-text-inactive)]" testid="usermenu-group-privacy">Datenschutz</div>
+          <!-- The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363). -->
+          <button mat-menu-item testid="usermenu-export" (click)="exportUserData()">
+            <mat-icon svgIcon="download"></mat-icon> Meine Daten exportieren
+          </button>
+          <!-- The Art. 13 GDPR privacy notice for staff (issue #3429) - what is processed, not the takeout above. -->
+          <button mat-menu-item testid="usermenu-privacy-notice" (click)="downloadStaffPrivacyNotice()">
+            <mat-icon svgIcon="download"></mat-icon> Datenschutzerklärung (Mitarbeiter)
+          </button>
+        </div>
+        <mat-divider></mat-divider>
+        <div role="group" aria-labelledby="usermenu-group-help">
+          <div id="usermenu-group-help" class="px-4 pt-3 pb-1 text-xs uppercase tracking-wide font-semibold text-[var(--tafel-text-inactive)]" testid="usermenu-group-help">Hilfe</div>
+          <!--
+            No target="_blank"/rel: GitHub's release-asset URL always answers with
+            Content-Disposition: attachment (baked into the signed redirect it issues, not something
+            this link can override), so the browser downloads the PDF rather than navigating to it -
+            "open in a new tab" would be misleading here.
+          -->
+          <a mat-menu-item href="https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf"
+             testid="usermenu-userguide">
+            <mat-icon svgIcon="book"></mat-icon> Benutzerhandbuch
+          </a>
+        </div>
+        <mat-divider></mat-divider>
+        <div role="group" aria-labelledby="usermenu-group-logout">
+          <div id="usermenu-group-logout" class="px-4 pt-3 pb-1 text-xs uppercase tracking-wide font-semibold text-[var(--tafel-text-inactive)]" testid="usermenu-group-logout">Abmelden</div>
+          <a mat-menu-item [routerLink]="[]" testid="usermenu-logout" (click)="logout()">
+            <mat-icon svgIcon="lock"></mat-icon> Abmelden
+          </a>
+        </div>
+      </mat-menu>
+      <mat-menu #themeMenu="matMenu">
+        @for (option of themeOptions; track option.value) {
+          <button mat-menu-item role="menuitemradio" [attr.aria-checked]="themePreference() === option.value"
+                  [attr.testid]="'usermenu-theme-' + option.value.toLowerCase()" (click)="setTheme(option.value)">
+            <mat-icon [svgIcon]="option.icon"></mat-icon> {{ option.label }}
+            @if (themePreference() === option.value) {
+              <mat-icon svgIcon="check" class="!mr-0 ml-auto" aria-hidden="true"></mat-icon>
+            }
+          </button>
+        }
       </mat-menu>
     </div>
   </div>

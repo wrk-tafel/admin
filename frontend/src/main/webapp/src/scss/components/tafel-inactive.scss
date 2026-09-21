@@ -6,7 +6,7 @@
 // controls inside it drop below the 4.5:1 contrast the `lighthouse` accessibility gate requires -
 // and they do it on every screen that shows a deactivated record. Colour leaves the controls alone.
 //
-// #5f6368 is 6.0:1 on the white table/card background, still visibly quieter than body text.
+// --tafel-text-inactive is 6.0:1 on the white table/card background, still visibly quieter than body text.
 // The three selectors are the three places the class is put: on a card, on a whole row, and on
 // individual cells - and a cell carries Material's own `.mat-mdc-cell` colour, which a class on an
 // ancestor would not override on its own.
@@ -14,5 +14,5 @@
 td.tafel-inactive,
 tr.tafel-inactive .mat-mdc-cell,
 .tafel-inactive .mat-mdc-card-title {
-  color: #5f6368;
+  color: var(--tafel-text-inactive);
 }

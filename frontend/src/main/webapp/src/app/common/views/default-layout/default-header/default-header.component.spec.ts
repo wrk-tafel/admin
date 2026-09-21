@@ -7,7 +7,7 @@ import { of, Subject, throwError } from 'rxjs';
 import { HttpHeaders, HttpResponse, provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { GlobalStateService } from '../../../state/global-state.service';
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 import { provideRouter, Router, TitleStrategy } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 import { MatDialog } from '@angular/material/dialog';
@@ -20,6 +20,7 @@ import { FileHelperService } from '../../../util/file-helper.service';
 import { ConfigApiService } from '../../../../api/config-api.service';
 import { DistributionItem } from '../../../../api/distribution-api.service';
 import { TafelTitleStrategy } from '../../../util/tafel-title-strategy';
+import { ThemeService } from '../../../theme/theme.service';
 
 const screenshot = 'data:image/jpeg;base64,AAAA';
 
@@ -56,6 +57,7 @@ describe('DefaultHeaderComponent', () => {
                 {
                     provide: AuthenticationService,
                     useValue: {
+                        userInfo: signal({username: 'max.mustermann', permissions: []}),
                         logout: vi.fn().mockName('AuthenticationService.logout'),
                         redirectToLogin: vi.fn().mockName('AuthenticationService.redirectToLogin')
                     }
@@ -172,6 +174,42 @@ describe('DefaultHeaderComponent', () => {
 
         const connectedBadge: HTMLElement = connectedFixture.nativeElement.querySelector('[testid="connection-state-badge"]');
         expect(connectedBadge.textContent!.trim()).toBe('Live-Verbindung besteht');
+    });
+
+    it('shows the current theme in the user menu and saves a new choice', async () => {
+        const themeService = TestBed.inject(ThemeService);
+        const setPreference = vi.spyOn(themeService, 'setPreference').mockResolvedValue(undefined);
+        themeService.adopt('DARK');
+
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        const component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        expect(component.themeLabel()).toBe('Dunkel');
+
+        await component.setTheme('LIGHT');
+
+        expect(setPreference).toHaveBeenCalledWith('LIGHT');
+    });
+
+    it('shows the initials of the username on the user menu button', () => {
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        fixture.detectChanges();
+
+        const initials: HTMLElement = fixture.nativeElement.querySelector('[testid="usermenu-initials"]');
+        expect(initials.textContent!.trim()).toBe('MM');
+    });
+
+    it('takes the first two characters of a one-word username, and a placeholder without one', () => {
+        const fixture = TestBed.createComponent(DefaultHeaderComponent);
+        const component = fixture.componentInstance;
+        const userInfo = authenticationService.userInfo as unknown as WritableSignal<{ username: string; permissions: string[] } | null>;
+
+        userInfo.set({username: 'e2etest', permissions: []});
+        expect(component.userInitials()).toBe('E2');
+
+        userInfo.set(null);
+        expect(component.userInitials()).toBe('?');
     });
 
     it('logout', () => {

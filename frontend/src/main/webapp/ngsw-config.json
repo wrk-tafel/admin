@@ -8,6 +8,7 @@
       "resources": {
         "files": [
           "/assets/favicon.ico",
+          "/assets/theme-init.js",
           "/index.csr.html",
           "/index.html",
           "/manifest.webmanifest",

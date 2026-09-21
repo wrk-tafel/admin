@@ -27,9 +27,18 @@ Auf Test- und Entwicklungsumgebungen wird oberhalb der Anmeldemaske zusätzlich 
 
 Dieselbe Umgebungskennzeichnung bleibt nach der Anmeldung als schmales Banner oben in der Kopfzeile der Anwendung sichtbar, damit auch eine bereits geöffnete Sitzung auf einer Test- oder Entwicklungsumgebung nicht mit der Produktivumgebung verwechselt werden kann.
 
-Über das Benutzer-Icon oben rechts kann das eigene Passwort geändert, die Push-Benachrichtigungen für das aktuelle Gerät verwaltet, die eigenen Daten exportiert, die eigene Datenschutzerklärung heruntergeladen, dieses Benutzerhandbuch (immer die aktuellste Version, als PDF-Download) geöffnet oder man kann sich abmelden.
+Das Benutzer-Icon oben rechts (es zeigt die Initialen des Benutzernamens) öffnet das Benutzermenü. Es ist in vier Gruppen gegliedert:
+
+- **Konto**: das eigene Passwort ändern, die Push-Benachrichtigungen für das aktuelle Gerät verwalten und das Design (hell oder dunkel) wählen.
+- **Datenschutz**: die eigenen Daten exportieren und die eigene Datenschutzerklärung herunterladen.
+- **Hilfe**: dieses Benutzerhandbuch (immer die aktuellste Version, als PDF-Download) öffnen.
+- **Abmelden**: die Sitzung beenden; die Gruppe steht bewusst für sich allein, damit man sie nicht versehentlich trifft.
 
 ![Benutzermenü](images/benutzermenue.jpg)
+
+Über **Design** wählt man, ob die Anwendung hell, dunkel oder passend zur Einstellung des Geräts (**System**, Standard) dargestellt wird. Die Auswahl gilt sofort und wird zum eigenen Benutzerkonto gespeichert: Nach der Anmeldung auf einem anderen Gerät erscheint die Anwendung wieder im selben Design. Bei **System** folgt die Anwendung auch einem späteren Wechsel der Geräteeinstellung (z. B. abends automatisch auf dunkel), ohne dass sie neu geladen werden muss.
+
+![Dunkles Design](images/design-dunkel.jpg)
 
 Über **Passwort ändern** gelangt man zu folgender Seite innerhalb der Anwendung:
 

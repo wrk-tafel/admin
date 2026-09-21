@@ -4,6 +4,7 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {AuthenticationService} from './common/security/authentication.service';
 import {PushNotificationService} from './common/pwa/push-notification.service';
+import {ThemeService} from './common/theme/theme.service';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -19,6 +20,7 @@ export class AppComponent {
   private readonly router = inject(Router);
   private readonly authenticationService = inject(AuthenticationService);
   private readonly pushNotificationService = inject(PushNotificationService);
+  private readonly themeService = inject(ThemeService);
 
   // Route resolvers (e.g. list-page data fetches) block navigation before the target component
   // even mounts, so a component-level spinner can't cover that window - this shows a top-level
@@ -89,6 +91,16 @@ export class AppComponent {
     effect(() => {
       if (this.authenticationService.userInfo()) {
         this.pushNotificationService.syncSubscription();
+      }
+    });
+
+    // The theme the server holds for the user replaces whatever this device last showed, so a
+    // choice made on another device (or another account on this one) applies as soon as a session
+    // exists - on a fresh login and on a reload into an existing session alike.
+    effect(() => {
+      const userInfo = this.authenticationService.userInfo();
+      if (userInfo?.theme) {
+        this.themeService.adopt(userInfo.theme);
       }
     });
   }

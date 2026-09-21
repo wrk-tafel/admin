@@ -6,7 +6,7 @@
 // instead of silently reverting the paginator to the tinted surface.
 :root {
   @include mat.paginator-overrides((
-    container-background-color: white,
+    container-background-color: var(--tafel-surface),
   ));
 }
 

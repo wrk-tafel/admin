@@ -11,6 +11,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportFileResult
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
+import at.wrk.tafel.admin.backend.common.auth.components.UserPreferencesService
 import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
@@ -53,6 +54,7 @@ class UserController(
     private val staffPrivacyNoticeService: StaffPrivacyNoticeService,
     private val jwtTokenService: JwtTokenService,
     private val advisoryLockService: AdvisoryLockService,
+    private val userPreferencesService: UserPreferencesService,
 ) {
 
     companion object {
@@ -66,9 +68,17 @@ class UserController(
         val userInfo = UserInfoResponse(
             username = authenticatedUser.username!!,
             permissions = authenticatedUser.authorities.mapNotNull { it.authority },
+            theme = userPreferencesService.getTheme(authenticatedUser.username!!),
         )
 
         return ResponseEntity.ok(userInfo)
+    }
+
+    /** The caller's own display preference - self-service, so `isAuthenticated()` is all it needs. */
+    @PutMapping("/theme")
+    fun updateTheme(@RequestBody request: UserThemeRequest): UserThemeResponse {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        return userPreferencesService.updateTheme(authenticatedUser.username!!, request.theme)
     }
 
     /**

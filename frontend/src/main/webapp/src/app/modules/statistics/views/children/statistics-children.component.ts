@@ -37,6 +37,8 @@ import {AuthenticationService} from '../../../../common/security/authentication.
 import {MatIcon} from '@angular/material/icon';
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
+import {ThemeService} from '../../../../common/theme/theme.service';
+import {chartColors} from '../../components/chart-colors';
 import saveIcon from '@material-symbols/svg-400/outlined/save-fill.svg';
 
 export const SCHOOL_AGE_PRESET = {ageMin: 6, ageMax: 15};
@@ -93,6 +95,7 @@ export class StatisticsChildrenComponent {
   private readonly statisticsApiService = inject(StatisticsApiService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly authenticationService = inject(AuthenticationService);
+  private readonly themeService = inject(ThemeService);
   private readonly formBuilder = inject(FormBuilder);
 
   filterForm = this.formBuilder.group({
@@ -163,22 +166,28 @@ export class StatisticsChildrenComponent {
     return `Verteilung nach Alter - ${breakdown}`;
   });
 
-  chartOptions = {
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {display: false}
-    },
-    scales: {
-      x: {
-        title: {display: true, text: 'Alter in Jahren'},
-        grid: {display: false}
+  chartOptions = computed(() => {
+    const colors = chartColors(this.themeService.effectiveTheme());
+    return {
+      maintainAspectRatio: false,
+      color: colors.text,
+      plugins: {
+        legend: {display: false}
       },
-      y: {
-        beginAtZero: true,
-        ticks: {precision: 0}
+      scales: {
+        x: {
+          title: {display: true, text: 'Alter in Jahren', color: colors.text},
+          grid: {display: false},
+          ticks: {color: colors.text}
+        },
+        y: {
+          beginAtZero: true,
+          grid: {color: colors.grid},
+          ticks: {precision: 0, color: colors.text}
+        }
       }
-    }
-  };
+    };
+  });
 
   /**
    * Every load goes through this subject instead of subscribing per call, so a still-in-flight

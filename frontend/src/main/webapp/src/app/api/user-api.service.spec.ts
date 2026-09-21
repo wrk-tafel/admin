@@ -32,6 +32,16 @@ describe('UserApiService', () => {
     apiService = TestBed.inject(UserApiService);
   });
 
+  it('update theme called', () => {
+    apiService.updateTheme('DARK').subscribe(response => {
+      expect(response).toEqual({theme: 'DARK'});
+    });
+
+    const req = httpMock.expectOne({method: 'PUT', url: '/users/theme'});
+    expect(req.request.body).toEqual({theme: 'DARK'});
+    req.flush({theme: 'DARK'});
+  });
+
   it('changed password called', () => {
     const testRequest: ChangePasswordRequest = {
       passwordCurrent: 'pwd-current',

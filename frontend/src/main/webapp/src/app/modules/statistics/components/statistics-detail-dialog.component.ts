@@ -9,6 +9,8 @@ import {TooltipItem} from 'chart.js';
 import {StatisticsDetailData} from '../../../api/statistics-api.service';
 import {TafelDialogComponent} from '../../../common/components/tafel-dialog/tafel-dialog.component';
 import {computeDelta, formatStatisticsValue} from './statistics-comparison';
+import {chartColors} from './chart-colors';
+import {ThemeService} from '../../../common/theme/theme.service';
 
 export interface StatisticsDetailDialogData {
   detail: StatisticsDetailData;
@@ -32,6 +34,7 @@ export class StatisticsDetailDialogComponent {
   readonly dialogRef = inject(MatDialogRef<StatisticsDetailDialogComponent>);
   readonly data: StatisticsDetailDialogData = inject(MAT_DIALOG_DATA);
   private readonly locale = inject(LOCALE_ID);
+  private readonly themeService = inject(ThemeService);
 
   /**
    * Whether the dialog has finished opening - which is what the chart waits for. Chart.js measures
@@ -86,21 +89,25 @@ export class StatisticsDetailDialogComponent {
     return `${this.data.detail.subTitle} im Zeitverlauf - ${course}`;
   });
 
-  chartOptions = {
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {display: false},
-      tooltip: {
-        callbacks: {
-          label: (context: TooltipItem<'line'>) => this.withUnit(context.parsed.y ?? 0)
+  chartOptions = computed(() => {
+    const colors = chartColors(this.themeService.effectiveTheme());
+    return {
+      maintainAspectRatio: false,
+      color: colors.text,
+      plugins: {
+        legend: {display: false},
+        tooltip: {
+          callbacks: {
+            label: (context: TooltipItem<'line'>) => this.withUnit(context.parsed.y ?? 0)
+          }
         }
+      },
+      scales: {
+        x: {grid: {display: false}, ticks: {color: colors.text}},
+        y: {beginAtZero: true, grid: {color: colors.grid}, ticks: {color: colors.text}}
       }
-    },
-    scales: {
-      x: {grid: {display: false}},
-      y: {beginAtZero: true}
-    }
-  };
+    };
+  });
 
   private withUnit(value: number): string {
     return formatStatisticsValue(value, this.data.detail.unit, this.locale);
