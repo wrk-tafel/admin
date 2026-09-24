@@ -74,6 +74,11 @@ export class UserApiService {
     return this.http.put<UserData>(`/users/${data.id}`, data, {context});
   }
 
+  /** Switches two-factor authentication off for someone who lost their phone. */
+  resetMfa(userId: number): Observable<void> {
+    return this.http.delete<void>(`/users/${userId}/mfa`);
+  }
+
   deleteUser(userId: number): Observable<void> {
     return this.http.delete<void>(`/users/${userId}`);
   }
@@ -159,6 +164,8 @@ export interface UserData {
   username: string;
   firstname: string;
   lastname: string;
+  // Where system notifications to this user are sent; optional, absent/null when none is on record.
+  email?: string | null;
   enabled: boolean;
   password?: string;
   passwordRepeat?: string;
@@ -167,6 +174,11 @@ export interface UserData {
   // Currently active lockout from failed logins, server-computed; absent/null once it expired or
   // none is on record - see LoginAttemptService on the backend.
   lockedUntil?: string | null;
+  // Whether two-factor authentication is on for the account, server-computed - the secret itself never
+  // leaves the server.
+  mfaEnabled?: boolean;
+  // Which methods complete a login: TOTP (authenticator app), EMAIL (code by e-mail).
+  mfaMethods?: string[];
 }
 
 export interface PermissionsListResponse {

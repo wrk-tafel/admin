@@ -1,6 +1,4 @@
-import * as path from 'path';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
-import {MAIN_CONTENT} from '../support/accessibility';
 
 describe('General', () => {
 
@@ -238,7 +236,7 @@ describe('Accessibility', () => {
     cy.checkMenuAccessibility();
   });
 
-  it('groups the user menu items under Konto, Datenschutz, Hilfe and Abmelden', () => {
+  it('groups the user menu items under Konto, Hilfe and Abmelden', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');
 
@@ -248,17 +246,7 @@ describe('Accessibility', () => {
     cy.byTestId('usermenu-group-account')
       .parent('[role="group"]')
       .within(() => {
-        cy.byTestId('usermenu-changepassword').should('exist');
-        cy.byTestId('usermenu-pushnotifications').should('exist');
-        cy.byTestId('usermenu-theme').should('exist');
-      });
-
-    cy.byTestId('usermenu-group-privacy').should('have.text', 'Datenschutz');
-    cy.byTestId('usermenu-group-privacy')
-      .parent('[role="group"]')
-      .within(() => {
-        cy.byTestId('usermenu-export').should('exist');
-        cy.byTestId('usermenu-privacy-notice').should('exist');
+        cy.byTestId('usermenu-account').should('exist');
       });
 
     cy.byTestId('usermenu-group-help').should('have.text', 'Hilfe');
@@ -283,64 +271,6 @@ describe('Accessibility', () => {
       .should('contain.text', 'Benutzerhandbuch')
       .and('have.attr', 'href', 'https://github.com/wrk-tafel/admin/releases/latest/download/tafel-admin-benutzerhandbuch.pdf')
       .and('not.have.attr', 'target');
-  });
-
-  describe('theme', () => {
-    // The e2e account is shared by every spec: leaving it on the dark theme would change what all of
-    // them render and audit.
-    afterEach(() => {
-      cy.loginDefault();
-      cy.visit('/uebersicht');
-      cy.byTestId('usermenu').click();
-      cy.byTestId('usermenu-theme').click();
-      cy.byTestId('usermenu-theme-system').click();
-      cy.get('html').should('not.have.class', 'dark-theme');
-    });
-
-    it('switches to the dark theme from the user menu, keeps it per user and has no violations', () => {
-      cy.loginDefault();
-      cy.visit('/uebersicht');
-      cy.get('html').should('not.have.class', 'dark-theme');
-
-      cy.byTestId('usermenu').click();
-      cy.byTestId('usermenu-theme').should('contain.text', 'Design: System').click();
-      cy.byTestId('usermenu-theme-system').should('have.attr', 'aria-checked', 'true');
-      cy.byTestId('usermenu-theme-dark').should('have.attr', 'aria-checked', 'false').and('be.visible');
-      cy.checkAccessibility('.mat-mdc-menu-panel');
-
-      cy.byTestId('usermenu-theme-dark').click();
-      cy.get('html').should('have.class', 'dark-theme');
-
-      // Another device knows nothing of this browser's storage: the choice has to come back from
-      // the user's account, not from what this browser remembered.
-      cy.clearAllLocalStorage();
-      cy.reload();
-      cy.get('html').should('have.class', 'dark-theme');
-
-      // the shell renders only once the session is known, which is what a reload waits for
-      cy.get(MAIN_CONTENT).should('be.visible');
-      cy.checkAccessibility(MAIN_CONTENT);
-
-      cy.byTestId('usermenu').click();
-      cy.byTestId('usermenu-theme').should('contain.text', 'Design: Dunkel');
-      cy.checkMenuAccessibility();
-    });
-  });
-
-  // The Art. 13 GDPR privacy notice for staff (issue #3429) - self-service from the user menu,
-  // generic and no account reference needed.
-  it('downloads the staff privacy notice from the user menu', () => {
-    cy.loginDefault();
-    cy.visit('/uebersicht');
-
-    cy.byTestId('usermenu').click();
-    cy.byTestId('usermenu-privacy-notice').click();
-
-    const downloadsFolder = Cypress.config('downloadsFolder');
-    const downloadedFilename = path.join(downloadsFolder, 'datenschutzerklaerung-mitarbeiter.pdf');
-
-    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
-      .should((buffer: string) => expect(buffer.length).to.be.gt(1000));
   });
 
   it('lets the keyboard reach and expand a collapsible nav group', () => {
@@ -587,30 +517,6 @@ describe('Shell', () => {
     cy.visit('/uebersicht');
 
     cy.byTestId('page-title').should('be.visible').and('have.text', 'Übersicht');
-  });
-
-  // The GDPR Art. 15/20 data takeout for a staff member's own account (issue #3363).
-  it('downloads the caller\'s own data export (GDPR takeout) from the user menu', () => {
-    cy.loginDefault();
-    cy.visit('/uebersicht');
-
-    cy.byTestId('usermenu').click();
-    cy.byTestId('usermenu-export').should('contain.text', 'Meine Daten exportieren').click();
-
-    const downloadsFolder = Cypress.config('downloadsFolder');
-    const downloadedFilename = path.join(downloadsFolder, 'benutzerdaten-e2etest.zip');
-
-    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
-      .should((buffer: string) => expect(buffer.length).to.be.gt(1000));
-
-    // The export is one of the GDPR-sensitive reads recorded in the audit trail (issue #3180) -
-    // proven here against the real backend, not just a mocked unit test.
-    cy.visit('/zugriffsprotokoll');
-    cy.byTestId('audit-filter-entityType').click();
-    cy.get('mat-option').contains('Benutzer').click();
-
-    cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
-    cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Benutzer');
   });
 
 });

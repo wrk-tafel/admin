@@ -143,7 +143,14 @@ export class LoginComponent {
     this.submitting.set(true);
     return this.authenticationService.login(username, password).then((loginResult) => {
       if (loginResult.successful) {
-        if (loginResult.passwordChangeRequired) {
+        if (loginResult.mfaRequired) {
+          // The code comes first, even when the password also has to change: nothing else works
+          // until it was accepted, the password change included.
+          this.router.navigate(['/login/mfa']);
+        } else if (loginResult.mfaSetupRequired) {
+          // The deployment requires a second factor and this user has none: nothing else works until one is set up.
+          this.router.navigate(['/konto/zwei-faktor']);
+        } else if (loginResult.passwordChangeRequired) {
           this.router.navigate(['/login/passwortaendern']);
         } else {
           this.router.navigate(['uebersicht']);

@@ -16,6 +16,14 @@ class TafelJwtAuthentication(
     // which can trigger an auto-flush of an only half-built object graph (issue #3426's fix, see
     // `TafelJwtAuthProvider`, which already loads the full `UserEntity` for this request anyway).
     val userId: Long? = null,
+    // Whether the token says the second factor was checked, and whether the user still owes one -
+    // the latter is what keeps a password-only session from setting up, changing or removing it.
+    val mfaVerified: Boolean = false,
+    val mfaPending: Boolean = false,
+    // The deployment requires a second factor and this user has none: the session can only set one up.
+    val mfaSetupRequired: Boolean = false,
+    // The methods the user can complete a login with ("TOTP", "EMAIL") - what the code page offers.
+    val mfaMethods: List<String> = emptyList(),
 ) : Authentication {
     override fun getName(): String? = username
 
@@ -39,4 +47,9 @@ class TafelJwtAuthentication(
 @ExcludeFromTestCoverage
 data class LoginResponse(
     val passwordChangeRequired: Boolean? = false,
+    // The password was right but a code from the authenticator app is still needed - the session is
+    // not usable until POST /api/mfa/verify accepted it.
+    val mfaRequired: Boolean? = false,
+    // Which methods complete it ("TOTP", "EMAIL"), so the code page can offer to send the e-mailed code.
+    val mfaMethods: List<String> = emptyList(),
 )

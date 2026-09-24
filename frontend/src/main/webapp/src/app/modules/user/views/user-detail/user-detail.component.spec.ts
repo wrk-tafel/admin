@@ -17,6 +17,7 @@ describe('UserDetailComponent', () => {
         username: 'username',
         firstname: 'first',
         lastname: 'last',
+        email: 'first.last@example.org',
         enabled: true,
         passwordChangeRequired: true,
         permissions: [
@@ -48,7 +49,8 @@ describe('UserDetailComponent', () => {
                     useValue: {
                         updateUser: vi.fn().mockName('UserApiService.updateUser'),
                         deleteUser: vi.fn().mockName('UserApiService.deleteUser'),
-                        exportUserById: vi.fn().mockName('UserApiService.exportUserById')
+                        exportUserById: vi.fn().mockName('UserApiService.exportUserById'),
+                        resetMfa: vi.fn().mockName('UserApiService.resetMfa')
                     }
                 },
                 {
@@ -109,8 +111,55 @@ describe('UserDetailComponent', () => {
         expect(getTextByTestId(fixture, 'nameText')).toBe(`${mockUser.lastname} ${mockUser.firstname}`);
         expect(getTextByTestId(fixture, 'usernameText')).toBe(mockUser.username);
         expect(getTextByTestId(fixture, 'personnelNumberText')).toBe(mockUser.personnelNumber);
+        expect(getTextByTestId(fixture, 'emailText')).toBe('first.last@example.org');
         expect(getTextByTestId(fixture, 'passwordChangeRequiredText')).toBe('Ja');
         expect(getTextByTestId(fixture, 'enabledText')).toBe('Ja');
+    });
+
+    it('shows a dash for a user without an email', () => {
+        const fixture = createFixture({...mockUser, email: null});
+
+        expect(getTextByTestId(fixture, 'emailText')).toBe('-');
+    });
+
+    it('shows which two-factor methods a user has', () => {
+        expect(getTextByTestId(createFixture({...mockUser, mfaEnabled: true, mfaMethods: ['TOTP']}), 'mfaText'))
+            .toBe('Aktiv (Authenticator-App)');
+        expect(getTextByTestId(createFixture({...mockUser, mfaEnabled: true, mfaMethods: ['EMAIL']}), 'mfaText'))
+            .toBe('Aktiv (Code per E-Mail)');
+        expect(getTextByTestId(createFixture({...mockUser, mfaEnabled: true, mfaMethods: ['TOTP', 'EMAIL']}), 'mfaText'))
+            .toBe('Aktiv (Authenticator-App, Code per E-Mail)');
+    });
+
+    it('shows whether two-factor authentication is on', () => {
+        expect(getTextByTestId(createFixture(), 'mfaText')).toBe('Nicht aktiv');
+        expect(getTextByTestId(createFixture({...mockUser, mfaEnabled: true, mfaMethods: ['TOTP']}), 'mfaText'))
+            .toBe('Aktiv (Authenticator-App)');
+    });
+
+    it('resets two-factor authentication and shows it as off', () => {
+        const fixture = createFixture({...mockUser, mfaEnabled: true, mfaMethods: ['TOTP']});
+        const component = fixture.componentInstance;
+        userApiService.resetMfa.mockReturnValue(of(undefined));
+
+        component.resetMfa();
+        fixture.detectChanges();
+
+        expect(userApiService.resetMfa).toHaveBeenCalledWith(mockUser.id);
+        expect(component.currentUserData().mfaEnabled).toBe(false);
+        expect(getTextByTestId(fixture, 'mfaText')).toBe('Nicht aktiv');
+        expect(toastr.success).toHaveBeenCalledWith('Zwei-Faktor-Authentifizierung wurde zurückgesetzt!');
+    });
+
+    it('keeps it on and says so when the reset fails', () => {
+        const fixture = createFixture({...mockUser, mfaEnabled: true});
+        const component = fixture.componentInstance;
+        userApiService.resetMfa.mockReturnValue(throwError(() => new Error('403')));
+
+        component.resetMfa();
+
+        expect(component.currentUserData().mfaEnabled).toBe(true);
+        expect(toastr.error).toHaveBeenCalledWith('Zurücksetzen fehlgeschlagen!');
     });
 
     it('enable user', () => {

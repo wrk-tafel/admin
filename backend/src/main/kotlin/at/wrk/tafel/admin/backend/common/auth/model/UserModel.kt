@@ -1,7 +1,9 @@
 package at.wrk.tafel.admin.backend.common.auth.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
@@ -55,6 +57,10 @@ data class UserRequest(
     val firstname: String,
     @field:NotBlank
     val lastname: String,
+    // Optional; a blank value is stored as "no address" (see UserController.mapToTafelUser).
+    @field:Email
+    @field:Size(max = 255)
+    val email: String? = null,
     val enabled: Boolean,
     val password: String? = null,
     val passwordRepeat: String? = null,
@@ -69,6 +75,7 @@ data class UserResponse(
     val username: String,
     val firstname: String,
     val lastname: String,
+    val email: String? = null,
     val enabled: Boolean,
     val password: String? = null,
     val passwordRepeat: String? = null,
@@ -77,6 +84,10 @@ data class UserResponse(
     // Currently active lockout from failed logins (see LoginAttemptService); null once it expired
     // or none is on record. Server-computed - never bound from a UserRequest.
     val lockedUntil: LocalDateTime? = null,
+    // Server-computed, like lockedUntil - never bound from a UserRequest. Whether two-factor
+    // authentication is on for the account; the secret itself never leaves the server.
+    val mfaEnabled: Boolean = false,
+    val mfaMethods: List<String> = emptyList(),
 )
 
 @ExcludeFromTestCoverage
@@ -96,6 +107,13 @@ data class UserInfoResponse(
     val username: String,
     val permissions: List<String>,
     val theme: UserTheme,
+    // The password was accepted but the code from the authenticator app is still owed: the frontend
+    // sends the user to the code page instead of treating the empty permission list as "no access".
+    val mfaPending: Boolean = false,
+    // The deployment requires a second factor and this user has none yet: the frontend sends them to set one up.
+    val mfaSetupRequired: Boolean = false,
+    // The methods the user can complete a login with - what the code page offers ("TOTP", "EMAIL").
+    val mfaMethods: List<String> = emptyList(),
 )
 
 /** How the interface is coloured; [SYSTEM] follows the operating system's light/dark setting. */

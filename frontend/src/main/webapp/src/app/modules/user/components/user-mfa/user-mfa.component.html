@@ -1,0 +1,189 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Zwei-Faktor-Authentifizierung</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    @if (status(); as status) {
+      <p class="text-sm text-slate-600 mb-4" testid="mfaIntro">
+        Zusätzlich zum Passwort schützt ein Code die Anmeldung: entweder aus einer Authenticator-App (z. B. auf dem
+        Smartphone) oder per E-Mail. Beides lässt sich auch gleichzeitig einrichten - bei der Anmeldung genügt dann
+        ein Code aus einer der beiden Methoden. Wer nur das Passwort kennt, kann sich nicht anmelden.
+      </p>
+
+      @if (setupRequired()) {
+        <div testid="mfaForcedBanner" class="tafel-banner-error" role="alert">
+          Diese Anwendung verlangt eine Zwei-Faktor-Authentifizierung. Bitte richten Sie mindestens eine Methode ein -
+          bis dahin ist nichts anderes in der Anwendung verfügbar.
+        </div>
+      } @else if (status.required) {
+        <p class="text-sm text-slate-600 mb-4" testid="mfaRequiredHint">
+          Diese Anwendung verlangt eine Zwei-Faktor-Authentifizierung: Eine Methode muss immer eingerichtet bleiben.
+        </p>
+      }
+
+      @if (errorMessage()) {
+        <div #banner testid="errorMessage" class="tafel-banner-error" role="alert">{{ errorMessage() }}</div>
+      }
+      @if (infoMessage()) {
+        <div #banner testid="infoMessage" class="tafel-banner-success" role="status">{{ infoMessage() }}</div>
+      }
+
+      <!-- ===== authenticator app ===== -->
+      <h2 class="tafel-h5 mb-2">Authenticator-App</h2>
+      @if (status.totpEnabled) {
+        <div class="flex items-center gap-2 mb-4">
+          <span class="font-medium">Status:</span>
+          <span testid="mfaTotpStatus" class="px-2 rounded text-white bg-green-700">Aktiv</span>
+        </div>
+      } @else if (appSetup()) {
+        <div class="flex items-center gap-2 mb-4">
+          <span class="font-medium">Status:</span>
+          <span testid="mfaTotpStatus" class="px-2 rounded text-white bg-[var(--tafel-severity-neutral)]">Wird eingerichtet</span>
+        </div>
+
+        <p class="text-sm text-slate-700 mb-2" testid="mfaStoreHint">
+          Noch keine Authenticator-App? Jede App für zeitbasierte Codes (TOTP) funktioniert, zum Beispiel der kostenlose
+          Google Authenticator:
+          <a testid="mfaStoreLinkGoogle" class="underline text-blue-700"
+             href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Google Authenticator im Google Play Store (öffnet in neuem Tab)">Google Play</a>
+          |
+          <a testid="mfaStoreLinkApple" class="underline text-blue-700"
+             href="https://apps.apple.com/app/google-authenticator/id388497605"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Google Authenticator im Apple App Store (öffnet in neuem Tab)">App Store</a>
+        </p>
+
+        <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700 mb-4">
+          <li>Authenticator-App öffnen und einen neuen Eintrag hinzufügen.</li>
+          <li>Den QR-Code scannen oder den Schlüssel darunter von Hand eingeben.</li>
+          <li>Den 6-stelligen Code aus der App unten eingeben und aktivieren.</li>
+        </ol>
+
+        <div class="flex flex-col items-start gap-2 mb-4">
+          <div #qrContainer testid="mfaQrCode" class="bg-white p-2 rounded border border-slate-200"></div>
+          <div class="text-sm">
+            <span class="text-slate-600">Schlüssel zur Eingabe von Hand:</span>
+            <code testid="mfaSecret" class="block font-mono text-base tracking-wider mt-1">{{ formattedSecret() }}</code>
+          </div>
+        </div>
+
+        <form (submit)="enableApp($event)" novalidate class="flex flex-col gap-2 max-w-xs">
+          <mat-form-field>
+            <mat-label>Code aus der App</mat-label>
+            <input [formField]="codeForm.appCode" matInput testid="mfaAppCode" type="text" inputmode="numeric"
+                   autocomplete="one-time-code">
+            @for (message of visibleErrorMessages(codeForm.appCode()); track message) {
+              <mat-error>{{ message }}</mat-error>
+            }
+          </mat-form-field>
+          <div class="flex gap-2">
+            <button testid="mfaEnableButton" matButton="filled" type="submit" [disabled]="working()">Aktivieren</button>
+            <button testid="mfaCancelButton" matButton="outlined" type="button" (click)="cancelAppSetup()">Abbrechen</button>
+          </div>
+        </form>
+      } @else {
+        <div class="flex items-center gap-2 mb-4">
+          <span class="font-medium">Status:</span>
+          <span testid="mfaTotpStatus" class="px-2 rounded text-white bg-[var(--tafel-severity-neutral)]">Nicht aktiv</span>
+        </div>
+        <button testid="mfaSetupButton" matButton="filled" type="button" (click)="startAppSetup()" [disabled]="working()">
+          Einrichten
+        </button>
+      }
+
+      <mat-divider class="!my-6"></mat-divider>
+
+      <!-- ===== e-mail ===== -->
+      <h2 class="tafel-h5 mb-2">Code per E-Mail</h2>
+      @if (!status.emailAvailable && !status.emailEnabled) {
+        <p class="text-sm text-slate-600" testid="mfaEmailUnavailable">
+          Auf diesem System ist kein E-Mail-Versand eingerichtet - ein Code per E-Mail steht daher nicht zur Verfügung.
+        </p>
+      } @else if (status.emailEnabled) {
+        <div class="flex items-center gap-2 mb-4">
+          <span class="font-medium">Status:</span>
+          <span testid="mfaEmailStatus" class="px-2 rounded text-white bg-green-700">Aktiv</span>
+        </div>
+      } @else if (emailSetupStarted()) {
+        <div class="flex items-center gap-2 mb-4">
+          <span class="font-medium">Status:</span>
+          <span testid="mfaEmailStatus" class="px-2 rounded text-white bg-[var(--tafel-severity-neutral)]">Wird eingerichtet</span>
+        </div>
+        <p class="text-sm text-slate-700 mb-2">
+          Geben Sie den Code ein, der an die E-Mail-Adresse Ihres Benutzerkontos gesendet wurde.
+        </p>
+        <form (submit)="enableEmail($event)" novalidate class="flex flex-col gap-2 max-w-xs">
+          <mat-form-field>
+            <mat-label>Code aus der E-Mail</mat-label>
+            <input [formField]="codeForm.emailCode" matInput testid="mfaEmailCode" type="text" inputmode="numeric"
+                   autocomplete="one-time-code">
+            @for (message of visibleErrorMessages(codeForm.emailCode()); track message) {
+              <mat-error>{{ message }}</mat-error>
+            }
+          </mat-form-field>
+          <div class="flex flex-wrap gap-2">
+            <button testid="mfaEmailEnableButton" matButton="filled" type="submit" [disabled]="working()">Aktivieren</button>
+            <button testid="mfaEmailResendButton" matButton="outlined" type="button" (click)="startEmailSetup()" [disabled]="working()">
+              Code erneut senden
+            </button>
+            <button testid="mfaEmailCancelButton" matButton="outlined" type="button" (click)="cancelEmailSetup()">Abbrechen</button>
+          </div>
+        </form>
+      } @else {
+        <div class="flex items-center gap-2 mb-4">
+          <span class="font-medium">Status:</span>
+          <span testid="mfaEmailStatus" class="px-2 rounded text-white bg-[var(--tafel-severity-neutral)]">Nicht aktiv</span>
+        </div>
+        <button testid="mfaEmailSetupButton" matButton="filled" type="button" (click)="startEmailSetup()" [disabled]="working()">
+          Einrichten
+        </button>
+      }
+
+      <!-- ===== switching off ===== -->
+      @if (anyMethodEnabled()) {
+        <mat-divider class="!my-6"></mat-divider>
+
+        <h2 class="tafel-h5 mb-2">Ausschalten</h2>
+        <p class="text-sm text-slate-600 mb-2">
+          Zum Ausschalten ist ein aktueller Code nötig - aus der Authenticator-App oder, wenn eingerichtet, per E-Mail.
+        </p>
+        @if (lastMethodLocked()) {
+          <p class="text-sm text-slate-600 mb-2" testid="mfaLastMethodHint">
+            Die letzte Methode kann nicht ausgeschaltet werden, solange die Anwendung eine Zwei-Faktor-Authentifizierung verlangt.
+          </p>
+        }
+        <form (submit)="$event.preventDefault()" novalidate class="flex flex-col gap-2 max-w-xs">
+          <mat-form-field>
+            <mat-label>Code</mat-label>
+            <input [formField]="codeForm.disableCode" matInput testid="mfaDisableCode" type="text" inputmode="numeric"
+                   autocomplete="one-time-code">
+            @for (message of visibleErrorMessages(codeForm.disableCode()); track message) {
+              <mat-error>{{ message }}</mat-error>
+            }
+          </mat-form-field>
+          <div class="flex flex-wrap gap-2">
+            @if (status.emailEnabled) {
+              <button testid="mfaSendDisableCodeButton" matButton="outlined" type="button" (click)="sendDisableCode()" [disabled]="working()">
+                Code per E-Mail senden
+              </button>
+            }
+            @if (status.totpEnabled) {
+              <button testid="mfaDisableTotpButton" matButton="filled" type="button" class="button-danger"
+                      (click)="disable('TOTP')" [disabled]="working() || lastMethodLocked()">
+                Authenticator-App ausschalten
+              </button>
+            }
+            @if (status.emailEnabled) {
+              <button testid="mfaDisableEmailButton" matButton="filled" type="button" class="button-danger"
+                      (click)="disable('EMAIL')" [disabled]="working() || lastMethodLocked()">
+                Code per E-Mail ausschalten
+              </button>
+            }
+          </div>
+        </form>
+      }
+    }
+  </mat-card-content>
+</mat-card>

@@ -176,6 +176,45 @@ class TafelLoginFilterTest {
     }
 
     @Test
+    fun `successfulAuthentication when a second factor is required issues the short-lived token and says so`() {
+        val expirationTime = 5000
+
+        every { authResult.principal } returns testUser.copy(mfaTotpEnabled = true, mfaEmailEnabled = true)
+        every { jwtTokenService.generateToken(any(), any(), any()) } returns "TOKEN"
+        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns expirationTime
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties()
+
+        tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
+
+        // the token must not claim the second factor was checked - that is what the code page issues
+        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, expirationTime, false) }
+        verify {
+            jsonMapper.writeValueAsString(
+                withArg<LoginResponse> { body ->
+                    assertThat(body.mfaRequired).isTrue()
+                    assertThat(body.mfaMethods).containsExactly("TOTP", "EMAIL")
+                    assertThat(body.passwordChangeRequired).isFalse()
+                },
+            )
+        }
+        verify { response.addCookie(withArg { assertThat(it.maxAge).isEqualTo(expirationTime) }) }
+    }
+
+    @Test
+    fun `successfulAuthentication without a second factor does not ask for one`() {
+        every { authResult.principal } returns testUser
+        every { jwtTokenService.generateToken(any(), any(), any()) } returns "TOKEN"
+        every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns 10000
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties()
+
+        tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
+
+        verify {
+            jsonMapper.writeValueAsString(withArg<LoginResponse> { body -> assertThat(body.mfaRequired).isFalse() })
+        }
+    }
+
+    @Test
     fun `unsuccessfulAuthentication with wrong credentials responds with 403`() {
         tafelLoginFilter.unsuccessfulAuthentication(request, response, BadCredentialsException("wrong password"))
 

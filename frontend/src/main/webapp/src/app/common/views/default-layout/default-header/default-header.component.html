@@ -125,34 +125,17 @@
       </button>
       <mat-menu #userMenu="matMenu">
         <!--
-          Four groups - the account itself, what the application holds about the user, where to
-          read up on it, and logout on its own, so nobody hits it while reaching for a neighbour.
+          Three groups - the account itself (everything about it is on that one page), where to
+          read up on the application, and logout on its own, so nobody hits it while reaching for a neighbour.
           Each group is a labelled `role="group"` inside the menu; the label is a heading for the eye,
           not a menu item, so keyboard navigation still steps through the items only.
         -->
         <div role="group" aria-labelledby="usermenu-group-account">
           <div id="usermenu-group-account" class="px-4 pt-3 pb-1 text-xs uppercase tracking-wide font-semibold text-[var(--tafel-text-inactive)]" testid="usermenu-group-account">Konto</div>
-          <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
-            <mat-icon svgIcon="key"></mat-icon> Passwort ändern
+          <!-- Password, two-factor authentication, notifications and the theme are the tabs of this one page. -->
+          <a mat-menu-item [routerLink]="['/konto']" testid="usermenu-account">
+            <mat-icon svgIcon="manage_accounts"></mat-icon> Mein Konto
           </a>
-          <a mat-menu-item [routerLink]="['/benachrichtigungen']" testid="usermenu-pushnotifications">
-            <mat-icon svgIcon="notifications"></mat-icon> Benachrichtigungen
-          </a>
-          <button mat-menu-item [matMenuTriggerFor]="themeMenu" testid="usermenu-theme">
-            <mat-icon svgIcon="palette"></mat-icon> Design: {{ themeLabel() }}
-          </button>
-        </div>
-        <mat-divider></mat-divider>
-        <div role="group" aria-labelledby="usermenu-group-privacy">
-          <div id="usermenu-group-privacy" class="px-4 pt-3 pb-1 text-xs uppercase tracking-wide font-semibold text-[var(--tafel-text-inactive)]" testid="usermenu-group-privacy">Datenschutz</div>
-          <!-- The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363). -->
-          <button mat-menu-item testid="usermenu-export" (click)="exportUserData()">
-            <mat-icon svgIcon="download"></mat-icon> Meine Daten exportieren
-          </button>
-          <!-- The Art. 13 GDPR privacy notice for staff (issue #3429) - what is processed, not the takeout above. -->
-          <button mat-menu-item testid="usermenu-privacy-notice" (click)="downloadStaffPrivacyNotice()">
-            <mat-icon svgIcon="download"></mat-icon> Datenschutzerklärung (Mitarbeiter)
-          </button>
         </div>
         <mat-divider></mat-divider>
         <div role="group" aria-labelledby="usermenu-group-help">
@@ -175,17 +158,6 @@
             <mat-icon svgIcon="lock"></mat-icon> Abmelden
           </a>
         </div>
-      </mat-menu>
-      <mat-menu #themeMenu="matMenu">
-        @for (option of themeOptions; track option.value) {
-          <button mat-menu-item role="menuitemradio" [attr.aria-checked]="themePreference() === option.value"
-                  [attr.testid]="'usermenu-theme-' + option.value.toLowerCase()" (click)="setTheme(option.value)">
-            <mat-icon [svgIcon]="option.icon"></mat-icon> {{ option.label }}
-            @if (themePreference() === option.value) {
-              <mat-icon svgIcon="check" class="!mr-0 ml-auto" aria-hidden="true"></mat-icon>
-            }
-          </button>
-        }
       </mat-menu>
     </div>
   </div>

@@ -27,6 +27,39 @@ describe('User Create', () => {
     });
   });
 
+  it('create new user with an email address, shown on the detail page', () => {
+    cy.visit('/benutzer/erstellen');
+
+    cy.getAnyRandomNumber().then((userRandomId) => {
+      fillUserForm('test-username-' + userRandomId, 'test-personnelNumber-' + userRandomId);
+      cy.byTestId('emailInput').type('user-' + userRandomId + '@example.org');
+
+      cy.byTestId('save-button').click();
+
+      cy.url().should('contain', '/benutzer/detail');
+      cy.byTestId('emailText').should('have.text', 'user-' + userRandomId + '@example.org');
+    });
+  });
+
+  it('the email address is optional, but must be well-formed when given', () => {
+    cy.visit('/benutzer/erstellen');
+
+    cy.getAnyRandomNumber().then((userRandomId) => {
+      fillUserForm('test-username-' + userRandomId, 'test-personnelNumber-' + userRandomId);
+
+      cy.byTestId('emailInput').type('kein-email').blur();
+      cy.contains('mat-error', 'E-Mail-Format ungültig').should('be.visible');
+      cy.byTestId('save-button').should('be.disabled');
+
+      // emptying the field makes the form valid again - no address is a valid state
+      cy.byTestId('emailInput').clear().blur();
+      cy.byTestId('save-button').should('be.enabled').click();
+
+      cy.url().should('contain', '/benutzer/detail');
+      cy.byTestId('emailText').should('have.text', '-');
+    });
+  });
+
   it('create new user which exists already', () => {
     cy.visit('/benutzer/erstellen');
 

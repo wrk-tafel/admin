@@ -7,10 +7,6 @@ import {DefaultLayoutComponent} from './common/views/default-layout/default-layo
 import {DefaultLayoutResolver} from './common/views/default-layout/resolver/default-layout-resolver.component';
 import {AuthGuardService} from './common/security/authguard.service';
 import {getGermanPaginatorIntl} from './common/util/german-paginator-intl';
-import {UserPasswordChangeComponent} from './modules/user/components/user-passwordchange/user-passwordchange.component';
-import {
-  PushNotificationSettingsComponent
-} from './modules/user/components/push-notification-settings/push-notification-settings.component';
 
 const authGuardChild: CanActivateChildFn = (route: ActivatedRouteSnapshot) => inject(AuthGuardService).canActivate(route);
 
@@ -123,14 +119,10 @@ export const routes: Routes = [
         }
       },
       {
-        path: 'passwortaendern',
-        title: 'Passwort ändern',
-        component: UserPasswordChangeComponent
-      },
-      {
-        path: 'benachrichtigungen',
-        title: 'Benachrichtigungen',
-        component: PushNotificationSettingsComponent
+        path: 'konto',
+        loadComponent: () => import('./modules/user/views/user-account/user-account.component')
+          .then(m => m.UserAccountComponent),
+        loadChildren: () => import('./modules/user/account.routes').then(m => m.routes)
       }
     ]
   }

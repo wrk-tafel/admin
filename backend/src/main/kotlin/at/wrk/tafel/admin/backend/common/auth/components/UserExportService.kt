@@ -163,7 +163,10 @@ class UserExportService(
             UserExportField("Benutzername", userEntity.username),
             UserExportField("Personalnummer", userEntity.employee.personnelNumber),
             UserExportField("Name", "${userEntity.employee.lastname} ${userEntity.employee.firstname}"),
+            UserExportField("E-Mail-Adresse", userEntity.email ?: "-"),
             UserExportField("Aktiv", userEntity.enabled.yesNo()),
+            // Only whether - the secret never leaves the server, not even to its owner.
+            UserExportField("Zwei-Faktor-Authentifizierung aktiv", mfaExportValue(userEntity)),
             UserExportField("Passwortänderung erforderlich", userEntity.passwordChangeRequired.yesNo()),
             UserExportField("Konto erstellt am", userEntity.createdAt?.format(DATE_TIME_FORMATTER) ?: "-"),
             UserExportField("Letzter Login", userEntity.lastLogin?.format(DATE_TIME_FORMATTER) ?: "-"),
@@ -244,6 +247,14 @@ class UserExportService(
     }
 
     private fun loadLogoBytes(): ByteArray = IOUtils.toByteArray(javaClass.getResourceAsStream(LOGO_RESOURCE_PATH))
+
+    private fun mfaExportValue(userEntity: UserEntity): String {
+        val methods = listOfNotNull(
+            "Authenticator-App".takeIf { userEntity.mfaTotpEnabled },
+            "Code per E-Mail".takeIf { userEntity.mfaEmailEnabled },
+        )
+        return if (methods.isEmpty()) "Nein" else "Ja (${methods.joinToString(", ")})"
+    }
 
     private fun Boolean.yesNo(): String = if (this) "Ja" else "Nein"
 

@@ -45,6 +45,12 @@ export const routes: Routes = [
       .then(m => m.LoginPasswordChangeComponent)
   },
   {
+    path: 'login/mfa',
+    title: 'Bestätigungscode',
+    loadComponent: () => import('./common/views/login-mfa/login-mfa.component')
+      .then(m => m.LoginMfaComponent)
+  },
+  {
     path: 'login',
     title: 'Anmeldung',
     component: LoginComponent

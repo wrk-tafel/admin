@@ -101,6 +101,11 @@ dependencies {
     // Runs the scheduled jobs that have no rows to claim once per cluster (see SchedulerLockConfig).
     // The JDBC provider keeps its lock in the application's own database, so this adds a library and
     // one table rather than a second piece of infrastructure - see ADR-0047.
+    // TOTP code calculation (see TotpService). Only GoogleAuthenticatorQRGenerator uses the Apache HttpClient it
+    // declares, and that class is not used here, so the client is not pulled in.
+    implementation(libs.googleauth) {
+        exclude(group = "org.apache.httpcomponents")
+    }
     implementation(libs.shedlock.spring)
     implementation(libs.shedlock.provider.jdbc.template)
     implementation(libs.flyway.database.postgresql)

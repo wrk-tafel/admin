@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import io.jsonwebtoken.JwtException
@@ -19,6 +20,7 @@ import java.util.*
 class TafelJwtAuthProvider(
     private val jwtTokenService: JwtTokenService,
     private val userRepository: UserRepository,
+    private val properties: TafelAdminProperties,
 ) : AuthenticationProvider {
 
     override fun supports(authentication: Class<*>): Boolean = authentication == TafelJwtAuthentication::class.java
@@ -72,7 +74,26 @@ class TafelJwtAuthProvider(
                 }
             }
 
-            return TafelJwtAuthentication(tafelJwtAuthentication.tokenValue, claims.subject, true, effectivePermissions(userEntity), userEntity.id)
+            // Only what the token itself says counts: whether the user *has* two-factor authentication is read
+            // from the DB just above, so switching it on takes effect on every session that has not passed it.
+            val mfaVerified = claims[JwtTokenService.MFA_CLAIM] == true
+            val mfaPending = userEntity.hasMfa && !mfaVerified
+            // The operator can require every user to have a second factor: one who has none can then do
+            // nothing but set one up. Read per request from the (hot-reloaded) configuration, so switching the
+            // requirement on reaches sessions that were open already.
+            val mfaSetupRequired = !userEntity.hasMfa && properties.mfa.required
+
+            return TafelJwtAuthentication(
+                tokenValue = tafelJwtAuthentication.tokenValue,
+                username = claims.subject,
+                authenticated = true,
+                authorities = effectivePermissions(userEntity, mfaPending || mfaSetupRequired),
+                userId = userEntity.id,
+                mfaVerified = mfaVerified,
+                mfaPending = mfaPending,
+                mfaSetupRequired = mfaSetupRequired,
+                mfaMethods = listOfNotNull("TOTP".takeIf { userEntity.mfaTotpEnabled }, "EMAIL".takeIf { userEntity.mfaEmailEnabled }),
+            )
         } catch (e: JwtException) {
             throw BadCredentialsException(e.message, e)
         }
@@ -91,8 +112,10 @@ class TafelJwtAuthProvider(
      * showing what was actually assigned instead of every box ticked - and saving such a user cannot
      * silently write the expanded set back.
      */
-    private fun effectivePermissions(userEntity: UserEntity): List<GrantedAuthority> {
-        if (userEntity.passwordChangeRequired) {
+    private fun effectivePermissions(userEntity: UserEntity, secondFactorOutstanding: Boolean): List<GrantedAuthority> {
+        // Same for a login that is still waiting for its second factor (or has to set one up): the password
+        // alone opens nothing.
+        if (userEntity.passwordChangeRequired || secondFactorOutstanding) {
             return emptyList()
         }
 

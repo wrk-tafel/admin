@@ -11,7 +11,7 @@ describe('PasswordChange', () => {
 
   it('password mismatch validation', () => {
     cy.byTestId('usermenu').click();
-    cy.byTestId('usermenu-changepassword').click();
+    cy.byTestId('usermenu-account').click();
 
     // Enter current password
     cy.byTestId('currentPasswordText').type('e2etest');
@@ -44,30 +44,9 @@ describe('PasswordChange', () => {
     cy.byTestId('newRepeatedPasswordText-error').should('not.exist');
   });
 
-  it('cancel returns to the screen the page was opened from', () => {
-    cy.visit('/kunden/suchen');
-
-    cy.byTestId('usermenu').click();
-    cy.byTestId('usermenu-changepassword').click();
-
-    cy.url().should('contain', '/passwortaendern');
-
-    cy.byTestId('cancelButton').click();
-
-    cy.url().should('contain', '/kunden/suchen');
-  });
-
-  it('cancel falls back to the overview when the page was opened directly', () => {
-    cy.visit('/passwortaendern');
-
-    cy.byTestId('cancelButton').click();
-
-    cy.url().should('contain', '/uebersicht');
-  });
-
   it('shows a live password-rule checklist and strength meter while typing', () => {
     cy.byTestId('usermenu').click();
-    cy.byTestId('usermenu-changepassword').click();
+    cy.byTestId('usermenu-account').click();
 
     // No password typed yet - nothing is met, and the strength meter doesn't render at all.
     cy.byTestId('passwordStrength').should('not.exist');
@@ -122,13 +101,12 @@ describe('PasswordChange', () => {
       cy.reload();
 
       cy.byTestId('usermenu').click();
-      cy.byTestId('usermenu-changepassword').click();
+      cy.byTestId('usermenu-account').click();
 
       cy.byTestId('currentPasswordText').should('be.visible');
       cy.byTestId('newPasswordText').should('be.visible');
       cy.byTestId('newRepeatedPasswordText').should('be.visible');
       cy.byTestId('saveButton').should('exist');
-      cy.byTestId('cancelButton').should('exist');
     });
   });
 
@@ -157,7 +135,7 @@ describe('PasswordChange', () => {
         cy.visit('/');
 
         cy.byTestId('usermenu').click();
-        cy.byTestId('usermenu-changepassword').click();
+        cy.byTestId('usermenu-account').click();
 
         const currentPassword = testUser.password!;
         recurse(
@@ -187,11 +165,14 @@ describe('PasswordChange', () => {
         // Wait for the password change to complete
         cy.wait('@changePassword').its('response.statusCode').should('eq', 200);
 
-        // The session survives the change: the user is taken back to the screen they came from and
-        // the toast is what says so - the form itself is gone by then.
-        cy.url().should('contain', '/uebersicht');
+        // The session survives the change: the page stays open, the toast says so, and the fields are
+        // emptied so the passwords do not stay on screen.
+        cy.url().should('contain', '/konto/passwort');
         cy.get('.toast-message').should('be.visible')
           .and('contain.text', 'Sie bleiben mit dem neuen Passwort angemeldet.');
+        cy.byTestId('currentPasswordText').find('input').should('have.value', '');
+        cy.byTestId('newPasswordText').find('input').should('have.value', '');
+        cy.byTestId('newRepeatedPasswordText').find('input').should('have.value', '');
         // Dismissed explicitly: the toast sits in the top right corner, over the user menu the rest
         // of this test needs to click.
         cy.get('.tafel-snackbar-close').click();

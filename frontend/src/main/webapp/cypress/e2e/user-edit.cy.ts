@@ -33,6 +33,38 @@ describe('User Edit', () => {
     });
   });
 
+  it('the email address can be set, changed and removed again', () => {
+    cy.createDummyUser().then(response => {
+      const user = response.body;
+
+      cy.visit('/benutzer/detail/' + user.id);
+      cy.byTestId('emailText').should('have.text', '-');
+
+      cy.visit('/benutzer/bearbeiten/' + user.id);
+      cy.byTestId('emailInput').should('have.value', '');
+      cy.byTestId('emailInput').type('erste@example.org');
+      cy.byTestId('save-button').click();
+
+      cy.url().should('contain', '/benutzer/detail/' + user.id);
+      cy.byTestId('emailText').should('have.text', 'erste@example.org');
+
+      cy.visit('/benutzer/bearbeiten/' + user.id);
+      cy.byTestId('emailInput').should('have.value', 'erste@example.org');
+      cy.byTestId('emailInput').clear().type('zweite@example.org');
+      cy.byTestId('save-button').click();
+
+      cy.url().should('contain', '/benutzer/detail/' + user.id);
+      cy.byTestId('emailText').should('have.text', 'zweite@example.org');
+
+      cy.visit('/benutzer/bearbeiten/' + user.id);
+      cy.byTestId('emailInput').clear();
+      cy.byTestId('save-button').click();
+
+      cy.url().should('contain', '/benutzer/detail/' + user.id);
+      cy.byTestId('emailText').should('have.text', '-');
+    });
+  });
+
   it('the employee already linked to the account is resolved on load', () => {
     cy.createDummyUser().then((response) => {
       const user = response.body;

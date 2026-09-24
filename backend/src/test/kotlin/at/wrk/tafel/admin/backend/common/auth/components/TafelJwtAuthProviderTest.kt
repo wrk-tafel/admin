@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -10,10 +11,10 @@ import io.jsonwebtoken.Claims
 import io.jsonwebtoken.MalformedJwtException
 import io.jsonwebtoken.impl.DefaultClaims
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -35,8 +36,14 @@ internal class TafelJwtAuthProviderTest {
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
 
-    @InjectMockKs
+    private val properties = TafelAdminProperties()
+
     private lateinit var provider: TafelJwtAuthProvider
+
+    @BeforeEach
+    fun createProvider() {
+        provider = TafelJwtAuthProvider(jwtTokenService, userRepository, properties)
+    }
 
     @Test
     fun `supports with wrong class results in false`() {
@@ -144,6 +151,128 @@ internal class TafelJwtAuthProviderTest {
         val resultingAuthentication = provider.authenticate(authentication)
 
         assertThat(resultingAuthentication.authorities).isEmpty()
+    }
+
+    private fun mfaUser(mfaEnabled: Boolean = false, emailEnabled: Boolean = false): UserEntity {
+        val userEntity = UserEntity(
+            username = "SUBJ",
+            password = "pwd",
+            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            enabled = true,
+        )
+        userEntity.id = 42
+        userEntity.mfaTotpEnabled = mfaEnabled
+        userEntity.mfaEmailEnabled = emailEnabled
+        userEntity.authorities = mutableListOf(UserAuthorityEntity(user = userEntity, name = UserPermissions.CHECKIN.key))
+        every { userRepository.findByUsername("SUBJ") } returns userEntity
+        return userEntity
+    }
+
+    private fun claims(vararg extra: Pair<String, Any>) = DefaultClaims(
+        mapOf(
+            Claims.SUBJECT to "SUBJ",
+            Claims.EXPIRATION to Date.from(LocalDateTime.now().plusDays(1).toInstant(ZoneOffset.MIN)),
+        ) + extra,
+    )
+
+    @Test
+    fun `authenticate grants no permissions to a token that has not passed the second factor the user has switched on`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims()
+        mfaUser(mfaEnabled = true)
+
+        val result = provider.authenticate(authentication)
+
+        assertThat(result.authorities).isEmpty()
+        assertThat(result.mfaPending).isTrue()
+        assertThat(result.mfaVerified).isFalse()
+        assertThat(result.isAuthenticated).isTrue()
+    }
+
+    @Test
+    fun `authenticate grants the permissions to a token that has passed the second factor`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims(JwtTokenService.MFA_CLAIM to true)
+        mfaUser(mfaEnabled = true)
+
+        val result = provider.authenticate(authentication)
+
+        assertThat(result.authorities.map { it.authority }).containsExactly(UserPermissions.CHECKIN.key)
+        assertThat(result.mfaPending).isFalse()
+        assertThat(result.mfaVerified).isTrue()
+    }
+
+    @Test
+    fun `authenticate does not ask a user without a second factor for one`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims()
+        mfaUser(mfaEnabled = false)
+
+        val result = provider.authenticate(authentication)
+
+        assertThat(result.authorities.map { it.authority }).containsExactly(UserPermissions.CHECKIN.key)
+        assertThat(result.mfaPending).isFalse()
+    }
+
+    @Test
+    fun `authenticate treats the e-mail method like the app - a token without the claim grants nothing`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims()
+        mfaUser(emailEnabled = true)
+
+        val result = provider.authenticate(authentication)
+
+        assertThat(result.authorities).isEmpty()
+        assertThat(result.mfaPending).isTrue()
+        assertThat(result.mfaMethods).containsExactly("EMAIL")
+    }
+
+    @Test
+    fun `authenticate lists the methods a user has`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims()
+        mfaUser(mfaEnabled = true, emailEnabled = true)
+
+        assertThat(provider.authenticate(authentication).mfaMethods).containsExactly("TOTP", "EMAIL")
+    }
+
+    // The deployment can require every user to have a second factor.
+    @Test
+    fun `authenticate grants nothing to a user with no method while the deployment requires one`() {
+        properties.mfa.required = true
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims()
+        mfaUser()
+
+        val result = provider.authenticate(authentication)
+
+        assertThat(result.authorities).isEmpty()
+        assertThat(result.mfaSetupRequired).isTrue()
+        assertThat(result.mfaPending).isFalse()
+    }
+
+    @Test
+    fun `authenticate does not ask a user who has a method to set one up, and asks nobody while it is not required`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims(JwtTokenService.MFA_CLAIM to true)
+
+        properties.mfa.required = true
+        mfaUser(mfaEnabled = true)
+        assertThat(provider.authenticate(authentication).mfaSetupRequired).isFalse()
+
+        properties.mfa.required = false
+        mfaUser()
+        assertThat(provider.authenticate(authentication).mfaSetupRequired).isFalse()
+    }
+
+    // Read on every request: switching it on takes effect on sessions opened before that.
+    @Test
+    fun `authenticate treats a claim that is not literally true as not passed`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims(JwtTokenService.MFA_CLAIM to "true")
+        mfaUser(mfaEnabled = true)
+
+        assertThat(provider.authenticate(authentication).mfaPending).isTrue()
     }
 
     @Test
