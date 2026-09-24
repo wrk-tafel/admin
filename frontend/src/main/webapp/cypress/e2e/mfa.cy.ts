@@ -97,6 +97,8 @@ describe('Two-factor authentication', () => {
       cy.byTestId('mfaTotpStatus').should('have.text', 'Nicht aktiv');
       cy.byTestId('mfaSetupButton').click();
       cy.byTestId('mfaQrCode').find('svg').should('be.visible');
+      cy.byTestId('mfaStoreLinkGoogle').should('have.attr', 'href').and('contain', 'play.google.com');
+      cy.byTestId('mfaStoreLinkApple').should('have.attr', 'href').and('contain', 'apps.apple.com');
       cy.byTestId('mfaSecret').invoke('text').then(text => {
         const secret = text.replace(/\s/g, '');
         cy.task('totpCode', {secret, stepOffset: -1}).then(code => {

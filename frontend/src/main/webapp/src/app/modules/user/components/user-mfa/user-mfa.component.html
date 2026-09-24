@@ -41,6 +41,20 @@
           <span testid="mfaTotpStatus" class="px-2 rounded text-white bg-[var(--tafel-severity-neutral)]">Wird eingerichtet</span>
         </div>
 
+        <p class="text-sm text-slate-700 mb-2" testid="mfaStoreHint">
+          Noch keine Authenticator-App? Jede App für zeitbasierte Codes (TOTP) funktioniert, zum Beispiel der kostenlose
+          Google Authenticator:
+          <a testid="mfaStoreLinkGoogle" class="underline text-blue-700"
+             href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Google Authenticator im Google Play Store (öffnet in neuem Tab)">Google Play</a>
+          |
+          <a testid="mfaStoreLinkApple" class="underline text-blue-700"
+             href="https://apps.apple.com/app/google-authenticator/id388497605"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Google Authenticator im Apple App Store (öffnet in neuem Tab)">App Store</a>
+        </p>
+
         <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700 mb-4">
           <li>Authenticator-App öffnen und einen neuen Eintrag hinzufügen.</li>
           <li>Den QR-Code scannen oder den Schlüssel darunter von Hand eingeben.</li>

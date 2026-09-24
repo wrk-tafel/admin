@@ -97,6 +97,23 @@ describe('UserMfaComponent', () => {
     expect(svg!.getAttribute('aria-label')).toContain('QR-Code');
   });
 
+  it('links to the app stores while the app setup is going on, and nowhere else', async () => {
+    const fixture = await create();
+    expect(element(fixture, 'mfaStoreLinkGoogle')).toBeNull();
+
+    fixture.componentInstance.startAppSetup();
+    fixture.detectChanges();
+
+    const google = element(fixture, 'mfaStoreLinkGoogle') as HTMLAnchorElement;
+    const apple = element(fixture, 'mfaStoreLinkApple') as HTMLAnchorElement;
+    expect(google.href).toContain('https://play.google.com/store/apps/details');
+    expect(apple.href).toContain('https://apps.apple.com/');
+    for (const link of [google, apple]) {
+      expect(link.target).toBe('_blank');
+      expect(link.rel).toContain('noopener');
+    }
+  });
+
   it('can back out of the app setup without having switched anything on', async () => {
     const fixture = await create();
     fixture.componentInstance.startAppSetup();
