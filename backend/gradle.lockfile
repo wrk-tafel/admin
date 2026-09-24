@@ -50,6 +50,7 @@ com.tngtech.archunit:archunit-junit5-engine:1.5.0=testRuntimeClasspath
 com.tngtech.archunit:archunit-junit5:1.5.0=testCompileClasspath,testRuntimeClasspath
 com.tngtech.archunit:archunit:1.5.0=testCompileClasspath,testRuntimeClasspath
 com.vaadin.external.google:android-json:0.0.20131108.vaadin1=testCompileClasspath,testRuntimeClasspath
+com.warrenstrange:googleauth:1.5.0=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 com.zaxxer:HikariCP:7.0.2=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 commons-codec:commons-codec:1.21.0=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 commons-io:commons-io:2.20.0=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
