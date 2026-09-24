@@ -19,6 +19,19 @@ export class UserApiService {
     return this.http.put<{ theme: ThemePreference }>('/users/theme', {theme});
   }
 
+  /** The caller's own account as the "Meine Daten" tab of "Mein Konto" shows it. */
+  getAccount(): Observable<UserAccountData> {
+    return this.http.get<UserAccountData>('/users/account');
+  }
+
+  /**
+   * Changes what a user may change about their own account: the name and the e-mail address. The username and
+   * the personnel number are the administrator's to assign, so they are not part of the request.
+   */
+  updateAccount(request: UserAccountRequest, context?: HttpContext): Observable<UserAccountData> {
+    return this.http.put<UserAccountData>('/users/account', request, {context});
+  }
+
   getUserForId(userId: number): Observable<UserData> {
     return this.http.get<UserData>('/users/' + userId);
   }
@@ -179,6 +192,23 @@ export interface UserData {
   mfaEnabled?: boolean;
   // Which methods complete a login: TOTP (authenticator app), EMAIL (code by e-mail).
   mfaMethods?: string[];
+}
+
+/** The caller's own account, as far as the "Meine Daten" tab shows it - nothing here that belongs to an administrator. */
+export interface UserAccountData {
+  username: string;
+  personnelNumber: string;
+  firstname: string;
+  lastname: string;
+  /** Where system notifications and a code of the two-factor authentication by e-mail go; null when none is on record. */
+  email: string | null;
+}
+
+/** What the "Meine Daten" tab may change: the name and the e-mail address (null clears it). */
+export interface UserAccountRequest {
+  firstname: string;
+  lastname: string;
+  email: string | null;
 }
 
 export interface PermissionsListResponse {

@@ -1,13 +1,15 @@
 import {Routes} from '@angular/router';
+import {UserAccountDataComponent} from './components/user-account-data/user-account-data.component';
 import {UserPasswordChangeComponent} from './components/user-passwordchange/user-passwordchange.component';
 import {UserThemeSettingsComponent} from './components/user-theme-settings/user-theme-settings.component';
 import {UserPrivacySettingsComponent} from './components/user-privacy-settings/user-privacy-settings.component';
 import {PushNotificationSettingsComponent} from './components/push-notification-settings/push-notification-settings.component';
 
 /**
- * "Mein Konto": one page for what a user settles about their own login and device, one tab per topic. The tabs are
- * child routes, so each has an address of its own - the two-factor tab is where a session that has to set up a
- * second factor is sent (see `AuthGuardService`), the others can be linked to.
+ * "Mein Konto": one page for what a user settles about their own account, login and device, one tab per topic. The
+ * tabs are child routes, so each has an address of its own - the two-factor tab is where a session that has to set up
+ * a second factor is sent (see `AuthGuardService`), the others can be linked to. `/konto` itself lands on the first
+ * tab, the user's own data.
  *
  * These are the children of the `konto` route in `shell.routes.ts`, which renders them inside `UserAccountComponent`.
  * That route is the frame itself rather than a parent with an empty path, because `AuthGuardService` recognises the
@@ -15,7 +17,12 @@ import {PushNotificationSettingsComponent} from './components/push-notification-
  * It sits behind the login only: every user has an account, whatever their permissions.
  */
 export const routes: Routes = [
-  {path: '', pathMatch: 'full', redirectTo: 'passwort'},
+  {path: '', pathMatch: 'full', redirectTo: 'daten'},
+  {
+    path: 'daten',
+    title: 'Mein Konto - Meine Daten',
+    component: UserAccountDataComponent
+  },
   {
     path: 'passwort',
     title: 'Mein Konto - Passwort',

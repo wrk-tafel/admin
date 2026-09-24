@@ -60,6 +60,7 @@ class MfaService(
             emailEnabled = user.mfaEmailEnabled,
             required = properties.mfa.required,
             emailAvailable = mfaEmailCodeService.isAvailable(),
+            emailAddress = user.email?.takeIf { it.isNotBlank() },
         )
     }
 
@@ -260,4 +261,6 @@ data class MfaStatus(
     val required: Boolean,
     /** Whether a mail can be sent at all, i.e. whether the e-mail method can be offered. */
     val emailAvailable: Boolean,
+    /** Where a code by e-mail goes - the address on the account; null when none is on record. */
+    val emailAddress: String? = null,
 )
