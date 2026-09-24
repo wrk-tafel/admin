@@ -16,7 +16,11 @@ describe('AuthGuardService', () => {
             loadUserInfo: vi.fn().mockName('AuthenticationService.loadUserInfo'),
             hasAnyPermission: vi.fn().mockName('AuthenticationService.hasAnyPermission'),
             hasAnyPermissionOf: vi.fn().mockName('AuthenticationService.hasAnyPermissionOf'),
-            redirectToLogin: vi.fn().mockName('AuthenticationService.redirectToLogin')
+            redirectToLogin: vi.fn().mockName('AuthenticationService.redirectToLogin'),
+            isMfaPending: vi.fn().mockName('AuthenticationService.isMfaPending').mockReturnValue(false),
+            isMfaSetupRequired: vi.fn().mockName('AuthenticationService.isMfaSetupRequired').mockReturnValue(false),
+            redirectToMfaSetup: vi.fn().mockName('AuthenticationService.redirectToMfaSetup'),
+            redirectToMfa: vi.fn().mockName('AuthenticationService.redirectToMfa')
         };
         TestBed.configureTestingModule({
             providers: [
@@ -27,6 +31,47 @@ describe('AuthGuardService', () => {
         const service = TestBed.inject(AuthGuardService);
         return { service, authServiceSpy };
     }
+
+    // The password was right but the code is still owed: the session has no permissions yet, which must
+    // not read as "access denied" - the user is sent to the code page instead.
+    it('canActivate when the second factor is still owed redirects to the code page, whatever the route needs', async () => {
+        const { service, authServiceSpy } = setup();
+        authServiceSpy.isAuthenticated.mockReturnValue(true);
+        authServiceSpy.loadUserInfo.mockResolvedValue({ username: 'u', permissions: [], mfaPending: true });
+        authServiceSpy.isMfaPending.mockReturnValue(true);
+
+        const activatedRoute = <ActivatedRouteSnapshot><AuthGuardData>{ data: { anyPermission: true } };
+        const canActivate = await service.canActivate(activatedRoute);
+
+        expect(canActivate).toBe(false);
+        expect(authServiceSpy.redirectToMfa).toHaveBeenCalled();
+        expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
+    });
+
+    // The deployment requires a second factor and this user has none: only the page that sets one up works.
+    it('canActivate when a second factor has to be set up leads every route there, except that page itself', async () => {
+        const { service, authServiceSpy } = setup();
+        authServiceSpy.isAuthenticated.mockReturnValue(true);
+        authServiceSpy.loadUserInfo.mockResolvedValue({ username: 'u', permissions: [], mfaSetupRequired: true });
+        authServiceSpy.isMfaSetupRequired.mockReturnValue(true);
+
+        const otherRoute = <ActivatedRouteSnapshot><AuthGuardData>{ data: { anyPermission: true }, routeConfig: { path: 'uebersicht' } };
+        expect(await service.canActivate(otherRoute)).toBe(false);
+        expect(authServiceSpy.redirectToMfaSetup).toHaveBeenCalledTimes(1);
+        expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
+
+        // the tab that sets it up, and the account page that tab is rendered in
+        for (const path of ['zwei-faktor', 'konto']) {
+            const setupRoute = <ActivatedRouteSnapshot><AuthGuardData>{ data: {}, routeConfig: { path } };
+            expect(await service.canActivate(setupRoute)).toBe(true);
+        }
+        expect(authServiceSpy.redirectToMfaSetup).toHaveBeenCalledTimes(1);
+
+        // the other tabs of the account page lead to the two-factor one
+        const passwordTab = <ActivatedRouteSnapshot><AuthGuardData>{ data: {}, routeConfig: { path: 'passwort' } };
+        expect(await service.canActivate(passwordTab)).toBe(false);
+        expect(authServiceSpy.redirectToMfaSetup).toHaveBeenCalledTimes(2);
+    });
 
     it('canActivate when not authenticated redirects to plain login without an error message', async () => {
         const { service, authServiceSpy } = setup();
@@ -151,6 +196,8 @@ describe('AuthGuardService with real router navigation (route data inheritance)'
             loadUserInfo: vi.fn().mockResolvedValue({ username: 'user', permissions: ['CUSTOMER'] }),
             hasAnyPermission: vi.fn().mockReturnValue(true),
             hasAnyPermissionOf: vi.fn().mockReturnValue(hasAnyPermissionOf),
+            isMfaPending: vi.fn().mockReturnValue(false),
+            isMfaSetupRequired: vi.fn().mockReturnValue(false),
             redirectToLogin: vi.fn()
         };
     }

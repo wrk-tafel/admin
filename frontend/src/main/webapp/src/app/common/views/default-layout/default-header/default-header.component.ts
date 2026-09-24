@@ -1,7 +1,6 @@
 import {Component, computed, DestroyRef, inject, output} from '@angular/core';
 import {defer, map, repeat, startWith, timer} from 'rxjs';
 import {toSignal} from '@angular/core/rxjs-interop';
-import {HttpResponse} from '@angular/common/http';
 import {RouterLink} from '@angular/router';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
@@ -12,19 +11,14 @@ import {MatIcon} from '@angular/material/icon';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {GlobalStateService} from '../../../state/global-state.service';
 import {SupportApiService} from '../../../../api/support-api.service';
-import {UserApiService} from '../../../../api/user-api.service';
 import {SupportContextService} from '../../../support/support-context.service';
 import {ScreenshotService} from '../../../support/screenshot.service';
-import {FileHelperService} from '../../../util/file-helper.service';
-import {parseContentDispositionFilename} from '../../../util/content-disposition.util';
 import {TafelToastrService} from '../../../components/tafel-toastr/tafel-toastr.service';
 import {SupportDialogComponent, SupportDialogResult} from './dialogs/support-dialog.component';
 import {QuickOpenDialogComponent} from './dialogs/quick-open-dialog.component';
 import {MatButton} from '@angular/material/button';
 import {ConfigApiService} from '../../../../api/config-api.service';
 import {TafelTitleStrategy} from '../../../util/tafel-title-strategy';
-import {ThemeService} from '../../../theme/theme.service';
-import {ThemePreference} from '../../../../api/user-api.service';
 import {registerSvgIcons} from '../../../util/svg-icon.util';
 import menuIcon from '@material-symbols/svg-400/outlined/menu-fill.svg';
 import helpIcon from '@material-symbols/svg-400/outlined/help-fill.svg';
@@ -32,14 +26,11 @@ import searchIcon from '@material-symbols/svg-400/outlined/search-fill.svg';
 import notificationsIcon from '@material-symbols/svg-400/outlined/notifications-fill.svg';
 import bookIcon from '@material-symbols/svg-400/outlined/book-fill.svg';
 import keyIcon from '@material-symbols/svg-400/outlined/key-fill.svg';
+import manageAccountsIcon from '@material-symbols/svg-400/outlined/manage_accounts-fill.svg';
 import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import linkIcon from '@material-symbols/svg-400/outlined/link-fill.svg';
 import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
-import paletteIcon from '@material-symbols/svg-400/outlined/palette-fill.svg';
-import lightModeIcon from '@material-symbols/svg-400/outlined/light_mode-fill.svg';
-import darkModeIcon from '@material-symbols/svg-400/outlined/dark_mode-fill.svg';
-import brightnessAutoIcon from '@material-symbols/svg-400/outlined/brightness_auto-fill.svg';
 import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
 
 const CLOCK_FORMAT = new Intl.DateTimeFormat('de-AT', {
@@ -66,14 +57,11 @@ export class DefaultHeaderComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
   private readonly supportApiService = inject(SupportApiService);
-  private readonly userApiService = inject(UserApiService);
   private readonly supportContextService = inject(SupportContextService);
   private readonly screenshotService = inject(ScreenshotService);
-  private readonly fileHelperService = inject(FileHelperService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
   private readonly configApiService = inject(ConfigApiService);
-  private readonly themeService = inject(ThemeService);
 
   readonly sseConnected = this.globalStateService.getConnectionState();
 
@@ -129,14 +117,6 @@ export class DefaultHeaderComponent {
     return initials.toUpperCase() || '?';
   });
 
-  readonly themeOptions: readonly { value: ThemePreference; label: string; icon: string }[] = [
-    {value: 'LIGHT', label: 'Hell', icon: 'light_mode'},
-    {value: 'DARK', label: 'Dunkel', icon: 'dark_mode'},
-    {value: 'SYSTEM', label: 'System', icon: 'brightness_auto'},
-  ];
-  readonly themePreference = this.themeService.preference;
-  readonly themeLabel = computed(() => this.themeOptions.find(option => option.value === this.themePreference())?.label ?? '');
-
   private quickOpenDialogRef: MatDialogRef<QuickOpenDialogComponent> | null = null;
 
   /**
@@ -161,14 +141,11 @@ export class DefaultHeaderComponent {
       notifications: notificationsIcon,
       book: bookIcon,
       key: keyIcon,
+      manage_accounts: manageAccountsIcon,
       download: downloadIcon,
       lock: lockIcon,
       link: linkIcon,
       link_off: linkOffIcon,
-      palette: paletteIcon,
-      light_mode: lightModeIcon,
-      dark_mode: darkModeIcon,
-      brightness_auto: brightnessAutoIcon,
       check: checkIcon
     });
   }
@@ -187,36 +164,8 @@ export class DefaultHeaderComponent {
     this.quickOpenDialogRef.afterClosed().subscribe(() => this.quickOpenDialogRef = null);
   }
 
-  public setTheme(preference: ThemePreference) {
-    return this.themeService.setPreference(preference);
-  }
-
   public logout() {
     this.authenticationService.logout().subscribe();
-  }
-
-  /**
-   * The GDPR Art. 15/20 data takeout for the caller's own account (issue #3363), as a downloadable
-   * ZIP (PDF plus a machine-readable JSON file).
-   */
-  public exportUserData() {
-    this.userApiService.exportUser().subscribe({
-      next: (response) => this.processFileResponse(response),
-      error: () => this.toastr.error('Datenexport fehlgeschlagen!')
-    });
-  }
-
-  /** The Art. 13 GDPR privacy notice for staff (issue #3429), as a downloadable PDF. */
-  public downloadStaffPrivacyNotice() {
-    this.userApiService.generatePrivacyNoticeTemplate().subscribe({
-      next: (response) => this.processFileResponse(response),
-      error: () => this.toastr.error('Herunterladen fehlgeschlagen!')
-    });
-  }
-
-  private processFileResponse(response: HttpResponse<Blob>) {
-    const filename = parseContentDispositionFilename(response.headers.get('content-disposition')!);
-    this.fileHelperService.downloadFile(filename, response.body!);
   }
 
   /**

@@ -96,6 +96,7 @@ internal class UserExportServiceTest {
     fun `export user by username`() {
         val userEntity = testUserEntity.apply {
             lastLogin = LocalDateTime.of(2026, 8, 20, 10, 0)
+            email = "test@example.org"
         }
         every { userRepository.findByUsername("test-username") } returns userEntity
 
@@ -106,6 +107,8 @@ internal class UserExportServiceTest {
 
         val entries = zipEntries(result!!.bytes)
         assertThat(entries).containsOnlyKeys("datenexport.pdf", "daten.json")
+        val masterData = jsonMapper.readTree(entries.getValue("daten.json")).get("masterData")
+        assertThat(masterData.toString()).contains("E-Mail-Adresse", "test@example.org")
         assertThat(String(entries.getValue("datenexport.pdf").copyOfRange(0, 5), Charsets.US_ASCII)).isEqualTo("%PDF-")
 
         val entrySlot = slot<AuditLogWriter.PendingEntry>()

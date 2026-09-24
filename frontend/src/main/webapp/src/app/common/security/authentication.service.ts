@@ -12,6 +12,14 @@ import {ThemePreference} from '../../api/user-api.service';
 @Service()
 export class AuthenticationService {
   userInfo = signal<UserInfo | null>(null);
+
+  /**
+   * Whether the login that is still being completed needs a password change afterwards. Kept here
+   * because a login that also owes a code from the authenticator app cannot change the password first
+   * (the session does nothing until the code is accepted) - the code page reads this to know where to
+   * go on to.
+   */
+  readonly passwordChangeRequired = signal(false);
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly globalStateService = inject(GlobalStateService);
@@ -33,9 +41,12 @@ export class AuthenticationService {
     return firstValueFrom(this.executeLoginRequest(username, password)
       .pipe(map(async response => {
           await this.loadUserInfo();
+          this.passwordChangeRequired.set(response.passwordChangeRequired);
           return {
             successful: true,
             passwordChangeRequired: response.passwordChangeRequired,
+            mfaRequired: response.mfaRequired ?? false,
+            mfaSetupRequired: this.isMfaSetupRequired(),
             rateLimited: false,
             serverUnreachable: false
           };
@@ -45,12 +56,43 @@ export class AuthenticationService {
           this.userInfo.set(null);
           const rateLimited = error.status === 429;
           const serverUnreachable = !rateLimited && (error.status === 0 || error.status >= 500);
-          return of({successful: false, passwordChangeRequired: false, rateLimited, serverUnreachable});
+          return of({successful: false, passwordChangeRequired: false, mfaRequired: false,
+          mfaSetupRequired: false, rateLimited, serverUnreachable});
         })));
   }
 
   public isAuthenticated(): boolean {
     return this.userInfo() !== null;
+  }
+
+  /**
+   * The password was accepted but the code from the authenticator app is still owed - the session does
+   * nothing until it is handed in, so the app sends the user to the code page instead of treating the
+   * empty permission list as "no access".
+   */
+  public isMfaPending(): boolean {
+    return this.userInfo()?.mfaPending === true;
+  }
+
+  public redirectToMfaSetup(): Promise<boolean> {
+    return this.router.navigate(['konto', 'zwei-faktor']);
+  }
+
+  public redirectToMfa(): Promise<boolean> {
+    return this.router.navigate(['login', 'mfa']);
+  }
+
+  /**
+   * The deployment requires a second factor and this user has none yet: the session can do nothing but set
+   * one up, so the app sends the user to that page instead of treating the empty permission list as "no access".
+   */
+  public isMfaSetupRequired(): boolean {
+    return this.userInfo()?.mfaSetupRequired === true;
+  }
+
+  /** The methods a login that owes its code can be completed with: `TOTP`, `EMAIL`. */
+  public mfaMethods(): string[] {
+    return this.userInfo()?.mfaMethods ?? [];
   }
 
   public redirectToLogin(msgKey?: string): Promise<boolean> {
@@ -153,11 +195,17 @@ export class AuthenticationService {
 
 interface LoginResponse {
   passwordChangeRequired: boolean;
+  /** Absent when an older backend, still running during a rolling deploy, does not send it. */
+  mfaRequired?: boolean;
 }
 
 export interface LoginResult {
   successful: boolean;
   passwordChangeRequired: boolean;
+  /** The password was right, but a code is still needed. */
+  mfaRequired: boolean;
+  /** The deployment requires a second factor and this user has none yet, so one has to be set up first. */
+  mfaSetupRequired: boolean;
   rateLimited: boolean;
   serverUnreachable: boolean;
 }
@@ -167,4 +215,10 @@ interface UserInfo {
   permissions: string[];
   /** Absent when an older backend, still running during a rolling deploy, does not send it. */
   theme?: ThemePreference;
+  /** The password was accepted but the second factor is still owed; absent from an older backend. */
+  mfaPending?: boolean;
+  /** The deployment requires a second factor and this user has none yet. */
+  mfaSetupRequired?: boolean;
+  /** How a pending login can be completed: `TOTP` (authenticator app), `EMAIL` (code by e-mail). */
+  mfaMethods?: string[];
 }

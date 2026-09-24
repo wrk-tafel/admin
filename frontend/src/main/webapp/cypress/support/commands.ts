@@ -536,6 +536,7 @@ export interface UserData {
   username: string;
   firstname: string;
   lastname: string;
+  email?: string | null;
   enabled: boolean;
   password?: string;
   passwordRepeat?: string;

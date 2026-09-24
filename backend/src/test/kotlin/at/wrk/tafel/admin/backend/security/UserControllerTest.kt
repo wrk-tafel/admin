@@ -77,6 +77,9 @@ class UserControllerTest {
     @RelaxedMockK
     private lateinit var userPreferencesService: UserPreferencesService
 
+    @RelaxedMockK
+    private lateinit var mfaService: MfaService
+
     @InjectMockKs
     private lateinit var controller: UserController
 
@@ -513,6 +516,106 @@ class UserControllerTest {
     }
 
     @Test
+    fun `create user stores a blank email as no email`() {
+        every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy") andThen testUser
+        every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
+
+        controller.createUser(user = testUserRequest.copy(email = "   "))
+
+        val created = slot<TafelUser>()
+        verify(exactly = 1) { userDetailsManager.createUser(capture(created)) }
+        assertThat(created.captured.email).isNull()
+    }
+
+    @Test
+    fun `get userinfo reports a login that still owes its code`() {
+        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
+            tokenValue = "token",
+            username = "max",
+            authenticated = true,
+            mfaPending = true,
+        )
+
+        val info = controller.getUserInfo().body!!
+
+        assertThat(info.mfaPending).isTrue()
+        assertThat(info.permissions).isEmpty()
+    }
+
+    @Test
+    fun `get user maps whether two-factor authentication is on, never the secret`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser.copy(mfaTotpEnabled = true)
+
+        val response = controller.getUser(1)
+
+        assertThat(response.body?.mfaEnabled).isTrue()
+        assertThat(response.body?.mfaMethods).containsExactly("TOTP")
+    }
+
+    @Test
+    fun `reset mfa clears it for an ordinary user`() {
+        every { userDetailsManager.loadUserById(5) } returns testUser.copy(id = 5, mfaTotpEnabled = true)
+
+        val response = controller.resetMfa(5)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        verify(exactly = 1) { mfaService.reset(5) }
+    }
+
+    @Test
+    fun `reset mfa of an administrator account is refused without the administrator permission`() {
+        every { userDetailsManager.loadUserById(5) } returns testUser.copy(
+            id = 5,
+            authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)),
+        )
+        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
+            tokenValue = "token",
+            username = "manager",
+            authenticated = true,
+            authorities = listOf(SimpleGrantedAuthority(UserPermissions.USER_MANAGEMENT.key)),
+        )
+
+        val exception = assertThrows<TafelApiException> { controller.resetMfa(5) }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+        verify(exactly = 0) { mfaService.reset(any()) }
+    }
+
+    @Test
+    fun `reset mfa of an administrator account is allowed for an administrator`() {
+        every { userDetailsManager.loadUserById(5) } returns testUser.copy(
+            id = 5,
+            authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)),
+        )
+        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
+            tokenValue = "token",
+            username = "admin",
+            authenticated = true,
+            authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)),
+        )
+
+        controller.resetMfa(5)
+
+        verify(exactly = 1) { mfaService.reset(5) }
+    }
+
+    @Test
+    fun `reset mfa of an unknown user is a not-found`() {
+        every { userDetailsManager.loadUserById(99) } returns null
+
+        assertThrows<NotFoundException> { controller.resetMfa(99) }
+    }
+
+    @Test
+    fun `get user maps the email`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser.copy(email = "test@example.org")
+
+        val response = controller.getUser(1)
+
+        assertThat(response.body?.email).isEqualTo("test@example.org")
+    }
+
+    @Test
     fun `create user with passwords not matching`() {
         every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy")
         every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
@@ -891,6 +994,7 @@ class UserControllerTest {
             personnelNumber = "updated-personnelnumber",
             firstname = "updated-firstname",
             lastname = "updated-lastname",
+            email = " updated@example.org ",
             permissions = listOf(newPermission),
             passwordChangeRequired = true,
             enabled = false,
@@ -911,6 +1015,7 @@ class UserControllerTest {
         assertThat(userDetails.personnelNumber).isEqualTo(updatedUser.personnelNumber)
         assertThat(userDetails.firstname).isEqualTo(updatedUser.firstname)
         assertThat(userDetails.lastname).isEqualTo(updatedUser.lastname)
+        assertThat(userDetails.email).isEqualTo("updated@example.org")
         assertThat(userDetails.authorities).isEqualTo(listOf(SimpleGrantedAuthority(UserPermissions.CHECKIN.key)))
         assertThat(userDetails.password).isEqualTo(updatedUser.password)
         assertThat(userDetails.passwordChangeRequired).isEqualTo(updatedUser.passwordChangeRequired)

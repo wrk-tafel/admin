@@ -16,8 +16,19 @@ data class TafelUser(
     val lastname: String,
     private val authorities: Collection<GrantedAuthority>,
     val passwordChangeRequired: Boolean,
+    val email: String? = null,
+    val mfaTotpEnabled: Boolean = false,
+    val mfaEmailEnabled: Boolean = false,
 ) : UserDetails,
     CredentialsContainer {
+    /** Whether a login needs a second factor - either method is enough. */
+    val mfaEnabled: Boolean
+        get() = mfaTotpEnabled || mfaEmailEnabled
+
+    /** The methods that complete a login, as the API names them. */
+    val mfaMethods: List<String>
+        get() = listOfNotNull("TOTP".takeIf { mfaTotpEnabled }, "EMAIL".takeIf { mfaEmailEnabled })
+
     override fun getAuthorities(): Collection<GrantedAuthority> = authorities
     override fun getPassword(): String? = password
     override fun getUsername(): String = username

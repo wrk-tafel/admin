@@ -268,7 +268,7 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **customer**: Search, create, edit, detail views with duplicate detection. Deliberately *not* renamed to match the backend's `household`/`person` model — routes, components, and `CustomerData`/`CustomerAddPersonData` DTOs are unchanged; only `customer-api.service.ts` translates to/from the backend's household+persons wire shape (main person flattened onto the customer object, other persons as `additionalPersons`)
 - **checkin**: Scanner registration, QR code reading, ticket screen for customer calls
 - **logistics**: Food collection recording only (desktop/responsive layouts), one screen (`warenerfassung`). Shelter/car/food-category as well as route/shop admin CRUD screens actually live under the **settings** module below, not here — this module only ever reads routes and shops, from within the food-collection-recording flow.
-- **user**: User search, create, edit with password change functionality, plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking
+- **user**: User search, create, edit (with an optional e-mail address), plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking. Also "Mein Konto" (`account.routes.ts`, rendered by `UserAccountComponent` at `/konto`): one page, one child route per tab — password, two-factor authentication, notifications, design, privacy — reachable by every logged-in user. `AuthGuardService` recognises the routes a session that must set up a second factor may open by their path, so renaming `konto`/`zwei-faktor` means changing it there too
 - **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a list of expandable cards with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded body instead of a separate details dialog — see the settings module README before restyling them back into a table
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
 - **audit**: the `zugriffsprotokoll` screen — the whole audit trail, filterable. The per-household
@@ -650,6 +650,7 @@ URL at all (GDPR gap G25, issue #3506/#3703; see [ADR-0057](docs/architecture/ad
 This applies specifically to a *search* — `GET .../{id}` for a single resource and a plain,
 term-less `GET` listing are unaffected.
 
+- `/api/mfa`: the caller's own two-factor authentication, two methods usable side by side (authenticator app/TOTP, and a code by e-mail) — `GET` status, `POST /setup` + `/enable` (app), `POST /email/setup` + `/email/enable` (e-mail), `POST /disable` (`{method, code}`), and `POST /verify` plus `POST /email/send`, the calls a session that has passed the password but still owes its code may make. `MfaPendingFilter` refuses everything else to such a session — and, when `tafeladmin.mfa.required` is on and the user has none, everything except setting one up. `DELETE /api/users/{id}/mfa` is the administrator's reset (see [ADR-0058](docs/architecture/adr/0058-two-factor-authentication-gates-the-session-not-the-page.md))
 - `/api/users`: User management. Search is `POST /api/users/search`; `POST /api/users/login-attempts/search`
   is the separate login-attempts (`anmelde-versuche`) search. `GET /api/users/info` also carries the
   caller's light/dark `theme`, which `PUT /api/users/theme` changes (stored in `user_preferences`)
@@ -673,7 +674,7 @@ term-less `GET` listing are unaffected.
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 - `/api/data-subject-requests`: the central "Datenauskunft" screen — `POST /search` across households, user accounts and employees without one; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
 
-Authentication: Basic HTTP auth with JWT token stored in cookie.
+Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two-factor authentication switched on gets a session that grants nothing until the code was handed in (`TafelJwtAuthProvider`/`MfaPendingFilter`, ADR-0058); `tafeladmin.mfa.required` (operator config, hot-reloaded) makes it mandatory for everyone.
 
 ## Special Considerations
 

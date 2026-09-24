@@ -188,6 +188,30 @@ class MailTemplateRenderingTest {
     }
 
     @Test
+    fun `mfa-code-mail renders the account, the code and its validity`() {
+        val context = Context()
+        context.setVariable("username", "max.mustermann")
+        context.setVariable("code", "042042")
+        context.setVariable("validityMinutes", 10L)
+
+        val rendered = render("mails/mfa-code-mail", context)
+
+        assertThat(rendered).isEqualTo(loadReference("mfa-code-mail.html"))
+    }
+
+    @Test
+    fun `mfa-code-mail escapes the username`() {
+        val context = Context()
+        context.setVariable("username", "<script>alert(1)</script>")
+        context.setVariable("code", "042042")
+        context.setVariable("validityMinutes", 10L)
+
+        val rendered = render("mails/mfa-code-mail", context)
+
+        assertThat(rendered).doesNotContain("<script>alert(1)</script>").contains("&lt;script&gt;")
+    }
+
+    @Test
     fun `support-request-mail escapes what the reporter typed and renders a placeholder without errors`() {
         val context = Context()
         context.setVariable("supportTitle", "<b>kaputt</b>")

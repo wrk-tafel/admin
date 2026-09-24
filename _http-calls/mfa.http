@@ -1,0 +1,47 @@
+### Status of two-factor authentication for the logged-in user: methods, whether the organisation requires it, whether e-mail is available
+GET {{baseApiPath}}/mfa
+
+### Start the setup - answers a new secret and the otpauth:// address for the QR code
+POST {{baseApiPath}}/mfa/setup
+
+### Switch it on with the first code from the authenticator app
+POST {{baseApiPath}}/mfa/enable
+Content-Type: application/json
+
+{
+  "code": "123456"
+}
+
+### Start the e-mail method - sends a code to the address on the account
+POST {{baseApiPath}}/mfa/email/setup
+
+### Switch the e-mail method on with the code from the mail
+POST {{baseApiPath}}/mfa/email/enable
+Content-Type: application/json
+
+{
+  "code": "123456"
+}
+
+### Send a code by e-mail (to set up, to log in with the e-mail method, or to switch a method off)
+POST {{baseApiPath}}/mfa/email/send
+
+### Switch a method off (needs a current code of either method) - method is TOTP or EMAIL
+POST {{baseApiPath}}/mfa/disable
+Content-Type: application/json
+
+{
+  "method": "TOTP",
+  "code": "123456"
+}
+
+### Finish a login that still owes its code (with /mfa/email/send, /users/info and /users/logout the only calls such a session may make)
+POST {{baseApiPath}}/mfa/verify
+Content-Type: application/json
+
+{
+  "code": "123456"
+}
+
+### Administrator: switch it off for a user who lost the phone
+DELETE {{baseApiPath}}/users/300/mfa

@@ -40,8 +40,10 @@
             <xsl:with-param name="text" select="'Welche Daten wir verarbeiten und warum'"/>
         </xsl:call-template>
         <fo:block font-size="10pt" color="{$tafelInk}" space-after="4mm" line-height="1.5">
-            Wir verarbeiten Ihre Stammdaten (Name, Personalnummer, Benutzername), Ihre
-            Zugriffsberechtigungen, Anmeldedaten (Zeitpunkt erfolgreicher und fehlgeschlagener
+            Wir verarbeiten Ihre Stammdaten (Name, Personalnummer, Benutzername sowie - sofern
+            hinterlegt - E-Mail-Adresse für Systembenachrichtigungen), Ihre
+            Zugriffsberechtigungen, den Schlüssel Ihrer Authenticator-App (sofern Sie die
+            Zwei-Faktor-Authentifizierung einschalten), Anmeldedaten (Zeitpunkt erfolgreicher und fehlgeschlagener
             Anmeldungen sowie bei einer fehlgeschlagenen Anmeldung die IP-Adresse, von der aus die
             Anmeldung erfolgte, auch zur Begrenzung der Anfragehäufigkeit) sowie - sofern Sie diese
             Funktion aktivieren - Ihre für Push-Benachrichtigungen registrierten Geräte, um Ihnen den

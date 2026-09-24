@@ -190,6 +190,7 @@ class TafelUserDetailsManager(
             enabled = tafelUser.enabled,
             passwordChangeRequired = tafelUser.passwordChangeRequired,
         )
+        userEntity.email = tafelUser.email
         syncAuthorities(userEntity, tafelUser)
         userRepository.save(userEntity)
     }
@@ -215,6 +216,7 @@ class TafelUserDetailsManager(
         // login_attempts is keyed by username, not a FK to users - clear it explicitly rather than
         // waiting for LoginAttemptService.cleanupStaleEntries to age it out.
         loginAttemptService.deleteAttempts(username)
+        loginAttemptService.deleteAttempts(MfaService.attemptKey(username))
     }
 
     override fun changePassword(oldPassword: String?, newPassword: String?) {
@@ -310,6 +312,9 @@ class TafelUserDetailsManager(
         lastname = userEntity.employee.lastname,
         authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) },
         passwordChangeRequired = userEntity.passwordChangeRequired,
+        email = userEntity.email,
+        mfaTotpEnabled = userEntity.mfaTotpEnabled,
+        mfaEmailEnabled = userEntity.mfaEmailEnabled,
     )
 
     private fun resolveEmployee(tafelUser: TafelUser): EmployeeEntity {
@@ -353,6 +358,7 @@ class TafelUserDetailsManager(
     private fun mapToUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
         userEntity.employee = resolveEmployee(tafelUser)
         userEntity.username = tafelUser.username
+        userEntity.email = tafelUser.email
         userEntity.enabled = tafelUser.enabled
         val newPassword = tafelUser.password
         if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {

@@ -189,13 +189,14 @@ class TafelUserDetailsManagerTest {
         every { passwordEncoder.encode(any()) } returns "encoded-pwd"
         every { userRepository.save(any()) } returns mockk(relaxed = true)
 
-        manager.createUser(testUser.copy(password = "new-pwd1234"))
+        manager.createUser(testUser.copy(password = "new-pwd1234", email = "new@example.org"))
 
         val entitySlot = slot<UserEntity>()
         verify(exactly = 1) { userRepository.save(capture(entitySlot)) }
 
         val entity = entitySlot.captured
         assertThat(entity.password).isEqualTo("encoded-pwd")
+        assertThat(entity.email).isEqualTo("new@example.org")
         // detailed mapping tested in updateUser test
     }
 
@@ -498,7 +499,10 @@ class TafelUserDetailsManagerTest {
             ),
             enabled = true,
             passwordChangeRequired = true,
-        ).apply { id = 0 }
+        ).apply {
+            id = 0
+            email = "test@example.org"
+        }
 
         every { userRepository.findById(any()) } returns Optional.of(userEntity)
 
@@ -510,6 +514,7 @@ class TafelUserDetailsManagerTest {
         assertThat(userDetails.personnelNumber).isEqualTo(userEntity.employee.personnelNumber)
         assertThat(userDetails.firstname).isEqualTo(userEntity.employee.firstname)
         assertThat(userDetails.lastname).isEqualTo(userEntity.employee.lastname)
+        assertThat(userDetails.email).isEqualTo("test@example.org")
 
         verify(exactly = 1) {
             userRepository.findById(userEntity.id!!)
@@ -648,6 +653,7 @@ class TafelUserDetailsManagerTest {
             username = "new-username",
             firstname = "new-firstname",
             lastname = "new-lastname",
+            email = "new@example.org",
             enabled = false,
             passwordChangeRequired = true,
             authorities = listOf(
@@ -667,6 +673,7 @@ class TafelUserDetailsManagerTest {
         assertThat(updatedUser.username).isEqualTo(userUpdate.username)
         assertThat(updatedUser.employee.firstname).isEqualTo(userUpdate.firstname)
         assertThat(updatedUser.employee.lastname).isEqualTo(userUpdate.lastname)
+        assertThat(updatedUser.email).isEqualTo("new@example.org")
         assertThat(updatedUser.enabled).isEqualTo(userUpdate.enabled)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
         assertThat(updatedUser.authorities).hasSize(1)

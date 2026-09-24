@@ -1,0 +1,19 @@
+<div class="w-full max-w-3xl mx-auto">
+  <nav mat-tab-nav-bar [tabPanel]="tabPanel" aria-label="Mein Konto">
+    @for (tab of tabs; track tab.path) {
+      <a mat-tab-link
+         [routerLink]="tab.path"
+         routerLinkActive
+         #linkActive="routerLinkActive"
+         #link
+         [active]="linkActive.isActive"
+         (isActiveChange)="$event && reveal(link.elementRef.nativeElement)"
+         [attr.testid]="tab.testId">
+        {{ tab.label }}
+      </a>
+    }
+  </nav>
+  <mat-tab-nav-panel #tabPanel class="block pt-4">
+    <router-outlet></router-outlet>
+  </mat-tab-nav-panel>
+</div>

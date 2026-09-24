@@ -69,6 +69,16 @@
           }
         </mat-form-field>
       </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2">
+        <mat-form-field>
+          <mat-label>E-Mail</mat-label>
+          <input matInput testid="emailInput" type="email" autocomplete="off" [formField]="userForm.email">
+          <mat-hint>Optional - für Systembenachrichtigungen an diesen Benutzer</mat-hint>
+          @for (errorMessage of visibleErrorMessages(userForm.email()); track errorMessage) {
+            <mat-error>{{errorMessage}}</mat-error>
+          }
+        </mat-form-field>
+      </div>
       <hr>
       @if (createMode()) {
         <h2 class="tafel-h5">Passwort</h2>

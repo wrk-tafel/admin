@@ -27,32 +27,56 @@ Auf Test- und Entwicklungsumgebungen wird oberhalb der Anmeldemaske zusätzlich 
 
 Dieselbe Umgebungskennzeichnung bleibt nach der Anmeldung als schmales Banner oben in der Kopfzeile der Anwendung sichtbar, damit auch eine bereits geöffnete Sitzung auf einer Test- oder Entwicklungsumgebung nicht mit der Produktivumgebung verwechselt werden kann.
 
-Das Benutzer-Icon oben rechts (es zeigt die Initialen des Benutzernamens) öffnet das Benutzermenü. Es ist in vier Gruppen gegliedert:
+Das Benutzer-Icon oben rechts (es zeigt die Initialen des Benutzernamens) öffnet das Benutzermenü. Es ist in drei Gruppen gegliedert:
 
-- **Konto**: das eigene Passwort ändern, die Push-Benachrichtigungen für das aktuelle Gerät verwalten und das Design (hell oder dunkel) wählen.
-- **Datenschutz**: die eigenen Daten exportieren und die eigene Datenschutzerklärung herunterladen.
+- **Konto**: **Mein Konto** öffnen, die Seite für alles, was das eigene Benutzerkonto betrifft: Passwort, Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design und Datenschutz.
 - **Hilfe**: dieses Benutzerhandbuch (immer die aktuellste Version, als PDF-Download) öffnen.
 - **Abmelden**: die Sitzung beenden; die Gruppe steht bewusst für sich allein, damit man sie nicht versehentlich trifft.
 
 ![Benutzermenü](images/benutzermenue.jpg)
 
-Über **Design** wählt man, ob die Anwendung hell, dunkel oder passend zur Einstellung des Geräts (**System**, Standard) dargestellt wird. Die Auswahl gilt sofort und wird zum eigenen Benutzerkonto gespeichert: Nach der Anmeldung auf einem anderen Gerät erscheint die Anwendung wieder im selben Design. Bei **System** folgt die Anwendung auch einem späteren Wechsel der Geräteeinstellung (z. B. abends automatisch auf dunkel), ohne dass sie neu geladen werden muss.
+**Mein Konto** hat fünf Reiter: **Passwort**, **Zwei-Faktor-Authentifizierung**, **Benachrichtigungen**, **Design** und **Datenschutz**. Jeder Reiter hat eine eigene Adresse: Man kann sie als Lesezeichen speichern, und die Zurück-Taste des Browsers führt zum zuvor angesehenen Reiter. Die Reiter stehen jedem angemeldeten Benutzer offen, unabhängig von den Berechtigungen.
+
+![Mein Konto mit den Reitern](images/konto-uebersicht.jpg)
+
+Auf dem Reiter **Design** wählt man, ob die Anwendung hell, dunkel oder passend zur Einstellung des Geräts (**System**, Standard) dargestellt wird. Die Auswahl gilt sofort und wird zum eigenen Benutzerkonto gespeichert: Nach der Anmeldung auf einem anderen Gerät erscheint die Anwendung wieder im selben Design. Bei **System** folgt die Anwendung auch einem späteren Wechsel der Geräteeinstellung (z. B. abends automatisch auf dunkel), ohne dass sie neu geladen werden muss.
 
 ![Dunkles Design](images/design-dunkel.jpg)
 
-Über **Passwort ändern** gelangt man zu folgender Seite innerhalb der Anwendung:
+Auf dem Reiter **Passwort** ändert man das eigene Passwort:
 
 ![Passwort ändern](images/passwort-aendern.jpg)
 
-Nach dem Speichern bleibt man mit dem neuen Passwort angemeldet – ein neuerlicher Login ist nicht nötig. Die Anwendung kehrt dabei automatisch auf jene Seite zurück, von der aus das Benutzermenü geöffnet wurde, und bestätigt die Änderung mit einem kurzen Hinweis. Über **Abbrechen** kommt man ohne Änderung wieder auf dieselbe Seite zurück.
+Nach dem Speichern bleibt man mit dem neuen Passwort angemeldet – ein neuerlicher Login ist nicht nötig. Die Anwendung bestätigt die Änderung mit einem kurzen Hinweis und leert die Felder wieder, damit die Passwörter nicht auf dem Bildschirm stehen bleiben.
 
-Über **Meine Daten exportieren** lädt man eine DSGVO-Datenauskunft (Art. 15/20) zum eigenen Benutzerkonto als PDF-Datei herunter: Benutzername, die verknüpften Mitarbeiter-Stammdaten (Personalnummer, Name), die zugewiesenen Berechtigungen, der Aktiv-Status sowie der letzte Login-Zeitpunkt. Das gespeicherte Passwort ist darin nie enthalten. Für eine andere Person kann dieselbe Auskunft auch von einem Benutzer mit Benutzerverwaltungs-Berechtigung über dessen Benutzerdetailseite abgerufen werden, siehe [Benutzer](benutzer.md).
+Auf dem Reiter **Zwei-Faktor-Authentifizierung** schützt man die eigene Anmeldung zusätzlich zum Passwort. Dafür gibt es zwei Methoden, die man einzeln oder beide gleichzeitig einrichten kann – bei der Anmeldung genügt der Code einer der beiden. Die Seite zeigt für jede Methode den Status – **Nicht aktiv**, **Wird eingerichtet** oder **Aktiv**.
 
-Über **Datenschutzerklärung (Mitarbeiter)** lädt man eine allgemeine, personenunabhängige Datenschutzerklärung für Mitarbeiter:innen und Freiwillige als PDF herunter: welche Daten über Mitarbeiter:innen verarbeitet werden, auf welcher Grundlage, wie lange und mit welchen Rechten. Dasselbe Dokument steht auch ohne eigenes Benutzerkonto zur Verfügung, siehe [Mitarbeiter](einstellungen.md#mitarbeiter).
+- **Authenticator-App** (z. B. auf dem Smartphone): Zum Einrichten wählt man **Einrichten**, es erscheint ein QR-Code, den man mit der App scannt; kann die App nicht scannen, gibt man stattdessen den darunter angezeigten Schlüssel von Hand ein. Danach gibt man den 6-stelligen Code aus der App ein und wählt **Aktivieren** – erst mit einem gültigen Code ist die Methode eingeschaltet, womit auch geprüft ist, dass die App richtig eingerichtet wurde. Mit **Abbrechen** verwirft man eine begonnene Einrichtung.
+- **Code per E-Mail**: Zum Einrichten wählt man **Einrichten**; ein 6-stelliger Code wird an die E-Mail-Adresse des Benutzerkontos gesendet (mit **Code erneut senden** lässt er sich nach kurzer Wartezeit neu anfordern). Man gibt ihn ein und wählt **Aktivieren**. Der Code gilt nur kurz und nur einmal. Steht auf dem System kein E-Mail-Versand zur Verfügung, weist die Seite darauf hin, und diese Methode lässt sich nicht einrichten.
+
+![Zwei-Faktor-Authentifizierung: noch nichts eingerichtet](images/konto-zwei-faktor.jpg)
+
+![Authenticator-App einrichten: QR-Code und Code aus der App](images/konto-zwei-faktor-app-einrichten.jpg)
+
+![Code per E-Mail einrichten](images/konto-zwei-faktor-email-einrichten.jpg)
+
+![Beide Methoden aktiv, mit dem Bereich zum Ausschalten](images/konto-zwei-faktor-aktiv.jpg)
+
+Ab dann verlangt jede Anmeldung nach dem Passwort einen Code (siehe [Anmeldung mit Bestätigungscode](#anmeldung-mit-bestätigungscode)); auch bereits geöffnete Sitzungen auf anderen Geräten müssen den Code nachträglich bestätigen. Zum Ausschalten gibt man im Abschnitt **Ausschalten** einen aktuellen Code ein – aus der App oder, wenn eingerichtet, per E-Mail (**Code per E-Mail senden**) – und wählt **Authenticator-App ausschalten** bzw. **Code per E-Mail ausschalten**. Der Code ist nötig, damit ein unbeaufsichtigt angemeldeter Browser sie nicht ausschalten kann. Der Schlüssel der App verlässt den Server nicht: Er steht in keiner Antwort und in keinem Export, in der Datenauskunft steht nur, ob die Zwei-Faktor-Authentifizierung aktiv ist.
+
+Ist die Zwei-Faktor-Authentifizierung für die gesamte Anwendung vorgeschrieben (das legt der Betreiber der Anwendung fest, nicht ein einzelner Benutzer), muss mindestens eine Methode eingerichtet sein: Wer noch keine hat, wird nach der Anmeldung – und auch in einer bereits geöffneten Sitzung – auf den Reiter **Zwei-Faktor-Authentifizierung** von **Mein Konto** geleitet, sieht dort einen entsprechenden Hinweis und kann in der Anwendung nichts anderes tun, bis eine Methode eingerichtet ist. Die letzte eingerichtete Methode lässt sich dann nicht mehr ausschalten.
+
+![Zwei-Faktor-Authentifizierung ist vorgeschrieben](images/konto-zwei-faktor-pflicht.jpg)
+
+![Datenschutz](images/konto-datenschutz.jpg)
+
+Auf dem Reiter **Datenschutz** lädt man über **Meine Daten exportieren** eine DSGVO-Datenauskunft (Art. 15/20) zum eigenen Benutzerkonto als PDF-Datei herunter: Benutzername, die verknüpften Mitarbeiter-Stammdaten (Personalnummer, Name), die E-Mail-Adresse, die zugewiesenen Berechtigungen, der Aktiv-Status sowie der letzte Login-Zeitpunkt. Das gespeicherte Passwort ist darin nie enthalten. Für eine andere Person kann dieselbe Auskunft auch von einem Benutzer mit Benutzerverwaltungs-Berechtigung über dessen Benutzerdetailseite abgerufen werden, siehe [Benutzer](benutzer.md).
+
+Ebenfalls auf dem Reiter **Datenschutz** lädt man über **Datenschutzerklärung (Mitarbeiter)** eine allgemeine, personenunabhängige Datenschutzerklärung für Mitarbeiter:innen und Freiwillige als PDF herunter: welche Daten über Mitarbeiter:innen verarbeitet werden, auf welcher Grundlage, wie lange und mit welchen Rechten. Dasselbe Dokument steht auch ohne eigenes Benutzerkonto zur Verfügung, siehe [Mitarbeiter](einstellungen.md#mitarbeiter).
 
 <a id="benachrichtigungen"></a>
 
-Über **Benachrichtigungen** kann man Push-Benachrichtigungen für den aktuell verwendeten Browser aktivieren, z. B. um automatisch informiert zu werden, sobald eine Ausgabe gestartet oder beendet wurde. Solche Benachrichtigungen erreichen das Gerät auch dann, wenn die Anwendung gerade nicht geöffnet ist. Da die Anmeldung pro Gerät/Browser erfolgt, muss dieser Schalter auf jedem Gerät einzeln aktiviert werden, auf dem Benachrichtigungen gewünscht sind. Unterstützt der aktuelle Browser keine Push-Benachrichtigungen, wird stattdessen ein entsprechender Hinweis angezeigt.
+Auf dem Reiter **Benachrichtigungen** kann man Push-Benachrichtigungen für den aktuell verwendeten Browser aktivieren, z. B. um automatisch informiert zu werden, sobald eine Ausgabe gestartet oder beendet wurde. Solche Benachrichtigungen erreichen das Gerät auch dann, wenn die Anwendung gerade nicht geöffnet ist. Da die Anmeldung pro Gerät/Browser erfolgt, muss dieser Schalter auf jedem Gerät einzeln aktiviert werden, auf dem Benachrichtigungen gewünscht sind. Unterstützt der aktuelle Browser keine Push-Benachrichtigungen, wird stattdessen ein entsprechender Hinweis angezeigt.
 
 Wurden Benachrichtigungen im Browser selbst blockiert – etwa weil die Nachfrage des Browsers einmal mit "Blockieren" beantwortet wurde –, kann die Anwendung sie nicht aktivieren. In diesem Fall wird der Schalter deaktiviert dargestellt und darüber der Grund samt Lösungsweg angezeigt: Die Blockade lässt sich nur in den Seiteneinstellungen des Browsers selbst wieder aufheben.
 
@@ -118,6 +142,14 @@ Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login
 
 In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben, bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten und sowohl Klein- als auch Großbuchstaben sowie eine Ziffer enthalten. Eine Checkliste unterhalb der Eingabefelder zeigt für jede dieser Regeln direkt beim Tippen an, ob sie bereits erfüllt ist, sodass Fehler auffallen, bevor "Speichern" überhaupt versucht wird. Ein Balken unter dem Feld "Neues Passwort" zeigt zusätzlich dessen Stärke (Schwach/Mittel/Stark) an, sobald mit dem Tippen begonnen wurde – farblich passend in Rot, Orange bzw. Grün. Nach dem Speichern meldet die Seite kurz "Passwort geändert – Anmeldung läuft…", bevor automatisch zur Übersicht weitergeleitet wird.
 
+### Anmeldung mit Bestätigungscode
+
+Hat ein Benutzerkonto die Zwei-Faktor-Authentifizierung eingeschaltet (siehe unten), folgt auf Benutzername und Passwort die Seite **Bestätigungscode**. Dort gibt man den 6-stelligen Code ein und bestätigt mit **Bestätigen**: bei der Authenticator-App den Code aus der App (er ändert sich alle 30 Sekunden), bei einem Konto mit Code per E-Mail den Code aus der E-Mail. Hat das Konto nur diese Methode, wird der Code beim Öffnen der Seite automatisch gesendet; hat es beide, wählt man **Code per E-Mail senden**, wenn man den Code lieber per E-Mail bekommen möchte. Erst nach dem Code ist die Anmeldung abgeschlossen – bis dahin steht nichts in der Anwendung zur Verfügung, auch dann nicht, wenn man die Adresse einer Seite direkt aufruft, denn man wird zurück auf die Codeseite geleitet. Ein falscher Code wird mit "Der Code ist ungültig, oder es gab zu viele Fehlversuche - bitte später erneut versuchen!" abgelehnt. Nach mehreren Fehlversuchen wird die Codeeingabe vorübergehend gesperrt (dieselbe Grenze und Dauer wie bei einem falschen Passwort, siehe [Benutzer](benutzer.md#anmelde-versuche)), auch für den richtigen Code. Jeder Code gilt nur einmal: Ein bereits verwendeter Code wird abgelehnt, man wartet dann auf den nächsten in der App bzw. fordert per E-Mail einen neuen an. Über **Abbrechen und abmelden** beendet man die Anmeldung. Wer das Handy mit der App verloren hat und keinen Code per E-Mail eingerichtet hat, wendet sich an einen Administrator, der die Zwei-Faktor-Authentifizierung zurücksetzen kann.
+
+![Bestätigungscode bei der Anmeldung](images/login-bestaetigungscode.jpg)
+
+![Bestätigungscode: Code per E-Mail angefordert](images/login-bestaetigungscode-email.jpg)
+
 Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzername/Passwort "Anmeldung fehlgeschlagen!" – dieselbe Meldung erscheint auch bei einem wegen zu vieler Fehlversuche vorübergehend gesperrten Konto, damit von außen nicht erkennbar ist, welche Konten gerade gesperrt sind (eine Administratorin/ein Administrator sieht den tatsächlichen Sperrstatus über Benutzer → Anmelde-Versuche) –, nach Ablauf der Sitzung während der Nutzung "Sitzung abgelaufen! Bitte erneut anmelden.", bei fehlender Berechtigung für eine aufgerufene Seite "Zugriff nicht erlaubt!", bei zu vielen Anmeldeversuchen von derselben Internetadresse in kurzer Zeit "Zu viele Anmeldeversuche! Bitte warten Sie einen Moment und versuchen Sie es erneut." und wenn der Server nicht erreichbar ist (z. B. bei einer Störung) "Server nicht erreichbar! Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut." – letzteres damit eine Störung nicht mit einem falschen Passwort verwechselt und unnötig ein Passwort zurückgesetzt wird. Bei jedem fehlgeschlagenen Anmeldeversuch springt der Cursor automatisch zurück ins Benutzername-Feld, dessen Inhalt markiert ist, sodass der nächste Versuch mit einem einzigen Tastendruck beginnen kann.
 
 ![Sitzung abgelaufen](images/login-sitzung-abgelaufen.jpg)
@@ -146,7 +178,7 @@ Ist die Seitenleiste eingeklappt, sind nur noch die Icons sichtbar. Fährt man m
 Mit der Tastenkombination **Strg+K** (bzw. **Cmd+K** auf macOS) – oder über das Lupen-Symbol oben links in der Kopfzeile – öffnet sich von jeder Seite aus die **Schnellsuche**. Während der Eingabe werden bis zu drei Arten von Treffern angezeigt:
 
 - **Navigation**: alle Menüpunkte, deren Name den Suchbegriff enthält. Ein Klick wechselt direkt auf die jeweilige Seite.
-- **Aktionen**: die **Datenschutzerklärung (Vorlage) herunterladen** – dieselbe Vorlage ohne Kundenbezug wie bei der [Kunden-Suche](kunden.md#kunden-suchen) – sowie die **Datenschutzerklärung (Mitarbeiter) herunterladen** – dieselbe wie im Benutzermenü (siehe oben) –, beide von jeder Seite aus erreichbar. Ein Klick lädt die jeweilige Datei direkt herunter, ohne die aktuelle Seite zu verlassen.
+- **Aktionen**: die **Datenschutzerklärung (Vorlage) herunterladen** – dieselbe Vorlage ohne Kundenbezug wie bei der [Kunden-Suche](kunden.md#kunden-suchen) – sowie die **Datenschutzerklärung (Mitarbeiter) herunterladen** – dieselbe wie auf dem Reiter **Datenschutz** von **Mein Konto** (siehe oben) –, beide von jeder Seite aus erreichbar. Ein Klick lädt die jeweilige Datei direkt herunter, ohne die aktuelle Seite zu verlassen.
 - **Kunden**: ab zwei Zeichen wird zusätzlich in den Kunden gesucht – nach Kundennummer, Namen (auch der weiteren Personen im Haushalt), Adresse, Telefonnummer oder E-Mail, mit derselben Fehlertoleranz wie die Kunden-Suche (siehe [Kunden](kunden.md)). Ein Klick öffnet direkt die Detailseite des Kunden.
 
 ![Schnellsuche](images/schnellsuche.jpg)

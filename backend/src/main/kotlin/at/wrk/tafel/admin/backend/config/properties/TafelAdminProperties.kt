@@ -43,6 +43,7 @@ class TafelAdminProperties {
     var userDeletion: TafelAdminUserRetentionProperties = TafelAdminUserRetentionProperties()
     var employeeDeletion: TafelAdminEmployeeRetentionProperties = TafelAdminEmployeeRetentionProperties()
     var mail: TafelAdminMailProperties? = null
+    var mfa: TafelAdminMfaProperties = TafelAdminMfaProperties()
     var mailOutbox: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties()
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
     var sse: TafelAdminSseProperties = TafelAdminSseProperties()
@@ -521,6 +522,30 @@ class TafelAdminTestdataProperties {
      * no meaning.
      */
     var enabled: Boolean = false
+}
+
+/**
+ * Two-factor authentication. All read per use, so a change applies to the next login or code without a restart.
+ *
+ * [emailCodeForTests] replaces the random code with a fixed one and exists for `application-e2e.yml` only: an
+ * end-to-end run has no mail server whose mail a spec could read. It must never be set on a real deployment -
+ * with it, anyone who knows the value passes the e-mail step.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminMfaProperties {
+    /**
+     * Whether every user has to have a second factor. While it is on, a user with no method can do nothing but set
+     * one up - which is also true of sessions that were already open.
+     */
+    var required: Boolean = false
+
+    /** How long a code that was mailed stays usable. */
+    var emailCodeValidity: Duration = Duration.ofMinutes(10)
+
+    /** How long to wait before a new code may be requested - so the endpoint cannot be used to flood a mailbox. */
+    var emailCodeCooldown: Duration = Duration.ofSeconds(60)
+
+    var emailCodeForTests: String? = null
 }
 
 @ExcludeFromTestCoverage

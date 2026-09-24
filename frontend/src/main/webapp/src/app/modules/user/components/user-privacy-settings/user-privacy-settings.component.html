@@ -1,0 +1,28 @@
+<mat-card class="shadow-sm">
+  <mat-card-header>
+    <mat-card-title>Datenschutz</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="pt-6">
+    <section aria-labelledby="privacy-export-heading" class="mb-8">
+      <h2 id="privacy-export-heading" class="tafel-h6 mb-1">Meine Daten</h2>
+      <p class="text-sm text-slate-600 mb-3">
+        Alle Daten, die zu Ihrem Benutzerkonto gespeichert sind, als ZIP-Datei mit einer PDF-Datei und einer
+        maschinenlesbaren JSON-Datei.
+      </p>
+      <button matButton="outlined" type="button" testid="privacy-export-button" (click)="exportUserData()">
+        <mat-icon svgIcon="download"></mat-icon> Meine Daten exportieren
+      </button>
+    </section>
+
+    <section aria-labelledby="privacy-notice-heading">
+      <h2 id="privacy-notice-heading" class="tafel-h6 mb-1">Datenschutzerklärung</h2>
+      <p class="text-sm text-slate-600 mb-3">
+        Welche Daten die Anwendung über Mitarbeiter:innen und Freiwillige verarbeitet und wozu.
+      </p>
+      <button matButton="outlined" type="button" testid="privacy-notice-button" (click)="downloadStaffPrivacyNotice()">
+        <mat-icon svgIcon="download"></mat-icon> Datenschutzerklärung (Mitarbeiter)
+      </button>
+    </section>
+  </mat-card-content>
+</mat-card>

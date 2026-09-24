@@ -130,6 +130,20 @@ class WebSecurityConfig(
             )
             .addFilterBefore(
                 RateLimitFilter(
+                    // the code has a million possible values - the per-user lockout is what stops a search, this
+                    // keeps one address from running it against every account at once
+                    requestMatcher = OrRequestMatcher(
+                        PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/verify"),
+                        // a login can also have a mail sent - the cooldown per user is in MfaEmailCodeService
+                        PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/email/send"),
+                    ),
+                    scope = "mfa",
+                    rateLimiterService = rateLimiterIpService,
+                ),
+                TafelLoginFilter::class.java,
+            )
+            .addFilterBefore(
+                RateLimitFilter(
                     requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/support"),
                     scope = "support",
                     rateLimiterService = rateLimiterIpService,
@@ -154,6 +168,7 @@ class WebSecurityConfig(
                 ),
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
+            .addFilterAfter(MfaPendingFilter(), TafelJwtAuthenticationFilter::class.java)
             .authorizeHttpRequests { auth ->
                 // SSE endpoints (SseEmitter) keep the request open via request.startAsync(); when
                 // the emitter completes/times out/errors, the container re-enters the filter chain
@@ -273,7 +288,7 @@ class WebSecurityConfig(
     )
 
     @Bean
-    fun tafelJwtAuthProvider(): TafelJwtAuthProvider = TafelJwtAuthProvider(jwtTokenService, userRepository)
+    fun tafelJwtAuthProvider(): TafelJwtAuthProvider = TafelJwtAuthProvider(jwtTokenService, userRepository, tafelAdminProperties)
 
     @Bean
     fun tafelJwtAuthConverter(): TafelJwtAuthConverter = TafelJwtAuthConverter()

@@ -80,7 +80,8 @@ describe('LoginComponent', () => {
 
     it('login successful', async () => {
         const loginResult = {
-            successful: true, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
+            successful: true, passwordChangeRequired: false, mfaRequired: false,
+            mfaSetupRequired: false, rateLimited: false, serverUnreachable: false
         };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
@@ -104,7 +105,8 @@ describe('LoginComponent', () => {
 
     it('login failed', async () => {
         const loginResult = {
-            successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
+            successful: false, passwordChangeRequired: false, mfaRequired: false,
+            mfaSetupRequired: false, rateLimited: false, serverUnreachable: false
         };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
@@ -124,7 +126,8 @@ describe('LoginComponent', () => {
 
     it('login failed - server unreachable shows a distinct message from a plain credentials failure', async () => {
         const loginResult = {
-            successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: true
+            successful: false, passwordChangeRequired: false, mfaRequired: false,
+            mfaSetupRequired: false, rateLimited: false, serverUnreachable: true
         };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
@@ -144,7 +147,8 @@ describe('LoginComponent', () => {
 
     it('login failed - rate limited shows a distinct message from a plain credentials failure', async () => {
         const loginResult = {
-            successful: false, passwordChangeRequired: false, rateLimited: true, serverUnreachable: false
+            successful: false, passwordChangeRequired: false, mfaRequired: false,
+            mfaSetupRequired: false, rateLimited: true, serverUnreachable: false
         };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
@@ -164,7 +168,8 @@ describe('LoginComponent', () => {
 
     it('login failure moves focus back to the username field and selects its content', async () => {
         const loginResult = {
-            successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
+            successful: false, passwordChangeRequired: false, mfaRequired: false,
+            mfaSetupRequired: false, rateLimited: false, serverUnreachable: false
         };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
@@ -187,7 +192,10 @@ describe('LoginComponent', () => {
     });
 
     it('login but passwordchange required', async () => {
-        const loginResult = { successful: true, passwordChangeRequired: true, rateLimited: false, serverUnreachable: false };
+        const loginResult = {
+            successful: true, passwordChangeRequired: true, mfaRequired: false,
+            mfaSetupRequired: false, rateLimited: false, serverUnreachable: false
+        };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -201,6 +209,36 @@ describe('LoginComponent', () => {
         await component.login();
 
         expect(router.navigate).toHaveBeenCalledWith(['/login/passwortaendern']);
+    });
+
+    it('login that still needs a code goes to the code page, even when the password must change too', async () => {
+        for (const passwordChangeRequired of [false, true]) {
+            router.navigate.mockClear();
+            authService.login.mockReturnValue(Promise.resolve({
+                successful: true, passwordChangeRequired, mfaRequired: true,
+                mfaSetupRequired: false, rateLimited: false, serverUnreachable: false
+            }));
+            const component = TestBed.createComponent(LoginComponent).componentInstance;
+            component.loginFormModel.set({ username: 'user', password: 'pwd' });
+
+            await component.login();
+
+            expect(router.navigate).toHaveBeenCalledTimes(1);
+            expect(router.navigate).toHaveBeenCalledWith(['/login/mfa']);
+        }
+    });
+
+    it('login of a user who has to set a second factor up goes to that page', async () => {
+        authService.login.mockReturnValue(Promise.resolve({
+            successful: true, passwordChangeRequired: false, mfaRequired: false,
+            mfaSetupRequired: true, rateLimited: false, serverUnreachable: false
+        }));
+        const component = TestBed.createComponent(LoginComponent).componentInstance;
+        component.loginFormModel.set({ username: 'user', password: 'pwd' });
+
+        await component.login();
+
+        expect(router.navigate).toHaveBeenCalledWith(['/konto/zwei-faktor']);
     });
 
     describe('environmentLabel', () => {

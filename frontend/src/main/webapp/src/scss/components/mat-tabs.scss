@@ -42,7 +42,10 @@
   display: none !important;
 }
 
-.mat-mdc-tab-label-container {
+// The link-based tab bar (`mat-tab-nav-bar`, e.g. "Mein Konto") has its own scroll viewport,
+// `.mat-mdc-tab-link-container`, and gets the same treatment.
+.mat-mdc-tab-label-container,
+.mat-mdc-tab-link-container {
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;

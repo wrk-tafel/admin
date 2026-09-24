@@ -408,6 +408,13 @@ tafeladmin:
   # Baked into the security filter chain at startup - changing it needs a restart.
   server:
     relativeBaseUrl: /
+  # Two-factor authentication. required makes it mandatory for every user (someone without a method can then
+  # do nothing but set one up); the code settings belong to the e-mail method, which needs tafeladmin.mail.
+  # All read per use. emailCodeForTests must never be set on a real deployment - see TafelAdminMfaProperties.
+  mfa:
+    required: false
+    emailCodeValidity: 10m
+    emailCodeCooldown: 60s
   # The in-app support form mails the request, together with the technical context the browser
   # reports, to these addresses. Deployment-specific, so unset here - with no recipient the endpoint
   # fails with a clear error rather than pretending to have sent something. The mail goes out over

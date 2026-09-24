@@ -3,7 +3,6 @@
 Administration system for food banks (Tafel) to manage customer registrations, food distributions, logistics operations, and reporting. Built for Austrian food bank operations with German locale (de-DE) and Euro currency.
 
 [![CI](https://github.com/wrk-tafel/admin/actions/workflows/main_push.yml/badge.svg)](https://github.com/wrk-tafel/admin/actions/workflows/main_push.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.txt)
 
 ## Features
 
@@ -530,7 +529,3 @@ outbox, the frontend generation, the release process and more.
 coordination mechanism (row-claim vs. `@SchedulerLock`, see
 [ADR-0047](docs/architecture/adr/0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md)) —
 a living inventory kept in sync as jobs are added, removed or retimed, unlike an ADR.
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE.txt](LICENSE.txt) for details.
