@@ -59,13 +59,61 @@ describe('AuthenticationService', () => {
         service = TestBed.inject(AuthenticationService);
     });
 
+    it('login that still needs a code from the authenticator app says so and remembers a pending password change', async () => {
+        const result = service.login('USER', 'PWD');
+
+        httpMock.expectOne('/login').flush({ passwordChangeRequired: true, mfaRequired: true });
+        httpMock.expectOne('/users/info').flush({ username: 'USER', permissions: [], theme: 'SYSTEM', mfaPending: true });
+
+        expect(await result).toEqual({
+            successful: true, passwordChangeRequired: true, mfaRequired: true,
+            mfaSetupRequired: false, rateLimited: false, serverUnreachable: false
+        });
+        expect(service.passwordChangeRequired()).toBe(true);
+        expect(service.isMfaPending()).toBe(true);
+    });
+
+    it('isMfaSetupRequired and mfaMethods come from the user info', () => {
+        expect(service.isMfaSetupRequired()).toBe(false);
+        expect(service.mfaMethods()).toEqual([]);
+
+        service.userInfo.set({ username: 'USER', permissions: [], mfaSetupRequired: true });
+        expect(service.isMfaSetupRequired()).toBe(true);
+
+        service.userInfo.set({ username: 'USER', permissions: [], mfaPending: true, mfaMethods: ['TOTP', 'EMAIL'] });
+        expect(service.mfaMethods()).toEqual(['TOTP', 'EMAIL']);
+    });
+
+    it('login of a user who has to set a second factor up says so', async () => {
+        const result = service.login('USER', 'PWD');
+
+        httpMock.expectOne('/login').flush({ passwordChangeRequired: false, mfaRequired: false });
+        httpMock.expectOne('/users/info').flush({ username: 'USER', permissions: [], theme: 'SYSTEM', mfaSetupRequired: true });
+
+        expect(await result).toEqual({
+            successful: true, passwordChangeRequired: false, mfaRequired: false,
+            mfaSetupRequired: true, rateLimited: false, serverUnreachable: false
+        });
+    });
+
+    it('isMfaPending is false without user info and when the backend does not send the flag', () => {
+        expect(service.isMfaPending()).toBe(false);
+
+        service.userInfo.set({ username: 'USER', permissions: ['PERM1'] });
+        expect(service.isMfaPending()).toBe(false);
+
+        service.userInfo.set({ username: 'USER', permissions: [], mfaPending: true });
+        expect(service.isMfaPending()).toBe(true);
+    });
+
     it('login successful', async () => {
         const loginResponseBody = { passwordChangeRequired: false };
         const userInfoResponseBody = { username: 'test-user', permissions: ['PERM1'], theme: 'SYSTEM' };
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: true, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
+                successful: true, passwordChangeRequired: false, mfaRequired: false,
+                mfaSetupRequired: false, rateLimited: false, serverUnreachable: false
             });
             expect(service.userInfo()!.username).toBe(userInfoResponseBody.username);
             expect(service.userInfo()!.permissions).toEqual(userInfoResponseBody.permissions);
@@ -110,7 +158,8 @@ describe('AuthenticationService', () => {
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: true, passwordChangeRequired: true, rateLimited: false, serverUnreachable: false
+                successful: true, passwordChangeRequired: true, mfaRequired: false,
+                mfaSetupRequired: false, rateLimited: false, serverUnreachable: false
             });
             expect(service.userInfo()!.username).toBe(userInfoResponseBody.username);
             expect(service.userInfo()!.permissions).toEqual(userInfoResponseBody.permissions);
@@ -137,7 +186,8 @@ describe('AuthenticationService', () => {
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: false
+                successful: false, passwordChangeRequired: false, mfaRequired: false,
+                mfaSetupRequired: false, rateLimited: false, serverUnreachable: false
             });
             // check if it's reset
             expect(service.userInfo()).toBeNull();
@@ -160,7 +210,8 @@ describe('AuthenticationService', () => {
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: false, passwordChangeRequired: false, rateLimited: true, serverUnreachable: false
+                successful: false, passwordChangeRequired: false, mfaRequired: false,
+                mfaSetupRequired: false, rateLimited: true, serverUnreachable: false
             });
             // check if it's reset
             expect(service.userInfo()).toBeNull();
@@ -181,7 +232,8 @@ describe('AuthenticationService', () => {
     it('login failed - server error surfaces as unreachable rather than a credentials failure', async () => {
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: true
+                successful: false, passwordChangeRequired: false, mfaRequired: false,
+                mfaSetupRequired: false, rateLimited: false, serverUnreachable: true
             });
         });
 
@@ -195,7 +247,8 @@ describe('AuthenticationService', () => {
     it('login failed - network error (status 0) surfaces as unreachable', async () => {
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({
-                successful: false, passwordChangeRequired: false, rateLimited: false, serverUnreachable: true
+                successful: false, passwordChangeRequired: false, mfaRequired: false,
+                mfaSetupRequired: false, rateLimited: false, serverUnreachable: true
             });
         });
 

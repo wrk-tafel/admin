@@ -69,8 +69,10 @@ class TafelLoginFilter(
         val principal = authResult.principal
         if (principal is TafelUser) {
             val user = authResult.principal as TafelUser
+            // A login that still owes its second factor is as limited as one owing a password change: no
+            // permissions (TafelJwtAuthProvider) and a short life, until the code is accepted.
             val expirationTimeInSeconds =
-                if (user.passwordChangeRequired) {
+                if (user.passwordChangeRequired || user.mfaEnabled) {
                     applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds
                 } else {
                     applicationProperties.security.jwtToken.expirationTimeInSeconds
@@ -83,13 +85,13 @@ class TafelLoginFilter(
 
             logger.info(
                 "Login successful via user '${sanitizeForLog(user.username)}' on '${request.requestURL}' " +
-                    "(password-change required: ${user.passwordChangeRequired})",
+                    "(password-change required: ${user.passwordChangeRequired}, second factor required: ${user.mfaEnabled})",
             )
 
             val cookie = createTokenCookie(token, expirationTimeInSeconds, tafelAdminProperties.server.relativeBaseUrl, request)
             response.addCookie(cookie)
 
-            val responseBody = LoginResponse(passwordChangeRequired = user.passwordChangeRequired)
+            val responseBody = LoginResponse(passwordChangeRequired = user.passwordChangeRequired, mfaRequired = user.mfaEnabled, mfaMethods = user.mfaMethods)
 
             response.contentType = MimeTypeUtils.APPLICATION_JSON_VALUE
             val responseString = jsonMapper.writeValueAsString(responseBody)

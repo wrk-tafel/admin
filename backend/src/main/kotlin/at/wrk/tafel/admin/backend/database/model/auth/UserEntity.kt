@@ -45,6 +45,41 @@ class UserEntity(
     var authorities: MutableList<UserAuthorityEntity> = mutableListOf()
 
     /**
+     * Where a system notification addressed to this user is sent. Optional - an account created
+     * before the column existed has none, and nothing about logging in depends on it.
+     */
+    @Column(name = "email")
+    var email: String? = null
+
+    /**
+     * The authenticator app's shared secret (Base32). Set when the setup starts and only in force once
+     * [mfaTotpEnabled] is true. Never leaves the server - not in an API response, an export or the audit
+     * trail (`AuditScope` redacts it).
+     */
+    @Column(name = "mfa_secret")
+    var mfaSecret: String? = null
+
+    /** Whether the authenticator app is a way to complete a login - see `MfaService`. */
+    @Column(name = "mfa_totp_enabled")
+    var mfaTotpEnabled: Boolean = false
+
+    /** Whether a code sent by e-mail is a way to complete a login - see `MfaService`. */
+    @Column(name = "mfa_email_enabled")
+    var mfaEmailEnabled: Boolean = false
+
+    /** Whether a login needs a second factor at all: one method is enough, and a user can have both. */
+    val hasMfa: Boolean
+        get() = mfaTotpEnabled || mfaEmailEnabled
+
+    /**
+     * The time step of the last accepted code. Written only by
+     * [at.wrk.tafel.admin.backend.database.model.auth.UserRepository.advanceMfaStep], never through the
+     * entity, hence read-only here.
+     */
+    @Column(name = "mfa_last_used_step", insertable = false, updatable = false)
+    var mfaLastUsedStep: Long? = null
+
+    /**
      * The most recent successful login, `null` for an account that has never logged in. Written by
      * [at.wrk.tafel.admin.backend.database.model.auth.UserRepository.updateLastLogin] on every login
      * rather than through a loaded/saved entity - see that method for why.

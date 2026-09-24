@@ -1,0 +1,22 @@
+<mat-card class="shadow-sm">
+  <mat-card-header>
+    <mat-card-title>Design</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="pt-6">
+    <p class="text-sm text-slate-600 mb-4">
+      Das Design gilt für Ihr Benutzerkonto auf allen Geräten, auf denen Sie sich anmelden.
+    </p>
+    <mat-radio-group aria-label="Design" class="flex flex-col gap-3" [value]="themePreference()" (change)="setTheme($event)">
+      @for (option of themeOptions; track option.value) {
+        <mat-radio-button [value]="option.value" [attr.testid]="'theme-option-' + option.value.toLowerCase()">
+          <span class="inline-flex items-center gap-2">
+            <mat-icon [svgIcon]="option.icon" aria-hidden="true"></mat-icon>
+            <span class="font-medium">{{ option.label }}</span>
+            <span class="text-sm text-slate-600">{{ option.description }}</span>
+          </span>
+        </mat-radio-button>
+      }
+    </mat-radio-group>
+  </mat-card-content>
+</mat-card>

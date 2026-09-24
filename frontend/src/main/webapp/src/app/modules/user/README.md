@@ -16,7 +16,13 @@ modules/user/
   ├── views/login-attempts/user-login-attempts.component.ts # route: benutzer/anmelde-versuche
   │     └── dialogs/delete-login-attempt-dialog.component.ts
   ├── components/user-form/user-form.component.ts        # the actual reactive form (fields + permissions grid)
-  └── components/user-passwordchange/user-passwordchange.component.ts # wraps the shared password-change form
+  ├── account.routes.ts                                  # "Mein Konto": /konto and its tab routes (not behind USER_MANAGEMENT)
+  ├── views/user-account/user-account.component.ts       # the frame: mat-tab-nav-bar + router-outlet
+  ├── components/user-passwordchange/user-passwordchange.component.ts # "Passwort" tab, wraps the shared password-change form
+  ├── components/user-mfa/user-mfa.component.ts          # "Zwei-Faktor-Authentifizierung" tab
+  ├── components/push-notification-settings/push-notification-settings.component.ts # "Benachrichtigungen" tab
+  ├── components/user-theme-settings/user-theme-settings.component.ts # "Design" tab
+  └── components/user-privacy-settings/user-privacy-settings.component.ts # "Datenschutz" tab: own data export, staff privacy notice
 ```
 
 Despite the `-resolver.component.ts` filename suffix (a convention shared across the whole
@@ -161,12 +167,22 @@ don't hold rendered muted (`!opacity-50` + a "Nicht zugewiesen" tooltip); a cate
 nothing in at all stays omitted rather than shown fully muted - see
 `common/util/permission-grouping.util.ts`.
 
+### "Mein Konto" — what a user settles about their own login and device
+
+One page at `/konto` (`account.routes.ts`, lazy-loaded from `shell.routes.ts`), one tab per topic: Passwort,
+Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design and Datenschutz. It is mounted **outside** the `USER_MANAGEMENT`-gated route tree, behind
+the login only, so *any* logged-in user reaches it whatever they hold. The tabs are child routes
+(`/konto/passwort`, `/konto/zwei-faktor`, `/konto/benachrichtigungen`, `/konto/design`, `/konto/datenschutz`; `/konto` itself redirects to
+the first) rendered by `UserAccountComponent` as a `mat-tab-nav-bar`, so each tab has an address of its own. That is
+what lets the guard send a session that has to set up a second factor straight to `/konto/zwei-faktor`:
+`AuthGuardService` lets exactly `konto` (the parent the tab renders in) and `zwei-faktor` through for such a session,
+the other tabs lead to that one. The user menu has a single entry for all of it; the light/dark choice
+(`ThemeService`) lives on the Design tab and applies at once, without a save button.
+
 ### UserPasswordChangeComponent — a different password-change path entirely
 
-This wraps the **shared** `common/views/passwordchange-form/passwordchange-form.component.ts`
-(`PasswordChangeFormComponent`), and it's mounted **outside** the `USER_MANAGEMENT`-gated route tree: as
-`path: 'passwortaendern'` directly under the top-level authenticated layout in `app.routes.ts`, so *any* logged-in
-user can change their own password regardless of whether they hold `USER_MANAGEMENT`. The same
+This is the "Passwort" tab. It wraps the **shared** `common/views/passwordchange-form/passwordchange-form.component.ts`
+(`PasswordChangeFormComponent`); a successful change toasts that the session stays valid and empties the fields. The same
 `PasswordChangeFormComponent` is also reused by the login module's forced-password-change flow
 (`login/passwortaendern`). It talks to a completely separate endpoint/shape
 (`UserApiService.changePassword` → `POST /users/change-password` with `ChangePasswordRequest`) than the

@@ -1,0 +1,9 @@
+<div th:fragment="content">
+    <p>Für die Anmeldung von <strong>[[ ${username} ]]</strong> wurde ein Bestätigungscode angefordert.</p>
+
+    <p style="font-size: 28px; font-weight: bold; letter-spacing: 6px; margin: 16px 0;">[[ ${code} ]]</p>
+
+    <p>Der Code ist [[ ${validityMinutes} ]] Minuten gültig und kann nur einmal verwendet werden.</p>
+
+    <p>Haben Sie keinen Code angefordert, können Sie diese E-Mail ignorieren - ohne den Code kann sich niemand mit Ihrem Konto anmelden. Geben Sie den Code an niemanden weiter.</p>
+</div>

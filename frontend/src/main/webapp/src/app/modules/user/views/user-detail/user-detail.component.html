@@ -17,6 +17,9 @@
       @if (!currentUserData().enabled) {
         <button mat-menu-item testid="enableUserButton" (click)="enableUser()">Benutzer aktivieren</button>
       }
+      @if (currentUserData().mfaEnabled) {
+        <button mat-menu-item testid="resetMfaButton" (click)="resetMfa()">Zwei-Faktor zurücksetzen</button>
+      }
       <mat-divider></mat-divider>
       <button mat-menu-item testid="deleteUserButton" (click)="deleteUser()">Benutzer löschen</button>
     </mat-menu>
@@ -37,9 +40,17 @@
           </div>
           <div testid="usernameText">{{currentUserData()?.username}}</div>
           <div class="font-bold">
+            E-Mail
+          </div>
+          <div testid="emailText">{{currentUserData()?.email || '-'}}</div>
+          <div class="font-bold">
             Personal-Nummer
           </div>
           <div testid="personnelNumberText">{{currentUserData()?.personnelNumber}}</div>
+          <div class="font-bold">
+            Zwei-Faktor-Authentifizierung
+          </div>
+          <div testid="mfaText">{{mfaText()}}</div>
           <div class="font-bold">
             Passwortänderung notwendig
           </div>

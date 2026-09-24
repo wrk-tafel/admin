@@ -18,9 +18,10 @@ describe('PushNotifications', () => {
   // password change), and the component correctly falling back to the "not supported" hint.
   it('is reachable from the user menu and shows the unsupported hint', () => {
     cy.byTestId('usermenu').click();
-    cy.byTestId('usermenu-pushnotifications').click();
+    cy.byTestId('usermenu-account').click();
+    cy.byTestId('account-tab-notifications').click();
 
-    cy.url().should('contain', '/benachrichtigungen');
+    cy.url().should('contain', '/konto/benachrichtigungen');
     cy.contains('Push-Benachrichtigungen').should('be.visible');
     cy.byTestId('push-notifications-unsupported').should('be.visible');
     cy.byTestId('push-notifications-toggle').should('not.exist');
@@ -45,7 +46,7 @@ describe('PushNotifications', () => {
         },
       }).its('status').should('eq', 201);
 
-      cy.visit('/benachrichtigungen');
+      cy.visit('/konto/benachrichtigungen');
 
       cy.byTestId('push-device').should('have.length', 1);
       cy.byTestId('push-device-label').should('contain.text', 'Chrome');
@@ -89,7 +90,7 @@ describe('PushNotifications', () => {
         },
       }).its('status').should('eq', 201);
 
-      cy.visit('/benachrichtigungen');
+      cy.visit('/konto/benachrichtigungen');
 
       // Sending a test notification is harmless, so it must not be dressed up as a destructive
       // action the way the neighbouring remove button is - it stays the plain theme-blue button.
@@ -116,7 +117,7 @@ describe('PushNotifications', () => {
   // gated behind a real browser PushSubscription - so this flow (unlike the "not supported" test)
   // is fully driveable through the actual UI, no seeding required.
   it('allows toggling the master switch and an individual notification type', () => {
-    cy.visit('/benachrichtigungen');
+    cy.visit('/konto/benachrichtigungen');
 
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
     // e2etest holds ADMINISTRATOR, which grants every other permission, so every type is listed
@@ -154,7 +155,7 @@ describe('PushNotifications', () => {
   // gets the seven types that carry no permission requirement and none of the restricted ones.
   it('offers only the notification types a user can actually receive', () => {
     cy.loginE2ETest2();
-    cy.visit('/benachrichtigungen');
+    cy.visit('/konto/benachrichtigungen');
 
     cy.byTestId('push-type-preference').should('have.length', 7);
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STARTED"]').should('exist');
@@ -173,7 +174,7 @@ describe('PushNotifications', () => {
   // The types are grouped and ordered by the screen, not by the response - the backend returns them
   // in its own enum order, which mixes a reminder in among the lifecycle events.
   it('groups the notification types and lists the distribution day in order', () => {
-    cy.visit('/benachrichtigungen');
+    cy.visit('/konto/benachrichtigungen');
 
     cy.byTestId('push-type-group-title').should('have.length', 3);
     cy.byTestId('push-type-group-title').eq(0).should('contain.text', 'Ablauf der Ausgabe');
@@ -233,7 +234,7 @@ describe('PushNotifications', () => {
       }
     }).as('preferences');
 
-    cy.visit('/benachrichtigungen');
+    cy.visit('/konto/benachrichtigungen');
     cy.wait('@preferences');
 
     cy.byTestId('push-preferences-error').should('be.visible');
@@ -253,7 +254,7 @@ describe('PushNotifications', () => {
   // Each toggle carries its own explanation, so the list says when a notification would actually
   // arrive rather than leaving that to the label alone.
   it('explains each notification type below its toggle', () => {
-    cy.visit('/benachrichtigungen');
+    cy.visit('/konto/benachrichtigungen');
 
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STILL_OPEN"]')
       .find('[testid="push-type-preference-description"]')

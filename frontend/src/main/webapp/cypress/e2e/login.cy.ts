@@ -268,11 +268,11 @@ describe('Login', () => {
 
     cy.clearCookie('tafel-admin-jwt');
 
-    // "Passwort ändern" has no resolver and its component fires no HTTP request on mount - before
+    // "Mein Konto" has no resolver and its component fires no HTTP request on mount - before
     // this fix, AuthGuardService only ever checked a stale in-memory flag, so a click like this
     // one was silently ignored instead of redirecting (see #2976).
     cy.byTestId('usermenu').click();
-    cy.byTestId('usermenu-changepassword').click();
+    cy.byTestId('usermenu-account').click();
 
     cy.url().should('contain', '/login/abgelaufen');
     cy.byTestId('errorMessage').should('exist').and('contain.text', 'Sitzung abgelaufen');

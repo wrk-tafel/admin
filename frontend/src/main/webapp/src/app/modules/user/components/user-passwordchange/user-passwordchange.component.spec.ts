@@ -8,25 +8,16 @@ import { Router } from '@angular/router';
 import { TafelToastrService } from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('UserPasswordChangeComponent', () => {
-    let routerSpy: MockedObject<Router>;
     let toastrSpy: MockedObject<TafelToastrService>;
 
-    function configureTestingModule(previousUrl?: string) {
+    function configureTestingModule() {
         TestBed.configureTestingModule({
             providers: [
                 provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 // This Router mock also covers AuthenticationService, which the shared
                 // tafel-passwordchange-form injects for its live password-rule checklist.
-                {
-                    provide: Router,
-                    useValue: {
-                        navigateByUrl: vi.fn().mockName('Router.navigateByUrl'),
-                        getCurrentNavigation: vi.fn().mockName('Router.getCurrentNavigation').mockReturnValue({
-                            previousNavigation: previousUrl ? {finalUrl: {toString: () => previousUrl}} : null
-                        })
-                    }
-                },
+                { provide: Router, useValue: {} },
                 {
                     provide: TafelToastrService,
                     useValue: {
@@ -36,7 +27,6 @@ describe('UserPasswordChangeComponent', () => {
             ]
         }).compileComponents();
 
-        routerSpy = TestBed.inject(Router) as MockedObject<Router>;
         toastrSpy = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     }
 
@@ -48,8 +38,8 @@ describe('UserPasswordChangeComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('changePassword returns to the previous screen and reports that the session stays valid', () => {
-        configureTestingModule('/kunden/suchen');
+    it('changePassword reports that the session stays valid and empties the fields', () => {
+        configureTestingModule();
 
         const fixture = TestBed.createComponent(UserPasswordChangeComponent);
         const component = fixture.componentInstance;
@@ -57,51 +47,39 @@ describe('UserPasswordChangeComponent', () => {
 
         const formComponent = component.form();
         expect(formComponent).toBeDefined();
+        formComponent!.passwordFormModel.set({
+            currentPassword: 'current123',
+            newPassword: 'newPassword123',
+            newRepeatedPassword: 'newPassword123'
+        });
         vi.spyOn(formComponent!, 'changePassword').mockReturnValue(of(true));
 
         component.changePassword();
 
         expect(formComponent!.changePassword).toHaveBeenCalled();
         expect(toastrSpy.success).toHaveBeenCalledWith('Sie bleiben mit dem neuen Passwort angemeldet.', 'Passwort geändert');
-        expect(routerSpy.navigateByUrl).toHaveBeenCalledWith('/kunden/suchen');
+        expect(formComponent!.passwordFormModel()).toEqual({currentPassword: '', newPassword: '', newRepeatedPassword: ''});
     });
 
-    it('changePassword stays on the page when the change was rejected', () => {
-        configureTestingModule('/kunden/suchen');
+    it('changePassword keeps the fields when the change was rejected', () => {
+        configureTestingModule();
 
         const fixture = TestBed.createComponent(UserPasswordChangeComponent);
         const component = fixture.componentInstance;
         fixture.detectChanges(); // initializes the viewChild
 
         const formComponent = component.form();
+        formComponent!.passwordFormModel.set({
+            currentPassword: 'current123',
+            newPassword: 'newPassword123',
+            newRepeatedPassword: 'newPassword123'
+        });
         vi.spyOn(formComponent!, 'changePassword').mockReturnValue(throwError(() => false));
 
         component.changePassword();
 
         expect(toastrSpy.success).not.toHaveBeenCalled();
-        expect(routerSpy.navigateByUrl).not.toHaveBeenCalled();
-    });
-
-    it('cancel returns to the previous screen', () => {
-        configureTestingModule('/kunden/suchen');
-
-        const fixture = TestBed.createComponent(UserPasswordChangeComponent);
-        const component = fixture.componentInstance;
-
-        component.cancel();
-
-        expect(routerSpy.navigateByUrl).toHaveBeenCalledWith('/kunden/suchen');
-    });
-
-    it('cancel falls back to the overview when the page was opened directly', () => {
-        configureTestingModule();
-
-        const fixture = TestBed.createComponent(UserPasswordChangeComponent);
-        const component = fixture.componentInstance;
-
-        component.cancel();
-
-        expect(routerSpy.navigateByUrl).toHaveBeenCalledWith('/uebersicht');
+        expect(formComponent!.passwordFormModel().currentPassword).toBe('current123');
     });
 
     it('saveDisabled - form valid', () => {

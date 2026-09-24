@@ -163,7 +163,7 @@ object AuditScope {
             // still credential material and an audit trail is read by more people, and kept longer,
             // than the users table. That a password changed is the auditable fact; what it changed
             // to is not.
-            redactedFields = setOf("password"),
+            redactedFields = setOf("password", "mfaSecret"),
         ),
         UserAuthorityEntity::class.java to AuditedEntity(
             entityType = "UserAuthority",

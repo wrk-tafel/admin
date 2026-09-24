@@ -64,6 +64,12 @@ export class UserDetailComponent {
       }));
   });
 
+  /** Whether two-factor authentication is on, and which methods the user has. */
+  readonly mfaText = computed(() => {
+    const methods = (this.currentUserData().mfaMethods ?? []).map(method => method === 'TOTP' ? 'Authenticator-App' : 'Code per E-Mail');
+    return methods.length > 0 ? `Aktiv (${methods.join(', ')})` : 'Nicht aktiv';
+  });
+
   disableUser() {
     this.changeUserState(false);
   }
@@ -83,6 +89,21 @@ export class UserDetailComponent {
       },
     };
     this.userApiService.deleteUser(this.currentUserData().id!).subscribe(observer);
+  }
+
+  /**
+   * For someone who lost the phone the codes come from: afterwards a password is enough to log in
+   * again, and they can set it up anew from their own account page. Not offered for an administrator
+   * unless the caller is one too - the backend refuses it otherwise.
+   */
+  resetMfa() {
+    this.userApiService.resetMfa(this.currentUserData().id!).subscribe({
+      next: () => {
+        this.currentUserData.set({...this.currentUserData(), mfaEnabled: false, mfaMethods: []});
+        this.toastr.success('Zwei-Faktor-Authentifizierung wurde zurückgesetzt!');
+      },
+      error: () => this.toastr.error('Zurücksetzen fehlgeschlagen!')
+    });
   }
 
   editUser() {

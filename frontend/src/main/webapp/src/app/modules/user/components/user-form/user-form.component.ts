@@ -11,6 +11,7 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatIcon} from '@angular/material/icon';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
+import {email} from '../../../../common/validator/signal-form-validators';
 import {groupPermissionsByCategory, PermissionGroup} from '../../../../common/util/permission-grouping.util';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
@@ -77,6 +78,7 @@ export class UserFormComponent {
     username: '',
     lastname: '',
     firstname: '',
+    email: '',
     password: '',
     passwordRepeat: '',
     enabled: true,
@@ -147,6 +149,9 @@ export class UserFormComponent {
     required(schemaPath.firstname, {message: 'Pflichtfeld'});
     maxLength(schemaPath.firstname, 50, {message: 'Vorname zu lang (maximal 50 Zeichen)'});
 
+    maxLength(schemaPath.email, 255, {message: 'E-Mail-Adresse zu lang (maximal 255 Zeichen)'});
+    validate(schemaPath.email, email({message: 'E-Mail-Format ungültig'}));
+
     required(schemaPath.password, {message: 'Pflichtfeld', when: () => this.createMode()});
     required(schemaPath.passwordRepeat, {message: 'Pflichtfeld', when: () => this.createMode()});
 
@@ -181,6 +186,9 @@ export class UserFormComponent {
 
     return {
       ...formValue,
+      // The address is optional - an emptied field means "no address", sent as null so the backend
+      // clears a stored one rather than keeping it.
+      email: formValue.email.trim() || null,
       // Empty password fields mean "don't change the password" - send as absent, not ''
       password: passwordFieldsVisible ? (formValue.password || undefined) : undefined,
       passwordRepeat: passwordFieldsVisible ? (formValue.passwordRepeat || undefined) : undefined,
@@ -212,6 +220,7 @@ export class UserFormComponent {
           username: userData.username ?? '',
           lastname: userData.lastname ?? '',
           firstname: userData.firstname ?? '',
+          email: userData.email ?? '',
           password: '',
           passwordRepeat: '',
           enabled: userData.enabled ?? true,
@@ -421,6 +430,7 @@ export interface UserFormModel {
   username: string;
   lastname: string;
   firstname: string;
+  email: string;
   password: string;
   passwordRepeat: string;
   enabled: boolean;

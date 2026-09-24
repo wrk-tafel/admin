@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
+import at.wrk.tafel.admin.backend.common.auth.components.MfaService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.StaffPrivacyNoticeService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
@@ -55,6 +56,7 @@ class UserController(
     private val jwtTokenService: JwtTokenService,
     private val advisoryLockService: AdvisoryLockService,
     private val userPreferencesService: UserPreferencesService,
+    private val mfaService: MfaService,
 ) {
 
     companion object {
@@ -69,6 +71,9 @@ class UserController(
             username = authenticatedUser.username!!,
             permissions = authenticatedUser.authorities.mapNotNull { it.authority },
             theme = userPreferencesService.getTheme(authenticatedUser.username!!),
+            mfaPending = authenticatedUser.mfaPending,
+            mfaSetupRequired = authenticatedUser.mfaSetupRequired,
+            mfaMethods = authenticatedUser.mfaMethods,
         )
 
         return ResponseEntity.ok(userInfo)
@@ -165,8 +170,8 @@ class UserController(
         // on. The frontend explicitly keeps the user on this session afterwards ("Sie bleiben mit dem
         // neuen Passwort angemeldet"), so a fresh cookie has to replace it here, the same way
         // TafelLoginFilter mints one after a real login.
-        val username = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username!!
-        issueReplacementCookie(username, request, response)
+        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        issueReplacementCookie(authentication.username!!, request, response, authentication.mfaVerified)
 
         return ResponseEntity.ok().build()
     }
@@ -179,9 +184,12 @@ class UserController(
      * so without this the very next request would be an unexplained 401/logout despite the change
      * having succeeded (issue #3572).
      */
-    private fun issueReplacementCookie(username: String, request: HttpServletRequest, response: HttpServletResponse) {
+    private fun issueReplacementCookie(username: String, request: HttpServletRequest, response: HttpServletResponse, mfaVerified: Boolean) {
         val expirationTimeInSeconds = applicationProperties.security.jwtToken.expirationTimeInSeconds
-        val token = jwtTokenService.generateToken(username = username, expirationSeconds = expirationTimeInSeconds)
+        // The replacement keeps what the session it replaces had passed: a completed second factor is not
+        // asked for again just because the password changed, and a session that never passed it does not
+        // get to look as if it had.
+        val token = jwtTokenService.generateToken(username = username, expirationSeconds = expirationTimeInSeconds, mfaVerified = mfaVerified)
         val cookie = TafelLoginFilter.createTokenCookie(token, expirationTimeInSeconds, tafelAdminProperties.server.relativeBaseUrl, request)
         response.addCookie(cookie)
     }
@@ -339,7 +347,7 @@ class UserController(
             val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
             val passwordChanged = !user.password.isNullOrBlank()
             if (authenticatedUser?.userId == userId && passwordChanged) {
-                issueReplacementCookie(updatedTafelUser.username, request, response)
+                issueReplacementCookie(updatedTafelUser.username, request, response, authenticatedUser.mfaVerified)
             }
 
             val userResponse = mapToResponse(userDetailsManager.loadUserById(userId)!!)
@@ -375,6 +383,34 @@ class UserController(
         validateNotLastAdministrator(userId, tafelUser)
 
         userDetailsManager.deleteUser(tafelUser.username)
+        return ResponseEntity.noContent().build()
+    }
+
+    /**
+     * Switches two-factor authentication off for someone who lost their phone (see ADR-0058). Whoever
+     * may hand out an account's permissions may do this, except for an administrator's own account -
+     * removing the second factor there is as much a step towards taking it over as resetting its
+     * password, which `validateAdministratorAccountFieldChanges` keeps to administrators as well.
+     */
+    @DeleteMapping("/{userId}/mfa")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional
+    fun resetMfa(@PathVariable userId: Long): ResponseEntity<Unit> {
+        val existingUser = userDetailsManager.loadUserById(userId)
+            ?: throw NotFoundException("Benutzer (ID: $userId) nicht vorhanden!")
+
+        val isTargetAdministrator = existingUser.authorities.any { it.authority == UserPermissions.ADMINISTRATOR.key }
+        if (isTargetAdministrator) {
+            val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+            if (authenticatedUser.authorities.none { it.authority == UserPermissions.ADMINISTRATOR.key }) {
+                throw TafelApiException(
+                    HttpStatus.FORBIDDEN,
+                    "Die Zwei-Faktor-Authentifizierung eines Administrator-Kontos kann nur von einem Administrator zurückgesetzt werden!",
+                )
+            }
+        }
+
+        mfaService.reset(userId)
         return ResponseEntity.noContent().build()
     }
 
@@ -427,6 +463,7 @@ class UserController(
         personnelNumber = user.personnelNumber,
         firstname = user.firstname,
         lastname = user.lastname,
+        email = user.email?.trim()?.takeIf { it.isNotEmpty() },
         enabled = user.enabled,
         password = user.password,
         passwordChangeRequired = user.passwordChangeRequired,
@@ -447,6 +484,7 @@ class UserController(
         personnelNumber = user.personnelNumber,
         firstname = user.firstname,
         lastname = user.lastname,
+        email = user.email,
         enabled = user.isEnabled,
         password = null,
         passwordRepeat = null,
@@ -456,6 +494,8 @@ class UserController(
             .map { authority -> mapToUserPermission(authority.authority!!) }
             .sortedBy { it.title },
         lockedUntil = lockedUntil,
+        mfaEnabled = user.mfaEnabled,
+        mfaMethods = user.mfaMethods,
     )
 
     /**

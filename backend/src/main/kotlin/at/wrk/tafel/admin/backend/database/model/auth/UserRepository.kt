@@ -27,6 +27,23 @@ interface UserRepository :
 
     fun findByEmployeePersonnelNumber(personnelNumber: String): UserEntity?
 
+    /**
+     * Records [step] as the last accepted authenticator code, but only if it is later than the one
+     * recorded before - and reports whether it was, which is what makes a code single-use even for
+     * two requests racing with the same one. A bulk native update for the same reason as
+     * [updateLastLogin]: no `updated_at` bump, no audit entry per login.
+     */
+    @Modifying
+    @Query(
+        value = "UPDATE users SET mfa_last_used_step = :step WHERE id = :id AND (mfa_last_used_step IS NULL OR mfa_last_used_step < :step)",
+        nativeQuery = true,
+    )
+    fun advanceMfaStep(@Param("id") id: Long, @Param("step") step: Long): Int
+
+    @Modifying
+    @Query(value = "UPDATE users SET mfa_last_used_step = NULL WHERE id = :id", nativeQuery = true)
+    fun clearMfaStep(@Param("id") id: Long): Int
+
     fun existsByUsername(username: String): Boolean
 
     /** Whether an employee is linked to a user account - what `EmployeeService.deleteEmployee` checks. */

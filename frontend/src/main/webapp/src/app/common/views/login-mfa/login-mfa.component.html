@@ -1,0 +1,60 @@
+<main class="min-h-dvh flex items-center justify-center bg-[var(--tafel-background-secondary)] p-6">
+  <div class="w-full max-w-md">
+    <mat-card class="shadow-md">
+      <mat-card-content class="p-8 md:p-10">
+        <div class="flex flex-col items-center mb-8 text-center">
+          <img ngSrc="assets/img/brand/logo.svg" width="200" height="54" priority alt="ÖRK Logo" class="mb-4 h-[54px] w-[200px] object-contain"/>
+          <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">Bestätigungscode</h1>
+        </div>
+
+        <p class="text-sm text-slate-600 mb-4" testid="mfaHint">
+          @if (hasApp() && hasEmail()) {
+            Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein - oder lassen Sie sich einen Code per E-Mail senden -,
+            um die Anmeldung abzuschließen.
+          } @else if (hasEmail()) {
+            Geben Sie den 6-stelligen Code ein, der an Ihre E-Mail-Adresse gesendet wurde, um die Anmeldung abzuschließen.
+          } @else {
+            Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein, um die Anmeldung abzuschließen.
+          }
+        </p>
+
+        @if (errorMessage()) {
+          <div testid="errorMessage" class="tafel-banner-error" role="alert">{{ errorMessage() }}</div>
+        }
+        @if (infoMessage()) {
+          <div testid="infoMessage" class="tafel-banner-success" role="status">{{ infoMessage() }}</div>
+        }
+
+        <form (submit)="onSubmit($event)" novalidate class="flex flex-col">
+          <mat-form-field class="w-full">
+            <mat-label>Code</mat-label>
+            <input [formField]="codeForm.code" matInput testid="mfaCode" type="text" inputmode="numeric"
+                   autocomplete="one-time-code" tafelAutofocus>
+            @for (message of visibleErrorMessages(codeForm.code()); track message) {
+              <mat-error class="block">{{ message }}</mat-error>
+            }
+          </mat-form-field>
+
+          <button testid="mfaSubmit" matButton="filled" type="submit" class="w-full mt-4" [disabled]="submitting()">
+            {{ submitting() ? 'Wird geprüft…' : 'Bestätigen' }}
+          </button>
+        </form>
+
+        @if (hasEmail()) {
+          <div class="mt-4 text-center">
+            <button testid="sendEmailCodeButton" matButton="outlined" type="button" class="w-full"
+                    (click)="sendEmailCode()" [disabled]="sendingCode()">
+              {{ sendingCode() ? 'Wird gesendet…' : 'Code per E-Mail senden' }}
+            </button>
+          </div>
+        }
+
+        <div class="mt-6 text-center">
+          <button testid="cancelButton" matButton="outlined" type="button" class="w-full" (click)="cancel()">
+            Abbrechen und abmelden
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</main>

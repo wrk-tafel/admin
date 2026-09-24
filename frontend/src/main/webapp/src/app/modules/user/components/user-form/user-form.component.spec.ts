@@ -21,6 +21,7 @@ describe('UserFormComponent', () => {
     username: 'username',
     firstname: 'first',
     lastname: 'last',
+    email: 'first.last@example.org',
     enabled: true,
     passwordChangeRequired: false,
     permissions: mockPermissions
@@ -111,6 +112,7 @@ describe('UserFormComponent', () => {
     expect(component.userForm.personnelNumber().value()).toBe(mockUser.personnelNumber);
     expect(component.userForm.lastname().value()).toBe(mockUser.lastname);
     expect(component.userForm.firstname().value()).toBe(mockUser.firstname);
+    expect(component.userForm.email().value()).toBe(mockUser.email);
     expect(component.userForm.enabled().value()).toBe(mockUser.enabled);
     expect(component.userForm.passwordChangeRequired().value()).toBe(mockUser.passwordChangeRequired);
 
@@ -362,6 +364,55 @@ describe('UserFormComponent', () => {
     expect(component.userForm.password().errors()?.length).toBe(0);
     expect(component.userForm.passwordRepeat().errors()?.length).toBe(0);
     expect(component.isValid()).toBe(true);
+  });
+
+  it('a user without an email shows an empty field and sends null', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+
+    vi.spyOn(component.userDataChange, 'emit');
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.componentRef.setInput('userData', {...mockUser, email: null});
+    fixture.detectChanges();
+
+    expect(component.userForm.email().value()).toBe('');
+    expect(component.userDataChange.emit).toHaveBeenLastCalledWith(expect.objectContaining({email: null}));
+  });
+
+  it('an emptied email is sent as null so the stored address is cleared', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+
+    vi.spyOn(component.userDataChange, 'emit');
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.componentRef.setInput('userData', mockUser);
+    fixture.detectChanges();
+
+    component.userForm.email().value.set('');
+    fixture.detectChanges();
+
+    expect(component.userDataChange.emit).toHaveBeenLastCalledWith(expect.objectContaining({email: null}));
+    expect(component.userForm.email().valid()).toBe(true);
+  });
+
+  it('a malformed or overlong email is invalid, a well-formed one is valid', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.componentRef.setInput('userData', mockUser);
+    fixture.detectChanges();
+
+    component.userForm.email().value.set('kein-email');
+    fixture.detectChanges();
+    expect(component.userForm.email().errors()?.some((error: any) => error.kind === 'email')).toBe(true);
+
+    component.userForm.email().value.set('a'.repeat(251) + '@b.at');
+    fixture.detectChanges();
+    expect(component.userForm.email().errors()?.some((error: any) => error.kind === 'maxLength')).toBe(true);
+
+    component.userForm.email().value.set('neu@example.org');
+    fixture.detectChanges();
+    expect(component.userForm.email().valid()).toBe(true);
   });
 
   it('personnel number requires a linked employee', () => {

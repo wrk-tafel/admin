@@ -4,6 +4,16 @@ tafeladmin:
   environmentLabel: E2E
   testdata:
     enabled: true
+  # A fixed code instead of a random one: there is no mail server, so a spec could not read the mail the
+  # e-mail method of two-factor authentication would send. The cooldown is shortened so a spec can ask for a
+  # second code without waiting.
+  mfa:
+    emailCodeForTests: "424242"
+    emailCodeCooldown: 1s
+  # Only makes the e-mail method of two-factor authentication available (it needs a mail to compose): no mail
+  # server is set up for the e2e run, so the mail is dropped by MailOutboxService and nothing is delivered anywhere.
+  mail:
+    from: "e2e@e2e-test"
   support:
     # Only makes the support endpoint answer "configured" - no mail server is set up for the e2e
     # run, so the send itself is skipped (see MailSenderService) and nothing is delivered anywhere.

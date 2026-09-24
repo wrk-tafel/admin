@@ -5,6 +5,11 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Das Benutzermenü führt jetzt zu einer eigenen Seite "Mein Konto" mit den Reitern Passwort, Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design und Datenschutz; jeder Reiter hat eine eigene Adresse, und das Ändern des Passworts verlässt die Seite nicht mehr.
+- Die Anmeldung lässt sich zusätzlich mit einer Zwei-Faktor-Authentifizierung absichern - per Authenticator-App oder per Code an die E-Mail-Adresse des Benutzerkontos, einzeln oder beides; ein Administrator kann sie für jemanden zurücksetzen, der das Handy verloren hat, und der Betreiber kann sie für alle Benutzer vorschreiben.
+- Benutzer haben jetzt eine optionale E-Mail-Adresse (Benutzer anlegen/bearbeiten, Detailansicht, Datenexport), an die auch die Codes der Zwei-Faktor-Authentifizierung gesendet werden.
+
+## [1.21.1] - 2026-09-21
 - Die Anwendung gibt es jetzt auch im dunklen Design: Über das Benutzermenü → Design lässt sich zwischen Hell, Dunkel und System (folgt der Einstellung des Geräts, Standard) wählen, die Auswahl wird zum eigenen Benutzerkonto gespeichert und gilt auf jedem Gerät.
 - Das Benutzermenü ist in die Gruppen Konto, Datenschutz, Hilfe und Abmelden gegliedert, jede mit eigener Überschrift, und statt des Avatar-Bildes zeigt es die Initialen des Benutzernamens.
 - Länder haben unter Einstellungen → Länder keinen Code mehr, sie bestehen nur noch aus ihrem Namen; die Suche durchsucht den Namen, und ein bereits vorhandener Name wird beim Anlegen oder Umbenennen abgelehnt.
