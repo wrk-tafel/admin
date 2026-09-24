@@ -25,7 +25,10 @@ There are **two methods, usable side by side; a code of either completes a login
 
 - a **time-based one-time password (TOTP, RFC 6238)** from an authenticator app -
   `common/auth/components/TotpService.kt`, HMAC-SHA1, 30 second steps, 6 digits, the defaults every such app
-  supports (`users.mfa_totp_enabled`);
+  supports (`users.mfa_totp_enabled`). The code itself is calculated by the
+  [GoogleAuth](https://github.com/wstrange/GoogleAuth) library (`com.warrenstrange:googleauth`, the Apache
+  HttpClient it declares excluded - only its QR generator uses it); the 160 bit secret (the library makes 80),
+  the accepted step window and the single-use rule stay in `TotpService`/`MfaService`;
 - a **6-digit code sent by e-mail** to the address on the account (`users.email`, optional, set under Benutzer;
   `MfaEmailCodeService`, `users.mfa_email_enabled`), available only where a mail can be sent at all and to a
   user who has an address.
@@ -99,6 +102,10 @@ configuration): "required" means *at least one method*, and the last one cannot 
 
 ## Alternatives considered
 
+- **`java-otp` or `java-totp` instead of GoogleAuth.** GoogleAuth is the most used of them; the others are no
+  more active (last releases 2022 and 2020). Its own last release is also from 2020, so a fix would have to
+  come from a new one or from replacing it, which `TotpService` being the only caller keeps to one class.
+
 - **E-mail as the only method.** It makes the mailbox the second factor, needs a working mail server on
   every login and a place to hold outstanding codes, where TOTP holds nothing per attempt. It is offered
   anyway, next to the app, for the users who have no phone to put an app on.
@@ -111,8 +118,8 @@ configuration): "required" means *at least one method*, and the last one cannot 
 - **The requirement as a database setting behind a settings screen.** It would take effect on every instance
   at once without a file edit, at the price of one administrator being able to lock everybody out of the
   application from a browser tab.
-- **A third-party OTP library.** Not needed for 40 lines of HMAC, and every new dependency changes
-  `gradle/verification-metadata.xml`.
+- **Calculating the codes by hand.** Roughly 40 lines of HMAC and truncation, and it worked, but code that
+  every authenticator app has to agree with byte for byte is better left to the most widely used library.
 
 ## References
 
