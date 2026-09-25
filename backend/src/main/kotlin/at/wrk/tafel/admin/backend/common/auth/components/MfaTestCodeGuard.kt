@@ -31,11 +31,9 @@ class MfaTestCodeGuard(
     }
 
     override fun run(args: ApplicationArguments) {
-        if (tafelAdminProperties.mfa.emailCodeForTests != null && !profileAllows()) {
-            throw IllegalStateException(
-                "tafeladmin.mfa.emailCodeForTests is set, but neither the 'e2e' nor the 'test' profile is active - " +
-                    "it replaces the e-mailed login code with a fixed one and must never be set on a real deployment",
-            )
+        check(tafelAdminProperties.mfa.emailCodeForTests == null || profileAllows()) {
+            "tafeladmin.mfa.emailCodeForTests is set, but neither the 'e2e' nor the 'test' profile is active - " +
+                "it replaces the e-mailed login code with a fixed one and must never be set on a real deployment"
         }
     }
 
