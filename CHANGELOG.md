@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- "Mein Konto" nutzt jetzt die volle Breite des Inhaltsbereichs statt einer schmalen, zentrierten Spalte.
+
+## [1.23.2] - 2026-09-25
 - Eine weitere Methode der Zwei-Faktor-Authentifizierung (Authenticator-App oder Code per E-Mail) lässt sich nur noch einrichten, wenn man zusätzlich einen aktuellen Code der bereits eingerichteten Methode eingibt, und die E-Mail-Adresse unter "Meine Daten" nur noch mit einem aktuellen Code, solange der Code per E-Mail eingerichtet ist - damit ein unbeaufsichtigt angemeldeter Browser die Zwei-Faktor-Authentifizierung nicht auf eine fremde App oder Adresse umleiten kann.
 - Wird eine Zwei-Faktor-Methode ein- oder ausgeschaltet, von einem Administrator zurückgesetzt oder die E-Mail-Adresse des Benutzerkontos geändert, bekommt der Benutzer eine Sicherheits-E-Mail (bei einer geänderten Adresse an die bisherige).
 - In der Benutzerverwaltung lässt sich das eigene Passwort nicht mehr setzen (das geht nur unter "Mein Konto" > "Passwort" mit dem aktuellen Passwort), die eigene E-Mail-Adresse bei eingerichtetem Code per E-Mail nicht mehr, und die E-Mail-Adresse eines Administrator-Kontos kann nur noch ein Administrator ändern.
