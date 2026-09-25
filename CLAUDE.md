@@ -567,7 +567,7 @@ Commit subjects and PR titles **must** follow [Conventional Commits](https://www
 - type is one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`,
   `chore`, `revert`
 - description doesn't start with an uppercase letter and doesn't end with a period
-- full header (the whole subject line) is at most 100 characters
+- full header (the whole subject line) is at most 200 characters
 - use `!` after type/scope (e.g. `feat!:`) for a breaking change, not a `BREAKING CHANGE:` footer
 
 This is not just style: `.github/workflows/release.yml`'s `version` job
