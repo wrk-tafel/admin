@@ -1,12 +1,13 @@
 ---
 name: release
-description: Releases what is on `main` by pushing it straight to the `release` branch, which drives release.yml (build, test, sonar, lint, e2e, Docker images tagged `test`+`latest`+semver, GitHub release, deploy to test and prod). Use when the user wants to release, deploy, ship, or cut a new version of wrk-tafel/admin.
+description: Releases what is on `main` by merging it into the `release` branch and pushing that, which drives release.yml (build, test, sonar, lint, e2e, Docker images tagged `test`+`latest`+semver, GitHub release, deploy to test and prod). Use when the user wants to release, deploy, ship, or cut a new version of wrk-tafel/admin.
 ---
 
-Goal: get everything currently on `main` out to production. `release` only ever moves forward to a
-commit that is already on `main`, so a release is a fast-forward push - no release PR, no merge
-commit. Invoking this skill is the go-ahead for that push; everything before it is a check that
-can stop the release, and nothing after it is retried.
+Goal: get everything currently on `main` out to production. `release` carries "Merge branch 'main' into
+release" commits that `main` does not have, so it cannot be fast-forwarded; a release is `main` merged into
+`release` and pushed - no release PR. The merge adds nothing but that commit (the resulting tree is
+`main`'s). Invoking this skill is the go-ahead for that push; everything before it is a check that can
+stop the release, and nothing after it is retried.
 
 The next version is derived by `release.yml`'s `version` job (`paulhatch/semantic-version`) from the
 Conventional Commit types of the commits on `release` since the last tag (`feat` → minor, `!` /
@@ -26,14 +27,15 @@ git log origin/release..origin/main --oneline
 If this is empty, tell the user `release` is already up to date with `main` and stop — there is
 nothing to release.
 
-Then check that this is a fast-forward:
+Then look at what `release` has that `main` does not:
 
 ```bash
-git merge-base --is-ancestor origin/release origin/main && echo fast-forward
+git log origin/main..origin/release --oneline --no-merges
 ```
 
-If it is not (something landed on `release` that `main` does not have), stop and report it — that is
-a state to look at, not to overwrite.
+Merge commits from earlier releases are expected. Anything else (a real change that landed on `release`
+only) is a state to look at: stop and report it, since the merge below would carry it into the release
+and `main` would not have it.
 
 ## 2. Check that main is fit to ship
 
@@ -53,13 +55,17 @@ a state to look at, not to overwrite.
   added `- ` lines since the previous tag, so nothing breaks, but mention it to the user if the
   heading still holds bullets of an earlier release (see CLAUDE.md's "Changelog" section).
 
-## 3. Push
+## 3. Merge and push
 
 ```bash
-git push origin origin/main:release
+git checkout -B release origin/release
+git merge origin/main --no-edit -m "Merge branch 'main' into release"
+git diff origin/main --quiet && echo "tree identical to main"
+git push origin release
 ```
 
-This is a plain fast-forward: no `--force`, no `--force-with-lease`. It immediately starts
+Stop if the merge conflicts (do not resolve it) or if the tree is not identical to `main`'s. The push is a
+plain one: no `--force`, no `--force-with-lease`. It immediately starts
 `release.yml`: full build+test+e2e, Docker images tagged `test`/`latest`/`<version>`, a GitHub
 release, and SSH deploys to **the test and the prod environment**. That is the point of the skill, and
 also why steps 1 and 2 stop instead of pushing anyway.
@@ -78,6 +84,6 @@ job/step and let the user decide, since this pipeline touches prod. A red run wh
 is deployed by re-running the failed jobs once it is no longer Saturday.
 
 **Never:**
-- force-push `release`, or push anything to it that is not already on `main`
+- force-push `release`, or push anything to it but a merge of `main`
 - release a `main` commit whose pipeline is red or missing
 - retry a failed release deploy automatically
