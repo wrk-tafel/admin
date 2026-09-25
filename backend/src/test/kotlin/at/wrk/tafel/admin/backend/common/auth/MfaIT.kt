@@ -277,6 +277,21 @@ class MfaIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `a code sent for a login that was never finished cannot complete the next login`() {
+        switchOnEmail()
+
+        val abandoned = login()
+        assertThat(post("/api/mfa/email/send", "", abandoned.jwt).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
+
+        // the next login starts over: the code sent for the earlier one is gone, a new one has to be asked for
+        val next = login()
+        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", next.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+
+        assertThat(post("/api/mfa/email/send", "", next.jwt).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
+        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", next.jwt).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
+    }
+
+    @Test
     fun `with both methods either one completes the login`() {
         switchOn()
         switchOnEmail()

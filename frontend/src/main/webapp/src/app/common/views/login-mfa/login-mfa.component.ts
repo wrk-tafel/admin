@@ -52,6 +52,8 @@ export class LoginMfaComponent implements OnInit {
     });
   });
 
+  /** Only a login that owes its code gets the form; anyone else is being sent on and never sees it flash by. */
+  readonly codeOwed = signal(false);
   submitting = signal(false);
   sendingCode = signal(false);
   errorMessage = signal<string | null>(null);
@@ -67,10 +69,13 @@ export class LoginMfaComponent implements OnInit {
       this.authenticationService.redirectToLogin();
     } else if (!this.authenticationService.isMfaPending()) {
       this.router.navigate(['uebersicht']);
-    } else if (this.hasEmail() && !this.hasApp()) {
-      // The e-mailed code is the only way in, so it is sent without waiting to be asked. A code that was
-      // sent a moment ago (the page was reloaded) is still good, hence a refusal here is not an error.
-      this.sendEmailCode(true);
+    } else {
+      this.codeOwed.set(true);
+      if (this.hasEmail() && !this.hasApp()) {
+        // The e-mailed code is the only way in, so it is sent without waiting to be asked. A code that was
+        // sent a moment ago (the page was reloaded) is still good, hence a refusal here is not an error.
+        this.sendEmailCode(true);
+      }
     }
   }
 

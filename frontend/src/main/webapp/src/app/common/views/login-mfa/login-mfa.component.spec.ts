@@ -83,17 +83,19 @@ describe('LoginMfaComponent', () => {
     authService.userInfo.set(null);
     authService.loadUserInfo.mockResolvedValue(null);
 
-    await create();
+    const fixture = await create();
 
     expect(authService.redirectToLogin).toHaveBeenCalled();
+    expect(element(fixture, 'mfaCode')).toBeNull();
   });
 
   it('sends someone who owes no code on to the overview', async () => {
     authService.isMfaPending.mockReturnValue(false);
 
-    await create();
+    const fixture = await create();
 
     expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
+    expect(element(fixture, 'mfaCode')).toBeNull();
   });
 
   it('does not send a code that is empty or not six digits', async () => {

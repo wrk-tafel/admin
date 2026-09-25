@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - In der Benutzer-Detailansicht steht das Zurücksetzen der Zwei-Faktor-Authentifizierung jetzt als Schaltfläche "Zurücksetzen" direkt neben dem Status und nicht mehr im Menü "Benutzer-Status ändern".
+- Ein per E-Mail gesendeter Bestätigungscode der Zwei-Faktor-Authentifizierung gilt nur für die Anmeldung, für die er gesendet wurde: Beginnt man eine neue Anmeldung, wird ein noch offener Code der früheren ungültig; die Codeseite ist ohne Anmeldung nicht mehr zu sehen.
 - Die Reiter von "Mein Konto" haben jetzt wie die Reiter der Kunden-Detailansicht abgerundete Ecken und einen grauen Rahmen.
 - "Mein Konto" beginnt mit dem neuen Reiter "Meine Daten": Dort sieht man Benutzername und Personalnummer und ändert Vorname, Nachname und E-Mail-Adresse des eigenen Benutzerkontos selbst; der Reiter Zwei-Faktor-Authentifizierung nennt die Adresse, an die der Code per E-Mail geht, und verweist dorthin, solange keine hinterlegt ist.
 

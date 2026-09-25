@@ -137,6 +137,14 @@ describe('UserDetailComponent', () => {
             .toBe('Aktiv (Authenticator-App)');
     });
 
+    it('offers the reset next to the two-factor state only while it is on', () => {
+        const on = createFixture({...mockUser, mfaEnabled: true, mfaMethods: ['TOTP']});
+        expect(on.debugElement.query(By.css('[testid="resetMfaButton"]'))).not.toBeNull();
+
+        const off = createFixture();
+        expect(off.debugElement.query(By.css('[testid="resetMfaButton"]'))).toBeNull();
+    });
+
     it('resets two-factor authentication and shows it as off', () => {
         const fixture = createFixture({...mockUser, mfaEnabled: true, mfaMethods: ['TOTP']});
         const component = fixture.componentInstance;

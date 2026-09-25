@@ -26,6 +26,8 @@ import java.time.LocalDateTime
  *   `tafeladmin.mfa.emailCodeCooldown` - otherwise the endpoint would be a way to fill somebody's mailbox.
  * - **Single-use and short-lived.** A code is deleted when it is accepted, and expires after
  *   `tafeladmin.mfa.emailCodeValidity`. Expired rows are deleted by whichever request comes next.
+ * - **Bound to its login.** A password login discards the code that is outstanding ([discard], called by
+ *   `TafelLoginFilter`), so a code sent for a login that was never finished cannot complete the next one.
  * - **Only a hash is stored.** A six-digit code can be brute-forced from its hash, so this is defence in depth
  *   rather than a barrier - what stops a guessing attack is the per-user count of wrong codes in [MfaService].
  *
