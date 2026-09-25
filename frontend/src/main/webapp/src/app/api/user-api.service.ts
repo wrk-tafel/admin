@@ -202,6 +202,8 @@ export interface UserAccountData {
   lastname: string;
   /** Where system notifications and a code of the two-factor authentication by e-mail go; null when none is on record. */
   email: string | null;
+  /** The e-mail method of two-factor authentication is on: the address is then a second factor. */
+  mfaEmailEnabled: boolean;
 }
 
 /** What the "Meine Daten" tab may change: the name and the e-mail address (null clears it). */
@@ -209,6 +211,11 @@ export interface UserAccountRequest {
   firstname: string;
   lastname: string;
   email: string | null;
+  /**
+   * A code of a second-factor method the user has - required when the address changes while the e-mail method is
+   * on, since that address is where the codes go.
+   */
+  mfaCode?: string | null;
 }
 
 export interface PermissionsListResponse {

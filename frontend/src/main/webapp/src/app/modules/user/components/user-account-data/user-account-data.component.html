@@ -13,6 +13,9 @@
       @if (errorMessage()) {
         <div testid="account-error-message" class="tafel-banner-error" role="alert">{{ errorMessage() }}</div>
       }
+      @if (infoMessage()) {
+        <div testid="account-info-message" class="tafel-banner-success" role="status">{{ infoMessage() }}</div>
+      }
 
       <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-6">
         <div>
@@ -50,6 +53,27 @@
             <mat-error>{{ message }}</mat-error>
           }
         </mat-form-field>
+
+        @if (codeRequired()) {
+          <p class="text-sm text-slate-600 mb-2" testid="account-code-hint">
+            Ihre E-Mail-Adresse ist der Empfänger Ihrer Anmelde-Codes. Zum Ändern ist daher ein aktueller Code nötig -
+            aus der Authenticator-App oder per E-Mail (an die bisherige Adresse).
+          </p>
+          <div class="flex flex-wrap items-start gap-x-4 gap-y-2">
+            <mat-form-field class="sm:max-w-xs">
+              <mat-label>Aktueller Code</mat-label>
+              <input matInput testid="account-mfa-code" type="text" inputmode="numeric" autocomplete="one-time-code"
+                     [formField]="accountForm.mfaCode">
+              @for (message of visibleErrorMessages(accountForm.mfaCode()); track message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+            <button matButton="outlined" type="button" testid="account-send-code-button" class="mt-2"
+                    (click)="sendCode()" [disabled]="working()">
+              Code per E-Mail senden
+            </button>
+          </div>
+        }
 
         <div class="flex flex-wrap gap-2 mt-6">
           <button matButton="filled" type="submit" testid="account-save-button" [disabled]="working() || !changed()">

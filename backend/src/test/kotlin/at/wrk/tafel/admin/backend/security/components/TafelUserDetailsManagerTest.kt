@@ -238,6 +238,43 @@ class TafelUserDetailsManagerTest {
         }
     }
 
+    /**
+     * A session that is already open must not be an online oracle for the current password - a wrong one
+     * is counted like a failed login, under the username.
+     */
+    @Test
+    fun `changePassword - a wrong current password is recorded as a failed attempt`() {
+        every { passwordValidator.validate(any()) } returns SuccessValidationResult()
+
+        assertThrows<PasswordChangeException> { manager.changePassword("wrong-password", "67890") }
+
+        verify(exactly = 1) { loginAttemptService.recordFailure(testUser.username) }
+        verify(exactly = 0) { loginAttemptService.recordSuccess(any()) }
+    }
+
+    @Test
+    fun `changePassword - a locked account is refused without looking at the password`() {
+        every { loginAttemptService.isLocked(testUser.username) } returns true
+
+        val exception = assertThrows<PasswordChangeException> { manager.changePassword("12345", "67890") }
+
+        assertThat(exception.message).contains("Fehlversuche")
+        verify(exactly = 0) { passwordEncoder.matches(any(), any()) }
+        verify(exactly = 0) { loginAttemptService.recordFailure(any()) }
+        verify(exactly = 0) { userRepository.save(any()) }
+    }
+
+    @Test
+    fun `changePassword - the right current password clears the failed attempts`() {
+        every { passwordValidator.validate(any()) } returns SuccessValidationResult()
+        every { userRepository.save(any()) } returns testUserEntity
+
+        manager.changePassword("12345", "67890")
+
+        verify(exactly = 1) { loginAttemptService.recordSuccess(testUser.username) }
+        verify(exactly = 0) { loginAttemptService.recordFailure(any()) }
+    }
+
     @Test
     fun `invalidateTokens sets tokenInvalidatedAt and saves`() {
         every { userRepository.findByUsername(testUserEntity.username) } returns testUserEntity

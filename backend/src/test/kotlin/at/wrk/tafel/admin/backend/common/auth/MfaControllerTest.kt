@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.MfaCodeRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaDisableRequest
+import at.wrk.tafel.admin.backend.common.auth.model.MfaEnableRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaMethod
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
@@ -68,6 +69,8 @@ class MfaControllerTest {
 
     private fun code(value: String = "123456") = MfaCodeRequest(code = value)
 
+    private fun enableRequest(value: String = "123456", currentCode: String? = null) = MfaEnableRequest(code = value, currentCode = currentCode)
+
     @Test
     fun `status and setup are answered for a completed session`() {
         signedIn()
@@ -94,27 +97,27 @@ class MfaControllerTest {
 
         assertThrows<TafelApiException> { controller.getStatus() }.also { assertThat(it.statusCode).isEqualTo(HttpStatus.FORBIDDEN) }
         assertThrows<TafelApiException> { controller.setup() }
-        assertThrows<TafelApiException> { controller.enable(code(), request, response) }
+        assertThrows<TafelApiException> { controller.enable(enableRequest(), request, response) }
         assertThrows<TafelApiException> { controller.setupEmail() }
-        assertThrows<TafelApiException> { controller.enableEmail(code(), request, response) }
+        assertThrows<TafelApiException> { controller.enableEmail(enableRequest(), request, response) }
         assertThrows<TafelApiException> { controller.disable(MfaDisableRequest(MfaMethod.TOTP, "123456")) }
 
         verify(exactly = 0) { mfaService.startSetup(any()) }
-        verify(exactly = 0) { mfaService.enable(any(), any()) }
+        verify(exactly = 0) { mfaService.enable(any(), any(), any()) }
         verify(exactly = 0) { mfaService.startEmailSetup(any()) }
-        verify(exactly = 0) { mfaService.enableEmail(any(), any()) }
+        verify(exactly = 0) { mfaService.enableEmail(any(), any(), any()) }
         verify(exactly = 0) { mfaService.disable(any(), any(), any()) }
     }
 
     @Test
     fun `a session that has to set a method up may do so`() {
         signedIn(mfaSetupRequired = true)
-        every { mfaService.enable("max", "123456") } returns true
+        every { mfaService.enable("max", "123456", null) } returns true
 
         controller.getStatus()
         controller.setup()
         controller.setupEmail()
-        controller.enable(code(), request, response)
+        controller.enable(enableRequest(), request, response)
 
         verify(exactly = 1) { mfaService.startSetup("max") }
         verify(exactly = 1) { mfaService.startEmailSetup("max") }
@@ -125,9 +128,9 @@ class MfaControllerTest {
     @Test
     fun `enabling the app answers with a session that has passed the second factor`() {
         signedIn()
-        every { mfaService.enable("max", "123456") } returns true
+        every { mfaService.enable("max", "123456", null) } returns true
 
-        val result = controller.enable(code(), request, response)
+        val result = controller.enable(enableRequest(), request, response)
 
         assertThat(result.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         verify(exactly = 1) { jwtTokenService.generateToken("max", 3600, true) }
@@ -139,13 +142,26 @@ class MfaControllerTest {
     @Test
     fun `enabling with a wrong code is refused and sets no cookie`() {
         signedIn()
-        every { mfaService.enable("max", "000000") } returns false
-        every { mfaService.enableEmail("max", "000000") } returns false
+        every { mfaService.enable("max", "000000", null) } returns false
+        every { mfaService.enableEmail("max", "000000", null) } returns false
 
-        assertThrows<BusinessRuleException> { controller.enable(code("000000"), request, response) }
-        assertThrows<BusinessRuleException> { controller.enableEmail(code("000000"), request, response) }
+        assertThrows<BusinessRuleException> { controller.enable(enableRequest("000000"), request, response) }
+        assertThrows<BusinessRuleException> { controller.enableEmail(enableRequest("000000"), request, response) }
 
         assertThat(response.getCookie(TafelLoginFilter.jwtCookieName)).isNull()
+    }
+
+    @Test
+    fun `the code of a method the user already has is handed on when a second method is switched on`() {
+        signedIn()
+        every { mfaService.enable("max", "123456", "777777") } returns true
+        every { mfaService.enableEmail("max", "654321", "888888") } returns true
+
+        controller.enable(enableRequest("123456", currentCode = "777777"), request, response)
+        controller.enableEmail(enableRequest("654321", currentCode = "888888"), request, response)
+
+        verify(exactly = 1) { mfaService.enable("max", "123456", "777777") }
+        verify(exactly = 1) { mfaService.enableEmail("max", "654321", "888888") }
     }
 
     @Test
@@ -161,9 +177,9 @@ class MfaControllerTest {
     @Test
     fun `enabling e-mail answers with a session that has passed the second factor`() {
         signedIn()
-        every { mfaService.enableEmail("max", "654321") } returns true
+        every { mfaService.enableEmail("max", "654321", null) } returns true
 
-        val result = controller.enableEmail(code("654321"), request, response)
+        val result = controller.enableEmail(enableRequest("654321"), request, response)
 
         assertThat(result.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         assertThat(response.getCookie(TafelLoginFilter.jwtCookieName)!!.value).isEqualTo("FULL-TOKEN")

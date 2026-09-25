@@ -212,6 +212,28 @@ class MailTemplateRenderingTest {
     }
 
     @Test
+    fun `account-security-mail renders the account and what changed`() {
+        val context = Context()
+        context.setVariable("username", "max.mustermann")
+        context.setVariable("message", "Die E-Mail-Adresse Ihres Kontos wurde geändert.")
+
+        val rendered = render("mails/account-security-mail", context)
+
+        assertThat(rendered).isEqualTo(loadReference("account-security-mail.html"))
+    }
+
+    @Test
+    fun `account-security-mail escapes markup in the message`() {
+        val context = Context()
+        context.setVariable("username", "max.mustermann")
+        context.setVariable("message", "<script>alert(1)</script>")
+
+        val rendered = render("mails/account-security-mail", context)
+
+        assertThat(rendered).doesNotContain("<script>alert(1)</script>").contains("&lt;script&gt;")
+    }
+
+    @Test
     fun `support-request-mail escapes what the reporter typed and renders a placeholder without errors`() {
         val context = Context()
         context.setVariable("supportTitle", "<b>kaputt</b>")

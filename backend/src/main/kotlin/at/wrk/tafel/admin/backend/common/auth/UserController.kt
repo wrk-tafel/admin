@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.common.auth.components.AccountSecurityNotificationService
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.MfaService
@@ -57,6 +58,7 @@ class UserController(
     private val advisoryLockService: AdvisoryLockService,
     private val userPreferencesService: UserPreferencesService,
     private val mfaService: MfaService,
+    private val notificationService: AccountSecurityNotificationService,
 ) {
 
     companion object {
@@ -97,17 +99,41 @@ class UserController(
      * the administrator, so unlike [updateUser] nothing here can hand an account over, and the
      * session it came in on stays what it was - no replacement cookie needed. The write itself is
      * on the audit trail like any other change to a user or an employee.
+     *
+     * With the e-mail method of two-factor authentication on, the address *is* the second factor, so
+     * changing it takes a code of a method the user has (`mfaCode`) - otherwise a session left open in a
+     * browser could redirect every future login code to an address of the caller's choosing. The old
+     * address is told about the change either way. A wrong code is answered with the failure already
+     * counted: `noRollbackFor` keeps the count from being rolled back along with the refused change.
      */
     @PutMapping("/account")
-    @Transactional
+    @Transactional(noRollbackFor = [BusinessRuleException::class])
     fun updateAccount(@Valid @RequestBody request: UserAccountRequest): UserAccountResponse {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val username = authenticatedUser.username!!
+        val newEmail = normalizeEmail(request.email)
+
+        val currentUser = userDetailsManager.loadUserByUsername(username)
+        val oldEmail = normalizeEmail(currentUser.email)
+        val emailChanged = !newEmail.equals(oldEmail, ignoreCase = true)
+        if (emailChanged && currentUser.mfaEmailEnabled && !mfaService.confirm(username, request.mfaCode)) {
+            throw BusinessRuleException("Der Code ist ungültig, oder es gab zu viele Fehlversuche - bitte später erneut versuchen!")
+        }
+
         val updatedUser = userDetailsManager.updateOwnAccount(
-            username = authenticatedUser.username!!,
+            username = username,
             firstname = request.firstname.trim(),
             lastname = request.lastname.trim(),
-            email = request.email?.trim()?.takeIf { it.isNotEmpty() },
+            email = newEmail,
         )
+        if (emailChanged) {
+            val message = if (newEmail == null) {
+                "Die E-Mail-Adresse Ihres Kontos wurde entfernt."
+            } else {
+                "Die E-Mail-Adresse Ihres Kontos wurde auf $newEmail geändert."
+            }
+            notificationService.notify(username, oldEmail, message)
+        }
         return mapToAccountResponse(updatedUser)
     }
 
@@ -117,6 +143,7 @@ class UserController(
         firstname = user.firstname,
         lastname = user.lastname,
         email = user.email,
+        mfaEmailEnabled = user.mfaEmailEnabled,
     )
 
     /** The caller's own display preference - self-service, so `isAuthenticated()` is all it needs. */
@@ -344,8 +371,6 @@ class UserController(
     fun updateUser(
         @PathVariable userId: Long,
         @Valid @RequestBody user: UserRequest,
-        request: HttpServletRequest,
-        response: HttpServletResponse,
     ): ResponseEntity<UserResponse> {
         // The write below always targets the path id (see mapToTafelUser call), never a body one -
         // this only turns a body/path mismatch into an explicit error instead of a silent one, since
@@ -362,6 +387,7 @@ class UserController(
             current = existingUser.authorities.mapNotNull { it.authority },
         )
         validateAdministratorAccountFieldChanges(existingUser, user)
+        validateOwnCredentialsUnchanged(existingUser, user)
         // Revoking the permission and disabling the account are two ways of arriving at the same
         // place: an administrator who can no longer act.
         val keepsAdministrator = user.permissions.any { it.key == UserPermissions.ADMINISTRATOR.key } && user.enabled
@@ -378,17 +404,6 @@ class UserController(
         try {
             val updatedTafelUser = mapToTafelUser(user, id = userId)
             userDetailsManager.updateUser(updatedTafelUser)
-
-            // A caller resetting their own password here (rather than through POST
-            // /api/users/change-password) just invalidated every JWT issued for their account too
-            // (see TafelUserDetailsManager.mapToUserEntity) - including the one this request came in
-            // on - so the same replacement cookie changePassword mints has to happen here as well.
-            // The username used is the just-persisted one, in case it changed in the same request.
-            val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
-            val passwordChanged = !user.password.isNullOrBlank()
-            if (authenticatedUser?.userId == userId && passwordChanged) {
-                issueReplacementCookie(updatedTafelUser.username, request, response, authenticatedUser.mfaVerified)
-            }
 
             val userResponse = mapToResponse(userDetailsManager.loadUserById(userId)!!)
             return ResponseEntity.ok(userResponse)
@@ -574,6 +589,10 @@ class UserController(
      * (issue #3566). Refuses any of those three fields changing on a target that currently holds
      * ADMINISTRATOR unless the caller does too - the same "only an administrator may touch this"
      * rule, applied to the fields that let someone impersonate one instead of to the flag itself.
+     *
+     * The e-mail address belongs in that list: for an administrator on the e-mail method it is the
+     * second factor, so redirecting it is the same reset `DELETE /{userId}/mfa` refuses to
+     * non-administrators.
      */
     private fun validateAdministratorAccountFieldChanges(existingUser: TafelUser, requested: UserRequest) {
         val isTargetAdministrator = existingUser.authorities.any { it.authority == UserPermissions.ADMINISTRATOR.key }
@@ -589,14 +608,41 @@ class UserController(
         val usernameChanged = requested.username != existingUser.username
         val passwordChanged = !requested.password.isNullOrBlank()
         val passwordChangeRequiredChanged = requested.passwordChangeRequired != existingUser.passwordChangeRequired
-        if (usernameChanged || passwordChanged || passwordChangeRequiredChanged) {
+        val emailChanged = !normalizeEmail(requested.email).equals(normalizeEmail(existingUser.email), ignoreCase = true)
+        if (usernameChanged || passwordChanged || passwordChangeRequiredChanged || emailChanged) {
             throw TafelApiException(
                 HttpStatus.FORBIDDEN,
-                "Benutzername, Passwort und die Passwortänderungs-Pflicht eines Administrator-Kontos " +
+                "Benutzername, Passwort, E-Mail-Adresse und die Passwortänderungs-Pflicht eines Administrator-Kontos " +
                     "können nur von einem Administrator geändert werden!",
             )
         }
     }
+
+    /**
+     * The user administration is a second way to changes the "Mein Konto" screens guard: a caller editing their
+     * *own* record here would get around the checks made there, and an open browser or a stolen session is
+     * exactly who that would help.
+     * - **The password** is changed with `POST /api/users/change-password`, which asks for the current one and
+     *   counts a wrong one towards the lockout. Here it would be replaced without either.
+     * - **The e-mail address**, while the e-mail method is on, is where the login codes go; on "Meine Daten" changing
+     *   it takes a code of a method the user has (see [updateAccount]).
+     */
+    private fun validateOwnCredentialsUnchanged(existingUser: TafelUser, requested: UserRequest) {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
+        if (authenticatedUser?.userId != existingUser.id) {
+            return
+        }
+        if (!requested.password.isNullOrBlank()) {
+            throw BusinessRuleException("Das eigene Passwort kann nur unter \"Mein Konto\" > \"Passwort ändern\" geändert werden!")
+        }
+        if (existingUser.mfaEmailEnabled &&
+            !normalizeEmail(requested.email).equals(normalizeEmail(existingUser.email), ignoreCase = true)
+        ) {
+            throw BusinessRuleException("Die eigene E-Mail-Adresse kann bei eingeschaltetem Code per E-Mail nur unter \"Mein Konto\" geändert werden!")
+        }
+    }
+
+    private fun normalizeEmail(email: String?): String? = email?.trim()?.takeIf { it.isNotEmpty() }
 
     /**
      * Refuses a change that would leave nobody able to administer the application. Only an

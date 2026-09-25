@@ -5,22 +5,26 @@ GET {{baseApiPath}}/mfa
 POST {{baseApiPath}}/mfa/setup
 
 ### Switch it on with the first code from the authenticator app
+# A user who already has a method also gives a code of it as currentCode - a second factor is only added by
+# someone who holds the first.
 POST {{baseApiPath}}/mfa/enable
 Content-Type: application/json
 
 {
-  "code": "123456"
+  "code": "123456",
+  "currentCode": "654321"
 }
 
 ### Start the e-mail method - sends a code to the address on the account
 POST {{baseApiPath}}/mfa/email/setup
 
-### Switch the e-mail method on with the code from the mail
+### Switch the e-mail method on with the code from the mail (currentCode as for the app, when a method is on already)
 POST {{baseApiPath}}/mfa/email/enable
 Content-Type: application/json
 
 {
-  "code": "123456"
+  "code": "123456",
+  "currentCode": "654321"
 }
 
 ### Send a code by e-mail (to set up, to log in with the e-mail method, or to switch a method off)

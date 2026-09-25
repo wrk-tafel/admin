@@ -21,8 +21,12 @@ export class MfaApiService {
     return this.http.post<MfaSetup>('/mfa/setup', null);
   }
 
-  enable(code: string, context?: HttpContext): Observable<void> {
-    return this.http.post<void>('/mfa/enable', {code}, {context});
+  /**
+   * Switches the app on. A user who already has a method also hands in `currentCode` of it - a session that was left
+   * open cannot put a second factor of its own next to the user's.
+   */
+  enable(code: string, currentCode: string | null = null, context?: HttpContext): Observable<void> {
+    return this.http.post<void>('/mfa/enable', {code, currentCode}, {context});
   }
 
   /** Sends the code that proves the address works, as the first step of switching the e-mail method on. */
@@ -30,11 +34,15 @@ export class MfaApiService {
     return this.http.post<void>('/mfa/email/setup', null, {context});
   }
 
-  enableEmail(code: string, context?: HttpContext): Observable<void> {
-    return this.http.post<void>('/mfa/email/enable', {code}, {context});
+  /** Like {@link enable}, for the e-mail method: `currentCode` comes from a method the user has already. */
+  enableEmail(code: string, currentCode: string | null = null, context?: HttpContext): Observable<void> {
+    return this.http.post<void>('/mfa/email/enable', {code, currentCode}, {context});
   }
 
-  /** Sends the e-mailed code for a login that owes one, or for switching a method off. `429` inside the cooldown. */
+  /**
+   * Sends the e-mailed code for a login that owes one, or - from a completed session - for switching a method off or
+   * on, or for changing the address on the account. `429` inside the cooldown.
+   */
   sendEmailCode(context?: HttpContext): Observable<void> {
     return this.http.post<void>('/mfa/email/send', null, {context});
   }

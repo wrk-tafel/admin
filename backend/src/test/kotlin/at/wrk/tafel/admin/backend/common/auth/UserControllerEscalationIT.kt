@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissionItem
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
@@ -10,6 +9,7 @@ import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -18,8 +18,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.mock.web.MockHttpServletRequest
-import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -74,8 +72,6 @@ class UserControllerEscalationIT : TafelBaseIntegrationTest() {
             userController.updateUser(
                 userId = administrator.id!!,
                 user = request,
-                request = MockHttpServletRequest(),
-                response = MockHttpServletResponse(),
             )
         }
         assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
@@ -94,8 +90,6 @@ class UserControllerEscalationIT : TafelBaseIntegrationTest() {
             userController.updateUser(
                 userId = administrator.id!!,
                 user = request,
-                request = MockHttpServletRequest(),
-                response = MockHttpServletResponse(),
             )
         }
         assertThat(exception.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
@@ -108,8 +102,9 @@ class UserControllerEscalationIT : TafelBaseIntegrationTest() {
     fun `an administrator caller can reset another administrator's password`() {
         // A real login expands the ADMINISTRATOR authority into every permission (see
         // TafelJwtAuthProvider.effectivePermissions) - USER_MANAGEMENT is what the endpoint's
-        // @PreAuthorize actually checks, so it has to be present here too.
-        authenticateAs(administrator, UserPermissions.ADMINISTRATOR, UserPermissions.USER_MANAGEMENT)
+        // @PreAuthorize actually checks, so it has to be present here too. The caller is another account than the
+        // one being reset - resetting one's own password here is refused, see below.
+        authenticateAs(userManager, UserPermissions.ADMINISTRATOR, UserPermissions.USER_MANAGEMENT)
 
         val request = updateRequestFor(administrator)
             .copy(password = "aNewSecretPassword1", passwordRepeat = "aNewSecretPassword1")
@@ -117,8 +112,6 @@ class UserControllerEscalationIT : TafelBaseIntegrationTest() {
         userController.updateUser(
             userId = administrator.id!!,
             user = request,
-            request = MockHttpServletRequest(),
-            response = MockHttpServletResponse(),
         )
 
         val persisted = userRepository.findById(administrator.id!!).get()
@@ -126,29 +119,37 @@ class UserControllerEscalationIT : TafelBaseIntegrationTest() {
     }
 
     /**
-     * The self-service path this endpoint also serves (issue #3572): resetting one's own password
-     * invalidates every JWT issued for the account, including the one this very request came in on
-     * (`TafelUserDetailsManager.mapToUserEntity`), so a replacement cookie has to be minted here too,
-     * the same way `UserController.changePassword` already does for `POST /api/users/change-password`.
+     * Someone with a session - an open browser, a stolen cookie - must not be able to replace the account's password
+     * without the current one: this endpoint is not the self-service path, `POST /api/users/change-password`
+     * (which asks for the current password) is.
      */
     @Test
-    fun `an administrator resetting their own password through this endpoint gets a replacement cookie`() {
+    fun `an administrator cannot set their own password through this endpoint`() {
         authenticateAs(administrator, UserPermissions.ADMINISTRATOR, UserPermissions.USER_MANAGEMENT)
 
         val request = updateRequestFor(administrator)
             .copy(password = "aNewSecretPassword1", passwordRepeat = "aNewSecretPassword1")
-        val response = MockHttpServletResponse()
 
-        userController.updateUser(
-            userId = administrator.id!!,
-            user = request,
-            request = MockHttpServletRequest(),
-            response = response,
-        )
+        assertThrows<BusinessRuleException> {
+            userController.updateUser(userId = administrator.id!!, user = request)
+        }
 
-        val cookie = response.getCookie(TafelLoginFilter.jwtCookieName)
-        assertThat(cookie).isNotNull
-        assertThat(cookie!!.value).isNotBlank()
+        val persisted = userRepository.findById(administrator.id!!).get()
+        assertThat(persisted.password).isEqualTo(administrator.password)
+    }
+
+    @Test
+    fun `a USER_MANAGEMENT-only caller cannot set their own password through this endpoint`() {
+        authenticateAs(userManager, UserPermissions.USER_MANAGEMENT)
+
+        val request = updateRequestFor(userManager)
+            .copy(password = "aNewSecretPassword1", passwordRepeat = "aNewSecretPassword1")
+
+        assertThrows<BusinessRuleException> {
+            userController.updateUser(userId = userManager.id!!, user = request)
+        }
+
+        assertThat(userRepository.findById(userManager.id!!).get().password).isEqualTo(userManager.password)
     }
 
     private fun createUserWithAuthority(permission: UserPermissions): UserEntity = transactionTemplate.execute {

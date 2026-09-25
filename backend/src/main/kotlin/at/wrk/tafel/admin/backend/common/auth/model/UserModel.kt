@@ -107,6 +107,12 @@ data class UserAccountRequest(
     @field:Email
     @field:Size(max = 255)
     val email: String? = null,
+    /**
+     * A code of a second-factor method the user has - required when [email] differs from the address on record
+     * and the e-mail method is on, since that address is then where the codes go (see `UserController.updateAccount`).
+     */
+    @field:Size(max = 16)
+    val mfaCode: String? = null,
 )
 
 /** The caller's own account as the "Meine Daten" tab shows it - nothing here that belongs to an administrator. */
@@ -117,6 +123,8 @@ data class UserAccountResponse(
     val firstname: String,
     val lastname: String,
     val email: String? = null,
+    /** Whether the e-mail method is on - then the address is a second factor and changing it takes a code. */
+    val mfaEmailEnabled: Boolean = false,
 )
 
 @ExcludeFromTestCoverage

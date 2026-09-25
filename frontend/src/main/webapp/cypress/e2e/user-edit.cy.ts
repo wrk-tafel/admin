@@ -1,3 +1,4 @@
+import {MAIN_CONTENT} from '../support/accessibility';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {testUserPassword, UserData} from '../support/commands';
 
@@ -244,6 +245,9 @@ describe('User Edit', () => {
           cy.byTestId('password-reset-toggle').should('not.exist');
           cy.byTestId('password-reset-locked-hint').should('be.visible');
           cy.byTestId('passwordChangeRequiredInput').find('input').should('be.disabled');
+          // the address is the second factor of an administrator on the e-mail method
+          cy.byTestId('emailInput').should('be.disabled');
+          cy.byTestId('email-locked-hint').should('be.visible').and('contain.text', 'Administrator');
 
           // the UI lock is only the first line of defense - the backend has to refuse the same
           // change even when it's attempted directly
@@ -257,7 +261,62 @@ describe('User Edit', () => {
               passwordRepeat: 'hijackedPassword1'
             }
           }).its('status').should('eq', 403);
+
+          cy.request({
+            method: 'PUT',
+            url: '/api/users/' + administrator.id,
+            failOnStatusCode: false,
+            body: {...administrator, email: 'hijacked@example.org'}
+          }).its('status').should('eq', 403);
         });
+      });
+    });
+  });
+
+  /**
+   * A session - an open browser, a stolen cookie - must not be able to replace its own account's password without
+   * knowing the current one: the self-service route is "Mein Konto" > "Passwort", which asks for it. The editor
+   * offers no reset for the own account, and the backend refuses the same change when it is sent directly.
+   */
+  it('offers no password reset for the own account, and refuses one sent directly', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const password = testUserPassword(randomNumber, 'own-password-');
+      const manager: UserData = {
+        username: 'own-password-' + randomNumber,
+        personnelNumber: 'own-password-' + randomNumber,
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        enabled: true,
+        password,
+        passwordRepeat: password,
+        passwordChangeRequired: false,
+        permissions: [{key: 'USER_MANAGEMENT', title: 'Benutzerverwaltung'}]
+      };
+
+      cy.createUser(manager).then(response => {
+        const own = response.body;
+
+        cy.login(own.username, password);
+        cy.visit('/benutzer/bearbeiten/' + own.id);
+
+        cy.byTestId('password-reset-toggle').should('not.exist');
+        cy.byTestId('password-reset-own-hint').should('be.visible');
+        cy.checkAccessibility(MAIN_CONTENT);
+
+        cy.request({
+          method: 'PUT',
+          url: '/api/users/' + own.id,
+          failOnStatusCode: false,
+          body: {...own, password: 'hijackedPassword1', passwordRepeat: 'hijackedPassword1'}
+        }).its('status').should('eq', 400);
+
+        // the password is what it was
+        cy.createLoginRequest(own.username, password).its('status').should('eq', 200);
+
+        // someone else's account keeps its reset section
+        cy.loginDefault();
+        cy.visit('/benutzer/bearbeiten/' + own.id);
+        cy.byTestId('password-reset-toggle').should('be.visible');
       });
     });
   });
