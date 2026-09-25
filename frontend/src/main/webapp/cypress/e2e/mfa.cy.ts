@@ -276,6 +276,27 @@ describe('Two-factor authentication', () => {
       });
     });
 
+    it('is not shown without a login: opening the address by hand leads to the login page', () => {
+      cy.visit('/login/mfa');
+
+      cy.url().should('not.contain', '/login/mfa');
+      cy.byTestId('loginButton').should('be.visible');
+      cy.byTestId('mfaCode').should('not.exist');
+    });
+
+    it('is not shown once nothing is owed any more: opening the address by hand leads into the application', () => {
+      createUser().then(user => {
+        cy.login(user.username, user.password);
+        enableEmailThroughTheApi();
+        loginByApiWithEmailCode(user);
+
+        cy.visit('/login/mfa');
+
+        cy.url().should('not.contain', '/login/mfa');
+        cy.byTestId('mfaCode').should('not.exist');
+      });
+    });
+
     it('can be given up, which ends the session', () => {
       createUser().then(user => {
         enableApp(user);
@@ -328,12 +349,11 @@ describe('Two-factor authentication', () => {
           cy.visit('/benutzer/detail/' + user.id);
           cy.byTestId('mfaText').should('have.text', 'Aktiv (Authenticator-App, Code per E-Mail)');
 
-          cy.byTestId('changeUserStateButton').click();
-          cy.byTestId('resetMfaButton').click();
+          // next to the state it resets, not hidden in the status menu
+          cy.byTestId('resetMfaButton').should('be.visible').click();
 
           cy.get('.toast-message').should('be.visible').and('contain.text', 'zurückgesetzt');
           cy.byTestId('mfaText').should('have.text', 'Nicht aktiv');
-          cy.byTestId('changeUserStateButton').click();
           cy.byTestId('resetMfaButton').should('not.exist');
 
           // a password is enough again
@@ -347,6 +367,7 @@ describe('Two-factor authentication', () => {
         cy.visit('/benutzer/detail/' + user.id);
 
         cy.byTestId('mfaText').should('have.text', 'Nicht aktiv');
+        cy.byTestId('resetMfaButton').should('not.exist');
         cy.byTestId('changeUserStateButton').click();
         cy.byTestId('disableUserButton').should('be.visible');
         cy.byTestId('resetMfaButton').should('not.exist');
@@ -425,7 +446,8 @@ describe('Two-factor authentication', () => {
         cy.visit('/konto/zwei-faktor');
         cy.byTestId('mfaForcedBanner').should('not.exist');
         cy.byTestId('mfaRequiredHint').should('be.visible');
-        cy.byTestId('mfaLastMethodHint').should('be.visible');
+        // far down the page: Cypress counts what is scrolled out of the content area as hidden, so bring it in first
+        cy.byTestId('mfaLastMethodHint').scrollIntoView().should('be.visible');
         cy.byTestId('mfaDisableEmailButton').should('be.disabled');
       });
     });

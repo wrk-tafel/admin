@@ -60,6 +60,7 @@ class WebSecurityConfig(
     private val auditActorProvider: AuditActorProvider,
     private val clock: Clock,
     private val advisoryLockService: AdvisoryLockService,
+    private val mfaEmailCodeService: MfaEmailCodeService,
 ) {
 
     companion object {
@@ -165,6 +166,7 @@ class WebSecurityConfig(
                     applicationProperties = applicationProperties,
                     tafelAdminProperties = tafelAdminProperties,
                     jsonMapper = jsonMapper,
+                    mfaEmailCodeService = mfaEmailCodeService,
                 ),
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
