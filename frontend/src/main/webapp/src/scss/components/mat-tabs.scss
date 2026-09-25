@@ -15,10 +15,18 @@
 // applied to the outer group rather than the header/body separately, with overflow hidden to clip
 // their square white backgrounds to the rounded shape - the same technique mat-menu.scss uses to
 // clip its panel content to its own rounded corners.
-.mat-mdc-tab-group {
+//
+// The link-based tab bar (`mat-tab-nav-bar` + `mat-tab-nav-panel`, "Mein Konto") is not a
+// `.mat-mdc-tab-group`: its header and panel are siblings, so a wrapper carries the same look.
+.mat-mdc-tab-group,
+.tafel-tab-nav-group {
   border: var(--tafel-border-color) solid 1px;
   border-radius: var(--mat-sys-corner-medium);
   overflow: hidden;
+}
+
+.tafel-tab-nav-group {
+  background-color: var(--tafel-surface);
 }
 
 // Material renders each tab's projected content inside this wrapper with no padding of its own,
