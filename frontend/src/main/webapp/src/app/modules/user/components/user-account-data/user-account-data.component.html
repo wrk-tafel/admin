@@ -1,0 +1,66 @@
+<mat-card class="shadow-sm">
+  <mat-card-header>
+    <mat-card-title>Meine Daten</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="pt-6">
+    @if (account(); as account) {
+      <p class="text-sm text-slate-600 mb-4" testid="account-data-intro">
+        Name und E-Mail-Adresse Ihres Benutzerkontos können Sie hier selbst ändern. Benutzername und Personalnummer
+        vergibt ein Administrator - wenden Sie sich an ihn, wenn sich daran etwas ändern soll.
+      </p>
+
+      @if (errorMessage()) {
+        <div testid="account-error-message" class="tafel-banner-error" role="alert">{{ errorMessage() }}</div>
+      }
+
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-6">
+        <div>
+          <dt class="text-sm text-slate-600">Benutzername</dt>
+          <dd class="font-medium" testid="account-username">{{ account.username }}</dd>
+        </div>
+        <div>
+          <dt class="text-sm text-slate-600">Personalnummer</dt>
+          <dd class="font-medium" testid="account-personnel-number">{{ account.personnelNumber }}</dd>
+        </div>
+      </dl>
+
+      <form (submit)="save($event)" novalidate class="flex flex-col">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+          <mat-form-field>
+            <mat-label>Vorname</mat-label>
+            <input matInput testid="account-firstname" type="text" autocomplete="given-name" [formField]="accountForm.firstname">
+            @for (message of visibleErrorMessages(accountForm.firstname()); track message) {
+              <mat-error>{{ message }}</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Nachname</mat-label>
+            <input matInput testid="account-lastname" type="text" autocomplete="family-name" [formField]="accountForm.lastname">
+            @for (message of visibleErrorMessages(accountForm.lastname()); track message) {
+              <mat-error>{{ message }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <mat-form-field class="sm:max-w-md">
+          <mat-label>E-Mail</mat-label>
+          <input matInput testid="account-email" type="email" autocomplete="email" [formField]="accountForm.email">
+          <mat-hint>Optional - für Systembenachrichtigungen und den Code der Zwei-Faktor-Authentifizierung per E-Mail</mat-hint>
+          @for (message of visibleErrorMessages(accountForm.email()); track message) {
+            <mat-error>{{ message }}</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="flex flex-wrap gap-2 mt-6">
+          <button matButton="filled" type="submit" testid="account-save-button" [disabled]="working() || !changed()">
+            Speichern
+          </button>
+          <button matButton="outlined" type="button" testid="account-discard-button" (click)="discard()"
+                  [disabled]="working() || !changed()">
+            Verwerfen
+          </button>
+        </div>
+      </form>
+    }
+  </mat-card-content>
+</mat-card>

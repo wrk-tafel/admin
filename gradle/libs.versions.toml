@@ -15,7 +15,7 @@ jackson = "3.2.3"
 # CVE-2026-54515/CVE-2026-59889 landed in 2.21.5 and, separately, in 2.22.1 - a plain "use the newest available"
 # 2.22.0 sits in the gap between those two lines and is still vulnerable, so this has to name an exact version
 # rather than relying on the spring-boot-bom's managed 2.21.5 being a floor.
-jackson-legacy = "2.22.2"
+jackson-legacy = "2.22.3"
 jjwt = "0.13.0"
 postgresql = "42.7.13"
 bouncycastle = "1.86"

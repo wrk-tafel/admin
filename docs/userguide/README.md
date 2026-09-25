@@ -29,15 +29,19 @@ Dieselbe Umgebungskennzeichnung bleibt nach der Anmeldung als schmales Banner ob
 
 Das Benutzer-Icon oben rechts (es zeigt die Initialen des Benutzernamens) öffnet das Benutzermenü. Es ist in drei Gruppen gegliedert:
 
-- **Konto**: **Mein Konto** öffnen, die Seite für alles, was das eigene Benutzerkonto betrifft: Passwort, Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design und Datenschutz.
+- **Konto**: **Mein Konto** öffnen, die Seite für alles, was das eigene Benutzerkonto betrifft: die eigenen Daten, Passwort, Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design und Datenschutz.
 - **Hilfe**: dieses Benutzerhandbuch (immer die aktuellste Version, als PDF-Download) öffnen.
 - **Abmelden**: die Sitzung beenden; die Gruppe steht bewusst für sich allein, damit man sie nicht versehentlich trifft.
 
 ![Benutzermenü](images/benutzermenue.jpg)
 
-**Mein Konto** hat fünf Reiter: **Passwort**, **Zwei-Faktor-Authentifizierung**, **Benachrichtigungen**, **Design** und **Datenschutz**. Jeder Reiter hat eine eigene Adresse: Man kann sie als Lesezeichen speichern, und die Zurück-Taste des Browsers führt zum zuvor angesehenen Reiter. Die Reiter stehen jedem angemeldeten Benutzer offen, unabhängig von den Berechtigungen.
+**Mein Konto** hat sechs Reiter: **Meine Daten**, **Passwort**, **Zwei-Faktor-Authentifizierung**, **Benachrichtigungen**, **Design** und **Datenschutz**. Jeder Reiter hat eine eigene Adresse: Man kann sie als Lesezeichen speichern, und die Zurück-Taste des Browsers führt zum zuvor angesehenen Reiter. Die Reiter stehen jedem angemeldeten Benutzer offen, unabhängig von den Berechtigungen.
 
 ![Mein Konto mit den Reitern](images/konto-uebersicht.jpg)
+
+Der Reiter **Meine Daten** zeigt das eigene Benutzerkonto. **Benutzername** und **Personalnummer** stehen dort nur zur Ansicht – sie werden von einem Administrator vergeben (siehe [Benutzer anlegen / bearbeiten](benutzer.md#benutzer-anlegen--bearbeiten)). **Vorname**, **Nachname** und **E-Mail** ändert man selbst und bestätigt mit **Speichern**; solange nichts geändert wurde, ist die Schaltfläche ausgegraut, und **Verwerfen** stellt die gespeicherten Werte wieder her. Die E-Mail-Adresse ist optional; an sie gehen Systembenachrichtigungen und der Code der Zwei-Faktor-Authentifizierung per E-Mail. Jede Änderung wird wie bei jeder Benutzeränderung im [Zugriffsprotokoll](zugriffsprotokoll.md) festgehalten.
+
+![Meine Daten](images/konto-meine-daten.jpg)
 
 Auf dem Reiter **Design** wählt man, ob die Anwendung hell, dunkel oder passend zur Einstellung des Geräts (**System**, Standard) dargestellt wird. Die Auswahl gilt sofort und wird zum eigenen Benutzerkonto gespeichert: Nach der Anmeldung auf einem anderen Gerät erscheint die Anwendung wieder im selben Design. Bei **System** folgt die Anwendung auch einem späteren Wechsel der Geräteeinstellung (z. B. abends automatisch auf dunkel), ohne dass sie neu geladen werden muss.
 
@@ -52,7 +56,7 @@ Nach dem Speichern bleibt man mit dem neuen Passwort angemeldet – ein neuerlic
 Auf dem Reiter **Zwei-Faktor-Authentifizierung** schützt man die eigene Anmeldung zusätzlich zum Passwort. Dafür gibt es zwei Methoden, die man einzeln oder beide gleichzeitig einrichten kann – bei der Anmeldung genügt der Code einer der beiden. Die Seite zeigt für jede Methode den Status – **Nicht aktiv**, **Wird eingerichtet** oder **Aktiv**.
 
 - **Authenticator-App** (z. B. auf dem Smartphone): Zum Einrichten wählt man **Einrichten**, es erscheint ein QR-Code, den man mit der App scannt (wer noch keine App hat, findet über die Links **Google Play** und **App Store** darüber den kostenlosen Google Authenticator - jede App für zeitbasierte Codes funktioniert); kann die App nicht scannen, gibt man stattdessen den darunter angezeigten Schlüssel von Hand ein. Danach gibt man den 6-stelligen Code aus der App ein und wählt **Aktivieren** – erst mit einem gültigen Code ist die Methode eingeschaltet, womit auch geprüft ist, dass die App richtig eingerichtet wurde. Mit **Abbrechen** verwirft man eine begonnene Einrichtung.
-- **Code per E-Mail**: Zum Einrichten wählt man **Einrichten**; ein 6-stelliger Code wird an die E-Mail-Adresse des Benutzerkontos gesendet (mit **Code erneut senden** lässt er sich nach kurzer Wartezeit neu anfordern). Man gibt ihn ein und wählt **Aktivieren**. Der Code gilt nur kurz und nur einmal. Steht auf dem System kein E-Mail-Versand zur Verfügung, weist die Seite darauf hin, und diese Methode lässt sich nicht einrichten.
+- **Code per E-Mail**: Die Seite nennt die E-Mail-Adresse des Benutzerkontos, an die der Code geht (ändern lässt sie sich auf dem Reiter **Meine Daten**). Zum Einrichten wählt man **Einrichten**; ein 6-stelliger Code wird an diese Adresse gesendet (mit **Code erneut senden** lässt er sich nach kurzer Wartezeit neu anfordern). Man gibt ihn ein und wählt **Aktivieren**. Der Code gilt nur kurz und nur einmal. Ist für das Benutzerkonto keine E-Mail-Adresse hinterlegt, verweist die Seite auf den Reiter **Meine Daten**, bis eine eingetragen ist. Steht auf dem System kein E-Mail-Versand zur Verfügung, weist die Seite darauf hin, und diese Methode lässt sich nicht einrichten.
 
 ![Zwei-Faktor-Authentifizierung: noch nichts eingerichtet](images/konto-zwei-faktor.jpg)
 

@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- "Mein Konto" beginnt mit dem neuen Reiter "Meine Daten": Dort sieht man Benutzername und Personalnummer und ändert Vorname, Nachname und E-Mail-Adresse des eigenen Benutzerkontos selbst; der Reiter Zwei-Faktor-Authentifizierung nennt die Adresse, an die der Code per E-Mail geht, und verweist dorthin, solange keine hinterlegt ist.
+
+## [1.22.0] - 2026-09-24
 - Das Benutzermenü führt jetzt zu einer eigenen Seite "Mein Konto" mit den Reitern Passwort, Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design und Datenschutz; jeder Reiter hat eine eigene Adresse, und das Ändern des Passworts verlässt die Seite nicht mehr.
 - Die Anmeldung lässt sich zusätzlich mit einer Zwei-Faktor-Authentifizierung absichern - per Authenticator-App oder per Code an die E-Mail-Adresse des Benutzerkontos, einzeln oder beides; ein Administrator kann sie für jemanden zurücksetzen, der das Handy verloren hat, und der Betreiber kann sie für alle Benutzer vorschreiben.
 - Benutzer haben jetzt eine optionale E-Mail-Adresse (Benutzer anlegen/bearbeiten, Detailansicht, Datenexport), an die auch die Codes der Zwei-Faktor-Authentifizierung gesendet werden.

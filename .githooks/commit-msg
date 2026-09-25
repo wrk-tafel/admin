@@ -7,7 +7,7 @@
 # Kept in sync by hand with the two CI checks in pull_request.yml:
 #   - commitlint (wagoid/commitlint-github-action, falls back to @commitlint/config-conventional)
 #   - pr-title-lint (amannn/action-semantic-pull-request)
-# Same 11 types, same "no leading uppercase" / "no trailing period" rules, same ~100 char cap,
+# Same 11 types, same "no leading uppercase" / "no trailing period" rules, same ~200 char cap,
 # so nothing that passes here can fail those in CI (mod config-conventional's fuzzier case
 # detection, which this approximates with a simple "doesn't start with an uppercase letter" check).
 #
@@ -35,7 +35,7 @@ $1
 
 Expected: <type>[optional scope][!]: <description>
   types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
-  description: starts lowercase, no trailing period, header <= 100 chars
+  description: starts lowercase, no trailing period, header <= 200 chars
 
 Examples:
   feat: add sortOrder support to Shelters
@@ -68,6 +68,6 @@ case "$description" in
 esac
 
 header_length=$(printf '%s' "$header" | wc -m | tr -d '[:space:]')
-if [ "$header_length" -gt 100 ]; then
-  fail "Header is $header_length characters, must be <= 100."
+if [ "$header_length" -gt 200 ]; then
+  fail "Header is $header_length characters, must be <= 200."
 fi

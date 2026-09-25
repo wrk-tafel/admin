@@ -32,7 +32,7 @@ describe('UserAccountComponent', () => {
         const root: HTMLElement = harness.routeNativeElement!;
 
         const labels = Array.from(root.querySelectorAll('[mat-tab-link]')).map(link => link.textContent!.trim());
-        expect(labels).toEqual(['Passwort', 'Zwei-Faktor-Authentifizierung', 'Benachrichtigungen', 'Design', 'Datenschutz']);
+        expect(labels).toEqual(['Meine Daten', 'Passwort', 'Zwei-Faktor-Authentifizierung', 'Benachrichtigungen', 'Design', 'Datenschutz']);
         expect(root.querySelector('[testid="account-tab-password"]')!.classList).toContain('mdc-tab--active');
         expect(root.textContent).toContain('passwort-tab');
     });

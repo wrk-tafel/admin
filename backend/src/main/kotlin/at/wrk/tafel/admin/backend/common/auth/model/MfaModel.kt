@@ -21,6 +21,11 @@ data class MfaStatusResponse(
     val required: Boolean,
     /** Whether the e-mail method can be offered at all - it needs a mail to be sent. */
     val emailAvailable: Boolean,
+    /**
+     * Where a code by e-mail goes - the address on the account, so the page can say so; null when none is on
+     * record, which is when the page sends the user to the "Meine Daten" tab instead of offering the method.
+     */
+    val emailAddress: String? = null,
 )
 
 /**
