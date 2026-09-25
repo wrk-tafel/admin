@@ -23,8 +23,7 @@
 
 // The link-based tab bar (`mat-tab-nav-bar` + `mat-tab-nav-panel`, "Mein Konto") is not a
 // `.mat-mdc-tab-group`: its header and panel are siblings, so a wrapper carries the same border,
-// radius and surface. It does not clip (`overflow: hidden` would make it a scroll container the
-// page's content can be scrolled out of), so the header rounds its own top corners instead.
+// radius and surface. It does not clip, so the header rounds its own top corners instead.
 .tafel-tab-nav-group {
   border: var(--tafel-border-color) solid 1px;
   border-radius: var(--mat-sys-corner-medium);

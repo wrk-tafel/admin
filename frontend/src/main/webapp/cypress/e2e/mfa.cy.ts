@@ -446,7 +446,8 @@ describe('Two-factor authentication', () => {
         cy.visit('/konto/zwei-faktor');
         cy.byTestId('mfaForcedBanner').should('not.exist');
         cy.byTestId('mfaRequiredHint').should('be.visible');
-        cy.byTestId('mfaLastMethodHint').should('be.visible');
+        // far down the page: Cypress counts what is scrolled out of the content area as hidden, so bring it in first
+        cy.byTestId('mfaLastMethodHint').scrollIntoView().should('be.visible');
         cy.byTestId('mfaDisableEmailButton').should('be.disabled');
       });
     });
