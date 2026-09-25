@@ -59,6 +59,8 @@ export interface MfaStatus {
   required: boolean;
   /** A mail can be sent at all, so the e-mail method can be offered. */
   emailAvailable: boolean;
+  /** Where a code by e-mail goes - the address on the account; null when none is on record. */
+  emailAddress?: string | null;
 }
 
 export interface MfaSetup {

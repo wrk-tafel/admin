@@ -90,6 +90,35 @@ data class UserResponse(
     val mfaMethods: List<String> = emptyList(),
 )
 
+/**
+ * What a user may change about their own account on the "Meine Daten" tab of "Mein Konto": the name and the
+ * e-mail address. The username and the personnel number are the administrator's to assign, so they are not in
+ * here - a caller sends only what the tab lets them edit, and the rest of the account cannot be reached this way.
+ */
+@ExcludeFromTestCoverage
+data class UserAccountRequest(
+    @field:NotBlank
+    @field:Size(max = 50)
+    val firstname: String,
+    @field:NotBlank
+    @field:Size(max = 50)
+    val lastname: String,
+    // Optional; a blank value is stored as "no address" (see UserController.updateAccount).
+    @field:Email
+    @field:Size(max = 255)
+    val email: String? = null,
+)
+
+/** The caller's own account as the "Meine Daten" tab shows it - nothing here that belongs to an administrator. */
+@ExcludeFromTestCoverage
+data class UserAccountResponse(
+    val username: String,
+    val personnelNumber: String,
+    val firstname: String,
+    val lastname: String,
+    val email: String? = null,
+)
+
 @ExcludeFromTestCoverage
 data class UserPermissionItem(
     val key: String,

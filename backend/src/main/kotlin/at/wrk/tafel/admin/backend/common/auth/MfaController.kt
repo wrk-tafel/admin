@@ -59,6 +59,7 @@ class MfaController(
             emailEnabled = status.emailEnabled,
             required = status.required,
             emailAvailable = status.emailAvailable,
+            emailAddress = status.emailAddress,
         )
     }
 

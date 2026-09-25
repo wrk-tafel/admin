@@ -80,6 +80,7 @@ class MfaServiceTest {
     fun `the status says which methods are on, whether the deployment requires one and whether e-mail can be offered`() {
         appOn()
         properties.mfa.required = true
+        user.email = "max@example.org"
         every { mfaEmailCodeService.isAvailable() } returns false
 
         val status = service.getStatus("max")
@@ -88,6 +89,16 @@ class MfaServiceTest {
         assertThat(status.emailEnabled).isFalse()
         assertThat(status.required).isTrue()
         assertThat(status.emailAvailable).isFalse()
+        assertThat(status.emailAddress).isEqualTo("max@example.org")
+    }
+
+    @Test
+    fun `the status has no address when none is on the account - the page then sends the user to set one`() {
+        user.email = " "
+
+        val status = service.getStatus("max")
+
+        assertThat(status.emailAddress).isNull()
     }
 
     // ---- authenticator app

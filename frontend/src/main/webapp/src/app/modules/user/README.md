@@ -18,6 +18,7 @@ modules/user/
   ├── components/user-form/user-form.component.ts        # the actual reactive form (fields + permissions grid)
   ├── account.routes.ts                                  # "Mein Konto": /konto and its tab routes (not behind USER_MANAGEMENT)
   ├── views/user-account/user-account.component.ts       # the frame: mat-tab-nav-bar + router-outlet
+  ├── components/user-account-data/user-account-data.component.ts # "Meine Daten" tab: own name and e-mail, editable
   ├── components/user-passwordchange/user-passwordchange.component.ts # "Passwort" tab, wraps the shared password-change form
   ├── components/user-mfa/user-mfa.component.ts          # "Zwei-Faktor-Authentifizierung" tab
   ├── components/push-notification-settings/push-notification-settings.component.ts # "Benachrichtigungen" tab
@@ -167,17 +168,31 @@ don't hold rendered muted (`!opacity-50` + a "Nicht zugewiesen" tooltip); a cate
 nothing in at all stays omitted rather than shown fully muted - see
 `common/util/permission-grouping.util.ts`.
 
-### "Mein Konto" — what a user settles about their own login and device
+### "Mein Konto" — what a user settles about their own account, login and device
 
-One page at `/konto` (`account.routes.ts`, lazy-loaded from `shell.routes.ts`), one tab per topic: Passwort,
-Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design and Datenschutz. It is mounted **outside** the `USER_MANAGEMENT`-gated route tree, behind
-the login only, so *any* logged-in user reaches it whatever they hold. The tabs are child routes
-(`/konto/passwort`, `/konto/zwei-faktor`, `/konto/benachrichtigungen`, `/konto/design`, `/konto/datenschutz`; `/konto` itself redirects to
-the first) rendered by `UserAccountComponent` as a `mat-tab-nav-bar`, so each tab has an address of its own. That is
+One page at `/konto` (`account.routes.ts`, lazy-loaded from `shell.routes.ts`), one tab per topic: Meine Daten,
+Passwort, Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design and Datenschutz. It is mounted **outside** the
+`USER_MANAGEMENT`-gated route tree, behind the login only, so *any* logged-in user reaches it whatever they hold. The
+tabs are child routes (`/konto/daten`, `/konto/passwort`, `/konto/zwei-faktor`, `/konto/benachrichtigungen`,
+`/konto/design`, `/konto/datenschutz`; `/konto` itself redirects to the first) rendered by `UserAccountComponent` as a
+`mat-tab-nav-bar`, so each tab has an address of its own. That is
 what lets the guard send a session that has to set up a second factor straight to `/konto/zwei-faktor`:
 `AuthGuardService` lets exactly `konto` (the parent the tab renders in) and `zwei-faktor` through for such a session,
 the other tabs lead to that one. The user menu has a single entry for all of it; the light/dark choice
 (`ThemeService`) lives on the Design tab and applies at once, without a save button.
+
+### UserAccountDataComponent — "Meine Daten"
+
+The first tab: the user's own account, and the part of it that is theirs to change. Username and personnel number
+are shown read-only (an administrator assigns them through `UserFormComponent`); first name, last name and e-mail
+are a small `@angular/forms/signals` form (`required`/`maxLength`, the shared `email` validator) with a save button
+that is disabled while nothing differs from what is saved (`changed`, a `computed` over the trimmed form value
+against the loaded account) and a "Verwerfen" button back to it. Saving goes through
+`UserApiService.updateAccount` → `PUT /users/account` (`UserAccountRequest`: name and e-mail only - the backend's
+`TafelUserDetailsManager.updateOwnAccount` touches nothing else, so unlike an admin's `updateUser` it can neither
+hand an account over nor invalidate the session); an error is shown inline from the problem detail rather than
+toasted. The e-mail is what the two-factor tab's code by e-mail goes to: `UserMfaComponent` reads the address from
+`MfaStatus.emailAddress` and, while it is null, points here instead of offering the method.
 
 ### UserPasswordChangeComponent — a different password-change path entirely
 
@@ -252,9 +267,9 @@ appears in `UserFormComponent`'s permission grid automatically — no frontend c
 
 ## API surface (`api/user-api.service.ts`, all under `/api/users`)
 
-`changePassword`, `getUserForId`, `getUserForPersonnelNumber`, `searchUser` (paginated), `updateUser`,
-`deleteUser`, `createUser`, `generatePassword`, `getPermissions`, `getLoginAttempts` (paginated),
-`deleteLoginAttempt`.
+`changePassword`, `getAccount`/`updateAccount` (the caller's own account, self-service), `getUserForId`,
+`getUserForPersonnelNumber`, `searchUser` (paginated), `updateUser`, `deleteUser`, `createUser`, `generatePassword`,
+`getPermissions`, `getLoginAttempts` (paginated), `deleteLoginAttempt`.
 
 `UserFormComponent` additionally calls `EmployeeApiService.checkPersonnelNumberAvailability` (to resolve an
 existing user's linked employee on load) and, through the shared `TafelEmployeeSearchCreateComponent`,

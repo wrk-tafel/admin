@@ -42,6 +42,30 @@ describe('UserApiService', () => {
     req.flush({theme: 'DARK'});
   });
 
+  it('reads the own account', () => {
+    const account = {username: 'max', personnelNumber: '0815', firstname: 'Max', lastname: 'Muster', email: null};
+
+    apiService.getAccount().subscribe(response => {
+      expect(response).toEqual(account);
+    });
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users/account'});
+    req.flush(account);
+  });
+
+  it('updates the own account with the name and the e-mail only', () => {
+    const request = {firstname: 'Maxi', lastname: 'Muster', email: 'maxi@example.org'};
+    const account = {username: 'max', personnelNumber: '0815', ...request};
+
+    apiService.updateAccount(request).subscribe(response => {
+      expect(response).toEqual(account);
+    });
+
+    const req = httpMock.expectOne({method: 'PUT', url: '/users/account'});
+    expect(req.request.body).toEqual(request);
+    req.flush(account);
+  });
+
   it('changed password called', () => {
     const testRequest: ChangePasswordRequest = {
       passwordCurrent: 'pwd-current',

@@ -1,7 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {form, FormField, validate} from '@angular/forms/signals';
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {MatButton} from '@angular/material/button';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatDivider} from '@angular/material/divider';
@@ -33,7 +33,8 @@ function codeError(value: string) {
  *   counts once a code from the app for that secret was accepted - which is also what proves the app was set up
  *   correctly before the next login depends on it. The QR code is drawn here in the browser from the `otpauth://`
  *   address, so the secret goes nowhere but this page; it is shown in writing too, for an app that cannot scan.
- * - **Code by e-mail.** A code is sent to the address on the account and has to be entered.
+ * - **Code by e-mail.** A code is sent to the address on the account and has to be entered. A user with no address
+ *   on record is sent to the "Meine Daten" tab to add one, instead of being offered a method that cannot work.
  *
  * Switching a method off asks for a code of either method, so a browser left signed in cannot take the second
  * factor away. When the deployment requires one the last method cannot be switched off, and a user who has none
@@ -53,7 +54,8 @@ function codeError(value: string) {
     MatFormField,
     MatInput,
     MatLabel,
-    MatError
+    MatError,
+    RouterLink
   ]
 })
 export class UserMfaComponent {

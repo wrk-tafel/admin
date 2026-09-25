@@ -142,6 +142,73 @@ class UserControllerTest {
     }
 
     @Test
+    fun `get own account returns the caller's data and nothing an administrator owns`() {
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+        every { userDetailsManager.loadUserByUsername(testUser.username) } returns testUser.copy(email = "me@example.org")
+
+        val response = controller.getAccount()
+
+        assertThat(response).isEqualTo(
+            UserAccountResponse(
+                username = testUser.username,
+                personnelNumber = testUser.personnelNumber,
+                firstname = testUser.firstname,
+                lastname = testUser.lastname,
+                email = "me@example.org",
+            ),
+        )
+        // A user looking at their own record is not what the breach detection is for
+        verify(exactly = 0) { userDetailsManager.recordUserRead(any()) }
+    }
+
+    @Test
+    fun `update own account passes the trimmed name and e-mail on for the authenticated user only`() {
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+        every { userDetailsManager.updateOwnAccount(testUser.username, "Maxi", "Muster", "maxi@example.org") } returns
+            testUser.copy(firstname = "Maxi", lastname = "Muster", email = "maxi@example.org")
+
+        val account = controller.updateAccount(UserAccountRequest(firstname = " Maxi ", lastname = "Muster ", email = " maxi@example.org "))
+
+        assertThat(account.username).isEqualTo(testUser.username)
+        assertThat(account.personnelNumber).isEqualTo(testUser.personnelNumber)
+        assertThat(account.firstname).isEqualTo("Maxi")
+        assertThat(account.lastname).isEqualTo("Muster")
+        assertThat(account.email).isEqualTo("maxi@example.org")
+        verify(exactly = 1) { userDetailsManager.updateOwnAccount(testUser.username, "Maxi", "Muster", "maxi@example.org") }
+        // Only the dedicated own-account path is taken - never the administrator's whole-user update
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
+        // The session it came in on stays what it was
+        verify(exactly = 0) { response.addCookie(any()) }
+    }
+
+    @Test
+    fun `update own account stores a blank e-mail as no address`() {
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+        every { userDetailsManager.updateOwnAccount(testUser.username, "Maxi", "Muster", null) } returns
+            testUser.copy(firstname = "Maxi", lastname = "Muster", email = null)
+
+        val response = controller.updateAccount(UserAccountRequest(firstname = "Maxi", lastname = "Muster", email = "   "))
+
+        assertThat(response.email).isNull()
+        verify(exactly = 1) { userDetailsManager.updateOwnAccount(testUser.username, "Maxi", "Muster", null) }
+    }
+
+    @Test
     fun `export user`() {
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",

@@ -26,6 +26,19 @@ POST {{baseApiPath}}/users/logout
 ### Get info of the currently authenticated user
 GET {{baseApiPath}}/users/info
 
+### Get the own account ("Mein Konto" > "Meine Daten")
+GET {{baseApiPath}}/users/account
+
+### Update the own account - name and e-mail only, username and personnel number stay with the administrator
+PUT {{baseApiPath}}/users/account
+Content-Type: application/json
+
+{
+  "firstname": "Max",
+  "lastname": "Mustermann",
+  "email": "max.mustermann@example.org"
+}
+
 ### Search for users (username, name or personnel number - fuzzy)
 # The term goes in the body, not a ?searchInput=... query parameter - see ADR-0057 (GDPR gap G25).
 POST {{baseApiPath}}/users/search
