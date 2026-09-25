@@ -22,6 +22,15 @@ import org.springframework.transaction.annotation.Transactional
  * require every user to have one (`tafeladmin.mfa.required`); the last method of such a user cannot be
  * switched off.
  *
+ * **A completed session proves an existing factor before it changes the second factor.** Switching a method on
+ * ([enable]/[enableEmail]) takes a code of a method the user already has, exactly like [disable] - otherwise a
+ * session left open in a browser could add the attacker's own authenticator app or address next to the user's.
+ * Only a user with no method yet (the first setup) has nothing to prove. The two "start" calls
+ * ([startSetup]/[startEmailSetup]) change nothing that counts until the matching enable call, so they ask for
+ * no code - which also keeps a one-time code of the existing method from being needed twice for one setup.
+ * The same rule covers the address the e-mail method sends to, see [confirmExistingFactor]. Every one of these
+ * changes is mailed to the user ([AccountSecurityNotificationService]).
+ *
  * The check is the same wherever a code is asked for ([checkCode]):
  * - **Wrong codes are counted**, per user and across both methods, in `login_attempts` under the key
  *   `mfa:<username>`, so the same lockout rule (`security.loginAttempts`) and the same admin screen apply. That is
@@ -40,6 +49,7 @@ class MfaService(
     private val mfaEmailCodeService: MfaEmailCodeService,
     private val loginAttemptService: LoginAttemptService,
     private val properties: TafelAdminProperties,
+    private val notificationService: AccountSecurityNotificationService,
 ) {
 
     companion object {
@@ -87,9 +97,12 @@ class MfaService(
         return MfaSetup(secret = secret, otpauthUri = totpService.otpauthUri(issuer, user.username, secret))
     }
 
-    /** Switches the app on once [code] proves it has the secret. `false` if the code is refused. */
+    /**
+     * Switches the app on once [code] proves it has the secret. A user who already has a method also has to give
+     * [currentCode] of it. `false` if a code is refused.
+     */
     @Transactional
-    fun enable(username: String, code: String): Boolean {
+    fun enable(username: String, code: String, currentCode: String? = null): Boolean {
         val user = findUser(username)
         if (user.mfaTotpEnabled) {
             throw ConflictException("Die Authenticator-App ist bereits eingerichtet!")
@@ -97,12 +110,13 @@ class MfaService(
         if (user.mfaSecret == null) {
             throw BusinessRuleException("Bitte zuerst die Einrichtung starten!")
         }
-        if (!checkCode(user, code, totp = true, email = false)) {
+        if (!confirmExistingFactor(user, currentCode) || !checkCode(user, code, totp = true, email = false)) {
             return false
         }
 
         user.mfaTotpEnabled = true
         userRepository.save(user)
+        notificationService.notify(user.username, user.email, "Die Zwei-Faktor-Authentifizierung mit einer Authenticator-App wurde eingeschaltet.")
         log.info("Two-factor authentication with an authenticator app enabled for user {}", user.username)
         return true
     }
@@ -119,19 +133,23 @@ class MfaService(
         mfaEmailCodeService.send(user)
     }
 
-    /** Switches the e-mail method on once [code] - the one just sent - was entered. `false` if it is refused. */
+    /**
+     * Switches the e-mail method on once [code] - the one just sent - was entered. A user who already has a method
+     * also has to give [currentCode] of it. `false` if a code is refused.
+     */
     @Transactional
-    fun enableEmail(username: String, code: String): Boolean {
+    fun enableEmail(username: String, code: String, currentCode: String? = null): Boolean {
         val user = findUser(username)
         if (user.mfaEmailEnabled) {
             throw ConflictException("Der Code per E-Mail ist bereits eingerichtet!")
         }
-        if (!checkCode(user, code, totp = false, email = true)) {
+        if (!confirmExistingFactor(user, currentCode) || !checkCode(user, code, totp = false, email = true)) {
             return false
         }
 
         user.mfaEmailEnabled = true
         userRepository.save(user)
+        notificationService.notify(user.username, user.email, "Die Zwei-Faktor-Authentifizierung per E-Mail wurde eingeschaltet.")
         log.info("Two-factor authentication by e-mail enabled for user {}", user.username)
         return true
     }
@@ -153,6 +171,17 @@ class MfaService(
     fun verifyLogin(username: String, code: String): Boolean {
         val user = findUser(username)
         return user.hasMfa && checkCode(user, code, totp = user.mfaTotpEnabled, email = user.mfaEmailEnabled)
+    }
+
+    /**
+     * Whether [code] is a valid code of a method [username] has on - what a completed session has to show before
+     * it changes what the second factor is (the e-mail address a code goes to, see `UserController.updateAccount`).
+     * `false` when the user has no method at all, since there is then no code to give.
+     */
+    @Transactional
+    fun confirm(username: String, code: String?): Boolean {
+        val user = findUser(username)
+        return user.hasMfa && confirmExistingFactor(user, code)
     }
 
     /**
@@ -188,6 +217,11 @@ class MfaService(
         }
         userRepository.save(user)
         log.info("Two-factor authentication method {} disabled by user {}", method, user.username)
+        val what = when (method) {
+            MfaMethod.TOTP -> "mit einer Authenticator-App"
+            MfaMethod.EMAIL -> "per E-Mail"
+        }
+        notificationService.notify(user.username, user.email, "Die Zwei-Faktor-Authentifizierung $what wurde ausgeschaltet.")
         return true
     }
 
@@ -203,6 +237,7 @@ class MfaService(
         userRepository.save(user)
         loginAttemptService.deleteAttempts(attemptKey(user.username))
         log.info("Two-factor authentication of user {} was reset by an administrator", user.username)
+        notificationService.notify(user.username, user.email, "Die Zwei-Faktor-Authentifizierung wurde von einem Administrator zurückgesetzt.")
     }
 
     private fun clearTotp(user: UserEntity) {
@@ -214,6 +249,17 @@ class MfaService(
     private fun clearEmail(user: UserEntity) {
         user.mfaEmailEnabled = false
         mfaEmailCodeService.discard(user.id!!)
+    }
+
+    /**
+     * Whether the user has shown a code of a method they already have - trivially so while they have none, which
+     * is the first setup. A missing code is refused without counting as a failure: nothing was guessed.
+     */
+    private fun confirmExistingFactor(user: UserEntity, code: String?): Boolean {
+        if (!user.hasMfa) {
+            return true
+        }
+        return !code.isNullOrBlank() && checkCode(user, code, totp = user.mfaTotpEnabled, email = user.mfaEmailEnabled)
     }
 
     /**

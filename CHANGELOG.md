@@ -5,9 +5,18 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Eine weitere Methode der Zwei-Faktor-Authentifizierung (Authenticator-App oder Code per E-Mail) lässt sich nur noch einrichten, wenn man zusätzlich einen aktuellen Code der bereits eingerichteten Methode eingibt, und die E-Mail-Adresse unter "Meine Daten" nur noch mit einem aktuellen Code, solange der Code per E-Mail eingerichtet ist - damit ein unbeaufsichtigt angemeldeter Browser die Zwei-Faktor-Authentifizierung nicht auf eine fremde App oder Adresse umleiten kann.
+- Wird eine Zwei-Faktor-Methode ein- oder ausgeschaltet, von einem Administrator zurückgesetzt oder die E-Mail-Adresse des Benutzerkontos geändert, bekommt der Benutzer eine Sicherheits-E-Mail (bei einer geänderten Adresse an die bisherige).
+- In der Benutzerverwaltung lässt sich das eigene Passwort nicht mehr setzen (das geht nur unter "Mein Konto" > "Passwort" mit dem aktuellen Passwort), die eigene E-Mail-Adresse bei eingerichtetem Code per E-Mail nicht mehr, und die E-Mail-Adresse eines Administrator-Kontos kann nur noch ein Administrator ändern.
+- Ein falsches aktuelles Passwort beim Ändern des eigenen Passworts zählt jetzt wie bei der Anmeldung als Fehlversuch und führt nach mehreren Versuchen zur vorübergehenden Sperre.
+- Die Einstellung `tafeladmin.mfa.emailCodeForTests` (fester Code für automatische Tests) wird außerhalb der Test-Profile nicht mehr akzeptiert: Die Anwendung startet damit nicht, und ein nachträglich in die Konfiguration geschriebener Wert wird ignoriert.
+
+## [1.23.1] - 2026-09-25
 - In der Benutzer-Detailansicht steht das Zurücksetzen der Zwei-Faktor-Authentifizierung jetzt als Schaltfläche "Zurücksetzen" direkt neben dem Status und nicht mehr im Menü "Benutzer-Status ändern".
 - Ein per E-Mail gesendeter Bestätigungscode der Zwei-Faktor-Authentifizierung gilt nur für die Anmeldung, für die er gesendet wurde: Beginnt man eine neue Anmeldung, wird ein noch offener Code der früheren ungültig; die Codeseite ist ohne Anmeldung nicht mehr zu sehen.
 - Die Reiter von "Mein Konto" haben jetzt wie die Reiter der Kunden-Detailansicht abgerundete Ecken und einen grauen Rahmen.
+
+## [1.23.0] - 2026-09-25
 - "Mein Konto" beginnt mit dem neuen Reiter "Meine Daten": Dort sieht man Benutzername und Personalnummer und ändert Vorname, Nachname und E-Mail-Adresse des eigenen Benutzerkontos selbst; der Reiter Zwei-Faktor-Authentifizierung nennt die Adresse, an die der Code per E-Mail geht, und verweist dorthin, solange keine hinterlegt ist.
 
 ## [1.22.0] - 2026-09-24

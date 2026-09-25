@@ -52,6 +52,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0017](0017-web-push-as-a-second-notification-channel.md) | Web Push (VAPID) as a second, out-of-app channel | accepted |
 | [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
 | [0058](0058-two-factor-authentication-gates-the-session-not-the-page.md) | Two-factor authentication (authenticator app or e-mail code) gates the session, not the page | accepted |
+| [0059](0059-second-factor-changes-need-an-existing-second-factor.md) | A completed session proves an existing second factor before it changes the second factor | accepted |
 | [0050](0050-customer-documents-split-into-its-own-permission.md) | The documents tab gets its own permission, separate from CUSTOMER | accepted |
 | [0051](0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md) | Data-subject requests search across areas, then delegate to each area's own export/delete | accepted |
 | [0034](0034-error-contract-problemdetail-to-german-toast.md) | One error contract — RFC 7807 out, a German toast in | accepted |

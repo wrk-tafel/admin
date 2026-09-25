@@ -38,6 +38,7 @@ class MfaEmailCodeService(
     private val mfaEmailCodeRepository: MfaEmailCodeRepository,
     private val mailSenderService: MailSenderService,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val testCodeGuard: MfaTestCodeGuard,
     private val clock: Clock,
 ) {
 
@@ -74,7 +75,7 @@ class MfaEmailCodeService(
             throw TafelApiException(HttpStatus.TOO_MANY_REQUESTS, "Bitte einen Moment warten, bevor ein neuer Code angefordert wird!")
         }
 
-        val code = mfa.emailCodeForTests ?: newCode()
+        val code = testCodeGuard.fixedCode() ?: newCode()
         mfaEmailCodeRepository.deleteAllByUserId(user.id!!)
         mfaEmailCodeRepository.save(MfaEmailCodeEntity(user, hash(user.id!!, code), now.plus(mfa.emailCodeValidity)))
 

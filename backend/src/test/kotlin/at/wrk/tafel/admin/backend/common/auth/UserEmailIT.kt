@@ -13,8 +13,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.mock.web.MockHttpServletRequest
-import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.transaction.support.TransactionTemplate
@@ -86,7 +84,5 @@ class UserEmailIT : TafelBaseIntegrationTest() {
             passwordChangeRequired = user.passwordChangeRequired,
             permissions = listOf(UserPermissionItem(key = UserPermissions.CHECKIN.key, title = "", category = "")),
         ),
-        request = MockHttpServletRequest(),
-        response = MockHttpServletResponse(),
     )
 }

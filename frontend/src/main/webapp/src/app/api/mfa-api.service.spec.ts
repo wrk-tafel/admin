@@ -43,16 +43,25 @@ describe('MfaApiService', () => {
     apiService.verify('345678').subscribe();
 
     const enable = httpMock.expectOne({method: 'POST', url: '/mfa/enable'});
-    expect(enable.request.body).toEqual({code: '123456'});
+    expect(enable.request.body).toEqual({code: '123456', currentCode: null});
     enable.flush(null, noContent);
 
     const enableEmail = httpMock.expectOne({method: 'POST', url: '/mfa/email/enable'});
-    expect(enableEmail.request.body).toEqual({code: '234567'});
+    expect(enableEmail.request.body).toEqual({code: '234567', currentCode: null});
     enableEmail.flush(null, noContent);
 
     const verify = httpMock.expectOne({method: 'POST', url: '/mfa/verify'});
     expect(verify.request.body).toEqual({code: '345678'});
     verify.flush(null, noContent);
+    httpMock.verify();
+  });
+
+  it('hands in a code of the method the user has already when a second one is switched on', () => {
+    apiService.enable('123456', '654321').subscribe();
+    apiService.enableEmail('234567', '765432').subscribe();
+
+    expect(httpMock.expectOne({method: 'POST', url: '/mfa/enable'}).request.body).toEqual({code: '123456', currentCode: '654321'});
+    expect(httpMock.expectOne({method: 'POST', url: '/mfa/email/enable'}).request.body).toEqual({code: '234567', currentCode: '765432'});
     httpMock.verify();
   });
 

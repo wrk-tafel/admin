@@ -58,9 +58,17 @@ describe('Two-factor authentication', () => {
     });
   }
 
-  function enableEmailThroughTheApi() {
+  // A user who has the app on already proves it with a code of it (step 0) - a second method is only added by
+  // someone who holds the first, see MfaService. The codes after it are asked for at step +1.
+  function enableEmailThroughTheApi(appSecret?: string) {
     cy.request({method: 'POST', url: '/api/mfa/email/setup'});
-    cy.request({method: 'POST', url: '/api/mfa/email/enable', body: {code: EMAIL_CODE}});
+    if (appSecret) {
+      cy.task('totpCode', {secret: appSecret, stepOffset: 0}).then(currentCode =>
+        cy.request({method: 'POST', url: '/api/mfa/email/enable', body: {code: EMAIL_CODE, currentCode}})
+      );
+    } else {
+      cy.request({method: 'POST', url: '/api/mfa/email/enable', body: {code: EMAIL_CODE}});
+    }
   }
 
   // A full session for a user who has the e-mail method: the password, then the code that is sent
@@ -215,7 +223,7 @@ describe('Two-factor authentication', () => {
   it('with both methods, either completes the login and the code page offers to send the e-mail', () => {
     createUser().then(user => {
       enableApp(user).then(secret => {
-        enableEmailThroughTheApi();
+        enableEmailThroughTheApi(secret);
 
         // by e-mail: the code is sent on request, not on its own
         loginThroughThePage(user);
@@ -230,21 +238,115 @@ describe('Two-factor authentication', () => {
         logoutThroughTheMenu();
         loginThroughThePage(user);
         cy.url().should('contain', '/login/mfa');
-        cy.task('totpCode', {secret, stepOffset: 0}).then(code => enterCode(code as string));
+        cy.task('totpCode', {secret, stepOffset: 1}).then(code => enterCode(code as string));
         cy.url().should('contain', '/uebersicht');
       });
+    });
+  });
+
+  // ---- changing the second factor takes an existing one
+
+  it('adding the e-mail method next to the app asks for a code of the app', () => {
+    createUser().then(user => {
+      enableApp(user).then(secret => {
+        cy.visit('/konto/zwei-faktor');
+
+        cy.byTestId('mfaEmailSetupButton').click();
+        cy.byTestId('mfaEmailCurrentCode').scrollIntoView().should('be.visible');
+        // the app has the code, so there is no e-mail to send one by
+        cy.byTestId('mfaEmailSendCurrentCodeButton').should('not.exist');
+        cy.checkAccessibility('main');
+
+        // the code from the mail alone is not enough
+        cy.byTestId('mfaEmailCode').type(EMAIL_CODE);
+        cy.byTestId('mfaEmailEnableButton').click();
+        cy.contains('mat-error', 'Bitte den Code eingeben').should('be.visible');
+        cy.byTestId('mfaEmailStatus').should('have.text', 'Wird eingerichtet');
+
+        // nor is a wrong one for the app
+        cy.byTestId('mfaEmailCurrentCode').type('000000');
+        cy.byTestId('mfaEmailEnableButton').click();
+        cy.byTestId('errorMessage').should('be.visible').and('contain.text', 'Der Code ist ungültig');
+        cy.byTestId('mfaEmailStatus').should('have.text', 'Wird eingerichtet');
+
+        cy.byTestId('mfaEmailCode').clear().type(EMAIL_CODE);
+        cy.task('totpCode', {secret, stepOffset: 0}).then(code => cy.byTestId('mfaEmailCurrentCode').clear().type(code as string));
+        cy.byTestId('mfaEmailEnableButton').click();
+        cy.get('.toast-message').should('be.visible').and('contain.text', 'eingerichtet');
+        cy.byTestId('mfaEmailStatus').should('have.text', 'Aktiv');
+      });
+    });
+  });
+
+  it('adding the app next to the e-mail method asks for a code that is sent by e-mail', () => {
+    createUser().then(user => {
+      cy.login(user.username, user.password);
+      enableEmailThroughTheApi();
+      loginByApiWithEmailCode(user);
+      cy.visit('/konto/zwei-faktor');
+
+      cy.byTestId('mfaSetupButton').click();
+      cy.byTestId('mfaQrCode').find('svg').should('be.visible');
+      cy.byTestId('mfaAppCurrentCode').scrollIntoView().should('be.visible');
+      cy.byTestId('mfaAppSendCurrentCodeButton').click();
+      cy.byTestId('infoMessage').should('be.visible').and('contain.text', 'gesendet');
+      cy.checkAccessibility('main');
+
+      // the app code for the secret shown, and the code that was sent for the method the user has
+      cy.byTestId('mfaSecret').invoke('text').then(text => {
+        cy.task('totpCode', {secret: text.replace(/\s/g, ''), stepOffset: 0}).then(code => cy.byTestId('mfaAppCode').type(code as string));
+      });
+      cy.byTestId('mfaAppCurrentCode').type(EMAIL_CODE);
+      cy.byTestId('mfaEnableButton').click();
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'eingerichtet');
+      cy.byTestId('mfaTotpStatus').should('have.text', 'Aktiv');
+    });
+  });
+
+  it('the address the e-mail method sends to cannot be changed without a code', () => {
+    createUser().then(user => {
+      cy.login(user.username, user.password);
+      enableEmailThroughTheApi();
+      loginByApiWithEmailCode(user);
+      cy.visit('/konto/daten');
+
+      // no code asked for while the address stays
+      cy.byTestId('account-mfa-code').should('not.exist');
+      cy.byTestId('account-email').clear().type('neue-adresse@example.org');
+      cy.byTestId('account-code-hint').should('be.visible');
+      cy.byTestId('account-mfa-code').should('be.visible');
+      cy.checkAccessibility('main');
+
+      // without a code it is not even sent
+      cy.byTestId('account-save-button').click();
+      cy.contains('mat-error', 'Bitte den Code eingeben').should('be.visible');
+
+      // a wrong one is refused and the address stays what it was
+      cy.byTestId('account-mfa-code').type('000000');
+      cy.byTestId('account-save-button').click();
+      cy.byTestId('account-error-message').should('be.visible').and('contain.text', 'Der Code ist ungültig');
+      cy.request('/api/users/account').its('body.email').should('eq', user.username + '@example.org');
+
+      // the code goes to the address on record, and with it the change goes through
+      cy.byTestId('account-send-code-button').click();
+      cy.byTestId('account-info-message').should('be.visible').and('contain.text', 'bisherige E-Mail-Adresse');
+      cy.byTestId('account-mfa-code').type(EMAIL_CODE);
+      cy.byTestId('account-save-button').click();
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
+      cy.request('/api/users/account').its('body.email').should('eq', 'neue-adresse@example.org');
+      cy.byTestId('account-mfa-code').should('not.exist');
     });
   });
 
   it('a method can be switched off with a code of the other one', () => {
     createUser().then(user => {
       enableApp(user).then(secret => {
-        enableEmailThroughTheApi();
+        enableEmailThroughTheApi(secret);
         cy.visit('/konto/zwei-faktor');
 
         cy.byTestId('mfaTotpStatus').should('have.text', 'Aktiv');
         cy.byTestId('mfaEmailStatus').should('have.text', 'Aktiv');
-        cy.task('totpCode', {secret, stepOffset: 0}).then(code => cy.byTestId('mfaDisableCode').type(code as string));
+        cy.task('totpCode', {secret, stepOffset: 1}).then(code => cy.byTestId('mfaDisableCode').type(code as string));
         cy.byTestId('mfaDisableEmailButton').click();
 
         cy.byTestId('mfaEmailStatus').should('have.text', 'Nicht aktiv');
@@ -343,8 +445,8 @@ describe('Two-factor authentication', () => {
 
     it('shows which methods a user has, and resets them for someone who lost the phone', () => {
       createUser().then(user => {
-        enableApp(user).then(() => {
-          enableEmailThroughTheApi();
+        enableApp(user).then(secret => {
+          enableEmailThroughTheApi(secret);
           cy.loginDefault();
           cy.visit('/benutzer/detail/' + user.id);
           cy.byTestId('mfaText').should('have.text', 'Aktiv (Authenticator-App, Code per E-Mail)');

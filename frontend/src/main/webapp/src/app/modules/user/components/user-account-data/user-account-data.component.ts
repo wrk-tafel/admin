@@ -4,6 +4,7 @@ import {form, FormField, maxLength, required, validate} from '@angular/forms/sig
 import {MatButton} from '@angular/material/button';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatError, MatFormField, MatHint, MatInput, MatLabel} from '@angular/material/input';
+import {MfaApiService} from '../../../../api/mfa-api.service';
 import {UserAccountData, UserAccountRequest, UserApiService} from '../../../../api/user-api.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
@@ -17,7 +18,8 @@ import {email} from '../../../../common/validator/signal-form-validators';
  * assigns them (see `UserFormComponent`), and the backend accepts nothing else from this tab either.
  *
  * The e-mail address is what the two-factor authentication's code by e-mail goes to, which is why the two-factor tab
- * sends a user here when none is on record.
+ * sends a user here when none is on record. While that method is on, changing the address takes a code of a method
+ * the user has (`mfaCode`) - otherwise a browser left signed in could redirect every future code.
  */
 @Component({
   selector: 'tafel-user-account-data',
@@ -38,14 +40,23 @@ import {email} from '../../../../common/validator/signal-form-validators';
 })
 export class UserAccountDataComponent {
   private readonly userApiService = inject(UserApiService);
+  private readonly mfaApiService = inject(MfaApiService);
   private readonly toastr = inject(TafelToastrService);
 
   /** `null` until the account has been read. */
   account = signal<UserAccountData | null>(null);
   working = signal(false);
   errorMessage = signal<string | null>(null);
+  infoMessage = signal<string | null>(null);
 
-  private readonly formModel = signal({firstname: '', lastname: '', email: ''});
+  private readonly formModel = signal({firstname: '', lastname: '', email: '', mfaCode: ''});
+
+  /** The address is a second factor and is about to change, so the change has to be vouched for with a code. */
+  readonly codeRequired = computed(() => {
+    const account = this.account();
+    return !!account && account.mfaEmailEnabled && (this.formModel().email.trim() || null) !== (account.email ?? null);
+  });
+
   accountForm = form(this.formModel, (schemaPath) => {
     required(schemaPath.firstname, {message: 'Pflichtfeld'});
     maxLength(schemaPath.firstname, 50, {message: 'Vorname zu lang (maximal 50 Zeichen)'});
@@ -55,6 +66,17 @@ export class UserAccountDataComponent {
 
     maxLength(schemaPath.email, 255, {message: 'E-Mail-Adresse zu lang (maximal 255 Zeichen)'});
     validate(schemaPath.email, email({message: 'E-Mail-Format ungültig'}));
+
+    validate(schemaPath.mfaCode, ({value}) => {
+      if (!this.codeRequired()) {
+        return null;
+      }
+      const code = value().replace(/\s/g, '');
+      if (code.length === 0) {
+        return {kind: 'required', message: 'Bitte den Code eingeben'};
+      }
+      return /^\d{6}$/.test(code) ? null : {kind: 'codeFormat', message: 'Der Code besteht aus 6 Ziffern'};
+    });
   });
 
   /** What the form would send, trimmed the way the backend stores it. */
@@ -63,7 +85,8 @@ export class UserAccountDataComponent {
     return {
       firstname: value.firstname.trim(),
       lastname: value.lastname.trim(),
-      email: value.email.trim() || null
+      email: value.email.trim() || null,
+      ...(this.codeRequired() ? {mfaCode: value.mfaCode.replace(/\s/g, '')} : {})
     };
   });
 
@@ -92,6 +115,7 @@ export class UserAccountDataComponent {
 
     this.working.set(true);
     this.errorMessage.set(null);
+    this.infoMessage.set(null);
     this.userApiService.updateAccount(this.request(), SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
       next: (account) => {
         this.show(account);
@@ -101,6 +125,27 @@ export class UserAccountDataComponent {
       error: (error: HttpErrorResponse) => {
         this.working.set(false);
         this.errorMessage.set(extractErrorMessage(error));
+        // a code is good once - whatever was typed is spent
+        this.formModel.update(value => ({...value, mfaCode: ''}));
+      }
+    });
+  }
+
+  /** Sends the e-mailed code - to the address on record, not the one being typed - for a user who has that method. */
+  sendCode() {
+    this.working.set(true);
+    this.errorMessage.set(null);
+    this.infoMessage.set(null);
+    this.mfaApiService.sendEmailCode(SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+      next: () => {
+        this.infoMessage.set('Ein Code wurde an Ihre bisherige E-Mail-Adresse gesendet.');
+        this.working.set(false);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.working.set(false);
+        this.errorMessage.set(error.status === 429
+          ? 'Bitte einen Moment warten, bevor ein neuer Code angefordert wird!'
+          : extractErrorMessage(error));
       }
     });
   }
@@ -115,7 +160,8 @@ export class UserAccountDataComponent {
 
   private show(account: UserAccountData) {
     this.account.set(account);
-    this.formModel.set({firstname: account.firstname, lastname: account.lastname, email: account.email ?? ''});
+    this.infoMessage.set(null);
+    this.formModel.set({firstname: account.firstname, lastname: account.lastname, email: account.email ?? '', mfaCode: ''});
     this.accountForm().reset();
   }
 

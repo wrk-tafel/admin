@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.support.TransactionTemplate
 import java.net.URI
 import java.net.http.HttpClient
@@ -45,6 +46,7 @@ import java.util.Base64
     // fixed code stands in for the mail the e-mail method sends, which nothing here can read
     properties = ["spring.thymeleaf.prefix=classpath:/mail-templates/", "tafeladmin.mfa.emailCodeForTests=424242"],
 )
+@ActiveProfiles("test")
 class MfaIT : TafelBaseIntegrationTest() {
 
     @LocalServerPort
@@ -119,10 +121,13 @@ class MfaIT : TafelBaseIntegrationTest() {
 
     private val emailCode = "424242"
 
-    /** Switches the e-mail method on the way the setup screen does: a code is sent, and entered. */
-    private fun switchOnEmail() {
+    /**
+     * Switches the e-mail method on the way the setup screen does: a code is sent, and entered - together with
+     * [currentCode] of the app when the user has it on, which is what a second method costs.
+     */
+    private fun switchOnEmail(currentCode: String? = null) {
         mfaService.startEmailSetup(user.username)
-        assertThat(mfaService.enableEmail(user.username, emailCode)).isTrue()
+        assertThat(mfaService.enableEmail(user.username, emailCode, currentCode)).isTrue()
     }
 
     /** Switches it on for [user] the way the setup screen does, using the code for the step before this one. */
@@ -294,7 +299,7 @@ class MfaIT : TafelBaseIntegrationTest() {
     @Test
     fun `with both methods either one completes the login`() {
         switchOn()
-        switchOnEmail()
+        switchOnEmail(currentCode = totpService.codeAt(secret, step))
 
         val byEmail = login()
         assertThat(byEmail.body).contains(""""mfaMethods":["TOTP","EMAIL"]""")
@@ -302,7 +307,7 @@ class MfaIT : TafelBaseIntegrationTest() {
         assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", byEmail.jwt).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
 
         val byApp = login()
-        assertThat(post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step)}"}""", byApp.jwt).statusCode())
+        assertThat(post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step + 1)}"}""", byApp.jwt).statusCode())
             .isEqualTo(HttpStatus.NO_CONTENT.value())
     }
 
@@ -314,6 +319,66 @@ class MfaIT : TafelBaseIntegrationTest() {
         val send = post("/api/mfa/email/send", "", login.jwt)
 
         assertThat(send.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+    }
+
+    // ---- changing the second factor takes an existing one
+
+    /** A session that has passed its second factor - the kind that may have been left open in a browser. */
+    private fun completedSession(byEmail: Boolean): String {
+        val login = login()
+        if (byEmail) {
+            post("/api/mfa/email/send", "", login.jwt)
+        }
+        val code = if (byEmail) emailCode else totpService.codeAt(secret, step)
+        return jwtOf(post("/api/mfa/verify", """{"code":"$code"}""", login.jwt))
+    }
+
+    @Test
+    fun `adding the e-mail method to a session that has the app needs a code of the app`() {
+        switchOn()
+        val session = completedSession(byEmail = false)
+
+        assertThat(post("/api/mfa/email/setup", "", session).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
+        val refused = post("/api/mfa/email/enable", """{"code":"$emailCode"}""", session)
+        assertThat(refused.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(userRepository.findByUsername(user.username)!!.mfaEmailEnabled).isFalse()
+
+        val allowed = post("/api/mfa/email/enable", """{"code":"$emailCode","currentCode":"${totpService.codeAt(secret, step + 1)}"}""", session)
+        assertThat(allowed.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
+        assertThat(userRepository.findByUsername(user.username)!!.mfaEmailEnabled).isTrue()
+    }
+
+    @Test
+    fun `adding the app to a session that has the e-mail method needs a code of the e-mail method`() {
+        switchOnEmail()
+        val session = completedSession(byEmail = true)
+
+        val newSecret = JSONSecret.of(post("/api/mfa/setup", "", session).body())
+        val newCode = totpService.codeAt(newSecret, step)
+        val refused = post("/api/mfa/enable", """{"code":"$newCode"}""", session)
+        assertThat(refused.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(userRepository.findByUsername(user.username)!!.mfaTotpEnabled).isFalse()
+
+        post("/api/mfa/email/send", "", session)
+        val allowed = post("/api/mfa/enable", """{"code":"$newCode","currentCode":"$emailCode"}""", session)
+        assertThat(allowed.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
+        assertThat(userRepository.findByUsername(user.username)!!.mfaTotpEnabled).isTrue()
+    }
+
+    @Test
+    fun `the address the e-mail method sends to cannot be changed without a code of a method the user has`() {
+        switchOnEmail()
+        val session = completedSession(byEmail = true)
+        val account = """{"firstname":"${user.employee.firstname}","lastname":"${user.employee.lastname}","email":"attacker@example.org"""
+
+        val refused = put("/api/users/account", "$account\"}", session)
+        assertThat(refused.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(userRepository.findByUsername(user.username)!!.email).isEqualTo("mfa-user@example.org")
+
+        post("/api/mfa/email/send", "", session)
+        val allowed = put("/api/users/account", "$account\",\"mfaCode\":\"$emailCode\"}", session)
+        assertThat(allowed.statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(userRepository.findByUsername(user.username)!!.email).isEqualTo("attacker@example.org")
     }
 
     // ---- the deployment requires it
@@ -375,9 +440,9 @@ class MfaIT : TafelBaseIntegrationTest() {
         val refused = post("/api/mfa/disable", """{"method":"TOTP","code":"${totpService.codeAt(secret, step + 1)}"}""", full)
         assertThat(refused.statusCode()).isEqualTo(HttpStatus.CONFLICT.value())
 
-        switchOnEmail()
+        switchOnEmail(currentCode = totpService.codeAt(secret, step + 1))
         post("/api/mfa/email/send", "", full)
-        val allowed = post("/api/mfa/disable", """{"method":"EMAIL","code":"${totpService.codeAt(secret, step + 1)}"}""", full)
+        val allowed = post("/api/mfa/disable", """{"method":"EMAIL","code":"$emailCode"}""", full)
         assertThat(allowed.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
     }
 
@@ -426,7 +491,11 @@ class MfaIT : TafelBaseIntegrationTest() {
      * A state-changing request needs the CSRF token the server hands out on the first response of a
      * session: it is a cookie, and has to come back as the `X-XSRF-TOKEN` header too.
      */
-    private fun post(path: String, json: String, jwt: String): HttpResponse<String> {
+    private fun post(path: String, json: String, jwt: String): HttpResponse<String> = send("POST", path, json, jwt)
+
+    private fun put(path: String, json: String, jwt: String): HttpResponse<String> = send("PUT", path, json, jwt)
+
+    private fun send(method: String, path: String, json: String, jwt: String): HttpResponse<String> {
         val csrf = get("/api/users/info", jwt).headers().allValues("set-cookie")
             .first { it.startsWith("XSRF-TOKEN=") }
             .substringAfter("=").substringBefore(";")
@@ -435,9 +504,14 @@ class MfaIT : TafelBaseIntegrationTest() {
                 .header("Cookie", "${TafelLoginFilter.jwtCookieName}=$jwt; XSRF-TOKEN=$csrf")
                 .header("X-XSRF-TOKEN", csrf)
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .method(method, HttpRequest.BodyPublishers.ofString(json))
                 .build(),
             HttpResponse.BodyHandlers.ofString(),
         )
+    }
+
+    private object JSONSecret {
+        /** The `secret` of a `/api/mfa/setup` answer. */
+        fun of(body: String): String = Regex(""""secret"\s*:\s*"([^"]+)"""").find(body)!!.groupValues[1]
     }
 }

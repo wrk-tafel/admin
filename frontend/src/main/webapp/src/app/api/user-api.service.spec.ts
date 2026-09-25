@@ -43,7 +43,7 @@ describe('UserApiService', () => {
   });
 
   it('reads the own account', () => {
-    const account = {username: 'max', personnelNumber: '0815', firstname: 'Max', lastname: 'Muster', email: null};
+    const account = {username: 'max', personnelNumber: '0815', firstname: 'Max', lastname: 'Muster', email: null, mfaEmailEnabled: false};
 
     apiService.getAccount().subscribe(response => {
       expect(response).toEqual(account);

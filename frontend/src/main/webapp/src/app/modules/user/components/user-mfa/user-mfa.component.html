@@ -70,6 +70,26 @@
         </div>
 
         <form (submit)="enableApp($event)" novalidate class="flex flex-col gap-2 max-w-xs">
+          @if (anyMethodEnabled()) {
+            <p class="text-sm text-slate-600" testid="appCurrentHint">
+              Eine weitere Methode kann nur hinzufügen, wer eine bestehende Methode nachweist: Bitte zusätzlich einen
+              aktuellen Code der bestehenden Methode eingeben.
+            </p>
+            <mat-form-field>
+              <mat-label>Aktueller Code der bestehenden Methode</mat-label>
+              <input [formField]="codeForm.appCurrentCode" matInput testid="mfaAppCurrentCode" type="text"
+                     inputmode="numeric" autocomplete="one-time-code">
+              @for (message of visibleErrorMessages(codeForm.appCurrentCode()); track message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+            @if (status.emailEnabled) {
+              <button testid="mfaAppSendCurrentCodeButton" matButton="outlined" type="button" class="self-start"
+                      (click)="sendExistingMethodCode()" [disabled]="working()">
+                Code per E-Mail senden
+              </button>
+            }
+          }
           <mat-form-field>
             <mat-label>Code aus der App</mat-label>
             <input [formField]="codeForm.appCode" matInput testid="mfaAppCode" type="text" inputmode="numeric"
@@ -131,6 +151,26 @@
           Geben Sie den Code ein, der an {{ status.emailAddress }} gesendet wurde.
         </p>
         <form (submit)="enableEmail($event)" novalidate class="flex flex-col gap-2 max-w-xs">
+          @if (anyMethodEnabled()) {
+            <p class="text-sm text-slate-600" testid="emailCurrentHint">
+              Eine weitere Methode kann nur hinzufügen, wer eine bestehende Methode nachweist: Bitte zusätzlich einen
+              aktuellen Code der bestehenden Methode eingeben.
+            </p>
+            <mat-form-field>
+              <mat-label>Aktueller Code der bestehenden Methode</mat-label>
+              <input [formField]="codeForm.emailCurrentCode" matInput testid="mfaEmailCurrentCode" type="text"
+                     inputmode="numeric" autocomplete="one-time-code">
+              @for (message of visibleErrorMessages(codeForm.emailCurrentCode()); track message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+            @if (status.emailEnabled) {
+              <button testid="mfaEmailSendCurrentCodeButton" matButton="outlined" type="button" class="self-start"
+                      (click)="sendExistingMethodCode()" [disabled]="working()">
+                Code per E-Mail senden
+              </button>
+            }
+          }
           <mat-form-field>
             <mat-label>Code aus der E-Mail</mat-label>
             <input [formField]="codeForm.emailCode" matInput testid="mfaEmailCode" type="text" inputmode="numeric"
@@ -185,7 +225,7 @@
           </mat-form-field>
           <div class="flex flex-wrap gap-2">
             @if (status.emailEnabled) {
-              <button testid="mfaSendDisableCodeButton" matButton="outlined" type="button" (click)="sendDisableCode()" [disabled]="working()">
+              <button testid="mfaSendDisableCodeButton" matButton="outlined" type="button" (click)="sendExistingMethodCode()" [disabled]="working()">
                 Code per E-Mail senden
               </button>
             }

@@ -73,7 +73,17 @@
         <mat-form-field>
           <mat-label>E-Mail</mat-label>
           <input matInput testid="emailInput" type="email" autocomplete="off" [formField]="userForm.email">
-          <mat-hint>Optional - für Systembenachrichtigungen an diesen Benutzer</mat-hint>
+          @if (emailLocked()) {
+            <mat-hint testid="email-locked-hint">
+              @if (editingOwnAccount()) {
+                Ihre eigene Adresse ändern Sie unter „Mein Konto“ > „Meine Daten“ - dort ist ein Code nötig.
+              } @else {
+                Nur ein Administrator kann die E-Mail-Adresse eines Administrator-Kontos ändern.
+              }
+            </mat-hint>
+          } @else {
+            <mat-hint>Optional - für Systembenachrichtigungen an diesen Benutzer</mat-hint>
+          }
           @for (errorMessage of visibleErrorMessages(userForm.email()); track errorMessage) {
             <mat-error>{{errorMessage}}</mat-error>
           }
@@ -90,6 +100,15 @@
         -->
         <div class="tafel-h5" testid="password-reset-locked-hint">Passwort zurücksetzen</div>
         <div class="text-sm text-gray-500 -mt-1">Nur ein Administrator kann das Passwort eines Administrator-Kontos zurücksetzen.</div>
+      } @else if (editingOwnAccount()) {
+        <!--
+          The backend refuses to set one's own password here (it would skip the current password and the
+          lockout that counts wrong guesses) - it is changed under "Mein Konto" > "Passwort".
+        -->
+        <div class="tafel-h5" testid="password-reset-own-hint">Passwort ändern</div>
+        <div class="text-sm text-gray-500 -mt-1">
+          Ihr eigenes Passwort ändern Sie unter „Mein Konto“ > „Passwort“ - dort wird das aktuelle Passwort abgefragt.
+        </div>
       } @else {
         <!--
           Password fields sit behind an explicit toggle in edit mode rather than mid-form like an

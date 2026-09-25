@@ -47,6 +47,20 @@ data class MfaCodeRequest(
     val code: String,
 )
 
+/**
+ * Switches a method on. [code] is the one that proves the new method works (from the app for the secret that was
+ * just handed out, or the one that was mailed); [currentCode] is one of a method the user already has, which is
+ * required exactly when they have one - a session left open cannot add its own second factor.
+ */
+@ExcludeFromTestCoverage
+data class MfaEnableRequest(
+    @field:NotBlank
+    @field:Size(max = 16)
+    val code: String,
+    @field:Size(max = 16)
+    val currentCode: String? = null,
+)
+
 /** Switches [method] off; [code] may come from either method the user has. */
 @ExcludeFromTestCoverage
 data class MfaDisableRequest(

@@ -110,6 +110,27 @@ export class UserFormComponent {
     this.targetIsAdministrator() && !this.authenticationService.hasPermission(ADMINISTRATOR_PERMISSION)
   );
 
+  /**
+   * The account being edited is the caller's own. The backend refuses to set its password here - that is
+   * "Mein Konto" > "Passwort", which asks for the current one - so the section is replaced by a pointer there
+   * instead of offering a change that would be refused on save.
+   */
+  editingOwnAccount = computed(() => {
+    const username = this.userData()?.username;
+    return !!username && username === this.authenticationService.getUsername();
+  });
+
+  /**
+   * The e-mail address is a second factor for a user with the code by e-mail: the account's owner changes it
+   * on "Mein Konto" > "Meine Daten", where a code is asked for, and for an administrator only another
+   * administrator may change it (like the username and the password) - so the field is read-only here, as the
+   * backend would refuse the change anyway.
+   */
+  emailLocked = computed(() =>
+    this.administratorAccountFieldsLocked()
+    || (this.editingOwnAccount() && !!this.userData()?.mfaMethods?.includes('EMAIL'))
+  );
+
   // The employee currently linked via the personnel-number search, resolved through
   // `tafel-employee-search-create` (matching logistics' driver/co-driver pattern) rather than typed
   // freely, so an account can no longer reference a personnel number no employee actually holds.
@@ -142,6 +163,7 @@ export class UserFormComponent {
     required(schemaPath.username, {message: 'Pflichtfeld'});
     maxLength(schemaPath.username, 50, {message: 'Benutzername zu lang (maximal 50 Zeichen)'});
     disabled(schemaPath.username, {when: () => this.administratorAccountFieldsLocked()});
+    disabled(schemaPath.email, {when: () => this.emailLocked()});
 
     required(schemaPath.lastname, {message: 'Pflichtfeld'});
     maxLength(schemaPath.lastname, 50, {message: 'Nachname zu lang (maximal 50 Zeichen)'});
