@@ -9,7 +9,7 @@ spring-modulith = "2.1.1"
 # Release train "Oakwood" - the first line compatible with Spring Boot 4.1. Only spring-cloud-context
 # is used from it (see backend/build.gradle.kts), not the config server/client or the bus.
 spring-cloud = "2025.1.3"
-jackson = "3.2.2"
+jackson = "3.2.3"
 # Legacy Jackson 2.x line, pulled in transitively (jjwt-jackson, swagger-core-jakarta) alongside the Jackson 3.x
 # used directly by this project. Pinned separately to patch known CVEs in that transitive line: the fix for
 # CVE-2026-54515/CVE-2026-59889 landed in 2.21.5 and, separately, in 2.22.1 - a plain "use the newest available"
