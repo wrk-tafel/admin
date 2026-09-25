@@ -1,7 +1,7 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {Router} from '@angular/router';
-import {of, throwError} from 'rxjs';
+import {ActivatedRoute, Router} from '@angular/router';
+import {EMPTY, of, throwError} from 'rxjs';
 import {UserMfaComponent} from './user-mfa.component';
 import {MfaApiService, MfaStatus} from '../../../../api/mfa-api.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
@@ -10,21 +10,33 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 describe('UserMfaComponent', () => {
   let mfaApiService: MockedObject<MfaApiService>;
   let toastr: MockedObject<TafelToastrService>;
-  let router: {navigate: ReturnType<typeof vi.fn>};
+  let router: {
+    navigate: ReturnType<typeof vi.fn>;
+    createUrlTree: ReturnType<typeof vi.fn>;
+    serializeUrl: ReturnType<typeof vi.fn>;
+    events: typeof EMPTY;
+  };
   let authenticationService: {loadUserInfo: ReturnType<typeof vi.fn>};
 
   const setup = {secret: 'ABCDEFGHJKLMNPQR', otpauthUri: 'otpauth://totp/Tafel:max?secret=ABCDEFGHJKLMNPQR&issuer=Tafel'};
   const status = (overrides: Partial<MfaStatus> = {}): MfaStatus => ({
-    totpEnabled: false, emailEnabled: false, required: false, emailAvailable: true, ...overrides
+    totpEnabled: false, emailEnabled: false, required: false, emailAvailable: true, emailAddress: 'max@example.org', ...overrides
   });
 
   beforeEach(() => {
-    router = {navigate: vi.fn().mockResolvedValue(true)};
+    router = {
+      navigate: vi.fn().mockResolvedValue(true),
+      // the pointer to the "Meine Daten" tab is a RouterLink, which builds its href from these two
+      createUrlTree: vi.fn().mockReturnValue({}),
+      serializeUrl: vi.fn().mockReturnValue('/konto/daten'),
+      events: EMPTY
+    };
     authenticationService = {loadUserInfo: vi.fn().mockResolvedValue({username: 'max', permissions: ['X']})};
 
     TestBed.configureTestingModule({
       providers: [
         {provide: Router, useValue: router},
+        {provide: ActivatedRoute, useValue: {}},
         {provide: AuthenticationService, useValue: authenticationService},
         {
           provide: MfaApiService,
@@ -211,6 +223,25 @@ describe('UserMfaComponent', () => {
     fixture.detectChanges();
 
     expect(text(fixture, 'errorMessage')).toContain('einen Moment warten');
+  });
+
+  it('names the address a code goes to, and where to change it', async () => {
+    const fixture = await create();
+
+    expect(text(fixture, 'mfaEmailAddress')).toContain('max@example.org');
+    expect(element(fixture, 'mfaEmailAddress')!.querySelector('a')!.textContent).toContain('Meine Daten');
+    expect(element(fixture, 'mfaEmailSetupButton')).not.toBeNull();
+  });
+
+  it('sends a user with no address to the "Meine Daten" tab instead of offering the e-mail method', async () => {
+    mfaApiService.getStatus.mockReturnValue(of(status({emailAddress: null})));
+
+    const fixture = await create();
+
+    expect(text(fixture, 'mfaEmailStatus')).toBe('Nicht aktiv');
+    expect(text(fixture, 'mfaEmailNoAddress')).toContain('keine E-Mail-Adresse hinterlegt');
+    expect(element(fixture, 'mfaEmailNoAddress')!.querySelector('a')!.textContent).toContain('Meine Daten');
+    expect(element(fixture, 'mfaEmailSetupButton')).toBeNull();
   });
 
   it('says that e-mail is not available where no mail can be sent', async () => {

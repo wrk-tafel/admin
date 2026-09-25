@@ -209,6 +209,22 @@ class TafelUserDetailsManager(
      * (`R__00111_change_tracking_actor_user_fk.sql`, ADR-0052), so deleting the row here clears them
      * by itself - no separate sweep needed.
      */
+    /**
+     * A user changing what is theirs to change about their own account (the "Meine Daten" tab of
+     * "Mein Konto"): the name on the linked [EmployeeEntity] and the e-mail address. Deliberately
+     * not routed through [updateUser]: that takes a whole [TafelUser], and a loaded one carries the
+     * password *hash* in its password field, which [mapToUserEntity] would encode a second time as
+     * if it were a new password. This touches nothing but the three fields - no username, no
+     * personnel number, no permissions, no password, no token invalidation.
+     */
+    fun updateOwnAccount(username: String, firstname: String, lastname: String, email: String?): TafelUser {
+        val userEntity = userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
+        userEntity.employee.firstname = firstname
+        userEntity.employee.lastname = lastname
+        userEntity.email = email
+        return mapToUserDetails(userRepository.save(userEntity))
+    }
+
     override fun deleteUser(username: String) {
         val userEntity =
             userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")

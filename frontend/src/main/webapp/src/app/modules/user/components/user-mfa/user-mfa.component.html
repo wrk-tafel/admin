@@ -106,13 +106,29 @@
           <span class="font-medium">Status:</span>
           <span testid="mfaEmailStatus" class="px-2 rounded text-white bg-green-700">Aktiv</span>
         </div>
+        @if (status.emailAddress) {
+          <p class="text-sm text-slate-600 mb-4" testid="mfaEmailAddress">
+            Der Code wird an {{ status.emailAddress }} gesendet - die Adresse ändern Sie unter
+            <a routerLink="/konto/daten" class="text-blue-700 underline">Meine Daten</a>.
+          </p>
+        }
+      } @else if (!status.emailAddress) {
+        <div class="flex items-center gap-2 mb-4">
+          <span class="font-medium">Status:</span>
+          <span testid="mfaEmailStatus" class="px-2 rounded text-white bg-[var(--tafel-severity-neutral)]">Nicht aktiv</span>
+        </div>
+        <p class="text-sm text-slate-600" testid="mfaEmailNoAddress">
+          Für Ihr Benutzerkonto ist keine E-Mail-Adresse hinterlegt. Tragen Sie eine unter
+          <a routerLink="/konto/daten" class="text-blue-700 underline">Meine Daten</a> ein, dann lässt sich ein Code
+          per E-Mail einrichten.
+        </p>
       } @else if (emailSetupStarted()) {
         <div class="flex items-center gap-2 mb-4">
           <span class="font-medium">Status:</span>
           <span testid="mfaEmailStatus" class="px-2 rounded text-white bg-[var(--tafel-severity-neutral)]">Wird eingerichtet</span>
         </div>
         <p class="text-sm text-slate-700 mb-2">
-          Geben Sie den Code ein, der an die E-Mail-Adresse Ihres Benutzerkontos gesendet wurde.
+          Geben Sie den Code ein, der an {{ status.emailAddress }} gesendet wurde.
         </p>
         <form (submit)="enableEmail($event)" novalidate class="flex flex-col gap-2 max-w-xs">
           <mat-form-field>
@@ -136,6 +152,10 @@
           <span class="font-medium">Status:</span>
           <span testid="mfaEmailStatus" class="px-2 rounded text-white bg-[var(--tafel-severity-neutral)]">Nicht aktiv</span>
         </div>
+        <p class="text-sm text-slate-600 mb-4" testid="mfaEmailAddress">
+          Der Code wird an {{ status.emailAddress }} gesendet - die Adresse ändern Sie unter
+          <a routerLink="/konto/daten" class="text-blue-700 underline">Meine Daten</a>.
+        </p>
         <button testid="mfaEmailSetupButton" matButton="filled" type="button" (click)="startEmailSetup()" [disabled]="working()">
           Einrichten
         </button>

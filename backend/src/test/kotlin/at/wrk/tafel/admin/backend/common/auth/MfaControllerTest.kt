@@ -71,7 +71,8 @@ class MfaControllerTest {
     @Test
     fun `status and setup are answered for a completed session`() {
         signedIn()
-        every { mfaService.getStatus("max") } returns MfaStatus(totpEnabled = true, emailEnabled = false, required = true, emailAvailable = true)
+        every { mfaService.getStatus("max") } returns
+            MfaStatus(totpEnabled = true, emailEnabled = false, required = true, emailAvailable = true, emailAddress = "max@example.org")
         every { mfaService.startSetup("max") } returns MfaSetup(secret = "SECRET", otpauthUri = "otpauth://totp/x")
 
         val status = controller.getStatus()
@@ -81,6 +82,7 @@ class MfaControllerTest {
         assertThat(status.emailEnabled).isFalse()
         assertThat(status.required).isTrue()
         assertThat(status.emailAvailable).isTrue()
+        assertThat(status.emailAddress).isEqualTo("max@example.org")
         assertThat(setup.secret).isEqualTo("SECRET")
         assertThat(setup.otpauthUri).isEqualTo("otpauth://totp/x")
     }

@@ -683,6 +683,57 @@ class TafelUserDetailsManagerTest {
     }
 
     @Test
+    fun `updateOwnAccount changes the name and the e-mail and nothing else`() {
+        val employeeEntity = EmployeeEntity(
+            personnelNumber = "test-personnelnumber",
+            firstname = "test-firstname",
+            lastname = "test-lastname",
+        )
+        val userEntity = UserEntity(
+            username = "test-username",
+            password = "{argon2}hash",
+            employee = employeeEntity,
+            enabled = true,
+            passwordChangeRequired = false,
+        ).apply { id = 0 }
+        userEntity.authorities = mutableListOf(UserAuthorityEntity(user = userEntity, name = UserPermissions.CHECKIN.key))
+        every { userRepository.findByUsername("test-username") } returns userEntity
+        every { userRepository.save(any()) } answers { firstArg() }
+
+        val updated = manager.updateOwnAccount("test-username", "new-firstname", "new-lastname", "new@example.org")
+
+        val savedUserSlot = slot<UserEntity>()
+        verify(exactly = 1) { userRepository.save(capture(savedUserSlot)) }
+        val savedUser = savedUserSlot.captured
+        assertThat(savedUser.employee.firstname).isEqualTo("new-firstname")
+        assertThat(savedUser.employee.lastname).isEqualTo("new-lastname")
+        assertThat(savedUser.email).isEqualTo("new@example.org")
+        // What stays with the administrator is untouched - and so is the session, since no password moved
+        assertThat(savedUser.username).isEqualTo("test-username")
+        assertThat(savedUser.employee.personnelNumber).isEqualTo("test-personnelnumber")
+        assertThat(savedUser.password).isEqualTo("{argon2}hash")
+        assertThat(savedUser.enabled).isTrue()
+        assertThat(savedUser.authorities).extracting("name").containsExactly(UserPermissions.CHECKIN.key)
+        assertThat(savedUser.tokenInvalidatedAt).isNull()
+        // No new employee is resolved or created - the one linked stays the one linked
+        verify(exactly = 0) { employeeRepository.findByPersonnelNumber(any()) }
+
+        assertThat(updated.firstname).isEqualTo("new-firstname")
+        assertThat(updated.lastname).isEqualTo("new-lastname")
+        assertThat(updated.email).isEqualTo("new@example.org")
+        assertThat(updated.personnelNumber).isEqualTo("test-personnelnumber")
+    }
+
+    @Test
+    fun `updateOwnAccount for an unknown user throws`() {
+        every { userRepository.findByUsername("nobody") } returns null
+
+        assertThrows<UsernameNotFoundException> { manager.updateOwnAccount("nobody", "a", "b", null) }
+
+        verify(exactly = 0) { userRepository.save(any()) }
+    }
+
+    @Test
     fun `updateUser including password change successful`() {
         val testUserEntity = UserEntity(
             username = "test-username",

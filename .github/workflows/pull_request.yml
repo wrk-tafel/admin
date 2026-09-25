@@ -47,16 +47,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           # No leading uppercase, no trailing period, and a length cap that keeps the full
-          # "type(scope)!: description" header under 100 chars even with a long type+scope
-          # prefix. This is intentionally stricter than commitlint.config.js's 150-char
-          # header-max-length, which was raised only to stop Dependabot's longer
-          # auto-generated commit messages from failing that check; human-authored titles
-          # should stay concise regardless.
-          subjectPattern: ^(?![A-Z]).{0,79}[^.]$
+          # "type(scope)!: description" header within 200 chars even with a long type+scope
+          # prefix, matching commitlint.config.cjs's header-max-length.
+          subjectPattern: ^(?![A-Z]).{0,179}[^.]$
           subjectPatternError: |
             The description "{subject}" found in title "{title}" must start with a lowercase
             letter, must not end with a period, and (with its type/scope prefix) must keep the
-            whole title under 100 characters — matches the commitlint check on commits.
+            whole title within 200 characters — matches the commitlint check on commits.
   # Every job below is gated on what this pull request actually touches, so a docs-only change (or
   # a title/description edit, which re-triggers this workflow with unchanged commits) costs nothing
   # beyond the two lint jobs above. See subflow_changes.yml for the classification rules.
