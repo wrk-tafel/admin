@@ -37,8 +37,10 @@ function codeError(value: string) {
  *   on record is sent to the "Meine Daten" tab to add one, instead of being offered a method that cannot work.
  *
  * Switching a method off asks for a code of either method, so a browser left signed in cannot take the second
- * factor away. When the deployment requires one the last method cannot be switched off, and a user who has none
- * lands on this tab (see `AuthGuardService`) and can do nothing else until one is set up.
+ * factor away - and so does adding a second method next to one that is on already (`appCurrentCode`/
+ * `emailCurrentCode`), or a browser left signed in could put its own next to the user's. When the deployment
+ * requires one the last method cannot be switched off, and a user who has none lands on this tab (see
+ * `AuthGuardService`) and can do nothing else until one is set up.
  */
 @Component({
   selector: 'tafel-user-mfa',
@@ -94,11 +96,14 @@ export class UserMfaComponent {
 
   readonly anyMethodEnabled = computed(() => !!this.status()?.totpEnabled || !!this.status()?.emailEnabled);
 
-  private readonly formModel = signal({appCode: '', emailCode: '', disableCode: ''});
+  private readonly formModel = signal({appCode: '', emailCode: '', disableCode: '', appCurrentCode: '', emailCurrentCode: ''});
   codeForm = form(this.formModel, (schemaPath) => {
     validate(schemaPath.appCode, ({value}) => codeError(value()));
     validate(schemaPath.emailCode, ({value}) => codeError(value()));
     validate(schemaPath.disableCode, ({value}) => codeError(value()));
+    // only asked for while there is a method to prove - the very first one has nothing to show
+    validate(schemaPath.appCurrentCode, ({value}) => this.anyMethodEnabled() ? codeError(value()) : null);
+    validate(schemaPath.emailCurrentCode, ({value}) => this.anyMethodEnabled() ? codeError(value()) : null);
   });
 
   constructor() {
@@ -148,7 +153,8 @@ export class UserMfaComponent {
 
   enableApp(event: Event) {
     event.preventDefault();
-    this.submitCode('appCode', code => this.mfaApiService.enable(code, SUPPRESS_ERROR_TOAST_CONTEXT), () => {
+    this.submitCode('appCode', (code, currentCode) =>
+      this.mfaApiService.enable(code, currentCode, SUPPRESS_ERROR_TOAST_CONTEXT), () => {
       this.appSetup.set(null);
       this.toastr.success('Authenticator-App eingerichtet!');
     });
@@ -177,7 +183,8 @@ export class UserMfaComponent {
 
   enableEmail(event: Event) {
     event.preventDefault();
-    this.submitCode('emailCode', code => this.mfaApiService.enableEmail(code, SUPPRESS_ERROR_TOAST_CONTEXT), () => {
+    this.submitCode('emailCode', (code, currentCode) =>
+      this.mfaApiService.enableEmail(code, currentCode, SUPPRESS_ERROR_TOAST_CONTEXT), () => {
       this.emailSetupStarted.set(false);
       this.toastr.success('Code per E-Mail eingerichtet!');
     });
@@ -185,8 +192,11 @@ export class UserMfaComponent {
 
   // ---- switching off
 
-  /** Sends the e-mailed code, for someone who has only that method and needs a code to switch it off. */
-  sendDisableCode() {
+  /**
+   * Sends the e-mailed code, for someone who has the e-mail method and needs a code of it - to switch a method
+   * off, or to prove they hold the method they have before adding another.
+   */
+  sendExistingMethodCode() {
     this.working.set(true);
     this.clearMessages();
     this.mfaApiService.sendEmailCode(SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
@@ -199,7 +209,7 @@ export class UserMfaComponent {
   }
 
   disable(method: MfaMethod) {
-    this.submitCode('disableCode', code => this.mfaApiService.disable(method, code, SUPPRESS_ERROR_TOAST_CONTEXT), () => {
+    this.submitCode('disableCode', (code) => this.mfaApiService.disable(method, code, SUPPRESS_ERROR_TOAST_CONTEXT), () => {
       this.toastr.success(method === 'TOTP' ? 'Authenticator-App entfernt!' : 'Code per E-Mail entfernt!');
     });
   }
@@ -208,7 +218,7 @@ export class UserMfaComponent {
 
   private submitCode(
     field: 'appCode' | 'emailCode' | 'disableCode',
-    call: (code: string) => ReturnType<MfaApiService['enable']>,
+    call: (code: string, currentCode: string | null) => ReturnType<MfaApiService['enable']>,
     onSuccess: () => void
   ) {
     this.codeForm[field]().markAsTouched();
@@ -216,10 +226,21 @@ export class UserMfaComponent {
       return;
     }
 
+    // Adding a method next to one that is on also takes a code of that one.
+    const currentField = field === 'appCode' ? 'appCurrentCode' : field === 'emailCode' ? 'emailCurrentCode' : null;
+    const needsCurrentCode = currentField !== null && this.anyMethodEnabled();
+    if (needsCurrentCode) {
+      this.codeForm[currentField]().markAsTouched();
+      if (!this.codeForm[currentField]().valid()) {
+        return;
+      }
+    }
+    const currentCode = needsCurrentCode ? this.codeForm[currentField]().value().replace(/\s/g, '') : null;
+
     const wasSetupRequired = this.setupRequired();
     this.working.set(true);
     this.clearMessages();
-    call(this.codeForm[field]().value().replace(/\s/g, '')).subscribe({
+    call(this.codeForm[field]().value().replace(/\s/g, ''), currentCode).subscribe({
       next: async () => {
         onSuccess();
         this.resetCodes();
@@ -250,7 +271,7 @@ export class UserMfaComponent {
   }
 
   private resetCodes() {
-    this.formModel.set({appCode: '', emailCode: '', disableCode: ''});
+    this.formModel.set({appCode: '', emailCode: '', disableCode: '', appCurrentCode: '', emailCurrentCode: ''});
   }
 
   protected readonly visibleErrorMessages = visibleErrorMessages;

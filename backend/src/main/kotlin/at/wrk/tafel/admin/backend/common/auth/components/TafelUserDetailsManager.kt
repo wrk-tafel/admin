@@ -243,9 +243,18 @@ class TafelUserDetailsManager(
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         var storedUser = userRepository.findByUsername(authenticatedUser.username!!)!!
 
+        // A session that is already open is not a reason to let the current password be guessed at Argon2's pace:
+        // a wrong one is counted under the username like a failed login, and a locked account is refused without
+        // looking at the password at all. (The caller is @Transactional and answers this exception itself, so
+        // the count is committed.)
+        if (loginAttemptService.isLocked(storedUser.username)) {
+            throw PasswordChangeException("Zu viele Fehlversuche - bitte später erneut versuchen!")
+        }
         if (!passwordEncoder.matches(oldPassword, storedUser.password)) {
+            loginAttemptService.recordFailure(storedUser.username)
             throw PasswordChangeException("Aktuelles Passwort ist falsch!")
         }
+        loginAttemptService.recordSuccess(storedUser.username)
 
         if (isPasswordValid(storedUser.username, newPassword)) {
             storedUser.password = passwordEncoder.encode(newPassword)!!

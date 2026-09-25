@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.MfaCodeRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaDisableRequest
+import at.wrk.tafel.admin.backend.common.auth.model.MfaEnableRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaSetupResponse
 import at.wrk.tafel.admin.backend.common.auth.model.MfaStatusResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
@@ -76,16 +77,17 @@ class MfaController(
     /**
      * Switches the app on. The session this arrives on has by definition passed no second factor yet - it never
      * needed one, or it had none to give - so it is answered with one that has, or the very next request would
-     * count as unfinished.
+     * count as unfinished. A user who already has a method has to give a code of it as well (`currentCode`): the
+     * session they are on may have been left open, and adding a second factor is as good as taking over the first.
      */
     @PostMapping("/enable")
     fun enable(
-        @Valid @RequestBody request: MfaCodeRequest,
+        @Valid @RequestBody request: MfaEnableRequest,
         httpRequest: HttpServletRequest,
         httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
-        if (!mfaService.enable(authentication.username!!, request.code)) {
+        if (!mfaService.enable(authentication.username!!, request.code, request.currentCode)) {
             throw invalidCode()
         }
         issueCompletedSession(authentication.username, httpRequest, httpResponse)
@@ -105,12 +107,12 @@ class MfaController(
     /** Switches the e-mail method on with the code that was just sent - answered with a completed session, like [enable]. */
     @PostMapping("/email/enable")
     fun enableEmail(
-        @Valid @RequestBody request: MfaCodeRequest,
+        @Valid @RequestBody request: MfaEnableRequest,
         httpRequest: HttpServletRequest,
         httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
-        if (!mfaService.enableEmail(authentication.username!!, request.code)) {
+        if (!mfaService.enableEmail(authentication.username!!, request.code, request.currentCode)) {
             throw invalidCode()
         }
         issueCompletedSession(authentication.username, httpRequest, httpResponse)
@@ -118,8 +120,8 @@ class MfaController(
     }
 
     /**
-     * Sends the e-mailed code for a login that owes one - or, from a completed session, for switching the method
-     * off. Answered with `429` inside the cooldown, see `MfaEmailCodeService`.
+     * Sends the e-mailed code for a login that owes one - or, from a completed session, for switching a method
+     * off or on, or changing the address on the account. Answered with `429` inside the cooldown, see `MfaEmailCodeService`.
      */
     @PostMapping("/email/send")
     fun sendLoginCode(): ResponseEntity<Unit> {

@@ -76,7 +76,8 @@ describe('UserFormComponent', () => {
         {
           provide: AuthenticationService,
           useValue: {
-            hasPermission: vi.fn().mockName('AuthenticationService.hasPermission').mockReturnValue(false)
+            hasPermission: vi.fn().mockName('AuthenticationService.hasPermission').mockReturnValue(false),
+            getUsername: vi.fn().mockName('AuthenticationService.getUsername').mockReturnValue('caller')
           }
         }
       ]
@@ -310,6 +311,72 @@ describe('UserFormComponent', () => {
 
       expect(fixture.componentInstance.administratorAccountFieldsLocked()).toBe(false);
     });
+  });
+
+  // Mirrors validateOwnCredentialsUnchanged on the backend: the own password is changed under "Mein Konto", the
+  // own address - with the code by e-mail on - as well.
+  describe('editing the own account', () => {
+    function editOwn(user: UserData) {
+      authenticationService.getUsername.mockReturnValue(user.username);
+      const fixture = TestBed.createComponent(UserFormComponent);
+      fixture.componentRef.setInput('userData', user);
+      fixture.componentRef.setInput('permissionsData', mockPermissions);
+      fixture.detectChanges();
+      return fixture;
+    }
+
+    const hint = (fixture: ReturnType<typeof editOwn>, testid: string) =>
+      fixture.nativeElement.querySelector(`[testid="${testid}"]`) as HTMLElement | null;
+
+    it('offers no password reset and points to "Mein Konto" instead', () => {
+      const fixture = editOwn(mockUser);
+
+      expect(fixture.componentInstance.editingOwnAccount()).toBe(true);
+      expect(hint(fixture, 'password-reset-toggle')).toBeNull();
+      expect(hint(fixture, 'password-reset-own-hint')!.textContent).toContain('Passwort ändern');
+      // and nothing of the hidden fields is sent
+      expect(fixture.componentInstance.passwordFieldsVisible()).toBe(false);
+    });
+
+    it('keeps offering the password reset for another account', () => {
+      authenticationService.getUsername.mockReturnValue('somebody-else');
+      const fixture = TestBed.createComponent(UserFormComponent);
+      fixture.componentRef.setInput('userData', mockUser);
+      fixture.componentRef.setInput('permissionsData', mockPermissions);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.editingOwnAccount()).toBe(false);
+      expect(hint(fixture, 'password-reset-toggle')).not.toBeNull();
+      expect(hint(fixture, 'password-reset-own-hint')).toBeNull();
+    });
+
+    it('locks the e-mail address while the own e-mail method is on', () => {
+      const fixture = editOwn({...mockUser, mfaMethods: ['EMAIL']});
+
+      expect(fixture.componentInstance.userForm.email().disabled()).toBe(true);
+      expect(hint(fixture, 'email-locked-hint')!.textContent).toContain('Mein Konto');
+    });
+
+    it('leaves the e-mail address editable without the e-mail method', () => {
+      const fixture = editOwn({...mockUser, mfaMethods: ['TOTP']});
+
+      expect(fixture.componentInstance.userForm.email().disabled()).toBe(false);
+      expect(hint(fixture, 'email-locked-hint')).toBeNull();
+    });
+  });
+
+  it('locks the e-mail address of an administrator for a non-administrator', () => {
+    authenticationService.hasPermission.mockReturnValue(false);
+    const fixture = TestBed.createComponent(UserFormComponent);
+    fixture.componentRef.setInput('userData', {
+      ...mockUser,
+      permissions: [{key: 'ADMINISTRATOR', title: 'Administrator', category: ''}]
+    });
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.userForm.email().disabled()).toBe(true);
+    expect(fixture.nativeElement.querySelector('[testid="email-locked-hint"]').textContent).toContain('Administrator');
   });
 
   it('password-repeat validator passwords different', () => {

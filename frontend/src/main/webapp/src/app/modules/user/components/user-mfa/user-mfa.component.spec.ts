@@ -73,7 +73,7 @@ describe('UserMfaComponent', () => {
   const element = (fixture: Fixture, testid: string): HTMLElement | null => fixture.nativeElement.querySelector(`[testid="${testid}"]`);
   const text = (fixture: Fixture, testid: string) => element(fixture, testid)?.textContent?.trim();
 
-  function type(fixture: Fixture, field: 'appCode' | 'emailCode' | 'disableCode', code: string) {
+  function type(fixture: Fixture, field: 'appCode' | 'emailCode' | 'disableCode' | 'appCurrentCode' | 'emailCurrentCode', code: string) {
     fixture.componentInstance.codeForm[field]().value.set(code);
     fixture.detectChanges();
   }
@@ -159,7 +159,7 @@ describe('UserMfaComponent', () => {
     fixture.componentInstance.enableApp(new Event('submit'));
     await settle(fixture);
 
-    expect(mfaApiService.enable).toHaveBeenCalledWith('123456', expect.anything());
+    expect(mfaApiService.enable).toHaveBeenCalledWith('123456', null, expect.anything());
     expect(authenticationService.loadUserInfo).toHaveBeenCalled();
     expect(text(fixture, 'mfaTotpStatus')).toBe('Aktiv');
     expect(toastr.success).toHaveBeenCalledWith('Authenticator-App eingerichtet!');
@@ -180,6 +180,60 @@ describe('UserMfaComponent', () => {
     expect(fixture.componentInstance.working()).toBe(false);
   });
 
+  // A session that was left open must not be able to put its own second factor next to the user's.
+  it('asks a user who has the e-mail method for a code of it before adding the app', async () => {
+    mfaApiService.getStatus.mockReturnValue(of(status({emailEnabled: true})));
+    const fixture = await create();
+    fixture.componentInstance.startAppSetup();
+    fixture.detectChanges();
+    expect(element(fixture, 'mfaAppCurrentCode')).not.toBeNull();
+    type(fixture, 'appCode', '123456');
+
+    // no current code yet
+    fixture.componentInstance.enableApp(new Event('submit'));
+    expect(mfaApiService.enable).not.toHaveBeenCalled();
+
+    type(fixture, 'appCode', '123456');
+    type(fixture, 'appCurrentCode', '654 321');
+    fixture.componentInstance.enableApp(new Event('submit'));
+    await settle(fixture);
+
+    expect(mfaApiService.enable).toHaveBeenCalledWith('123456', '654321', expect.anything());
+  });
+
+  it('lets the current code for adding the app be sent by e-mail, when that is the method the user has', async () => {
+    mfaApiService.getStatus.mockReturnValue(of(status({emailEnabled: true})));
+    const fixture = await create();
+    fixture.componentInstance.startAppSetup();
+    fixture.detectChanges();
+
+    (element(fixture, 'mfaAppSendCurrentCodeButton') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(mfaApiService.sendEmailCode).toHaveBeenCalled();
+    expect(text(fixture, 'infoMessage')).toContain('gesendet');
+  });
+
+  it('asks a user who has the app for a code of it before adding the e-mail method, and offers no e-mail button for it', async () => {
+    mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true})));
+    const fixture = await create();
+    fixture.componentInstance.startEmailSetup();
+    fixture.detectChanges();
+    expect(element(fixture, 'mfaEmailCurrentCode')).not.toBeNull();
+    expect(element(fixture, 'mfaEmailSendCurrentCodeButton')).toBeNull();
+
+    type(fixture, 'emailCode', '654321');
+    fixture.componentInstance.enableEmail(new Event('submit'));
+    expect(mfaApiService.enableEmail).not.toHaveBeenCalled();
+
+    type(fixture, 'emailCode', '654321');
+    type(fixture, 'emailCurrentCode', '123456');
+    fixture.componentInstance.enableEmail(new Event('submit'));
+    await settle(fixture);
+
+    expect(mfaApiService.enableEmail).toHaveBeenCalledWith('654321', '123456', expect.anything());
+  });
+
   // ---- e-mail
 
   it('sends a code when the e-mail setup is started, and switches the method on with it', async () => {
@@ -197,7 +251,7 @@ describe('UserMfaComponent', () => {
     fixture.componentInstance.enableEmail(new Event('submit'));
     await settle(fixture);
 
-    expect(mfaApiService.enableEmail).toHaveBeenCalledWith('654321', expect.anything());
+    expect(mfaApiService.enableEmail).toHaveBeenCalledWith('654321', null, expect.anything());
     expect(text(fixture, 'mfaEmailStatus')).toBe('Aktiv');
     expect(toastr.success).toHaveBeenCalledWith('Code per E-Mail eingerichtet!');
   });

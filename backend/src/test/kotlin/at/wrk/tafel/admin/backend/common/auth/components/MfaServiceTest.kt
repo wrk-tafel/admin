@@ -34,6 +34,9 @@ class MfaServiceTest {
     @MockK(relaxed = true)
     private lateinit var loginAttemptService: LoginAttemptService
 
+    @MockK(relaxed = true)
+    private lateinit var notificationService: AccountSecurityNotificationService
+
     private val properties = TafelAdminProperties()
 
     private lateinit var service: MfaService
@@ -43,13 +46,16 @@ class MfaServiceTest {
 
     @BeforeEach
     fun setup() {
-        service = MfaService(userRepository, totpService, mfaEmailCodeService, loginAttemptService, properties)
+        service = MfaService(userRepository, totpService, mfaEmailCodeService, loginAttemptService, properties, notificationService)
         user = UserEntity(
             username = "max",
             password = "hash",
             employee = EmployeeEntity(personnelNumber = "1", firstname = "Max", lastname = "Muster"),
             enabled = true,
-        ).apply { id = 7 }
+        ).apply {
+            id = 7
+            email = "max@example.org"
+        }
         properties.mfa.required = false
         properties.environmentLabel = ""
 
@@ -148,6 +154,49 @@ class MfaServiceTest {
     }
 
     @Test
+    fun `switching the app on is mailed to the user`() {
+        user.mfaSecret = "SECRET"
+
+        service.enable("max", "123456")
+
+        verify(exactly = 1) { notificationService.notify("max", "max@example.org", match { it.contains("Authenticator-App") && it.contains("eingeschaltet") }) }
+    }
+
+    // A session left open must not be able to put its own second factor next to the user's.
+    @Test
+    fun `a user who has the e-mail method needs one of its codes to add the app`() {
+        emailOn()
+        user.mfaSecret = "NEWSECRET"
+        every { totpService.matchingStep("NEWSECRET", "123456") } returns 100L
+
+        assertThat(service.enable("max", "123456")).isFalse()
+        assertThat(service.enable("max", "123456", currentCode = " ")).isFalse()
+        assertThat(user.mfaTotpEnabled).isFalse()
+        // no code was given, so nothing was guessed and nothing is counted
+        verify(exactly = 0) { loginAttemptService.recordFailure(any()) }
+        verify(exactly = 0) { notificationService.notify(any(), any(), any()) }
+
+        assertThat(service.enable("max", "123456", currentCode = "000000")).isFalse()
+        assertThat(user.mfaTotpEnabled).isFalse()
+        verify(exactly = 1) { loginAttemptService.recordFailure(attemptKey) }
+
+        assertThat(service.enable("max", "123456", currentCode = "654321")).isTrue()
+        assertThat(user.mfaTotpEnabled).isTrue()
+    }
+
+    @Test
+    fun `the secret being set up cannot vouch for itself while the user has another method`() {
+        emailOn()
+        user.mfaSecret = "NEWSECRET"
+        every { totpService.matchingStep("NEWSECRET", "111111") } returns 100L
+
+        // the new secret's code as the "current" code: the e-mail method is what has to be proven
+        assertThat(service.enable("max", "111111", currentCode = "111111")).isFalse()
+
+        assertThat(user.mfaTotpEnabled).isFalse()
+    }
+
+    @Test
     fun `enabling the app needs a started setup and is refused when it is on already`() {
         assertThrows<BusinessRuleException> { service.enable("max", "123456") }
 
@@ -182,6 +231,29 @@ class MfaServiceTest {
         verify(exactly = 1) { loginAttemptService.deleteAttempts(attemptKey) }
         // the app was not asked
         verify(exactly = 0) { totpService.matchingStep(any(), any()) }
+    }
+
+    @Test
+    fun `switching the e-mail method on is mailed to the user`() {
+        service.enableEmail("max", "654321")
+
+        verify(exactly = 1) { notificationService.notify("max", "max@example.org", match { it.contains("E-Mail") && it.contains("eingeschaltet") }) }
+    }
+
+    @Test
+    fun `a user who has the app needs one of its codes to add the e-mail method`() {
+        appOn()
+
+        assertThat(service.enableEmail("max", "654321")).isFalse()
+        assertThat(user.mfaEmailEnabled).isFalse()
+        // the e-mailed code was not even consumed
+        verify(exactly = 0) { mfaEmailCodeService.consume(any(), any()) }
+
+        assertThat(service.enableEmail("max", "654321", currentCode = "000000")).isFalse()
+        assertThat(user.mfaEmailEnabled).isFalse()
+
+        assertThat(service.enableEmail("max", "654321", currentCode = "123456")).isTrue()
+        assertThat(user.mfaEmailEnabled).isTrue()
     }
 
     @Test
@@ -276,6 +348,18 @@ class MfaServiceTest {
         verify(exactly = 0) { mfaEmailCodeService.consume(any(), any()) }
     }
 
+    // ---- confirming an existing factor
+
+    @Test
+    fun `a code of a method the user has confirms them - one they have none of does not`() {
+        assertThat(service.confirm("max", "123456")).isFalse()
+
+        appOn()
+        assertThat(service.confirm("max", "123456")).isTrue()
+        assertThat(service.confirm("max", null)).isFalse()
+        assertThat(service.confirm("max", "000000")).isFalse()
+    }
+
     // ---- switching off
 
     @Test
@@ -289,6 +373,7 @@ class MfaServiceTest {
         assertThat(user.mfaTotpEnabled).isFalse()
         assertThat(user.mfaSecret).isNull()
         verify(exactly = 1) { userRepository.clearMfaStep(7) }
+        verify(exactly = 1) { notificationService.notify("max", "max@example.org", match { it.contains("Authenticator-App") && it.contains("ausgeschaltet") }) }
     }
 
     @Test
@@ -356,6 +441,7 @@ class MfaServiceTest {
         verify(exactly = 1) { userRepository.clearMfaStep(7) }
         verify(exactly = 1) { mfaEmailCodeService.discard(7) }
         verify(exactly = 1) { loginAttemptService.deleteAttempts(attemptKey) }
+        verify(exactly = 1) { notificationService.notify("max", "max@example.org", match { it.contains("Administrator") }) }
     }
 
     @Test

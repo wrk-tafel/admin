@@ -410,7 +410,8 @@ tafeladmin:
     relativeBaseUrl: /
   # Two-factor authentication. required makes it mandatory for every user (someone without a method can then
   # do nothing but set one up); the code settings belong to the e-mail method, which needs tafeladmin.mail.
-  # All read per use. emailCodeForTests must never be set on a real deployment - see TafelAdminMfaProperties.
+  # All read per use. emailCodeForTests must never be set on a real deployment: the application refuses to start
+  # with it outside the e2e/test profiles and ignores it there - see TafelAdminMfaProperties.
   mfa:
     required: false
     emailCodeValidity: 10m

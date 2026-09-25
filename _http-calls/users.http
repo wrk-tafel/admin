@@ -39,6 +39,18 @@ Content-Type: application/json
   "email": "max.mustermann@example.org"
 }
 
+### Change the e-mail address while the e-mail method of two-factor authentication is on
+# The address is where the login codes go, so a code of a method the user has (mfaCode) is required.
+PUT {{baseApiPath}}/users/account
+Content-Type: application/json
+
+{
+  "firstname": "Max",
+  "lastname": "Mustermann",
+  "email": "max.neu@example.org",
+  "mfaCode": "123456"
+}
+
 ### Search for users (username, name or personnel number - fuzzy)
 # The term goes in the body, not a ?searchInput=... query parameter - see ADR-0057 (GDPR gap G25).
 POST {{baseApiPath}}/users/search

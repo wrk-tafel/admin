@@ -529,7 +529,8 @@ class TafelAdminTestdataProperties {
  *
  * [emailCodeForTests] replaces the random code with a fixed one and exists for `application-e2e.yml` only: an
  * end-to-end run has no mail server whose mail a spec could read. It must never be set on a real deployment -
- * with it, anyone who knows the value passes the e-mail step.
+ * with it, anyone who knows the value passes the e-mail step. `MfaTestCodeGuard` enforces that: startup fails
+ * with it set outside the `e2e`/`test` profiles, and it is ignored there while running.
  */
 @ExcludeFromTestCoverage
 class TafelAdminMfaProperties {

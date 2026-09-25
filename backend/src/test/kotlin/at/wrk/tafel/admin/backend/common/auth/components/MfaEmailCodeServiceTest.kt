@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
+import org.springframework.mock.env.MockEnvironment
 import org.thymeleaf.context.Context
 import java.time.Clock
 import java.time.Duration
@@ -41,12 +42,14 @@ class MfaEmailCodeServiceTest {
     private val clock: Clock = Clock.fixed(Instant.parse("2026-09-24T10:00:00Z"), ZoneOffset.UTC)
     private val now: LocalDateTime = LocalDateTime.now(clock)
 
+    private val environment = MockEnvironment().apply { setActiveProfiles("e2e") }
+
     private lateinit var service: MfaEmailCodeService
     private lateinit var user: UserEntity
 
     @BeforeEach
     fun setup() {
-        service = MfaEmailCodeService(mfaEmailCodeRepository, mailSenderService, properties, clock)
+        service = MfaEmailCodeService(mfaEmailCodeRepository, mailSenderService, properties, MfaTestCodeGuard(properties, environment), clock)
         user = UserEntity(
             username = "max",
             password = "hash",
@@ -106,6 +109,18 @@ class MfaEmailCodeServiceTest {
         val stored = slot<MfaEmailCodeEntity>()
         verify { mfaEmailCodeRepository.save(capture(stored)) }
         assertThat(stored.captured.codeHash).isEqualTo(MfaEmailCodeService.hash(7, "424242"))
+    }
+
+    @Test
+    fun `ignores the fixed code outside the test profiles and sends a random one`() {
+        environment.setActiveProfiles("prod")
+        properties.mfa.emailCodeForTests = "424242"
+
+        service.send(user)
+
+        val stored = slot<MfaEmailCodeEntity>()
+        verify { mfaEmailCodeRepository.save(capture(stored)) }
+        assertThat(stored.captured.codeHash).isNotEqualTo(MfaEmailCodeService.hash(7, "424242"))
     }
 
     @Test
