@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
+import at.wrk.tafel.admin.backend.common.auth.components.MfaEmailCodeService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
@@ -56,6 +57,9 @@ class TafelLoginFilterTest {
 
     @RelaxedMockK
     private lateinit var jsonMapper: JsonMapper
+
+    @RelaxedMockK
+    private lateinit var mfaEmailCodeService: MfaEmailCodeService
 
     @InjectMockKs
     private lateinit var tafelLoginFilter: TafelLoginFilter
@@ -198,6 +202,30 @@ class TafelLoginFilterTest {
             )
         }
         verify { response.addCookie(withArg { assertThat(it.maxAge).isEqualTo(expirationTime) }) }
+    }
+
+    @Test
+    fun `successfulAuthentication discards an e-mailed code left over from an earlier login`() {
+        every { authResult.principal } returns testUser.copy(mfaEmailEnabled = true)
+        every { jwtTokenService.generateToken(any(), any()) } returns "TOKEN"
+        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns 5000
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties()
+
+        tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
+
+        verify(exactly = 1) { mfaEmailCodeService.discard(testUser.id!!) }
+    }
+
+    @Test
+    fun `successfulAuthentication leaves the e-mailed codes alone for a user without the e-mail method`() {
+        every { authResult.principal } returns testUser.copy(mfaTotpEnabled = true)
+        every { jwtTokenService.generateToken(any(), any()) } returns "TOKEN"
+        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns 5000
+        every { tafelAdminProperties.server } returns TafelAdminServerProperties()
+
+        tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
+
+        verify(exactly = 0) { mfaEmailCodeService.discard(any()) }
     }
 
     @Test

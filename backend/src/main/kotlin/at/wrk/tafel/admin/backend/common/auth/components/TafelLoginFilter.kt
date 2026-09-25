@@ -27,6 +27,7 @@ class TafelLoginFilter(
     private val applicationProperties: ApplicationProperties,
     private val tafelAdminProperties: TafelAdminProperties,
     private val jsonMapper: JsonMapper,
+    private val mfaEmailCodeService: MfaEmailCodeService,
 ) : UsernamePasswordAuthenticationFilter(authenticationManager) {
 
     companion object {
@@ -77,6 +78,12 @@ class TafelLoginFilter(
                 } else {
                     applicationProperties.security.jwtToken.expirationTimeInSeconds
                 }
+
+            // An e-mailed code belongs to the login it was sent for: one left over from an earlier login that
+            // was never finished must not complete this one. The login page asks for a fresh one.
+            if (user.mfaEmailEnabled) {
+                mfaEmailCodeService.discard(user.id!!)
+            }
 
             val token: String = jwtTokenService.generateToken(
                 username = user.username,

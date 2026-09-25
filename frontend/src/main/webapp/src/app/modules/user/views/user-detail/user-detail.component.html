@@ -17,9 +17,6 @@
       @if (!currentUserData().enabled) {
         <button mat-menu-item testid="enableUserButton" (click)="enableUser()">Benutzer aktivieren</button>
       }
-      @if (currentUserData().mfaEnabled) {
-        <button mat-menu-item testid="resetMfaButton" (click)="resetMfa()">Zwei-Faktor zurücksetzen</button>
-      }
       <mat-divider></mat-divider>
       <button mat-menu-item testid="deleteUserButton" (click)="deleteUser()">Benutzer löschen</button>
     </mat-menu>
@@ -47,10 +44,18 @@
             Personal-Nummer
           </div>
           <div testid="personnelNumberText">{{currentUserData()?.personnelNumber}}</div>
-          <div class="font-bold">
+          <div class="font-bold self-center">
             Zwei-Faktor-Authentifizierung
           </div>
-          <div testid="mfaText">{{mfaText()}}</div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span testid="mfaText">{{mfaText()}}</span>
+            @if (currentUserData().mfaEnabled) {
+              <!-- For someone who lost the phone the codes come from; next to the state it resets, not in the status menu. -->
+              <button type="button" matButton="outlined" testid="resetMfaButton" aria-label="Zwei-Faktor-Authentifizierung zurücksetzen" (click)="resetMfa()">
+                Zurücksetzen
+              </button>
+            }
+          </div>
           <div class="font-bold">
             Passwortänderung notwendig
           </div>
