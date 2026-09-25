@@ -32,7 +32,7 @@ For each PR, in that order:
 
 ```bash
 git fetch origin <headRefName>
-git merge origin/<headRefName> --no-edit -m "Merge dependabot PR #<number>: <title>"
+git merge origin/<headRefName> --no-edit -m "chore(deps): merge dependabot PR #<number>: <title>"
 ```
 
 **Conflict resolution:**

@@ -40,6 +40,8 @@ Ist die Zwei-Faktor-Authentifizierung des Benutzers aktiv, steht im Menü **Benu
 
 ![Benutzer-Status ändern](images/benutzer-status-aendern.jpg)
 
+<a id="benutzer-anlegen--bearbeiten"></a>
+
 ## Benutzer anlegen / bearbeiten
 
 Beim Anlegen bzw. Bearbeiten werden Benutzername, Personalnummer, Nachname, Vorname und E-Mail-Adresse erfasst. Benutzername, Nach- und Vorname sind Pflichtfelder (max. 50 Zeichen). Die **E-Mail-Adresse** ist optional (max. 255 Zeichen) und dient dazu, Systembenachrichtigungen und Bestätigungscodes der Zwei-Faktor-Authentifizierung an diesen Benutzer schicken zu können; wird sie angegeben, muss sie ein gültiges E-Mail-Format haben, sonst erscheint direkt am Feld "E-Mail-Format ungültig" und "Speichern" bleibt gesperrt. Wird das Feld geleert, ist danach keine Adresse mehr hinterlegt. Der Speichern-Button ist erst aktiv, sobald alle Pflichtfelder gültig ausgefüllt sind, und bleibt am unteren Bildschirmrand sichtbar ("sticky"), auch wenn weiter oben in der (teils langen) Berechtigungsliste gescrollt wird.

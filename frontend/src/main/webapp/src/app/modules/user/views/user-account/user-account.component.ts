@@ -21,6 +21,7 @@ import {MatTabLink, MatTabNav, MatTabNavPanel} from '@angular/material/tabs';
 })
 export class UserAccountComponent {
   readonly tabs = [
+    {path: 'daten', label: 'Meine Daten', testId: 'account-tab-data'},
     {path: 'passwort', label: 'Passwort', testId: 'account-tab-password'},
     {path: 'zwei-faktor', label: 'Zwei-Faktor-Authentifizierung', testId: 'account-tab-mfa'},
     {path: 'benachrichtigungen', label: 'Benachrichtigungen', testId: 'account-tab-notifications'},

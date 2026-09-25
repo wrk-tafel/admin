@@ -79,6 +79,46 @@ class UserController(
         return ResponseEntity.ok(userInfo)
     }
 
+    /**
+     * The caller's own account as the "Meine Daten" tab of "Mein Konto" shows it. Self-service like
+     * [getUserInfo], so `isAuthenticated()` is all it needs. Not recorded as a read: the breach
+     * detection [getUser] feeds (`recordUserRead`) is about one account looking at another's data,
+     * and this is a user looking at their own.
+     */
+    @GetMapping("/account")
+    fun getAccount(): UserAccountResponse {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        return mapToAccountResponse(userDetailsManager.loadUserByUsername(authenticatedUser.username!!))
+    }
+
+    /**
+     * What a user may change about their own account: the name and the e-mail address (see
+     * [UserAccountRequest] for why nothing else). The username and the personnel number stay with
+     * the administrator, so unlike [updateUser] nothing here can hand an account over, and the
+     * session it came in on stays what it was - no replacement cookie needed. The write itself is
+     * on the audit trail like any other change to a user or an employee.
+     */
+    @PutMapping("/account")
+    @Transactional
+    fun updateAccount(@Valid @RequestBody request: UserAccountRequest): UserAccountResponse {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val updatedUser = userDetailsManager.updateOwnAccount(
+            username = authenticatedUser.username!!,
+            firstname = request.firstname.trim(),
+            lastname = request.lastname.trim(),
+            email = request.email?.trim()?.takeIf { it.isNotEmpty() },
+        )
+        return mapToAccountResponse(updatedUser)
+    }
+
+    private fun mapToAccountResponse(user: TafelUser): UserAccountResponse = UserAccountResponse(
+        username = user.username,
+        personnelNumber = user.personnelNumber,
+        firstname = user.firstname,
+        lastname = user.lastname,
+        email = user.email,
+    )
+
     /** The caller's own display preference - self-service, so `isAuthenticated()` is all it needs. */
     @PutMapping("/theme")
     fun updateTheme(@RequestBody request: UserThemeRequest): UserThemeResponse {
