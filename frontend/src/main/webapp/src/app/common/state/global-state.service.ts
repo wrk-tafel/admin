@@ -1,4 +1,5 @@
 import {inject, Service, Signal, WritableSignal, signal} from '@angular/core';
+import {Subscription} from 'rxjs';
 import {DistributionItem, DistributionItemUpdate} from '../../api/distribution-api.service';
 import {SseService} from '../sse/sse.service';
 
@@ -18,7 +19,7 @@ export class GlobalStateService {
   private readonly _hasReceivedDistribution: WritableSignal<boolean> = signal(false);
   private readonly _registeredCustomers: WritableSignal<number | null> = signal(null);
 
-  private subscribed = false;
+  private subscription: Subscription | null = null;
 
   /**
    * Starts the `/sse/distributions` subscription. Called from `default-layout-resolver`, before any
@@ -30,28 +31,28 @@ export class GlobalStateService {
    * initial snapshot has arrived". Consumers that need to tell "not loaded yet" apart from
    * "confirmed closed" must gate on {@link getHasReceivedDistribution} instead.
    *
-   * Opens the connection at most once for the lifetime of the tab, however often it is called. The
-   * resolver runs again every time the authenticated layout is entered - so once per login, and a
-   * logout/login round trip in the same tab goes through it again - while this service is
-   * root-scoped and survives all of that, so a second subscription here would be a second
-   * `EventSource` that nothing ever closes. Browsers cap an origin at six concurrent HTTP/1.1
-   * connections, and a permanently open SSE stream holds one for good: a few of those leaked and
-   * the tab ran out of connections entirely, leaving every later request - API calls, images, even
-   * a reload - queued until the reverse proxy answered 504. Reconnecting after a drop is
+   * Keeps at most one connection open, however often it is called. The resolver runs again every
+   * time the authenticated layout is entered - so once per login, and a logout/login round trip in
+   * the same tab goes through it again - while this service is root-scoped and survives all of
+   * that, so a second subscription here would be a second `EventSource` that nothing ever closes.
+   * Browsers cap an origin at six concurrent HTTP/1.1 connections, and a permanently open SSE
+   * stream holds one for good: a few of those leaked and the tab ran out of connections entirely,
+   * leaving every later request - API calls, images, even a reload - queued until the reverse
+   * proxy answered 504. Reconnecting after a drop is
    * `SseService`'s job (see `common/sse/sse.service.ts`), not a reason to subscribe again.
+   * {@link reset} closes the connection, so the next call after a logout opens a new one.
    */
   init() {
-    if (this.subscribed) {
+    if (this.subscription) {
       return;
     }
-    this.subscribed = true;
 
     const connectionStateCallback = (connected: boolean) => {
       this._connectionState.set(connected);
     };
 
     // Subscribe to SSE and update the signal
-    this.sseService.listen<DistributionItemUpdate>('/sse/distributions', connectionStateCallback).subscribe({
+    this.subscription = this.sseService.listen<DistributionItemUpdate>('/sse/distributions', connectionStateCallback).subscribe({
       next: (distributionUpdate: DistributionItemUpdate) => {
         const distributionItem = distributionUpdate.distribution;
         // The server re-sends this message whenever the registered-customer count changes. A new
@@ -99,13 +100,20 @@ export class GlobalStateService {
   }
 
   /**
-   * Drops the last-known distribution snapshot without touching the `/sse/distributions`
-   * subscription itself - that stream is deliberately kept open across a logout (see {@link init}).
-   * Call this from {@link AuthenticationService#logout} so a re-login doesn't render the previous
-   * session's snapshot (and can't trigger a "confirmed closed" redirect off stale data) for as long
-   * as the backoff in `SseService` takes to deliver the next message.
+   * Closes the `/sse/distributions` stream and drops the last-known distribution snapshot. Call
+   * this from {@link AuthenticationService#logout}.
+   *
+   * The stream has to go with the snapshot: the server sends the current state once, when a stream
+   * opens, and after that only what changes. Clearing the snapshot but keeping the stream open would
+   * leave a re-login in the same tab with no distribution at all - shown as "closed" - until the
+   * next start or close, however long that takes. Closing it means the next {@link init}, which the
+   * layout resolver calls on every login, opens a new stream and gets the state straight away; it
+   * also stops a logged-out tab from retrying a stream the server refuses with a 401.
    */
   reset(): void {
+    this.subscription?.unsubscribe();
+    this.subscription = null;
+    this._connectionState.set(false);
     this._currentDistribution.set(null);
     this._registeredCustomers.set(null);
     this._hasReceivedDistribution.set(false);

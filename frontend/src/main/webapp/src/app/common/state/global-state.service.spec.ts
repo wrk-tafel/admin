@@ -64,6 +64,43 @@ describe('GlobalStateService', () => {
         expect(sseServiceSpy.listen).toHaveBeenCalledTimes(1);
     });
 
+    // The server sends the current state once, when a stream opens. A reset that left the old stream
+    // running would leave the next login in the same tab with no distribution - shown as "closed" -
+    // until the next start or close.
+    it('closes the stream on reset and opens a new one on the next init', () => {
+        const { service, sseServiceSpy } = setup();
+        const firstStream = new Subject<DistributionItemUpdate>();
+        const secondStream = new Subject<DistributionItemUpdate>();
+        sseServiceSpy.listen.mockReturnValueOnce(firstStream).mockReturnValueOnce(secondStream);
+        const distribution = { id: 123, startedAt: new Date() };
+
+        service.init();
+        firstStream.next({ distribution });
+        service.reset();
+
+        expect(firstStream.observed).toBe(false);
+        expect(service.getCurrentDistribution()()).toBeNull();
+        expect(service.getHasReceivedDistribution()()).toBe(false);
+
+        service.init();
+        expect(sseServiceSpy.listen).toHaveBeenCalledTimes(2);
+        secondStream.next({ distribution });
+
+        expect(service.getCurrentDistribution()()).toEqual(distribution);
+        expect(service.getHasReceivedDistribution()()).toBe(true);
+    });
+
+    it('reports the connection as down after reset', () => {
+        const { service, sseServiceSpy } = setup();
+        sseServiceSpy.listen.mockReturnValue(new Subject<DistributionItemUpdate>());
+        service.init();
+        sseServiceSpy.listen.mock.lastCall![1](true);
+
+        service.reset();
+
+        expect(service.getConnectionState()()).toBe(false);
+    });
+
     it('exposes the registered customer count of the open distribution', () => {
         const { service, sseServiceSpy } = setup();
         const updates = new Subject<DistributionItemUpdate>();
