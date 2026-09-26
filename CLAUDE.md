@@ -670,7 +670,7 @@ term-less `GET` listing are unaffected.
 - `/api/cars`: Car management
 - `/api/shelters`: Shelter management
 - `/api/audit`: Audit trail — the whole log (filterable), `/filter-options` for the filter dropdowns, and `/households/{householdId}` for one household's "Verlauf" tab. Read-only by design; behind the `AUDIT_LOG` permission
-- `/api/settings`: Application settings; `GET /api/settings/pending-deletions/{users,households,employees}` list (paged) what the retention jobs will delete soon (the target of the daily `RETENTION_EXPIRING` push reminder)
+- `/api/settings`: Application settings; `GET /api/settings/pending-deletions/{users,households,employees}` list (paged, administrators only) what the retention jobs will delete soon (the target of the daily `RETENTION_EXPIRING` push reminder)
 - `/api/support`: Mails an in-app support request (title, text, and the browser's `clientContext`) to the configured support addresses
 - `/api/client-errors`: Logs one client-side error (message, page, user agent) to `app.log` as it happens, rate-limited per IP; behind `isAuthenticated()`, no dedicated permission
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)

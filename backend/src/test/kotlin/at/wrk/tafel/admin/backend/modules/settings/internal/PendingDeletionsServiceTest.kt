@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
@@ -9,7 +8,6 @@ import at.wrk.tafel.admin.backend.database.model.base.EmployeeLastUseProjection
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -17,16 +15,10 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.Pageable
-import org.springframework.http.HttpStatus
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.context.SecurityContextImpl
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -63,39 +55,8 @@ internal class PendingDeletionsServiceTest {
         service = PendingDeletionsService(properties, userRepository, householdRepository, employeeRepository, clock)
     }
 
-    @AfterEach
-    fun afterEach() {
-        SecurityContextHolder.clearContext()
-    }
-
-    private fun authenticateWith(vararg authorities: UserPermissions) {
-        SecurityContextHolder.setContext(
-            SecurityContextImpl(
-                TafelJwtAuthentication(
-                    tokenValue = "TOKEN",
-                    username = "tester",
-                    authorities = authorities.map { SimpleGrantedAuthority(it.key) },
-                ),
-            ),
-        )
-    }
-
-    @Test
-    fun `serves a list only to a caller holding the permission of its area`() {
-        authenticateWith(UserPermissions.SETTINGS)
-
-        assertThatThrownBy { service.getPendingUserDeletions(null, null) }
-            .isInstanceOfSatisfying(TafelApiException::class.java) { assertThat(it.statusCode).isEqualTo(HttpStatus.FORBIDDEN) }
-        assertThatThrownBy { service.getPendingHouseholdDeletions(null, null) }
-            .isInstanceOfSatisfying(TafelApiException::class.java) { assertThat(it.statusCode).isEqualTo(HttpStatus.FORBIDDEN) }
-        assertThat(service.getPendingEmployeeDeletions(null, null).enabled).isTrue
-        verify(exactly = 0) { userRepository.countUsersLastActiveBefore(any(), any()) }
-        verify(exactly = 0) { householdRepository.countByValidUntilBefore(any()) }
-    }
-
     @Test
     fun `lists user accounts measured from their last login, or their creation when they never logged in`() {
-        authenticateWith(UserPermissions.USER_MANAGEMENT)
         val loggedIn = TestdataGenerator.createUser().apply {
             id = 1
             lastLogin = LocalDateTime.of(2026, 3, 20, 12, 0)
@@ -122,7 +83,6 @@ internal class PendingDeletionsServiceTest {
 
     @Test
     fun `pages the user list with the requested page and size`() {
-        authenticateWith(UserPermissions.USER_MANAGEMENT)
         every { userRepository.countUsersLastActiveBefore(any(), any()) } returns 53
         val pageable = slot<Pageable>()
         every { userRepository.findUsersLastActiveBefore(any(), any(), capture(pageable)) } returns emptyList()
@@ -139,7 +99,6 @@ internal class PendingDeletionsServiceTest {
 
     @Test
     fun `falls back to the default page size for one that is not offered`() {
-        authenticateWith(UserPermissions.USER_MANAGEMENT)
         every { userRepository.countUsersLastActiveBefore(any(), any()) } returns 12
 
         val users = service.getPendingUserDeletions(page = 0, pageSize = 7)
@@ -151,7 +110,6 @@ internal class PendingDeletionsServiceTest {
 
     @Test
     fun `does not load rows when nothing is pending`() {
-        authenticateWith(UserPermissions.USER_MANAGEMENT)
         every { userRepository.countUsersLastActiveBefore(any(), any()) } returns 0
 
         val users = service.getPendingUserDeletions(null, null)
@@ -163,7 +121,6 @@ internal class PendingDeletionsServiceTest {
 
     @Test
     fun `lists households with their main person and the date they will be deleted`() {
-        authenticateWith(UserPermissions.CUSTOMER)
         val household = HouseholdEntity(householdId = 4711, validUntil = LocalDate.of(2020, 4, 1))
         val withoutMainPerson = HouseholdEntity(householdId = 4712, validUntil = LocalDate.of(2020, 4, 2))
         every { householdRepository.countByValidUntilBefore(any()) } returns 2
@@ -180,7 +137,6 @@ internal class PendingDeletionsServiceTest {
 
     @Test
     fun `lists employees measured from their last use, or their creation when they were never used`() {
-        authenticateWith(UserPermissions.SETTINGS)
         val used = employee(1, lastUsed = LocalDateTime.of(2026, 3, 25, 10, 0), createdAt = LocalDateTime.of(2020, 1, 1, 0, 0))
         val unused = employee(2, lastUsed = null, createdAt = LocalDateTime.of(2026, 4, 2, 10, 0))
         every { employeeRepository.countEmployeesLastUsedBefore(any()) } returns 2
@@ -194,7 +150,6 @@ internal class PendingDeletionsServiceTest {
 
     @Test
     fun `asks for the employee page with the matching limit and offset`() {
-        authenticateWith(UserPermissions.SETTINGS)
         every { employeeRepository.countEmployeesLastUsedBefore(any()) } returns 350
         every { employeeRepository.findEmployeesLastUsedBefore(any(), any(), any()) } returns emptyList()
 
@@ -207,7 +162,6 @@ internal class PendingDeletionsServiceTest {
 
     @Test
     fun `a job that is switched off lists nothing and says so`() {
-        authenticateWith(UserPermissions.USER_MANAGEMENT, UserPermissions.CUSTOMER, UserPermissions.SETTINGS)
         properties.userDeletion.enabled = false
         properties.householdDeletion.retentionTime = Period.ZERO
 

@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.settings.internal
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.common.retention.RetentionPeriodFormatter
 import at.wrk.tafel.admin.backend.common.retention.RetentionWindow
@@ -9,7 +8,6 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import at.wrk.tafel.admin.backend.modules.settings.model.PendingEmployeeDeletionItem
 import at.wrk.tafel.admin.backend.modules.settings.model.PendingEmployeeDeletionListResponse
 import at.wrk.tafel.admin.backend.modules.settings.model.PendingHouseholdDeletionItem
@@ -17,8 +15,6 @@ import at.wrk.tafel.admin.backend.modules.settings.model.PendingHouseholdDeletio
 import at.wrk.tafel.admin.backend.modules.settings.model.PendingUserDeletionItem
 import at.wrk.tafel.admin.backend.modules.settings.model.PendingUserDeletionListResponse
 import org.springframework.data.domain.PageRequest
-import org.springframework.http.HttpStatus
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.LocalDateTime
@@ -32,9 +28,8 @@ import java.time.LocalDateTime
  * can look through all of it and not only the first rows a job would handle in one run.
  *
  * Reads the repositories directly, like the reminder does, rather than depending on the modules that
- * own the jobs. Each list is only served to a caller who holds the permission of its area, the same
- * additive rule the Datenauskunft screen applies, so this adds no way to reach a name the viewer
- * could not otherwise see.
+ * own the jobs. Only administrators reach it (see `PendingDeletionsController`), and an administrator
+ * holds every area's permission, so nothing is filtered per area here.
  */
 @Service
 class PendingDeletionsService(
@@ -46,7 +41,6 @@ class PendingDeletionsService(
 ) {
 
     fun getPendingUserDeletions(page: Int?, pageSize: Int?): PendingUserDeletionListResponse {
-        requireAreaPermission(UserPermissions.USER_MANAGEMENT, "Benutzerkonten")
         val config = tafelAdminProperties.userDeletion
         val cutoff = RetentionWindow.warnCutoff(config.enabled, config.retentionTime, config.retentionWarning, LocalDateTime.now(clock))
         val pageRequest = pageRequestOf(page, pageSize)
@@ -81,7 +75,6 @@ class PendingDeletionsService(
     }
 
     fun getPendingHouseholdDeletions(page: Int?, pageSize: Int?): PendingHouseholdDeletionListResponse {
-        requireAreaPermission(UserPermissions.CUSTOMER, "Kunden")
         val config = tafelAdminProperties.householdDeletion
         val cutoff = RetentionWindow.warnCutoff(config.enabled, config.retentionTime, config.retentionWarning, LocalDateTime.now(clock))
             ?.toLocalDate()
@@ -112,7 +105,6 @@ class PendingDeletionsService(
     }
 
     fun getPendingEmployeeDeletions(page: Int?, pageSize: Int?): PendingEmployeeDeletionListResponse {
-        requireAreaPermission(UserPermissions.SETTINGS, "Mitarbeiter")
         val config = tafelAdminProperties.employeeDeletion
         val cutoff = RetentionWindow.warnCutoff(config.enabled, config.retentionTime, config.retentionWarning, LocalDateTime.now(clock))
         val pageRequest = pageRequestOf(page, pageSize)
@@ -147,14 +139,4 @@ class PendingDeletionsService(
     private fun pageRequestOf(page: Int?, pageSize: Int?): PageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
 
     private fun totalPagesOf(totalCount: Long, pageSize: Int): Int = ((totalCount + pageSize - 1) / pageSize).toInt()
-
-    private fun requireAreaPermission(permission: UserPermissions, areaTitle: String) {
-        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-        if (authentication.authorities.none { it.authority == permission.key }) {
-            throw TafelApiException(
-                HttpStatus.FORBIDDEN,
-                "Für \"$areaTitle\" ist die Berechtigung \"${permission.key}\" erforderlich!",
-            )
-        }
-    }
 }

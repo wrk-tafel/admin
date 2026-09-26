@@ -68,5 +68,10 @@ export const routes: Routes = [
     path: 'anstehende-loeschungen',
     title: 'Anstehende Löschungen',
     component: SettingsPendingDeletionsComponent,
+    // Replaces the parent's SETTINGS requirement for this route's own check - the guard still runs for
+    // `einstellungen` too, so both apply. Administrators hold every permission.
+    data: {
+      anyPermissionOf: ['ADMINISTRATOR']
+    },
   },
 ];

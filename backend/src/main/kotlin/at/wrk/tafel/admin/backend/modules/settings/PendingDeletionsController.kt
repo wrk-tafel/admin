@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RestController
 
 /**
  * The "Anstehende Löschungen" screen: what the retention jobs will delete soon, one paged list per
- * kind of record. Behind `SETTINGS` like the rest of the module; each list additionally needs the
- * permission of its area (403 otherwise), see [PendingDeletionsService].
+ * kind of record. Administrators only - it lists the names of user accounts, customers and employees
+ * across every area, and it is the target of the notification that only administrators receive.
  */
 @RestController
 @RequestMapping("/api/settings/pending-deletions")
-@PreAuthorize("hasAuthority('SETTINGS')")
+@PreAuthorize("hasAuthority('ADMINISTRATOR')")
 class PendingDeletionsController(
     private val pendingDeletionsService: PendingDeletionsService,
 ) {

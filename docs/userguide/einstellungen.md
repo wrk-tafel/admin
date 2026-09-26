@@ -204,7 +204,7 @@ Mitarbeiter, die seit einem Jahr in keiner Warenerfassung mehr als Fahrer/Beifah
 
 Unter **Einstellungen → Anstehende Löschungen** sieht man vorab, was die automatische Bereinigung demnächst löscht - damit keine Löschung unerwartet kommt. Die Seite ist außerdem das Ziel der täglichen Benachrichtigung "Daten werden bald gelöscht" (siehe [Benachrichtigungen](README.md#benachrichtigungen)): Ein Klick auf die Benachrichtigung öffnet sie direkt.
 
-Es gibt bis zu drei Abschnitte, je nach Berechtigung des angemeldeten Benutzers: **Benutzerkonten** (Berechtigung "Benutzerverwaltung"), **Kunden** (Berechtigung "Kundenverwaltung") und **Mitarbeiter** (Berechtigung "Einstellungen"). Ein Abschnitt fehlt ganz, wenn die Berechtigung fehlt - die Seite zeigt keinen Namen, den man sonst nicht sehen dürfte.
+Die Seite ist nur für Benutzer mit der Berechtigung **Administrator** sichtbar und zugänglich (nicht schon mit "Einstellungen"), denn sie listet Namen aus allen Bereichen auf. Es gibt drei Abschnitte: **Benutzerkonten**, **Kunden** und **Mitarbeiter**.
 
 ![Anstehende Löschungen](images/einstellungen-anstehende-loeschungen.jpg)
 

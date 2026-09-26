@@ -1,6 +1,7 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DefaultLayoutComponent } from './default-layout.component';
+import { navigationMenuItems } from './navigation-menuItems';
 import { AuthenticationService } from '../../security/authentication.service';
 import { GlobalStateService } from '../../state/global-state.service';
 import { DistributionItem } from '../../../api/distribution-api.service';
@@ -580,6 +581,31 @@ return true;
             'Fahrzeuge', 'Filialen', 'Länder', 'Notschlafstellen', 'Routen', 'Waren-Kategorien', 'Retour-Kategorien',
             'Anstehende Löschungen', 'E-Mail', 'Grenzwerte', 'Mitarbeiter'
         ]);
+    });
+
+    // The pending-deletions screen is for administrators only, so a user holding SETTINGS alone
+    // must not be offered the entry its route would turn away.
+    describe('"Anstehende Löschungen" entry', () => {
+        function settingsEntries(permissions: (permission: string) => boolean): string[] {
+            authService.hasPermission.mockImplementation(permissions);
+            const fixture = TestBed.createComponent(DefaultLayoutComponent);
+            const settings = fixture.componentInstance.filterNavItemsByPermissions(navigationMenuItems)
+                .find(item => item.name === 'Einstellungen')!;
+            return settings.children!.filter(child => !child.title).map(child => child.name);
+        }
+
+        it('is hidden from a user with SETTINGS but not ADMINISTRATOR, who still gets the rest of Einstellungen', () => {
+            const entries = settingsEntries(permission => permission === 'SETTINGS');
+
+            expect(entries).toContain('Mitarbeiter');
+            expect(entries).not.toContain('Anstehende Löschungen');
+        });
+
+        it('is shown to an administrator', () => {
+            const entries = settingsEntries(() => true);
+
+            expect(entries).toContain('Anstehende Löschungen');
+        });
     });
 
     it('remembers the collapsed sidebar across a reload', () => {

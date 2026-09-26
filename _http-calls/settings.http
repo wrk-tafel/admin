@@ -76,7 +76,7 @@ Content-Type: application/json
 }
 
 ### What the retention jobs will delete soon (within their warning window, already-due included), one paged list per
-### kind of record. Each needs the area's permission besides SETTINGS: USER_MANAGEMENT / CUSTOMER / SETTINGS.
+### kind of record. Administrators only.
 GET {{baseApiPath}}/settings/pending-deletions/users?page=1&pageSize=25
 
 ###

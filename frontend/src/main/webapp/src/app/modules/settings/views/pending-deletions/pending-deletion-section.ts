@@ -20,18 +20,16 @@ export interface PendingDeletionSection<T> {
 }
 
 /**
- * Must be called in an injection context (a field initializer). Nothing is requested while
- * `visible` is false - a list the caller may not see answers 403.
+ * Must be called in an injection context (a field initializer).
  */
 export function pendingDeletionSection<T>(
-  visible: () => boolean,
   fetch: (page: number, pageSize: number) => Observable<PendingDeletionListResponse<T>>
 ): PendingDeletionSection<T> {
   const page = signal(1);
   const pageSize = signal(DEFAULT_PAGE_SIZE);
 
   const resource = rxResource({
-    params: () => visible() ? {page: page(), pageSize: pageSize()} : undefined,
+    params: () => ({page: page(), pageSize: pageSize()}),
     stream: ({params}) => fetch(params.page, params.pageSize)
   });
 

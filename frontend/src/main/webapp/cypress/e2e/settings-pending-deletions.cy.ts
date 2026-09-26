@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import {MAIN_CONTENT} from '../support/accessibility';
+import {testUserPassword} from '../support/commands';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 // One endpoint per kind of record - the glob's trailing `*` lets the query string (page, pageSize) match.
@@ -194,7 +195,7 @@ describe('Settings - Pending deletions', () => {
       cy.byTestId('pending-households-description').should('contain.text',
         'Kunden werden nach 7 Jahren seit Ablauf der Gültigkeit automatisch gelöscht');
       cy.byTestId('pending-employees-description').should('contain.text',
-        'Mitarbeiter werden nach 1 Jahr ohne Einsatz als Fahrer:in automatisch gelöscht');
+        'Mitarbeiter werden nach 1 Jahr ohne Einsatz als Fahrer:in oder Beifahrer:in automatisch gelöscht');
     });
 
     it('lists the accounts, linking each to its detail view', () => {
@@ -418,6 +419,52 @@ describe('Settings - Pending deletions', () => {
       // the other two were not asked again
       cy.get('@households.all').should('have.length', 1);
       cy.get('@employees.all').should('have.length', 1);
+    });
+  });
+
+  // The screen is for administrators only: SETTINGS opens the rest of the settings area, but not this page.
+  describe('for a user with SETTINGS but without ADMINISTRATOR', () => {
+
+    function loginAsSettingsOnlyUser() {
+      cy.getAnyRandomNumber().then((randomNumber) => {
+        const password = testUserPassword(randomNumber);
+        const username = 'settings-only-' + randomNumber;
+
+        cy.createUser({
+          username,
+          personnelNumber: 'SETONLY-' + randomNumber,
+          firstname: 'firstname-' + randomNumber,
+          lastname: 'lastname-' + randomNumber,
+          enabled: true,
+          password,
+          passwordRepeat: password,
+          passwordChangeRequired: false,
+          permissions: [{key: 'SETTINGS', title: 'Einstellungen'}]
+        }).then(() => {
+          cy.login(username, password);
+        });
+      });
+    }
+
+    it('is turned away from the screen with the access denied message', () => {
+      loginAsSettingsOnlyUser();
+
+      cy.visit(SCREEN_URL);
+
+      cy.url().should('contain', '/login/fehlgeschlagen');
+      cy.byTestId('errorMessage').should('exist').and('contain.text', 'Zugriff nicht erlaubt');
+      cy.byTestId('pending-users-section').should('not.exist');
+    });
+
+    it('still opens the other settings screens, but is not offered the menu entry', () => {
+      loginAsSettingsOnlyUser();
+
+      cy.visit('/einstellungen/mitarbeiter');
+      cy.get('h1').should('contain.text', 'Mitarbeiter');
+
+      cy.contains('button', 'Einstellungen').should('be.visible').click();
+      cy.contains('a', 'Mitarbeiter').should('be.visible');
+      cy.contains('a', 'Anstehende Löschungen').should('not.exist');
     });
   });
 

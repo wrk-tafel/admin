@@ -35,9 +35,8 @@ repositories without that counting as a `modules`-to-`modules` dependency at all
   activity first. Every list is paged so an administrator can look through all of it, not only the
   rows a job would handle in one run. `PendingDeletionsService` measures exactly as the jobs and the
   daily push reminder do, through `common/retention/RetentionWindow`, and reads the repositories
-  directly. Each list is only served to a caller holding that area's permission (`USER_MANAGEMENT`,
-  `CUSTOMER`, `SETTINGS`, 403 otherwise), so the endpoints reveal no name their caller could not
-  otherwise see. It is the deep-link target of the `RETENTION_EXPIRING`
+  directly. The endpoints are for administrators only (`hasAuthority('ADMINISTRATOR')`): they list the
+  names of user accounts, customers and employees across every area. It is the deep-link target of the `RETENTION_EXPIRING`
   push notification (`push`'s `PushNotificationTypeTargeting`).
 - **`internal/SettingsService`** — all the logic for both concerns (no further internal
   decomposition despite the two concerns being unrelated).

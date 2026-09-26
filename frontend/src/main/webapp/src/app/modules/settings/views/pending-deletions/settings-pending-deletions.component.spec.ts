@@ -15,7 +15,6 @@ import {
   PendingUserDeletionItem,
   PendingUserDeletionListResponse
 } from '../../../../api/pending-deletions-api.service';
-import {AuthenticationService} from '../../../../common/security/authentication.service';
 
 describe('SettingsPendingDeletionsComponent', () => {
   const inTenDays = dayjs().add(10, 'day').format('YYYY-MM-DD');
@@ -100,7 +99,6 @@ describe('SettingsPendingDeletionsComponent', () => {
     getPendingHouseholdDeletions: ReturnType<typeof vi.fn>;
     getPendingEmployeeDeletions: ReturnType<typeof vi.fn>;
   };
-  let permissions: string[];
 
   interface Lists {
     users?: UserList;
@@ -161,46 +159,20 @@ describe('SettingsPendingDeletionsComponent', () => {
       getPendingHouseholdDeletions: vi.fn(),
       getPendingEmployeeDeletions: vi.fn()
     };
-    permissions = ['USER_MANAGEMENT', 'CUSTOMER', 'SETTINGS'];
 
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        {provide: PendingDeletionsApiService, useValue: apiMock},
-        {provide: AuthenticationService, useValue: {hasPermission: (permission: string) => permissions.includes(permission)}}
+        {provide: PendingDeletionsApiService, useValue: apiMock}
       ]
     });
   });
 
-  it('renders the three sections in order: users, households, employees', async () => {
+  it('always renders all three sections, in the order users, households, employees', async () => {
     const fixture = await render();
 
     const headings = Array.from(el(fixture).querySelectorAll('h2')).map(h => text(h));
     expect(headings).toEqual(['Benutzerkonten (2)', 'Kunden (2)', 'Mitarbeiter (2)']);
-  });
-
-  describe('permissions', () => {
-    it('shows only the sections the caller has the permission for, and requests only those', async () => {
-      permissions = ['SETTINGS'];
-      const fixture = await render();
-
-      expect(byTestId(fixture, 'pending-users-section')).toBeNull();
-      expect(byTestId(fixture, 'pending-households-section')).toBeNull();
-      expect(byTestId(fixture, 'pending-employees-section')).not.toBeNull();
-      expect(apiMock.getPendingUserDeletions).not.toHaveBeenCalled();
-      expect(apiMock.getPendingHouseholdDeletions).not.toHaveBeenCalled();
-      expect(apiMock.getPendingEmployeeDeletions).toHaveBeenCalledTimes(1);
-    });
-
-    it('shows the users and households sections without the settings permission', async () => {
-      permissions = ['USER_MANAGEMENT', 'CUSTOMER'];
-      const fixture = await render();
-
-      expect(byTestId(fixture, 'pending-users-section')).not.toBeNull();
-      expect(byTestId(fixture, 'pending-households-section')).not.toBeNull();
-      expect(byTestId(fixture, 'pending-employees-section')).toBeNull();
-      expect(apiMock.getPendingEmployeeDeletions).not.toHaveBeenCalled();
-    });
   });
 
   it('builds the explanatory sentence of each section from the retention and warning texts', async () => {
@@ -212,7 +184,7 @@ describe('SettingsPendingDeletionsComponent', () => {
     expect(text(byTestId(fixture, 'pending-households-description')))
       .toContain('Kunden werden nach 7 Jahren seit Ablauf der Gültigkeit automatisch gelöscht');
     expect(text(byTestId(fixture, 'pending-employees-description')))
-      .toContain('Mitarbeiter werden nach 1 Jahr ohne Einsatz als Fahrer:in automatisch gelöscht');
+      .toContain('Mitarbeiter werden nach 1 Jahr ohne Einsatz als Fahrer:in oder Beifahrer:in automatisch gelöscht');
   });
 
   describe('users', () => {

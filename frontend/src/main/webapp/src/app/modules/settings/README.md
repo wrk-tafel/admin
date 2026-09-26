@@ -504,30 +504,34 @@ carry. This view differs from every other screen above in two ways that reflect 
 ## `pending-deletions` (`SettingsPendingDeletionsComponent`)
 
 Preview of what the automatic retention jobs delete next: user accounts after a year without a
-login, employees after a year without an assignment as driver, customers seven years after their
-validity ended. It is the target of the daily notification to administrators, whose link goes to
-`einstellungen/anstehende-loeschungen`, and sits in the sidebar under "Systemverwaltung". The route
-itself is gated by `SETTINGS` like the rest of the module.
+login, employees after a year without an assignment as driver or co-driver, customers seven years
+after their validity ended. It is the target of the daily notification to administrators, whose link
+goes to `einstellungen/anstehende-loeschungen`, and sits in the sidebar under "Systemverwaltung".
+**It is for administrators only:** the route carries its own
+`data: {anyPermissionOf: ['ADMINISTRATOR']}` (the shell's `canActivateChild` guard runs for
+`einstellungen` as well, so `SETTINGS` and `ADMINISTRATOR` both have to pass), and the menu entry has
+`permissions: ['ADMINISTRATOR']`, so a user holding only `SETTINGS` neither sees it nor gets in and is
+sent to the "Zugriff nicht erlaubt" login page.
 
 - **Three sections in the order Benutzerkonten, Kunden, Mitarbeiter, each with an endpoint, state and
   paginator of its own.** `GET /api/settings/pending-deletions/{users|households|employees}` take
-  `page` and `pageSize` and answer 403 without the area's permission (`USER_MANAGEMENT`, `CUSTOMER`,
-  `SETTINGS`). So the screen decides from `AuthenticationService.hasPermission` which sections to
-  render and request at all - no placeholder for one the caller may not see. Paging or breaking one
-  section never reloads another. Testids `pending-<users|households|employees>-section`, `-heading`
-  (an `h2`, with the total count over all pages: "Benutzerkonten (25)"), `-description`, `-table`,
-  `-cards`.
+  `page` and `pageSize` and are behind `ADMINISTRATOR`, who holds every permission - so all three
+  sections are always shown and requested, with no per-section permission check in the component.
+  Paging or breaking one section never reloads another. Testids
+  `pending-<users|households|employees>-section`, `-heading` (an `h2`, with the total count over all
+  pages: "Benutzerkonten (25)"), `-description`, `-table`, `-cards`.
 - **`pendingDeletionSection()` (`pending-deletion-section.ts`) is the state of one section:** its page
-  and page size signals, an `rxResource` that requests only while the section is visible, the last
-  page received (kept while the next one loads, so the list does not vanish on every page change),
-  and `failed`/`reload`. A new page size starts over at page 1.
+  and page size signals, an `rxResource`, the last page received (kept while the next one loads, so
+  the list does not vanish on every page change), and `failed`/`reload`. A new page size starts over
+  at page 1.
 - **Pagination follows `employees`:** `mat-paginator` with `PAGE_SIZE_OPTIONS`, first/last buttons and
   `tafel-paginator-responsive`, one above and one below the list, only while `totalCount > 0`. Testids
   `pending-<kind>-paginator` and `pending-<kind>-paginator-bottom`. There is no truncation hint, since
   every entry is reachable by paging.
 - **The sentences come from the backend's texts.** `retentionText` ("1 Jahr", "7 Jahren") and
   `warningText` ("30 Tagen") are German dative text built for these sentences, so the component
-  never formats a period itself.
+  never formats a period itself. The employee sentence reads "ohne Einsatz als Fahrer:in oder
+  Beifahrer:in".
 - **Every state of a list is its own element:** `pending-<kind>-loading` (first load only),
   `pending-<kind>-error` with `pending-<kind>-retry`, `pending-<kind>-empty` ("Keine ... in den
   nächsten 30 Tagen fällig.") and `pending-<kind>-disabled` (the job is switched off - the backend
