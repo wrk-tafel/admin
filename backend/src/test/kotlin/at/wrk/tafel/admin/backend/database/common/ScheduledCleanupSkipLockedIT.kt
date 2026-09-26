@@ -19,14 +19,8 @@ import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationEntity
 import at.wrk.tafel.admin.backend.database.model.checkin.ScannerRegistrationRepository
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
-import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
-import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
@@ -95,15 +89,6 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
 
     @Autowired
     private lateinit var employeeRepository: EmployeeRepository
-
-    @Autowired
-    private lateinit var distributionRepository: DistributionRepository
-
-    @Autowired
-    private lateinit var routeRepository: RouteRepository
-
-    @Autowired
-    private lateinit var foodCollectionRepository: FoodCollectionRepository
 
     @Autowired
     private lateinit var dataSource: DataSource
@@ -253,26 +238,23 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
 
     /**
      * Only the candidate-selection query, not the actual deletion - see the household test above for
-     * why. An employee is inactive - and a candidate - when the newest food collection naming them as
-     * driver or co-driver, or their own `created_at` when none ever did, lies before the cutoff
-     * (`EmployeeRepository.findExpiredEmployeeIdsSkipLocked`'s KDoc has the reason). The employee row's
-     * own `updated_at` and a user account carrying the same personnel number have no say in it - users
-     * and employees are separate records. `EmployeeRetentionRuleIT` covers the rule and the deletion
-     * of a candidate in more depth.
+     * why. An employee who was never used as driver or co-driver is measured from their own
+     * `created_at` (`EmployeeRepository.findExpiredEmployeeIdsSkipLocked`'s KDoc has the reason), and a
+     * user account carrying the same personnel number has no say in it - users and employees are
+     * separate records. The food collection side of the rule, and the deletion of a candidate, are in
+     * `EmployeeRetentionRuleIT`: that one rolls back after each test, whereas this class commits, and a
+     * committed distribution would break every test that expects the distributions table to be its own.
      */
     @Test
-    fun `employee deletion candidates select employees whose last use lies before the cutoff and nothing else`() {
+    fun `employee deletion candidates select never used employees created before the cutoff and nothing else`() {
         val neverUsedAndOld = givenEmployee(createdAt = LONG_AGO)
         val neverUsedButRecent = givenEmployee(createdAt = STILL_RECENT)
-        val recentDriver = givenEmployee(createdAt = LONG_AGO, foodCollection = FoodCollectionUse(FoodCollectionRole.DRIVER, STILL_RECENT))
-        val recentCoDriver = givenEmployee(createdAt = LONG_AGO, foodCollection = FoodCollectionUse(FoodCollectionRole.CO_DRIVER, STILL_RECENT))
-        val onlyOldCollections = givenEmployee(createdAt = STILL_RECENT, foodCollection = FoodCollectionUse(FoodCollectionRole.DRIVER, LONG_AGO))
         val oldDespiteUserWithSameNumber = givenEmployee(createdAt = LONG_AGO, userWithSamePersonnelNumber = true)
 
         val candidates = employeeRepository.findExpiredEmployeeIdsSkipLocked(CUTOFF)
 
-        assertThat(candidates).containsExactlyInAnyOrder(neverUsedAndOld, onlyOldCollections, oldDespiteUserWithSameNumber)
-        assertThat(candidates).doesNotContain(neverUsedButRecent, recentDriver, recentCoDriver)
+        assertThat(candidates).containsExactlyInAnyOrder(neverUsedAndOld, oldDespiteUserWithSameNumber)
+        assertThat(candidates).doesNotContain(neverUsedButRecent)
     }
 
     /**
@@ -404,13 +386,11 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
 
     /**
      * [createdAt] backdates `employees.created_at` (Hibernate-generated, like every `created_at` here).
-     * [foodCollection] adds a food collection naming the employee in that role, last updated at the
-     * given moment. [userWithSamePersonnelNumber] adds a user account with the employee's personnel
+     * [userWithSamePersonnelNumber] adds a user account with the employee's personnel
      * number - which has to make no difference, since the two are not linked.
      */
     private fun givenEmployee(
         createdAt: LocalDateTime,
-        foodCollection: FoodCollectionUse? = null,
         userWithSamePersonnelNumber: Boolean = false,
     ): Long {
         val number = fixtureCounter++
@@ -435,36 +415,8 @@ class ScheduledCleanupSkipLockedIT : TafelBaseIntegrationTest() {
             )
         }
 
-        if (foodCollection != null) {
-            val starter = userRepository.save(
-                UserEntity(
-                    username = "cleanup-skip-locked-starter-$number",
-                    password = "irrelevant",
-                    personnelNumber = "cleanup-skip-locked-starter-$number",
-                    firstname = "first",
-                    lastname = "last",
-                    enabled = true,
-                ),
-            )
-            val distribution = distributionRepository.save(DistributionEntity(startedAt = LONG_AGO, startedByUser = starter))
-            val route = routeRepository.save(RouteEntity(number = 90000.0 + number, name = "cleanup-skip-locked-route-$number"))
-            val savedCollection = foodCollectionRepository.save(
-                FoodCollectionEntity(distribution = distribution, route = route).apply {
-                    when (foodCollection.role) {
-                        FoodCollectionRole.DRIVER -> driver = employee
-                        FoodCollectionRole.CO_DRIVER -> coDriver = employee
-                    }
-                },
-            )
-            jdbcTemplate.update("UPDATE food_collections SET updated_at = ? WHERE id = ?", foodCollection.updatedAt, savedCollection.id)
-        }
-
         return employeeId
     }
-
-    private class FoodCollectionUse(val role: FoodCollectionRole, val updatedAt: LocalDateTime)
-
-    private enum class FoodCollectionRole { DRIVER, CO_DRIVER }
 }
 
 /** Far above anything the scanner-registration tests hand out, so these fixtures collide with none of them. */
