@@ -78,6 +78,23 @@ describe('Two-factor authentication', () => {
     cy.request({method: 'POST', url: '/api/mfa/verify', body: {code: EMAIL_CODE}});
   }
 
+  // For a login made while a config reload may be in flight: the backend re-binds its configuration for a moment,
+  // during which the mail settings read as absent and the e-mail method answers "not set up". The send is asked
+  // for again until the reload has settled, and any other refusal still fails at once.
+  function loginByApiWithEmailCodeAcrossReload(user: MfaUser, attempts = 10) {
+    cy.login(user.username, user.password);
+    cy.request({method: 'POST', url: '/api/mfa/email/send', failOnStatusCode: false}).then(response => {
+      const reloading = response.status === 400 && JSON.stringify(response.body).includes('nicht eingerichtet');
+      if (reloading && attempts > 1) {
+        cy.wait(500);
+        loginByApiWithEmailCodeAcrossReload(user, attempts - 1);
+        return;
+      }
+      expect(response.status, 'the e-mail code was sent').to.eq(202);
+      cy.request({method: 'POST', url: '/api/mfa/verify', body: {code: EMAIL_CODE}});
+    });
+  }
+
   function loginThroughThePage(user: MfaUser) {
     cy.visit('/login');
     cy.byTestId('username').type(user.username);
@@ -504,7 +521,7 @@ describe('Two-factor authentication', () => {
       } else {
         cy.task('clearBackendConfig');
       }
-      loginByApiWithEmailCode(requirementUser);
+      loginByApiWithEmailCodeAcrossReload(requirementUser);
       untilRequirementIs(required);
     }
 
