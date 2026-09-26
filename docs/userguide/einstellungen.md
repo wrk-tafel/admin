@@ -178,9 +178,7 @@ Pro Route darf jede Filiale nur einmal vorkommen und jede Uhrzeit nur einmal ver
 
 ## Mitarbeiter
 
-Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Personalnummer, Vorname, Nachname) verwaltet, auf denen die [Benutzerkonten](benutzer.md) sowie die Fahrer/Beifahrer-Zuordnung in der [Warenerfassung](logistik.md) basieren. Die Liste filtert sich beim Tippen im Suchfeld — es gibt keinen eigenen Such-Button —, gesucht wird nach Personalnummer, Vor- und Nachname. Anders als bei Notschlafstellen, Fahrzeugen und Lebensmittelkategorien gibt es hier keine Aktiv/Inaktiv-Kennzeichnung, dafür können Mitarbeiter jederzeit endgültig gelöscht werden. Dieser Hinweis steht auch über der Liste.
-
-Die Spalte **Benutzerkonto** zeigt, ob ein [Benutzerkonto](benutzer.md) auf die Personalnummer verweist. Mit der Berechtigung "Benutzerverwaltung" ist der Kontoname ein Link direkt auf die Benutzer-Details; ohne diese Berechtigung steht dort nur "Benutzerkonto vorhanden". Mitarbeiter ohne Konto sind als "Kein Benutzerkonto" gekennzeichnet.
+Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Personalnummer, Vorname, Nachname) verwaltet, auf denen die Fahrer/Beifahrer-Zuordnung in der [Warenerfassung](logistik.md) basiert. Mitarbeiter sind vom [Benutzerkonto](benutzer.md) völlig getrennt: Ein Benutzerkonto trägt seine Personalnummer und seinen Namen selbst, und es gibt keine Verbindung zwischen beiden. Ist jemand sowohl Benutzer als auch Fahrer, gibt es zwei Datensätze, die bei Bedarf beide gepflegt werden. Die Liste filtert sich beim Tippen im Suchfeld — es gibt keinen eigenen Such-Button —, gesucht wird nach Personalnummer, Vor- und Nachname. Anders als bei Notschlafstellen, Fahrzeugen und Lebensmittelkategorien gibt es hier keine Aktiv/Inaktiv-Kennzeichnung, dafür können Mitarbeiter jederzeit endgültig gelöscht werden. Dieser Hinweis steht auch über der Liste.
 
 Ein Klick auf eine der Spaltenüberschriften Personalnummer, Vorname oder Nachname sortiert die Tabelle danach statt nach der Anlagereihenfolge; ein erneuter Klick auf dieselbe Spalte kehrt die Richtung um.
 
@@ -192,8 +190,28 @@ Beim Anlegen sind Personalnummer, Vorname und Nachname Pflichtfelder (max. 50 Ze
 
 ![Mitarbeiter anlegen](images/einstellungen-mitarbeiter-anlegen.jpg)
 
-Über den roten Papierkorb-Button kann ein Mitarbeiter endgültig gelöscht werden — auch wenn er bereits als Aussteller einer Kundenerfassung, als Verfasser einer Notiz oder als Fahrer/Beifahrer einer Warenerfassung aufscheint: diese Verweise bleiben erhalten und zeigen dort stattdessen "Mitarbeiter gelöscht" an. Nur solange noch ein Benutzerkonto mit dem Mitarbeiter verknüpft ist, lehnt die Anwendung das Löschen ab und weist mit einer Fehlermeldung darauf hin — das Benutzerkonto muss dann zuerst gelöscht oder mit einem anderen Mitarbeiter verknüpft werden. Vor dem Löschen erscheint zur Sicherheit eine Bestätigungsabfrage.
+Über den roten Papierkorb-Button kann ein Mitarbeiter jederzeit endgültig gelöscht werden — auch wenn er bereits als Fahrer/Beifahrer einer Warenerfassung aufscheint: dieser Verweis wird geleert und zeigt dort stattdessen "Mitarbeiter gelöscht" an. Vor dem Löschen erscheint zur Sicherheit eine Bestätigungsabfrage.
+
+Mitarbeiter, die seit einem Jahr in keiner Warenerfassung mehr als Fahrer/Beifahrer eingetragen wurden (bzw. nie eingetragen waren und seit einem Jahr angelegt sind), entfernt die Anwendung automatisch (nächtliche Bereinigung); die alten Warenerfassungen bleiben erhalten und zeigen dann "Mitarbeiter gelöscht".
 
 ![Mitarbeiter löschen](images/einstellungen-mitarbeiter-loeschen.jpg)
 
-Über den Download-Button lässt sich pro Mitarbeiter eine DSGVO-Datenauskunft (Art. 15/20) als ZIP-Datei herunterladen – Personalnummer, Name und Anlagedatum, sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei. Dieser Button erscheint nur bei Mitarbeitern ohne Benutzerkonto (z. B. reinen Fahrern): sie haben kein Konto, über das sie sich selbst anmelden könnten, und sind daher sonst über keinen Weg auskunftsfähig. Ist ein Benutzerkonto verknüpft, entfällt der Button hier - die Auskunft zu diesem Mitarbeiter ist dann bereits vollständig über den Export auf der [Benutzer-Detailseite](benutzer.md) verfügbar (der auch die verknüpfte Personalnummer und den Namen enthält), sodass hier kein zweites, unvollständiges Dokument für dieselbe Person entstehen soll. Ist die Personalnummer nicht bekannt, hilft stattdessen die Suche unter [Datenauskunft](datenauskunft.md).
+Über den Download-Button lässt sich pro Mitarbeiter eine DSGVO-Datenauskunft (Art. 15/20) als ZIP-Datei herunterladen – Personalnummer, Name und Anlagedatum, sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei. Der Button steht bei jedem Mitarbeiter zur Verfügung; die Daten eines gleichnamigen Benutzerkontos sind ein eigener Datensatz und werden über die [Benutzer-Detailseite](benutzer.md) exportiert. Ist die Personalnummer nicht bekannt, hilft die Suche unter [Datenauskunft](datenauskunft.md), die Benutzerkonto und Mitarbeiter in einem Durchgang findet.
+
+<a id="anstehende-loeschungen"></a>
+
+## Anstehende Löschungen
+
+Unter **Einstellungen → Anstehende Löschungen** sieht man vorab, was die automatische Bereinigung demnächst löscht - damit keine Löschung unerwartet kommt. Die Seite ist außerdem das Ziel der täglichen Benachrichtigung "Daten werden bald gelöscht" (siehe [Benachrichtigungen](README.md#benachrichtigungen)): Ein Klick auf die Benachrichtigung öffnet sie direkt.
+
+Es gibt bis zu drei Abschnitte, je nach Berechtigung des angemeldeten Benutzers: **Benutzerkonten** (Berechtigung "Benutzerverwaltung"), **Kunden** (Berechtigung "Kundenverwaltung") und **Mitarbeiter** (Berechtigung "Einstellungen"). Ein Abschnitt fehlt ganz, wenn die Berechtigung fehlt - die Seite zeigt keinen Namen, den man sonst nicht sehen dürfte.
+
+![Anstehende Löschungen](images/einstellungen-anstehende-loeschungen.jpg)
+
+Jeder Abschnitt nennt die geltende Aufbewahrungsfrist und listet, was innerhalb der nächsten 30 Tage gelöscht wird - **einschließlich dessen, was schon fällig ist** (Kennzeichen "Fällig"), aber noch nicht gelöscht wurde, etwa weil die nächtliche Bereinigung noch nicht gelaufen ist oder wegen der Sicherheitsgrenze pro Lauf angehalten hat. Die Liste zeigt höchstens die ersten 200 Einträge, die längsten Ungenutzten zuerst; bei mehr steht die Gesamtanzahl im Hinweis.
+
+- **Benutzerkonten** werden nach einem Jahr ohne Anmeldung gelöscht (Administrator-Konten nie). Die Liste nennt Benutzername (als Link zu den [Benutzerdetails](benutzer.md)), Name, Personalnummer, den letzten Login - bei einem Konto, das sich nie angemeldet hat, das Anlagedatum - und das Datum der Löschung. Eine Anmeldung der Person genügt, damit das Konto bleibt.
+- **Kunden** werden 7 Jahre nach Ablauf ihrer Gültigkeit gelöscht. Die Liste nennt Kundennummer (als Link zur [Kunden-Detailansicht](kunden.md)), Name der Hauptperson, das Ende der Gültigkeit und das Datum der Löschung. Eine Verlängerung der Gültigkeit nimmt den Kunden wieder aus der Liste.
+- **Mitarbeiter** werden nach einem Jahr ohne Einsatz als Fahrer:in oder Beifahrer:in in einer Warenerfassung gelöscht. Die Liste nennt Personalnummer, Name, den letzten Einsatz - bei einem nie eingesetzten Mitarbeiter das Anlagedatum - und das Datum der Löschung. Ein Link führt zur Mitarbeiterverwaltung (siehe [Mitarbeiter](#mitarbeiter)), wo sich ein Mitarbeiter auch sofort löschen lässt.
+
+Ist die automatische Löschung eines Bereichs abgeschaltet, steht statt der Liste "Die automatische Löschung ist deaktiviert.". Die Fristen und die 30 Tage Vorlauf legt die Betreiberin bzw. der Betreiber der Anwendung in der Konfiguration fest.

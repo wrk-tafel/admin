@@ -141,6 +141,15 @@ class TafelAdminHouseholdRetentionProperties {
     var retentionTime: Period = Period.ofYears(7)
 
     /**
+     * How long before [retentionTime] runs out a household starts counting toward
+     * `RetentionExpiryReminderService`'s daily push notification to administrators ("N will be
+     * deleted soon"), so a deletion is announced instead of only logged afterwards. A [Period] for the
+     * same reason as [retentionTime]. Read per run; a value at or above [retentionTime] means
+     * everything counts, and a zero or negative one warns only about what is already due.
+     */
+    var retentionWarning: Period = Period.ofDays(30)
+
+    /**
      * The most a single run may delete before it refuses to proceed and alerts administrators
      * instead (`RETENTION_RUN` push notification, GDPR gap G19) - a misconfigured `retentionTime`
      * that would otherwise sweep a database's worth of households looks identical to a normal night
@@ -194,17 +203,24 @@ class TafelAdminUserRetentionProperties {
      * on an account that has never logged in). A [Period] rather than a [java.time.Duration] so a
      * deployment can express it the way an operator actually thinks about it - `7y`, `18m`, `730d` -
      * via Spring Boot's simple `Period` parsing (`y`/`m`/`w`/`d` suffixes); `Duration` has no year/month
-     * unit at all, since neither has a fixed length. Defaults to 7 years, the same floor as
-     * [TafelAdminHouseholdRetentionProperties.retentionTime] and
-     * [TafelAdminEmployeeRetentionProperties.retentionTime] - one unified retention window across the
-     * application rather than three separately reasoned ones, even though this one isn't itself tied
-     * to that bookkeeping period; widen or shorten it per
-     * deployment. A zero or negative period ([Period.isZero]/[Period.isNegative] - the latter true as
+     * unit at all, since neither has a fixed length. Defaults to 1 year - much shorter than
+     * [TafelAdminHouseholdRetentionProperties.retentionTime], which is tied to the bookkeeping
+     * retention period a household's records fall under; nothing about a login account is; widen or
+     * shorten it per deployment. A zero or negative period ([Period.isZero]/[Period.isNegative] - the latter true as
      * soon as *any* field is negative, so don't mix positive and negative fields in one value) keeps
      * every account instead of deleting them all. An account holding `ADMINISTRATOR` is never a
      * candidate, regardless of this value.
      */
-    var retentionTime: Period = Period.ofYears(7)
+    var retentionTime: Period = Period.ofYears(1)
+
+    /**
+     * How long before [retentionTime] runs out an account starts counting toward
+     * `RetentionExpiryReminderService`'s daily push notification to administrators ("N will be deleted
+     * soon"), so an unexpected deletion is announced instead of only logged afterwards. A [Period] for
+     * the same reason as [retentionTime]. Read per run; a value at or above [retentionTime] means
+     * everything counts, and a zero or negative one warns only about what is already due.
+     */
+    var retentionWarning: Period = Period.ofDays(30)
 
     /**
      * The most a single run may delete before it refuses to proceed and alerts administrators
@@ -217,24 +233,18 @@ class TafelAdminUserRetentionProperties {
 
 /**
  * GDPR gap G13, the `employees` half - see [TafelAdminUserRetentionProperties] for `users`. An
- * employee is a shared record other modules reference by a plain, non-cascading FK (household
- * issuer, household notes, food collection driver/co-driver, route stop completion recorder) that
- * already tolerates a missing employee by design (`EmployeeService.deleteEmployee`'s KDoc shows
- * "Mitarbeiter gelöscht" wherever such a reference is displayed) - so this job deletes an employee
- * the moment nothing still needs it kept, exactly like a manual delete already can, just triggered by
- * age instead of a person pressing delete.
+ * employee is a driver or co-driver, a record with no link to any user account. A food collection
+ * references it by a plain, non-cascading FK that already tolerates a missing employee by design
+ * (`EmployeeService.deleteEmployee`'s KDoc shows "Mitarbeiter gelöscht" wherever such a reference is
+ * displayed) - so this job deletes an employee once they have gone unused for [retentionTime], exactly
+ * like a manual delete already can, just triggered by inactivity instead of a person pressing delete.
  *
- * An employee referenced anywhere - a linked user account included - is never a candidate; see
- * `EmployeeRepository.findExpiredEmployeeIdsSkipLocked`'s KDoc for the full list of tables checked.
- * This job is deliberately *stricter* here than a manual delete, which is allowed to blank a still-live
- * reference (`ON DELETE SET NULL`) the moment a person chooses to: an unattended nightly job should
- * never do that to a record that is itself well within its own retention window. The moment used is
- * [at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity.updatedAt].
+ * Inactivity is when the employee was last *used*: the newest food collection naming them as driver or
+ * co-driver, or the employee's own creation when none ever did. The employee's own row is not what
+ * counts, it hardly ever changes; see `EmployeeRepository.findExpiredEmployeeIdsSkipLocked`'s KDoc.
  *
- * `tafeladmin.employeeDeletion.cleanupCron` - default 06:30 daily, after `userDeletion` at 06:15 so
- * an employee whose only user account is deleted the same night is a candidate for the very next run
- * rather than waiting an extra day - is a plain `application.yml` placeholder for the same
- * startup-only reason as the others.
+ * `tafeladmin.employeeDeletion.cleanupCron` - default 06:30 daily, after `userDeletion` at 06:15 - is a
+ * plain `application.yml` placeholder for the same startup-only reason as the others.
  */
 @ExcludeFromTestCoverage
 class TafelAdminEmployeeRetentionProperties {
@@ -244,16 +254,21 @@ class TafelAdminEmployeeRetentionProperties {
     var enabled: Boolean = true
 
     /**
-     * How long an employee referenced by nothing else is kept before automatic deletion - a [Period]
-     * for the same reason as `userDeletion.retentionTime`, see its KDoc. Defaults to 7 years, the
-     * same unified floor as [TafelAdminHouseholdRetentionProperties.retentionTime] and
-     * [TafelAdminUserRetentionProperties.retentionTime], even though an employee this job ever
-     * actually reaches is - by definition - not the issuer/driver/recorder of anything still on
-     * record, so no bookkeeping period specifically applies to it. A zero or negative period keeps
-     * every employee instead of deleting them all. An employee referenced anywhere is never a
-     * candidate, regardless of this value.
+     * How long an employee goes unused (see the class KDoc) before automatic deletion - a [Period]
+     * for the same reason as `userDeletion.retentionTime`, see its KDoc. Defaults to 1 year, the same
+     * as [TafelAdminUserRetentionProperties.retentionTime]. A zero or negative period keeps every
+     * employee instead of deleting them all.
      */
-    var retentionTime: Period = Period.ofYears(7)
+    var retentionTime: Period = Period.ofYears(1)
+
+    /**
+     * How long before [retentionTime] runs out a employee starts counting toward
+     * `RetentionExpiryReminderService`'s daily push notification to administrators ("N will be
+     * deleted soon"), so a deletion is announced instead of only logged afterwards. A [Period] for the
+     * same reason as [retentionTime]. Read per run; a value at or above [retentionTime] means
+     * everything counts, and a zero or negative one warns only about what is already due.
+     */
+    var retentionWarning: Period = Period.ofDays(30)
 
     /**
      * The most a single run may delete before it refuses to proceed and alerts administrators

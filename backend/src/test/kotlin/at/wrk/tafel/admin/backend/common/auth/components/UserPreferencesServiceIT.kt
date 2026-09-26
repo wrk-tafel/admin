@@ -3,7 +3,6 @@ package at.wrk.tafel.admin.backend.common.auth.components
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,11 +51,9 @@ internal class UserPreferencesServiceIT : TafelBaseIntegrationTest() {
     private fun newUser() = UserEntity(
         username = "theme-test-${System.nanoTime()}",
         password = "irrelevant",
-        employee = EmployeeEntity(
-            personnelNumber = "theme-${System.nanoTime()}",
-            firstname = "Test",
-            lastname = "Theme",
-        ),
+        personnelNumber = "theme-${System.nanoTime()}",
+        firstname = "Test",
+        lastname = "Theme",
         enabled = true,
         passwordChangeRequired = false,
     )

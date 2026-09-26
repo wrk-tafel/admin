@@ -138,7 +138,7 @@ internal class DistributionServiceTest {
 
         testHouseholdEntity1 = HouseholdEntity(householdId = 100, validUntil = LocalDate.now(), locked = false).apply {
             id = 1
-            issuer = testUserEntity.employee
+            issuer = testUserEntity
             createdAt = LocalDateTime.now()
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"

@@ -326,6 +326,7 @@ tafeladmin:
   householdDeletion:
     enabled: true
     retentionTime: 7y
+    retentionWarning: 30d
     maxDeletionsPerRun: 50
     cleanupCron: "0 0 6 * * *"
   # GDPR gap G13 (docs/architecture/gdpr-compliance.md), the "users" half - mirrors householdDeletion
@@ -340,36 +341,38 @@ tafeladmin:
   #
   # retentionTime is a Period (y/m/w/d suffixes, e.g. "7y", "18m", "730d" - unlike a Duration, which
   # has no year/month unit at all) rather than a plain year count, so it can be expressed however an
-  # operator actually thinks about it. Defaults to 7y - unified with householdDeletion.retentionTime
-  # and employeeDeletion.retentionTime below as one consistent retention floor across the application,
-  # even though it isn't itself tied to householdDeletion's bookkeeping period; widen or shorten per
+  # operator actually thinks about it. Defaults to 1y, much shorter than householdDeletion.retentionTime
+  # (which is tied to the bookkeeping retention period a household's records fall under); nothing
+  # about a login account is; widen or shorten per
   # deployment. A zero or negative period keeps every account instead of deleting them all.
   #
   # maxDeletionsPerRun - GDPR gap G19 - see householdDeletion.maxDeletionsPerRun above; same
   # reasoning, same ceiling default.
+  # retentionWarning: how long before an account would be deleted it counts toward the daily push
+  # notification to administrators (RetentionExpiryReminderService), so a deletion never comes
+  # unannounced. Same Period syntax as retentionTime. householdDeletion and employeeDeletion have the same.
   userDeletion:
     enabled: true
-    retentionTime: 7y
+    retentionTime: 1y
+    retentionWarning: 30d
     maxDeletionsPerRun: 50
     cleanupCron: "0 15 6 * * *"
-  # GDPR gap G13, the "employees" half - see userDeletion above. Deletes an employee once it is
-  # referenced by nothing else at all - not just no linked user account, also no household issuer, no
-  # household note author, no food collection driver/co-driver, no route stop completion recorder (see
-  # EmployeeRepository.findExpiredEmployeeIdsSkipLocked for the full list) - and its row hasn't been
-  # written to in longer than retentionTime, through the same EmployeeService.deleteEmployee a staff
-  # member's manual delete uses. 06:30 runs after userDeletion (06:15) so an employee whose only
-  # account is deleted the same night is already a candidate on the very next run.
+  # GDPR gap G13, the "employees" half - see userDeletion above. Deletes an employee (a driver or
+  # co-driver, unrelated to any user account) once they have gone unused for longer than retentionTime:
+  # no food collection names them as driver or co-driver any more within that time (their own row does
+  # not count, it hardly ever changes; one never used at all is measured from its creation), through the
+  # same EmployeeService.deleteEmployee a staff member's manual delete uses. The old food collections
+  # stay and show "Mitarbeiter gelöscht". See EmployeeRepository.findExpiredEmployeeIdsSkipLocked.
   #
-  # retentionTime defaults to 7y, the same unified floor as userDeletion.retentionTime and
-  # householdDeletion.retentionTime, even though an employee this job ever reaches is by definition
-  # not the issuer/driver/recorder of anything still on record, so no bookkeeping period specifically
-  # applies to it. A zero or negative period keeps every employee instead of deleting them all.
+  # retentionTime defaults to 1y, the same as userDeletion.retentionTime. A zero or negative period
+  # keeps every employee instead of deleting them all.
   #
   # maxDeletionsPerRun - GDPR gap G19 - see householdDeletion.maxDeletionsPerRun above; same
   # reasoning, same ceiling default.
   employeeDeletion:
     enabled: true
-    retentionTime: 7y
+    retentionTime: 1y
+    retentionWarning: 30d
     maxDeletionsPerRun: 50
     cleanupCron: "0 30 6 * * *"
   # Watches the config files this application was started with - in production the operator-managed

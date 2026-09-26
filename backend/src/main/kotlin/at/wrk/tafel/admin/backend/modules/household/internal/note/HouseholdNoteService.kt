@@ -25,10 +25,10 @@ class HouseholdNoteService(
         val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
         val pagedResult =
             householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId, pageRequest)
-        val currentEmployeeId = currentEmployeeId()
+        val currentUserId = currentUserId()
 
         return HouseholdNoteSearchResult(
-            items = pagedResult.map { mapNote(it, currentEmployeeId) }.toList(),
+            items = pagedResult.map { mapNote(it, currentUserId) }.toList(),
             totalCount = pagedResult.totalElements,
             currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
@@ -42,27 +42,27 @@ class HouseholdNoteService(
      * would silently truncate the record.
      */
     fun getAllNotes(householdId: Long): List<HouseholdNoteItem> {
-        val currentEmployeeId = currentEmployeeId()
-        return householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId).map { mapNote(it, currentEmployeeId) }
+        val currentUserId = currentUserId()
+        return householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(householdId).map { mapNote(it, currentUserId) }
     }
 
     /**
-     * A note's author is always set on creation (see [createNewNote]), so a missing [HouseholdNoteEntity.employee]
-     * here only ever means that employee has since been deleted - employees are personal data and stay
-     * deletable even once referenced by a note (`household_notes.employee_id` is `on delete set null`).
+     * A note's author is always set on creation (see [createNewNote]), so a missing [HouseholdNoteEntity.author]
+     * here only ever means that account has since been deleted - the reference is
+     * `on delete set null` (`household_notes.author_user_id`).
      * [editable] mirrors what [updateNote]/[deleteNote] would allow, so the "Alle Notizen anzeigen" dialog can
      * hide the pencil/bin for a note it may not touch instead of only failing after the fact.
      */
-    private fun mapNote(entity: HouseholdNoteEntity, currentEmployeeId: Long?): HouseholdNoteItem {
-        val employee = entity.employee
-        val userDisplayString = employee?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" } ?: "Mitarbeiter gelöscht"
+    private fun mapNote(entity: HouseholdNoteEntity, currentUserId: Long?): HouseholdNoteItem {
+        val author = entity.author
+        val userDisplayString = author?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" } ?: "Mitarbeiter gelöscht"
 
         return HouseholdNoteItem(
             id = entity.id!!,
             author = userDisplayString,
             timestamp = entity.createdAt!!,
             note = entity.note,
-            editable = employee?.id != null && employee.id == currentEmployeeId,
+            editable = author?.id != null && author.id == currentUserId,
         )
     }
 
@@ -70,27 +70,27 @@ class HouseholdNoteService(
         val household = householdRepository.findByHouseholdId(householdId)
             ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
 
-        val authenticatedEmployee = currentAuthenticatedUser().employee
+        val authenticatedUser = currentAuthenticatedUser()
         val noteEntity = HouseholdNoteEntity(household = household, note = note)
-        noteEntity.employee = authenticatedEmployee
+        noteEntity.author = authenticatedUser
 
         val savedEntity = householdNoteRepository.save(noteEntity)
-        return mapNote(savedEntity, authenticatedEmployee.id)
+        return mapNote(savedEntity, authenticatedUser.id)
     }
 
     fun updateNote(householdId: Long, noteId: Long, note: String): HouseholdNoteItem {
         val noteEntity = findNote(householdId, noteId)
-        val currentEmployeeId = currentEmployeeId()
-        requireOwnNote(noteEntity, currentEmployeeId)
+        val currentUserId = currentUserId()
+        requireOwnNote(noteEntity, currentUserId)
         noteEntity.note = note
 
         val savedEntity = householdNoteRepository.save(noteEntity)
-        return mapNote(savedEntity, currentEmployeeId)
+        return mapNote(savedEntity, currentUserId)
     }
 
     fun deleteNote(householdId: Long, noteId: Long) {
         val noteEntity = findNote(householdId, noteId)
-        requireOwnNote(noteEntity, currentEmployeeId())
+        requireOwnNote(noteEntity, currentUserId())
         householdNoteRepository.delete(noteEntity)
     }
 
@@ -98,13 +98,13 @@ class HouseholdNoteService(
         ?: throw NotFoundException("Notiz Nr. $noteId nicht vorhanden!")
 
     /**
-     * A note may only be corrected or erased by the employee who wrote it (Art. 16/17 gap G21) -
+     * A note may only be corrected or erased by the user who wrote it (Art. 16/17 gap G21) -
      * unlike [findNote]'s household scoping, this isn't a lookup filter, since the note still needs
      * to 404 by household first and only then reveal (via 403) that it exists but belongs to someone
      * else.
      */
-    private fun requireOwnNote(noteEntity: HouseholdNoteEntity, currentEmployeeId: Long?) {
-        if (currentEmployeeId == null || noteEntity.employee?.id != currentEmployeeId) {
+    private fun requireOwnNote(noteEntity: HouseholdNoteEntity, currentUserId: Long?) {
+        if (currentUserId == null || noteEntity.author?.id != currentUserId) {
             throw TafelApiException(
                 HttpStatus.FORBIDDEN,
                 "Notizen können nur von der Person bearbeitet oder gelöscht werden, die sie verfasst hat!",
@@ -117,5 +117,5 @@ class HouseholdNoteService(
         return userRepository.findByUsername(authenticatedUser.username!!)!!
     }
 
-    private fun currentEmployeeId(): Long? = currentAuthenticatedUser().employee.id
+    private fun currentUserId(): Long? = currentAuthenticatedUser().id
 }

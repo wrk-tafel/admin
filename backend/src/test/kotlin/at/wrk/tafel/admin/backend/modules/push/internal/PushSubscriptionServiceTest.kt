@@ -7,7 +7,6 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
@@ -249,7 +248,9 @@ internal class PushSubscriptionServiceTest {
         val originalOwner = UserEntity(
             username = "original-owner",
             password = "pw",
-            employee = EmployeeEntity(personnelNumber = "p-999", firstname = "first", lastname = "last"),
+            personnelNumber = "p-999",
+            firstname = "first",
+            lastname = "last",
         ).apply { id = 999 }
         val existing = PushSubscriptionEntity().apply {
             id = 7

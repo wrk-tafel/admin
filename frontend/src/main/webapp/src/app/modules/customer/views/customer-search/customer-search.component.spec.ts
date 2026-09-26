@@ -11,6 +11,8 @@ import {CustomerApiService, CustomerSearchResult, Gender} from '../../../../api/
 import {CustomerSearchComponent} from './customer-search.component';
 import {By} from '@angular/platform-browser';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
+import {MatDialog} from '@angular/material/dialog';
+import {DeleteCustomerDialogComponent} from '../customer-detail/dialogs/delete-customer-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 
@@ -19,6 +21,7 @@ describe('CustomerSearchComponent', () => {
   let router: MockedObject<Router>;
   let toastr: MockedObject<TafelToastrService>;
   let fileHelperService: MockedObject<FileHelperService>;
+  let dialog: { open: ReturnType<typeof vi.fn> };
   let queryParams: Record<string, string>;
 
   const testCustomer = {
@@ -59,7 +62,14 @@ describe('CustomerSearchComponent', () => {
           useValue: {
             getCustomer: vi.fn().mockName('CustomerApiService.getCustomer'),
             searchCustomer: vi.fn().mockName('CustomerApiService.searchCustomer'),
+            deleteCustomer: vi.fn().mockName('CustomerApiService.deleteCustomer'),
             generatePrivacyNoticeTemplate: vi.fn().mockName('CustomerApiService.generatePrivacyNoticeTemplate')
+          }
+        },
+        {
+          provide: MatDialog,
+          useValue: {
+            open: vi.fn().mockName('MatDialog.open').mockReturnValue({afterClosed: () => of(true)})
           }
         },
         {
@@ -98,6 +108,7 @@ describe('CustomerSearchComponent', () => {
     router = TestBed.inject(Router) as MockedObject<Router>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
+    dialog = TestBed.inject(MatDialog) as unknown as { open: ReturnType<typeof vi.fn> };
 
     // The component searches once as it is constructed, before any test can arrange a response -
     // without a default here every test would fail on the constructor rather than on its subject.
@@ -615,5 +626,99 @@ describe('CustomerSearchComponent', () => {
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-vorlage.pdf', response.body);
     expect(component.downloadingPrivacyNoticeTemplate()).toBe(false);
   });
+
+  describe('delete', () => {
+
+    it('renders a delete button per result row and card, labelled with the customer', () => {
+      apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+      const {fixture} = createComponent();
+      fixture.detectChanges();
+
+      const buttons = fixture.debugElement.queryAll(By.css('[testid="searchresult-deletecustomer-button-42"]'));
+      // one in the table row, one in the card list - only one of them is displayed per viewport
+      expect(buttons.length).toBe(2);
+      buttons.forEach(button => {
+        expect(button.nativeElement.getAttribute('aria-label')).toBe('Kunde last first löschen');
+        expect(button.nativeElement.disabled).toBe(false);
+      });
+    });
+
+    it('disables the delete button of a locked customer, as the detail screen does', () => {
+      apiService.searchCustomer.mockReturnValue(of({
+        ...searchCustomerMockResponse, items: [{...testCustomer, locked: true}]
+      }));
+      const {fixture} = createComponent();
+      fixture.detectChanges();
+
+      const buttons = fixture.debugElement.queryAll(By.css('[testid="searchresult-deletecustomer-button-42"]'));
+      expect(buttons.length).toBe(2);
+      buttons.forEach(button => expect(button.nativeElement.disabled).toBe(true));
+    });
+
+    it('clicking the delete button asks first, naming the customer', () => {
+      apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+      dialog.open.mockReturnValueOnce({afterClosed: () => of(undefined)});
+      const {fixture} = createComponent();
+      fixture.detectChanges();
+
+      fixture.debugElement.query(By.css('[testid="searchresult-deletecustomer-button-42"]')).nativeElement.click();
+
+      expect(dialog.open).toHaveBeenCalledWith(DeleteCustomerDialogComponent, {data: {customerName: 'last first'}});
+    });
+
+    it('does not delete when the confirmation is cancelled', () => {
+      apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+      dialog.open.mockReturnValueOnce({afterClosed: () => of(undefined)});
+      const {component} = createComponent();
+      apiService.searchCustomer.mockClear();
+
+      component.deleteCustomer(testCustomer);
+
+      expect(apiService.deleteCustomer).not.toHaveBeenCalled();
+      expect(apiService.searchCustomer).not.toHaveBeenCalled();
+      expect(toastr.success).not.toHaveBeenCalled();
+    });
+
+    it('deletes after the confirmation, reports it and reloads the current results', () => {
+      apiService.searchCustomer.mockReturnValue(of({
+        ...searchCustomerMockResponse, items: [testCustomer, {...testCustomer, id: 43}], totalCount: 30, currentPage: 2, totalPages: 3
+      }));
+      apiService.deleteCustomer.mockReturnValue(of(undefined));
+      const {component} = createComponent();
+      apiService.searchCustomer.mockClear();
+
+      component.deleteCustomer(testCustomer);
+
+      expect(apiService.deleteCustomer).toHaveBeenCalledWith(42, expect.anything());
+      expect(toastr.success).toHaveBeenCalledWith('Kunde wurde gelöscht!');
+      expect(apiService.searchCustomer).toHaveBeenCalledTimes(1);
+      expect(apiService.searchCustomer.mock.calls[0][8]).toBe(2);
+    });
+
+    it('steps back a page when the deleted customer was the only row of the last page', () => {
+      apiService.searchCustomer.mockReturnValue(of({...searchCustomerMockResponse, totalCount: 11, currentPage: 2, totalPages: 2}));
+      apiService.deleteCustomer.mockReturnValue(of(undefined));
+      const {component} = createComponent();
+      apiService.searchCustomer.mockClear();
+
+      component.deleteCustomer(testCustomer);
+
+      expect(apiService.searchCustomer.mock.calls[0][8]).toBe(1);
+    });
+
+    it('shows the backend message and keeps the list when the deletion is refused', () => {
+      apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+      apiService.deleteCustomer.mockReturnValue(throwError(() => new HttpErrorResponse({status: 409, error: {detail: 'Kunde gesperrt'}})));
+      const {component} = createComponent();
+      apiService.searchCustomer.mockClear();
+
+      component.deleteCustomer(testCustomer);
+
+      expect(toastr.error).toHaveBeenCalledWith('Kunde gesperrt', 'Löschen fehlgeschlagen!');
+      expect(toastr.success).not.toHaveBeenCalled();
+      expect(apiService.searchCustomer).not.toHaveBeenCalled();
+    });
+  });
+
 
 });

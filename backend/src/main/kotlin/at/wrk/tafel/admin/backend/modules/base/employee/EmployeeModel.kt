@@ -10,22 +10,11 @@ data class EmployeeListResponse(
     val pageSize: Int,
 )
 
-/**
- * One employee as the list shows them: the record itself plus the user account referencing it, if
- * there is one. The account is only carried here - the personnel number is what joins the employee
- * admin screen and the user administration, and neither side used to show the other exists.
- */
 data class EmployeeItem(
     val id: Long,
     val personnelNumber: String,
     val firstname: String,
     val lastname: String,
-    val userAccount: EmployeeUserAccount? = null,
-)
-
-data class EmployeeUserAccount(
-    val id: Long,
-    val username: String,
 )
 
 data class EmployeeResponse(

@@ -92,8 +92,8 @@ export class UserApiService {
     return this.http.delete<void>(`/users/${userId}/mfa`);
   }
 
-  deleteUser(userId: number): Observable<void> {
-    return this.http.delete<void>(`/users/${userId}`);
+  deleteUser(userId: number, context?: HttpContext): Observable<void> {
+    return this.http.delete<void>(`/users/${userId}`, {context});
   }
 
   createUser(data: UserData, context?: HttpContext): Observable<UserData> {

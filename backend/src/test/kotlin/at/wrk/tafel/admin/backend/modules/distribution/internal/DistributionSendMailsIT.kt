@@ -142,7 +142,7 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
         }!!
 
         transactionTemplate.executeWithoutResult {
-            val household = householdRepository.saveAndFlush(createHousehold(testUser.employee!!, testCountry))
+            val household = householdRepository.saveAndFlush(createHousehold(testUser!!, testCountry))
             household.mainPerson = household.persons.first { it.isMainPerson }
             // A member born two years after the distribution being mailed - the household is read as
             // it is now, so re-sending an old distribution's mails has to cope with people who joined

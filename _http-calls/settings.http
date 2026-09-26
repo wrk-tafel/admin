@@ -74,3 +74,7 @@ Content-Type: application/json
   "validTo": "2999-12-31",
   "amount": 150
 }
+
+### Get what the retention jobs will delete soon (user accounts, customers, employees within their warning window).
+### A section is null when the caller lacks the area's permission (USER_MANAGEMENT / CUSTOMER / SETTINGS).
+GET {{baseApiPath}}/settings/pending-deletions

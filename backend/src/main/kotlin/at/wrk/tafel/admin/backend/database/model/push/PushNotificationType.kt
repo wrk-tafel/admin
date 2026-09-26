@@ -62,4 +62,11 @@ enum class PushNotificationType {
      * `at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertEvent`.
      */
     RETENTION_RUN,
+
+    /**
+     * User accounts, customer households or employees are about to be deleted by their retention job
+     * within its configured warning window (`tafeladmin.{userDeletion,householdDeletion,employeeDeletion}.retentionWarning`)
+     * - a heads-up to administrators before the deletion happens, see `RetentionExpiryReminderService`.
+     */
+    RETENTION_EXPIRING,
 }

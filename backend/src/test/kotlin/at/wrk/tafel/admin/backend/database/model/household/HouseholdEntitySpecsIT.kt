@@ -568,7 +568,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         customizeMainPerson: PersonEntity.() -> Unit = {},
         customize: HouseholdEntity.() -> Unit = {},
     ): HouseholdEntity {
-        val household = createHousehold(testUser.employee!!, testCountry)
+        val household = createHousehold(testUser!!, testCountry)
         household.customize()
         household.persons.first { it.isMainPerson }.customizeMainPerson()
 

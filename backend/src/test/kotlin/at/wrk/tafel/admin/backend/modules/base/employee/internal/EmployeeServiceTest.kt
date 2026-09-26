@@ -1,15 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
-import at.wrk.tafel.admin.backend.database.model.auth.EmployeeUserAccountProjection
-import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeItem
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeListResponse
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeRequest
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
-import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeUserAccount
 import at.wrk.tafel.admin.backend.modules.base.employee.PersonnelNumberAvailabilityResponse
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
@@ -38,9 +35,6 @@ class EmployeeServiceTest {
 
     @RelaxedMockK
     private lateinit var employeeRepository: EmployeeRepository
-
-    @RelaxedMockK
-    private lateinit var userRepository: UserRepository
 
     @InjectMockKs
     private lateinit var employeeService: EmployeeService
@@ -90,41 +84,6 @@ class EmployeeServiceTest {
     }
 
     @Test
-    fun `find employees carries the linked user account of every employee that has one`() {
-        val employee1 = EmployeeEntity(personnelNumber = "00001", firstname = "first 1", lastname = "last 1").apply { id = 1 }
-        val employee2 = EmployeeEntity(personnelNumber = "00002", firstname = "first 2", lastname = "last 2").apply { id = 2 }
-
-        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
-        every { employeeRepository.findAll(any<Specification<EmployeeEntity>>(), pageRequest) } returns PageImpl(listOf(employee1, employee2), pageRequest, 2)
-        every { userRepository.findAccountsByEmployeeIds(listOf(1, 2)) } returns listOf(userAccountProjection(employee = 2, user = 7, name = "user-7"))
-
-        val response = employeeService.findEmployees()
-
-        assertThat(response.items).isEqualTo(
-            listOf(
-                EmployeeItem(id = 1, personnelNumber = "00001", firstname = "first 1", lastname = "last 1", userAccount = null),
-                EmployeeItem(
-                    id = 2,
-                    personnelNumber = "00002",
-                    firstname = "first 2",
-                    lastname = "last 2",
-                    userAccount = EmployeeUserAccount(id = 7, username = "user-7"),
-                ),
-            ),
-        )
-    }
-
-    @Test
-    fun `find employees does not look up user accounts for an empty page`() {
-        val pageRequest = PageRequest.of(0, PaginationDefaults.DEFAULT_PAGE_SIZE)
-        every { employeeRepository.findAll(any<Specification<EmployeeEntity>>(), pageRequest) } returns PageImpl(emptyList(), pageRequest, 0)
-
-        employeeService.findEmployees()
-
-        verify(exactly = 0) { userRepository.findAccountsByEmployeeIds(any()) }
-    }
-
-    @Test
     fun `personnel number is available when no employee holds it`() {
         every { employeeRepository.findByPersonnelNumber("00001") } returns null
 
@@ -156,12 +115,6 @@ class EmployeeServiceTest {
         val response = employeeService.checkPersonnelNumberAvailability("00001", excludedEmployeeId = 5)
 
         assertThat(response).isEqualTo(PersonnelNumberAvailabilityResponse(available = true, existingEmployee = null))
-    }
-
-    private fun userAccountProjection(employee: Long, user: Long, name: String) = object : EmployeeUserAccountProjection {
-        override val employeeId = employee
-        override val userId = user
-        override val username = name
     }
 
     @Test
@@ -307,10 +260,9 @@ class EmployeeServiceTest {
     }
 
     @Test
-    fun `delete employee removes it when not linked to a user account`() {
+    fun `delete employee removes it`() {
         val existingEntity = EmployeeEntity(personnelNumber = "00001", firstname = "first", lastname = "last").apply { id = 99 }
         every { employeeRepository.findByIdOrNull(99L) } returns existingEntity
-        every { userRepository.existsByEmployeeId(99L) } returns false
 
         employeeService.deleteEmployee(99L)
 
@@ -326,21 +278,9 @@ class EmployeeServiceTest {
     }
 
     @Test
-    fun `delete employee throws conflict when linked to a user account`() {
-        val existingEntity = EmployeeEntity(personnelNumber = "00001", firstname = "first", lastname = "last").apply { id = 99 }
-        every { employeeRepository.findByIdOrNull(99L) } returns existingEntity
-        every { userRepository.existsByEmployeeId(99L) } returns true
-
-        val exception = assertThrows<ConflictException> { employeeService.deleteEmployee(99L) }
-        assertThat(exception.body.detail).isEqualTo("Mitarbeiter hat ein Benutzerkonto und kann nicht gelöscht werden!")
-        verify(exactly = 0) { employeeRepository.delete(any<EmployeeEntity>()) }
-    }
-
-    @Test
     fun `delete employee logs the deletion`() {
         val existingEntity = EmployeeEntity(personnelNumber = "00001", firstname = "first", lastname = "last").apply { id = 99 }
         every { employeeRepository.findByIdOrNull(99L) } returns existingEntity
-        every { userRepository.existsByEmployeeId(99L) } returns false
 
         val logger = LoggerFactory.getLogger(EmployeeService::class.java) as Logger
         val originalLevel = logger.level

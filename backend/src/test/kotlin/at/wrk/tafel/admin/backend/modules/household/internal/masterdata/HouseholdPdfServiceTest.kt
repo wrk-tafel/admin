@@ -3,7 +3,6 @@ package at.wrk.tafel.admin.backend.modules.household.internal.masterdata
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
@@ -66,7 +65,9 @@ class HouseholdPdfServiceTest {
         val testUserEntity = UserEntity(
             username = "test-username",
             password = "pwd",
-            employee = EmployeeEntity(personnelNumber = "0000", firstname = "First", lastname = "Last"),
+            personnelNumber = "0000",
+            firstname = "First",
+            lastname = "Last",
             enabled = true,
         ).apply { id = 0 }
 
@@ -75,7 +76,7 @@ class HouseholdPdfServiceTest {
             LocalDate.of(2022, 10, 3),
             LocalTime.of(10, 10),
         )
-        testHousehold.issuer = testUserEntity.employee
+        testHousehold.issuer = testUserEntity
         testHousehold.addressStreet = "Karl-Schäfer-Straße"
         testHousehold.addressHouseNumber = "8"
         testHousehold.addressStairway = "1"
@@ -182,15 +183,20 @@ class HouseholdPdfServiceTest {
      * templates and bundled logo and fails on any FOP warning or error.
      *
      * The issuer and last name are deliberately long: "Ausgestellt von" is `<personnel number>
-     * <first name> <last name>`, wider than its half-width cell, so a real employee's name wraps to a
+     * <first name> <last name>`, wider than its half-width cell, so a real user's name wraps to a
      * second line. That extra line, not anything static in the template, is what overflowed the
      * inside panel's fixed container by 4157 millipoints in production - the short placeholder
-     * employee in [beforeEach] never wraps and never showed it.
+     * user in [beforeEach] never wraps and never showed it.
      */
     @Test
     fun `generate household pdfs - fop reports no overflow or other warning`() {
-        testHousehold.issuer =
-            EmployeeEntity(personnelNumber = "8712", firstname = "Maximiliane", lastname = "Musterfrau-Beispiel")
+        testHousehold.issuer = UserEntity(
+            username = "long-name-user",
+            password = "pwd",
+            personnelNumber = "8712",
+            firstname = "Maximiliane",
+            lastname = "Musterfrau-Beispiel",
+        )
         testHousehold.mainPerson!!.lastname = "Musterfrau-Beispiel-Hofmann"
 
         val fopEvents = mutableListOf<String>()

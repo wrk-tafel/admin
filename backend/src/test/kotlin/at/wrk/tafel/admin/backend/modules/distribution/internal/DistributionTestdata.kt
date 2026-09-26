@@ -72,7 +72,7 @@ private fun HouseholdEntity.withAdditionalPerson(person: PersonEntity): Househol
 private val testHousehold1 = run {
     val household = HouseholdEntity(householdId = 100, validUntil = LocalDate.now(), locked = false).apply {
         id = 1
-        issuer = testUserEntity.employee
+        issuer = testUserEntity
         createdAt = LocalDateTime.now()
         addressStreet = "Test-Straße"
         addressHouseNumber = "100"

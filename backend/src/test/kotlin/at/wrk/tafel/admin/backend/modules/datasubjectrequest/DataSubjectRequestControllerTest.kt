@@ -51,7 +51,7 @@ class DataSubjectRequestControllerTest {
 
     @Test
     fun `delete`() {
-        val matches = listOf(DataSubjectMatch(type = DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT, id = 3))
+        val matches = listOf(DataSubjectMatch(type = DataSubjectMatchType.EMPLOYEE, id = 3))
         val response = DataSubjectDeleteResponse(
             results = listOf(DataSubjectDeleteResultItem(match = matches.single(), outcome = DataSubjectDeleteOutcome.DELETED)),
         )

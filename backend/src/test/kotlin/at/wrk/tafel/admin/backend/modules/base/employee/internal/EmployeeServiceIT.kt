@@ -1,16 +1,16 @@
 package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
-import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
+import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createDistribution
+import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
+import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.generateRandomLong
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteEntity
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteRepository
-import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
-import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
@@ -34,41 +34,62 @@ class EmployeeServiceIT : TafelBaseIntegrationTest() {
     private lateinit var employeeRepository: EmployeeRepository
 
     @Autowired
-    private lateinit var householdRepository: HouseholdRepository
+    private lateinit var foodCollectionRepository: FoodCollectionRepository
 
     @Autowired
-    private lateinit var householdNoteRepository: HouseholdNoteRepository
-
-    private lateinit var testCountry: CountryEntity
-
-    @BeforeEach
-    fun beforeEach() {
-        testCountry = createCountry()
-        testEntityManager.persist(testCountry)
-    }
+    private lateinit var userRepository: UserRepository
 
     @Test
-    fun `deleting an employee clears the household issuer and note author referencing it, instead of failing`() {
+    fun `deleting an employee clears the food collection driver and co-driver referencing it, instead of failing`() {
         val employee = EmployeeEntity(personnelNumber = "99999", firstname = "Max", lastname = "Mustermann")
         testEntityManager.persist(employee)
+        val coDriver = EmployeeEntity(personnelNumber = "99998", firstname = "Erika", lastname = "Musterfrau")
+        testEntityManager.persist(coDriver)
 
-        val household = createHousehold(employee, testCountry)
-        testEntityManager.persist(household)
-        testEntityManager.flush()
-        household.mainPerson = household.persons.first { it.isMainPerson }
-        testEntityManager.persist(household)
+        val user = createUser()
+        testEntityManager.persist(user)
+        val distribution = createDistribution(user)
+        testEntityManager.persist(distribution)
+        val route = RouteEntity(number = generateRandomLong().toDouble(), name = "route-${generateRandomLong()}")
+        testEntityManager.persist(route)
 
-        val note = HouseholdNoteEntity(household = household, note = "test note").apply { this.employee = employee }
-        testEntityManager.persist(note)
+        val foodCollection = FoodCollectionEntity(distribution = distribution, route = route).apply {
+            driver = employee
+            this.coDriver = coDriver
+        }
+        testEntityManager.persist(foodCollection)
         testEntityManager.flush()
 
         val employeeId = employee.id!!
-        val householdId = household.id!!
-        val noteId = note.id!!
-        // Clears the persistence context first: household/note are still cached here with their
-        // (now stale) in-memory `issuer`/`employee` reference to the entity about to be deleted, and
-        // flushing that stale reference together with the delete would make Hibernate's own
-        // referential check trip over it before the DB ever gets to apply `on delete set null`.
+        val coDriverId = coDriver.id!!
+        val foodCollectionId = foodCollection.id!!
+        // Clears the persistence context first: the collection is still cached here with its (now
+        // stale) in-memory driver reference to the entity about to be deleted, and flushing that
+        // stale reference together with the delete would make Hibernate's own referential check trip
+        // over it before the DB ever gets to apply `on delete set null`.
+        testEntityManager.clear()
+
+        employeeService.deleteEmployee(employeeId)
+        employeeService.deleteEmployee(coDriverId)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(employeeRepository.findById(employeeId)).isEmpty()
+        assertThat(employeeRepository.findById(coDriverId)).isEmpty()
+        val reloaded = foodCollectionRepository.findById(foodCollectionId).get()
+        assertThat(reloaded.driver).isNull()
+        assertThat(reloaded.coDriver).isNull()
+    }
+
+    @Test
+    fun `deleting an employee does not touch a user account with the same personnel number`() {
+        val employee = EmployeeEntity(personnelNumber = "88888", firstname = "Max", lastname = "Mustermann")
+        testEntityManager.persist(employee)
+        val user = createUser().apply { personnelNumber = "88888" }
+        testEntityManager.persist(user)
+        testEntityManager.flush()
+        val employeeId = employee.id!!
+        val userId = user.id!!
         testEntityManager.clear()
 
         employeeService.deleteEmployee(employeeId)
@@ -76,7 +97,6 @@ class EmployeeServiceIT : TafelBaseIntegrationTest() {
         testEntityManager.clear()
 
         assertThat(employeeRepository.findById(employeeId)).isEmpty()
-        assertThat(householdRepository.findById(householdId).get().issuer).isNull()
-        assertThat(householdNoteRepository.findById(noteId).get().employee).isNull()
+        assertThat(userRepository.findById(userId).get().personnelNumber).isEqualTo("88888")
     }
 }

@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
@@ -51,9 +50,10 @@ class HouseholdEntity(
     var locked: Boolean = false,
 ) : BaseChangeTrackingEntity() {
 
+    /** The account that registered the household; empty once that account has been deleted. */
     @ManyToOne
-    @JoinColumn(name = "employee_id")
-    var issuer: EmployeeEntity? = null
+    @JoinColumn(name = "issuer_user_id")
+    var issuer: UserEntity? = null
 
     @OneToOne
     @JoinColumn(name = "main_person_id")

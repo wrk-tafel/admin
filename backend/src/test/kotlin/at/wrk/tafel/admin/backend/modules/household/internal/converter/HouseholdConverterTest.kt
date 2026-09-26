@@ -132,7 +132,7 @@ internal class HouseholdConverterTest {
     private val testHouseholdEntity1 = run {
         val household = HouseholdEntity(householdId = 100, validUntil = LocalDate.now(), locked = false).apply {
             createdAt = LocalDateTime.now()
-            issuer = testUserEntity.employee
+            issuer = testUserEntity
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"
             addressStairway = "1"
@@ -437,7 +437,9 @@ internal class HouseholdConverterTest {
         val originalLockedBy = UserEntity(
             username = "original-locker",
             password = testUserEntity.password,
-            employee = testUserEntity.employee,
+            personnelNumber = testUserEntity.personnelNumber,
+            firstname = testUserEntity.firstname,
+            lastname = testUserEntity.lastname,
             enabled = true,
             passwordChangeRequired = false,
         ).apply { id = 5 }

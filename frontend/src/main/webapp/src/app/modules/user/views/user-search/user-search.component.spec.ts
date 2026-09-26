@@ -7,12 +7,15 @@ import {UserApiService, UserData, UserSearchResult} from '../../../../api/user-a
 import {UserSearchComponent} from './user-search.component';
 import {By} from '@angular/platform-browser';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
+import {MatDialog} from '@angular/material/dialog';
+import {UserDeleteConfirmDialogComponent} from '../../components/user-delete-confirm-dialog/user-delete-confirm-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('UserSearchComponent', () => {
   let apiService: MockedObject<UserApiService>;
   let router: MockedObject<Router>;
   let toastr: MockedObject<TafelToastrService>;
+  let dialog: { open: ReturnType<typeof vi.fn> };
   let queryParams: Record<string, string>;
 
   const testUser: UserData = {
@@ -42,7 +45,14 @@ describe('UserSearchComponent', () => {
           provide: UserApiService,
           useValue: {
             getUserForPersonnelNumber: vi.fn().mockName('UserApiService.getUserForPersonnelNumber'),
-            searchUser: vi.fn().mockName('UserApiService.searchUser')
+            searchUser: vi.fn().mockName('UserApiService.searchUser'),
+            deleteUser: vi.fn().mockName('UserApiService.deleteUser')
+          }
+        },
+        {
+          provide: MatDialog,
+          useValue: {
+            open: vi.fn().mockName('MatDialog.open').mockReturnValue({afterClosed: () => of(true)})
           }
         },
         {
@@ -74,6 +84,7 @@ describe('UserSearchComponent', () => {
     apiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+    dialog = TestBed.inject(MatDialog) as unknown as { open: ReturnType<typeof vi.fn> };
 
     // The component searches once as it is constructed, before any test can arrange a response -
     // without a default here every test would fail on the constructor rather than on its subject.
@@ -433,6 +444,87 @@ describe('UserSearchComponent', () => {
     expect(fixture.debugElement.query(By.css('[testid="searchresult-lockeduntil-0"]'))).toBeTruthy();
     expect(fixture.debugElement.query(By.css('[testid="searchresult-edituser-button-42"]'))).toBeTruthy();
     expect(fixture.debugElement.query(By.css('[testid="searchresult-showuser-button-42"]'))).toBeFalsy();
+  });
+
+  describe('delete', () => {
+
+    it('renders a delete button per result row, labelled with the username', () => {
+      apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+      const {fixture} = createComponent();
+      fixture.detectChanges();
+
+      const buttons = fixture.debugElement.queryAll(By.css('[testid="searchresult-deleteuser-button-42"]'));
+      // one in the table row, one in the card list - only one of them is displayed per viewport
+      expect(buttons.length).toBe(2);
+      buttons.forEach(button => expect(button.nativeElement.getAttribute('aria-label')).toBe('Benutzer muster löschen'));
+    });
+
+    it('clicking the delete button asks first, naming the user', () => {
+      apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+      dialog.open.mockReturnValueOnce({afterClosed: () => of(undefined)});
+      const {fixture} = createComponent();
+      fixture.detectChanges();
+
+      fixture.debugElement.query(By.css('[testid="searchresult-deleteuser-button-42"]')).nativeElement.click();
+
+      expect(dialog.open).toHaveBeenCalledWith(UserDeleteConfirmDialogComponent, {
+        data: {username: 'muster', name: 'first last'}
+      });
+    });
+
+    it('does not delete when the confirmation is cancelled', () => {
+      apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+      dialog.open.mockReturnValueOnce({afterClosed: () => of(undefined)});
+      const {component} = createComponent();
+      apiService.searchUser.mockClear();
+
+      component.deleteUser(testUser);
+
+      expect(apiService.deleteUser).not.toHaveBeenCalled();
+      expect(apiService.searchUser).not.toHaveBeenCalled();
+      expect(toastr.success).not.toHaveBeenCalled();
+    });
+
+    it('deletes after the confirmation, reports it and reloads the current results', () => {
+      apiService.searchUser.mockReturnValue(of({
+        ...searchUserMockResponse, items: [testUser, {...testUser, id: 43}], totalCount: 30, currentPage: 2, totalPages: 3
+      }));
+      apiService.deleteUser.mockReturnValue(of(undefined));
+      const {component} = createComponent();
+      apiService.searchUser.mockClear();
+
+      component.deleteUser(testUser);
+
+      expect(apiService.deleteUser).toHaveBeenCalledWith(42, expect.anything());
+      expect(toastr.success).toHaveBeenCalledWith('Benutzer wurde gelöscht!');
+      // other rows remain on page 2, so the admin stays on it
+      expect(apiService.searchUser).toHaveBeenCalledWith(undefined, true, 2, 10, undefined, undefined);
+    });
+
+    it('steps back a page when the deleted user was the only row of the last page', () => {
+      apiService.searchUser.mockReturnValue(of({...searchUserMockResponse, totalCount: 11, currentPage: 2, totalPages: 2}));
+      apiService.deleteUser.mockReturnValue(of(undefined));
+      const {component} = createComponent();
+      apiService.searchUser.mockClear();
+
+      component.deleteUser(testUser);
+
+      expect(apiService.searchUser).toHaveBeenCalledWith(undefined, true, 1, 10, undefined, undefined);
+    });
+
+    it('shows the backend message and keeps the list when the deletion is refused', () => {
+      const detail = 'Es muss mindestens ein aktiver Benutzer mit der Berechtigung "Administrator" verbleiben!';
+      apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+      apiService.deleteUser.mockReturnValue(throwError(() => new HttpErrorResponse({status: 409, error: {detail}})));
+      const {component} = createComponent();
+      apiService.searchUser.mockClear();
+
+      component.deleteUser(testUser);
+
+      expect(toastr.error).toHaveBeenCalledWith(detail, 'Löschen fehlgeschlagen!');
+      expect(toastr.success).not.toHaveBeenCalled();
+      expect(apiService.searchUser).not.toHaveBeenCalled();
+    });
   });
 
 });

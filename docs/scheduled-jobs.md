@@ -28,8 +28,8 @@ checked at a glance.
 | 05:00 | `DocumentStorageCleanupService.cleanupOrphanedFiles` | `@SchedulerLock` | Reconciles `tafeladmin.storage.documentsPath` against `household_documents`, deletes files with no DB row older than `tafeladmin.storage.orphanedFileMinAge` |
 | 05:05 | `ScannerFileCleanupService.cleanupExpiredScannerFiles` | `@SchedulerLock` | Deletes files on `tafeladmin.storage.scannerPath` older than `tafeladmin.storage.scannerFileRetention` (7d default) — GDPR gap G18 |
 | 06:00 | `HouseholdRetentionService.cleanupExpiredHouseholds` (`tafeladmin.householdDeletion.cleanupCron`) | Row-claim | Deletes households whose `validUntil` is older than `tafeladmin.householdDeletion.retentionTime` (7y default) — GDPR gap G1; refuses and alerts above `tafeladmin.householdDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
-| 06:15 | `UserRetentionService.cleanupExpiredUsers` (`tafeladmin.userDeletion.cleanupCron`) | Row-claim | Deletes user accounts unused for longer than `tafeladmin.userDeletion.retentionTime` (7y default), never an `ADMINISTRATOR` — GDPR gap G13; refuses and alerts above `tafeladmin.userDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
-| 06:30 | `EmployeeRetentionService.cleanupExpiredEmployees` (`tafeladmin.employeeDeletion.cleanupCron`) | Row-claim | Deletes employees referenced by nothing else, untouched for longer than `tafeladmin.employeeDeletion.retentionTime` (7y default) — GDPR gap G13; refuses and alerts above `tafeladmin.employeeDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
+| 06:15 | `UserRetentionService.cleanupExpiredUsers` (`tafeladmin.userDeletion.cleanupCron`) | Row-claim | Deletes user accounts unused for longer than `tafeladmin.userDeletion.retentionTime` (1y default), never an `ADMINISTRATOR` — GDPR gap G13; refuses and alerts above `tafeladmin.userDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
+| 06:30 | `EmployeeRetentionService.cleanupExpiredEmployees` (`tafeladmin.employeeDeletion.cleanupCron`) | Row-claim | Deletes employees not used as driver or co-driver on any food collection for longer than `tafeladmin.employeeDeletion.retentionTime` (1y default) — GDPR gap G13; refuses and alerts above `tafeladmin.employeeDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
 
 ## Daily, other times
 
@@ -37,6 +37,7 @@ checked at a glance.
 |---|---|---|---|
 | 08:00 | `DistributionStillOpenReminderService.remindAboutStillOpenDistribution` | `@SchedulerLock` | Push reminder while a distribution started on an earlier day is still open |
 | 08:00 | `ScannerFileExpiryReminderService.remindAboutExpiringScannerFiles` | `@SchedulerLock` | Push reminder to `CUSTOMER_DOCUMENTS` holders once a scanner-share file is within `tafeladmin.storage.scannerFileRetentionWarning` (1d default) of `ScannerFileCleanupService` deleting it — GDPR gap G18 |
+| 08:05 | `RetentionExpiryReminderService.remindAboutExpiringData` | `@SchedulerLock` | One combined push reminder to administrators when user accounts, households or employees will reach their retention window within that job's `retentionWarning` (30d default) — GDPR gaps G1/G13 |
 
 ## Hourly or faster
 

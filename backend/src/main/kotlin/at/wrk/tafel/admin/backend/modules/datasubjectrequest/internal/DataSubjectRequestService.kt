@@ -22,7 +22,6 @@ import at.wrk.tafel.admin.backend.modules.datasubjectrequest.DataSubjectMatchIte
 import at.wrk.tafel.admin.backend.modules.datasubjectrequest.DataSubjectMatchListResponse
 import at.wrk.tafel.admin.backend.modules.datasubjectrequest.DataSubjectMatchType
 import at.wrk.tafel.admin.backend.modules.household.HouseholdDataSubjectFacade
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
@@ -52,21 +51,14 @@ class DataSubjectRequestService(
 ) {
 
     companion object {
-        private val logger = LoggerFactory.getLogger(DataSubjectRequestService::class.java)
-
         // A search box picking one specific person, not a report - a handful of best matches per
         // area is what someone scanning the results by eye can actually use.
         private const val MAX_RESULTS_PER_TYPE = 20
 
-        // Employees are fetched in a larger batch than MAX_RESULTS_PER_TYPE because every one
-        // already linked to a user account is filtered out afterwards (that person is already
-        // represented by their USER_ACCOUNT match) - see searchEmployeesWithoutAccount.
-        private const val EMPLOYEE_CANDIDATE_BATCH_SIZE = 50
-
         private val PERMISSION_BY_TYPE = mapOf(
             DataSubjectMatchType.CUSTOMER to "CUSTOMER",
             DataSubjectMatchType.USER_ACCOUNT to "USER_MANAGEMENT",
-            DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT to "SETTINGS",
+            DataSubjectMatchType.EMPLOYEE to "SETTINGS",
         )
     }
 
@@ -82,7 +74,7 @@ class DataSubjectRequestService(
         val results = listOfNotNull(
             if (hasAreaPermission(DataSubjectMatchType.CUSTOMER)) searchHouseholds(searchTerm) else null,
             if (hasAreaPermission(DataSubjectMatchType.USER_ACCOUNT)) searchUsers(searchTerm) else null,
-            if (hasAreaPermission(DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT)) searchEmployeesWithoutAccount(searchTerm) else null,
+            if (hasAreaPermission(DataSubjectMatchType.EMPLOYEE)) searchEmployees(searchTerm) else null,
         )
 
         return DataSubjectMatchListResponse(
@@ -101,7 +93,7 @@ class DataSubjectRequestService(
      * files.
      *
      * All-or-nothing: unlike [delete], this is one downloaded file, so a match that can't be
-     * exported (e.g. an employee whose account already covers them) fails the whole request rather
+     * exported (e.g. one deleted since the search) fails the whole request rather
      * than silently producing an incomplete archive.
      */
     @Transactional
@@ -181,40 +173,26 @@ class DataSubjectRequestService(
                     type = DataSubjectMatchType.USER_ACCOUNT,
                     id = it.id!!,
                     businessKey = it.username,
-                    name = "${it.employee.lastname} ${it.employee.firstname}",
+                    name = "${it.lastname} ${it.firstname}",
                 )
             },
             truncated = page.hasNext(),
         )
     }
 
-    /**
-     * Excludes an employee already referenced by a `users` row - that person is exported/deleted
-     * through their USER_ACCOUNT match instead, mirroring `EmployeeExportService`'s own refusal.
-     * [SearchResult.truncated] covers both ways this can be cut short: the candidate batch itself
-     * held more rows than [EMPLOYEE_CANDIDATE_BATCH_SIZE], or filtering out linked employees still
-     * left more than [MAX_RESULTS_PER_TYPE] candidates.
-     */
-    private fun searchEmployeesWithoutAccount(searchTerm: String): SearchResult {
+    private fun searchEmployees(searchTerm: String): SearchResult {
         val spec = EmployeeEntity.Specs.orderById(Specification.allOf(listOfNotNull(EmployeeEntity.Specs.searchInputMatches(searchTerm))))
-        val candidatesPage = employeeRepository.findAll(spec, PageRequest.of(0, EMPLOYEE_CANDIDATE_BATCH_SIZE))
-        val candidates: List<EmployeeEntity> = candidatesPage.content
-        if (candidates.isEmpty()) {
-            return SearchResult(items = emptyList(), truncated = false)
-        }
-
-        val linkedEmployeeIds = userRepository.findAccountsByEmployeeIds(candidates.mapNotNull { it.id }).map { it.employeeId }.toSet()
-        val withoutAccount = candidates.filterNot { linkedEmployeeIds.contains(it.id) }
+        val page = employeeRepository.findAll(spec, PageRequest.of(0, MAX_RESULTS_PER_TYPE))
         return SearchResult(
-            items = withoutAccount.take(MAX_RESULTS_PER_TYPE).map {
+            items = page.content.map {
                 DataSubjectMatchItem(
-                    type = DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT,
+                    type = DataSubjectMatchType.EMPLOYEE,
                     id = it.id!!,
                     businessKey = it.personnelNumber,
                     name = "${it.lastname} ${it.firstname}",
                 )
             },
-            truncated = candidatesPage.hasNext() || withoutAccount.size > MAX_RESULTS_PER_TYPE,
+            truncated = page.hasNext(),
         )
     }
 
@@ -226,16 +204,16 @@ class DataSubjectRequestService(
             ?.let { ExportFileResult(filename = it.filename, bytes = it.bytes) }
             ?: throw NotFoundException("Benutzer (ID: ${match.id}) nicht gefunden!")
 
-        DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT -> employeeFacade.export(match.id)
+        DataSubjectMatchType.EMPLOYEE -> employeeFacade.export(match.id)
             ?: throw NotFoundException("Mitarbeiter (ID: ${match.id}) nicht gefunden!")
     }
 
     private fun deleteMatch(match: DataSubjectMatch): Boolean = when (match.type) {
         DataSubjectMatchType.CUSTOMER -> householdFacade.delete(match.id)
 
-        DataSubjectMatchType.USER_ACCOUNT -> deleteUserAndLinkedEmployee(match.id)
+        DataSubjectMatchType.USER_ACCOUNT -> userDetailsManager.deleteUserById(match.id)
 
-        DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT -> if (employeeRepository.existsById(match.id)) {
+        DataSubjectMatchType.EMPLOYEE -> if (employeeRepository.existsById(match.id)) {
             employeeFacade.delete(match.id)
             true
         } else {
@@ -243,44 +221,10 @@ class DataSubjectRequestService(
         }
     }
 
-    /**
-     * `UserEntity.employee` is deliberately not cascade-`REMOVE`d (see its KDoc), so deleting a user
-     * account alone leaves personnel number and full name in `employees` until
-     * `EmployeeRetentionService` finds it unreferenced, up to `tafeladmin.employeeDeletion.retentionTime`
-     * (7 years by default) later - too long for a GDPR Art. 17 erasure request (issue #3423). The
-     * employee record is deleted here too, but only once nothing other than the just-deleted `users`
-     * row still points at it - a household issuer, a household note's author, a food collection's
-     * driver/co-driver, or a route stop completion's recorder are still-live records, not abandoned
-     * personal data, so cascading into those is left to `EmployeeRetentionService`'s own age-gated
-     * sweep rather than forced here.
-     *
-     * Also checked: whether another, still-existing user account is linked to the same employee.
-     * `users.employee_id` is meant to be one-to-one (see `EmployeeService.deleteEmployee`'s KDoc), but
-     * a pre-existing duplicate link predating that invariant would otherwise make `employeeFacade.delete`
-     * throw a `ConflictException` here, which - this whole method being one transaction (see [delete]'s
-     * KDoc) - would roll back every other match in the request too, not just this one. The employee is
-     * simply kept in that case, exactly as it would be for any other still-live reference.
-     */
-    private fun deleteUserAndLinkedEmployee(userId: Long): Boolean {
-        val employeeId = userRepository.findById(userId).map { it.employee.id }.orElse(null)
-        val userDeleted = userDetailsManager.deleteUserById(userId)
-
-        if (userDeleted &&
-            employeeId != null &&
-            !employeeRepository.isReferencedOutsideUserAccounts(employeeId) &&
-            !userRepository.existsByEmployeeId(employeeId)
-        ) {
-            employeeFacade.delete(employeeId)
-            logger.info("Deleted employee {} linked to user account {} as part of a data-subject-request erasure", employeeId, userId)
-        }
-
-        return userDeleted
-    }
-
     private fun folderName(type: DataSubjectMatchType): String = when (type) {
         DataSubjectMatchType.CUSTOMER -> "kunde"
         DataSubjectMatchType.USER_ACCOUNT -> "benutzerkonto"
-        DataSubjectMatchType.EMPLOYEE_WITHOUT_ACCOUNT -> "mitarbeiter"
+        DataSubjectMatchType.EMPLOYEE -> "mitarbeiter"
     }
 
     /**

@@ -2,8 +2,8 @@ package at.wrk.tafel.admin.backend.modules.household.internal.note
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteRepository
@@ -58,7 +58,7 @@ internal class HouseholdNoteServiceTest {
 
         testHouseholdEntity1 = HouseholdEntity(householdId = 100, validUntil = LocalDate.now(), locked = false).apply {
             id = 1
-            issuer = testUserEntity.employee
+            issuer = testUserEntity
             createdAt = LocalDateTime.now()
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"
@@ -135,12 +135,12 @@ internal class HouseholdNoteServiceTest {
         val noteEntities = listOf(
             HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 2").apply {
                 this.id = 2
-                this.employee = testUserEntity.employee
+                this.author = testUserEntity
                 this.createdAt = LocalDateTime.now().minusDays(1)
             },
             HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 1").apply {
                 this.id = 1
-                this.employee = testUserEntity.employee
+                this.author = testUserEntity
                 this.createdAt = LocalDateTime.now().minusDays(2)
             },
         )
@@ -186,12 +186,12 @@ internal class HouseholdNoteServiceTest {
         val noteEntities = listOf(
             HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 2").apply {
                 this.id = 2
-                this.employee = testUserEntity.employee
+                this.author = testUserEntity
                 this.createdAt = LocalDateTime.now().minusDays(1)
             },
             HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 1").apply {
                 this.id = 1
-                this.employee = testUserEntity.employee
+                this.author = testUserEntity
                 this.createdAt = LocalDateTime.now().minusDays(2)
             },
         )
@@ -204,11 +204,11 @@ internal class HouseholdNoteServiceTest {
     }
 
     @Test
-    fun `get notes - author is shown as deleted once the linked employee was deleted`() {
+    fun `get notes - author is shown as deleted once the author account was deleted`() {
         val householdId = 123L
         val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = "note 1").apply {
             this.id = 1
-            this.employee = null
+            this.author = null
             this.createdAt = LocalDateTime.now()
         }
 
@@ -238,7 +238,7 @@ internal class HouseholdNoteServiceTest {
         val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = note)
         noteEntity.id = 42
         noteEntity.createdAt = LocalDateTime.now()
-        noteEntity.employee = testUserEntity.employee
+        noteEntity.author = testUserEntity
         every { householdNoteRepository.save(any()) } returns noteEntity
 
         every { householdRepository.findByHouseholdId(testHouseholdEntity1.householdId) } returns testHouseholdEntity1
@@ -254,7 +254,7 @@ internal class HouseholdNoteServiceTest {
         verify {
             householdNoteRepository.save(
                 withArg {
-                    assertThat(it.employee).isEqualTo(testUserEntity.employee)
+                    assertThat(it.author).isEqualTo(testUserEntity)
                     assertThat(it.household).isEqualTo(testHouseholdEntity1)
                     assertThat(it.note).isEqualTo(note)
                 },
@@ -266,7 +266,7 @@ internal class HouseholdNoteServiceTest {
     fun `update note - successful`() {
         val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = "old text").apply {
             id = 42
-            employee = testUserEntity.employee
+            author = testUserEntity
             createdAt = LocalDateTime.now()
         }
         every {
@@ -293,11 +293,17 @@ internal class HouseholdNoteServiceTest {
     }
 
     @Test
-    fun `update note - forbidden when written by another employee`() {
-        val otherEmployee = EmployeeEntity(personnelNumber = "other", firstname = "Other", lastname = "Employee").apply { id = 2 }
+    fun `update note - forbidden when written by another user`() {
+        val otherUser = UserEntity(
+            username = "other",
+            password = "pwd",
+            personnelNumber = "other",
+            firstname = "Other",
+            lastname = "User",
+        ).apply { id = 2 }
         val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = "old text").apply {
             id = 42
-            employee = otherEmployee
+            author = otherUser
             createdAt = LocalDateTime.now()
         }
         every {
@@ -314,10 +320,10 @@ internal class HouseholdNoteServiceTest {
     }
 
     @Test
-    fun `update note - forbidden once the note's author employee was deleted`() {
+    fun `update note - forbidden once the note's author account was deleted`() {
         val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = "old text").apply {
             id = 42
-            employee = null
+            author = null
             createdAt = LocalDateTime.now()
         }
         every {
@@ -335,7 +341,7 @@ internal class HouseholdNoteServiceTest {
     fun `delete note - successful`() {
         val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = "text").apply {
             id = 42
-            employee = testUserEntity.employee
+            author = testUserEntity
             createdAt = LocalDateTime.now()
         }
         every {
@@ -357,11 +363,17 @@ internal class HouseholdNoteServiceTest {
     }
 
     @Test
-    fun `delete note - forbidden when written by another employee`() {
-        val otherEmployee = EmployeeEntity(personnelNumber = "other", firstname = "Other", lastname = "Employee").apply { id = 2 }
+    fun `delete note - forbidden when written by another user`() {
+        val otherUser = UserEntity(
+            username = "other",
+            password = "pwd",
+            personnelNumber = "other",
+            firstname = "Other",
+            lastname = "User",
+        ).apply { id = 2 }
         val noteEntity = HouseholdNoteEntity(household = testHouseholdEntity1, note = "text").apply {
             id = 42
-            employee = otherEmployee
+            author = otherUser
             createdAt = LocalDateTime.now()
         }
         every {

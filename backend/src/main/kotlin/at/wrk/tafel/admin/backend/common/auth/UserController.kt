@@ -98,7 +98,7 @@ class UserController(
      * [UserAccountRequest] for why nothing else). The username and the personnel number stay with
      * the administrator, so unlike [updateUser] nothing here can hand an account over, and the
      * session it came in on stays what it was - no replacement cookie needed. The write itself is
-     * on the audit trail like any other change to a user or an employee.
+     * on the audit trail like any other change to a user.
      *
      * With the e-mail method of two-factor authentication on, the address *is* the second factor, so
      * changing it takes a code of a method the user has (`mfaCode`) - otherwise a session left open in a
@@ -413,11 +413,9 @@ class UserController(
     }
 
     /**
-     * Refuses a personnel number that already belongs to a *different* user account. Without this,
-     * `TafelUserDetailsManager.resolveEmployee` would happily re-link [excludedUserId] onto that
-     * other account's [at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity] and overwrite
-     * its name - `users.employee_id` is meant to be one-to-one (see `EmployeeService.deleteEmployee`'s
-     * KDoc), and this is the update-time counterpart of [validateIfUserExists]'s create-time check.
+     * Refuses a personnel number that already belongs to a *different* user account - the
+     * update-time counterpart of [validateIfUserExists]'s create-time check. Nothing in the schema
+     * makes the number unique across accounts, so this is what does.
      */
     private fun validatePersonnelNumberAvailable(user: UserRequest, excludedUserId: Long) {
         val ownerOfPersonnelNumber = userDetailsManager.loadUserByPersonnelNumber(user.personnelNumber)

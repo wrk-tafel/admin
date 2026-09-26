@@ -25,8 +25,9 @@ or if a migration outside this list stops being re-runnable.
 - **`R__00111_change_tracking_actor_user_fk.sql`** - only valid against the pre-migration schema; a
   re-run's `add column if not exists created_by_id` re-adds a column the original renamed away, and
   the following `update` fails on a type mismatch against the renamed/retyped column.
+- **`R__00088_fulltext_search.sql`** - its trailing backfill `update users u set search_text = user_search_text(u.username, u.employee_id)` reads `users.employee_id`, which `R__00125_split_users_and_employees.sql` drops (ADR-0060). A re-run fails with `column u.employee_id does not exist`; a fresh database is unaffected, since `R__00088` runs before `R__00125`.
 
-See issue #3632 for the full analysis of the three above.
+See issue #3632 for the full analysis of the first three above.
 
 A full-set replay (copy every script to a scratch schema, migrate once, then append a comment to
 one script at a time and migrate again) turned up further migrations with the same problem -

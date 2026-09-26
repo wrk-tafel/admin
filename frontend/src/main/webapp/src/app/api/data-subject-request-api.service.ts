@@ -33,12 +33,12 @@ export class DataSubjectRequestApiService {
   }
 }
 
-export type DataSubjectMatchType = 'CUSTOMER' | 'USER_ACCOUNT' | 'EMPLOYEE_WITHOUT_ACCOUNT';
+export type DataSubjectMatchType = 'CUSTOMER' | 'USER_ACCOUNT' | 'EMPLOYEE';
 
 export const dataSubjectMatchTypeLabel: Record<DataSubjectMatchType, string> = {
   CUSTOMER: 'Kunde',
   USER_ACCOUNT: 'Benutzerkonto',
-  EMPLOYEE_WITHOUT_ACCOUNT: 'Mitarbeiter ohne Konto'
+  EMPLOYEE: 'Mitarbeiter'
 };
 
 export interface DataSubjectMatchItem {

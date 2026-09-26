@@ -1,0 +1,317 @@
+<div class="flex flex-col gap-4">
+  <p class="text-sm text-slate-600" testid="pending-deletions-caption">
+    Die automatischen Löschungen entfernen Benutzerkonten, Mitarbeiter und Kunden nach Ablauf der jeweiligen
+    Aufbewahrungsfrist ohne weitere Rückfrage. Hier steht, was in Kürze dran ist.
+  </p>
+
+  <div class="sr-only" role="status" aria-live="polite">
+    @if (loading()) {
+      Anstehende Löschungen werden geladen.
+    } @else if (!loadFailed()) {
+      Anstehende Löschungen geladen.
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="text-sm" testid="pending-deletions-loading">Anstehende Löschungen werden geladen...</p>
+  }
+
+  @if (loadFailed()) {
+    <div class="flex flex-wrap items-center gap-3" testid="pending-deletions-error">
+      <p class="text-sm text-red-700" role="alert">Die anstehenden Löschungen konnten nicht geladen werden.</p>
+      <button matButton="outlined" type="button" testid="pending-deletions-retry" (click)="reload()">Erneut versuchen</button>
+    </div>
+  }
+
+  @if (users(); as list) {
+    <mat-card class="w-full" testid="pending-users-section">
+      <mat-card-header class="mb-2">
+        <mat-card-title>
+          <h2 class="tafel-h5 mb-0 mt-1" testid="pending-users-heading">Benutzerkonten @if (list.enabled) {<span>({{ list.totalCount }})</span>}</h2>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (!list.enabled) {
+          <p class="text-sm" testid="pending-users-disabled">Die automatische Löschung ist deaktiviert.</p>
+        } @else {
+          <p class="mb-4 text-sm text-slate-600" testid="pending-users-description">
+            Benutzerkonten werden nach {{ list.retentionText }} ohne Anmeldung automatisch gelöscht - hier stehen die,
+            bei denen das in den nächsten {{ list.warningText }} passiert.
+          </p>
+
+          @if (list.items.length === 0) {
+            <p class="text-sm" testid="pending-users-empty">Keine Benutzerkonten in den nächsten {{ list.warningText }} fällig.</p>
+          } @else {
+            <div class="hidden md:block">
+              <table mat-table [dataSource]="list.items" testid="pending-users-table">
+                <ng-container matColumnDef="username">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Benutzername</th>
+                  <td mat-cell *matCellDef="let user">
+                    <a class="text-blue-600 underline" [routerLink]="['/benutzer/detail', user.id]"
+                       [attr.testid]="'pending-user-link-' + user.id">{{ user.username }}</a>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Name</th>
+                  <td mat-cell *matCellDef="let user">{{ user.firstname }} {{ user.lastname }}</td>
+                </ng-container>
+                <ng-container matColumnDef="personnelNumber">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Personalnummer</th>
+                  <td mat-cell *matCellDef="let user">{{ user.personnelNumber }}</td>
+                </ng-container>
+                <ng-container matColumnDef="lastLogin">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Letzter Login</th>
+                  <td mat-cell *matCellDef="let user" [attr.testid]="'pending-user-last-login-' + user.id">
+                    @if (user.lastLogin) {
+                      {{ user.lastLogin | date : 'dd.MM.yyyy' }}
+                    } @else {
+                      nie angemeldet (angelegt am {{ user.createdAt | date : 'dd.MM.yyyy' }})
+                    }
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="deletionDate">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Löschung am</th>
+                  <td mat-cell *matCellDef="let user" [attr.testid]="'pending-user-deletion-date-' + user.id">
+                    {{ user.deletionDate | date : 'dd.MM.yyyy' }}
+                    @if (isDue(user.deletionDate)) {
+                      <span class="badge badge-danger ml-2" [attr.testid]="'pending-user-overdue-' + user.id">Fällig</span>
+                    }
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="userColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: userColumns;" [attr.testid]="'pending-user-row-' + row.id"></tr>
+              </table>
+            </div>
+
+            <div class="block md:hidden">
+              <div class="flex flex-col gap-4" testid="pending-users-cards">
+                @for (user of list.items; track user.id) {
+                  <mat-card class="shadow-sm" [attr.testid]="'pending-user-row-' + user.id">
+                    <mat-card-header class="mb-2">
+                      <mat-card-title class="text-base font-semibold">
+                        <a class="text-blue-600 underline" [routerLink]="['/benutzer/detail', user.id]"
+                           [attr.testid]="'pending-user-link-' + user.id">{{ user.username }}</a>
+                      </mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                      <div class="grid grid-cols-2 gap-2">
+                        <div class="font-bold">Name:</div>
+                        <div>{{ user.firstname }} {{ user.lastname }}</div>
+                        <div class="font-bold">Personalnummer:</div>
+                        <div>{{ user.personnelNumber }}</div>
+                        <div class="font-bold">Letzter Login:</div>
+                        <div [attr.testid]="'pending-user-last-login-' + user.id">
+                          @if (user.lastLogin) {
+                            {{ user.lastLogin | date : 'dd.MM.yyyy' }}
+                          } @else {
+                            nie angemeldet (angelegt am {{ user.createdAt | date : 'dd.MM.yyyy' }})
+                          }
+                        </div>
+                        <div class="font-bold">Löschung am:</div>
+                        <div [attr.testid]="'pending-user-deletion-date-' + user.id">
+                          {{ user.deletionDate | date : 'dd.MM.yyyy' }}
+                          @if (isDue(user.deletionDate)) {
+                            <span class="badge badge-danger ml-2" [attr.testid]="'pending-user-overdue-' + user.id">Fällig</span>
+                          }
+                        </div>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            </div>
+
+            @if (list.totalCount > list.items.length) {
+              <p class="mt-4 text-sm" testid="pending-users-truncated">Es werden die ersten {{ list.items.length }} von {{ list.totalCount }} angezeigt.</p>
+            }
+          }
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (households(); as list) {
+    <mat-card class="w-full" testid="pending-households-section">
+      <mat-card-header class="mb-2">
+        <mat-card-title>
+          <h2 class="tafel-h5 mb-0 mt-1" testid="pending-households-heading">Kunden @if (list.enabled) {<span>({{ list.totalCount }})</span>}</h2>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (!list.enabled) {
+          <p class="text-sm" testid="pending-households-disabled">Die automatische Löschung ist deaktiviert.</p>
+        } @else {
+          <p class="mb-4 text-sm text-slate-600" testid="pending-households-description">
+            Kunden werden nach {{ list.retentionText }} seit Ablauf der Gültigkeit automatisch gelöscht - hier stehen die,
+            bei denen das in den nächsten {{ list.warningText }} passiert.
+          </p>
+
+          @if (list.items.length === 0) {
+            <p class="text-sm" testid="pending-households-empty">Keine Kunden in den nächsten {{ list.warningText }} fällig.</p>
+          } @else {
+            <div class="hidden md:block">
+              <table mat-table [dataSource]="list.items" testid="pending-households-table">
+                <ng-container matColumnDef="householdId">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Kundennr.</th>
+                  <td mat-cell *matCellDef="let household">
+                    <a class="text-blue-600 underline" [routerLink]="['/kunden/detail', household.householdId]"
+                       [attr.testid]="'pending-household-link-' + household.householdId">{{ household.householdId }}</a>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Name</th>
+                  <td mat-cell *matCellDef="let household">{{ household.name ?? '-' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="validUntil">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Gültig bis</th>
+                  <td mat-cell *matCellDef="let household">{{ household.validUntil | date : 'dd.MM.yyyy' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="deletionDate">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Löschung am</th>
+                  <td mat-cell *matCellDef="let household" [attr.testid]="'pending-household-deletion-date-' + household.householdId">
+                    {{ household.deletionDate | date : 'dd.MM.yyyy' }}
+                    @if (isDue(household.deletionDate)) {
+                      <span class="badge badge-danger ml-2" [attr.testid]="'pending-household-overdue-' + household.householdId">Fällig</span>
+                    }
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="householdColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: householdColumns;" [attr.testid]="'pending-household-row-' + row.householdId"></tr>
+              </table>
+            </div>
+
+            <div class="block md:hidden">
+              <div class="flex flex-col gap-4" testid="pending-households-cards">
+                @for (household of list.items; track household.householdId) {
+                  <mat-card class="shadow-sm" [attr.testid]="'pending-household-row-' + household.householdId">
+                    <mat-card-header class="mb-2">
+                      <mat-card-title class="text-base font-semibold">
+                        <a class="text-blue-600 underline" [routerLink]="['/kunden/detail', household.householdId]"
+                           [attr.testid]="'pending-household-link-' + household.householdId">{{ household.householdId }}</a>
+                      </mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                      <div class="grid grid-cols-2 gap-2">
+                        <div class="font-bold">Name:</div>
+                        <div>{{ household.name ?? '-' }}</div>
+                        <div class="font-bold">Gültig bis:</div>
+                        <div>{{ household.validUntil | date : 'dd.MM.yyyy' }}</div>
+                        <div class="font-bold">Löschung am:</div>
+                        <div [attr.testid]="'pending-household-deletion-date-' + household.householdId">
+                          {{ household.deletionDate | date : 'dd.MM.yyyy' }}
+                          @if (isDue(household.deletionDate)) {
+                            <span class="badge badge-danger ml-2" [attr.testid]="'pending-household-overdue-' + household.householdId">Fällig</span>
+                          }
+                        </div>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            </div>
+
+            @if (list.totalCount > list.items.length) {
+              <p class="mt-4 text-sm" testid="pending-households-truncated">Es werden die ersten {{ list.items.length }} von {{ list.totalCount }} angezeigt.</p>
+            }
+          }
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (employees(); as list) {
+    <mat-card class="w-full" testid="pending-employees-section">
+      <mat-card-header class="mb-2">
+        <mat-card-title>
+          <h2 class="tafel-h5 mb-0 mt-1" testid="pending-employees-heading">Mitarbeiter @if (list.enabled) {<span>({{ list.totalCount }})</span>}</h2>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (!list.enabled) {
+          <p class="text-sm" testid="pending-employees-disabled">Die automatische Löschung ist deaktiviert.</p>
+        } @else {
+          <p class="mb-4 text-sm text-slate-600" testid="pending-employees-description">
+            Mitarbeiter werden nach {{ list.retentionText }} ohne Einsatz als Fahrer:in automatisch gelöscht - hier stehen die,
+            bei denen das in den nächsten {{ list.warningText }} passiert.
+            <a class="text-blue-600 underline" routerLink="/einstellungen/mitarbeiter" testid="pending-employees-manage-link">Mitarbeiter verwalten</a>
+          </p>
+
+          @if (list.items.length === 0) {
+            <p class="text-sm" testid="pending-employees-empty">Keine Mitarbeiter in den nächsten {{ list.warningText }} fällig.</p>
+          } @else {
+            <div class="hidden md:block">
+              <table mat-table [dataSource]="list.items" testid="pending-employees-table">
+                <ng-container matColumnDef="personnelNumber">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Personalnummer</th>
+                  <td mat-cell *matCellDef="let employee">{{ employee.personnelNumber }}</td>
+                </ng-container>
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Name</th>
+                  <td mat-cell *matCellDef="let employee">{{ employee.firstname }} {{ employee.lastname }}</td>
+                </ng-container>
+                <ng-container matColumnDef="lastUsed">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Zuletzt eingesetzt</th>
+                  <td mat-cell *matCellDef="let employee" [attr.testid]="'pending-employee-last-used-' + employee.id">
+                    @if (employee.lastUsed) {
+                      {{ employee.lastUsed | date : 'dd.MM.yyyy' }}
+                    } @else {
+                      nie eingesetzt (angelegt am {{ employee.createdAt | date : 'dd.MM.yyyy' }})
+                    }
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="deletionDate">
+                  <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Löschung am</th>
+                  <td mat-cell *matCellDef="let employee" [attr.testid]="'pending-employee-deletion-date-' + employee.id">
+                    {{ employee.deletionDate | date : 'dd.MM.yyyy' }}
+                    @if (isDue(employee.deletionDate)) {
+                      <span class="badge badge-danger ml-2" [attr.testid]="'pending-employee-overdue-' + employee.id">Fällig</span>
+                    }
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="employeeColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: employeeColumns;" [attr.testid]="'pending-employee-row-' + row.id"></tr>
+              </table>
+            </div>
+
+            <div class="block md:hidden">
+              <div class="flex flex-col gap-4" testid="pending-employees-cards">
+                @for (employee of list.items; track employee.id) {
+                  <mat-card class="shadow-sm" [attr.testid]="'pending-employee-row-' + employee.id">
+                    <mat-card-header class="mb-2">
+                      <mat-card-title class="text-base font-semibold">{{ employee.personnelNumber }}</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                      <div class="grid grid-cols-2 gap-2">
+                        <div class="font-bold">Name:</div>
+                        <div>{{ employee.firstname }} {{ employee.lastname }}</div>
+                        <div class="font-bold">Zuletzt eingesetzt:</div>
+                        <div [attr.testid]="'pending-employee-last-used-' + employee.id">
+                          @if (employee.lastUsed) {
+                            {{ employee.lastUsed | date : 'dd.MM.yyyy' }}
+                          } @else {
+                            nie eingesetzt (angelegt am {{ employee.createdAt | date : 'dd.MM.yyyy' }})
+                          }
+                        </div>
+                        <div class="font-bold">Löschung am:</div>
+                        <div [attr.testid]="'pending-employee-deletion-date-' + employee.id">
+                          {{ employee.deletionDate | date : 'dd.MM.yyyy' }}
+                          @if (isDue(employee.deletionDate)) {
+                            <span class="badge badge-danger ml-2" [attr.testid]="'pending-employee-overdue-' + employee.id">Fällig</span>
+                          }
+                        </div>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            </div>
+
+            @if (list.totalCount > list.items.length) {
+              <p class="mt-4 text-sm" testid="pending-employees-truncated">Es werden die ersten {{ list.items.length }} von {{ list.totalCount }} angezeigt.</p>
+            }
+          }
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

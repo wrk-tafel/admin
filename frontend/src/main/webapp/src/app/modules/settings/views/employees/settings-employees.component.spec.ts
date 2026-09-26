@@ -1,7 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {HttpHeaders, HttpResponse, provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {provideRouter} from '@angular/router';
 import {SettingsEmployeesComponent} from './settings-employees.component';
 import {
   EmployeeApiService,
@@ -12,7 +11,6 @@ import {
 import {MatDialog} from '@angular/material/dialog';
 import {of, Subject, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
-import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {EmployeeCreateDialogResult} from './dialogs/employee-create-dialog.component';
 import {UserApiService} from '../../../../api/user-api.service';
@@ -22,8 +20,7 @@ describe('SettingsEmployeesComponent', () => {
     id: 1,
     personnelNumber: '00001',
     firstname: 'First 1',
-    lastname: 'Last 1',
-    userAccount: {id: 7, username: 'user-7'}
+    lastname: 'Last 1'
   };
   const testEmployee2: EmployeeData = {
     id: 2,
@@ -43,11 +40,9 @@ describe('SettingsEmployeesComponent', () => {
   let userApiMock: Partial<UserApiService>;
   let toastrMock: Partial<TafelToastrService>;
   let fileHelperMock: Partial<FileHelperService>;
-  let permissions: string[];
 
   beforeEach(() => {
     vi.useFakeTimers();
-    permissions = ['SETTINGS', 'USER_MANAGEMENT'];
 
     employeeApiMock = {
       findEmployees: vi.fn(() => of<EmployeeListResponse>(listResponse)),
@@ -79,16 +74,11 @@ describe('SettingsEmployeesComponent', () => {
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        provideRouter([]),
         {provide: EmployeeApiService, useValue: employeeApiMock},
         {provide: UserApiService, useValue: userApiMock},
         {provide: TafelToastrService, useValue: toastrMock},
         {provide: MatDialog, useValue: matDialogMock},
-        {provide: FileHelperService, useValue: fileHelperMock},
-        {
-          provide: AuthenticationService,
-          useValue: {hasPermission: (permission: string) => permissions.includes(permission)}
-        }
+        {provide: FileHelperService, useValue: fileHelperMock}
       ]
     }).compileComponents();
   });
@@ -267,24 +257,14 @@ describe('SettingsEmployeesComponent', () => {
     expect(component['editingId']()).toBe(testEmployee2.id);
   });
 
-  it('links a linked user account for someone allowed to open it', () => {
+  it('shows no user account column - users are a separate record without a link to an employee', () => {
     const fixture = TestBed.createComponent(SettingsEmployeesComponent);
     fixture.detectChanges();
     const element: HTMLElement = fixture.nativeElement;
 
-    expect(element.querySelector('[testid="employeeUserAccountLink-0"]')?.getAttribute('href')).toBe('/benutzer/detail/7');
-    expect(element.querySelector('[testid="employeeNoUserAccount-1"]')).toBeTruthy();
-  });
-
-  it('states that an account exists without linking it for someone who cannot open it', () => {
-    permissions = ['SETTINGS'];
-
-    const fixture = TestBed.createComponent(SettingsEmployeesComponent);
-    fixture.detectChanges();
-    const element: HTMLElement = fixture.nativeElement;
-
-    expect(element.querySelector('[testid="employeeUserAccountLink-0"]')).toBeNull();
-    expect(element.querySelector('[testid="employeeUserAccountChip-0"]')?.textContent).toContain('Benutzerkonto vorhanden');
+    expect(element.textContent).not.toContain('Benutzerkonto');
+    expect(element.querySelector('[testid^="employeeUserAccount"]')).toBeNull();
+    expect(element.querySelector('[testid^="employeeNoUserAccount"]')).toBeNull();
   });
 
   it('deleteEmployee() deletes the employee and reloads once the confirm dialog is accepted', () => {
@@ -315,7 +295,7 @@ describe('SettingsEmployeesComponent', () => {
     expect(employeeApiMock.deleteEmployee).not.toHaveBeenCalled();
   });
 
-  it('deleteEmployee() shows an error toast when a user account is still linked', () => {
+  it('deleteEmployee() shows an error toast when the delete fails', () => {
     (employeeApiMock.deleteEmployee as any).mockReturnValue(throwError(() => new Error('failed')));
     const dialog = TestBed.inject(MatDialog);
     (dialog.open as any).mockReturnValueOnce({afterClosed: () => of(true)});
@@ -360,15 +340,15 @@ describe('SettingsEmployeesComponent', () => {
     expect(toastrMock.error).toHaveBeenCalledWith('Datenexport fehlgeschlagen!');
   });
 
-  // testEmployee1 has a linked user account (whose own export already carries this employee's
-  // personnel number/name), testEmployee2 does not - only the latter is meant to offer this button.
-  it('only offers the export button for an employee with no linked user account', () => {
+  it('offers the export button for every employee', () => {
     const fixture = TestBed.createComponent(SettingsEmployeesComponent);
     fixture.detectChanges();
     const element: HTMLElement = fixture.nativeElement;
 
-    expect(element.querySelector('[testid="exportEmployeeButton-0"]')).toBeNull();
+    expect(element.querySelector('[testid="exportEmployeeButton-0"]')).not.toBeNull();
     expect(element.querySelector('[testid="exportEmployeeButton-1"]')).not.toBeNull();
+    expect(element.querySelector('[testid="exportEmployeeButtonMobile-0"]')).not.toBeNull();
+    expect(element.querySelector('[testid="exportEmployeeButtonMobile-1"]')).not.toBeNull();
   });
 
   it('downloadStaffPrivacyNotice() downloads the staff privacy notice PDF', () => {

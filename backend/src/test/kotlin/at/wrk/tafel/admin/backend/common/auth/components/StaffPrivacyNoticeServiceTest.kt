@@ -87,7 +87,7 @@ class StaffPrivacyNoticeServiceTest {
         val document = Loader.loadPDF(service.generatePrivacyNoticePdf())
         val text = PDFTextStripper().getText(document)
 
-        assertThat(text).contains("1 Jahren 6 Monaten")
+        assertThat(text).contains("1 Jahr 6 Monaten")
         document.close()
     }
 }

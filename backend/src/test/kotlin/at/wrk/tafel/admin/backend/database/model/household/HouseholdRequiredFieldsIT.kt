@@ -92,7 +92,7 @@ class HouseholdRequiredFieldsIT : TafelBaseIntegrationTest() {
     }
 
     private fun persistHousehold(customize: HouseholdEntity.() -> Unit = {}): HouseholdEntity {
-        val household = createHousehold(testUser.employee!!, testCountry).apply(customize)
+        val household = createHousehold(testUser!!, testCountry).apply(customize)
         val mainPerson = household.persons.first()
 
         household.persons.clear()

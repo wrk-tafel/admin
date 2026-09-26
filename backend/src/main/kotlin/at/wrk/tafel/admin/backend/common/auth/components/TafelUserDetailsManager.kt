@@ -19,8 +19,6 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.orderBySearchRelevance
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion.searchTextMatches
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import org.passay.PasswordData
 import org.passay.PasswordValidator
@@ -46,7 +44,6 @@ import java.time.LocalDateTime
 
 class TafelUserDetailsManager(
     private val userRepository: UserRepository,
-    private val employeeRepository: EmployeeRepository,
     private val passwordEncoder: PasswordEncoder,
     private val passwordValidator: PasswordValidator,
     private val tafelAdminProperties: TafelAdminProperties,
@@ -68,7 +65,7 @@ class TafelUserDetailsManager(
     }
 
     fun loadUserByPersonnelNumber(personnelNumber: String): TafelUser? {
-        val user = userRepository.findByEmployeePersonnelNumber(personnelNumber)
+        val user = userRepository.findByPersonnelNumber(personnelNumber)
         return user?.let { mapToUserDetails(user) }
     }
 
@@ -186,7 +183,9 @@ class TafelUserDetailsManager(
         val userEntity = UserEntity(
             username = tafelUser.username,
             password = passwordEncoder.encode(newPassword)!!,
-            employee = resolveEmployee(tafelUser),
+            personnelNumber = tafelUser.personnelNumber,
+            firstname = tafelUser.firstname,
+            lastname = tafelUser.lastname,
             enabled = tafelUser.enabled,
             passwordChangeRequired = tafelUser.passwordChangeRequired,
         )
@@ -204,14 +203,8 @@ class TafelUserDetailsManager(
     }
 
     /**
-     * Deletes the account. Every `created_by`/`updated_by` change-tracking actor elsewhere in the
-     * database (issue #3426) is a foreign key to `users(id)` with `on delete set null`
-     * (`R__00111_change_tracking_actor_user_fk.sql`, ADR-0052), so deleting the row here clears them
-     * by itself - no separate sweep needed.
-     */
-    /**
      * A user changing what is theirs to change about their own account (the "Meine Daten" tab of
-     * "Mein Konto"): the name on the linked [EmployeeEntity] and the e-mail address. Deliberately
+     * "Mein Konto"): the name and the e-mail address. Deliberately
      * not routed through [updateUser]: that takes a whole [TafelUser], and a loaded one carries the
      * password *hash* in its password field, which [mapToUserEntity] would encode a second time as
      * if it were a new password. This touches nothing but the three fields - no username, no
@@ -219,12 +212,18 @@ class TafelUserDetailsManager(
      */
     fun updateOwnAccount(username: String, firstname: String, lastname: String, email: String?): TafelUser {
         val userEntity = userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
-        userEntity.employee.firstname = firstname
-        userEntity.employee.lastname = lastname
+        userEntity.firstname = firstname
+        userEntity.lastname = lastname
         userEntity.email = email
         return mapToUserDetails(userRepository.save(userEntity))
     }
 
+    /**
+     * Deletes the account. Every `created_by`/`updated_by` change-tracking actor elsewhere in the
+     * database (issue #3426) is a foreign key to `users(id)` with `on delete set null`
+     * (`R__00111_change_tracking_actor_user_fk.sql`, ADR-0052), so deleting the row here clears them
+     * by itself - no separate sweep needed.
+     */
     override fun deleteUser(username: String) {
         val userEntity =
             userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
@@ -332,32 +331,15 @@ class TafelUserDetailsManager(
         username = userEntity.username,
         password = userEntity.password,
         enabled = userEntity.enabled,
-        personnelNumber = userEntity.employee.personnelNumber,
-        firstname = userEntity.employee.firstname,
-        lastname = userEntity.employee.lastname,
+        personnelNumber = userEntity.personnelNumber,
+        firstname = userEntity.firstname,
+        lastname = userEntity.lastname,
         authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) },
         passwordChangeRequired = userEntity.passwordChangeRequired,
         email = userEntity.email,
         mfaTotpEnabled = userEntity.mfaTotpEnabled,
         mfaEmailEnabled = userEntity.mfaEmailEnabled,
     )
-
-    private fun resolveEmployee(tafelUser: TafelUser): EmployeeEntity {
-        val existingEmployee = employeeRepository.findByPersonnelNumber(tafelUser.personnelNumber)
-        return if (existingEmployee != null) {
-            existingEmployee.apply {
-                personnelNumber = tafelUser.personnelNumber
-                firstname = tafelUser.firstname
-                lastname = tafelUser.lastname
-            }
-        } else {
-            EmployeeEntity(
-                personnelNumber = tafelUser.personnelNumber,
-                firstname = tafelUser.firstname,
-                lastname = tafelUser.lastname,
-            )
-        }
-    }
 
     /**
      * Diffs `userEntity.authorities` against `tafelUser.authorities` (remove-then-add) instead of
@@ -381,8 +363,10 @@ class TafelUserDetailsManager(
     }
 
     private fun mapToUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
-        userEntity.employee = resolveEmployee(tafelUser)
         userEntity.username = tafelUser.username
+        userEntity.personnelNumber = tafelUser.personnelNumber
+        userEntity.firstname = tafelUser.firstname
+        userEntity.lastname = tafelUser.lastname
         userEntity.email = tafelUser.email
         userEntity.enabled = tafelUser.enabled
         val newPassword = tafelUser.password

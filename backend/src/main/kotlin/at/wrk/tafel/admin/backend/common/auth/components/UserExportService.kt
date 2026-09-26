@@ -91,6 +91,7 @@ class UserExportService(
             PushNotificationType.EXCESSIVE_READ_ACCESS to "Ungewöhnlich viele Zugriffe",
             PushNotificationType.SCANNER_FILES_EXPIRING to "Gescannte Dateien werden bald gelöscht",
             PushNotificationType.RETENTION_RUN to "Bereinigungsjob auffällig",
+            PushNotificationType.RETENTION_EXPIRING to "Daten werden bald gelöscht",
         )
     }
 
@@ -161,8 +162,8 @@ class UserExportService(
         val pushEnabled = pushPreferencesRepository.findByUserId(userEntity.id!!)?.enabled
         return listOf(
             UserExportField("Benutzername", userEntity.username),
-            UserExportField("Personalnummer", userEntity.employee.personnelNumber),
-            UserExportField("Name", "${userEntity.employee.lastname} ${userEntity.employee.firstname}"),
+            UserExportField("Personalnummer", userEntity.personnelNumber),
+            UserExportField("Name", "${userEntity.lastname} ${userEntity.firstname}"),
             UserExportField("E-Mail-Adresse", userEntity.email ?: "-"),
             UserExportField("Aktiv", userEntity.enabled.yesNo()),
             // Only whether - the secret never leaves the server, not even to its owner.
@@ -242,7 +243,7 @@ class UserExportService(
         if (distinctIds.isEmpty()) return emptyMap()
 
         return userRepository.findAllById(distinctIds).associate {
-            it.id!! to "${it.employee.personnelNumber} ${it.employee.firstname} ${it.employee.lastname}"
+            it.id!! to "${it.personnelNumber} ${it.firstname} ${it.lastname}"
         }
     }
 

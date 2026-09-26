@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
@@ -171,7 +170,9 @@ private val placeholderDistributionStatistic = DistributionStatisticEntity(
         startedByUser = UserEntity(
             username = "placeholder",
             password = "placeholder",
-            employee = EmployeeEntity(personnelNumber = "placeholder", firstname = "placeholder", lastname = "placeholder"),
+            personnelNumber = "placeholder",
+            firstname = "placeholder",
+            lastname = "placeholder",
         ),
     ),
 )

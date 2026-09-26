@@ -3,6 +3,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {catchError, debounceTime, distinctUntilChanged, EMPTY, filter, map, Observable, Subject, switchMap} from 'rxjs';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {HttpErrorResponse} from '@angular/common/http';
+import {MatDialog} from '@angular/material/dialog';
 import {FormsModule} from '@angular/forms';
 import {UserApiService, UserData, UserSearchResult} from '../../../../api/user-api.service';
 import {MatCardModule} from '@angular/material/card';
@@ -20,12 +21,15 @@ import {MatIcon} from '@angular/material/icon';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
+import {UserDeleteConfirmDialogComponent} from '../../components/user-delete-confirm-dialog/user-delete-confirm-dialog.component';
 
 /** Long enough not to search on every keystroke, short enough to still feel immediate. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -84,12 +88,13 @@ const QUERY_PARAMS = {
   ]
 })
 export class UserSearchComponent {
-  private readonly registerIcons = registerSvgIcons({lock: lockIcon, person: personIcon, edit: editIcon});
+  private readonly registerIcons = registerSvgIcons({lock: lockIcon, person: personIcon, edit: editIcon, delete: deleteIcon});
 
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toastr = inject(TafelToastrService);
+  private readonly dialog = inject(MatDialog);
 
   /** The one search box. A pure number is tried as an exact personnel-number jump first - see [resolveSearch$]. */
   query = signal('');
@@ -291,6 +296,39 @@ export class UserSearchComponent {
 
   editUser(userId: number | undefined) {
     this.router.navigate(['/benutzer/bearbeiten', userId]);
+  }
+
+  /**
+   * Asks first - an account is deleted for good - and then reloads the page the admin is on, or the
+   * one before it when the deleted user was the last row of the last page. The backend's refusal
+   * (e.g. the last active administrator) is shown as it words it.
+   */
+  deleteUser(user: UserData) {
+    const name = [user.firstname, user.lastname].filter(part => !!part).join(' ');
+    this.dialog.open(UserDeleteConfirmDialogComponent, {data: {username: user.username, name}})
+      .afterClosed().subscribe(confirmed => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.userApiService.deleteUser(user.id!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+          next: () => {
+            this.toastr.success('Benutzer wurde gelöscht!');
+            this.reloadAfterDelete();
+          },
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen!');
+          },
+        });
+      });
+  }
+
+  private reloadAfterDelete() {
+    const result = this.searchResult();
+    const page = result && result.currentPage > 1 && result.items.length === 1
+      ? result.currentPage - 1
+      : result?.currentPage;
+    this.search(page, result?.pageSize, true, false);
   }
 
   isLocked(user: UserData): boolean {

@@ -18,8 +18,6 @@ import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -65,9 +63,6 @@ class TafelUserDetailsManagerTest {
 
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
-
-    @RelaxedMockK
-    private lateinit var employeeRepository: EmployeeRepository
 
     @SpyK
     private var passwordEncoder: PasswordEncoder =
@@ -142,11 +137,10 @@ class TafelUserDetailsManagerTest {
         val userEntity = UserEntity(
             username = "test-username",
             password = "test-password",
-            employee = EmployeeEntity(
-                personnelNumber = "test-personnelnumber",
-                firstname = "test-firstname",
-                lastname = "test-lastname",
-            ),
+            personnelNumber = "test-personnelnumber",
+            firstname = "test-firstname",
+            lastname = "test-lastname",
+
             enabled = true,
             passwordChangeRequired = true,
         ).apply { id = 0 }
@@ -164,9 +158,9 @@ class TafelUserDetailsManagerTest {
         assertThat(userDetails.password).isEqualTo(userEntity.password)
         assertThat(userDetails.isEnabled).isTrue
         assertThat(userDetails.id).isEqualTo(userEntity.id)
-        assertThat(userDetails.personnelNumber).isEqualTo(userEntity.employee.personnelNumber)
-        assertThat(userDetails.firstname).isEqualTo(userEntity.employee.firstname)
-        assertThat(userDetails.lastname).isEqualTo(userEntity.employee.lastname)
+        assertThat(userDetails.personnelNumber).isEqualTo(userEntity.personnelNumber)
+        assertThat(userDetails.firstname).isEqualTo(userEntity.firstname)
+        assertThat(userDetails.lastname).isEqualTo(userEntity.lastname)
         assertThat(userDetails.isAccountNonExpired).isTrue
         assertThat(userDetails.isAccountNonLocked).isTrue
         assertThat(userDetails.isCredentialsNonExpired).isTrue
@@ -197,6 +191,10 @@ class TafelUserDetailsManagerTest {
         val entity = entitySlot.captured
         assertThat(entity.password).isEqualTo("encoded-pwd")
         assertThat(entity.email).isEqualTo("new@example.org")
+        // the name and personnel number are the user's own - nothing else is written for them
+        assertThat(entity.personnelNumber).isEqualTo(testUser.personnelNumber)
+        assertThat(entity.firstname).isEqualTo(testUser.firstname)
+        assertThat(entity.lastname).isEqualTo(testUser.lastname)
         // detailed mapping tested in updateUser test
     }
 
@@ -529,11 +527,10 @@ class TafelUserDetailsManagerTest {
         val userEntity = UserEntity(
             username = "test-username",
             password = "test-password",
-            employee = EmployeeEntity(
-                personnelNumber = "test-personnelnumber",
-                firstname = "test-firstname",
-                lastname = "test-lastname",
-            ),
+            personnelNumber = "test-personnelnumber",
+            firstname = "test-firstname",
+            lastname = "test-lastname",
+
             enabled = true,
             passwordChangeRequired = true,
         ).apply {
@@ -548,9 +545,9 @@ class TafelUserDetailsManagerTest {
         assertThat(userDetails).isNotNull
         assertThat(userDetails.id).isEqualTo(userEntity.id)
         assertThat(userDetails.username).isEqualTo(userEntity.username)
-        assertThat(userDetails.personnelNumber).isEqualTo(userEntity.employee.personnelNumber)
-        assertThat(userDetails.firstname).isEqualTo(userEntity.employee.firstname)
-        assertThat(userDetails.lastname).isEqualTo(userEntity.employee.lastname)
+        assertThat(userDetails.personnelNumber).isEqualTo(userEntity.personnelNumber)
+        assertThat(userDetails.firstname).isEqualTo(userEntity.firstname)
+        assertThat(userDetails.lastname).isEqualTo(userEntity.lastname)
         assertThat(userDetails.email).isEqualTo("test@example.org")
 
         verify(exactly = 1) {
@@ -560,13 +557,13 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `loadUserByPersonnelNumber - user not found`() {
-        every { userRepository.findByEmployeePersonnelNumber(any()) } returns null
+        every { userRepository.findByPersonnelNumber(any()) } returns null
 
         val user = manager.loadUserByPersonnelNumber("1")
 
         assertThat(user).isNull()
         verify(exactly = 1) {
-            userRepository.findByEmployeePersonnelNumber("1")
+            userRepository.findByPersonnelNumber("1")
         }
     }
 
@@ -575,28 +572,27 @@ class TafelUserDetailsManagerTest {
         val userEntity = UserEntity(
             username = "test-username",
             password = "test-password",
-            employee = EmployeeEntity(
-                personnelNumber = "test-personnelnumber",
-                firstname = "test-firstname",
-                lastname = "test-lastname",
-            ),
+            personnelNumber = "test-personnelnumber",
+            firstname = "test-firstname",
+            lastname = "test-lastname",
+
             enabled = true,
             passwordChangeRequired = true,
         ).apply { id = 0 }
 
-        every { userRepository.findByEmployeePersonnelNumber(any()) } returns userEntity
+        every { userRepository.findByPersonnelNumber(any()) } returns userEntity
 
-        val userDetails = manager.loadUserByPersonnelNumber(userEntity.employee.personnelNumber) as TafelUser
+        val userDetails = manager.loadUserByPersonnelNumber(userEntity.personnelNumber) as TafelUser
 
         assertThat(userDetails).isNotNull
         assertThat(userDetails.id).isEqualTo(userEntity.id)
         assertThat(userDetails.username).isEqualTo(userEntity.username)
-        assertThat(userDetails.personnelNumber).isEqualTo(userEntity.employee.personnelNumber)
-        assertThat(userDetails.firstname).isEqualTo(userEntity.employee.firstname)
-        assertThat(userDetails.lastname).isEqualTo(userEntity.employee.lastname)
+        assertThat(userDetails.personnelNumber).isEqualTo(userEntity.personnelNumber)
+        assertThat(userDetails.firstname).isEqualTo(userEntity.firstname)
+        assertThat(userDetails.lastname).isEqualTo(userEntity.lastname)
 
         verify(exactly = 1) {
-            userRepository.findByEmployeePersonnelNumber(userEntity.employee.personnelNumber)
+            userRepository.findByPersonnelNumber(userEntity.personnelNumber)
         }
     }
 
@@ -610,11 +606,10 @@ class TafelUserDetailsManagerTest {
         val userEntity = UserEntity(
             username = "test-username",
             password = "test-password",
-            employee = EmployeeEntity(
-                personnelNumber = "test-personnelnumber",
-                firstname = testFirstname,
-                lastname = testLastname,
-            ),
+            personnelNumber = "test-personnelnumber",
+            firstname = testFirstname,
+            lastname = testLastname,
+
             enabled = true,
             passwordChangeRequired = true,
         ).apply { id = 0 }
@@ -640,9 +635,9 @@ class TafelUserDetailsManagerTest {
         val user = searchResult.items.first()
         assertThat(user.id).isEqualTo(userEntity.id)
         assertThat(user.username).isEqualTo(userEntity.username)
-        assertThat(user.personnelNumber).isEqualTo(userEntity.employee.personnelNumber)
-        assertThat(user.firstname).isEqualTo(userEntity.employee.firstname)
-        assertThat(user.lastname).isEqualTo(userEntity.employee.lastname)
+        assertThat(user.personnelNumber).isEqualTo(userEntity.personnelNumber)
+        assertThat(user.firstname).isEqualTo(userEntity.firstname)
+        assertThat(user.lastname).isEqualTo(userEntity.lastname)
 
         verify(exactly = 1) { userRepository.findAll(any<Specification<UserEntity>>(), pageRequest) }
     }
@@ -662,18 +657,13 @@ class TafelUserDetailsManagerTest {
         val testPersonnelNumber = "test-personnelnumber"
         val updatedPersonnelNumber = "new-persnr"
 
-        val employeeEntity = EmployeeEntity(
-            personnelNumber = testPersonnelNumber,
-            firstname = "test-firstname",
-            lastname = "test-lastname",
-        )
-        every { employeeRepository.findByPersonnelNumber(updatedPersonnelNumber) } returns employeeEntity
-
         val testUserEntity = UserEntity(
             username = "test-username",
             // pwd: 12345
             password = "{argon2}\$argon2id\$v=19\$m=4096,t=3,p=1\$RXn6Xt/0q/Wtrvdns6NUnw\$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w",
-            employee = employeeEntity,
+            personnelNumber = testPersonnelNumber,
+            firstname = "test-firstname",
+            lastname = "test-lastname",
             enabled = true,
             passwordChangeRequired = false,
         ).apply { id = 0 }
@@ -706,10 +696,10 @@ class TafelUserDetailsManagerTest {
 
         val updatedUser = updatedUserSlot.captured
         assertThat(updatedUser.id).isEqualTo(userUpdate.id)
-        assertThat(updatedUser.employee.personnelNumber).isEqualTo(userUpdate.personnelNumber)
+        assertThat(updatedUser.personnelNumber).isEqualTo(userUpdate.personnelNumber)
         assertThat(updatedUser.username).isEqualTo(userUpdate.username)
-        assertThat(updatedUser.employee.firstname).isEqualTo(userUpdate.firstname)
-        assertThat(updatedUser.employee.lastname).isEqualTo(userUpdate.lastname)
+        assertThat(updatedUser.firstname).isEqualTo(userUpdate.firstname)
+        assertThat(updatedUser.lastname).isEqualTo(userUpdate.lastname)
         assertThat(updatedUser.email).isEqualTo("new@example.org")
         assertThat(updatedUser.enabled).isEqualTo(userUpdate.enabled)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
@@ -721,15 +711,12 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `updateOwnAccount changes the name and the e-mail and nothing else`() {
-        val employeeEntity = EmployeeEntity(
-            personnelNumber = "test-personnelnumber",
-            firstname = "test-firstname",
-            lastname = "test-lastname",
-        )
         val userEntity = UserEntity(
             username = "test-username",
             password = "{argon2}hash",
-            employee = employeeEntity,
+            personnelNumber = "test-personnelnumber",
+            firstname = "test-firstname",
+            lastname = "test-lastname",
             enabled = true,
             passwordChangeRequired = false,
         ).apply { id = 0 }
@@ -742,18 +729,16 @@ class TafelUserDetailsManagerTest {
         val savedUserSlot = slot<UserEntity>()
         verify(exactly = 1) { userRepository.save(capture(savedUserSlot)) }
         val savedUser = savedUserSlot.captured
-        assertThat(savedUser.employee.firstname).isEqualTo("new-firstname")
-        assertThat(savedUser.employee.lastname).isEqualTo("new-lastname")
+        assertThat(savedUser.firstname).isEqualTo("new-firstname")
+        assertThat(savedUser.lastname).isEqualTo("new-lastname")
         assertThat(savedUser.email).isEqualTo("new@example.org")
         // What stays with the administrator is untouched - and so is the session, since no password moved
         assertThat(savedUser.username).isEqualTo("test-username")
-        assertThat(savedUser.employee.personnelNumber).isEqualTo("test-personnelnumber")
+        assertThat(savedUser.personnelNumber).isEqualTo("test-personnelnumber")
         assertThat(savedUser.password).isEqualTo("{argon2}hash")
         assertThat(savedUser.enabled).isTrue()
         assertThat(savedUser.authorities).extracting("name").containsExactly(UserPermissions.CHECKIN.key)
         assertThat(savedUser.tokenInvalidatedAt).isNull()
-        // No new employee is resolved or created - the one linked stays the one linked
-        verify(exactly = 0) { employeeRepository.findByPersonnelNumber(any()) }
 
         assertThat(updated.firstname).isEqualTo("new-firstname")
         assertThat(updated.lastname).isEqualTo("new-lastname")
@@ -776,11 +761,10 @@ class TafelUserDetailsManagerTest {
             username = "test-username",
             // pwd: 12345
             password = "{argon2}\$argon2id\$v=19\$m=4096,t=3,p=1\$RXn6Xt/0q/Wtrvdns6NUnw\$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w",
-            employee = EmployeeEntity(
-                personnelNumber = "test-personnelnumber",
-                firstname = "test-firstname",
-                lastname = "test-lastname",
-            ),
+            personnelNumber = "test-personnelnumber",
+            firstname = "test-firstname",
+            lastname = "test-lastname",
+
             enabled = true,
             passwordChangeRequired = false,
         ).apply { id = 0 }
@@ -829,11 +813,10 @@ class TafelUserDetailsManagerTest {
             username = "test-username",
             // pwd: 12345
             password = "{argon2}\$argon2id\$v=19\$m=4096,t=3,p=1\$RXn6Xt/0q/Wtrvdns6NUnw\$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w",
-            employee = EmployeeEntity(
-                personnelNumber = "test-personnelnumber",
-                firstname = "test-firstname",
-                lastname = "test-lastname",
-            ),
+            personnelNumber = "test-personnelnumber",
+            firstname = "test-firstname",
+            lastname = "test-lastname",
+
             enabled = true,
             passwordChangeRequired = false,
         ).apply { id = 0 }
@@ -940,7 +923,9 @@ class TafelUserDetailsManagerTest {
         val administratorEntity = UserEntity(
             username = "admin-username",
             password = "test-password",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "first", lastname = "last"),
+            personnelNumber = "1",
+            firstname = "first",
+            lastname = "last",
             enabled = true,
         ).apply {
             id = 5
@@ -961,7 +946,9 @@ class TafelUserDetailsManagerTest {
         val administratorEntity = UserEntity(
             username = "admin-username",
             password = "test-password",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "first", lastname = "last"),
+            personnelNumber = "1",
+            firstname = "first",
+            lastname = "last",
             enabled = true,
         ).apply {
             id = 5

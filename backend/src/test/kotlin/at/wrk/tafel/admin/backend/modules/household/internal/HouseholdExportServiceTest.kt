@@ -126,7 +126,7 @@ internal class HouseholdExportServiceTest {
             HouseholdNoteEntity(household = household, note = "note").apply {
                 id = 1
                 createdAt = LocalDateTime.now()
-                employee = testUserEntity.employee
+                author = testUserEntity
                 updatedBy = testUserEntity.id
             },
         )

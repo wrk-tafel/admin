@@ -73,7 +73,7 @@ class HouseholdServiceFilterIT : TafelBaseIntegrationTest() {
     }
 
     private fun persistHousehold(customize: HouseholdEntity.() -> Unit): HouseholdEntity {
-        val household = createHousehold(testUser.employee, testCountry).apply(customize)
+        val household = createHousehold(testUser, testCountry).apply(customize)
         testEntityManager.persist(household)
         testEntityManager.flush()
 

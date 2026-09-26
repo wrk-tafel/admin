@@ -25,8 +25,8 @@ import java.time.LocalDateTime
  * `enabled` or age - unlike `UserController`'s manual safeguards, which only ever protect the *last*
  * one, this job never touches that permission at all. Deletion goes through
  * [TafelUserDetailsManager.deleteUser], the same method the manual `DELETE /api/users/{userId}`
- * endpoint uses, which leaves the linked `employees` row alone - `EmployeeRetentionService` (also
- * G13) has its own clock for that.
+ * endpoint uses. Employees are a separate record with no link to an account and have their own
+ * clock - `EmployeeRetentionService` (also G13).
  *
  * Runs once a night, at 06:15 - after `HouseholdRetentionService` (06:00), before
  * `EmployeeRetentionService` (06:30).

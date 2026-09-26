@@ -158,7 +158,7 @@ The backend uses **Spring Modulith** architecture with 12 core feature modules (
   for the login page, and `GET /api/sse/config` pushes the config again whenever an operator's edit
   changes it (see Config Hot-Reload below)
 - **datasubjectrequest**: the central "Datenauskunft" screen — one search box across households,
-  user accounts and employees without one, so a GDPR data-subject request doesn't mean guessing
+  user accounts and employees, so a GDPR data-subject request doesn't mean guessing
   which of the three a person falls into. Export and delete both trigger the existing
   household/user/employee flow per selected match through a thin cross-module facade
   (`HouseholdDataSubjectFacade`, `EmployeeDataSubjectFacade`) rather than a new pipeline; export
@@ -183,7 +183,7 @@ deliberately an ambiently shared lower layer: **any** module may inject **any** 
 from it without declaring a dependency, and named interfaces gate only the service/DTO surface, not
 the JPA entity graph. So two modules legitimately reach the same entity by two different paths —
 e.g. `logistics` gets employees through `base::employee`'s `EmployeeService`/`EmployeeResponse`,
-while `household` stamps `HouseholdEntity.issuer` straight from `UserEntity.employee` — and that is
+while `household` stamps `HouseholdEntity.issuer` with a `UserEntity` it reads directly — and that is
 an accepted pattern, not a bypass to be tidied up. The one hard rule is direction: `database/model/*`
 must never depend on `modules/*`, enforced by an ArchUnit rule in `architecture/ProjectSpecificRulesTest`.
 Don't read a module's `allowedDependencies` as the full list of what it touches at the DB level.
@@ -257,7 +257,7 @@ choice on its own merits).
 - Event listener pattern for distribution close: `DistributionEndedEventListener` runs stats/cost-contribution work synchronously in-module, then publishes `DistributionClosedEvent` for `reporting` to pick up async (see distribution/reporting module READMEs for the "why" history)
 - Converter pattern for entity-to-DTO mapping
 - Custom validators for income limits and customer validation
-- Base entities with change tracking (created/updated timestamps, employee references)
+- Base entities with change tracking (created/updated timestamps, user references)
 
 ### Frontend Architecture
 
@@ -324,7 +324,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 
 **Key Tables:**
 - `users`, `user_authorities`: User authentication and permissions
-- `employees`: Employee records referenced in change tracking
+- `employees`: drivers and co-drivers of food collections; a record of its own, with no link to `users` (a user carries its own personnel number and name, ADR-0060)
 - `households`: the case record (business number, address, contact, validity/lock/cost-contribution state); `main_person_id` points at its main person. Nullable at the DB level (not `NOT NULL`) because `households`/`persons` mutually reference each other — a brand-new household is always saved in two steps (household with `main_person_id = null` → its persons → set `main_person_id`), see `HouseholdService`
 - `persons`: every household member, including the main person, flagged via `is_main_person` (exactly one per household, enforced by a partial unique index)
 - `household_notes`: notes attached to a household
@@ -670,11 +670,11 @@ term-less `GET` listing are unaffected.
 - `/api/cars`: Car management
 - `/api/shelters`: Shelter management
 - `/api/audit`: Audit trail — the whole log (filterable), `/filter-options` for the filter dropdowns, and `/households/{householdId}` for one household's "Verlauf" tab. Read-only by design; behind the `AUDIT_LOG` permission
-- `/api/settings`: Application settings
+- `/api/settings`: Application settings; `GET /api/settings/pending-deletions` lists what the retention jobs will delete soon (the target of the daily `RETENTION_EXPIRING` push reminder)
 - `/api/support`: Mails an in-app support request (title, text, and the browser's `clientContext`) to the configured support addresses
 - `/api/client-errors`: Logs one client-side error (message, page, user agent) to `app.log` as it happens, rate-limited per IP; behind `isAuthenticated()`, no dedicated permission
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
-- `/api/data-subject-requests`: the central "Datenauskunft" screen — `POST /search` across households, user accounts and employees without one; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
+- `/api/data-subject-requests`: the central "Datenauskunft" screen — `POST /search` across households, user accounts and employees; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
 
 Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two-factor authentication switched on gets a session that grants nothing until the code was handed in (`TafelJwtAuthProvider`/`MfaPendingFilter`, ADR-0058); `tafeladmin.mfa.required` (operator config, hot-reloaded) makes it mandatory for everyone.
 
@@ -804,7 +804,7 @@ Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two
   parameter (ADR-0057). Both match against a denormalized, lower-cased `search_text` column
   that a database trigger keeps in sync (`R__00088_fulltext_search.sql`) — for a household that
   covers its number, the names of *all* its persons, address, phone and e-mail; for a user, username
-  plus the linked employee's personnel number and name. Two modes are OR'd: `like '%term%'` for the
+  plus the user's own personnel number and name. Two modes are OR'd: `like '%term%'` for the
   verbatim hit and `strict_word_similarity` (`pg_trgm`, GIN-indexed) for typo tolerance, with results
   ranked verbatim-first — see `SearchTextSpecs`. The cutoff is
   `tafeladmin.search.similarityThreshold`, read per request so it can be tuned without a restart.

@@ -168,6 +168,12 @@
                           [matTooltip]="customer.locked ? 'Kunde ist gesperrt' : 'Kundendaten bearbeiten'" aria-label="Kundendaten bearbeiten">
                     <mat-icon svgIcon="edit"></mat-icon>
                   </button>
+                  <button type="button" matButton="outlined" class="ml-2 button-danger" [attr.testid]="'searchresult-deletecustomer-button-' + customer.id"
+                          (click)="deleteCustomer(customer)" [disabled]="customer.locked"
+                          [matTooltip]="customer.locked ? 'Kunde ist gesperrt' : 'Kunde löschen'"
+                          [attr.aria-label]="'Kunde ' + customer.lastname + ' ' + customer.firstname + ' löschen'">
+                    <mat-icon svgIcon="delete"></mat-icon>
+                  </button>
                 </td>
               </ng-container>
 
@@ -226,6 +232,12 @@
                             [disabled]="customer.locked"
                             [matTooltip]="customer.locked ? 'Kunde ist gesperrt' : 'Kundendaten bearbeiten'" aria-label="Kundendaten bearbeiten">
                       <mat-icon svgIcon="edit"></mat-icon>
+                    </button>
+                    <button type="button" matButton="outlined" class="button-danger" [attr.testid]="'searchresult-deletecustomer-button-' + customer.id"
+                            (click)="deleteCustomer(customer)" [disabled]="customer.locked"
+                            [matTooltip]="customer.locked ? 'Kunde ist gesperrt' : 'Kunde löschen'"
+                            [attr.aria-label]="'Kunde ' + customer.lastname + ' ' + customer.firstname + ' löschen'">
+                      <mat-icon svgIcon="delete"></mat-icon>
                     </button>
                   </mat-card-actions>
                 </mat-card>
