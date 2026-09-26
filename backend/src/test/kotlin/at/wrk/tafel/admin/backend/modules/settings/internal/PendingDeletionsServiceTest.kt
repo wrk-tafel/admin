@@ -9,16 +9,21 @@ import at.wrk.tafel.admin.backend.database.model.base.EmployeeLastUseProjection
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
@@ -76,27 +81,16 @@ internal class PendingDeletionsServiceTest {
     }
 
     @Test
-    fun `fills a section only for a caller holding the permission of its area`() {
+    fun `serves a list only to a caller holding the permission of its area`() {
         authenticateWith(UserPermissions.SETTINGS)
 
-        val response = service.getPendingDeletions()
-
-        assertThat(response.users).isNull()
-        assertThat(response.households).isNull()
-        assertThat(response.employees).isNotNull
+        assertThatThrownBy { service.getPendingUserDeletions(null, null) }
+            .isInstanceOfSatisfying(TafelApiException::class.java) { assertThat(it.statusCode).isEqualTo(HttpStatus.FORBIDDEN) }
+        assertThatThrownBy { service.getPendingHouseholdDeletions(null, null) }
+            .isInstanceOfSatisfying(TafelApiException::class.java) { assertThat(it.statusCode).isEqualTo(HttpStatus.FORBIDDEN) }
+        assertThat(service.getPendingEmployeeDeletions(null, null).enabled).isTrue
         verify(exactly = 0) { userRepository.countUsersLastActiveBefore(any(), any()) }
         verify(exactly = 0) { householdRepository.countByValidUntilBefore(any()) }
-    }
-
-    @Test
-    fun `a caller holding every area permission sees every section`() {
-        authenticateWith(UserPermissions.SETTINGS, UserPermissions.USER_MANAGEMENT, UserPermissions.CUSTOMER)
-
-        val response = service.getPendingDeletions()
-
-        assertThat(response.users).isNotNull
-        assertThat(response.households).isNotNull
-        assertThat(response.employees).isNotNull
     }
 
     @Test
@@ -114,7 +108,7 @@ internal class PendingDeletionsServiceTest {
         every { userRepository.countUsersLastActiveBefore(any(), UserPermissions.ADMINISTRATOR.key) } returns 2
         every { userRepository.findUsersLastActiveBefore(any(), UserPermissions.ADMINISTRATOR.key, any()) } returns listOf(loggedIn, neverLoggedIn)
 
-        val users = service.getPendingDeletions().users!!
+        val users = service.getPendingUserDeletions(null, null)
 
         assertThat(users.enabled).isTrue
         assertThat(users.totalCount).isEqualTo(2)
@@ -127,6 +121,47 @@ internal class PendingDeletionsServiceTest {
     }
 
     @Test
+    fun `pages the user list with the requested page and size`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userRepository.countUsersLastActiveBefore(any(), any()) } returns 53
+        val pageable = slot<Pageable>()
+        every { userRepository.findUsersLastActiveBefore(any(), any(), capture(pageable)) } returns emptyList()
+
+        val users = service.getPendingUserDeletions(page = 3, pageSize = 25)
+
+        assertThat(pageable.captured.pageNumber).isEqualTo(2)
+        assertThat(pageable.captured.pageSize).isEqualTo(25)
+        assertThat(users.currentPage).isEqualTo(3)
+        assertThat(users.pageSize).isEqualTo(25)
+        assertThat(users.totalCount).isEqualTo(53)
+        assertThat(users.totalPages).isEqualTo(3)
+    }
+
+    @Test
+    fun `falls back to the default page size for one that is not offered`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userRepository.countUsersLastActiveBefore(any(), any()) } returns 12
+
+        val users = service.getPendingUserDeletions(page = 0, pageSize = 7)
+
+        assertThat(users.pageSize).isEqualTo(10)
+        assertThat(users.currentPage).isEqualTo(1)
+        assertThat(users.totalPages).isEqualTo(2)
+    }
+
+    @Test
+    fun `does not load rows when nothing is pending`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userRepository.countUsersLastActiveBefore(any(), any()) } returns 0
+
+        val users = service.getPendingUserDeletions(null, null)
+
+        assertThat(users.items).isEmpty()
+        assertThat(users.totalPages).isEqualTo(0)
+        verify(exactly = 0) { userRepository.findUsersLastActiveBefore(any(), any(), any()) }
+    }
+
+    @Test
     fun `lists households with their main person and the date they will be deleted`() {
         authenticateWith(UserPermissions.CUSTOMER)
         val household = HouseholdEntity(householdId = 4711, validUntil = LocalDate.of(2020, 4, 1))
@@ -134,7 +169,7 @@ internal class PendingDeletionsServiceTest {
         every { householdRepository.countByValidUntilBefore(any()) } returns 2
         every { householdRepository.findAllByValidUntilBeforeOrderByValidUntilAscIdAsc(any(), any()) } returns listOf(household, withoutMainPerson)
 
-        val households = service.getPendingDeletions().households!!
+        val households = service.getPendingHouseholdDeletions(null, null)
 
         assertThat(households.retentionText).isEqualTo("7 Jahren")
         assertThat(households.items.map { it.householdId }).containsExactly(4711L, 4712L)
@@ -149,24 +184,25 @@ internal class PendingDeletionsServiceTest {
         val used = employee(1, lastUsed = LocalDateTime.of(2026, 3, 25, 10, 0), createdAt = LocalDateTime.of(2020, 1, 1, 0, 0))
         val unused = employee(2, lastUsed = null, createdAt = LocalDateTime.of(2026, 4, 2, 10, 0))
         every { employeeRepository.countEmployeesLastUsedBefore(any()) } returns 2
-        every { employeeRepository.findEmployeesLastUsedBefore(any(), PendingDeletionsService.MAX_ITEMS_PER_SECTION) } returns listOf(used, unused)
+        every { employeeRepository.findEmployeesLastUsedBefore(any(), any(), any()) } returns listOf(used, unused)
 
-        val employees = service.getPendingDeletions().employees!!
+        val employees = service.getPendingEmployeeDeletions(null, null)
 
         assertThat(employees.items.map { it.deletionDate }).containsExactly(LocalDate.of(2027, 3, 25), LocalDate.of(2027, 4, 2))
         assertThat(employees.items[1].lastUsed).isNull()
     }
 
     @Test
-    fun `says how many there are even when the list is cut short`() {
+    fun `asks for the employee page with the matching limit and offset`() {
         authenticateWith(UserPermissions.SETTINGS)
         every { employeeRepository.countEmployeesLastUsedBefore(any()) } returns 350
-        every { employeeRepository.findEmployeesLastUsedBefore(any(), any()) } returns emptyList()
+        every { employeeRepository.findEmployeesLastUsedBefore(any(), any(), any()) } returns emptyList()
 
-        val employees = service.getPendingDeletions().employees!!
+        val employees = service.getPendingEmployeeDeletions(page = 3, pageSize = 50)
 
         assertThat(employees.totalCount).isEqualTo(350)
-        verify { employeeRepository.findEmployeesLastUsedBefore(any(), PendingDeletionsService.MAX_ITEMS_PER_SECTION) }
+        assertThat(employees.totalPages).isEqualTo(7)
+        verify { employeeRepository.findEmployeesLastUsedBefore(any(), 50, 100) }
     }
 
     @Test
@@ -175,12 +211,14 @@ internal class PendingDeletionsServiceTest {
         properties.userDeletion.enabled = false
         properties.householdDeletion.retentionTime = Period.ZERO
 
-        val response = service.getPendingDeletions()
+        val users = service.getPendingUserDeletions(null, null)
+        val households = service.getPendingHouseholdDeletions(null, null)
+        val employees = service.getPendingEmployeeDeletions(null, null)
 
-        assertThat(response.users!!.enabled).isFalse
-        assertThat(response.users!!.items).isEmpty()
-        assertThat(response.households!!.enabled).isFalse
-        assertThat(response.employees!!.enabled).isTrue
+        assertThat(users.enabled).isFalse
+        assertThat(users.items).isEmpty()
+        assertThat(households.enabled).isFalse
+        assertThat(employees.enabled).isTrue
         verify(exactly = 0) { userRepository.countUsersLastActiveBefore(any(), any()) }
         verify(exactly = 0) { householdRepository.countByValidUntilBefore(any()) }
     }

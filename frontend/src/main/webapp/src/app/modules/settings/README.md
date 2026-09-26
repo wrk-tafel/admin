@@ -505,26 +505,35 @@ carry. This view differs from every other screen above in two ways that reflect 
 
 Preview of what the automatic retention jobs delete next: user accounts after a year without a
 login, employees after a year without an assignment as driver, customers seven years after their
-validity ended. It is the target of the daily
-notification to administrators, whose link goes to `einstellungen/anstehende-loeschungen`, and sits
-in the sidebar under "Systemverwaltung". The route itself is gated by `SETTINGS` like the rest of
-the module.
+validity ended. It is the target of the daily notification to administrators, whose link goes to
+`einstellungen/anstehende-loeschungen`, and sits in the sidebar under "Systemverwaltung". The route
+itself is gated by `SETTINGS` like the rest of the module.
 
-- **One section per list the backend sends, in the order Benutzerkonten, Kunden, Mitarbeiter.**
-  `GET /api/settings/pending-deletions` answers `null` for a kind the caller may not see
-  (`USER_MANAGEMENT`, `CUSTOMER`, `SETTINGS` respectively), and the section is simply not rendered -
-  no "no permission" placeholder. Testids `pending-<users|households|employees>-section`,
-  `-heading` (an `h2`, with the total count: "Benutzerkonten (3)"), `-description`, `-table`,
+- **Three sections in the order Benutzerkonten, Kunden, Mitarbeiter, each with an endpoint, state and
+  paginator of its own.** `GET /api/settings/pending-deletions/{users|households|employees}` take
+  `page` and `pageSize` and answer 403 without the area's permission (`USER_MANAGEMENT`, `CUSTOMER`,
+  `SETTINGS`). So the screen decides from `AuthenticationService.hasPermission` which sections to
+  render and request at all - no placeholder for one the caller may not see. Paging or breaking one
+  section never reloads another. Testids `pending-<users|households|employees>-section`, `-heading`
+  (an `h2`, with the total count over all pages: "Benutzerkonten (25)"), `-description`, `-table`,
   `-cards`.
+- **`pendingDeletionSection()` (`pending-deletion-section.ts`) is the state of one section:** its page
+  and page size signals, an `rxResource` that requests only while the section is visible, the last
+  page received (kept while the next one loads, so the list does not vanish on every page change),
+  and `failed`/`reload`. A new page size starts over at page 1.
+- **Pagination follows `employees`:** `mat-paginator` with `PAGE_SIZE_OPTIONS`, first/last buttons and
+  `tafel-paginator-responsive`, one above and one below the list, only while `totalCount > 0`. Testids
+  `pending-<kind>-paginator` and `pending-<kind>-paginator-bottom`. There is no truncation hint, since
+  every entry is reachable by paging.
 - **The sentences come from the backend's texts.** `retentionText` ("1 Jahr", "7 Jahren") and
   `warningText` ("30 Tagen") are German dative text built for these sentences, so the component
   never formats a period itself.
-- **Every state of a list is its own element:** `pending-<kind>-empty` ("Keine ... in den nächsten
-  30 Tagen fällig."), `pending-<kind>-disabled` (the job is switched off - the backend sends
-  `enabled: false` and no items, and the section says "Die automatische Löschung ist
-  deaktiviert." instead of an empty list) and `pending-<kind>-truncated` ("Es werden die ersten 200
-  von 250 angezeigt." - the backend caps `items`, oldest activity first, while `totalCount` counts
-  all of them).
+- **Every state of a list is its own element:** `pending-<kind>-loading` (first load only),
+  `pending-<kind>-error` with `pending-<kind>-retry`, `pending-<kind>-empty` ("Keine ... in den
+  nächsten 30 Tagen fällig.") and `pending-<kind>-disabled` (the job is switched off - the backend
+  sends `enabled: false` and no items, and the section says "Die automatische Löschung ist
+  deaktiviert." instead of an empty list). The requests opt out of the generic error toast, since the
+  section owns presenting its error.
 - **"Fällig" chip** (`pending-<user|household|employee>-overdue-<id>`) on every row whose deletion
   date is today or earlier, i.e. what the next run of the job removes. Everything else on the screen
   is still inside the warning window.
@@ -540,12 +549,9 @@ the module.
   `block md:hidden` cards), so a row's testid (`pending-user-row-<id>`,
   `pending-household-row-<householdId>`, `pending-employee-row-<id>`) exists in both branches -
   scope a lookup to the `-table` or `-cards` container. The key is the record's id, not the row's
-  index, since the list is not paged or sorted client-side.
-- **Loading and failure** are inline (`pending-deletions-loading`, `pending-deletions-error` with a
-  `pending-deletions-retry` button); the request opts out of the generic error toast, since the
-  screen owns presenting the error.
-- The data is read with `rxResource`, once per visit - there is nothing to edit here, so nothing
-  refreshes it while the screen is open.
+  index, since a row's position depends on the page.
+- Nothing on the screen is editable, so nothing refreshes it while it is open; a section is read
+  again only by its paginator or its retry button.
 
 ## API services
 
@@ -573,5 +579,6 @@ As elsewhere, HTTP access lives in `app/api/`, not under this module:
   list) predates this view and is shared with `customer`'s nationality autocomplete,
   `getAllCountries()`/`createCountry()`/`updateCountry()` were added for this view's admin listing,
   creation and inline editing.
-- `pending-deletions-api.service.ts` — `PendingDeletionsApiService.getPendingDeletions()` and the
-  response types of the `pending-deletions` view.
+- `pending-deletions-api.service.ts` — `PendingDeletionsApiService` with one paged getter per kind of
+  record (`getPendingUserDeletions()`, `getPendingHouseholdDeletions()`,
+  `getPendingEmployeeDeletions()`) and the response types of the `pending-deletions` view.

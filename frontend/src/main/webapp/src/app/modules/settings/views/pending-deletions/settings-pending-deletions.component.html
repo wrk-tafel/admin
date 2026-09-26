@@ -4,34 +4,28 @@
     Aufbewahrungsfrist ohne weitere Rückfrage. Hier steht, was in Kürze dran ist.
   </p>
 
-  <div class="sr-only" role="status" aria-live="polite">
-    @if (loading()) {
-      Anstehende Löschungen werden geladen.
-    } @else if (!loadFailed()) {
-      Anstehende Löschungen geladen.
-    }
-  </div>
-
-  @if (loading()) {
-    <p class="text-sm" testid="pending-deletions-loading">Anstehende Löschungen werden geladen...</p>
-  }
-
-  @if (loadFailed()) {
-    <div class="flex flex-wrap items-center gap-3" testid="pending-deletions-error">
-      <p class="text-sm text-red-700" role="alert">Die anstehenden Löschungen konnten nicht geladen werden.</p>
-      <button matButton="outlined" type="button" testid="pending-deletions-retry" (click)="reload()">Erneut versuchen</button>
-    </div>
-  }
-
-  @if (users(); as list) {
+  @if (canSeeUsers()) {
     <mat-card class="w-full" testid="pending-users-section">
       <mat-card-header class="mb-2">
         <mat-card-title>
-          <h2 class="tafel-h5 mb-0 mt-1" testid="pending-users-heading">Benutzerkonten @if (list.enabled) {<span>({{ list.totalCount }})</span>}</h2>
+          <h2 class="tafel-h5 mb-0 mt-1" testid="pending-users-heading">Benutzerkonten @if (users.data()?.enabled) {<span>({{ users.data()!.totalCount }})</span>}</h2>
         </mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        @if (!list.enabled) {
+        @let list = users.data();
+        <div class="sr-only" role="status" aria-live="polite">
+          @if (users.initialLoading()) {
+            Benutzerkonten werden geladen.
+          }
+        </div>
+        @if (users.failed()) {
+          <div class="flex flex-wrap items-center gap-3" testid="pending-users-error">
+            <p class="text-sm text-red-700" role="alert">Die anstehenden Löschungen der Benutzerkonten konnten nicht geladen werden.</p>
+            <button matButton="outlined" type="button" testid="pending-users-retry" (click)="users.reload()">Erneut versuchen</button>
+          </div>
+        } @else if (!list) {
+          <p class="text-sm" testid="pending-users-loading">Anstehende Löschungen werden geladen...</p>
+        } @else if (!list.enabled) {
           <p class="text-sm" testid="pending-users-disabled">Die automatische Löschung ist deaktiviert.</p>
         } @else {
           <p class="mb-4 text-sm text-slate-600" testid="pending-users-description">
@@ -39,9 +33,10 @@
             bei denen das in den nächsten {{ list.warningText }} passiert.
           </p>
 
-          @if (list.items.length === 0) {
+          @if (list.totalCount === 0) {
             <p class="text-sm" testid="pending-users-empty">Keine Benutzerkonten in den nächsten {{ list.warningText }} fällig.</p>
           } @else {
+            <ng-container [ngTemplateOutlet]="pager" [ngTemplateOutletContext]="{$implicit: {list: list, testid: 'pending-users-paginator', cssClass: 'mb-4', onPage: users.onPage}}"></ng-container>
             <div class="hidden md:block">
               <table mat-table [dataSource]="list.items" testid="pending-users-table">
                 <ng-container matColumnDef="username">
@@ -121,24 +116,35 @@
               </div>
             </div>
 
-            @if (list.totalCount > list.items.length) {
-              <p class="mt-4 text-sm" testid="pending-users-truncated">Es werden die ersten {{ list.items.length }} von {{ list.totalCount }} angezeigt.</p>
-            }
+            <ng-container [ngTemplateOutlet]="pager" [ngTemplateOutletContext]="{$implicit: {list: list, testid: 'pending-users-paginator-bottom', cssClass: 'mt-4', onPage: users.onPage}}"></ng-container>
           }
         }
       </mat-card-content>
     </mat-card>
   }
 
-  @if (households(); as list) {
+  @if (canSeeHouseholds()) {
     <mat-card class="w-full" testid="pending-households-section">
       <mat-card-header class="mb-2">
         <mat-card-title>
-          <h2 class="tafel-h5 mb-0 mt-1" testid="pending-households-heading">Kunden @if (list.enabled) {<span>({{ list.totalCount }})</span>}</h2>
+          <h2 class="tafel-h5 mb-0 mt-1" testid="pending-households-heading">Kunden @if (households.data()?.enabled) {<span>({{ households.data()!.totalCount }})</span>}</h2>
         </mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        @if (!list.enabled) {
+        @let list = households.data();
+        <div class="sr-only" role="status" aria-live="polite">
+          @if (households.initialLoading()) {
+            Kunden werden geladen.
+          }
+        </div>
+        @if (households.failed()) {
+          <div class="flex flex-wrap items-center gap-3" testid="pending-households-error">
+            <p class="text-sm text-red-700" role="alert">Die anstehenden Löschungen der Kunden konnten nicht geladen werden.</p>
+            <button matButton="outlined" type="button" testid="pending-households-retry" (click)="households.reload()">Erneut versuchen</button>
+          </div>
+        } @else if (!list) {
+          <p class="text-sm" testid="pending-households-loading">Anstehende Löschungen werden geladen...</p>
+        } @else if (!list.enabled) {
           <p class="text-sm" testid="pending-households-disabled">Die automatische Löschung ist deaktiviert.</p>
         } @else {
           <p class="mb-4 text-sm text-slate-600" testid="pending-households-description">
@@ -146,9 +152,10 @@
             bei denen das in den nächsten {{ list.warningText }} passiert.
           </p>
 
-          @if (list.items.length === 0) {
+          @if (list.totalCount === 0) {
             <p class="text-sm" testid="pending-households-empty">Keine Kunden in den nächsten {{ list.warningText }} fällig.</p>
           } @else {
+            <ng-container [ngTemplateOutlet]="pager" [ngTemplateOutletContext]="{$implicit: {list: list, testid: 'pending-households-paginator', cssClass: 'mb-4', onPage: households.onPage}}"></ng-container>
             <div class="hidden md:block">
               <table mat-table [dataSource]="list.items" testid="pending-households-table">
                 <ng-container matColumnDef="householdId">
@@ -210,24 +217,35 @@
               </div>
             </div>
 
-            @if (list.totalCount > list.items.length) {
-              <p class="mt-4 text-sm" testid="pending-households-truncated">Es werden die ersten {{ list.items.length }} von {{ list.totalCount }} angezeigt.</p>
-            }
+            <ng-container [ngTemplateOutlet]="pager" [ngTemplateOutletContext]="{$implicit: {list: list, testid: 'pending-households-paginator-bottom', cssClass: 'mt-4', onPage: households.onPage}}"></ng-container>
           }
         }
       </mat-card-content>
     </mat-card>
   }
 
-  @if (employees(); as list) {
+  @if (canSeeEmployees()) {
     <mat-card class="w-full" testid="pending-employees-section">
       <mat-card-header class="mb-2">
         <mat-card-title>
-          <h2 class="tafel-h5 mb-0 mt-1" testid="pending-employees-heading">Mitarbeiter @if (list.enabled) {<span>({{ list.totalCount }})</span>}</h2>
+          <h2 class="tafel-h5 mb-0 mt-1" testid="pending-employees-heading">Mitarbeiter @if (employees.data()?.enabled) {<span>({{ employees.data()!.totalCount }})</span>}</h2>
         </mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        @if (!list.enabled) {
+        @let list = employees.data();
+        <div class="sr-only" role="status" aria-live="polite">
+          @if (employees.initialLoading()) {
+            Mitarbeiter werden geladen.
+          }
+        </div>
+        @if (employees.failed()) {
+          <div class="flex flex-wrap items-center gap-3" testid="pending-employees-error">
+            <p class="text-sm text-red-700" role="alert">Die anstehenden Löschungen der Mitarbeiter konnten nicht geladen werden.</p>
+            <button matButton="outlined" type="button" testid="pending-employees-retry" (click)="employees.reload()">Erneut versuchen</button>
+          </div>
+        } @else if (!list) {
+          <p class="text-sm" testid="pending-employees-loading">Anstehende Löschungen werden geladen...</p>
+        } @else if (!list.enabled) {
           <p class="text-sm" testid="pending-employees-disabled">Die automatische Löschung ist deaktiviert.</p>
         } @else {
           <p class="mb-4 text-sm text-slate-600" testid="pending-employees-description">
@@ -236,9 +254,10 @@
             <a class="text-blue-600 underline" routerLink="/einstellungen/mitarbeiter" testid="pending-employees-manage-link">Mitarbeiter verwalten</a>
           </p>
 
-          @if (list.items.length === 0) {
+          @if (list.totalCount === 0) {
             <p class="text-sm" testid="pending-employees-empty">Keine Mitarbeiter in den nächsten {{ list.warningText }} fällig.</p>
           } @else {
+            <ng-container [ngTemplateOutlet]="pager" [ngTemplateOutletContext]="{$implicit: {list: list, testid: 'pending-employees-paginator', cssClass: 'mb-4', onPage: employees.onPage}}"></ng-container>
             <div class="hidden md:block">
               <table mat-table [dataSource]="list.items" testid="pending-employees-table">
                 <ng-container matColumnDef="personnelNumber">
@@ -306,12 +325,17 @@
               </div>
             </div>
 
-            @if (list.totalCount > list.items.length) {
-              <p class="mt-4 text-sm" testid="pending-employees-truncated">Es werden die ersten {{ list.items.length }} von {{ list.totalCount }} angezeigt.</p>
-            }
+            <ng-container [ngTemplateOutlet]="pager" [ngTemplateOutletContext]="{$implicit: {list: list, testid: 'pending-employees-paginator-bottom', cssClass: 'mt-4', onPage: employees.onPage}}"></ng-container>
           }
         }
       </mat-card-content>
     </mat-card>
   }
 </div>
+
+<ng-template #pager let-ctx>
+  <mat-paginator class="tafel-paginator-responsive" [class]="ctx.cssClass" [attr.testid]="ctx.testid"
+                 [length]="ctx.list.totalCount" [pageSize]="ctx.list.pageSize" [pageSizeOptions]="pageSizeOptions"
+                 [pageIndex]="ctx.list.currentPage - 1" [showFirstLastButtons]="true"
+                 (page)="ctx.onPage($event)"></mat-paginator>
+</ng-template>

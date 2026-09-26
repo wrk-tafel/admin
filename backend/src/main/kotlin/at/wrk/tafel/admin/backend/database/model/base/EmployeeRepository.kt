@@ -61,8 +61,8 @@ interface EmployeeRepository :
     fun countEmployeesLastUsedBefore(@Param("cutoff") cutoff: LocalDateTime): Long
 
     /**
-     * The employees behind [countEmployeesLastUsedBefore], longest unused first, up to [limit] - what
-     * the "Anstehende Löschungen" screen lists (`PendingDeletionsService`). Carries the two moments the
+     * The employees behind [countEmployeesLastUsedBefore], longest unused first, one page of [limit] rows
+     * starting at [offset] - what the "Anstehende Löschungen" screen lists (`PendingDeletionsService`). Carries the two moments the
      * measure is made of: [EmployeeLastUseProjection.lastUsed] (the newest food collection naming the
      * employee, `null` when none ever did) and [EmployeeLastUseProjection.createdAt], which stands in
      * for it then.
@@ -84,11 +84,15 @@ interface EmployeeRepository :
                        WHERE fc.driver_employee_id = e.id OR fc.co_driver_employee_id = e.id),
                       e.created_at
                   ) ASC, e.id ASC
-            LIMIT :limit
+            LIMIT :limit OFFSET :offset
         """,
         nativeQuery = true,
     )
-    fun findEmployeesLastUsedBefore(@Param("cutoff") cutoff: LocalDateTime, @Param("limit") limit: Int): List<EmployeeLastUseProjection>
+    fun findEmployeesLastUsedBefore(
+        @Param("cutoff") cutoff: LocalDateTime,
+        @Param("limit") limit: Int,
+        @Param("offset") offset: Int,
+    ): List<EmployeeLastUseProjection>
 }
 
 /** One employee with the moments their last use is measured from, see [EmployeeRepository.findEmployeesLastUsedBefore]. */

@@ -95,11 +95,26 @@ class RetentionExpiryCountIT : TafelBaseIntegrationTest() {
     fun `lists the employees behind the count with the moments their last use is measured from`() {
         val neverUsed = givenEmployee(createdAt = LONG_AGO)
 
-        val listed = employeeRepository.findEmployeesLastUsedBefore(CUTOFF, 1000).single { it.id == neverUsed }
+        val listed = employeeRepository.findEmployeesLastUsedBefore(CUTOFF, 1000, 0).single { it.id == neverUsed }
 
         assertThat(listed.lastUsed).isNull()
         assertThat(listed.createdAt).isEqualTo(LONG_AGO)
         assertThat(listed.personnelNumber).startsWith("expiry-count-employee-")
+    }
+
+    @Test
+    fun `pages the employee list by limit and offset`() {
+        val first = givenEmployee(createdAt = LONG_AGO)
+        val second = givenEmployee(createdAt = LONG_AGO.plusDays(1))
+
+        val all = employeeRepository.findEmployeesLastUsedBefore(CUTOFF, 1000, 0).map { it.id }
+        val pageSize = 1
+        val firstPage = employeeRepository.findEmployeesLastUsedBefore(CUTOFF, pageSize, all.indexOf(first)).map { it.id }
+        val secondPage = employeeRepository.findEmployeesLastUsedBefore(CUTOFF, pageSize, all.indexOf(second)).map { it.id }
+
+        assertThat(firstPage).containsExactly(first)
+        assertThat(secondPage).containsExactly(second)
+        assertThat(all.indexOf(first)).isLessThan(all.indexOf(second))
     }
 
     private fun givenHousehold(validUntil: LocalDate): Long {

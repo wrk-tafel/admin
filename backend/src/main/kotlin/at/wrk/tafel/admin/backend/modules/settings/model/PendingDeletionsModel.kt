@@ -4,33 +4,29 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-/**
- * What the retention jobs will delete soon, one section per kind of record - the same set the daily
- * "Daten werden bald gelöscht" push notification counts (`RetentionExpiryReminderService`). A section
- * is `null` when the caller lacks the permission of its area (`USER_MANAGEMENT` for user accounts,
- * `CUSTOMER` for households, `SETTINGS` for employees), so the screen never shows a name its viewer
- * couldn't otherwise reach.
+/*
+ * What the retention jobs will delete soon, one paged list per kind of record - the same set the daily
+ * "Daten werden bald gelöscht" push notification counts (`RetentionExpiryReminderService`). Each list
+ * comes from its own endpoint and only for a caller holding the permission of its area
+ * (`USER_MANAGEMENT` for user accounts, `CUSTOMER` for households, `SETTINGS` for employees), so the
+ * screen never shows a name its viewer couldn't otherwise reach.
+ *
+ * Every list carries the same envelope: [enabled] is false when the job is switched off
+ * (`enabled: false` or a retention time of zero or less), in which case nothing is listed.
+ * `retentionText` and `warningText` are the configured windows as German dative text ("1 Jahr",
+ * "30 Tagen") for a sentence like "nach ... ohne Anmeldung". The paging fields mirror `PagedResponse`,
+ * oldest activity first.
  */
-@ExcludeFromTestCoverage
-data class PendingDeletionsResponse(
-    val users: PendingUserDeletionListResponse?,
-    val households: PendingHouseholdDeletionListResponse?,
-    val employees: PendingEmployeeDeletionListResponse?,
-)
 
-/**
- * [enabled] is false when the job is switched off (`enabled: false` or a retention time of zero or
- * less), in which case nothing is listed. [retentionText] and [warningText] are the configured
- * windows as German dative text ("1 Jahr", "30 Tagen") for a sentence like "nach ... ohne Anmeldung".
- * [items] is capped, [totalCount] is not: more items than shown means the list was cut short, oldest
- * first.
- */
 @ExcludeFromTestCoverage
 data class PendingUserDeletionListResponse(
     val enabled: Boolean,
     val retentionText: String,
     val warningText: String,
     val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int,
     val items: List<PendingUserDeletionItem>,
 )
 
@@ -53,6 +49,9 @@ data class PendingHouseholdDeletionListResponse(
     val retentionText: String,
     val warningText: String,
     val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int,
     val items: List<PendingHouseholdDeletionItem>,
 )
 
@@ -71,6 +70,9 @@ data class PendingEmployeeDeletionListResponse(
     val retentionText: String,
     val warningText: String,
     val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int,
     val items: List<PendingEmployeeDeletionItem>,
 )
 

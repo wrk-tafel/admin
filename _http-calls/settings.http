@@ -75,6 +75,12 @@ Content-Type: application/json
   "amount": 150
 }
 
-### Get what the retention jobs will delete soon (user accounts, customers, employees within their warning window).
-### A section is null when the caller lacks the area's permission (USER_MANAGEMENT / CUSTOMER / SETTINGS).
-GET {{baseApiPath}}/settings/pending-deletions
+### What the retention jobs will delete soon (within their warning window, already-due included), one paged list per
+### kind of record. Each needs the area's permission besides SETTINGS: USER_MANAGEMENT / CUSTOMER / SETTINGS.
+GET {{baseApiPath}}/settings/pending-deletions/users?page=1&pageSize=25
+
+###
+GET {{baseApiPath}}/settings/pending-deletions/households
+
+###
+GET {{baseApiPath}}/settings/pending-deletions/employees?page=2
