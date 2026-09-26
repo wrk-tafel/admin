@@ -115,10 +115,13 @@ class UserControllerTest {
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
         every { userPreferencesService.getTheme(testUser.username) } returns UserTheme.DARK
+        every { userDetailsManager.loadUserByUsername(testUser.username) } returns testUser
 
         val response = controller.getUserInfo()
 
         assertThat(response.body?.username).isEqualTo(testUser.username)
+        assertThat(response.body?.firstname).isEqualTo(testUser.firstname)
+        assertThat(response.body?.lastname).isEqualTo(testUser.lastname)
         assertThat(response.body?.permissions).isEqualTo(testUserPermissions.map { it.key })
         assertThat(response.body?.theme).isEqualTo(UserTheme.DARK)
 
