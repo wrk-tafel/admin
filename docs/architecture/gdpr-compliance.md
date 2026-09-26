@@ -28,7 +28,7 @@ Two things to be clear about before reading on:
 | `household_duplicate_dismissals` | customers | pairs of household numbers a reviewer judged not to be duplicates, plus the reviewer's account (`created_by`, a user-id FK cleared when that account is deleted) | same as `households` (cascades on delete, via a foreign key on the business `household_id` rather than the surrogate `id` the other rows here use) |
 | `audit_log` | customers and staff | before/after values of every audited change, including names, addresses and income, plus who made it | `tafeladmin.audit.retentionDays`, 30 by default (`AuditRetentionService`) |
 | `users`, `user_authorities` | staff | username, personnel number, first and last name, Argon2 password hash, permissions, `last_login`, `token_invalidated_at` (the logout/password-change cut-off for issued JWTs, `R__00109`) | until deleted by hand, or not logged into for longer than `tafeladmin.userDeletion.retentionTime` (`UserRetentionService`, 1 year by default) - never for an `ADMINISTRATOR` account, see G13 |
-| `employees` | staff | personnel number, name - a driver or co-driver, a separate record from a `users` account ([ADR-0060](adr/0060-users-and-employees-are-separate-records-with-no-link.md)) | until deleted by hand, or not used as driver or co-driver on any food collection for longer than `tafeladmin.employeeDeletion.retentionTime` (`EmployeeRetentionService`, 1 year by default) - see G13 |
+| `employees` | staff | personnel number, name - a driver or co-driver, a separate record from a `users` account ([ADR-0060](adr/0060-users-and-employees-are-separate-records-with-no-link.md)) | until deleted by hand, or not used as driver or co-driver on any food collection for longer than `tafeladmin.employeeDeletion.retentionTime` (`EmployeeRetentionService`, 2 years by default) - see G13 |
 | `login_attempts` | staff (anyone who typed a username) | username, failure count, lockout window | cleaned hourly (`LoginAttemptService`) |
 | `login_attempts_ip` (`R__00112`) | anyone who reached the login endpoint | client IP address, failure count, lockout window — an IP address is personal data on its own | cleaned hourly (`LoginAttemptIpService.cleanupStaleEntries`); the per-IP request-rate buckets of `RateLimiterIpService` (G23) are the in-memory counterpart, keyed by IP too and swept hourly, never persisted |
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
@@ -355,7 +355,7 @@ Almost every copy inside the application now has a clock on it, which was not tr
 `mail_outbox` row parked as `FAILED`: it kept its full MIME message — report PDF or support
 screenshot included — until somebody removed the row by hand, which no screen ever prompted anyone to
 do (ADR-0046). One exception still runs past 30 days, and is documented as such rather than folded
-into that figure: an `employees` row is kept until the employee has gone unused as driver or co-driver for a year
+into that figure: an `employees` row is kept until the employee has gone unused as driver or co-driver for two years
 (see [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1)); deleting it by hand
 always works.
 A household's `household_duplicate_dismissals` rows (a reviewer's "kein Duplikat" verdict against
@@ -481,7 +481,7 @@ Unlike a household, neither entity has a field that encodes "no longer relevant"
   who has gone unused: measured from the newest food collection naming them as driver or co-driver, or
   from their creation when none ever did - never from the employee's own row, which hardly ever changes,
   so a driver still going out on collections is never deleted however old their record is. The old
-  collections stay and show "Mitarbeiter gelöscht". Defaults to 1 year, like the user job.
+  collections stay and show "Mitarbeiter gelöscht". Defaults to 2 years (users: 1 year), since an employee is typically a volunteer who drives now and then.
   A household's issuer, a note's author and a route stop's recorder are
   `users` references (`on delete set null`), so the user job above clears them with the account.
 

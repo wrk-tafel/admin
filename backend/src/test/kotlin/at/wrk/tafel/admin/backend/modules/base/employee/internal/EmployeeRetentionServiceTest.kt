@@ -70,14 +70,14 @@ class EmployeeRetentionServiceTest {
      * decision rather than a tuning knob - worth failing a test if it is changed by accident.
      */
     @Test
-    fun `keeps one year by default`() {
+    fun `keeps two years by default`() {
         every { employeeRepository.findExpiredEmployeeIdsSkipLocked(any()) } returns emptyList()
 
         service.cleanupExpiredEmployees()
 
         val cutoff = slot<LocalDateTime>()
         verify { employeeRepository.findExpiredEmployeeIdsSkipLocked(capture(cutoff)) }
-        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2025, 8, 25, 6, 30))
+        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2024, 8, 25, 6, 30))
     }
 
     /**

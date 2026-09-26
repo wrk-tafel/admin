@@ -29,7 +29,7 @@ checked at a glance.
 | 05:05 | `ScannerFileCleanupService.cleanupExpiredScannerFiles` | `@SchedulerLock` | Deletes files on `tafeladmin.storage.scannerPath` older than `tafeladmin.storage.scannerFileRetention` (7d default) — GDPR gap G18 |
 | 06:00 | `HouseholdRetentionService.cleanupExpiredHouseholds` (`tafeladmin.householdDeletion.cleanupCron`) | Row-claim | Deletes households whose `validUntil` is older than `tafeladmin.householdDeletion.retentionTime` (7y default) — GDPR gap G1; refuses and alerts above `tafeladmin.householdDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
 | 06:15 | `UserRetentionService.cleanupExpiredUsers` (`tafeladmin.userDeletion.cleanupCron`) | Row-claim | Deletes user accounts unused for longer than `tafeladmin.userDeletion.retentionTime` (1y default), never an `ADMINISTRATOR` — GDPR gap G13; refuses and alerts above `tafeladmin.userDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
-| 06:30 | `EmployeeRetentionService.cleanupExpiredEmployees` (`tafeladmin.employeeDeletion.cleanupCron`) | Row-claim | Deletes employees not used as driver or co-driver on any food collection for longer than `tafeladmin.employeeDeletion.retentionTime` (1y default) — GDPR gap G13; refuses and alerts above `tafeladmin.employeeDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
+| 06:30 | `EmployeeRetentionService.cleanupExpiredEmployees` (`tafeladmin.employeeDeletion.cleanupCron`) | Row-claim | Deletes employees not used as driver or co-driver on any food collection for longer than `tafeladmin.employeeDeletion.retentionTime` (2y default) — GDPR gap G13; refuses and alerts above `tafeladmin.employeeDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
 
 ## Daily, other times
 

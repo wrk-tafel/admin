@@ -85,7 +85,7 @@ available to everyone (see [Employees are reachable two ways](#employees-are-rea
   (`docs/architecture/gdpr-compliance.md`) — a nightly job that deletes an employee once it is
   has gone unused: the newest food collection naming it as driver or co-driver (or its own creation
   when none does) lies further back than the window — see `EmployeeRepository.findExpiredEmployeeIdsSkipLocked` and its row hasn't been written to in longer
-  than `tafeladmin.employeeDeletion.retentionTime` (1 year by default), through the same
+  than `tafeladmin.employeeDeletion.retentionTime` (2 years by default), through the same
   `EmployeeService.deleteEmployee` a staff member's manual delete uses. Mirrors
   `common/auth/components/UserRetentionService` for `users`. GDPR gap G19: a run above
   `tafeladmin.employeeDeletion.maxDeletionsPerRun` refuses to delete anything and alerts

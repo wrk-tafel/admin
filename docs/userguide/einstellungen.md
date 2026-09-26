@@ -192,7 +192,7 @@ Beim Anlegen sind Personalnummer, Vorname und Nachname Pflichtfelder (max. 50 Ze
 
 Über den roten Papierkorb-Button kann ein Mitarbeiter jederzeit endgültig gelöscht werden — auch wenn er bereits als Fahrer/Beifahrer einer Warenerfassung aufscheint: dieser Verweis wird geleert und zeigt dort stattdessen "Mitarbeiter gelöscht" an. Vor dem Löschen erscheint zur Sicherheit eine Bestätigungsabfrage.
 
-Mitarbeiter, die seit einem Jahr in keiner Warenerfassung mehr als Fahrer/Beifahrer eingetragen wurden (bzw. nie eingetragen waren und seit einem Jahr angelegt sind), entfernt die Anwendung automatisch (nächtliche Bereinigung); die alten Warenerfassungen bleiben erhalten und zeigen dann "Mitarbeiter gelöscht".
+Mitarbeiter, die seit zwei Jahren in keiner Warenerfassung mehr als Fahrer/Beifahrer eingetragen wurden (bzw. nie eingetragen waren und seit zwei Jahren angelegt sind), entfernt die Anwendung automatisch (nächtliche Bereinigung); die alten Warenerfassungen bleiben erhalten und zeigen dann "Mitarbeiter gelöscht".
 
 ![Mitarbeiter löschen](images/einstellungen-mitarbeiter-loeschen.jpg)
 
@@ -212,6 +212,6 @@ Jeder Abschnitt nennt die geltende Aufbewahrungsfrist und listet, was innerhalb 
 
 - **Benutzerkonten** werden nach einem Jahr ohne Anmeldung gelöscht (Administrator-Konten nie). Die Liste nennt Benutzername (als Link zu den [Benutzerdetails](benutzer.md)), Name, Personalnummer, den letzten Login - bei einem Konto, das sich nie angemeldet hat, das Anlagedatum - und das Datum der Löschung. Eine Anmeldung der Person genügt, damit das Konto bleibt.
 - **Kunden** werden 7 Jahre nach Ablauf ihrer Gültigkeit gelöscht. Die Liste nennt Kundennummer (als Link zur [Kunden-Detailansicht](kunden.md)), Name der Hauptperson, das Ende der Gültigkeit und das Datum der Löschung. Eine Verlängerung der Gültigkeit nimmt den Kunden wieder aus der Liste.
-- **Mitarbeiter** werden nach einem Jahr ohne Einsatz als Fahrer:in oder Beifahrer:in in einer Warenerfassung gelöscht. Die Liste nennt Personalnummer, Name, den letzten Einsatz - bei einem nie eingesetzten Mitarbeiter das Anlagedatum - und das Datum der Löschung. Ein Link führt zur Mitarbeiterverwaltung (siehe [Mitarbeiter](#mitarbeiter)), wo sich ein Mitarbeiter auch sofort löschen lässt.
+- **Mitarbeiter** werden nach zwei Jahren ohne Einsatz als Fahrer:in oder Beifahrer:in in einer Warenerfassung gelöscht. Die Liste nennt Personalnummer, Name, den letzten Einsatz - bei einem nie eingesetzten Mitarbeiter das Anlagedatum - und das Datum der Löschung. Ein Link führt zur Mitarbeiterverwaltung (siehe [Mitarbeiter](#mitarbeiter)), wo sich ein Mitarbeiter auch sofort löschen lässt.
 
 Ist die automatische Löschung eines Bereichs abgeschaltet, steht statt der Liste "Die automatische Löschung ist deaktiviert.". Die Fristen und die 30 Tage Vorlauf legt die Betreiberin bzw. der Betreiber der Anwendung in der Konfiguration fest.

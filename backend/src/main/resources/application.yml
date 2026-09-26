@@ -364,14 +364,15 @@ tafeladmin:
   # same EmployeeService.deleteEmployee a staff member's manual delete uses. The old food collections
   # stay and show "Mitarbeiter gelöscht". See EmployeeRepository.findExpiredEmployeeIdsSkipLocked.
   #
-  # retentionTime defaults to 1y, the same as userDeletion.retentionTime. A zero or negative period
-  # keeps every employee instead of deleting them all.
+  # retentionTime defaults to 2y - longer than userDeletion.retentionTime, since an employee is typically
+  # a volunteer who drives now and then. A zero or negative period keeps every employee instead of
+  # deleting them all.
   #
   # maxDeletionsPerRun - GDPR gap G19 - see householdDeletion.maxDeletionsPerRun above; same
   # reasoning, same ceiling default.
   employeeDeletion:
     enabled: true
-    retentionTime: 1y
+    retentionTime: 2y
     retentionWarning: 30d
     maxDeletionsPerRun: 50
     cleanupCron: "0 30 6 * * *"

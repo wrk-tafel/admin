@@ -255,11 +255,12 @@ class TafelAdminEmployeeRetentionProperties {
 
     /**
      * How long an employee goes unused (see the class KDoc) before automatic deletion - a [Period]
-     * for the same reason as `userDeletion.retentionTime`, see its KDoc. Defaults to 1 year, the same
-     * as [TafelAdminUserRetentionProperties.retentionTime]. A zero or negative period keeps every
-     * employee instead of deleting them all.
+     * for the same reason as `userDeletion.retentionTime`, see its KDoc. Defaults to 2 years, longer than
+     * [TafelAdminUserRetentionProperties.retentionTime]: an employee is typically a volunteer who drives
+     * now and then, and dropping one from the driver list is more disruptive than an unused login. A
+     * zero or negative period keeps every employee instead of deleting them all.
      */
-    var retentionTime: Period = Period.ofYears(1)
+    var retentionTime: Period = Period.ofYears(2)
 
     /**
      * How long before [retentionTime] runs out a employee starts counting toward

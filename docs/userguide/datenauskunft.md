@@ -42,6 +42,6 @@ Nach einer endgültigen Löschung sind Haushalt bzw. Personen, Notizen und Dokum
 
 Eine Ausnahme läuft länger als 30 Tage:
 
-- Ein Mitarbeiter (Personalnummer, Name) wird von der automatischen Bereinigung erst entfernt, wenn er 1 Jahr lang in keiner Warenerfassung mehr als Fahrer:in oder Beifahrer:in eingetragen wurde (siehe [Mitarbeiter](einstellungen.md#mitarbeiter)); die manuelle Löschung – auch hier über die Datenauskunft – wirkt sofort.
+- Ein Mitarbeiter (Personalnummer, Name) wird von der automatischen Bereinigung erst entfernt, wenn er 2 Jahre lang in keiner Warenerfassung mehr als Fahrer:in oder Beifahrer:in eingetragen wurde (siehe [Mitarbeiter](einstellungen.md#mitarbeiter)); die manuelle Löschung – auch hier über die Datenauskunft – wirkt sofort.
 
 Bereits gedruckte oder per Post versendete Dokumente (z. B. Kundenliste, Stammdatenblatt) sowie Datensicherungen liegen außerhalb der Anwendung – für sie gilt diese Frist nicht.
