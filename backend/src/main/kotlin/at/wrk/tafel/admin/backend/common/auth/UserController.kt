@@ -68,9 +68,12 @@ class UserController(
     @GetMapping("/info")
     fun getUserInfo(): ResponseEntity<UserInfoResponse> {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val user = userDetailsManager.loadUserByUsername(authenticatedUser.username!!)
 
         val userInfo = UserInfoResponse(
-            username = authenticatedUser.username!!,
+            username = authenticatedUser.username,
+            firstname = user.firstname,
+            lastname = user.lastname,
             permissions = authenticatedUser.authorities.mapNotNull { it.authority },
             theme = userPreferencesService.getTheme(authenticatedUser.username!!),
             mfaPending = authenticatedUser.mfaPending,

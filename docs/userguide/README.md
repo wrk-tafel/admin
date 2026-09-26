@@ -27,7 +27,7 @@ Auf Test- und Entwicklungsumgebungen wird oberhalb der Anmeldemaske zusätzlich 
 
 Dieselbe Umgebungskennzeichnung bleibt nach der Anmeldung als schmales Banner oben in der Kopfzeile der Anwendung sichtbar, damit auch eine bereits geöffnete Sitzung auf einer Test- oder Entwicklungsumgebung nicht mit der Produktivumgebung verwechselt werden kann.
 
-Das Benutzer-Icon oben rechts (es zeigt die Initialen des Benutzernamens) öffnet das Benutzermenü. Es ist in drei Gruppen gegliedert:
+Das Benutzer-Icon oben rechts (es zeigt die Anfangsbuchstaben von Vor- und Nachname) öffnet das Benutzermenü. Es ist in drei Gruppen gegliedert:
 
 - **Konto**: **Mein Konto** öffnen, die Seite für alles, was das eigene Benutzerkonto betrifft: die eigenen Daten, Passwort, Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design und Datenschutz.
 - **Hilfe**: dieses Benutzerhandbuch (immer die aktuellste Version, als PDF-Download) öffnen.

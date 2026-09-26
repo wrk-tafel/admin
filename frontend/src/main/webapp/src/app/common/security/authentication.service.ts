@@ -212,6 +212,9 @@ export interface LoginResult {
 
 interface UserInfo {
   username: string;
+  /** Behind the header's avatar initials; absent from an older backend, still running during a rolling deploy. */
+  firstname?: string;
+  lastname?: string;
   permissions: string[];
   /** Absent when an older backend, still running during a rolling deploy, does not send it. */
   theme?: ThemePreference;
