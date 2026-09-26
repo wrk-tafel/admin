@@ -6,7 +6,6 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminSupportProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import at.wrk.tafel.admin.backend.modules.support.model.SupportClientContext
 import at.wrk.tafel.admin.backend.modules.support.model.SupportClientLogItem
@@ -51,7 +50,9 @@ class SupportServiceTest {
         every { userRepository.findByUsername("test-user") } returns UserEntity(
             username = "test-user",
             password = "pwd",
-            employee = EmployeeEntity(personnelNumber = "1234", firstname = "Max", lastname = "Mustermann"),
+            personnelNumber = "1234",
+            firstname = "Max",
+            lastname = "Mustermann",
         )
     }
 

@@ -61,9 +61,10 @@ describe('Food Collection Recording', () => {
   });
 
   it('shows the saved driver and co-driver right away when the route is opened again', () => {
-    // The employee search matches substrings, so the driver's own personnel number ('0200') also
-    // finds '02000'. Resolving a stored driver through that search again would pop the employee
-    // selection dialog open the moment the route is picked.
+    // The employee search matches substrings, so a driver whose personnel number is the beginning of
+    // another employee's also finds that one. Resolving a stored driver through that search again
+    // would pop the employee selection dialog open the moment the route is picked. The seeded
+    // drivers ('02000', '02100') are not substrings of each other, so this test creates such a pair.
     cy.intercept('POST', '**/food-collections/routes/*').as('saveRouteData');
     cy.intercept('POST', '**/food-collections/routes/*/km').as('saveKm');
     // matches both enterRouteData()'s own initial load and the refresh a fully successful save
@@ -73,7 +74,9 @@ describe('Food Collection Recording', () => {
 
     enterRouteData();
     cy.wait('@getFoodCollection');
-    selectAmbiguousDriver();
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      selectAmbiguousDriver('AMB-' + randomNumber);
+    });
     selectExistingCoDriver();
 
     // the mileage is filled in as well so the route counts as fully recorded - an incomplete route
@@ -101,8 +104,8 @@ describe('Food Collection Recording', () => {
     cy.get('mat-option').contains('Route 2').click();
 
     cy.byTestId('select-route-tab').click();
-    cy.byTestId('selectedDriverDescription').should('have.text', '0200 Test User');
-    cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
+    cy.byTestId('selectedDriverDescription').should('contain.text', 'AMB-').and('contain.text', 'Ambiguous Driver');
+    cy.byTestId('selectedCoDriverDescription').should('have.text', '02100 Beifahrer 1');
     assertNoEmployeeModalsOpen();
     cy.get('@employeeSearchOnReopen.all').should('have.length', 0);
   });
@@ -696,7 +699,8 @@ describe('Food Collection Recording', () => {
           cy.byTestId('cancel-button').click();
         });
 
-        cy.byTestId('coDriverSearchInput').clear().type('scan');
+        // matches both seeded drivers ('Fahrer 1' and 'Beifahrer 1')
+        cy.byTestId('coDriverSearchInput').clear().type('fahrer');
         cy.byTestId('codriver-employee-search-button').click();
         cy.byTestId('codriver-select-employee-dialog').should('be.visible');
         cy.checkDialogAccessibility();
@@ -759,35 +763,41 @@ describe('Food Collection Recording', () => {
       });
   }
 
+  // testdata: '02000' is the personnel number of the driver 'Fahrer 1' alone - a single match
+  // resolves straight away, without the selection dialog
   function selectDriver() {
-    cy.byTestId('driverSearchInput').type('00000');
+    cy.byTestId('driverSearchInput').type('02000');
     cy.byTestId('driver-employee-search-button').click();
     cy.byTestId('driverSearchInput').should('not.exist');
-    cy.byTestId('selectedDriverDescription').should('have.text', '00000 E2E Test');
+    cy.byTestId('selectedDriverDescription').should('have.text', '02000 Fahrer 1');
 
     const driverRemoveButton = cy.byTestId('selectedDriverRemoveButton');
     driverRemoveButton.should('be.visible');
     driverRemoveButton.click();
     cy.byTestId('driverSearchInput').should('exist');
-    cy.byTestId('driverSearchInput').type('00000');
+    cy.byTestId('driverSearchInput').type('02000');
     cy.byTestId('driver-employee-search-button').click();
     cy.byTestId('driverSearchInput').should('not.exist');
-    cy.byTestId('selectedDriverDescription').should('have.text', '00000 E2E Test');
+    cy.byTestId('selectedDriverDescription').should('have.text', '02000 Fahrer 1');
   }
 
-  // testdata: '0200' is a personnel number of its own and at the same time part of '02000', so the
-  // search always returns both employees and the selection dialog has to be used
-  function selectAmbiguousDriver() {
-    cy.byTestId('driverSearchInput').type('0200');
+  // Creates two employees whose personnel numbers overlap ('<number>' is the beginning of
+  // '<number>-2'), so the search always returns both and the selection dialog has to be used. The
+  // seeded drivers do not overlap like that. The first one created has the lower id, so it is row 0.
+  function selectAmbiguousDriver(personnelNumber: string) {
+    cy.request('POST', '/api/employees', {personnelNumber, firstname: 'Ambiguous', lastname: 'Driver'});
+    cy.request('POST', '/api/employees', {personnelNumber: personnelNumber + '-2', firstname: 'Ambiguous', lastname: 'Driver 2'});
+
+    cy.byTestId('driverSearchInput').type(personnelNumber);
     cy.byTestId('driver-employee-search-button').click();
 
     cy.byTestId('driver-select-employee-dialog')
       .should('be.visible')
       .within(() => {
-        cy.byTestId('select-employee-row-0').should('contain.text', '0200 Test User');
+        cy.byTestId('select-employee-row-0').should('contain.text', personnelNumber + ' Ambiguous Driver');
         cy.byTestId('select-employee-button-0').click();
       });
-    cy.byTestId('selectedDriverDescription').should('have.text', '0200 Test User');
+    cy.byTestId('selectedDriverDescription').should('have.text', personnelNumber + ' Ambiguous Driver');
   }
 
   function createAndSelectCoDriver(randomNumber: number) {
@@ -805,9 +815,11 @@ describe('Food Collection Recording', () => {
     cy.byTestId('selectedCoDriverRemoveButton').click();
   }
 
+  // testdata: 'fahrer' is part of both 'Fahrer 1' (row 0) and 'Beifahrer 1' (row 1), so the
+  // selection dialog has to be used
   function selectExistingCoDriver() {
     cy.byTestId('coDriverSearchInput').clear();
-    cy.byTestId('coDriverSearchInput').type('scan');
+    cy.byTestId('coDriverSearchInput').type('fahrer');
     cy.byTestId('codriver-employee-search-button').click();
 
     cy.byTestId('codriver-select-employee-dialog')
@@ -815,7 +827,7 @@ describe('Food Collection Recording', () => {
       .within(() => {
         cy.byTestId('select-employee-button-1').click();
       });
-    cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
+    cy.byTestId('selectedCoDriverDescription').should('have.text', '02100 Beifahrer 1');
   }
 
   // Recurses over intercepted '@patchItem' requests until a request body matching each of
@@ -826,9 +838,10 @@ describe('Food Collection Recording', () => {
   // distribution; a started-but-incomplete route blocks closing the distribution in afterEach, and
   // there is no way to un-start one - so finish it the way a driver would, through the same
   // endpoints the app uses. Food collections live per distribution, so nothing leaks into the next
-  // test's freshly created one. Testdata ids: car 1 (W-NC-123), employees 200/500.
+  // test's freshly created one. Testdata ids: car 1 (W-NC-123), employees 2000 ('Fahrer 1') and 2100
+  // ('Beifahrer 1').
   function completeRouteViaApi() {
-    cy.request('POST', '/api/food-collections/routes/2', {carId: 1, driverId: 200, coDriverId: 500});
+    cy.request('POST', '/api/food-collections/routes/2', {carId: 1, driverId: 2000, coDriverId: 2100});
     cy.request('POST', '/api/food-collections/routes/2/km', {kmStart: 1000, kmEnd: 2000});
   }
 

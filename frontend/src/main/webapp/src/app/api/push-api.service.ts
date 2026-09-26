@@ -49,7 +49,8 @@ export enum PushNotificationType {
   REPORT_MAIL_FAILED = 'REPORT_MAIL_FAILED',
   EXCESSIVE_READ_ACCESS = 'EXCESSIVE_READ_ACCESS',
   SCANNER_FILES_EXPIRING = 'SCANNER_FILES_EXPIRING',
-  RETENTION_RUN = 'RETENTION_RUN'
+  RETENTION_RUN = 'RETENTION_RUN',
+  RETENTION_EXPIRING = 'RETENTION_EXPIRING'
 }
 
 export const pushNotificationTypeLabel: { [key in PushNotificationType]: string } = {
@@ -65,7 +66,8 @@ export const pushNotificationTypeLabel: { [key in PushNotificationType]: string 
   [PushNotificationType.REPORT_MAIL_FAILED]: 'E-Mail nicht versendet',
   [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ungewöhnlich viele Zugriffe',
   [PushNotificationType.SCANNER_FILES_EXPIRING]: 'Gescannte Dateien werden bald gelöscht',
-  [PushNotificationType.RETENTION_RUN]: 'Bereinigungsjob auffällig'
+  [PushNotificationType.RETENTION_RUN]: 'Bereinigungsjob auffällig',
+  [PushNotificationType.RETENTION_EXPIRING]: 'Daten werden bald gelöscht'
 };
 
 /**
@@ -86,7 +88,9 @@ export const pushNotificationTypeDescription: { [key in PushNotificationType]: s
   [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ein Benutzer hat innerhalb einer Stunde mehr sensible Datensätze abgerufen als üblich.',
   [PushNotificationType.SCANNER_FILES_EXPIRING]: 'Eine Datei im Scanner-Ordner wird bald gelöscht, falls sie nicht importiert wird.',
   [PushNotificationType.RETENTION_RUN]: 'Ein Bereinigungsjob (Haushalte, Benutzer, Mitarbeiter, ' +
-    'Zugriffsprotokoll) ist fehlgeschlagen oder hätte mehr Datensätze gelöscht als konfiguriert.'
+    'Zugriffsprotokoll) ist fehlgeschlagen oder hätte mehr Datensätze gelöscht als konfiguriert.',
+  [PushNotificationType.RETENTION_EXPIRING]: 'Benutzerkonten, Kunden oder Mitarbeiter stehen kurz vor der automatischen ' +
+    'Löschung wegen abgelaufener Aufbewahrungsfrist.'
 };
 
 /**
@@ -134,7 +138,8 @@ export const pushNotificationTypeGroups: PushNotificationTypeGroup[] = [
       PushNotificationType.REPORT_MAIL_FAILED,
       PushNotificationType.USER_LOCKED_OUT,
       PushNotificationType.EXCESSIVE_READ_ACCESS,
-      PushNotificationType.RETENTION_RUN
+      PushNotificationType.RETENTION_RUN,
+      PushNotificationType.RETENTION_EXPIRING
     ]
   }
 ];

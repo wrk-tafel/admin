@@ -89,11 +89,11 @@
         <fo:block font-size="10pt" color="{$tafelInk}" space-after="4mm" line-height="1.5">
             Ihr Benutzerkonto wird gelöscht, wenn Sie sich seit mehr als
             <xsl:value-of select="./userRetentionText"/> nicht mehr angemeldet haben, oder zuvor auf
-            Ihren Wunsch bzw. bei Beendigung Ihrer Tätigkeit manuell. Ihr verknüpfter
-            Mitarbeiter-Datensatz (Personalnummer, Name) bleibt bestehen, solange er noch an anderer
-            Stelle referenziert wird (z. B. als Erfasser:in eines Haushalts oder einer Notiz, oder
-            als Fahrer:in einer Warenerfassung), und wird danach spätestens nach
-            <xsl:value-of select="./employeeRetentionText"/> automatisch entfernt. Einträge im
+            Ihren Wunsch bzw. bei Beendigung Ihrer Tätigkeit manuell. Ein Mitarbeiter-Datensatz
+            (Personalnummer, Name), etwa als Fahrer:in oder Beifahrer:in einer Warenerfassung, besteht
+            unabhängig von einem Benutzerkonto: Er wird automatisch entfernt, wenn er länger als
+            <xsl:value-of select="./employeeRetentionText"/> in keiner Warenerfassung mehr
+            eingetragen wurde, auf Wunsch auch früher. Einträge im
             Änderungsprotokoll, die Ihr Konto betreffen, werden nach
             <xsl:value-of select="./auditRetentionDays"/> Tagen gelöscht. Die bei einer
             fehlgeschlagenen Anmeldung gespeicherte IP-Adresse wird spätestens

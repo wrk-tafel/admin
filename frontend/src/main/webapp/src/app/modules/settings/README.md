@@ -47,6 +47,7 @@ settings/
       dialogs/
         route-edit-dialog.component.ts
     countries/                     # route: einstellungen/laender
+    pending-deletions/             # route: einstellungen/anstehende-loeschungen
   settings.routes.ts
 ```
 
@@ -332,7 +333,7 @@ that reflect the domain:
   result-count announcement, as the `audit` module's access log.
   `EmployeeController`/`EmployeeService` (in
   `modules/base/employee`, pre-existing, shared with the `logistics` module's
-  create-employee flow) implement `GET /api/employees?searchInput=&page=&pageSize=`
+  create-employee flow) implement `POST /api/employees/search` (search term, page, page size and sort in the body)
   server-side (`PaginationDefaults`: 10 by default, selectable via
   `PAGE_SIZE_OPTIONS`), driving a `mat-paginator` off a `PagedResponse` — same
   wiring as `customer`'s `customer-search.component.ts` (`length`/`pageSize`/
@@ -341,17 +342,15 @@ that reflect the domain:
   `customer-duplicates`, the paginator is rendered twice — once above the
   table, once below — so long lists don't force a scroll back up just to
   change page; both instances are bound to the same signal and stay in sync.
-- Employees also have no `enabled` flag and no delete endpoint — same
-  "no hard delete" convention as the rest of the app, but here there isn't
-  even a soft-disable toggle, so the edit button is never disabled. The card's
-  caption says so, because the alternative is an admin hunting for a delete
-  button that was never left out by accident.
-- **The linked user account is a column of its own.** `EmployeeItem.userAccount`
-  carries the account referencing the employee, rendered as a chip that links
-  to `/benutzer/detail/:id` for a viewer holding `USER_MANAGEMENT` and reads
-  "Benutzerkonto vorhanden" for everyone else. The personnel number is the join
-  key between this screen and the user administration, and it used to be
-  invisible from both sides.
+- **Employees are hard-deleted, and there is no `enabled` flag** — so the edit button is never disabled.
+  `deleteEmployee()` opens `EmployeeDeleteConfirmDialogComponent` first and then calls `DELETE
+  /api/employees/{id}`. The deletion always succeeds: whatever references the employee (a food collection's
+  driver/co-driver) is cleared and shown as "Mitarbeiter gelöscht" instead, which the dialog and the card's
+  caption say.
+- **Employees and user accounts are two separate records with no link.** The list shows personnel number,
+  first name and last name only — there is no account column, and the export button (`GET
+  /api/employees/{id}/export`, the employee's GDPR takeout ZIP) is offered for every row. The user
+  administration keeps its own personnel number, first name and last name per account.
 - **A personnel-number collision is shown while the number is typed**, in the
   create dialog and in an inline edit alike (`GET
   /api/employees/personnel-number-availability`, 400 ms debounce, the edited
@@ -502,6 +501,62 @@ carry. This view differs from every other screen above in two ways that reflect 
   `SETTINGS` — separate from the pre-existing, `isAuthenticated()`-only `GET /api/countries` the
   nationality autocomplete uses, which filters to `enabled` countries only.
 
+## `pending-deletions` (`SettingsPendingDeletionsComponent`)
+
+Preview of what the automatic retention jobs delete next: user accounts after a year without a
+login, employees after a year without an assignment as driver or co-driver, customers seven years
+after their validity ended. It is the target of the daily notification to administrators, whose link
+goes to `einstellungen/anstehende-loeschungen`, and sits in the sidebar under "Systemverwaltung".
+**It is for administrators only:** the route carries its own
+`data: {anyPermissionOf: ['ADMINISTRATOR']}` (the shell's `canActivateChild` guard runs for
+`einstellungen` as well, so `SETTINGS` and `ADMINISTRATOR` both have to pass), and the menu entry has
+`permissions: ['ADMINISTRATOR']`, so a user holding only `SETTINGS` neither sees it nor gets in and is
+sent to the "Zugriff nicht erlaubt" login page.
+
+- **Three sections in the order Benutzerkonten, Kunden, Mitarbeiter, each with an endpoint, state and
+  paginator of its own.** `GET /api/settings/pending-deletions/{users|households|employees}` take
+  `page` and `pageSize` and are behind `ADMINISTRATOR`, who holds every permission - so all three
+  sections are always shown and requested, with no per-section permission check in the component.
+  Paging or breaking one section never reloads another. Testids
+  `pending-<users|households|employees>-section`, `-heading` (an `h2`, with the total count over all
+  pages: "Benutzerkonten (25)"), `-description`, `-table`, `-cards`.
+- **`pendingDeletionSection()` (`pending-deletion-section.ts`) is the state of one section:** its page
+  and page size signals, an `rxResource`, the last page received (kept while the next one loads, so
+  the list does not vanish on every page change), and `failed`/`reload`. A new page size starts over
+  at page 1.
+- **Pagination follows `employees`:** `mat-paginator` with `PAGE_SIZE_OPTIONS`, first/last buttons and
+  `tafel-paginator-responsive`, one above and one below the list, only while `totalCount > 0`. Testids
+  `pending-<kind>-paginator` and `pending-<kind>-paginator-bottom`. There is no truncation hint, since
+  every entry is reachable by paging.
+- **The sentences come from the backend's texts.** `retentionText` ("1 Jahr", "7 Jahren") and
+  `warningText` ("30 Tagen") are German dative text built for these sentences, so the component
+  never formats a period itself. The employee sentence reads "ohne Einsatz als Fahrer:in oder
+  Beifahrer:in".
+- **Every state of a list is its own element:** `pending-<kind>-loading` (first load only),
+  `pending-<kind>-error` with `pending-<kind>-retry`, `pending-<kind>-empty` ("Keine ... in den
+  nächsten 30 Tagen fällig.") and `pending-<kind>-disabled` (the job is switched off - the backend
+  sends `enabled: false` and no items, and the section says "Die automatische Löschung ist
+  deaktiviert." instead of an empty list). The requests opt out of the generic error toast, since the
+  section owns presenting its error.
+- **"Fällig" chip** (`pending-<user|household|employee>-overdue-<id>`) on every row whose deletion
+  date is today or earlier, i.e. what the next run of the job removes. Everything else on the screen
+  is still inside the warning window.
+- **Never-used records say so:** a user without a login reads "nie angemeldet (angelegt am
+  dd.MM.yyyy)", an employee never used as a driver "nie eingesetzt (angelegt am dd.MM.yyyy)" - the
+  backend measures the age from the creation date then. Testids `pending-user-last-login-<id>` and
+  `pending-employee-last-used-<id>`.
+- **Links:** a username links to `/benutzer/detail/<id>` (`pending-user-link-<id>`), a customer
+  number to `/kunden/detail/<householdId>` (`pending-household-link-<householdId>`). An employee
+  has no detail view, so the section carries a "Mitarbeiter verwalten" link to
+  `/einstellungen/mitarbeiter` (`pending-employees-manage-link`) instead.
+- **Same table/card dual layout as the other screens here** (`hidden md:block` table,
+  `block md:hidden` cards), so a row's testid (`pending-user-row-<id>`,
+  `pending-household-row-<householdId>`, `pending-employee-row-<id>`) exists in both branches -
+  scope a lookup to the `-table` or `-cards` container. The key is the record's id, not the row's
+  index, since a row's position depends on the page.
+- Nothing on the screen is editable, so nothing refreshes it while it is open; a section is read
+  again only by its paginator or its retry button.
+
 ## API services
 
 As elsewhere, HTTP access lives in `app/api/`, not under this module:
@@ -528,3 +583,6 @@ As elsewhere, HTTP access lives in `app/api/`, not under this module:
   list) predates this view and is shared with `customer`'s nationality autocomplete,
   `getAllCountries()`/`createCountry()`/`updateCountry()` were added for this view's admin listing,
   creation and inline editing.
+- `pending-deletions-api.service.ts` — `PendingDeletionsApiService` with one paged getter per kind of
+  record (`getPendingUserDeletions()`, `getPendingHouseholdDeletions()`,
+  `getPendingEmployeeDeletions()`) and the response types of the `pending-deletions` view.

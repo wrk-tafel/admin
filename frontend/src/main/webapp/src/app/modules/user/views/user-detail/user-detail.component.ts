@@ -1,5 +1,6 @@
 import {Component, computed, inject, input, linkedSignal, signal} from '@angular/core';
-import {HttpResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
+import {MatDialog} from '@angular/material/dialog';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {Router} from '@angular/router';
 import {MatCardModule} from '@angular/material/card';
@@ -17,6 +18,9 @@ import {
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {parseContentDispositionFilename} from '../../../../common/util/content-disposition.util';
+import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
+import {UserDeleteConfirmDialogComponent} from '../../components/user-delete-confirm-dialog/user-delete-confirm-dialog.component';
 
 @Component({
     selector: 'tafel-user-detail',
@@ -40,6 +44,7 @@ export class UserDetailComponent {
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
   private readonly fileHelperService = inject(FileHelperService);
+  private readonly dialog = inject(MatDialog);
 
   // Writable signal that resets from input, but can be locally updated after API calls
   readonly currentUserData = linkedSignal(() => this.userData());
@@ -78,17 +83,29 @@ export class UserDetailComponent {
     this.changeUserState(true);
   }
 
+  /**
+   * Asks first, with the same dialog as the user search's trash button - an account is deleted for
+   * good. The backend's refusal (e.g. the last active administrator) is shown as it words it.
+   */
   deleteUser() {
-    const observer = {
-      next: (_: any) => {
-        this.toastr.success('Benutzer wurde gelöscht!');
-        this.router.navigate(['/benutzer/suchen']);
-      },
-      error: (_: any) => {
-        this.toastr.error('Löschen fehlgeschlagen!');
-      },
-    };
-    this.userApiService.deleteUser(this.currentUserData().id!).subscribe(observer);
+    const user = this.currentUserData();
+    const name = [user.firstname, user.lastname].filter(part => !!part).join(' ');
+    this.dialog.open(UserDeleteConfirmDialogComponent, {data: {username: user.username, name}})
+      .afterClosed().subscribe(confirmed => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.userApiService.deleteUser(user.id!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+          next: () => {
+            this.toastr.success('Benutzer wurde gelöscht!');
+            this.router.navigate(['/benutzer/suchen']);
+          },
+          error: (error: HttpErrorResponse) => {
+            this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen!');
+          },
+        });
+      });
   }
 
   /**

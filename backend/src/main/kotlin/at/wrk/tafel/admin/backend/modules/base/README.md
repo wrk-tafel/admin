@@ -70,26 +70,22 @@ available to everyone (see [Employees are reachable two ways](#employees-are-rea
   screen under the frontend's `settings` module (`SettingsEmployeesComponent`, #2868) without
   narrowing the original `logistics` call site's access.
 - [`EmployeeModel.kt`](employee/EmployeeModel.kt): `EmployeeItem(id, personnelNumber, firstname,
-  lastname, userAccount)` as the element of `EmployeeListResponse`, `EmployeeResponse(id,
-  personnelNumber, firstname, lastname)` for the create/update responses,
-  `PersonnelNumberAvailabilityResponse`, and `EmployeeRequest` (used for both create and update).
-  The list element is its own type because only it carries `userAccount`: the account referencing
-  an employee is what the admin screen shows next to the row, and there is no reason for a food
-  collection's driver to drag one along.
+  lastname)` as the element of `EmployeeListResponse`, `EmployeeResponse(id, personnelNumber,
+  firstname, lastname)` for the create/update responses, `PersonnelNumberAvailabilityResponse`, and
+  `EmployeeRequest` (used for both create and update).
 - The availability check is advisory - `saveEmployee`/`updateEmployee` reject a taken personnel
   number with a `ConflictException` regardless, since a number can be given out between the check
   and the save. It exists so the collision can be shown next to the field being typed into,
   together with the employee already holding the number.
-- Backed by `EmployeeRepository`/`EmployeeEntity` in `database/model/base` (table `employees`) plus
-  `UserRepository.findAccountsByEmployeeIds` for the linked accounts — one query per page, not one
-  per row. Reaching `database/model/auth` straight from here is the ambient-lower-layer pattern
-  described below, not a `base`→`auth` module dependency (there is no `auth` module).
+- Backed by `EmployeeRepository`/`EmployeeEntity` in `database/model/base` (table `employees`). An
+  employee is a driver or co-driver and has no link to a user account: a `users` row carries its own
+  personnel number and name (see ADR-0060, `docs/architecture/adr/0060-users-and-employees-are-separate-records-with-no-link.md`),
+  so deleting either never involves the other, and a person who is both exists twice.
 - `internal/EmployeeRetentionService`: GDPR gap G13
   (`docs/architecture/gdpr-compliance.md`) — a nightly job that deletes an employee once it is
-  referenced by nothing else at all (no linked user account, and none of `households`/
-  `household_notes`/`food_collections`/`routes_stops_completions` point at it either — see
-  `EmployeeRepository.findExpiredEmployeeIdsSkipLocked`) and its row hasn't been written to in longer
-  than `tafeladmin.employeeDeletion.retentionTime` (7 years by default), through the same
+  has gone unused: the newest food collection naming it as driver or co-driver (or its own creation
+  when none does) lies further back than the window — see `EmployeeRepository.findExpiredEmployeeIdsSkipLocked` and its row hasn't been written to in longer
+  than `tafeladmin.employeeDeletion.retentionTime` (2 years by default), through the same
   `EmployeeService.deleteEmployee` a staff member's manual delete uses. Mirrors
   `common/auth/components/UserRetentionService` for `users`. GDPR gap G19: a run above
   `tafeladmin.employeeDeletion.maxDeletionsPerRun` refuses to delete anything and alerts
@@ -102,19 +98,20 @@ available to everyone (see [Employees are reachable two ways](#employees-are-rea
   its maintenance screen, which doesn't require any backend `allowedDependencies` change since it
   doesn't import Kotlin types from this package.
 
-#### Employees are reachable two ways
+#### Entities are reachable two ways
 
-`logistics` goes through this named interface (`EmployeeService`/`EmployeeResponse`). `household`
-does **not** depend on `base::employee` at all, even though `HouseholdEntity.issuer` and
-`HouseholdNoteEntity.employee` are both `EmployeeEntity` references: it reaches the entity directly
-through `UserEntity.employee`, a `database.model` type rather than a `modules.base.employee` one.
+`logistics` goes through this named interface (`EmployeeService`/`EmployeeResponse`) for the driver and
+co-driver of a food collection. `household` does not touch employees at all: `HouseholdEntity.issuer` and
+`HouseholdNoteEntity.author` are `UserEntity` references, which it reaches directly through
+`database.model.auth`, a `database.model` type rather than a `modules.*` one - there is no `auth` module
+to declare a dependency on.
 
 That is an accepted pattern, not an oversight or a boundary to be tightened. `database/model/` sits
 outside `modules/` and is deliberately an ambiently shared lower layer that every module may inject
 from without declaring anything — so a named interface gates the service/DTO surface, and never the
-JPA entity graph underneath it. Routing `household` through `base::employee` would not actually
-close anything either: it needs a managed `EmployeeEntity` to *assign* as `issuer`, whereas this
-module's service exists precisely to hand out DTOs instead of entities.
+JPA entity graph underneath it. Routing `household` through a named interface would not actually
+close anything either: it needs a managed `UserEntity` to *assign* as `issuer`, whereas a module's
+service exists precisely to hand out DTOs instead of entities.
 
 The one hard rule is direction — `database/model/` must never depend back on `modules/`, which is
 enforced by `database entities should not depend on feature modules` in

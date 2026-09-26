@@ -319,6 +319,121 @@ describe('Customer Search', () => {
     });
   });
 
+  // The per-row delete button opens the same confirm dialog as the detail screen's "Kunde löschen",
+  // and is disabled for a locked customer with the same reason in its tooltip.
+  it('disables the delete button of a locked customer', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        country: AUSTRIA,
+        validUntil: dayjs().add(1, 'year').toDate(),
+        locked: true,
+        lockReason: 'Testgrund-' + randomNumber,
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        }
+      }).then((response) => {
+        const customer = response.body.data;
+
+        cy.byTestId('searchInputText').type(customer.lastname);
+        clickSearchAndWaitForResult();
+
+        cy.byTestId('searchresult-deletecustomer-button-' + customer.id).filterDisplayed().should('be.disabled');
+      });
+    });
+  });
+
+  it('keeps the customer when the delete confirmation is cancelled', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.byTestId('searchresult-deletecustomer-button-' + customer.id).filterDisplayed().click();
+      cy.byTestId('deletecustomer-dialog').should('be.visible')
+        .and('contain.text', customer.lastname + ' ' + customer.firstname);
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+      cy.byTestId('deletecustomer-dialog').should('not.exist');
+
+      cy.get(`a[href$="/kunden/detail/${customer.id}"]`).filterDisplayed().should('have.length', 1);
+      cy.request('GET', '/api/households/' + customer.id).its('status').should('eq', 200);
+    });
+  });
+
+  it('deletes a customer from the result list after the confirmation', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.intercept('POST', '/api/households/search').as('reloadAfterDelete');
+      cy.byTestId('searchresult-deletecustomer-button-' + customer.id).filterDisplayed().click();
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('okButton').click();
+      });
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'Kunde wurde gelöscht!');
+      cy.wait('@reloadAfterDelete');
+      cy.get(`a[href$="/kunden/detail/${customer.id}"]`).should('not.exist');
+      cy.request({url: '/api/households/' + customer.id, failOnStatusCode: false}).its('status').should('eq', 404);
+    });
+  });
+
+  it('deletes a customer from the card list on phone', () => {
+    cy.viewport(PHONE_VIEWPORT);
+
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-card-' + customer.id).scrollIntoView().should('be.visible');
+
+      cy.byTestId('searchresult-deletecustomer-button-' + customer.id).filterDisplayed().click();
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('okButton').click();
+      });
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'Kunde wurde gelöscht!');
+      cy.byTestId('searchresult-card-' + customer.id).should('not.exist');
+    });
+  });
+
+  it('shows the backend message and keeps the customer when the deletion is refused', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+
+      cy.byTestId('searchInputText').type(customer.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.intercept('DELETE', '/api/households/' + customer.id, {
+        statusCode: 409,
+        body: {title: 'Conflict', status: 409, detail: 'Kunde kann nicht gelöscht werden!'}
+      }).as('refusedDelete');
+      cy.byTestId('searchresult-deletecustomer-button-' + customer.id).filterDisplayed().click();
+      cy.byTestId('deletecustomer-dialog').within(() => {
+        cy.byTestId('okButton').click();
+      });
+      cy.wait('@refusedDelete');
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'Kunde kann nicht gelöscht werden!');
+      cy.get(`a[href$="/kunden/detail/${customer.id}"]`).filterDisplayed().should('have.length', 1);
+    });
+  });
+
   it('search by missing privacy notice filter', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
@@ -606,6 +721,20 @@ describe('Customer Search', () => {
       cy.byTestId('search-button').click();
 
       cy.byTestId('searchresult-announcement').should('have.text', 'Keine Kunden gefunden');
+    });
+
+    it('has no violations while the delete confirmation dialog is open', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customer = response.body.data;
+
+        cy.byTestId('searchInputText').type(customer.lastname);
+        clickSearchAndWaitForResult();
+        cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+        cy.byTestId('searchresult-deletecustomer-button-' + customer.id).filterDisplayed().click();
+
+        cy.checkDialogAccessibility();
+      });
     });
 
     it('has no violations on the empty-state CTA', () => {

@@ -28,11 +28,11 @@
   </mat-card-header>
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600" testid="employeesCaption">
-      Mitarbeiterstammdaten, auf denen die Benutzerkonten sowie die Fahrer/Beifahrer-Zuordnung in
-      der Warenerfassung basieren. Mitarbeiter können jederzeit gelöscht werden — bereits erfasste
-      Kundendaten, Notizen und Warenerfassungen, die auf einen gelöschten Mitarbeiter verweisen,
-      bleiben erhalten und zeigen stattdessen "Mitarbeiter gelöscht" an. Ist ein Benutzerkonto mit
-      dem Mitarbeiter verknüpft, muss dieses zuerst entfernt werden.
+      Mitarbeiterstammdaten, auf denen die Fahrer/Beifahrer-Zuordnung in der Warenerfassung
+      basiert. Benutzerkonten sind davon getrennt und werden unter "Benutzer" verwaltet.
+      Mitarbeiter können jederzeit gelöscht werden — bereits erfasste Warenerfassungen, die auf
+      einen gelöschten Mitarbeiter verweisen, bleiben erhalten und zeigen stattdessen
+      "Mitarbeiter gelöscht" an.
     </p>
 
     <div class="flex items-center gap-2 mb-4">
@@ -112,26 +112,6 @@
         </td>
       </ng-container>
 
-      <ng-container matColumnDef="userAccount">
-        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Benutzerkonto</th>
-        <td mat-cell *matCellDef="let employee; let i = index">
-          @if (employee.userAccount; as userAccount) {
-            <mat-chip-set>
-              <mat-chip [attr.testid]="'employeeUserAccountChip-' + i">
-                @if (canViewUsers()) {
-                  <a class="underline" [routerLink]="['/benutzer/detail', userAccount.id]"
-                     [attr.testid]="'employeeUserAccountLink-' + i">Benutzerkonto {{ userAccount.username }}</a>
-                } @else {
-                  Benutzerkonto vorhanden
-                }
-              </mat-chip>
-            </mat-chip-set>
-          } @else {
-            <span class="text-slate-500" [attr.testid]="'employeeNoUserAccount-' + i">Kein Benutzerkonto</span>
-          }
-        </td>
-      </ng-container>
-
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
         <td mat-cell *matCellDef="let employee; let i = index">
@@ -151,12 +131,10 @@
                     (click)="deleteEmployee(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' löschen'">
               <mat-icon svgIcon="delete"></mat-icon>
             </button>
-            @if (!employee.userAccount) {
-              <button matButton="outlined" class="ml-2" [attr.testid]="'exportEmployeeButton-' + i" matTooltip="Daten exportieren (ZIP)"
-                      (click)="exportEmployee(employee)" [attr.aria-label]="'Daten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' exportieren'">
-                <mat-icon svgIcon="download"></mat-icon>
-              </button>
-            }
+            <button matButton="outlined" class="ml-2" [attr.testid]="'exportEmployeeButton-' + i" matTooltip="Daten exportieren (ZIP)"
+                    (click)="exportEmployee(employee)" [attr.aria-label]="'Daten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' exportieren'">
+              <mat-icon svgIcon="download"></mat-icon>
+            </button>
           }
         </td>
       </ng-container>
@@ -214,19 +192,6 @@
                   <div>{{ employee.firstname }}</div>
                   <div class="font-bold">Nachname:</div>
                   <div>{{ employee.lastname }}</div>
-                  <div class="font-bold">Benutzerkonto:</div>
-                  <div>
-                    @if (employee.userAccount; as userAccount) {
-                      @if (canViewUsers()) {
-                        <a class="underline" [routerLink]="['/benutzer/detail', userAccount.id]"
-                           [attr.testid]="'employeeUserAccountLinkMobile-' + i">{{ userAccount.username }}</a>
-                      } @else {
-                        <span [attr.testid]="'employeeUserAccountMobile-' + i">vorhanden</span>
-                      }
-                    } @else {
-                      <span class="text-slate-500" [attr.testid]="'employeeNoUserAccountMobile-' + i">keines</span>
-                    }
-                  </div>
                 </div>
               }
             </mat-card-content>
@@ -247,12 +212,10 @@
                         (click)="deleteEmployee(employee)" [attr.aria-label]="'Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' löschen'">
                   <mat-icon svgIcon="delete"></mat-icon>
                 </button>
-                @if (!employee.userAccount) {
-                  <button matButton="outlined" [attr.testid]="'exportEmployeeButtonMobile-' + i" matTooltip="Daten exportieren (ZIP)"
-                          (click)="exportEmployee(employee)" [attr.aria-label]="'Daten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' exportieren'">
-                    <mat-icon svgIcon="download"></mat-icon>
-                  </button>
-                }
+                <button matButton="outlined" [attr.testid]="'exportEmployeeButtonMobile-' + i" matTooltip="Daten exportieren (ZIP)"
+                        (click)="exportEmployee(employee)" [attr.aria-label]="'Daten von Mitarbeiter ' + employee.firstname + ' ' + employee.lastname + ' exportieren'">
+                  <mat-icon svgIcon="download"></mat-icon>
+                </button>
               }
             </mat-card-actions>
           </mat-card>

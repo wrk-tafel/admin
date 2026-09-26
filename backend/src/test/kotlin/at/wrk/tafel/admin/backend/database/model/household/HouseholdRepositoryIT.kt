@@ -119,7 +119,7 @@ class HouseholdRepositoryIT : TafelBaseIntegrationTest() {
      * after both rows exist - the same two-step insert the application uses.
      */
     private fun persistHousehold(additionalPersons: Int = 0): HouseholdEntity {
-        val household = createHousehold(testUser.employee, testCountry)
+        val household = createHousehold(testUser, testCountry)
         repeat(additionalPersons) { index ->
             household.persons.add(
                 PersonEntity(household = household, country = testCountry, isMainPerson = false).apply {

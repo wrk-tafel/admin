@@ -1,8 +1,7 @@
-import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {Component, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {MatDialog} from '@angular/material/dialog';
-import {RouterLink} from '@angular/router';
 import {EmployeeCreateDialogComponent, EmployeeCreateDialogResult} from './dialogs/employee-create-dialog.component';
 import {
   EmployeeDeleteConfirmDialogComponent,
@@ -45,8 +44,6 @@ import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import downloadIcon from '@material-symbols/svg-400/outlined/download-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
 import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity-fill.svg';
-import {AuthenticationService} from '../../../../common/security/authentication.service';
-import {MatChipsModule} from '@angular/material/chips';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
@@ -62,8 +59,8 @@ const SEARCH_DEBOUNCE_MS = 400;
 const AVAILABLE: PersonnelNumberAvailabilityResponse = {available: true};
 
 /**
- * Employee master data - the records the user accounts and the driver/co-driver assignment in the
- * food-collection recording are based on.
+ * Employee master data - the records the driver/co-driver assignment in the food-collection
+ * recording is based on. User accounts are a separate record with no link to an employee.
  *
  * The list searches as it is typed: the backend already searches server-side, and a name lookup is
  * refined by typing rather than by pressing a button after every correction. A personnel number is
@@ -81,7 +78,6 @@ const AVAILABLE: PersonnelNumberAvailabilityResponse = {available: true};
     MatCardTitle,
     MatCell,
     MatCellDef,
-    MatChipsModule,
     MatColumnDef,
     MatHeaderCell,
     MatHeaderRow,
@@ -98,7 +94,6 @@ const AVAILABLE: PersonnelNumberAvailabilityResponse = {available: true};
     MatFormFieldModule,
     MatInputModule,
     MatTooltipModule,
-    RouterLink,
     TafelInfoTooltipComponent
   ]
 })
@@ -117,7 +112,6 @@ export class SettingsEmployeesComponent {
   private readonly userApiService = inject(UserApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
-  private readonly authenticationService = inject(AuthenticationService);
   private readonly fileHelperService = inject(FileHelperService);
 
   /** Loading state for {@link downloadStaffPrivacyNotice}. */
@@ -125,7 +119,7 @@ export class SettingsEmployeesComponent {
 
   private _employees = signal<EmployeeListResponse | null>(null);
   protected employees = this._employees;
-  displayedColumns = ['personnelNumber', 'firstname', 'lastname', 'userAccount', 'actions'];
+  displayedColumns = ['personnelNumber', 'firstname', 'lastname', 'actions'];
 
   // Empty until a column header is clicked - the backend's own default order (ascending id) has
   // no single "active" column to reflect here.
@@ -138,9 +132,6 @@ export class SettingsEmployeesComponent {
    * being replaced is not a change it notices on its own.
    */
   protected readonly searchAnnouncement = signal('');
-
-  /** A linked account is only worth linking to for someone allowed to open it. */
-  protected readonly canViewUsers = computed(() => this.authenticationService.hasPermission('USER_MANAGEMENT'));
 
   protected searchControl = new FormControl<string>('', {nonNullable: true});
 
@@ -301,10 +292,8 @@ export class SettingsEmployeesComponent {
 
   /**
    * An employee is hard-deleted rather than just disabled, so this asks first - deletion always
-   * succeeds even once the employee is referenced elsewhere (household issuer, note author, food
-   * collection driver/co-driver), those references are simply cleared. The backend still rejects it
-   * with a 409 if a user account is linked to the employee, which the confirm dialog can't know in
-   * advance.
+   * succeeds even once the employee is referenced elsewhere (e.g. as food collection driver/co-driver),
+   * those references are simply cleared.
    */
   protected deleteEmployee(employee: EmployeeData) {
     const data: EmployeeDeleteConfirmDialogData = {employeeName: `${employee.firstname} ${employee.lastname}`};
@@ -326,8 +315,7 @@ export class SettingsEmployeesComponent {
 
   /**
    * The GDPR Art. 15/20 data takeout (issue #3394) for this employee, as a ZIP (PDF plus a
-   * machine-readable JSON file) - the only export path for someone with no linked user account,
-   * since they have no `users` row for `UserApiService`'s export endpoints to key off.
+   * machine-readable JSON file) - the employee's own record, separate from the user export.
    */
   protected exportEmployee(employee: EmployeeData) {
     this.employeeApiService.exportEmployee(employee.id).subscribe({

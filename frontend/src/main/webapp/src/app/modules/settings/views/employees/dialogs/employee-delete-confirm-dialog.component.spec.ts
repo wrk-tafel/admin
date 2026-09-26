@@ -42,6 +42,15 @@ describe('EmployeeDeleteConfirmDialogComponent', () => {
     expect(message.textContent).toContain('Max Mustermann');
   });
 
+  it('does not claim the deletion is blocked by a linked user account', () => {
+    const fixture = TestBed.createComponent(EmployeeDeleteConfirmDialogComponent);
+    fixture.detectChanges();
+
+    const message: HTMLElement = fixture.nativeElement.querySelector('[testid="message"]');
+    expect(message.textContent).not.toContain('Benutzerkonto');
+    expect(message.textContent).toContain('Mitarbeiter gelöscht');
+  });
+
   it('closing dialog with true confirms deletion', () => {
     const fixture = TestBed.createComponent(EmployeeDeleteConfirmDialogComponent);
     fixture.componentInstance.dialogRef.close(true);

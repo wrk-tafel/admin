@@ -15,7 +15,7 @@ data class DataSubjectSearchRequest(
 )
 
 /**
- * One search hit - a household, a user account, or an employee without one. [businessKey] is what
+ * One search hit - a household, a user account, or an employee. [businessKey] is what
  * the record is addressed by outside this screen too (the household number, the username, the
  * personnel number); [id] is what [DataSubjectMatch] sends back to export/delete it.
  *

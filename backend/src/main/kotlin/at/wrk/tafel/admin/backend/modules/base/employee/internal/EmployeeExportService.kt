@@ -5,13 +5,11 @@ import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
-import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeExportField
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeExportJsonData
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeExportPdfData
-import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.springframework.data.repository.findByIdOrNull
@@ -27,17 +25,12 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 /**
- * The GDPR Art. 15/20 data takeout for an employee record that has no linked `users` account -
- * issue #3394, the gap `UserExportService` (issue #3363) leaves open for a driver/co-driver or
- * similar who is only ever referenced, never logged in. Master data only (personnel number, name,
+ * The GDPR Art. 15/20 data takeout for an employee - issue #3394. An employee is a driver or
+ * co-driver who is only ever referenced, never logs in, and is a separate record from a user account
+ * (`UserExportService` covers that one, issue #3363). Master data only (personnel number, name,
  * created date): an `EmployeeEntity` holds nothing else. Reachable admin-triggered from the
  * Mitarbeiter settings screen, behind `SETTINGS` rather than `USER_MANAGEMENT` - there is no
- * self-service angle, since such an employee has no account of their own to authenticate with.
- *
- * Deliberately refuses an employee a `users` row already references: that account's own export
- * already carries this employee's personnel number and name as part of its master data
- * (`UserExportService.buildMasterData`), so a person is meant to have exactly one takeout document,
- * not a second, less complete one alongside it.
+ * self-service angle, since an employee has no account of their own to authenticate with.
  *
  * A ZIP, not a bare PDF: alongside `datenexport.pdf` it carries the same master data as a
  * machine-readable `daten.json` (GDPR Art. 20, issue #3418), same shape as the household/user
@@ -48,7 +41,6 @@ import java.util.zip.ZipOutputStream
 @Service
 class EmployeeExportService(
     private val employeeRepository: EmployeeRepository,
-    private val userRepository: UserRepository,
     private val auditLogWriter: AuditLogWriter,
     private val pdfService: PDFService,
     private val jsonMapper: JsonMapper,
@@ -71,9 +63,6 @@ class EmployeeExportService(
     @Transactional
     fun exportEmployeeById(employeeId: Long): EmployeeExportFileResult? {
         val employeeEntity = employeeRepository.findByIdOrNull(employeeId) ?: return null
-        if (userRepository.existsByEmployeeId(employeeId)) {
-            throw ConflictException("Mitarbeiter hat ein Benutzerkonto - Datenexport erfolgt über das Benutzerkonto!")
-        }
         recordExportRead(employeeEntity)
 
         val exportedAt = LocalDateTime.now(clock).format(DATE_TIME_FORMATTER)

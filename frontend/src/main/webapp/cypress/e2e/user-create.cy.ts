@@ -24,6 +24,7 @@ describe('User Create', () => {
       cy.url().should('contain', '/benutzer/detail');
       cy.byTestId('usernameText').should('have.text', username);
       cy.byTestId('personnelNumberText').should('have.text', personnelNumber);
+      cy.byTestId('nameText').should('have.text', 'test-lastname test-firstname');
     });
   });
 
@@ -90,6 +91,26 @@ describe('User Create', () => {
     });
   });
 
+  // A user carries its own personnel number, unique among users only - no employee is involved.
+  it('create new user whose personnel number is taken by another user', () => {
+    cy.visit('/benutzer/erstellen');
+
+    cy.intercept('POST', '/api/users').as('createUserRequest');
+    cy.once('uncaught:exception', (err) => !err.message.includes('409'));
+
+    cy.getAnyRandomNumber().then((userRandomId) => {
+      // '00000' is the personnel number of the e2etest fixture user
+      fillUserForm('test-username-' + userRandomId, '00000');
+
+      cy.byTestId('save-button').click();
+
+      cy.wait('@createUserRequest').its('response.statusCode').should('eq', 409);
+      cy.get('.toast-message')
+        .should('be.visible')
+        .should('contain.text', 'Benutzer (Personalnummer: 00000) existiert bereits!');
+    });
+  });
+
   it('create new user with a password the backend rejects', () => {
     cy.visit('/benutzer/erstellen');
 
@@ -98,7 +119,7 @@ describe('User Create', () => {
 
     cy.getAnyRandomNumber().then((userRandomId) => {
       cy.byTestId('usernameInput').type('test-username-' + userRandomId);
-      linkEmployee('test-personnelNumber-' + userRandomId);
+      fillPersonalData('test-personnelNumber-' + userRandomId);
 
       // "tafel" is one of the words the backend's password validator rejects outright (and it is
       // below the minimum length too) - the rejection has to come back as a 400 carrying its
@@ -160,7 +181,7 @@ describe('User Create', () => {
 
     cy.getAnyRandomNumber().then((userRandomId) => {
       cy.byTestId('usernameInput').type('test-username-' + userRandomId);
-      linkEmployee('test-personnelNumber-' + userRandomId);
+      fillPersonalData('test-personnelNumber-' + userRandomId);
 
       // leaving the password fields empty blocks saving and shows the validation message
       cy.byTestId('passwordInput').click();
@@ -177,51 +198,39 @@ describe('User Create', () => {
     });
   });
 
-  it('lastname/firstname are filled in from the linked employee and cleared when the link is removed', () => {
+  // The personnel number and the name are plain fields of the account - no employee search, no
+  // dialog, nothing to resolve.
+  it('personnel number, lastname and firstname are plain required fields without an employee search', () => {
     cy.visit('/benutzer/erstellen');
+
+    cy.byTestId('personnelNumberInput').should('be.visible');
+    cy.byTestId('user-employee-search-button').should('not.exist');
+    cy.byTestId('selectedEmployeeDescription').should('not.exist');
 
     cy.getAnyRandomNumber().then((userRandomId) => {
       cy.byTestId('usernameInput').type('test-username-' + userRandomId);
-      linkEmployee('test-personnelNumber-' + userRandomId);
+      cy.byTestId('generate-password-button').click();
 
-      cy.byTestId('lastnameInput').should('have.value', 'employee-lastname');
-      cy.byTestId('firstnameInput').should('have.value', 'employee-firstname');
+      cy.byTestId('personnelNumberInput').click().blur();
+      cy.byTestId('lastnameInput').click().blur();
+      cy.byTestId('firstnameInput').click().blur();
+      cy.contains('mat-error', 'Pflichtfeld').should('be.visible');
+      cy.byTestId('save-button').should('be.disabled');
 
-      cy.byTestId('selectedEmployeeRemoveButton').click();
-
-      cy.byTestId('lastnameInput').should('have.value', '');
-      cy.byTestId('firstnameInput').should('have.value', '');
+      // any free text is a valid personnel number as long as it is not taken by another user
+      cy.byTestId('personnelNumberInput').type('never-searched');
+      cy.byTestId('lastnameInput').type('test-lastname');
+      cy.byTestId('firstnameInput').type('test-firstname');
+      cy.byTestId('save-button').should('be.enabled');
     });
   });
 
-  it('personnel number can only be a real, resolved employee', () => {
+  it('personnel number, lastname and firstname are limited to 50 characters', () => {
     cy.visit('/benutzer/erstellen');
 
-    cy.getAnyRandomNumber().then((userRandomId) => {
-      cy.byTestId('usernameInput').type('test-username-' + userRandomId);
-      cy.byTestId('lastnameInput').type('test-lastname');
-      cy.byTestId('firstnameInput').type('test-firstname');
-      cy.byTestId('generate-password-button').click();
-
-      // an employee number never resolved through the search stays invalid, even though something
-      // is typed into the field
-      cy.byTestId('personnelNumberInput').type('never-searched');
-      cy.byTestId('personnelNumberInput').blur();
-      cy.contains('mat-error', 'Bitte einen Mitarbeiter über die Personalnummer-Suche auswählen').should('be.visible');
-      cy.byTestId('save-button').should('be.disabled');
-
-      // '00000' is the personnel number of the e2etest fixture employee - a single match resolves
-      // straight away without any dialog
-      cy.byTestId('personnelNumberInput').clear().type('00000');
-      cy.byTestId('user-employee-search-button').click();
-      cy.byTestId('personnelNumberInput').should('not.exist');
-      cy.byTestId('selectedEmployeeDescription').should('have.text', '00000 E2E Test');
-      cy.byTestId('save-button').should('be.enabled');
-
-      // removing the link goes back to requiring a fresh search
-      cy.byTestId('selectedEmployeeRemoveButton').click();
-      cy.byTestId('personnelNumberInput').should('exist').and('have.value', '');
-      cy.byTestId('save-button').should('be.disabled');
+    // the browser stops the input at the limit, so a user can never enter a 51st character
+    ['personnelNumberInput', 'lastnameInput', 'firstnameInput'].forEach((testId) => {
+      cy.byTestId(testId).type('x'.repeat(51)).should('have.value', 'x'.repeat(50));
     });
   });
 
@@ -266,37 +275,14 @@ describe('User Create', () => {
 
   function fillUserForm(username: string, personnelNumber: string) {
     cy.byTestId('usernameInput').type(username);
-    linkEmployee(personnelNumber);
+    fillPersonalData(personnelNumber);
     cy.byTestId('generate-password-button').click();
   }
 
-  // Resolves the personnel-number field to a real employee via the search/create-if-missing widget,
-  // rather than leaving it as unlinked free text - matching the driver/co-driver flow in
-  // food-collection-recording.cy.ts. Branches on the actual search result rather than assuming "not
-  // found", since a fixed personnel number (e.g. the 409-conflict test below) may already have been
-  // created as an employee by an earlier run against the same database.
-  function linkEmployee(personnelNumber: string) {
-    cy.intercept('POST', '**/employees/search').as('findEmployeesForLink');
+  function fillPersonalData(personnelNumber: string) {
     cy.byTestId('personnelNumberInput').type(personnelNumber);
-    cy.byTestId('user-employee-search-button').click();
-
-    cy.wait('@findEmployeesForLink').then((interception) => {
-      const items = interception.response?.body?.items ?? [];
-      if (items.length === 0) {
-        cy.byTestId('user-search-create-dialog').within(() => {
-          cy.byTestId('user-personnelnumber-input').type(personnelNumber);
-          cy.byTestId('user-firstname-input').type('employee-firstname');
-          cy.byTestId('user-lastname-input').type('employee-lastname');
-          cy.byTestId('user-save-button').click();
-        });
-      } else if (items.length > 1) {
-        cy.byTestId('user-select-employee-dialog').within(() => {
-          cy.byTestId('select-employee-button-0').click();
-        });
-      }
-    });
-
-    cy.byTestId('selectedEmployeeDescription').should('contain.text', personnelNumber);
+    cy.byTestId('lastnameInput').type('test-lastname');
+    cy.byTestId('firstnameInput').type('test-firstname');
   }
 
 });

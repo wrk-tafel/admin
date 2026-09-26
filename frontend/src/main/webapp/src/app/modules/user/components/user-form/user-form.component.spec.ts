@@ -3,8 +3,6 @@ import {TestBed} from '@angular/core/testing';
 import {UserFormComponent, UserPermissionFormItem} from './user-form.component';
 import {FormField} from '@angular/forms/signals';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
-import {EmployeeApiService, EmployeeData} from '../../../../api/employee-api.service';
-import {MatDialog} from '@angular/material/dialog';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
@@ -27,15 +25,7 @@ describe('UserFormComponent', () => {
     permissions: mockPermissions
   };
 
-  const mockEmployee: EmployeeData = {
-    id: 1,
-    personnelNumber: '0000',
-    firstname: 'first',
-    lastname: 'last'
-  };
-
   let userApiService: MockedObject<UserApiService>;
-  let employeeApiService: MockedObject<EmployeeApiService>;
   let toastr: MockedObject<TafelToastrService>;
   let authenticationService: MockedObject<AuthenticationService>;
 
@@ -50,21 +40,6 @@ describe('UserFormComponent', () => {
           useValue: {
             generatePassword: vi.fn().mockName('UserApiService.generatePassword')
           }
-        },
-        {
-          provide: EmployeeApiService,
-          useValue: {
-            checkPersonnelNumberAvailability: vi.fn().mockName('EmployeeApiService.checkPersonnelNumberAvailability')
-              .mockReturnValue(of({available: false, existingEmployee: mockEmployee})),
-            findEmployees: vi.fn().mockName('EmployeeApiService.findEmployees')
-              .mockReturnValue(of({items: [], totalCount: 0, currentPage: 1, totalPages: 1, pageSize: 10})),
-            saveEmployee: vi.fn().mockName('EmployeeApiService.saveEmployee')
-          }
-        },
-        {
-          // the employee search opens a real dialog on its results, which outlives the fixture
-          provide: MatDialog,
-          useValue: {open: vi.fn().mockReturnValue({afterClosed: () => of(undefined)})}
         },
         {
           provide: TafelToastrService,
@@ -84,7 +59,6 @@ describe('UserFormComponent', () => {
     }).compileComponents();
 
     userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
-    employeeApiService = TestBed.inject(EmployeeApiService) as MockedObject<EmployeeApiService>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     authenticationService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
   });
@@ -420,7 +394,7 @@ describe('UserFormComponent', () => {
     expect(component.userForm.passwordRepeat().errors()?.some((error: any) => error.kind === 'required')).toBe(true);
     expect(component.isValid()).toBe(false);
 
-    component.setSelectedEmployee(mockEmployee);
+    component.userForm.personnelNumber().value.set('0000');
     component.userForm.username().value.set('username');
     component.userForm.lastname().value.set('last');
     component.userForm.firstname().value.set('first');
@@ -482,47 +456,68 @@ describe('UserFormComponent', () => {
     expect(component.userForm.email().valid()).toBe(true);
   });
 
-  it('personnel number requires a linked employee', () => {
+  it('personnel number, first name and last name are required and limited to 50 characters', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('permissionsData', mockPermissions);
     fixture.detectChanges();
 
-    // Typing a personnel number without resolving it through the search stays invalid...
-    component.userForm.personnelNumber().value.set('0000');
-    fixture.detectChanges();
-    expect(component.userForm.personnelNumber().errors()?.some((error: any) => error.kind === 'employeeNotLinked')).toBe(true);
-    expect(component.selectedEmployee()).toBeNull();
+    const fields = [
+      component.userForm.personnelNumber(),
+      component.userForm.lastname(),
+      component.userForm.firstname()
+    ];
+    fields.forEach((field) => {
+      expect(field.errors()?.some((error: any) => error.kind === 'required')).toBe(true);
+    });
 
-    // ...selecting the resolved employee links it and clears the error...
-    component.setSelectedEmployee(mockEmployee);
+    component.userForm.personnelNumber().value.set('a'.repeat(51));
+    component.userForm.lastname().value.set('b'.repeat(51));
+    component.userForm.firstname().value.set('c'.repeat(51));
     fixture.detectChanges();
-    expect(component.selectedEmployee()).toEqual(mockEmployee);
-    expect(component.userForm.personnelNumber().value()).toBe(mockEmployee.personnelNumber);
-    expect(component.userForm.personnelNumber().errors()?.some((error: any) => error.kind === 'employeeNotLinked')).toBe(false);
+    fields.forEach((field) => {
+      expect(field.errors()?.some((error: any) => error.kind === 'maxLength')).toBe(true);
+    });
 
-    // ...and removing the link clears the personnel number and requires a new search again.
-    component.resetSelectedEmployee();
+    component.userForm.personnelNumber().value.set('a'.repeat(50));
+    component.userForm.lastname().value.set('b'.repeat(50));
+    component.userForm.firstname().value.set('c'.repeat(50));
     fixture.detectChanges();
-    expect(component.selectedEmployee()).toBeNull();
-    expect(component.userForm.personnelNumber().value()).toBe('');
+    fields.forEach((field) => {
+      expect(field.errors()?.length).toBe(0);
+    });
   });
 
-  it('selecting an employee fills in its name, and removing the link clears it again', () => {
+  it('a free-typed personnel number needs no employee - the user carries its own', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('permissionsData', mockPermissions);
     fixture.detectChanges();
 
-    component.setSelectedEmployee(mockEmployee);
+    component.userForm.personnelNumber().value.set('12345');
     fixture.detectChanges();
-    expect(component.userForm.lastname().value()).toBe(mockEmployee.lastname);
-    expect(component.userForm.firstname().value()).toBe(mockEmployee.firstname);
 
-    component.resetSelectedEmployee();
+    expect(component.userForm.personnelNumber().valid()).toBe(true);
+    expect(fixture.nativeElement.querySelector('[testid="personnelNumberInput"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('tafel-employee-search-create')).toBeNull();
+  });
+
+  it('sends personnel number and names trimmed', () => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    const emitSpy = vi.spyOn(component.userDataChange, 'emit');
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
     fixture.detectChanges();
-    expect(component.userForm.lastname().value()).toBe('');
-    expect(component.userForm.firstname().value()).toBe('');
+
+    component.userForm.personnelNumber().value.set(' 0042 ');
+    component.userForm.lastname().value.set(' Muster ');
+    component.userForm.firstname().value.set(' Max ');
+    fixture.detectChanges();
+
+    const emitted = emitSpy.mock.calls.at(-1)![0];
+    expect(emitted.personnelNumber).toBe('0042');
+    expect(emitted.lastname).toBe('Muster');
+    expect(emitted.firstname).toBe('Max');
   });
 
   it('password stays optional when editing an existing user', () => {
@@ -539,15 +534,13 @@ describe('UserFormComponent', () => {
     expect(component.isValid()).toBe(true);
   });
 
-  it('resolves the linked employee for an existing user on load', () => {
+  it('keeps the password fields collapsed for an existing user on load', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('permissionsData', mockPermissions);
     fixture.componentRef.setInput('userData', mockUser);
     fixture.detectChanges();
 
-    expect(employeeApiService.checkPersonnelNumberAvailability).toHaveBeenCalledWith(mockUser.personnelNumber);
-    expect(component.selectedEmployee()).toEqual(mockEmployee);
     // Password fields sit behind the collapsed "Passwort zurücksetzen" section in edit mode.
     expect(component.passwordResetExpanded()).toBe(false);
     expect(component.passwordFieldsVisible()).toBe(false);

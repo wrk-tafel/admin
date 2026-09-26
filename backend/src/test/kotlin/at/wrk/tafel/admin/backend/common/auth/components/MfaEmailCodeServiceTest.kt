@@ -6,7 +6,6 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.MfaEmailCodeEntity
 import at.wrk.tafel.admin.backend.database.model.auth.MfaEmailCodeRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import io.mockk.every
@@ -53,7 +52,9 @@ class MfaEmailCodeServiceTest {
         user = UserEntity(
             username = "max",
             password = "hash",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "Max", lastname = "Muster"),
+            personnelNumber = "1",
+            firstname = "Max",
+            lastname = "Muster",
             enabled = true,
         ).apply {
             id = 7

@@ -46,11 +46,11 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `searchTextMatches matches the employee's name and personnel number`() {
+    fun `searchTextMatches matches the user's name and personnel number`() {
         val tag = "Findme${generateRandomLong()}"
-        val byFirstname = persistUser { employee.firstname = "prefix-$tag-suffix" }
-        val byLastname = persistUser { employee.lastname = "prefix-$tag-suffix" }
-        val byPersonnelNumber = persistUser { employee.personnelNumber = tag }
+        val byFirstname = persistUser { firstname = "prefix-$tag-suffix" }
+        val byLastname = persistUser { lastname = "prefix-$tag-suffix" }
+        val byPersonnelNumber = persistUser { personnelNumber = tag }
         val notMatching = persistUser()
         testEntityManager.flush()
 
@@ -64,7 +64,7 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
     @Test
     fun `searchTextMatches still finds a user when the name is mistyped`() {
         val tag = 1_000_000_000_000L + generateRandomLong()
-        val matching = persistUser { employee.lastname = "Findme$tag" }
+        val matching = persistUser { lastname = "Findme$tag" }
         val notMatching = persistUser()
         testEntityManager.flush()
 
@@ -75,12 +75,12 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `searchTextMatches follows a renamed employee`() {
+    fun `searchTextMatches follows a renamed user`() {
         val tag = "Findme${generateRandomLong()}"
         val user = persistUser()
         testEntityManager.flush()
 
-        user.employee.lastname = "prefix-$tag-suffix"
+        user.lastname = "prefix-$tag-suffix"
         testEntityManager.flush()
 
         val result = userRepository.findAll(searchSpec(tag))
@@ -116,13 +116,13 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
     @Test
     fun `orderBySearchRelevance sorts the verbatim match before the merely similar one`() {
         val tag = 1_000_000_000_000L + generateRandomLong()
-        val fuzzyHit = persistUser { employee.lastname = "Findmr$tag" }
+        val fuzzyHit = persistUser { lastname = "Findmr$tag" }
         testEntityManager.flush()
 
         Thread.sleep(50)
 
         // persisted later, so it would come first on updatedAt alone
-        val verbatimHit = persistUser { employee.lastname = "Findme$tag" }
+        val verbatimHit = persistUser { lastname = "Findme$tag" }
         testEntityManager.flush()
 
         val searchTerm = SearchTextSpecs.normalize("Findme$tag")
@@ -154,7 +154,7 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
         val tag = "Findme${generateRandomLong()}"
         val bUser = persistUser {
             username = "prefix-$tag-1"
-            employee.lastname = "Bravo-$tag"
+            lastname = "Bravo-$tag"
         }
         testEntityManager.flush()
 
@@ -163,7 +163,7 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
         // persisted later, so it would come first under the default (most-recently-updated) order
         val aUser = persistUser {
             username = "prefix-$tag-2"
-            employee.lastname = "Alpha-$tag"
+            lastname = "Alpha-$tag"
         }
         testEntityManager.flush()
 
@@ -176,8 +176,8 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
     @Test
     fun `orderBySearchRelevance sorts descending when no direction or an unrecognized one is given`() {
         val tag = "Findme${generateRandomLong()}"
-        val aUser = persistUser { employee.lastname = "Alpha-$tag" }
-        val bUser = persistUser { employee.lastname = "Bravo-$tag" }
+        val aUser = persistUser { lastname = "Alpha-$tag" }
+        val bUser = persistUser { lastname = "Bravo-$tag" }
         testEntityManager.flush()
 
         val spec = UserEntity.Specs.orderBySearchRelevance(null, searchSpec(tag), sortBy = "name", sortDirection = null)
@@ -223,11 +223,11 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
         val tag = "Findme${generateRandomLong()}"
         val lowerNumber = persistUser {
             username = "prefix-$tag-1"
-            employee.personnelNumber = "1$tag"
+            personnelNumber = "1$tag"
         }
         val higherNumber = persistUser {
             username = "prefix-$tag-2"
-            employee.personnelNumber = "2$tag"
+            personnelNumber = "2$tag"
         }
         testEntityManager.flush()
 
@@ -238,24 +238,39 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `deleting a user does not cascade-delete its shared employee`() {
+    fun `searchTextMatches ignores an employee that merely shares the user's name`() {
+        val tag = "Findme${generateRandomLong()}"
+        testEntityManager.persist(EmployeeEntity(personnelNumber = tag, firstname = "prefix-$tag-suffix", lastname = tag))
+        val user = persistUser()
+        testEntityManager.flush()
+
+        // an employee with the same name and personnel number is a different record and never shows up here
+        val result = userRepository.findAll(searchSpec(tag))
+
+        assertThat(result.map { it.id }).doesNotContain(user.id)
+    }
+
+    @Test
+    fun `deleting a user keeps the household it issued and clears its issuer`() {
         val user = persistUser()
         val country = createCountry()
         testEntityManager.persist(country)
-        val household = createHousehold(user.employee!!, country)
+        val household = createHousehold(user, country)
         testEntityManager.persist(household)
         testEntityManager.flush()
+        val userId = user.id!!
+        // Clears the persistence context first: the household is still cached with its (now stale)
+        // in-memory issuer, and flushing that together with the delete would trip Hibernate's own
+        // check before the database applies `on delete set null`.
+        testEntityManager.clear()
 
-        val employeeId = user.employee!!.id!!
-
-        userRepository.delete(user)
+        userRepository.deleteById(userId)
         testEntityManager.flush()
-
-        val survivingEmployee = testEntityManager.find<EmployeeEntity>(employeeId)
-        assertThat(survivingEmployee).isNotNull()
+        testEntityManager.clear()
 
         val survivingHousehold = testEntityManager.find<HouseholdEntity>(household.id!!)
-        assertThat(survivingHousehold?.issuer?.id).isEqualTo(employeeId)
+        assertThat(survivingHousehold).isNotNull()
+        assertThat(survivingHousehold!!.issuer).isNull()
     }
 
     private fun searchSpec(searchInput: String) = UserEntity.Specs.searchTextMatches(

@@ -369,7 +369,7 @@ class MfaIT : TafelBaseIntegrationTest() {
     fun `the address the e-mail method sends to cannot be changed without a code of a method the user has`() {
         switchOnEmail()
         val session = completedSession(byEmail = true)
-        val account = """{"firstname":"${user.employee.firstname}","lastname":"${user.employee.lastname}","email":"attacker@example.org"""
+        val account = """{"firstname":"${user.firstname}","lastname":"${user.lastname}","email":"attacker@example.org"""
 
         val refused = put("/api/users/account", "$account\"}", session)
         assertThat(refused.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())

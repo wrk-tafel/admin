@@ -27,19 +27,21 @@ describe('Settings - Employees', () => {
   });
 
   it('paginates through the employee list', () => {
-    // The testdata seeds exactly 10 employees, which is exactly the default page size - so on a
-    // freshly migrated database there is only ever one page and the next-page button is disabled.
-    // Create a dedicated employee first so a second page is guaranteed to exist, rather than
-    // relying on leftovers from earlier tests/runs.
+    // The testdata seeds only two employees (the drivers '02000' and '02100'), far below the
+    // default page size of 10 - so on a freshly migrated database there is only ever one page and
+    // the next-page button is disabled. Create enough dedicated employees first that a second page
+    // is guaranteed to exist, rather than relying on leftovers from earlier tests/runs.
     cy.getAnyRandomNumber().then((randomId) => {
-      cy.request({
-        method: 'POST',
-        url: '/api/employees',
-        body: {
-          personnelNumber: 'PAGE-' + randomId,
-          firstname: 'Pagination',
-          lastname: 'Fixture ' + randomId
-        }
+      Cypress._.times(9, (index) => {
+        cy.request({
+          method: 'POST',
+          url: '/api/employees',
+          body: {
+            personnelNumber: 'PAGE-' + randomId + '-' + index,
+            firstname: 'Pagination',
+            lastname: 'Fixture ' + randomId + '-' + index
+          }
+        });
       });
       cy.reload();
 
@@ -68,20 +70,22 @@ describe('Settings - Employees', () => {
   });
 
   it('says that employees can always be deleted', () => {
-    cy.byTestId('employeesCaption').should('contain.text', 'jederzeit gelöscht werden');
+    cy.byTestId('employeesCaption').should('contain.text', 'jederzeit gelöscht werden')
+      .and('not.contain.text', 'muss dieses zuerst entfernt werden');
   });
 
-  it('shows which employees a user account references', () => {
-    // '00000' is the e2e login user's own employee record (user 100), '02000' a driver with no
-    // account of their own - the two states the column has to tell apart.
-    cy.byTestId('employeeSearchInput').type('00000');
-    cy.byTestId('employees-table').should('contain.text', 'E2E');
-    cy.byTestId('employeeUserAccountLink-0').should('contain.text', 'e2etest')
-      .and('have.attr', 'href', '/benutzer/detail/100');
+  // Users and employees are separate records with no link: the list shows the employees alone,
+  // and the e2e login user has no employee record.
+  it('lists only the employees, with no user account column', () => {
+    cy.contains('th', 'Benutzerkonto').should('not.exist');
+    cy.byTestId('employees-table').should('not.contain.text', 'Benutzerkonto');
 
-    cy.byTestId('employeeSearchInput').clear().type('02000');
+    cy.byTestId('employeeSearchInput').type('02000');
     cy.byTestId('employees-table').should('contain.text', 'Fahrer');
-    cy.byTestId('employeeNoUserAccount-0').should('be.visible');
+
+    cy.byTestId('employeeSearchInput').clear().type('00000');
+    cy.byTestId('employeesSearchAnnouncement').should('have.text', '0 Mitarbeiter gefunden');
+    cy.byTestId('employees-row-0').should('not.exist');
   });
 
   it('creates a new employee', () => {
@@ -155,8 +159,8 @@ describe('Settings - Employees', () => {
 
   it('edits an employee inline', () => {
     // Uses a dedicated, freshly-created employee rather than editing row 0 directly - row 0 is
-    // deterministically the lowest-id employee, which is a shared fixture (the logged-in e2e
-    // user, also relied on as a driver by other specs), and editing it would corrupt that fixture.
+    // deterministically the lowest-id employee, which is a shared fixture (a driver other specs
+    // rely on), and editing it would corrupt that fixture.
     cy.getAnyRandomNumber().then((randomId) => {
       const personnelNumber = 'EDIT-' + randomId;
 
@@ -222,7 +226,7 @@ describe('Settings - Employees', () => {
     });
   });
 
-  it('deletes an employee that has no linked user account', () => {
+  it('deletes an employee', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       const personnelNumber = 'DEL-OK-' + randomId;
 
@@ -236,6 +240,10 @@ describe('Settings - Employees', () => {
       cy.byTestId('employeeSearchInput').type(personnelNumber);
       cy.byTestId('employees-row-0').should('contain.text', personnelNumber);
       cy.byTestId('deleteEmployeeButton-0').click();
+
+      // what happens to references is said up front, and no account blocks the deletion
+      cy.byTestId('employee-delete-confirm-dialog').should('be.visible');
+      cy.byTestId('message').should('contain.text', 'Mitarbeiter gelöscht').and('not.contain.text', 'Benutzerkonto');
       cy.byTestId('okButton').click();
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'gelöscht');
@@ -243,23 +251,33 @@ describe('Settings - Employees', () => {
     });
   });
 
-  it('refuses to delete an employee that still has a linked user account', () => {
-    // '00000' is the e2e login user's own employee record (user 100) - deleting it is always
-    // rejected, so this is safe to run against the shared fixture without corrupting it for
-    // other specs.
-    cy.byTestId('employeeSearchInput').type('00000');
-    cy.byTestId('employees-row-0').should('contain.text', '00000');
-    cy.byTestId('deleteEmployeeButton-0').click();
-    cy.byTestId('okButton').click();
+  // An employee and a user account holding the same personnel number are two unrelated records:
+  // deleting the employee is never refused and leaves the account alone.
+  it('deletes an employee without touching a user account with the same personnel number', () => {
+    cy.createDummyUser().then((userResponse) => {
+      const user = userResponse.body;
 
-    cy.get('.toast-message').should('be.visible').and('contain.text', 'Benutzerkonto');
-    cy.byTestId('employees-table').should('contain.text', '00000');
+      cy.request('POST', '/api/employees', {
+        personnelNumber: user.personnelNumber,
+        firstname: user.firstname,
+        lastname: user.lastname
+      });
+      cy.reload();
+
+      cy.byTestId('employeeSearchInput').type(user.personnelNumber);
+      cy.byTestId('employees-row-0').should('contain.text', user.personnelNumber);
+      cy.byTestId('deleteEmployeeButton-0').click();
+      cy.byTestId('okButton').click();
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'gelöscht');
+      cy.byTestId('employees-table').should('not.contain.text', user.personnelNumber);
+
+      cy.request('GET', '/api/users/' + user.id).its('status').should('eq', 200);
+    });
   });
 
-  // The GDPR Art. 15/20 data takeout (issue #3394) - the export path for an employee with no
-  // linked user account, since UserApiService's export endpoints have no userId to key off for
-  // one. '02000' is a driver with no account of their own (see 'shows which employees a user
-  // account references' above).
+  // The GDPR Art. 15/20 data takeout (issue #3394) - the export path of an employee, separate
+  // from a user account's own export. '02000' is one of the two seeded drivers.
   it('exports an employee\'s data (GDPR takeout) and downloads a ZIP', () => {
     cy.byTestId('employeeSearchInput').type('02000');
     cy.byTestId('employees-row-0').should('contain.text', 'Fahrer');
@@ -281,13 +299,12 @@ describe('Settings - Employees', () => {
     cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Mitarbeiter');
   });
 
-  // An employee with a linked user account already has a complete export via that account's own
-  // detail page (username, permissions, login history *and* this employee's personnel number/name)
-  // - a second, less complete export here would be a duplicate document for the same person.
-  it('does not offer the export button for an employee with a linked user account', () => {
-    cy.byTestId('employeeSearchInput').type('00000');
-    cy.byTestId('employees-row-0').should('contain.text', '00000');
-    cy.byTestId('exportEmployeeButton-0').should('not.exist');
+  // Every employee has an export - there is no user account that could stand in for it.
+  it('offers the export button for every employee', () => {
+    cy.byTestId('employeeSearchInput').type('0');
+    cy.byTestId('employees-row-1').should('exist');
+
+    cy.byTestId('employees-table').find('[testid^="exportEmployeeButton-"]').should('have.length.at.least', 2);
   });
 
   // The Art. 13 GDPR privacy notice for staff (issue #3429) - a generic download, no employee
@@ -311,7 +328,7 @@ describe('Settings - Employees', () => {
     cy.byTestId('addEmployeeButton').should('be.visible');
 
     // Uses a dedicated, freshly-created employee rather than editing row 0 directly - see the
-    // 'edits an employee inline' test above for why (row 0 may be the shared e2e login fixture).
+    // 'edits an employee inline' test above for why (row 0 is a shared driver fixture).
     cy.getAnyRandomNumber().then((randomId) => {
       const personnelNumber = 'PHONE-' + randomId;
 

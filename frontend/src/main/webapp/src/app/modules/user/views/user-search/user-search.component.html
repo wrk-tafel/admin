@@ -123,6 +123,11 @@
                           matTooltip="Benutzer bearbeiten" aria-label="Benutzer bearbeiten">
                     <mat-icon svgIcon="edit"></mat-icon>
                   </button>
+                  <button type="button" matButton="outlined" class="ml-2 button-danger" [attr.testid]="'searchresult-deleteuser-button-' + user.id"
+                          (click)="deleteUser(user)" matTooltip="Benutzer löschen"
+                          [attr.aria-label]="'Benutzer ' + user.username + ' löschen'">
+                    <mat-icon svgIcon="delete"></mat-icon>
+                  </button>
                 </td>
               </ng-container>
 
@@ -171,6 +176,11 @@
                     <button type="button" matButton="filled" [attr.testid]="'searchresult-edituser-button-' + user.id" (click)="editUser(user.id)"
                             matTooltip="Benutzer bearbeiten" aria-label="Benutzer bearbeiten">
                       <mat-icon svgIcon="edit"></mat-icon>
+                    </button>
+                    <button type="button" matButton="outlined" class="button-danger" [attr.testid]="'searchresult-deleteuser-button-' + user.id"
+                            (click)="deleteUser(user)" matTooltip="Benutzer löschen"
+                            [attr.aria-label]="'Benutzer ' + user.username + ' löschen'">
+                      <mat-icon svgIcon="delete"></mat-icon>
                     </button>
                   </mat-card-actions>
                 </mat-card>

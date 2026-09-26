@@ -221,4 +221,72 @@ describe('AuthGuardService with real router navigation (route data inheritance)'
         expect(authServiceSpy.hasAnyPermissionOf).toHaveBeenCalledWith(['CUSTOMER']);
         expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith('fehlgeschlagen');
     });
+
+    // A nested route that names its own anyPermissionOf replaces the inherited one for its own check, while the
+    // guard still runs for its parent too: both requirements apply (einstellungen/anstehende-loeschungen).
+    describe('a nested route with data of its own', () => {
+        function setupNestedRouter(authServiceSpy: any) {
+            const authGuardChild: CanActivateChildFn = (route) => TestBed.inject(AuthGuardService).canActivate(route);
+
+            TestBed.configureTestingModule({
+                providers: [
+                    { provide: AuthenticationService, useValue: authServiceSpy },
+                    provideRouter([
+                        {
+                            path: '',
+                            canActivateChild: [authGuardChild],
+                            children: [
+                                {
+                                    path: 'einstellungen',
+                                    data: { anyPermissionOf: ['SETTINGS'] },
+                                    children: [
+                                        { path: 'mitarbeiter', component: DummyRouteComponent },
+                                        {
+                                            path: 'anstehende-loeschungen',
+                                            component: DummyRouteComponent,
+                                            data: { anyPermissionOf: ['ADMINISTRATOR'] }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ])
+                ]
+            });
+        }
+
+        function authServiceHolding(...held: string[]) {
+            const spy = mockAuthService(true);
+            spy.hasAnyPermissionOf.mockImplementation((permissions: string[]) => permissions.some(permission => held.includes(permission)));
+            return spy;
+        }
+
+        it('turns away a user holding only the parent route permission', async () => {
+            const authServiceSpy = authServiceHolding('SETTINGS');
+            setupNestedRouter(authServiceSpy);
+
+            await RouterTestingHarness.create('/einstellungen/anstehende-loeschungen');
+
+            expect(authServiceSpy.hasAnyPermissionOf).toHaveBeenCalledWith(['ADMINISTRATOR']);
+            expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith('fehlgeschlagen');
+        });
+
+        it('lets in a user holding the nested route permission', async () => {
+            const authServiceSpy = authServiceHolding('SETTINGS', 'ADMINISTRATOR');
+            setupNestedRouter(authServiceSpy);
+
+            await RouterTestingHarness.create('/einstellungen/anstehende-loeschungen');
+
+            expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
+        });
+
+        it('still lets a user holding only the parent route permission open its other children', async () => {
+            const authServiceSpy = authServiceHolding('SETTINGS');
+            setupNestedRouter(authServiceSpy);
+
+            await RouterTestingHarness.create('/einstellungen/mitarbeiter');
+
+            expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
+        });
+    });
 });

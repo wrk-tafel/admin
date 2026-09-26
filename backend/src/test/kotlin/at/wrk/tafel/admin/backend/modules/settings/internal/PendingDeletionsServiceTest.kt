@@ -1,0 +1,188 @@
+package at.wrk.tafel.admin.backend.modules.settings.internal
+
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.common.test.TestdataGenerator
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeLastUseProjection
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import io.mockk.every
+import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.domain.Pageable
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.Period
+import java.time.ZoneOffset
+
+@ExtendWith(MockKExtension::class)
+internal class PendingDeletionsServiceTest {
+
+    @RelaxedMockK
+    private lateinit var userRepository: UserRepository
+
+    @RelaxedMockK
+    private lateinit var householdRepository: HouseholdRepository
+
+    @RelaxedMockK
+    private lateinit var employeeRepository: EmployeeRepository
+
+    private lateinit var properties: TafelAdminProperties
+
+    private lateinit var service: PendingDeletionsService
+
+    private val clock = Clock.fixed(Instant.parse("2027-03-05T09:00:00Z"), ZoneOffset.UTC)
+    private val now = LocalDateTime.of(2027, 3, 5, 9, 0)
+
+    @BeforeEach
+    fun beforeEach() {
+        properties = TafelAdminProperties().apply {
+            userDeletion.retentionTime = Period.ofYears(1)
+            employeeDeletion.retentionTime = Period.ofYears(1)
+            householdDeletion.retentionTime = Period.ofYears(7)
+        }
+        service = PendingDeletionsService(properties, userRepository, householdRepository, employeeRepository, clock)
+    }
+
+    @Test
+    fun `lists user accounts measured from their last login, or their creation when they never logged in`() {
+        val loggedIn = TestdataGenerator.createUser().apply {
+            id = 1
+            lastLogin = LocalDateTime.of(2026, 3, 20, 12, 0)
+            createdAt = LocalDateTime.of(2020, 1, 1, 0, 0)
+        }
+        val neverLoggedIn = TestdataGenerator.createUser().apply {
+            id = 2
+            createdAt = LocalDateTime.of(2026, 4, 1, 8, 0)
+        }
+        every { userRepository.countUsersLastActiveBefore(any(), UserPermissions.ADMINISTRATOR.key) } returns 2
+        every { userRepository.findUsersLastActiveBefore(any(), UserPermissions.ADMINISTRATOR.key, any()) } returns listOf(loggedIn, neverLoggedIn)
+
+        val users = service.getPendingUserDeletions(null, null)
+
+        assertThat(users.enabled).isTrue
+        assertThat(users.totalCount).isEqualTo(2)
+        assertThat(users.retentionText).isEqualTo("1 Jahr")
+        assertThat(users.warningText).isEqualTo("30 Tagen")
+        assertThat(users.items.map { it.deletionDate }).containsExactly(LocalDate.of(2027, 3, 20), LocalDate.of(2027, 4, 1))
+        assertThat(users.items[0].lastLogin).isEqualTo(LocalDateTime.of(2026, 3, 20, 12, 0))
+        assertThat(users.items[1].lastLogin).isNull()
+        verify { userRepository.countUsersLastActiveBefore(now.minusYears(1).plusDays(30), UserPermissions.ADMINISTRATOR.key) }
+    }
+
+    @Test
+    fun `pages the user list with the requested page and size`() {
+        every { userRepository.countUsersLastActiveBefore(any(), any()) } returns 53
+        val pageable = slot<Pageable>()
+        every { userRepository.findUsersLastActiveBefore(any(), any(), capture(pageable)) } returns emptyList()
+
+        val users = service.getPendingUserDeletions(page = 3, pageSize = 25)
+
+        assertThat(pageable.captured.pageNumber).isEqualTo(2)
+        assertThat(pageable.captured.pageSize).isEqualTo(25)
+        assertThat(users.currentPage).isEqualTo(3)
+        assertThat(users.pageSize).isEqualTo(25)
+        assertThat(users.totalCount).isEqualTo(53)
+        assertThat(users.totalPages).isEqualTo(3)
+    }
+
+    @Test
+    fun `falls back to the default page size for one that is not offered`() {
+        every { userRepository.countUsersLastActiveBefore(any(), any()) } returns 12
+
+        val users = service.getPendingUserDeletions(page = 0, pageSize = 7)
+
+        assertThat(users.pageSize).isEqualTo(10)
+        assertThat(users.currentPage).isEqualTo(1)
+        assertThat(users.totalPages).isEqualTo(2)
+    }
+
+    @Test
+    fun `does not load rows when nothing is pending`() {
+        every { userRepository.countUsersLastActiveBefore(any(), any()) } returns 0
+
+        val users = service.getPendingUserDeletions(null, null)
+
+        assertThat(users.items).isEmpty()
+        assertThat(users.totalPages).isEqualTo(0)
+        verify(exactly = 0) { userRepository.findUsersLastActiveBefore(any(), any(), any()) }
+    }
+
+    @Test
+    fun `lists households with their main person and the date they will be deleted`() {
+        val household = HouseholdEntity(householdId = 4711, validUntil = LocalDate.of(2020, 4, 1))
+        val withoutMainPerson = HouseholdEntity(householdId = 4712, validUntil = LocalDate.of(2020, 4, 2))
+        every { householdRepository.countByValidUntilBefore(any()) } returns 2
+        every { householdRepository.findAllByValidUntilBeforeOrderByValidUntilAscIdAsc(any(), any()) } returns listOf(household, withoutMainPerson)
+
+        val households = service.getPendingHouseholdDeletions(null, null)
+
+        assertThat(households.retentionText).isEqualTo("7 Jahren")
+        assertThat(households.items.map { it.householdId }).containsExactly(4711L, 4712L)
+        assertThat(households.items.map { it.deletionDate }).containsExactly(LocalDate.of(2027, 4, 1), LocalDate.of(2027, 4, 2))
+        assertThat(households.items[1].name).isNull()
+        verify { householdRepository.countByValidUntilBefore(LocalDate.of(2020, 3, 5).plusDays(30)) }
+    }
+
+    @Test
+    fun `lists employees measured from their last use, or their creation when they were never used`() {
+        val used = employee(1, lastUsed = LocalDateTime.of(2026, 3, 25, 10, 0), createdAt = LocalDateTime.of(2020, 1, 1, 0, 0))
+        val unused = employee(2, lastUsed = null, createdAt = LocalDateTime.of(2026, 4, 2, 10, 0))
+        every { employeeRepository.countEmployeesLastUsedBefore(any()) } returns 2
+        every { employeeRepository.findEmployeesLastUsedBefore(any(), any(), any()) } returns listOf(used, unused)
+
+        val employees = service.getPendingEmployeeDeletions(null, null)
+
+        assertThat(employees.items.map { it.deletionDate }).containsExactly(LocalDate.of(2027, 3, 25), LocalDate.of(2027, 4, 2))
+        assertThat(employees.items[1].lastUsed).isNull()
+    }
+
+    @Test
+    fun `asks for the employee page with the matching limit and offset`() {
+        every { employeeRepository.countEmployeesLastUsedBefore(any()) } returns 350
+        every { employeeRepository.findEmployeesLastUsedBefore(any(), any(), any()) } returns emptyList()
+
+        val employees = service.getPendingEmployeeDeletions(page = 3, pageSize = 50)
+
+        assertThat(employees.totalCount).isEqualTo(350)
+        assertThat(employees.totalPages).isEqualTo(7)
+        verify { employeeRepository.findEmployeesLastUsedBefore(any(), 50, 100) }
+    }
+
+    @Test
+    fun `a job that is switched off lists nothing and says so`() {
+        properties.userDeletion.enabled = false
+        properties.householdDeletion.retentionTime = Period.ZERO
+
+        val users = service.getPendingUserDeletions(null, null)
+        val households = service.getPendingHouseholdDeletions(null, null)
+        val employees = service.getPendingEmployeeDeletions(null, null)
+
+        assertThat(users.enabled).isFalse
+        assertThat(users.items).isEmpty()
+        assertThat(households.enabled).isFalse
+        assertThat(employees.enabled).isTrue
+        verify(exactly = 0) { userRepository.countUsersLastActiveBefore(any(), any()) }
+        verify(exactly = 0) { householdRepository.countByValidUntilBefore(any()) }
+    }
+
+    private fun employee(id: Long, lastUsed: LocalDateTime?, createdAt: LocalDateTime): EmployeeLastUseProjection = mockk {
+        every { this@mockk.id } returns id
+        every { personnelNumber } returns "P$id"
+        every { firstname } returns "first"
+        every { lastname } returns "last"
+        every { this@mockk.lastUsed } returns lastUsed
+        every { this@mockk.createdAt } returns createdAt
+    }
+}

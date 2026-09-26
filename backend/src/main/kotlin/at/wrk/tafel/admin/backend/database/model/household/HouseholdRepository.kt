@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.model.household
 
+import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.EntityGraph
@@ -82,4 +83,18 @@ interface HouseholdRepository :
         nativeQuery = true,
     )
     fun findExpiredHouseholdIdsSkipLocked(@Param("cutoff") cutoff: LocalDate): List<Long>
+
+    /**
+     * How many households `HouseholdRetentionService` will delete once their validity lies before
+     * [cutoff] - the same measure as [findExpiredHouseholdIdsSkipLocked], as a plain count without the
+     * row locks for the advance warning to administrators (`RetentionExpiryReminderService`).
+     */
+    fun countByValidUntilBefore(cutoff: LocalDate): Long
+
+    /**
+     * The households behind [countByValidUntilBefore], oldest validity first, with their main person
+     * loaded since the "Anstehende Löschungen" screen (`PendingDeletionsService`) names them.
+     */
+    @EntityGraph(attributePaths = ["mainPerson"])
+    fun findAllByValidUntilBeforeOrderByValidUntilAscIdAsc(cutoff: LocalDate, pageable: Pageable): List<HouseholdEntity>
 }

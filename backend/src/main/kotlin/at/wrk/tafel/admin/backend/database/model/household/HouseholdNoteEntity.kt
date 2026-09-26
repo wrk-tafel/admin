@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.database.model.household
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
@@ -20,7 +20,8 @@ class HouseholdNoteEntity(
     var note: String,
 ) : BaseChangeTrackingEntity() {
 
+    /** The account that wrote the note; empty once that account has been deleted. */
     @ManyToOne
-    @JoinColumn(name = "employee_id", nullable = true)
-    var employee: EmployeeEntity? = null
+    @JoinColumn(name = "author_user_id", nullable = true)
+    var author: UserEntity? = null
 }

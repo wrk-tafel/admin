@@ -78,24 +78,35 @@ Several things worth calling out:
   `passwordChangeRequired` — the point of generating one here is handing it to a colleague, so requiring them to
   set their own on first login is the sensible default. `copyPassword()` copies the field's current value (whether
   generated or typed) to the clipboard, shown next to "Passwort generieren" whenever the field is non-empty.
-- **The personnel number field only ever holds a real employee's number, never free text.** It's driven by the
-  shared `TafelEmployeeSearchCreateComponent` (`common/components/employee-search-create/` — also used by
-  logistics' driver/co-driver picker) rather than a plain input: `setSelectedEmployee()`/`resetSelectedEmployee()`
-  toggle between the search UI and a "selected employee" card, and a `validate()` on `personnelNumber` fails with
-  `employeeNotLinked` unless the field's current value equals `selectedEmployee()?.personnelNumber`. Editing an
-  existing user resolves its already-linked employee on load via
-  `EmployeeApiService.checkPersonnelNumberAvailability(userData.personnelNumber)` (asking "who holds this number"
-  rather than a general search) — the `resolvingEmployee` signal makes that lookup provisionally valid so the
-  field doesn't flash an error before the response arrives.
+- **Personnel number, first name and last name are plain fields of the account.** A user carries its own
+  (`personnelNumber`, `firstname`, `lastname`: `required`, at most 50 characters, sent trimmed) and is not linked to an
+  employee — there is no employee search, no selection dialog and nothing to resolve. The personnel number must be
+  unique among users only; a taken one comes back from the backend as a 409 ("Benutzer (Personalnummer: ...)
+  existiert bereits!") and is toasted. Employees (the drivers of the food collection) are a separate record kept
+  under Einstellungen > Mitarbeiter.
 - **Edit mode hides the password fields behind a collapsed "Passwort zurücksetzen" section**
   (`passwordResetExpanded`/`passwordFieldsVisible`), so saving the form can't reset a password nobody meant to
   touch. Create mode has no such gate — `passwordFieldsVisible` is `createMode() || passwordResetExpanded()`, and
   `createMode()` is always true there.
 - **`isDirty()`/`markSaved()` back the unsaved-changes navigation guard**, and deliberately don't reuse signal-forms'
-  own `dirty()` tracking: that only reacts to control-originated edits and would miss e.g. an employee picked
-  through the search dialog or a permission checkbox toggle. Instead a JSON-serialized snapshot of
+  own `dirty()` tracking: that only reacts to control-originated edits and would miss e.g. a permission checkbox
+  toggle. Instead a JSON-serialized snapshot of
   `derivedUserData()` is taken right after the form loads (or right after a save, via `markSaved()`), and
   `isDirty()` just compares the live value against it.
+
+### Deleting a user
+
+Two places delete an account, and both go through the same `UserDeleteConfirmDialogComponent`
+(`components/user-delete-confirm-dialog/`): the trash button on every row of the user search
+(`searchresult-deleteuser-button-<id>`, in the table and in the card list) and "Benutzer löschen" in the detail
+screen's state menu (`deleteUserButton`). The dialog (`deleteuser-dialog`) names the account by username and full
+name (`deleteuser-name`, `deleteuser-fullname`) and says it is deleted permanently; the buttons are the usual
+`okButton`/`cancelButton`. On confirm the screen calls `UserApiService.deleteUser` with
+`SUPPRESS_ERROR_TOAST_CONTEXT`, toasts "Benutzer wurde gelöscht!" and then either reloads the current result page
+(the search — one page back when the deleted user was the only row of the last page) or navigates to the search
+(the detail). A refusal — e.g. the last active administrator, a 409 — is toasted with the backend's own message
+under the title "Löschen fehlgeschlagen!". Customers and notes the deleted user created stay and show
+"Mitarbeiter gelöscht" as their issuer/author.
 
 ### UserEditComponent glue
 
@@ -271,10 +282,9 @@ appears in `UserFormComponent`'s permission grid automatically — no frontend c
 `getUserForPersonnelNumber`, `searchUser` (paginated), `updateUser`, `deleteUser`, `createUser`, `generatePassword`,
 `getPermissions`, `getLoginAttempts` (paginated), `deleteLoginAttempt`.
 
-`UserFormComponent` additionally calls `EmployeeApiService.checkPersonnelNumberAvailability` (to resolve an
-existing user's linked employee on load) and, through the shared `TafelEmployeeSearchCreateComponent`,
-`EmployeeApiService.findEmployees`/`saveEmployee` (the personnel-number search/create-if-missing flow) — this
-module has no employee endpoints of its own.
+`deleteUser(id, context?)` takes an optional `HttpContext` so both callers can turn the generic error toast off and
+show the backend's own message (see "Deleting a user" below). This module makes no employee calls: employees are a
+separate record with no link to a user.
 
 ## Gotchas
 
@@ -288,7 +298,5 @@ module has no employee endpoints of its own.
   first one lives inside the `USER_MANAGEMENT`-gated route tree.
 - `UserEditComponent.save()` decides create vs. update purely from whether `userData()` is `undefined` — there is
   no explicit "mode" flag.
-- Saving is blocked until the personnel number is a real, resolved employee (the `employeeNotLinked` validator) —
-  a personnel number typed but never run through the search/select/create widget never becomes valid.
 - In edit mode, leaving the collapsed "Passwort zurücksetzen" section untouched keeps the existing password;
   create mode has no such gate since a password is mandatory there.

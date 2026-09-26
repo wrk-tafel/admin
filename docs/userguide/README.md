@@ -10,9 +10,9 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | [Kunden](kunden.md) | Kunden suchen, Anspruch-Schnellcheck, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, Kunden-Übersicht, Kunden zusammenführen, Dokumente |
 | [Logistik](logistik.md) | Routen-Navi auf der Route, Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
-| [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Länder, Mitarbeiter |
+| [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Länder, Mitarbeiter, anstehende Löschungen |
 | [Zugriffsprotokoll](zugriffsprotokoll.md) | Wer hat wann was geändert oder auf sensible Daten zugegriffen, und wie war der Wert davor |
-| [Datenauskunft](datenauskunft.md) | Kunden, Benutzerkonten und Mitarbeiter ohne Konto durchsuchen, DSGVO-Datenexport und -Löschung |
+| [Datenauskunft](datenauskunft.md) | Kunden, Benutzerkonten und Mitarbeiter durchsuchen, DSGVO-Datenexport und -Löschung |
 | [Statistiken](statistiken.md) | Allgemeine Statistik, Auswertung Kinder |
 
 ## Anmeldung
@@ -74,7 +74,7 @@ Ist die Zwei-Faktor-Authentifizierung für die gesamte Anwendung vorgeschrieben 
 
 ![Datenschutz](images/konto-datenschutz.jpg)
 
-Auf dem Reiter **Datenschutz** lädt man über **Meine Daten exportieren** eine DSGVO-Datenauskunft (Art. 15/20) zum eigenen Benutzerkonto als PDF-Datei herunter: Benutzername, die verknüpften Mitarbeiter-Stammdaten (Personalnummer, Name), die E-Mail-Adresse, die zugewiesenen Berechtigungen, der Aktiv-Status sowie der letzte Login-Zeitpunkt. Das gespeicherte Passwort ist darin nie enthalten. Für eine andere Person kann dieselbe Auskunft auch von einem Benutzer mit Benutzerverwaltungs-Berechtigung über dessen Benutzerdetailseite abgerufen werden, siehe [Benutzer](benutzer.md).
+Auf dem Reiter **Datenschutz** lädt man über **Meine Daten exportieren** eine DSGVO-Datenauskunft (Art. 15/20) zum eigenen Benutzerkonto als PDF-Datei herunter: Benutzername, Personalnummer, Name, die E-Mail-Adresse, die zugewiesenen Berechtigungen, der Aktiv-Status sowie der letzte Login-Zeitpunkt. Das gespeicherte Passwort ist darin nie enthalten. Für eine andere Person kann dieselbe Auskunft auch von einem Benutzer mit Benutzerverwaltungs-Berechtigung über dessen Benutzerdetailseite abgerufen werden, siehe [Benutzer](benutzer.md).
 
 Ebenfalls auf dem Reiter **Datenschutz** lädt man über **Datenschutzerklärung (Mitarbeiter)** eine allgemeine, personenunabhängige Datenschutzerklärung für Mitarbeiter:innen und Freiwillige als PDF herunter: welche Daten über Mitarbeiter:innen verarbeitet werden, auf welcher Grundlage, wie lange und mit welchen Rechten. Dasselbe Dokument steht auch ohne eigenes Benutzerkonto zur Verfügung, siehe [Mitarbeiter](einstellungen.md#mitarbeiter).
 
@@ -125,8 +125,9 @@ Die Bereiche **Erinnerungen** und **Technisches** setzen eine Berechtigung vorau
 | E-Mail nicht versendet | eine E-Mail auch nach mehreren Versuchen nicht versendet werden konnte – etwa eine der E-Mails nach dem Ende einer Ausgabe (Tagesreport, Statistiken, Retourkisten) oder eine Support-Anfrage. Die Benachrichtigung nennt den Betreff der E-Mail | Administrator |
 | Benutzer gesperrt | ein Benutzer nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt wurde | Administrator |
 | Ungewöhnlich viele Zugriffe | ein Benutzerkonto innerhalb einer Stunde mehr sensible Kundendaten abgerufen hat (Dokument-Downloads, Stammdatenblatt/Ausweis/Kundenliste) als der konfigurierte Schwellenwert erlaubt. Die Benachrichtigung nennt den Benutzernamen und die Anzahl der Abrufe | Administrator |
+| Daten werden bald gelöscht | Benutzerkonten (außer Administrator-Konten), Kunden oder Mitarbeiter innerhalb der nächsten 30 Tage automatisch gelöscht werden, weil ihre Aufbewahrungsfrist abläuft: ein Benutzerkonto nach einem Jahr ohne Anmeldung, ein Mitarbeiter nach zwei Jahren ohne Einsatz als Fahrer:in oder Beifahrer:in, ein Kunde 7 Jahre nach Ablauf der Gültigkeit (Erinnerung jeweils in der Früh, solange es solche Datensätze gibt). Die Benachrichtigung nennt die Anzahl je Bereich und öffnet die Seite Einstellungen → Anstehende Löschungen (siehe [Einstellungen](einstellungen.md#anstehende-loeschungen)), die genau auflistet, was gelöscht wird. Eine Anmeldung der Person erhält ein Benutzerkonto, eine Verlängerung der Gültigkeit einen Kunden | Administrator |
 
-Die letzten drei sind technische Meldungen: sie richten sich an jene Personen, die die Anwendung selbst betreuen, und nicht an die Ausgabe-Leitung. Da die Berechtigung "Administrator" alle anderen Berechtigungen einschließt, sehen Administratoren sämtliche Benachrichtigungsarten.
+Die letzten vier sind technische Meldungen: sie richten sich an jene Personen, die die Anwendung selbst betreuen, und nicht an die Ausgabe-Leitung. Da die Berechtigung "Administrator" alle anderen Berechtigungen einschließt, sehen Administratoren sämtliche Benachrichtigungsarten.
 
 Jede dieser Benachrichtigungen wird pro Ausgabe nur ein einziges Mal verschickt. Wird z. B. ein bereits abgearbeitetes Ticket noch einmal geöffnet und erneut abgeschlossen, kommt "Alle Kunden abgearbeitet" trotzdem kein zweites Mal. "Route beim letzten Stopp" gilt je Route und Tag: Jede Route meldet sich einmal, auch wenn unterwegs ein Stopp noch einmal zurückgenommen und erneut abgehakt wird.
 
@@ -169,7 +170,7 @@ Die Menüstruktur gliedert sich in folgende Bereiche:
 - **Logistik**: Routen-Navi, Waren-Eingabe
 - **Verwaltung**: Benutzer, Statistiken, Zugriffsprotokoll, Einstellungen
 
-Innerhalb von "Einstellungen" sind die zehn Menüpunkte zusätzlich in zwei Gruppen unterteilt: **Stammdaten** (Fahrzeuge, Filialen, Länder, Notschlafstellen, Routen, Waren-Kategorien, Retour-Kategorien) für logistische Stammdaten und **Systemverwaltung** (E-Mail, Grenzwerte, Mitarbeiter) für allgemeine Systemeinstellungen.
+Innerhalb von "Einstellungen" sind die elf Menüpunkte zusätzlich in zwei Gruppen unterteilt: **Stammdaten** (Fahrzeuge, Filialen, Länder, Notschlafstellen, Routen, Waren-Kategorien, Retour-Kategorien) für logistische Stammdaten und **Systemverwaltung** (E-Mail, Grenzwerte, Mitarbeiter, Anstehende Löschungen) für allgemeine Systemeinstellungen.
 
 Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berechtigungen ab (siehe [Benutzer](benutzer.md)).
 

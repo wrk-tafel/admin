@@ -280,6 +280,110 @@ describe('User Search', () => {
     });
   });
 
+  // The per-row trash button opens a confirm dialog naming the account; the accounts deleted here
+  // are freshly created ones, never the shared e2etest/admin fixtures.
+  it('keeps the user when the delete confirmation is cancelled', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.byTestId('searchInputText').type(user.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.byTestId('searchresult-deleteuser-button-' + user.id).filterDisplayed().click();
+      cy.byTestId('deleteuser-dialog').should('be.visible');
+      cy.byTestId('deleteuser-name').should('have.text', user.username);
+      cy.byTestId('deleteuser-fullname').should('contain.text', user.firstname + ' ' + user.lastname);
+      cy.byTestId('deleteuser-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+      cy.byTestId('deleteuser-dialog').should('not.exist');
+
+      cy.get(`a[href$="/benutzer/detail/${user.id}"]`).filterDisplayed().should('have.length', 1);
+      cy.request('GET', '/api/users/' + user.id).its('status').should('eq', 200);
+    });
+  });
+
+  it('deletes a user from the result list after the confirmation', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.byTestId('searchInputText').type(user.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.intercept('POST', '/api/users/search').as('reloadAfterDelete');
+      cy.byTestId('searchresult-deleteuser-button-' + user.id).filterDisplayed().click();
+      cy.byTestId('deleteuser-dialog').within(() => {
+        cy.byTestId('okButton').click();
+      });
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'Benutzer wurde gelöscht!');
+      cy.wait('@reloadAfterDelete');
+      cy.get(`a[href$="/benutzer/detail/${user.id}"]`).should('not.exist');
+      cy.request({url: '/api/users/' + user.id, failOnStatusCode: false}).its('status').should('eq', 404);
+    });
+  });
+
+  it('deletes a user from the card list on phone', () => {
+    cy.viewport(PHONE_VIEWPORT);
+
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.byTestId('searchInputText').type(user.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-card-' + user.id).scrollIntoView().should('be.visible');
+
+      cy.byTestId('searchresult-deleteuser-button-' + user.id).filterDisplayed().click();
+      cy.byTestId('deleteuser-dialog').within(() => {
+        cy.byTestId('okButton').click();
+      });
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'Benutzer wurde gelöscht!');
+      cy.byTestId('searchresult-card-' + user.id).should('not.exist');
+    });
+  });
+
+  it('shows the backend message and keeps the user when the deletion is refused', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.byTestId('searchInputText').type(user.lastname);
+      clickSearchAndWaitForResult();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      const detail = 'Es muss mindestens ein aktiver Benutzer mit der Berechtigung "Administrator" verbleiben!';
+      cy.intercept('DELETE', '/api/users/' + user.id, {
+        statusCode: 409,
+        body: {title: 'Conflict', status: 409, detail}
+      }).as('refusedDelete');
+      cy.byTestId('searchresult-deleteuser-button-' + user.id).filterDisplayed().click();
+      cy.byTestId('deleteuser-dialog').within(() => {
+        cy.byTestId('okButton').click();
+      });
+      cy.wait('@refusedDelete');
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', detail);
+      cy.get(`a[href$="/benutzer/detail/${user.id}"]`).filterDisplayed().should('have.length', 1);
+    });
+  });
+
+  it('labels the delete action through its tooltip', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.byTestId('searchInputText').type(user.lastname);
+      cy.byTestId('search-button').click();
+      cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+      cy.byTestId('searchresult-deleteuser-button-' + user.id).filterDisplayed().trigger('mouseenter');
+      cy.get('.mat-mdc-tooltip')
+        .should('have.class', 'mat-mdc-tooltip-show')
+        .and('contain.text', 'Benutzer löschen');
+    });
+  });
+
   /**
    * Clicks "Suchen" and waits for that search's own answer.
    *
@@ -360,6 +464,20 @@ describe('User Search', () => {
       cy.byTestId('search-button').click();
 
       cy.byTestId('searchresult-announcement').should('have.text', 'Keine Benutzer gefunden');
+    });
+
+    it('has no violations while the delete confirmation dialog is open', () => {
+      cy.createDummyUser().then((response) => {
+        const user = response.body;
+
+        cy.byTestId('searchInputText').type(user.lastname);
+        clickSearchAndWaitForResult();
+        cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
+
+        cy.byTestId('searchresult-deleteuser-button-' + user.id).filterDisplayed().click();
+
+        cy.checkDialogAccessibility();
+      });
     });
 
     it('has no violations on the empty-state CTA', () => {

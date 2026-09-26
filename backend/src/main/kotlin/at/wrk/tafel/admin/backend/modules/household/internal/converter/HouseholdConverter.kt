@@ -50,7 +50,7 @@ class HouseholdConverter(
             validUntil = householdUpdate.validUntil ?: LocalDate.now(),
         )
 
-        householdEntity.issuer = householdEntity.issuer ?: userEntity!!.employee
+        householdEntity.issuer = householdEntity.issuer ?: userEntity
         householdEntity.addressStreet = householdUpdate.address.street?.trim()
         householdEntity.addressHouseNumber = householdUpdate.address.houseNumber?.trim()
         householdEntity.addressStairway = householdUpdate.address.stairway?.trim()
@@ -209,7 +209,7 @@ class HouseholdConverter(
             validUntil = householdEntity.validUntil,
             locked = householdEntity.locked,
             lockedAt = householdEntity.lockedAt,
-            lockedBy = householdEntity.lockedBy?.let { "${it.employee.personnelNumber} ${it.employee.firstname} ${it.employee.lastname}" },
+            lockedBy = householdEntity.lockedBy?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" },
             lockReason = householdEntity.lockReason,
             pendingCostContribution = householdEntity.pendingCostContribution,
             singleParent = householdEntity.singleParent,

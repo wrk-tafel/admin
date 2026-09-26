@@ -86,13 +86,6 @@ export interface EmployeeData {
   personnelNumber: string;
   firstname: string;
   lastname: string;
-  /** The user account referencing this employee, on the list responses that carry it. */
-  userAccount?: EmployeeUserAccount;
-}
-
-export interface EmployeeUserAccount {
-  id: number;
-  username: string;
 }
 
 export interface PersonnelNumberAvailabilityResponse {

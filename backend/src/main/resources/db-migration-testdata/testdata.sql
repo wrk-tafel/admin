@@ -26,12 +26,10 @@ SELECT setval('audit_log_seq', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest
-INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (100, NOW(), NOW(), '00000', 'E2E', 'Test');
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, employee_id)
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (100, NOW(), NOW(), 'e2etest',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
-        true, 100);
+        true, '00000', 'E2E', 'Test');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1001, NOW(), NOW(), 100, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -63,12 +61,10 @@ VALUES (1014, NOW(), NOW(), 100, 'AUDIT_LOG');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
-INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (200, NOW(), NOW(), '0200', 'Test', 'User');
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, employee_id)
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (200, NOW(), NOW(), 'testuser',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$DZTJhKdC4/5fzGDI2CtozA$ELfBRSqAKes7ThqkzL7AN6JkEq7wzWgKejhLQ02XD6c',
-        true, 200);
+        true, '0200', 'Test', 'User');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2001, NOW(), NOW(), 200, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -88,12 +84,10 @@ VALUES (2008, NOW(), NOW(), 200, 'CUSTOMER_DOCUMENTS');
 
 -- user: admin
 -- pwd: 12345
-INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (300, NOW(), NOW(), 'admin-persnr', 'AD', 'min');
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, employee_id)
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (300, NOW(), NOW(), 'admin',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        true, 300);
+        true, 'admin-persnr', 'AD', 'min');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3001, NOW(), NOW(), 300, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -127,55 +121,45 @@ VALUES (3015, NOW(), NOW(), 300, 'CUSTOMER_DOCUMENTS');
 
 -- user: scanner1
 -- pwd: 12345
-INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (400, NOW(), NOW(), '0400', 'Scanner', '1');
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, employee_id)
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (400, NOW(), NOW(), 'scanner1',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        true, 400);
+        true, '0400', 'Scanner', '1');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (4001, NOW(), NOW(), 400, 'SCANNER');
 
 -- user: scanner2
 -- pwd: 12345
-INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (500, NOW(), NOW(), '0500', 'Scanner', '2');
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, employee_id)
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (500, NOW(), NOW(), 'scanner2',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        true, 500);
+        true, '0500', 'Scanner', '2');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (5001, NOW(), NOW(), 500, 'SCANNER');
 
 -- user: disabled1
 -- pwd: 12345
-INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (600, NOW(), NOW(), '0600', 'Disabled', '1');
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, employee_id)
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (600, NOW(), NOW(), 'disabled1',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        false, 600);
+        false, '0600', 'Disabled', '1');
 
 -- user: checkin1
 -- pwd: 12345
-INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (700, NOW(), NOW(), '0700', 'Checkin', '1');
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, employee_id)
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (700, NOW(), NOW(), 'checkin1',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        true, 700);
+        true, '0700', 'Checkin', '1');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (7001, NOW(), NOW(), 700, 'CHECKIN');
 
 -- user e2etest2 for cypress tests - deliberately holds only CUSTOMER, nothing else, to exercise
 -- what a user is *not* shown (e.g. the audit "Verlauf" tab, the documents tab)
 -- pwd: e2etest
-INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
-VALUES (800, NOW(), NOW(), '0800', 'E2E', 'Test 2');
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, employee_id)
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (800, NOW(), NOW(), 'e2etest2',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
-        true, 800);
+        true, '0800', 'E2E', 'Test 2');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (8001, NOW(), NOW(), 800, 'CUSTOMER');
 
@@ -185,7 +169,7 @@ VALUES (8001, NOW(), NOW(), 800, 'CUSTOMER');
 -- its persons, then an UPDATE that sets main_person_id. households and persons reference each
 -- other, so neither row can carry a non-null pointer to the other on first insert. The main person
 -- reuses the household's own id - the same convention the R__00067 data migration uses.
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (100, NOW(), NOW(), 100, 100, null, 'Erdberg', 1, null, null,
@@ -196,7 +180,7 @@ values (100, NOW(), NOW(), 100, true, 'Max Single', 'Mustermann', '1980-01-01', 
         '2999-12-31', false, false);
 UPDATE households SET main_person_id = 100 WHERE id = 100;
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution, single_parent)
 values (101, NOW(), NOW(), 101, 100, null, 'Erdberg', 2, '1', '20', '1010',
@@ -225,15 +209,15 @@ values (1013, NOW(), NOW(), 101, false, 'Kind 3', 'Musterfrau', CURRENT_DATE - i
         true);
 UPDATE households SET main_person_id = 101 WHERE id = 101;
 
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1003, NOW(), NOW(), 101, 100,
         E'Testnotiz 3.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1002, NOW(), NOW(), 101, 100, 'Testnotiz 2');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1001, NOW(), NOW(), 101, null, 'Testnotiz 1');
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (102, NOW(), NOW(), 102, 100, null, 'Erdberg', 1, null, null, '1030', 'Wien',
@@ -244,7 +228,7 @@ values (102, NOW(), NOW(), 102, true, 'Herbert', 'Wagner', '1980-01-01', 'MALE',
         false, false);
 UPDATE households SET main_person_id = 102 WHERE id = 102;
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution, single_parent)
 values (103, NOW(), NOW(), 103, 100, null, 'Erdberg', 1, null, null,
@@ -285,38 +269,38 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
 values (1040, NOW(), NOW(), 103, false, 'Kind 10', 'Musterfrau', CURRENT_DATE - interval '10 year', 'MALE', 'WRK', null, null, 1, true, true);
 UPDATE households SET main_person_id = 103 WHERE id = 103;
 
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1041, NOW(), NOW(), 103, 100,
         E'Testnotiz 1.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1042, NOW(), NOW(), 103, 100,
         E'Testnotiz 2.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1043, NOW(), NOW(), 103, 100,
         E'Testnotiz 3.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1044, NOW(), NOW(), 103, 100,
         E'Testnotiz 4.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1045, NOW(), NOW(), 103, 100,
         E'Testnotiz 5.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1046, NOW(), NOW(), 103, 100,
         E'Testnotiz 6.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1047, NOW(), NOW(), 103, 100,
         E'Testnotiz 7.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1048, NOW(), NOW(), 103, 100,
         E'Testnotiz 8.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1049, NOW(), NOW(), 103, 100,
         E'Testnotiz 9.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1050, NOW(), NOW(), 103, 100,
         E'Testnotiz 10.\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n\nLorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (104, NOW(), NOW(), 104, 100, null, 'Erdberg', 1, null, null, '1030',
@@ -327,7 +311,7 @@ values (104, NOW(), NOW(), 104, true, 'Herta', 'ABGELAUFEN', '1980-01-01', 'FEMA
         '2000-12-31', false, false);
 UPDATE households SET main_person_id = 104 WHERE id = 104;
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, locked,
                         locked_at, locked_by, lock_reason, pending_cost_contribution)
@@ -340,7 +324,7 @@ values (105, NOW(), NOW(), 105, true, 'Grete', 'GESPERRT', '1980-01-01', 'FEMALE
 UPDATE households SET main_person_id = 105 WHERE id = 105;
 
 -- household with (mostly) missing master data - shows up in the "Nachbearbeitung" search filter
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, locked,
                         locked_at, locked_by, lock_reason, pending_cost_contribution)
@@ -374,7 +358,7 @@ UPDATE households SET main_person_id = 106 WHERE id = 106;
 -- household above the income limit (couple, 2 children) - complete master data, shows up in
 -- "Kunden über Limit": income 2600+1800=4400 vs. limit 3837.00 (+100.00 tolerance) for
 -- 2 adults/2 children -> 463.00 over
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (110, NOW(), NOW(), 110, 100, null, 'Teststraße', '10', null, null,
@@ -394,14 +378,14 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
                      country_id, exclude_household, receives_family_allowance)
 values (1103, NOW(), NOW(), 110, false, 'Tom', 'Vielverdiener', CURRENT_DATE - interval '5 year', 'MALE', 1, false, false);
 UPDATE households SET main_person_id = 110 WHERE id = 110;
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1051, NOW(), NOW(), 110, 100,
         'Einkommen anhand aktueller Lohnzettel beider Elternteile neu geprüft - Haushalt bleibt über dem Limit, Ausnahmegenehmigung derzeit nicht vorgesehen.');
 
 -- household above the income limit (single adult) - complete master data, shows up in
 -- "Kunden über Limit": income 2200 vs. limit 1827.00 (+100.00 tolerance) for 1 adult/0 children
 -- -> 273.00 over
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (111, NOW(), NOW(), 111, 100, null, 'Teststraße', '11', null, null,
@@ -415,7 +399,7 @@ UPDATE households SET main_person_id = 111 WHERE id = 111;
 -- household above the income limit (single pensioner, barely above) - shows up in "Kunden über
 -- Limit" near the bottom of the default sort: income 1990 vs. limit 1827.00 (+100.00 tolerance)
 -- for 1 adult/0 children -> 63.00 over
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (112, NOW(), NOW(), 112, 100, null, 'Quellenstraße', '12', null, null,
@@ -429,7 +413,7 @@ UPDATE households SET main_person_id = 112 WHERE id = 112;
 -- household far above the income limit (three adults - the third exceeds the base household size
 -- and raises the limit by ADDITIONAL_ADULT): income 2500+1900+1200=5600 vs. limit 2741.00 + 914.00
 -- (+100.00 tolerance) -> 1845.00 over, the top of the default sort
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (113, NOW(), NOW(), 113, 100, null, 'Ottakringer Straße', '113', '1', '4',
@@ -452,7 +436,7 @@ UPDATE households SET main_person_id = 113 WHERE id = 113;
 -- receiving Familienbeihilfe): income 2750 + allowances 478.80 (171.80+148.00 Familienbeihilfe,
 -- 2x70.90 Kinderabsetzbetrag, 2x8.60 Geschwisterstaffel) = 3228.80 vs. limit 2923.00 (+100.00
 -- tolerance) for 1 adult/2 children -> 205.80 over
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution, single_parent)
 values (114, NOW(), NOW(), 114, 100, null, 'Laxenburger Straße', '14', null, '9',
@@ -468,9 +452,9 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
                      country_id, exclude_household, receives_family_allowance)
 values (1142, NOW(), NOW(), 114, false, 'Ben', 'Beihilfenknapp', CURRENT_DATE - interval '7 year', 'MALE', 2, false, true);
 UPDATE households SET main_person_id = 114 WHERE id = 114;
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1052, NOW(), NOW(), 114, 100, 'Familienbeihilfe-Bescheid für beide Kinder liegt vor, Kopie im Dokumente-Tab hinterlegt.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1053, NOW(), NOW(), 114, 200,
         'Rückfrage der Kundin wegen Fahrtkosten zur Ausgabestelle - auf die nähergelegene Ausgabestelle in Favoriten hingewiesen.');
 
@@ -479,7 +463,7 @@ VALUES (1053, NOW(), NOW(), 114, 200,
 -- one used to stress-test the household PDFs (master data sheet / ID card) with a long "weitere
 -- Personen" list - 14 additional persons in total, one of them (Ben) excluded from the household;
 -- validity runs out soon, so the list shows a near-term "Gültig bis" date too
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (115, NOW(), NOW(), 115, 100, null, 'Simmeringer Hauptstraße', '115', null, null,
@@ -536,16 +520,16 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
                      country_id, employer, exclude_household, receives_family_allowance)
 values (1164, NOW(), NOW(), 115, false, 'Ben', 'Großfamilie', CURRENT_DATE - interval '17 year', 'MALE', 1, 'BHAK Simmering', true, true);
 UPDATE households SET main_person_id = 115 WHERE id = 115;
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1054, NOW(), NOW(), 115, 100, 'Schulbestätigungen für die schulpflichtigen Kinder (Noah, Julia, Ben) wurden vorgelegt und geprüft.');
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1055, NOW(), NOW(), 115, 100, 'Bezug läuft in Kürze aus - Verlängerung beim nächsten Besuch besprechen.');
 
 -- customer duplicates - fuzzy name/address matches for the "Kunden-Duplikate" screen
 -- (see HouseholdDuplicationService: soundex + levenshtein tolerance on name and address)
 
 -- pair: same address, first-name typo (classic re-registration)
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (120, NOW(), NOW(), 120, 100, null, 'Hauptstraße', '5', null, null,
@@ -554,11 +538,11 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
                      country_id, exclude_household, receives_family_allowance)
 values (120, NOW(), NOW(), 120, true, 'Maria', 'Huber', '1982-04-12', 'FEMALE', 1, false, false);
 UPDATE households SET main_person_id = 120 WHERE id = 120;
-INSERT INTO household_notes (id, created_at, updated_at, household_id, employee_id, note)
+INSERT INTO household_notes (id, created_at, updated_at, household_id, author_user_id, note)
 VALUES (1056, NOW(), NOW(), 120, 100,
         'Mögliches Duplikat mit Kundennummer 121 (Marie Huber, gleiche Adresse) geprüft - unterschiedliche Person, kein Duplikat.');
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (121, NOW(), NOW(), 121, 100, null, 'Hauptstraße', '5', null, null,
@@ -569,7 +553,7 @@ values (121, NOW(), NOW(), 121, true, 'Marie', 'Huber', '1982-04-12', 'FEMALE', 
 UPDATE households SET main_person_id = 121 WHERE id = 121;
 
 -- pair: same name, address spelling variant (ß vs ss)
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (122, NOW(), NOW(), 122, 100, null, 'Wehlistraße', '22', null, null,
@@ -579,7 +563,7 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
 values (122, NOW(), NOW(), 122, true, 'Thomas', 'Berger', '1975-09-01', 'MALE', 1, false, false);
 UPDATE households SET main_person_id = 122 WHERE id = 122;
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (123, NOW(), NOW(), 123, 100, null, 'Wehlistrasse', '22', null, null,
@@ -591,7 +575,7 @@ UPDATE households SET main_person_id = 123 WHERE id = 123;
 
 -- three-way cluster: an exact re-entry plus a name/address typo variant, so one household
 -- shows two similar households at once
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (130, NOW(), NOW(), 130, 100, null, 'Praterstraße', '10', null, null,
@@ -601,7 +585,7 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
 values (130, NOW(), NOW(), 130, true, 'Anna', 'Fischer', '1990-06-20', 'FEMALE', 1, false, false);
 UPDATE households SET main_person_id = 130 WHERE id = 130;
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (131, NOW(), NOW(), 131, 100, null, 'Praterstraße', '10', null, null,
@@ -611,7 +595,7 @@ INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, f
 values (131, NOW(), NOW(), 131, true, 'Anna', 'Fischer', '1990-06-20', 'FEMALE', 1, false, false);
 UPDATE households SET main_person_id = 131 WHERE id = 131;
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (132, NOW(), NOW(), 132, 100, null, 'Praterstrasse', '10', null, null,
@@ -721,7 +705,7 @@ VALUES (4, NOW(), NOW(), 100, 103, 4, true, true);
 INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid, notes)
 VALUES (9000, NOW(), NOW(), NOW() - interval '1 day 3 hours', NOW() - interval '1 day 1 hour', 300, 300, 'Für Kunden-Übersicht Demo-Daten');
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution)
 values (140, NOW() - interval '1 day 90 minutes', NOW() - interval '1 day 90 minutes', 140, 100, null, 'Neubaugasse', '20', null, null,
@@ -732,7 +716,7 @@ values (140, NOW() - interval '1 day 90 minutes', NOW() - interval '1 day 90 min
         'Stadt Wien', 300.00, '2999-12-31', false, false);
 UPDATE households SET main_person_id = 140 WHERE id = 140;
 
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,
                         address_city, telephone_number, email, valid_until, pending_cost_contribution, prolonged_at)
 values (141, NOW() - interval '400 days', NOW() - interval '400 days', 141, 100, null, 'Landstraßer Hauptstraße', '30', null, null,
@@ -756,7 +740,7 @@ VALUES (6, NOW(), NOW(), 9000, 141, 2, true, false);
 -- also shows up in the plain customer list, and a household search screen that opens onto a wall of
 -- look-alike filler isn't useful test data. First/last names are drawn from two lists by index, same
 -- approach as the three-year statistics history further down.
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_postalcode, address_city,
                         valid_until, pending_cost_contribution)
 SELECT 5000 + i,
@@ -1424,7 +1408,7 @@ VALUES (201, NOW() - interval '3 hours', 100, 'e2etest', 'E2E', 'Test', 'Househo
 -- First and last names are drawn from two lists by index, so every household gets a distinct
 -- combination whose soundex differs from every other household's in this file - otherwise
 -- HouseholdDuplicationService would report a few hundred fresh duplicate candidates.
-INSERT INTO households (id, created_at, updated_at, household_id, employee_id, main_person_id,
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door,
                         address_postalcode, address_city, telephone_number, email, valid_until,
                         pending_cost_contribution, single_parent, prolonged_at)

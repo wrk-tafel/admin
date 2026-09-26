@@ -182,7 +182,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
         val source = persistHousehold()
 
         val note = HouseholdNoteEntity(household = source, note = "some note on the source household").apply {
-            employee = testUser.employee
+            author = testUser
         }
         testEntityManager.persist(note)
 
@@ -287,7 +287,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
     }
 
     private fun persistHousehold(): HouseholdEntity {
-        val household = createHousehold(testUser.employee, testCountry)
+        val household = createHousehold(testUser, testCountry)
         testEntityManager.persist(household)
         testEntityManager.flush()
 
