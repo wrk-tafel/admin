@@ -81,6 +81,51 @@ class HouseholdDuplicationServiceIT : TafelBaseIntegrationTest() {
 
     @Test
     @Transactional
+    fun `a duplicate pair is surfaced when a shared non-main person matches, even though the main persons differ`() {
+        val sharedPersonBirthDate = LocalDate.of(1995, 1, 10)
+
+        val household1 = persistHousehold(firstname = "Rozalin", lastname = "Hasan", street = "Erdbergstraße", houseNumber = "170")
+        val sharedPersonInHousehold1 = PersonEntity(household = household1, country = testCountry, isMainPerson = false).apply {
+            firstname = "Aslan"
+            lastname = "Sido"
+            birthDate = sharedPersonBirthDate
+        }
+        household1.persons.add(sharedPersonInHousehold1)
+        testEntityManager.persist(household1)
+        testEntityManager.flush()
+
+        val household2 = persistHousehold(firstname = "Aslan", lastname = "Sido", street = "Eine ganz andere Straße", houseNumber = "1")
+        household2.persons.first { it.isMainPerson }.birthDate = sharedPersonBirthDate
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdDuplicationService.findDuplicates(page = null)
+
+        assertThat(result.totalCount).isEqualTo(1)
+        assertThat(result.items).hasSize(1)
+
+        val item = result.items.single()
+        val idsInResult = listOf(item.household.id) + item.similarHouseholds.map { it.id }
+        assertThat(idsInResult).containsExactlyInAnyOrder(household1.householdId, household2.householdId)
+    }
+
+    @Test
+    @Transactional
+    fun `households sharing an address but with no matching person at all are not flagged as duplicates`() {
+        val household1 = persistHousehold(firstname = "Rozalin", lastname = "Hasan", street = "Erdbergstraße", houseNumber = "170")
+        val household2 = persistHousehold(firstname = "Aslan", lastname = "Sido", street = "Erdbergstraße", houseNumber = "170")
+        household2.persons.first { it.isMainPerson }.birthDate = LocalDate.of(1995, 1, 10)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdDuplicationService.findDuplicates(page = null)
+
+        assertThat(result.totalCount).isEqualTo(0)
+        assertThat(result.items).isEmpty()
+    }
+
+    @Test
+    @Transactional
     fun `a dismissed pair no longer shows up as a duplicate`() {
         val household1 = persistHousehold(firstname = "Maria", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
         val household2 = persistHousehold(firstname = "Marie", lastname = "Huber", street = "Hauptstraße", houseNumber = "5")
