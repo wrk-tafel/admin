@@ -156,4 +156,35 @@ internal class DailyReportServiceTest {
 
         assertThat(pdfModelSlot.captured.shelters.map { it.name }).containsExactly("Shelter Z", "Shelter A")
     }
+
+    @Test
+    fun `blank stairway and door are omitted instead of rendering dangling separators`() {
+        val distribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity)
+        val statistic = DistributionStatisticEntity(distribution = distribution).apply {
+            shelters = listOf(
+                DistributionStatisticShelterEntity(
+                    statistic = this,
+                    name = "Shelter",
+                    addressStreet = "Street",
+                    addressHouseNumber = "1",
+                    addressPostalCode = 1234,
+                    addressCity = "City",
+                    personsCount = 1,
+                    sortOrder = 1,
+                ).apply {
+                    addressStairway = ""
+                    addressDoor = ""
+                },
+            ).toMutableList()
+        }
+
+        every { pdfService.generatePdf(any(), any()) } returns ByteArray(0)
+
+        service.generateDailyReportPdf(statistic)
+
+        val pdfModelSlot = slot<DailyReportPdfModel>()
+        verify { pdfService.generatePdf(capture(pdfModelSlot), any()) }
+
+        assertThat(pdfModelSlot.captured.shelters[0].addressFormatted).isEqualTo("Street 1, 1234 City")
+    }
 }

@@ -208,6 +208,54 @@ class ShelterServiceTest {
     }
 
     @Test
+    fun `create shelter normalizes blank stairway and door to null`() {
+        val createInput = ShelterRequest(
+            id = 0L,
+            name = "New Shelter",
+            addressStreet = "New Street",
+            addressHouseNumber = "10",
+            addressStairway = " ",
+            addressPostalCode = 11111,
+            addressDoor = "",
+            addressCity = "New City",
+            note = "New note",
+            personsCount = 5,
+            enabled = true,
+            sortOrder = 999,
+            contacts = emptyList(),
+        )
+
+        every { shelterRepository.findAll() } returns emptyList()
+        every { shelterRepository.save(any()) } answers {
+            val arg = firstArg() as ShelterEntity
+            arg.id = 42
+            arg
+        }
+
+        service.createShelter(createInput)
+
+        val savedEntitySlot = slot<ShelterEntity>()
+        verify { shelterRepository.save(capture(savedEntitySlot)) }
+        assertThat(savedEntitySlot.captured.addressStairway).isNull()
+        assertThat(savedEntitySlot.captured.addressDoor).isNull()
+    }
+
+    @Test
+    fun `update shelter normalizes blank stairway and door to null`() {
+        val updated = testShelter3ShelterRequest().copy(addressStairway = " ", addressDoor = "")
+
+        every { shelterRepository.findByIdOrNull(testShelter3.id!!) } returns testShelter3
+        every { shelterRepository.save(any()) } answers { firstArg() as ShelterEntity }
+
+        service.updateShelter(testShelter3.id!!, updated)
+
+        val savedEntitySlot = slot<ShelterEntity>()
+        verify { shelterRepository.save(capture(savedEntitySlot)) }
+        assertThat(savedEntitySlot.captured.addressStairway).isNull()
+        assertThat(savedEntitySlot.captured.addressDoor).isNull()
+    }
+
+    @Test
     fun `create shelter with contacts`() {
         val createInput = ShelterRequest(
             id = 0L,

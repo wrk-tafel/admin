@@ -74,8 +74,8 @@ class DailyReportService(
     private fun formatShelterAddress(shelter: DistributionStatisticShelterEntity): String {
         val addressFormatted = listOfNotNull(
             listOfNotNull(shelter.addressStreet, shelter.addressHouseNumber).joinToString(" ").trim(),
-            shelter.addressStairway?.let { "Stiege $it" },
-            shelter.addressDoor?.let { "Top $it" },
+            shelter.addressStairway?.takeIf { it.isNotBlank() }?.let { "Stiege $it" },
+            shelter.addressDoor?.takeIf { it.isNotBlank() }?.let { "Top $it" },
             listOfNotNull(shelter.addressPostalCode, shelter.addressCity).joinToString(" ").trim(),
         )
             .filter { it.isNotBlank() }
