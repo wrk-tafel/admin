@@ -9,6 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
+import com.github.romankh3.image.comparison.model.Rectangle
 import org.apache.commons.io.FileUtils
 import org.apache.fop.events.Event
 import org.apache.fop.events.EventListener
@@ -22,6 +23,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.awt.image.BufferedImage
 import java.io.File
 import java.math.BigDecimal
 import java.time.Clock
@@ -58,6 +60,20 @@ class HouseholdPdfServiceTest {
         fun beforeAll() {
             comparisonResultDirectory.mkdirs()
         }
+
+        /**
+         * The privacy notice's `page-footer` ("Erstellt am .../Seite x von y", `branding.xsl`) is
+         * the one region of this document whose rendered pixels aren't reliably identical across
+         * host JVMs/OSes, even though the PDF content itself is - `fop-config.xml` embeds
+         * Liberation Sans specifically so the PDF bytes render identically everywhere. The
+         * remaining difference is introduced only when rasterizing that PDF to a PNG for this
+         * comparison (`PDFRenderer`/Java2D's font rasterizer isn't guaranteed pixel-identical
+         * across platforms): measured as ~4900 anti-aliased edge pixels confined to the footer's
+         * text row and nowhere else on the page. Excluding that row (not weakening
+         * [ImageComparisonState] anywhere else on the page) is safe because its actual content is
+         * separately verified below via [PDFTextStripper].
+         */
+        private fun excludingFooterRow(image: BufferedImage): List<Rectangle> = listOf(Rectangle(0, image.height - 400, image.width, image.height))
     }
 
     @BeforeEach
@@ -310,7 +326,9 @@ class HouseholdPdfServiceTest {
         val actualImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualImage, "png", File(comparisonResultDirectory, "privacynotice-actual.png"))
 
-        val comparisonResult = ImageComparison(expectedImage, actualImage).compareImages()
+        val comparisonResult = ImageComparison(expectedImage, actualImage)
+            .setExcludedAreas(excludingFooterRow(actualImage))
+            .compareImages()
         comparisonResult.writeResultTo(File(comparisonResultDirectory, "privacynotice-diff.png"))
 
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
@@ -376,7 +394,9 @@ class HouseholdPdfServiceTest {
         val actualImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualImage, "png", File(comparisonResultDirectory, "privacynotice-template-actual.png"))
 
-        val comparisonResult = ImageComparison(expectedImage, actualImage).compareImages()
+        val comparisonResult = ImageComparison(expectedImage, actualImage)
+            .setExcludedAreas(excludingFooterRow(actualImage))
+            .compareImages()
         comparisonResult.writeResultTo(File(comparisonResultDirectory, "privacynotice-template-diff.png"))
 
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)

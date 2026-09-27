@@ -25,11 +25,20 @@ import java.time.LocalDate
  * Fuzzy-matches households against each other to surface likely duplicate registrations for
  * manual review (never auto-merges, only lists candidates).
  *
- * A pair is flagged as a possible duplicate when, on the main person's name and the household
- * address, both:
- * - `soundex(duplicate_name_key)` matches (phonetic match, tolerant of spelling variants), and
- * - the Levenshtein distance of the two `duplicate_name_key` values is below 4, and the
- *   Levenshtein distance of the concatenated street/house-number/door is below 10.
+ * A pair is flagged as a possible duplicate when either of two independent signals matches -
+ * [MATCHING_HOUSEHOLD_PAIRS_CTE]'s `main_person_pairs`/`person_pairs` branches:
+ * - **main person + address**: on the two households' main persons' `duplicate_name_key`,
+ *   `soundex()` matches (phonetic match, tolerant of spelling variants) and the Levenshtein
+ *   distance is below 4, **and** the Levenshtein distance of the concatenated
+ *   street/house-number/door is below 10.
+ * - **any shared person**: any person (main or additional) of one household has the same
+ *   `birth_date` and a fuzzy-matching `duplicate_name_key` as any person (main or additional) of
+ *   the other, address ignored. This is what catches a family re-registered with a *different*
+ *   member now flagged as main person (e.g. a household re-registered under an adult child instead
+ *   of the parent who first registered it) - the main-person-only signal above compares two
+ *   different individuals in that case and would never match, even though most of the household is
+ *   identical. Address is deliberately not part of this signal: a re-registration may well have
+ *   been entered at a different address than the original.
  *
  * `persons.duplicate_name_key` (`R__00119_duplicate_name_key_persisted.sql`) lower-cases a
  * person's combined firstname+lastname and sorts its words into a canonical order, kept in sync by
@@ -43,8 +52,8 @@ import java.time.LocalDate
  * though a human reads the two names as identical.
  *
  * `duplicate_name_key` is persisted rather than computed inline (`household_duplicate_name_key(
- * firstname, lastname)`, also in `R__00118`/`R__00119`) precisely because [DUPLICATE_CONDITIONS]
- * evaluates it across every household pair: that function's body is a `SELECT` over
+ * firstname, lastname)`, also in `R__00118`/`R__00119`) precisely because [MATCHING_HOUSEHOLD_PAIRS_CTE]
+ * evaluates it across every household/person pair: that function's body is a `SELECT` over
  * `unnest()`/`string_agg()`, which Postgres cannot inline into the calling query the way it inlines
  * a plain expression, so calling it per pair instead of reading an already-computed column turned
  * this query into a multi-second load once run against production's household count.
@@ -54,14 +63,14 @@ import java.time.LocalDate
  *
  * Implemented as raw SQL (via [JdbcTemplate]) rather than JPA/Specifications because `soundex`
  * and `levenshtein` are Postgres functions with no JPQL equivalent; the query self-joins
- * `households`/`persons` twice (`household` vs `compare`) to compare every pair.
+ * `households`/`persons` to compare every pair, both at the main-person and at the person level.
  *
- * `household.household_id < compare.household_id` in [DUPLICATE_CONDITIONS] is deliberately a
- * strict inequality, not `<>`: the self-join is symmetric, so an unordered match {A, B} would
- * otherwise surface as two separate rows - once anchored on A (with B as the only similar
- * household) and once anchored on B (with A as the only similar household) - showing the exact
- * same pair to the reviewer twice. Requiring the anchor's `household_id` to be the *smaller* of
- * the two collapses that back down to a single row.
+ * `household_id < compare_household_id` in [DUPLICATE_CONDITIONS] is deliberately a strict
+ * inequality, not `<>`: both branches of `matching_pairs` are symmetric, so an unordered match
+ * {A, B} would otherwise surface as two separate rows - once anchored on A (with B as the only
+ * similar household) and once anchored on B (with A as the only similar household) - showing the
+ * exact same pair to the reviewer twice. Requiring the anchor's `household_id` to be the *smaller*
+ * of the two collapses that back down to a single row.
  */
 @Service
 class HouseholdDuplicationService(
@@ -73,54 +82,49 @@ class HouseholdDuplicationService(
 ) {
 
     companion object {
-        // firstname/lastname no longer live on the household row - they belong to its main person
-        private val MAIN_PERSON_CTE = """
-            WITH household AS (SELECT h.id,
-                                      h.household_id,
-                                      p.duplicate_name_key,
-                                      h.address_street,
-                                      h.address_housenumber,
-                                      h.address_door
-                               FROM households h
-                                        JOIN persons p ON p.id = h.main_person_id),
-                 compare AS (SELECT h.id,
-                                    h.household_id,
-                                    p.duplicate_name_key,
-                                    h.address_street,
-                                    h.address_housenumber,
-                                    h.address_door
-                             FROM households h
-                                      JOIN persons p ON p.id = h.main_person_id)
+        // firstname/lastname no longer live on the household row - they belong to its persons.
+        // Both branches are symmetric (an unordered pair {A, B} surfaces as both (A, B) and
+        // (B, A)) - DUPLICATE_CONDITIONS' household_id < compare_household_id collapses that back
+        // down to one row per pair.
+        private val MATCHING_HOUSEHOLD_PAIRS_CTE = """
+            WITH matching_pairs AS (
+                SELECT h1.household_id AS household_id, h2.household_id AS compare_household_id
+                FROM households h1
+                         JOIN persons p1 ON p1.id = h1.main_person_id
+                         JOIN households h2 ON h2.id <> h1.id
+                         JOIN persons p2 ON p2.id = h2.main_person_id
+                WHERE soundex(p1.duplicate_name_key) = soundex(p2.duplicate_name_key)
+                  AND levenshtein(p1.duplicate_name_key, p2.duplicate_name_key) < 4
+                  AND levenshtein(
+                              lower(concat(h1.address_street, h1.address_housenumber, h1.address_door)),
+                              lower(concat(h2.address_street, h2.address_housenumber, h2.address_door))
+                      ) < 10
+                UNION
+                SELECT h1.household_id AS household_id, h2.household_id AS compare_household_id
+                FROM persons p1
+                         JOIN households h1 ON h1.id = p1.household_id
+                         JOIN persons p2 ON p2.household_id <> p1.household_id
+                                         AND p2.birth_date = p1.birth_date
+                                         AND soundex(p2.duplicate_name_key) = soundex(p1.duplicate_name_key)
+                                         AND levenshtein(p2.duplicate_name_key, p1.duplicate_name_key) < 4
+                         JOIN households h2 ON h2.id = p2.household_id
+                WHERE p1.birth_date IS NOT NULL
+            )
         """.trimIndent()
 
         private val DUPLICATE_CONDITIONS = """
-            WHERE household.household_id < compare.household_id
-              AND household.id <> compare.id
-              AND soundex(household.duplicate_name_key) = soundex(compare.duplicate_name_key)
-              AND levenshtein(household.duplicate_name_key, compare.duplicate_name_key) < 4
-              AND levenshtein(
-                          lower(
-                                  concat(household.address_street,
-                                         household.address_housenumber,
-                                         household.address_door)
-                          ),
-                          lower(
-                                  concat(compare.address_street,
-                                         compare.address_housenumber,
-                                         compare.address_door)
-                          )
-                  ) < 10
-              -- household.household_id < compare.household_id above already guarantees the low/high
-              -- order dismiss() normalizes to, so no LEAST/GREATEST needed here.
+            WHERE household_id < compare_household_id
+              -- household_id < compare_household_id above already guarantees the low/high order
+              -- dismiss() normalizes to, so no LEAST/GREATEST needed here.
               AND NOT EXISTS (
                   SELECT 1
                   FROM household_duplicate_dismissals dismissal
-                  WHERE dismissal.household_id_low = household.household_id
-                    AND dismissal.household_id_high = compare.household_id
+                  WHERE dismissal.household_id_low = matching_pairs.household_id
+                    AND dismissal.household_id_high = matching_pairs.compare_household_id
               )
         """.trimIndent()
 
-        // Same fuzzy name+address rules as MAIN_PERSON_CTE/DUPLICATE_CONDITIONS, but parameterized
+        // Same fuzzy name+address rules as MATCHING_HOUSEHOLD_PAIRS_CTE's main-person branch, but parameterized
         // against literal in-flight values instead of self-joining persisted rows - used by
         // findPotentialDuplicates. The `? IS NULL OR ...` exclusion matches every household when a
         // `null` id is bound, which is what a create (no household to exclude yet) passes. Every
@@ -310,10 +314,9 @@ class HouseholdDuplicationService(
 
     private fun loadDuplicates(pageable: Pageable): Page<HouseholdDuplicateEntry> {
         val rowCountSql = """
-            $MAIN_PERSON_CTE
-            SELECT count(distinct household.household_id)
-            FROM household,
-                 compare
+            $MATCHING_HOUSEHOLD_PAIRS_CTE
+            SELECT count(distinct household_id)
+            FROM matching_pairs
             $DUPLICATE_CONDITIONS;
         """.trimIndent()
         val totalCount = jdbcTemplate.query(rowCountSql, SingleColumnRowMapper<Long>()).first() ?: 0
@@ -328,14 +331,13 @@ class HouseholdDuplicationService(
         // forces the join+group to run once as a whole (the cheap soundex-first plan the row-count
         // query above already gets), with only the small resulting match set left to sort/paginate.
         val sql = """
-            $MAIN_PERSON_CTE,
+            $MATCHING_HOUSEHOLD_PAIRS_CTE,
                  matches AS MATERIALIZED (
-                     SELECT household.household_id                                                                      as householdId,
-                            string_agg(compare.household_id::character varying, ',' order by compare.household_id desc) as compareHouseholdIdList
-                     FROM household,
-                          compare
+                     SELECT household_id                                                                as householdId,
+                            string_agg(compare_household_id::character varying, ',' order by compare_household_id desc) as compareHouseholdIdList
+                     FROM matching_pairs
                      $DUPLICATE_CONDITIONS
-                     group by household.id, household.household_id
+                     group by household_id
                  )
             SELECT householdId, compareHouseholdIdList
             FROM matches
