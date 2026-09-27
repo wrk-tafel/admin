@@ -103,6 +103,89 @@ class HouseholdRepositoryIT : TafelBaseIntegrationTest() {
     }
 
     /**
+     * A real Postgres run rather than a mocked unit test: the exclusion clause of both
+     * `findExpiredHouseholdIdsSkipLocked` and `countByValidUntilBefore`/
+     * `findAllByValidUntilBeforeOrderByValidUntilAscIdAsc` (issue #3753) is a `@Query`, and an
+     * earlier version of it (a fully-qualified enum literal directly in the JPQL/native text) failed
+     * at application startup with a query-validation error that no mocked unit test could ever catch
+     * - only actually running it against Postgres/Hibernate does.
+     */
+    @Test
+    fun `findExpiredHouseholdIdsSkipLocked excludes a household locked for BANNED_FROM_PREMISES but includes every other one`() {
+        val cutoff = LocalDate.now()
+        val expiredUnlocked = persistHousehold(validUntil = cutoff.minusDays(1))
+        val expiredLockedOther = persistHousehold(validUntil = cutoff.minusDays(1)).apply {
+            locked = true
+            lockReasonType = HouseholdLockReason.CODE_OF_CONDUCT_VIOLATION
+        }
+        val expiredLockedNoReasonType = persistHousehold(validUntil = cutoff.minusDays(1)).apply {
+            locked = true
+            lockReasonType = null
+        }
+        val expiredBannedFromPremises = persistHousehold(validUntil = cutoff.minusDays(1)).apply {
+            locked = true
+            lockReasonType = HouseholdLockReason.BANNED_FROM_PREMISES
+        }
+        val notExpired = persistHousehold(validUntil = cutoff.plusDays(1))
+        testEntityManager.persist(expiredLockedOther)
+        testEntityManager.persist(expiredLockedNoReasonType)
+        testEntityManager.persist(expiredBannedFromPremises)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdRepository.findExpiredHouseholdIdsSkipLocked(cutoff)
+
+        assertThat(result).contains(expiredUnlocked.householdId, expiredLockedOther.householdId, expiredLockedNoReasonType.householdId)
+        assertThat(result).doesNotContain(expiredBannedFromPremises.householdId, notExpired.householdId)
+    }
+
+    @Test
+    fun `countByValidUntilBefore and findAllByValidUntilBeforeOrderByValidUntilAscIdAsc also exclude BANNED_FROM_PREMISES`() {
+        val cutoff = LocalDate.now()
+        val expiredUnlocked = persistHousehold(validUntil = cutoff.minusDays(1))
+        val expiredBannedFromPremises = persistHousehold(validUntil = cutoff.minusDays(1)).apply {
+            locked = true
+            lockReasonType = HouseholdLockReason.BANNED_FROM_PREMISES
+        }
+        testEntityManager.persist(expiredBannedFromPremises)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val count = householdRepository.countByValidUntilBefore(cutoff)
+        val items = householdRepository.findAllByValidUntilBeforeOrderByValidUntilAscIdAsc(cutoff, org.springframework.data.domain.PageRequest.of(0, 100))
+
+        assertThat(items.map { it.householdId }).contains(expiredUnlocked.householdId).doesNotContain(expiredBannedFromPremises.householdId)
+        assertThat(count).isGreaterThanOrEqualTo(1)
+    }
+
+    @Test
+    fun `findHouseholdIdsWithExpiredLockSkipLocked returns only locked households whose lockedUntil has passed`() {
+        val today = LocalDate.now()
+        val expiredLock = persistHousehold(validUntil = today.plusYears(1)).apply {
+            locked = true
+            lockedUntil = today.minusDays(1)
+        }
+        val notYetExpiredLock = persistHousehold(validUntil = today.plusYears(1)).apply {
+            locked = true
+            lockedUntil = today.plusDays(1)
+        }
+        val permanentLock = persistHousehold(validUntil = today.plusYears(1)).apply {
+            locked = true
+            lockedUntil = null
+        }
+        testEntityManager.persist(expiredLock)
+        testEntityManager.persist(notYetExpiredLock)
+        testEntityManager.persist(permanentLock)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = householdRepository.findHouseholdIdsWithExpiredLockSkipLocked(today)
+
+        assertThat(result).contains(expiredLock.householdId)
+        assertThat(result).doesNotContain(notYetExpiredLock.householdId, permanentLock.householdId)
+    }
+
+    /**
      * `updated_at` is filled by JPA auditing on write, so testing a specific window requires updating
      * the column afterwards, the same way `StatisticsServiceIT.setRegisteredAt` does for `created_at`.
      */
@@ -118,8 +201,11 @@ class HouseholdRepositoryIT : TafelBaseIntegrationTest() {
      * Households and persons reference each other, so the main person pointer can only be written
      * after both rows exist - the same two-step insert the application uses.
      */
-    private fun persistHousehold(additionalPersons: Int = 0): HouseholdEntity {
+    private fun persistHousehold(additionalPersons: Int = 0, validUntil: LocalDate? = null): HouseholdEntity {
         val household = createHousehold(testUser, testCountry)
+        if (validUntil != null) {
+            household.validUntil = validUntil
+        }
         repeat(additionalPersons) { index ->
             household.persons.add(
                 PersonEntity(household = household, country = testCountry, isMainPerson = false).apply {

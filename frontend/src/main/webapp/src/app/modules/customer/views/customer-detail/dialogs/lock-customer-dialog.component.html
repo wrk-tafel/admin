@@ -1,14 +1,29 @@
 <tafel-dialog testId="lock-customer-dialog" type="info" title="Kunde sperren">
   <div tafel-dialog-content>
     <mat-form-field class="w-full">
+      <mat-label>Kategorie</mat-label>
+      <mat-select testid="lockreason-type-select" [ngModel]="reasonType()" (ngModelChange)="reasonType.set($event)">
+        @for (type of lockReasonTypes; track type) {
+          <mat-option [value]="type" [attr.testid]="'lockreason-type-select-option-' + type">{{ householdLockReasonLabel[type] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="w-full">
       <mat-label>Sperrgrund</mat-label>
-      <textarea testid="lockreason-input-text" matInput rows="9"
+      <textarea testid="lockreason-input-text" matInput rows="7"
                 [ngModel]="reasonText()" (ngModelChange)="reasonText.set($event)"></textarea>
+    </mat-form-field>
+
+    <mat-form-field class="w-full">
+      <mat-label>Gesperrt bis (optional)</mat-label>
+      <input matInput type="date" testid="lockeduntil-input" [min]="minLockedUntil"
+             [ngModel]="lockedUntil()" (ngModelChange)="lockedUntil.set($event)">
+      <mat-hint>Leer lassen für eine dauerhafte Sperre.</mat-hint>
     </mat-form-field>
   </div>
   <div tafel-dialog-actions>
-    <button testid="okButton" matButton="filled" (click)="dialogRef.close(reasonText())"
-            [disabled]="!reasonText() || reasonText()?.trim()?.length === 0">Speichern</button>
+    <button testid="okButton" matButton="filled" (click)="save()" [disabled]="!canSave()">Speichern</button>
     <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
   </div>
 </tafel-dialog>

@@ -18,6 +18,7 @@ import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
+import at.wrk.tafel.admin.backend.modules.household.HouseholdLockReason
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.PersonGender
@@ -39,6 +40,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.zip.ZipInputStream
 
 @ExtendWith(MockKExtension::class)
@@ -246,6 +248,45 @@ internal class HouseholdExportServiceTest {
             }
         }
         assertThat(entries).containsExactlyInAnyOrder("datenexport.pdf", "daten.json", "passwd")
+    }
+
+    @Test
+    fun `export household - a locked household's master data includes its reason category, description and expiration`() {
+        val household = testHouseholdEntityWithMainPerson()
+        val householdResponse = HouseholdResponse(
+            id = 100,
+            address = HouseholdAddress(street = "Teststraße", houseNumber = "1", postalCode = 1010, city = "Wien"),
+            locked = true,
+            lockedAt = LocalDateTime.now(),
+            lockedBy = "00000 E2E Test",
+            lockReason = "threw a chair",
+            lockReasonType = HouseholdLockReason.BANNED_FROM_PREMISES,
+            lockedUntil = LocalDate.now().plusDays(14),
+        )
+
+        every { householdRepository.findByHouseholdId(100) } returns household
+        every { householdConverter.mapEntityToHousehold(household, any()) } returns householdResponse
+        every { householdNoteRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDescIdDesc(100) } returns emptyList()
+        every { distributionHouseholdRepository.findAllByHouseholdEntityIds(listOf(42L)) } returns emptyList()
+        every { documentRepository.findAllByHouseholdHouseholdIdOrderByCreatedAtDesc(100) } returns emptyList()
+        every { userRepository.findAllById(listOf(testUserEntity.id!!)) } returns listOf(testUserEntity)
+
+        val result = service.exportHousehold(100)
+
+        val entries = mutableMapOf<String, ByteArray>()
+        ZipInputStream(result!!.bytes.inputStream()).use { zip ->
+            var entry = zip.nextEntry
+            while (entry != null) {
+                entries[entry.name] = zip.readBytes()
+                entry = zip.nextEntry
+            }
+        }
+        val masterData = jsonMapper.readTree(entries["daten.json"]).get("masterData")
+        val fieldsByLabel = (0 until masterData.size()).associate { masterData.get(it).get("label").asString() to masterData.get(it).get("value").asString() }
+
+        assertThat(fieldsByLabel["Sperrgrund"]).isEqualTo("Hausverbot")
+        assertThat(fieldsByLabel["Sperrgrund - Beschreibung"]).isEqualTo("threw a chair")
+        assertThat(fieldsByLabel["Gesperrt bis"]).isEqualTo(LocalDate.now().plusDays(14).format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
     }
 
     @Test

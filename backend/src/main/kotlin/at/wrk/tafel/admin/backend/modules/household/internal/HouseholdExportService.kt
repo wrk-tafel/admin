@@ -14,6 +14,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdNoteRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
+import at.wrk.tafel.admin.backend.modules.household.HouseholdLockReason
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.internal.converter.HouseholdConverter
 import at.wrk.tafel.admin.backend.modules.household.internal.document.DocumentStorageService
@@ -78,6 +79,13 @@ class HouseholdExportService(
             DocumentType.ID to "Ausweis",
             DocumentType.PRIVACY_NOTICE to "Datenschutzerklärung (unterschrieben)",
             DocumentType.OTHER to "Sonstiges",
+        )
+
+        private val LOCK_REASON_TITLES = mapOf(
+            HouseholdLockReason.BANNED_FROM_PREMISES to "Hausverbot",
+            HouseholdLockReason.CODE_OF_CONDUCT_VIOLATION to "Verstoß gegen die Hausordnung",
+            HouseholdLockReason.MISUSE_OF_SERVICES to "Missbrauch der Leistungen",
+            HouseholdLockReason.OTHER to "Sonstiger Grund",
         )
     }
 
@@ -194,7 +202,9 @@ class HouseholdExportService(
         if (household.locked == true) {
             fields += HouseholdExportField("Gesperrt seit", household.lockedAt?.format(DATE_TIME_FORMATTER).orDash())
             fields += HouseholdExportField("Gesperrt von", household.lockedBy.orDash())
-            fields += HouseholdExportField("Sperrgrund", household.lockReason.orDash())
+            fields += HouseholdExportField("Sperrgrund", household.lockReasonType?.let { LOCK_REASON_TITLES[it] }.orDash())
+            fields += HouseholdExportField("Sperrgrund - Beschreibung", household.lockReason.orDash())
+            fields += HouseholdExportField("Gesperrt bis", household.lockedUntil?.format(DATE_FORMATTER) ?: "Dauerhaft")
         }
         fields += HouseholdExportField("Ausgestellt am", household.issuedAt?.format(DATE_FORMATTER).orDash())
         fields += HouseholdExportField(

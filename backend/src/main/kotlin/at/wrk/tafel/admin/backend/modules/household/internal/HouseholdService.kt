@@ -741,6 +741,26 @@ class HouseholdService(
     }
 
     /**
+     * Lifts a temporary lock whose [at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.lockedUntil]
+     * has passed - called only by [HouseholdLockExpiryService]. A manual unlock always goes through
+     * [updateHousehold] with a full request body instead, since that path still applies its own
+     * conflict/duplicate/income checks.
+     */
+    @Transactional
+    fun unlockHouseholdByHouseholdId(householdId: Long) {
+        val household = householdRepository.findByHouseholdId(householdId) ?: return
+
+        household.locked = false
+        household.lockedAt = null
+        household.lockedBy = null
+        household.lockReason = null
+        household.lockReasonType = null
+        household.lockedUntil = null
+        householdRepository.saveAndFlush(household)
+        log.debug("Lifted expired temporary lock on household {}", householdId)
+    }
+
+    /**
      * Deleting a household can be one of several steps in a single transaction - e.g. one match
      * among several in a GDPR data-subject-request delete (`DataSubjectRequestService.delete`).
      * Removing the files from disk immediately would mean a later step's failure rolls the database

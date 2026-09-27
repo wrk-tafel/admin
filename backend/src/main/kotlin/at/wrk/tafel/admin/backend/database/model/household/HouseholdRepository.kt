@@ -73,11 +73,21 @@ interface HouseholdRepository :
      * `FOR UPDATE SKIP LOCKED` has no derived-query equivalent. Returns the business number rather
      * than the JPA primary key since that is what `HouseholdService.deleteHouseholdByHouseholdId`
      * takes.
+     *
+     * Excludes a household locked for [HouseholdLockReason.BANNED_FROM_PREMISES] (issue #3753) - kept
+     * around for as long as that lock lasts, regardless of `validUntil`, so the record of a ban is
+     * not lost to routine retention. Written as an explicit null check
+     * (`lock_reason_type is null or <> ...`) rather than
+     * `not (locked and lock_reason_type = 'BANNED_FROM_PREMISES')` - SQL's three-valued logic would
+     * otherwise make that `not` evaluate to `null` (matching neither branch, so excluding the row
+     * from deletion entirely) for a household locked with no reason type, e.g. one predating this
+     * column.
      */
     @Query(
         value = """
             SELECT household_id FROM households
             WHERE valid_until < :cutoff
+            AND (locked = false OR lock_reason_type IS NULL OR lock_reason_type <> 'BANNED_FROM_PREMISES')
             FOR UPDATE SKIP LOCKED
         """,
         nativeQuery = true,
@@ -85,16 +95,61 @@ interface HouseholdRepository :
     fun findExpiredHouseholdIdsSkipLocked(@Param("cutoff") cutoff: LocalDate): List<Long>
 
     /**
-     * How many households `HouseholdRetentionService` will delete once their validity lies before
-     * [cutoff] - the same measure as [findExpiredHouseholdIdsSkipLocked], as a plain count without the
-     * row locks for the advance warning to administrators (`RetentionExpiryReminderService`).
+     * Candidate ids for [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdLockExpiryService]
+     * (issue #3753) - the business `household_id` of every household whose temporary lock
+     * ([HouseholdEntity.lockedUntil]) has passed, locked for the caller's transaction the same way as
+     * [findExpiredHouseholdIdsSkipLocked] (ADR-0047).
      */
-    fun countByValidUntilBefore(cutoff: LocalDate): Long
+    @Query(
+        value = """
+            SELECT household_id FROM households
+            WHERE locked = true AND locked_until IS NOT NULL AND locked_until < :cutoff
+            FOR UPDATE SKIP LOCKED
+        """,
+        nativeQuery = true,
+    )
+    fun findHouseholdIdsWithExpiredLockSkipLocked(@Param("cutoff") cutoff: LocalDate): List<Long>
+
+    /**
+     * How many households `HouseholdRetentionService` will delete once their validity lies before
+     * [cutoff] - the same measure as [findExpiredHouseholdIdsSkipLocked], including its
+     * [HouseholdLockReason.BANNED_FROM_PREMISES] exclusion, as a plain count without the row locks
+     * for the advance warning to administrators (`RetentionExpiryReminderService`). A Kotlin default
+     * method rather than a bare `@Query` so the exclusion's enum value is a bound parameter, not a
+     * JPQL enum literal - Hibernate's HQL parser here rejects a fully-qualified enum literal path
+     * with `SemanticException: Could not interpret path expression`.
+     */
+    fun countByValidUntilBefore(cutoff: LocalDate): Long = countByValidUntilBeforeExcludingLockReason(cutoff, HouseholdLockReason.BANNED_FROM_PREMISES)
+
+    @Query(
+        """
+            select count(h) from Household h
+            where h.validUntil < :cutoff
+            and (h.locked = false or h.lockReasonType is null or h.lockReasonType <> :exemptLockReason)
+        """,
+    )
+    fun countByValidUntilBeforeExcludingLockReason(@Param("cutoff") cutoff: LocalDate, @Param("exemptLockReason") exemptLockReason: HouseholdLockReason): Long
 
     /**
      * The households behind [countByValidUntilBefore], oldest validity first, with their main person
-     * loaded since the "Anstehende Löschungen" screen (`PendingDeletionsService`) names them.
+     * loaded since the "Anstehende Löschungen" screen (`PendingDeletionsService`) names them. Split
+     * into a default method plus a bound-parameter `@Query` for the same reason as
+     * [countByValidUntilBefore].
      */
+    fun findAllByValidUntilBeforeOrderByValidUntilAscIdAsc(cutoff: LocalDate, pageable: Pageable): List<HouseholdEntity> = findAllByValidUntilBeforeExcludingLockReasonOrderByValidUntilAscIdAsc(cutoff, HouseholdLockReason.BANNED_FROM_PREMISES, pageable)
+
+    @Query(
+        """
+            select h from Household h
+            where h.validUntil < :cutoff
+            and (h.locked = false or h.lockReasonType is null or h.lockReasonType <> :exemptLockReason)
+            order by h.validUntil asc, h.id asc
+        """,
+    )
     @EntityGraph(attributePaths = ["mainPerson"])
-    fun findAllByValidUntilBeforeOrderByValidUntilAscIdAsc(cutoff: LocalDate, pageable: Pageable): List<HouseholdEntity>
+    fun findAllByValidUntilBeforeExcludingLockReasonOrderByValidUntilAscIdAsc(
+        @Param("cutoff") cutoff: LocalDate,
+        @Param("exemptLockReason") exemptLockReason: HouseholdLockReason,
+        pageable: Pageable,
+    ): List<HouseholdEntity>
 }
