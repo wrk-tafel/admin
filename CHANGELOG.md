@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Seite "Einstellungen > Anstehende Löschungen" zeigt jetzt auch dann, welche Benutzerkonten, Kunden oder Mitarbeiter demnächst automatisch gelöscht würden, wenn die automatische Löschung für den jeweiligen Bereich abgeschaltet ist - bisher stand dort nur der Hinweis "Die automatische Löschung ist deaktiviert." ohne die Vorschau der betroffenen Datensätze.
+
+## [1.24.0] - 2026-09-27
 - Wer sich anmeldet, obwohl die Zwei-Faktor-Authentifizierung für alle vorgeschrieben ist und noch etwas davon fehlt (eine Methode, eine E-Mail-Adresse, oder beides), richtet das jetzt direkt im Anmelde-Vorgang ein - nicht mehr erst nach dem Einloggen in "Mein Konto".
 - Ist die Zwei-Faktor-Authentifizierung für alle vorgeschrieben, braucht jedes Benutzerkonto jetzt eine E-Mail-Adresse, unabhängig von der gewählten Methode; das Leeren des Felds unter "Meine Daten" oder in der Benutzerverwaltung wird dann mit einer Fehlermeldung abgelehnt.
 - Bei der Zwei-Faktor-Authentifizierung ist die Authenticator-App jetzt als "Empfohlen" gekennzeichnet und wird zuerst angeboten - ein Code aus einer App gilt als sicherer als einer per E-Mail.

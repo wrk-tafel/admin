@@ -535,8 +535,9 @@ sent to the "Zugriff nicht erlaubt" login page.
 - **Every state of a list is its own element:** `pending-<kind>-loading` (first load only),
   `pending-<kind>-error` with `pending-<kind>-retry`, `pending-<kind>-empty` ("Keine ... in den
   nächsten 30 Tagen fällig.") and `pending-<kind>-disabled` (the job is switched off - the backend
-  sends `enabled: false` and no items, and the section says "Die automatische Löschung ist
-  deaktiviert." instead of an empty list). The requests opt out of the generic error toast, since the
+  sends `enabled: false`, but `items` still previews what the job would delete once switched back on;
+  the section shows both the "Die automatische Löschung ist deaktiviert." hint and the list/table
+  below it, rather than hiding the data). The requests opt out of the generic error toast, since the
   section owns presenting its error.
 - **"Fällig" chip** (`pending-<user|household|employee>-overdue-<id>`) on every row whose deletion
   date is today or earlier, i.e. what the next run of the job removes. Everything else on the screen
