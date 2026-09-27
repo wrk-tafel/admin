@@ -66,15 +66,33 @@ describe('User Edit', () => {
     });
   });
 
-  it('the employee already linked to the account is resolved on load', () => {
+  it('personnel number and name are plain fields, filled from the account', () => {
     cy.createDummyUser().then((response) => {
       const user = response.body;
 
       cy.visit('/benutzer/bearbeiten/' + user.id);
 
-      cy.byTestId('personnelNumberInput').should('not.exist');
-      cy.byTestId('selectedEmployeeDescription')
-        .should('have.text', `${user.personnelNumber} ${user.firstname} ${user.lastname}`);
+      cy.byTestId('personnelNumberInput').should('have.value', user.personnelNumber);
+      cy.byTestId('lastnameInput').should('have.value', user.lastname);
+      cy.byTestId('firstnameInput').should('have.value', user.firstname);
+      cy.byTestId('user-employee-search-button').should('not.exist');
+      cy.byTestId('selectedEmployeeDescription').should('not.exist');
+    });
+  });
+
+  it('changes the personnel number and the name of the account', () => {
+    cy.createDummyUser().then((response) => {
+      const user = response.body;
+
+      cy.visit('/benutzer/bearbeiten/' + user.id);
+      cy.byTestId('personnelNumberInput').clear().type('changed-' + user.personnelNumber);
+      cy.byTestId('lastnameInput').clear().type('Changed');
+      cy.byTestId('firstnameInput').clear().type('Person');
+      cy.byTestId('save-button').click();
+
+      cy.url().should('contain', '/benutzer/detail/' + user.id);
+      cy.byTestId('personnelNumberText').should('have.text', 'changed-' + user.personnelNumber);
+      cy.byTestId('nameText').should('have.text', 'Changed Person');
     });
   });
 

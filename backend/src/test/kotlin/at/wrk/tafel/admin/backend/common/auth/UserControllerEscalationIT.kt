@@ -174,9 +174,9 @@ class UserControllerEscalationIT : TafelBaseIntegrationTest() {
     private fun updateRequestFor(user: UserEntity) = UserRequest(
         id = user.id,
         username = user.username,
-        personnelNumber = user.employee.personnelNumber,
-        firstname = user.employee.firstname,
-        lastname = user.employee.lastname,
+        personnelNumber = user.personnelNumber,
+        firstname = user.firstname,
+        lastname = user.lastname,
         enabled = user.enabled,
         passwordChangeRequired = user.passwordChangeRequired,
         permissions = user.authorities.map { UserPermissionItem(key = it.name, title = it.name, category = "") },

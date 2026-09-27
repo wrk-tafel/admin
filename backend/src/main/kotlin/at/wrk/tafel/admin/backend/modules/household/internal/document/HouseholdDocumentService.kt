@@ -305,8 +305,8 @@ class HouseholdDocumentService(
     }
 
     private fun mapToItem(entity: DocumentEntity): DocumentItem {
-        val employee = entity.uploadedByUser?.employee
-        val uploadedBy = listOfNotNull(employee?.personnelNumber, employee?.firstname, employee?.lastname)
+        val uploader = entity.uploadedByUser
+        val uploadedBy = listOfNotNull(uploader?.personnelNumber, uploader?.firstname, uploader?.lastname)
             .joinToString(" ")
             .ifBlank { null }
 

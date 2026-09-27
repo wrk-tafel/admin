@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.database.model.logistics
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
@@ -21,7 +21,8 @@ class RouteStopCompletionEntity(
     var completionDate: LocalDate,
 ) : BaseChangeTrackingEntity() {
 
+    /** The account that ticked the stop off; empty once that account has been deleted. */
     @ManyToOne
-    @JoinColumn(name = "employee_id", nullable = true)
-    var employee: EmployeeEntity? = null
+    @JoinColumn(name = "completed_by_user_id", nullable = true)
+    var completedBy: UserEntity? = null
 }

@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.common.test
 
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -22,11 +21,9 @@ object TestdataGenerator {
         return UserEntity(
             username = "testuser-$randomNumber",
             password = "dummy",
-            employee = EmployeeEntity(
-                personnelNumber = randomNumber.toString(),
-                firstname = "firstname-$randomNumber",
-                lastname = "lastname-$randomNumber",
-            ),
+            personnelNumber = randomNumber.toString(),
+            firstname = "firstname-$randomNumber",
+            lastname = "lastname-$randomNumber",
             enabled = true,
             passwordChangeRequired = false,
         )
@@ -41,7 +38,7 @@ object TestdataGenerator {
      * Creates a household including its main person - the household's `mainPerson` pointer is
      * deliberately left unset, it can only be written after both rows exist (see HouseholdService).
      */
-    fun createHousehold(issuer: EmployeeEntity, country: CountryEntity): HouseholdEntity {
+    fun createHousehold(issuer: UserEntity, country: CountryEntity): HouseholdEntity {
         val randomNumber = generateRandomLong()
 
         val household = HouseholdEntity(

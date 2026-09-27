@@ -7,6 +7,7 @@ import {MatError, MatFormField, MatHint, MatInput, MatLabel} from '@angular/mate
 import {MfaApiService} from '../../../../api/mfa-api.service';
 import {UserAccountData, UserAccountRequest, UserApiService} from '../../../../api/user-api.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
+import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
@@ -42,6 +43,7 @@ export class UserAccountDataComponent {
   private readonly userApiService = inject(UserApiService);
   private readonly mfaApiService = inject(MfaApiService);
   private readonly toastr = inject(TafelToastrService);
+  private readonly authenticationService = inject(AuthenticationService);
 
   /** `null` until the account has been read. */
   account = signal<UserAccountData | null>(null);
@@ -121,6 +123,8 @@ export class UserAccountDataComponent {
         this.show(account);
         this.working.set(false);
         this.toastr.success('Daten gespeichert!');
+        // the header's avatar shows the initials of the name that was just changed
+        void this.authenticationService.loadUserInfo();
       },
       error: (error: HttpErrorResponse) => {
         this.working.set(false);

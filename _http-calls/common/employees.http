@@ -10,7 +10,7 @@ POST {{baseApiPath}}/employees/search
 Content-Type: application/json
 
 {
-  "searchInput": "00000"
+  "searchInput": "02000"
 }
 
 ### Find employees by searchInput (firstname)
@@ -18,7 +18,7 @@ POST {{baseApiPath}}/employees/search
 Content-Type: application/json
 
 {
-  "searchInput": "scan"
+  "searchInput": "fahr"
 }
 
 ### Find employees by searchInput (lastname)
@@ -26,7 +26,7 @@ POST {{baseApiPath}}/employees/search
 Content-Type: application/json
 
 {
-  "searchInput": "User"
+  "searchInput": "Beifahrer"
 }
 
 ### Save new employee

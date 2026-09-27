@@ -50,8 +50,9 @@ configuration): "required" means *at least one method*, and the last one cannot 
 - **A required second factor gates the session the same way.** When it is required and the user has no
   method, `TafelJwtAuthProvider` grants no permissions and the filter lets through only what sets a method up
   (a second, narrower allow-list) - computed per request, like the pending state, so switching the setting on
-  reaches sessions that are already open. The frontend guard sends every route but the account page's
-  `zwei-faktor` tab there.
+  reaches sessions that are already open. The frontend guard sends every route to a dedicated setup page in the
+  login flow (see [ADR-0061](0061-mandatory-two-factor-setup-happens-in-the-login-flow.md) for where that page
+  lives and why).
 - **E-mail codes are single-use, short-lived and rate-limited.** One live code per user (`mfa_email_codes`),
   deleted when accepted, expiring after `tafeladmin.mfa.emailCodeValidity`, and a new one only after
   `emailCodeCooldown` - otherwise the send endpoint would fill somebody's mailbox (it is also rate-limited per
@@ -83,9 +84,11 @@ configuration): "required" means *at least one method*, and the last one cannot 
   have no method yet locks them out of everything but the setup page - which is where they can fix it. It is a
   config property and not a setting in the UI on purpose: it is a deployment decision, and an administrator
   cannot lock everyone out from a screen.
-- **The e-mail address is optional, so the e-mail method is not offered to everyone.** A user without an
-  address sees why on the setup page and can use the app instead; an account created before the column
-  existed has none until someone enters it.
+- **The e-mail address is optional in general, so the e-mail method is not offered to everyone.** A user without
+  an address sees why on the setup page and can use the app instead; an account created before the column
+  existed has none until someone enters it. While the deployment requires a second factor, the address itself
+  becomes mandatory regardless of the method chosen - see
+  [ADR-0062](0062-mandatory-mfa-also-requires-an-email-address.md).
 - **The e-mail code is only as strong as the mailbox.** That is why a user can have both methods, and why the
   requirement asks for *a* method rather than for the app.
 - **The stored hash of a code does not protect it.** A 6-digit code can be brute-forced from its SHA-256 in

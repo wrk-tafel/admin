@@ -140,8 +140,21 @@ describe('User Detail', () => {
 
       cy.visit('/benutzer/detail/' + userId);
 
+      // asks first, with the same dialog as the trash button in the user search
       cy.byTestId('changeUserStateButton').click();
       cy.byTestId('deleteUserButton').click();
+      cy.byTestId('deleteuser-dialog').should('be.visible');
+      cy.byTestId('deleteuser-dialog').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+      cy.byTestId('deleteuser-dialog').should('not.exist');
+      cy.url().should('include', '/benutzer/detail/' + userId);
+
+      cy.byTestId('changeUserStateButton').click();
+      cy.byTestId('deleteUserButton').click();
+      cy.byTestId('deleteuser-dialog').within(() => {
+        cy.byTestId('okButton').click();
+      });
 
       cy.url().should('include', '/benutzer/suchen');
 

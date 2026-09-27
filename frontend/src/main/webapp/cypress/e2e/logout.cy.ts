@@ -108,6 +108,39 @@ describe('Logout', () => {
     cy.then(() => expect(openDistributionStreams()).to.have.length(1));
   });
 
+  describe('with a running distribution', () => {
+
+    afterEach(() => {
+      cy.closeDistribution();
+    });
+
+    /**
+     * The server sends the current distribution once, when a stream opens, and only changes after
+     * that. A volunteer logging out and the next one logging in on the same computer must therefore
+     * end up on a new stream: keeping the old one open left the dashboard on "Geschlossen" for the
+     * whole rest of a distribution that was running all along.
+     *
+     * An e2e case because it takes a real stream surviving (or not) a real navigation through the
+     * login page - a unit spec with a mocked `SseService` only sees the calls it is told about.
+     */
+    it('shows the running distribution after a logout/login round trip in the same tab', () => {
+      cy.createDistribution();
+      cy.visit('/uebersicht');
+      cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
+
+      cy.byTestId('usermenu').click();
+      cy.byTestId('usermenu-logout').click();
+      cy.url().should('include', '/login');
+
+      cy.byTestId('username').type('e2etest');
+      cy.byTestId('password').type('e2etest');
+      cy.byTestId('loginButton').click();
+
+      cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
+    });
+
+  });
+
   it('remains usable on a phone viewport', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.visit('/#');

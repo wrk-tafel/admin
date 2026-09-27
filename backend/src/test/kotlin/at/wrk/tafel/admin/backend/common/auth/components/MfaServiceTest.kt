@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.common.auth.model.MfaMethod
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
@@ -50,7 +49,9 @@ class MfaServiceTest {
         user = UserEntity(
             username = "max",
             password = "hash",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "Max", lastname = "Muster"),
+            personnelNumber = "1",
+            firstname = "Max",
+            lastname = "Muster",
             enabled = true,
         ).apply {
             id = 7

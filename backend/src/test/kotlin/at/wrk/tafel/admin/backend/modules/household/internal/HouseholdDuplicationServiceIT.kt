@@ -282,7 +282,7 @@ class HouseholdDuplicationServiceIT : TafelBaseIntegrationTest() {
     }
 
     private fun persistHousehold(firstname: String, lastname: String, street: String, houseNumber: String): HouseholdEntity {
-        val household = createHousehold(testUser.employee!!, testCountry).apply {
+        val household = createHousehold(testUser!!, testCountry).apply {
             addressStreet = street
             addressHouseNumber = houseNumber
             persons.first { it.isMainPerson }.apply {

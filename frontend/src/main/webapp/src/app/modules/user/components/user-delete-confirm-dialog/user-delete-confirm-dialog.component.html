@@ -1,0 +1,18 @@
+<tafel-dialog testId="deleteuser-dialog" type="warning" title="Benutzer löschen">
+  <div tafel-dialog-content>
+    <div class="mb-2" testid="deleteuser-message">
+      Der Benutzer <strong testid="deleteuser-name">{{data.username}}</strong>
+      @if (data.name) {
+        <span testid="deleteuser-fullname">({{data.name}})</span>
+      }
+      wird endgültig gelöscht und kann sich nicht mehr anmelden. Das lässt sich nicht rückgängig machen.
+      Von diesem Benutzer angelegte Kunden und Notizen bleiben erhalten und zeigen stattdessen
+      "Mitarbeiter gelöscht" an.
+    </div>
+    <div class="font-bold mt-6">Sicher?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(true)">Löschen</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

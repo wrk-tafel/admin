@@ -50,7 +50,7 @@ class EmployeeRetentionServiceTest {
     }
 
     @Test
-    fun `deletes every unreferenced employee expired past the configured retention window`() {
+    fun `deletes every employee expired past the configured retention window`() {
         properties.employeeDeletion.retentionTime = Period.ofYears(3)
         every { employeeRepository.findExpiredEmployeeIdsSkipLocked(any()) } returns listOf(2001L, 2002L)
 
@@ -70,14 +70,14 @@ class EmployeeRetentionServiceTest {
      * decision rather than a tuning knob - worth failing a test if it is changed by accident.
      */
     @Test
-    fun `keeps seven years by default`() {
+    fun `keeps two years by default`() {
         every { employeeRepository.findExpiredEmployeeIdsSkipLocked(any()) } returns emptyList()
 
         service.cleanupExpiredEmployees()
 
         val cutoff = slot<LocalDateTime>()
         verify { employeeRepository.findExpiredEmployeeIdsSkipLocked(capture(cutoff)) }
-        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2019, 8, 25, 6, 30))
+        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2024, 8, 25, 6, 30))
     }
 
     /**

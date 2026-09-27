@@ -3,7 +3,7 @@ import {CustomerIssuer} from '../../api/customer-api.service';
 
 /**
  * A household always gets an issuer at creation (see `HouseholdConverter.mapHouseholdToEntity`), so
- * a missing one here only ever means that employee has since been deleted - employees are personal
+ * a missing one here only ever means that user account has since been deleted - accounts are personal
  * data and stay deletable even once referenced as a household's issuer.
  */
 @Pipe({

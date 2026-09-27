@@ -135,7 +135,7 @@ class RouteGuidanceServiceTest {
                 .apply {
                     id = 1
                     createdAt = completedAt
-                    employee = testUserEntity.employee
+                    completedBy = testUserEntity
                 },
         )
 
@@ -236,7 +236,7 @@ class RouteGuidanceServiceTest {
                 match<RouteStopCompletionEntity> {
                     it.routeStop.id == 11L &&
                         it.completionDate == LocalDate.now() &&
-                        it.employee == testUserEntity.employee
+                        it.completedBy == testUserEntity
                 },
             )
         }
@@ -251,7 +251,7 @@ class RouteGuidanceServiceTest {
         ).apply {
             id = 1
             createdAt = LocalDateTime.of(2026, 8, 9, 8, 15)
-            employee = testUserEntity.employee
+            completedBy = testUserEntity
         }
         every { routeStopCompletionRepository.findByRouteStopIdAndCompletionDate(11, LocalDate.now()) } returns existing
 

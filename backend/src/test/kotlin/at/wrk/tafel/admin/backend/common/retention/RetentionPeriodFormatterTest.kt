@@ -13,8 +13,14 @@ class RetentionPeriodFormatterTest {
     }
 
     @Test
+    fun `uses the singular for exactly one year, month or day`() {
+        assertThat(RetentionPeriodFormatter.format(Period.ofYears(1))).isEqualTo("1 Jahr")
+        assertThat(RetentionPeriodFormatter.format(Period.of(0, 1, 1))).isEqualTo("1 Monat 1 Tag")
+    }
+
+    @Test
     fun `formats a mixed years-and-months period`() {
-        assertThat(RetentionPeriodFormatter.format(Period.of(1, 6, 0))).isEqualTo("1 Jahren 6 Monaten")
+        assertThat(RetentionPeriodFormatter.format(Period.of(1, 6, 0))).isEqualTo("1 Jahr 6 Monaten")
     }
 
     @Test
@@ -34,7 +40,7 @@ class RetentionPeriodFormatterTest {
 
     @Test
     fun `formats a mixed minutes-and-seconds duration`() {
-        assertThat(RetentionPeriodFormatter.format(Duration.ofSeconds(90))).isEqualTo("1 Minuten 30 Sekunden")
+        assertThat(RetentionPeriodFormatter.format(Duration.ofSeconds(90))).isEqualTo("1 Minute 30 Sekunden")
     }
 
     @Test

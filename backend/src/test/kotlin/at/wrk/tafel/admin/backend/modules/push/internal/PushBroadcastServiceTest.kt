@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
@@ -57,7 +56,9 @@ internal class PushBroadcastServiceTest {
         user = UserEntity(
             username = "user-$userId",
             password = "pw",
-            employee = EmployeeEntity(personnelNumber = "p-$userId", firstname = "first", lastname = "last"),
+            personnelNumber = "p-$userId",
+            firstname = "first",
+            lastname = "last",
             enabled = enabled,
         ).apply {
             this.id = userId

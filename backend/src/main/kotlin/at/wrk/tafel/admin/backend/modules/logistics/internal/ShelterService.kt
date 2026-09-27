@@ -43,8 +43,8 @@ class ShelterService(
             sortOrder = nextSortOrder(),
             enabled = shelter.enabled,
         ).apply {
-            addressStairway = shelter.addressStairway
-            addressDoor = shelter.addressDoor
+            addressStairway = shelter.addressStairway?.takeIf { it.isNotBlank() }?.trim()
+            addressDoor = shelter.addressDoor?.takeIf { it.isNotBlank() }?.trim()
             note = shelter.note
         }
 
@@ -90,10 +90,10 @@ class ShelterService(
         shelterEntity.name = updatedShelter.name
         shelterEntity.addressStreet = updatedShelter.addressStreet
         shelterEntity.addressHouseNumber = updatedShelter.addressHouseNumber
-        shelterEntity.addressStairway = updatedShelter.addressStairway
+        shelterEntity.addressStairway = updatedShelter.addressStairway?.takeIf { it.isNotBlank() }?.trim()
         shelterEntity.addressPostalCode = updatedShelter.addressPostalCode
         shelterEntity.addressCity = updatedShelter.addressCity
-        shelterEntity.addressDoor = updatedShelter.addressDoor
+        shelterEntity.addressDoor = updatedShelter.addressDoor?.takeIf { it.isNotBlank() }?.trim()
         shelterEntity.note = updatedShelter.note
         shelterEntity.personsCount = updatedShelter.personsCount
         shelterEntity.enabled = updatedShelter.enabled

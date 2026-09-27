@@ -107,12 +107,18 @@ export class DefaultHeaderComponent {
   readonly environmentLabel = computed(() => this.appConfig()?.environmentLabel ?? '');
 
   /**
-   * Two letters for the avatar: the first letters of the first two words of the username
-   * ("max.mustermann" -> "MM"), or its first two characters when it is a single word.
+   * Two letters for the avatar: the first letter of the first name and of the last name
+   * ("Max Mustermann" -> "MM"). Without a name (an older backend, still running during a rolling
+   * deploy, does not send one) it falls back to the username: the first letters of its first two
+   * words, or its first two characters when it is a single word.
    */
   readonly userInitials = computed(() => {
-    const username = this.authenticationService.userInfo()?.username ?? '';
-    const words = username.split(/[^\p{L}\p{N}]+/u).filter(word => word.length > 0);
+    const userInfo = this.authenticationService.userInfo();
+    const nameInitials = (userInfo?.firstname?.trim()[0] ?? '') + (userInfo?.lastname?.trim()[0] ?? '');
+    if (nameInitials) {
+      return nameInitials.toUpperCase();
+    }
+    const words = (userInfo?.username ?? '').split(/[^\p{L}\p{N}]+/u).filter(word => word.length > 0);
     const initials = words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? '').slice(0, 2);
     return initials.toUpperCase() || '?';
   });

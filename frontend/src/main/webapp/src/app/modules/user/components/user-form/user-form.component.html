@@ -15,42 +15,13 @@
             <mat-error>{{errorMessage}}</mat-error>
           }
         </mat-form-field>
-        <div>
-          @if (!selectedEmployee()) {
-            <div class="flex gap-2 items-start">
-              <mat-form-field class="w-full">
-                <mat-label>Personalnummer</mat-label>
-                <input matInput testid="personnelNumberInput" type="text" placeholder="Personalnummer / Name"
-                       [formField]="userForm.personnelNumber" (keyup.enter)="triggerEmployeeSearch()">
-                @for (errorMessage of visibleErrorMessages(userForm.personnelNumber()); track errorMessage) {
-                  <mat-error>{{errorMessage}}</mat-error>
-                }
-              </mat-form-field>
-              <!--
-                Resolves against the real employee list instead of accepting free text, so an
-                account can no longer be saved against a personnel number nobody holds - the same
-                search/select/create-if-missing widget logistics uses for driver/co-driver.
-              -->
-              <tafel-employee-search-create #employeeSearchCreate testIdPrefix="user"
-                                            [searchInput]="userForm.personnelNumber().value()"
-                                            (selectedEmployee)="setSelectedEmployee($event)"/>
-            </div>
-          } @else {
-            <div class="font-medium mb-1">Personalnummer</div>
-            <div class="flex items-center justify-between gap-2">
-              <div testid="selectedEmployeeDescription">{{selectedEmployee()!.personnelNumber}} {{selectedEmployee()!.firstname}} {{selectedEmployee()!.lastname}}</div>
-              <button type="button" matButton="filled" class="button-danger" testid="selectedEmployeeRemoveButton"
-                      aria-label="Mitarbeiter-Verknüpfung entfernen" (click)="resetSelectedEmployee()">
-                <mat-icon svgIcon="close"></mat-icon>
-              </button>
-            </div>
+        <mat-form-field>
+          <mat-label>Personalnummer</mat-label>
+          <input matInput [formField]="userForm.personnelNumber" testid="personnelNumberInput" type="text">
+          @for (errorMessage of visibleErrorMessages(userForm.personnelNumber()); track errorMessage) {
+            <mat-error>{{errorMessage}}</mat-error>
           }
-        </div>
-      </div>
-      <div class="flex items-center gap-1 mt-2">
-        <span class="tafel-h6 font-semibold">Name des Mitarbeiters</span>
-        <tafel-info-tooltip testId="employee-name-info-tooltip"
-                            text="Wird aus dem über die Personalnummer-Suche verknüpften Mitarbeiter übernommen und kann hier korrigiert werden - die Änderung wirkt sich auf den Mitarbeiter-Datensatz aus."></tafel-info-tooltip>
+        </mat-form-field>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2">
         <mat-form-field>

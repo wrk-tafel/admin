@@ -6,7 +6,6 @@ import at.wrk.tafel.admin.backend.common.retention.RetentionRunAlertReason
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -93,14 +92,14 @@ class UserRetentionServiceTest {
      * decision rather than a tuning knob - worth failing a test if it is changed by accident.
      */
     @Test
-    fun `keeps seven years by default`() {
+    fun `keeps one year by default`() {
         every { userRepository.findExpiredUserIdsSkipLocked(any(), any()) } returns emptyList()
 
         service.cleanupExpiredUsers()
 
         val cutoff = slot<LocalDateTime>()
         verify { userRepository.findExpiredUserIdsSkipLocked(capture(cutoff), any()) }
-        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2019, 8, 25, 6, 15))
+        assertThat(cutoff.captured).isEqualTo(LocalDateTime.of(2025, 8, 25, 6, 15))
     }
 
     /**
@@ -188,7 +187,9 @@ class UserRetentionServiceTest {
     private fun testUser(id: Long, username: String) = UserEntity(
         username = username,
         password = "irrelevant",
-        employee = EmployeeEntity(personnelNumber = "$id", firstname = "first", lastname = "last"),
+        personnelNumber = "$id",
+        firstname = "first",
+        lastname = "last",
         enabled = true,
     ).apply { this.id = id }
 }

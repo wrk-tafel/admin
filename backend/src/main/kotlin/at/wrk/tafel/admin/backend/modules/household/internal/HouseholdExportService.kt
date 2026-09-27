@@ -224,8 +224,7 @@ class HouseholdExportService(
         }
 
     private fun buildNoteRows(notes: List<HouseholdNoteEntity>, actorNames: Map<Long, String>): List<HouseholdExportNoteRow> = notes.map {
-        val employee = it.employee
-        val author = employee?.let { e -> "${e.personnelNumber} ${e.firstname} ${e.lastname}" } ?: "Mitarbeiter gelöscht"
+        val author = it.author?.let { u -> "${u.personnelNumber} ${u.firstname} ${u.lastname}" } ?: "Mitarbeiter gelöscht"
 
         HouseholdExportNoteRow(
             timestamp = it.createdAt!!.format(DATE_TIME_FORMATTER),
@@ -251,7 +250,7 @@ class HouseholdExportService(
             documentType = DOCUMENT_TYPE_TITLES[it.documentType] ?: it.documentType.name,
             uploadedAt = it.createdAt?.format(DATE_TIME_FORMATTER).orDash(),
             person = it.person?.let { p -> listOfNotNull(p.lastname, p.firstname).joinToString(" ") }.orDash(),
-            uploadedBy = it.uploadedByUser?.let { u -> "${u.employee.personnelNumber} ${u.employee.firstname} ${u.employee.lastname}" }.orDash(),
+            uploadedBy = it.uploadedByUser?.let { u -> "${u.personnelNumber} ${u.firstname} ${u.lastname}" }.orDash(),
         )
     }
 
@@ -265,7 +264,7 @@ class HouseholdExportService(
         if (distinctIds.isEmpty()) return emptyMap()
 
         return userRepository.findAllById(distinctIds).associate {
-            it.id!! to "${it.employee.personnelNumber} ${it.employee.firstname} ${it.employee.lastname}"
+            it.id!! to "${it.personnelNumber} ${it.firstname} ${it.lastname}"
         }
     }
 

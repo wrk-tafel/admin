@@ -42,7 +42,7 @@ describe('DataSubjectRequestApiService', () => {
   });
 
   it('deleteMatches posts the selected matches', () => {
-    const matches: DataSubjectMatch[] = [{type: 'EMPLOYEE_WITHOUT_ACCOUNT', id: 3}];
+    const matches: DataSubjectMatch[] = [{type: 'EMPLOYEE', id: 3}];
 
     apiService.deleteMatches(matches).subscribe();
 

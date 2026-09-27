@@ -6,7 +6,6 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.MalformedJwtException
 import io.jsonwebtoken.impl.DefaultClaims
@@ -76,7 +75,9 @@ internal class TafelJwtAuthProviderTest {
         val userEntity = UserEntity(
             username = username,
             password = "pwd",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            personnelNumber = "1",
+            firstname = "test",
+            lastname = "test",
             enabled = true,
         )
         userEntity.id = 42
@@ -114,7 +115,9 @@ internal class TafelJwtAuthProviderTest {
         val userEntity = UserEntity(
             username = username,
             password = "pwd",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            personnelNumber = "1",
+            firstname = "test",
+            lastname = "test",
             enabled = true,
         )
         userEntity.authorities = mutableListOf(UserAuthorityEntity(user = userEntity, name = UserPermissions.ADMINISTRATOR.key))
@@ -141,7 +144,9 @@ internal class TafelJwtAuthProviderTest {
         val userEntity = UserEntity(
             username = username,
             password = "pwd",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            personnelNumber = "1",
+            firstname = "test",
+            lastname = "test",
             enabled = true,
             passwordChangeRequired = true,
         )
@@ -153,16 +158,19 @@ internal class TafelJwtAuthProviderTest {
         assertThat(resultingAuthentication.authorities).isEmpty()
     }
 
-    private fun mfaUser(mfaEnabled: Boolean = false, emailEnabled: Boolean = false): UserEntity {
+    private fun mfaUser(mfaEnabled: Boolean = false, emailEnabled: Boolean = false, email: String? = null): UserEntity {
         val userEntity = UserEntity(
             username = "SUBJ",
             password = "pwd",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            personnelNumber = "1",
+            firstname = "test",
+            lastname = "test",
             enabled = true,
         )
         userEntity.id = 42
         userEntity.mfaTotpEnabled = mfaEnabled
         userEntity.mfaEmailEnabled = emailEnabled
+        userEntity.email = email
         userEntity.authorities = mutableListOf(UserAuthorityEntity(user = userEntity, name = UserPermissions.CHECKIN.key))
         every { userRepository.findByUsername("SUBJ") } returns userEntity
         return userEntity
@@ -252,16 +260,41 @@ internal class TafelJwtAuthProviderTest {
     }
 
     @Test
-    fun `authenticate does not ask a user who has a method to set one up, and asks nobody while it is not required`() {
+    fun `authenticate does not ask a user who has a method and an address to set one up, and asks nobody while it is not required`() {
         val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
         every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims(JwtTokenService.MFA_CLAIM to true)
 
         properties.mfa.required = true
-        mfaUser(mfaEnabled = true)
+        mfaUser(mfaEnabled = true, email = "user@example.org")
         assertThat(provider.authenticate(authentication).mfaSetupRequired).isFalse()
 
         properties.mfa.required = false
         mfaUser()
+        assertThat(provider.authenticate(authentication).mfaSetupRequired).isFalse()
+    }
+
+    // ADR-0062: the address itself is mandatory while the deployment requires a second factor, not just a
+    // prerequisite for choosing the e-mail method - a user whose only method is the app still owes one.
+    @Test
+    fun `authenticate asks a user who has a method but no address to add one, while it is required`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims(JwtTokenService.MFA_CLAIM to true)
+        properties.mfa.required = true
+        mfaUser(mfaEnabled = true, email = null)
+
+        val result = provider.authenticate(authentication)
+
+        assertThat(result.authorities).isEmpty()
+        assertThat(result.mfaSetupRequired).isTrue()
+    }
+
+    @Test
+    fun `authenticate does not ask a user with no method for an address while it is not required`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims()
+        properties.mfa.required = false
+        mfaUser(email = null)
+
         assertThat(provider.authenticate(authentication).mfaSetupRequired).isFalse()
     }
 
@@ -321,7 +354,9 @@ internal class TafelJwtAuthProviderTest {
         every { userRepository.findByUsername(username) } returns UserEntity(
             username = username,
             password = "pwd",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            personnelNumber = "1",
+            firstname = "test",
+            lastname = "test",
             enabled = false,
         )
 
@@ -348,7 +383,9 @@ internal class TafelJwtAuthProviderTest {
         val userEntity = UserEntity(
             username = username,
             password = "pwd",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            personnelNumber = "1",
+            firstname = "test",
+            lastname = "test",
             enabled = true,
         ).apply { tokenInvalidatedAt = now.minusMinutes(1) }
         every { userRepository.findByUsername(username) } returns userEntity
@@ -376,7 +413,9 @@ internal class TafelJwtAuthProviderTest {
         val userEntity = UserEntity(
             username = username,
             password = "pwd",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            personnelNumber = "1",
+            firstname = "test",
+            lastname = "test",
             enabled = true,
         ).apply { tokenInvalidatedAt = now.minusMinutes(1) }
         every { userRepository.findByUsername(username) } returns userEntity
@@ -412,7 +451,9 @@ internal class TafelJwtAuthProviderTest {
         val userEntity = UserEntity(
             username = username,
             password = "pwd",
-            employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+            personnelNumber = "1",
+            firstname = "test",
+            lastname = "test",
             enabled = true,
             // Later in the same second as issuedAtSecond - would fail a naive `issuedAt.isAfter(x)`
             // comparison, since issuedAt was truncated down to the start of that second.
@@ -459,7 +500,9 @@ internal class TafelJwtAuthProviderTest {
             val userEntity = UserEntity(
                 username = username,
                 password = "pwd",
-                employee = EmployeeEntity(personnelNumber = "1", firstname = "test", lastname = "test"),
+                personnelNumber = "1",
+                firstname = "test",
+                lastname = "test",
                 enabled = true,
             ).apply { this.tokenInvalidatedAt = tokenInvalidatedAt }
             every { userRepository.findByUsername(username) } returns userEntity

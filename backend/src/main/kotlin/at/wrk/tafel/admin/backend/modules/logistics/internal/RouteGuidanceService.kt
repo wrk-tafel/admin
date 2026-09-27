@@ -117,7 +117,7 @@ class RouteGuidanceService(
             // carry no completion time until the next read.
             existingCompletion ?: routeStopCompletionRepository.saveAndFlush(
                 RouteStopCompletionEntity(routeStop = stop, completionDate = date).apply {
-                    employee = currentEmployee()
+                    completedBy = currentUser()
                 },
             )
         }
@@ -187,17 +187,16 @@ class RouteGuidanceService(
             .associateBy { it.routeStop.id }
     }
 
-    private fun currentEmployee() = (SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication)
+    private fun currentUser() = (SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication)
         ?.username
         ?.let { userRepository.findByUsername(it) }
-        ?.employee
 
     private fun mapStop(
         stop: RouteStopEntity,
         completion: RouteStopCompletionEntity?,
         returnItems: List<RouteGuidanceReturnItem>,
     ): RouteGuidanceStopItem {
-        val employee = completion?.employee
+        val completedBy = completion?.completedBy
 
         return RouteGuidanceStopItem(
             stopId = stop.id!!,
@@ -217,7 +216,7 @@ class RouteGuidanceService(
             },
             completed = completion != null,
             completedAt = completion?.createdAt,
-            completedBy = listOfNotNull(employee?.firstname, employee?.lastname)
+            completedBy = listOfNotNull(completedBy?.firstname, completedBy?.lastname)
                 .joinToString(" ")
                 .ifBlank { null },
             returnItems = returnItems.sortedBy { it.description },

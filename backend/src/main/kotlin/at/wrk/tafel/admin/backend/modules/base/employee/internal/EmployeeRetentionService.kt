@@ -13,21 +13,16 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * GDPR gap G13 - the `employees` half of what `UserRetentionService` does for `users`. An employee no
- * longer referenced by any other table is deleted through the same
- * [EmployeeService.deleteEmployee] a staff member's manual delete uses, once its row hasn't been
- * written to in longer than the configured window - see
- * [EmployeeRepository.findExpiredEmployeeIdsSkipLocked]'s KDoc for the full list of tables checked,
- * and `TafelAdminEmployeeRetentionProperties`'s KDoc for the window itself.
+ * GDPR gap G13 - the `employees` half of what `UserRetentionService` does for `users`. An employee who
+ * has not been used for longer than the configured window is deleted through the same
+ * [EmployeeService.deleteEmployee] a staff member's manual delete uses. Used means named as driver or
+ * co-driver on a food collection; the employee's own row is not what counts, it hardly ever changes -
+ * see [EmployeeRepository.findExpiredEmployeeIdsSkipLocked]'s KDoc for exactly what is measured, and
+ * `TafelAdminEmployeeRetentionProperties`'s KDoc for the window itself. The food collections stay and
+ * show "Mitarbeiter gelöscht" for the deleted driver.
  *
- * [EmployeeRepository.findExpiredEmployeeIdsSkipLocked] already excludes any employee referenced
- * anywhere, so `deleteEmployee`'s own guard against a linked user account never actually fires here -
- * it stays in place because that method is also the manual `DELETE /api/employees/{employeeId}`
- * endpoint's, and is what protects against a user account getting (re)linked between the candidate
- * select and this transaction's delete.
- *
- * Runs once a night, at 06:30 - after `UserRetentionService` (06:15), so an employee whose only user
- * account is deleted the same night is a candidate for the very next run rather than an extra day.
+ * Employees are independent of user accounts, so this job runs on its own clock - once a night at
+ * 06:30, after `UserRetentionService` (06:15).
  *
  * A run that throws, or that would delete more than [TafelAdminEmployeeRetentionProperties.maxDeletionsPerRun],
  * publishes `RetentionRunAlertEvent` instead of proceeding silently - GDPR gap G19. See

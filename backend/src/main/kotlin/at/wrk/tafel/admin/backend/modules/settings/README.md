@@ -28,6 +28,16 @@ repositories without that counting as a `modules`-to-`modules` dependency at all
 - **`SettingsController`** — two independent endpoint groups:
   - `GET`/`PUT /api/settings/mail-recipients`, `DELETE /api/settings/mail-recipients/{id}`
   - `GET /api/settings/static-values`, `PUT /api/settings/static-values/{staticValueId}`
+- **`PendingDeletionsController`** - `GET /api/settings/pending-deletions/{users,households,employees}`
+  (`page`, `pageSize` like every other paged list), the lists behind the "Anstehende Löschungen"
+  screen: what `UserRetentionService`, `HouseholdRetentionService` and `EmployeeRetentionService` will
+  delete within their `retentionWarning` (30 days by default), already-due records included, oldest
+  activity first. Every list is paged so an administrator can look through all of it, not only the
+  rows a job would handle in one run. `PendingDeletionsService` measures exactly as the jobs and the
+  daily push reminder do, through `common/retention/RetentionWindow`, and reads the repositories
+  directly. The endpoints are for administrators only (`hasAuthority('ADMINISTRATOR')`): they list the
+  names of user accounts, customers and employees across every area. It is the deep-link target of the `RETENTION_EXPIRING`
+  push notification (`push`'s `PushNotificationTypeTargeting`).
 - **`internal/SettingsService`** — all the logic for both concerns (no further internal
   decomposition despite the two concerns being unrelated).
 - **`model/SettingsResponseModel.kt`** — `MailRecipientsRequest` / `MailRecipientsResponse` /

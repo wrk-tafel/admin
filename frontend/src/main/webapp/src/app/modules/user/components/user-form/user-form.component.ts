@@ -1,7 +1,6 @@
-import {Component, computed, effect, inject, input, output, signal, untracked, viewChild} from '@angular/core';
+import {Component, computed, effect, inject, input, output, signal, untracked} from '@angular/core';
 import {disabled, form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
-import {EmployeeApiService, EmployeeData} from '../../../../api/employee-api.service';
 import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
@@ -15,10 +14,6 @@ import {email} from '../../../../common/validator/signal-form-validators';
 import {groupPermissionsByCategory, PermissionGroup} from '../../../../common/util/permission-grouping.util';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
-import {
-  TafelEmployeeSearchCreateComponent
-} from '../../../../common/components/employee-search-create/tafel-employee-search-create.component';
-import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
@@ -45,9 +40,7 @@ const ADMINISTRATOR_PERMISSION = 'ADMINISTRATOR';
         MatInputModule,
         MatCheckboxModule,
         MatIcon,
-        TafelAutofocusDirective,
-        TafelEmployeeSearchCreateComponent,
-        TafelInfoTooltipComponent
+        TafelAutofocusDirective
     ]
 })
 export class UserFormComponent {
@@ -64,10 +57,7 @@ export class UserFormComponent {
   permissionsData = input<UserPermission[]>();
   userDataChange = output<UserData>();
 
-  employeeSearchCreate = viewChild<TafelEmployeeSearchCreateComponent>('employeeSearchCreate');
-
   private readonly userApiService = inject(UserApiService);
-  private readonly employeeApiService = inject(EmployeeApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly authenticationService = inject(AuthenticationService);
 
@@ -131,14 +121,6 @@ export class UserFormComponent {
     || (this.editingOwnAccount() && !!this.userData()?.mfaMethods?.includes('EMAIL'))
   );
 
-  // The employee currently linked via the personnel-number search, resolved through
-  // `tafel-employee-search-create` (matching logistics' driver/co-driver pattern) rather than typed
-  // freely, so an account can no longer reference a personnel number no employee actually holds.
-  selectedEmployee = signal<EmployeeData | null>(null);
-  // True only while an existing user's personnel number is being resolved back to its employee on
-  // load - the personnelNumber validator treats this as provisionally valid so the field doesn't
-  // flash an error before that lookup returns.
-  private resolvingEmployee = signal(false);
   // Edit mode only: the password fields sit inside a collapsed "Passwort zurücksetzen" section so a
   // save can't accidentally reset a password nobody meant to touch. Always considered open in create
   // mode, where a password is mandatory.
@@ -149,16 +131,6 @@ export class UserFormComponent {
   userForm = form(this.formModel, (schemaPath) => {
     required(schemaPath.personnelNumber, {message: 'Pflichtfeld'});
     maxLength(schemaPath.personnelNumber, 50, {message: 'Personalnummer zu lang (maximal 50 Zeichen)'});
-    validate(schemaPath.personnelNumber, ({value}) => {
-      if (this.resolvingEmployee()) {
-        return undefined;
-      }
-      const employee = this.selectedEmployee();
-      if (!employee || employee.personnelNumber !== value()) {
-        return {kind: 'employeeNotLinked', message: 'Bitte einen Mitarbeiter über die Personalnummer-Suche auswählen'};
-      }
-      return undefined;
-    });
 
     required(schemaPath.username, {message: 'Pflichtfeld'});
     maxLength(schemaPath.username, 50, {message: 'Benutzername zu lang (maximal 50 Zeichen)'});
@@ -208,6 +180,9 @@ export class UserFormComponent {
 
     return {
       ...formValue,
+      personnelNumber: formValue.personnelNumber.trim(),
+      lastname: formValue.lastname.trim(),
+      firstname: formValue.firstname.trim(),
       // The address is optional - an emptied field means "no address", sent as null so the backend
       // clears a stored one rather than keeping it.
       email: formValue.email.trim() || null,
@@ -220,8 +195,7 @@ export class UserFormComponent {
 
   // A serialized snapshot of derivedUserData taken right after the form was (re)loaded or saved -
   // isDirty() compares the live value against it rather than relying on signal-forms' own dirty
-  // tracking, which only reacts to control-originated edits and would miss e.g. an employee picked
-  // through the search dialog or a permission toggle.
+  // tracking, which only reacts to control-originated edits and would miss e.g. a permission toggle.
   private initialSnapshot = signal<string | null>(null);
   private isDirtyState = computed(() => {
     const initial = this.initialSnapshot();
@@ -256,20 +230,7 @@ export class UserFormComponent {
         });
         this.permissions.set(formPermissions);
 
-        // Resolve the employee already linked to this user so it renders as "selected" immediately,
-        // instead of asking the admin to re-search a personnel number that is already valid.
         this.passwordResetExpanded.set(false);
-        this.selectedEmployee.set(null);
-        this.resolvingEmployee.set(true);
-        this.employeeApiService.checkPersonnelNumberAvailability(userData.personnelNumber).subscribe({
-          next: (response) => {
-            this.selectedEmployee.set(response.existingEmployee ?? null);
-            this.resolvingEmployee.set(false);
-          },
-          error: () => {
-            this.resolvingEmployee.set(false);
-          }
-        });
       } else if (permissionsData) {
         // Initialize with default permissions (all disabled)
         const formPermissions: UserPermissionFormItem[] = permissionsData.map((permission) => ({
@@ -277,8 +238,6 @@ export class UserFormComponent {
           enabled: false
         }));
         this.permissions.set(formPermissions);
-        this.selectedEmployee.set(null);
-        this.resolvingEmployee.set(false);
       }
 
       // Freshly (re)loaded, so this is the baseline isDirty() compares against - read outside the
@@ -376,34 +335,6 @@ export class UserFormComponent {
       this.userForm.password().value.set('');
       this.userForm.passwordRepeat().value.set('');
     }
-  }
-
-  public triggerEmployeeSearch() {
-    const search = this.employeeSearchCreate();
-    if (search && this.userForm.personnelNumber().value()) {
-      search.triggerSearch();
-    }
-  }
-
-  /**
-   * The lastname/firstname fields save onto the linked employee (see `resolveEmployee` on the
-   * backend), so they're kept in sync with whichever employee the personnel-number search resolved
-   * - typing a name there is for correcting the employee's name, not for entering an independent
-   * one that would otherwise silently overwrite it on save.
-   */
-  public setSelectedEmployee(employee: EmployeeData) {
-    this.selectedEmployee.set(employee);
-    this.userForm.personnelNumber().value.set(employee.personnelNumber);
-    this.userForm.personnelNumber().markAsTouched();
-    this.userForm.lastname().value.set(employee.lastname);
-    this.userForm.firstname().value.set(employee.firstname);
-  }
-
-  public resetSelectedEmployee() {
-    this.selectedEmployee.set(null);
-    this.userForm.personnelNumber().value.set('');
-    this.userForm.lastname().value.set('');
-    this.userForm.firstname().value.set('');
   }
 
   /**

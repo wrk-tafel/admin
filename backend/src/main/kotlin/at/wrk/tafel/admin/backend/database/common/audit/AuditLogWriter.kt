@@ -177,8 +177,8 @@ class AuditLogWriter(
         val actor = Actor(
             username = actorUsername,
             userId = actorUser?.id,
-            firstname = actorUser?.employee?.firstname,
-            lastname = actorUser?.employee?.lastname,
+            firstname = actorUser?.firstname,
+            lastname = actorUser?.lastname,
         )
 
         val entries = buffer.toList()

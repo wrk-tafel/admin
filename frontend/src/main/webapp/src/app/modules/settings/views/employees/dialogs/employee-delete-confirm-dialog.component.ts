@@ -9,10 +9,8 @@ export interface EmployeeDeleteConfirmDialogData {
 
 /**
  * An employee is hard-deleted, not soft-disabled - so this asks before it happens. Deletion always
- * succeeds even once the employee is referenced elsewhere (household issuer, note author, food
- * collection driver/co-driver) - those references are simply cleared. The backend still rejects the
- * delete with a 409 when a user account is linked to the employee, which this dialog can't know in
- * advance.
+ * succeeds even once the employee is referenced elsewhere (e.g. as food collection driver/co-driver)
+ * - those references are simply cleared.
  */
 @Component({
   selector: 'tafel-employee-delete-confirm-dialog',

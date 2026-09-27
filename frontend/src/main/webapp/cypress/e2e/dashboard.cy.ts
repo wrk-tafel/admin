@@ -213,7 +213,8 @@ describe('Dashboard', () => {
     // organization-wide counts, filled from the seeded testdata rather than anything this spec set
     // up itself - just asserted as real (positive) numbers rather than pinned exact values, since
     // other specs sharing this database can add/close households of their own. e2etest (loginDefault)
-    // holds every permission, so all eight tiles are visible.
+    // holds every permission, so all eight tiles are visible. The "Mitarbeiter" tile counts the
+    // employees (the drivers), not the user accounts - the testdata seeds two of them.
     [
       'active-households-count', 'active-persons-count', 'active-users-count', 'active-cars-count',
       'active-shelters-count', 'active-routes-count', 'active-shops-count', 'employees-count'

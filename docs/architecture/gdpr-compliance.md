@@ -27,13 +27,13 @@ Two things to be clear about before reading on:
 | `distributions_households` | customers | which household collected food on which date, ticket number, whether the cost contribution was paid | same as `households` (cascades on delete) |
 | `household_duplicate_dismissals` | customers | pairs of household numbers a reviewer judged not to be duplicates, plus the reviewer's account (`created_by`, a user-id FK cleared when that account is deleted) | same as `households` (cascades on delete, via a foreign key on the business `household_id` rather than the surrogate `id` the other rows here use) |
 | `audit_log` | customers and staff | before/after values of every audited change, including names, addresses and income, plus who made it | `tafeladmin.audit.retentionDays`, 30 by default (`AuditRetentionService`) |
-| `users`, `user_authorities` | staff | username, Argon2 password hash, permissions, `last_login`, `token_invalidated_at` (the logout/password-change cut-off for issued JWTs, `R__00109`) | until deleted by hand, or not logged into for longer than `tafeladmin.userDeletion.retentionTime` (`UserRetentionService`, 7 years by default) - never for an `ADMINISTRATOR` account, see G13 |
-| `employees` | staff | personnel number, name | until deleted by hand, or referenced by nothing else at all (no user account, household, note, food collection or route stop completion) and untouched for longer than `tafeladmin.employeeDeletion.retentionTime` (`EmployeeRetentionService`, 7 years by default) - see G13 |
+| `users`, `user_authorities` | staff | username, personnel number, first and last name, Argon2 password hash, permissions, `last_login`, `token_invalidated_at` (the logout/password-change cut-off for issued JWTs, `R__00109`) | until deleted by hand, or not logged into for longer than `tafeladmin.userDeletion.retentionTime` (`UserRetentionService`, 1 year by default) - never for an `ADMINISTRATOR` account, see G13 |
+| `employees` | staff | personnel number, name - a driver or co-driver, a separate record from a `users` account ([ADR-0060](adr/0060-users-and-employees-are-separate-records-with-no-link.md)) | until deleted by hand, or not used as driver or co-driver on any food collection for longer than `tafeladmin.employeeDeletion.retentionTime` (`EmployeeRetentionService`, 2 years by default) - see G13 |
 | `login_attempts` | staff (anyone who typed a username) | username, failure count, lockout window | cleaned hourly (`LoginAttemptService`) |
 | `login_attempts_ip` (`R__00112`) | anyone who reached the login endpoint | client IP address, failure count, lockout window — an IP address is personal data on its own | cleaned hourly (`LoginAttemptIpService.cleanupStaleEntries`); the per-IP request-rate buckets of `RateLimiterIpService` (G23) are the in-memory counterpart, keyed by IP too and swept hourly, never persisted |
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
 | `push_preferences`, `push_type_preferences` | staff | per-user notification opt-in and per-type opt-outs | as long as the user account lives |
-| `food_collections` (`driver_employee_id`, `co_driver_employee_id`), `routes_stops_completions` (`employee_id`) | staff | which employee drove or recorded which collection/stop | no retention job of their own; the employee reference is `on delete set null` (`R__00106`), and the employee row itself stays until nothing references it any more — see G13 |
+| `food_collections` (`driver_employee_id`, `co_driver_employee_id`) | staff | which employee drove which collection | no retention job of their own; the employee reference is `on delete set null` (`R__00106`), and the employee row itself stays until nothing references it any more — see G13 |
 | `sse_outbox` | customers, indirectly | event payloads — household numbers, ticket numbers, scanner results | `tafeladmin.sse.outboxRetention`, 14 days by default (`SseOutboxService.cleanupOutbox`) |
 | `mail_outbox` | customers and staff | every mail this installation sends, as the finished MIME message — report PDFs, and a support request's free text plus its screenshot of whatever screen it was written on | `tafeladmin.mailOutbox.sentRetention`, 14 days after sending; a row parked as `FAILED` gets `tafeladmin.mailOutbox.failedRetention`, 30 days after queuing (`MailOutboxService.cleanupOldMails`, ADR-0046) |
 | the scanner share (`tafeladmin.storage.scannerPath`) | customers | scanned documents not yet imported or discarded | `tafeladmin.storage.scannerFileRetention`, 7 days by default (`ScannerFileCleanupService`), or until a user imports or deletes it first |
@@ -355,9 +355,9 @@ Almost every copy inside the application now has a clock on it, which was not tr
 `mail_outbox` row parked as `FAILED`: it kept its full MIME message — report PDF or support
 screenshot included — until somebody removed the row by hand, which no screen ever prompted anyone to
 do (ADR-0046). One exception still runs past 30 days, and is documented as such rather than folded
-into that figure: deleting a *user* account's linked `employees` row can take up to 7 years if that
-employee is still referenced elsewhere (household issuer, note author, food collection driver, route
-stop completion recorder — see [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1)).
+into that figure: an `employees` row is kept until the employee has gone unused as driver or co-driver for two years
+(see [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1)); deleting it by hand
+always works.
 A household's `household_duplicate_dismissals` rows (a reviewer's "kein Duplikat" verdict against
 another household, holding only the two household numbers) go with the household itself:
 `R__00110_household_duplicate_dismissals_fk.sql` cascades both foreign keys on delete.
@@ -418,7 +418,7 @@ rather than a settled one.
 
 The same question [G5](#g5-a-customer-data-subject-request-can-now-be-answered-from-the-application)
 answered, for the other data subject this application holds data about: `users`, `user_authorities`
-and the linked `employees` row. A staff member asking "what do you have on me" used to get nothing
+of the account itself. A staff member asking "what do you have on me" used to get nothing
 from the application — `UserController`'s only self-service reads were `/api/users/info` (username
 and permissions, for the shell) and password/push-device management; nothing surfaced a personnel
 number, the full authority list or login history in one place, and there was no export.
@@ -427,7 +427,7 @@ number, the full authority list or login history in one place, and there was no 
 serves a ZIP - a PDF via the same `PDFService`/XSL-FO pipeline as the household export, plus a
 machine-readable JSON file
 ([G20](#g20-the-three-gdpr-exports-are-now-machine-readable-too-not-just-pdf), issue #3418) - with
-master data (username, employee personnel number/name, `enabled`, account creation date, `lastLogin`,
+master data (username, personnel number/name, `enabled`, account creation date, `lastLogin`,
 whether push notifications are enabled), every assigned permission (with when and by whom it was
 granted), registered push devices, any push-notification-type opt-outs, the current failed-login
 state (`login_attempts`) and the login history of the retention window (see below). Never the
@@ -456,7 +456,7 @@ See ADR-0051's "Scope stays per-area" decision.
 
 **Art. 5(1)(e), Art. 17(1)(a).** Same obligation as G1, for the other data subject who gets a login:
 personal data must be kept no longer than necessary, and must be erased once the purpose is gone. A
-`users` row - and the `employees` row behind it - otherwise stayed in the database, permissions and
+`users` row - and an `employees` row - otherwise stayed in the database, permissions and
 all, until an administrator opened it and pressed delete; nothing expired it on its own the way G1's
 `HouseholdRetentionService` now does for a household.
 
@@ -465,29 +465,27 @@ Unlike a household, neither entity has a field that encodes "no longer relevant"
 
 - **`users`** (`UserRetentionService`) treats `lastLogin` as the trigger, directly, rather than an
   inferred proxy - falling back to `createdAt` for an account that has never logged in at all, so a
-  forgotten never-used account still ages out. This applies regardless of `enabled`: a still-enabled
+  forgotten never-used account still ages out. `last_login` was added after most production accounts already existed, so `R__00126_backfill_users_last_login.sql` starts the clock for every account without a recorded login at the moment it runs - their creation date says nothing about use, and otherwise the one-year window would have deleted every long-lived account whose owner logs in only a few times a year. This applies regardless of `enabled`: a still-enabled
   account nobody has used in the window is exactly what this job is for. **An `ADMINISTRATOR` account
   is never a candidate, full stop, regardless of `enabled` or age** - stricter than `UserController`'s
   manual safeguards, which only ever protect the *last* enabled one. Deletion goes through
   `TafelUserDetailsManager.deleteUser`, the same method the manual `DELETE /api/users/{userId}`
-  endpoint uses, and defaults to 7 years - unified with `householdDeletion.retentionTime` and
-  `employeeDeletion.retentionTime` as one consistent retention floor across the application, even
-  though unlike `householdDeletion.retentionTime` (a bookkeeping-law period) there is no single
-  statute this particular window has to clear.
-- **`employees`** (`EmployeeRetentionService`) is deliberately a separate job: an employee is a shared
-  record other modules reference by a plain, non-cascading FK (household issuer, household notes, food
-  collection driver/co-driver, route stop completion recorder) that already tolerates a missing
+  endpoint uses, and defaults to 1 year - far shorter than `householdDeletion.retentionTime`
+  (a bookkeeping-law period), since nothing about a login account has to be kept that long and no statute
+  sets this particular window.
+- **`employees`** (`EmployeeRetentionService`) is deliberately a separate job: an employee is a driver
+  or co-driver, a record with no link to any user account ([ADR-0060](adr/0060-users-and-employees-are-separate-records-with-no-link.md)),
+  which a food collection references by a plain, non-cascading FK that already tolerates a missing
   employee by design - `EmployeeService.deleteEmployee` lets a staff member delete one by hand at any
-  time, showing "Mitarbeiter gelöscht" wherever such a reference is displayed, and only refuses when a
-  user account is still linked. This job is *stricter* than that manual delete: it only ever considers
-  an employee referenced by **nothing** - not just no linked user account, but none of `households`,
-  `household_notes`, `food_collections` (driver or co-driver) or `routes_stops_completions` either -
-  since silently blanking a reference on a record that is itself well within its own retention window
-  would erase part of a still-live case file rather than an abandoned one. Measured from `updated_at`,
-  defaulting to 7 years - the same unified floor as `userDeletion.retentionTime` and
-  `householdDeletion.retentionTime`, even though an employee this job ever actually reaches is, by
-  definition, not the issuer/driver/recorder of anything still on record, so no bookkeeping period
-  specifically applies to it.
+  time, showing "Mitarbeiter gelöscht" wherever such a reference is displayed. The job deletes an employee
+  who has gone unused: measured from the newest food collection naming them as driver or co-driver, or
+  from their creation when none ever did - never from the employee's own row, which hardly ever changes,
+  so a driver still going out on collections is never deleted however old their record is. The old
+  collections stay and show "Mitarbeiter gelöscht". Defaults to 2 years (users: 1 year), since an employee is typically a volunteer who drives now and then.
+  A household's issuer, a note's author and a route stop's recorder are
+  `users` references (`on delete set null`), so the user job above clears them with the account.
+
+`RetentionExpiryReminderService` (in `push`, daily at 08:05) warns administrators ahead of the retention jobs, one combined push notification (`RETENTION_EXPIRING`) naming how many user accounts, households (customers) and employees will reach their job's retention window within `tafeladmin.{userDeletion,householdDeletion,employeeDeletion}.retentionWarning` (30 days by default each), what a job has not removed yet included, so a deletion is announced instead of only logged afterwards. It uses each job's own measure, and a job that is switched off is left out. The notification opens the "Anstehende Löschungen" screen (`GET /api/settings/pending-deletions/{users,households,employees}`, `PendingDeletionsService`), which lists exactly those records page by page, for administrators only. The audit and outbox cleanups have no such reminder: they hold no personal data an administrator could still save.
 
 Both jobs are configurable and switchable per deployment
 (`tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*`, read per use), run nightly after
@@ -496,12 +494,12 @@ LOCKED` (ADR-0047) the same way G1 does. What remains open, same as G1: both win
 without a documented legal-basis decision (see G2). Both jobs now report what they are about to
 delete before they run, and alert on failure — see G19.
 
-### G14 An employee with no user account can now be exported too, closing a gap G12 left open
+### G14 An employee can now be exported too, closing a gap G12 left open
 
-**Art. 15, Art. 20.** G12's own export assumed every staff member has a `users` row to key off of -
-but `EmployeeEntity` (personnel number, first/last name) can exist entirely on its own, referenced as
-a household's issuer, a household note's author, or a food collection's driver/co-driver, with nobody
-ever logging in as them (someone who only drives for a route, say). For that person there was no
+**Art. 15, Art. 20.** G12's own export is keyed by a `users` row - but `EmployeeEntity` (personnel
+number, first/last name) is a separate record ([ADR-0060](adr/0060-users-and-employees-are-separate-records-with-no-link.md)),
+referenced as a food collection's driver/co-driver, with nobody ever logging in as them (someone who
+only drives for a route, say). For that person there was no
 export path at all: not self-service (no account to authenticate with), and not admin-triggered
 either, since `UserController.exportUserById` is keyed by a `userId` such an employee never has, and
 the Mitarbeiter settings screen (`SettingsEmployeesComponent`) had no detail view to hang an export
@@ -519,16 +517,13 @@ row actions, behind `SETTINGS` rather than `USER_MANAGEMENT` - the permission `E
 itself already requires, since there is no self-service angle for an employee with no account of
 their own.
 
-Refuses (409) an employee a `users` row already references - one person is meant to have exactly one
-takeout document, and `UserExportService`'s own master data already carries the linked employee's
-personnel number and name, so a second, less complete document here would be a duplicate rather than
-a second useful export. The frontend hides the button for exactly that case, and the linked account's
-own detail page is where the complete export for that person already lives.
+A person who is both a user and an employee is two records, entered twice on purpose, and so has two
+exports; the Datenauskunft screen (G15) finds both from one search.
 
 What remains open: same as G5/G12, `audit_log` entries about the employee are excluded from the
 export. Settled, not open, same as G12: this export is master data about the employee themselves
-only - it does not follow the reverse references above (issuer/author/driver) back into the
-household, note or food collection rows that name them, since those rows are substantively that
+only - it does not follow the reverse reference above (driver) back into the food collection
+rows that name them, since those rows are substantively that
 other record's own data. See ADR-0051's "Scope stays per-area" decision.
 
 ### G15 A central screen now ties the three GDPR exports together, and can erase what it finds too
@@ -542,8 +537,7 @@ hand for someone who is both a customer and a volunteer.
 
 `DataSubjectRequestController`/`DataSubjectRequestService` (issue #3396) close that with one search
 box across `households`, `users` and `employees` (reusing `SearchTextSpecs`'s trigram search for the
-first two, the Mitarbeiter screen's own `findBySearchInput` for the third, filtered to exclude an
-employee already covered by G14's own refusal), grouped by which of the three areas each match is.
+first two, the Mitarbeiter screen's own search for the third), grouped by which of the three areas each match is.
 Export and delete both trigger the existing per-area service through a thin cross-module facade
 (`HouseholdDataSubjectFacade`/`EmployeeDataSubjectFacade` - Spring Modulith never exposes an
 `.internal` type across a module boundary, named interface or not) rather than a new pipeline:
@@ -570,14 +564,10 @@ a new `TafelUserDetailsManager.deleteUserById` (the same "keep at least one acti
 guard `UserController.deleteUser` already enforces, re-checked here since this is a second caller of
 `deleteUser` that must not bypass it) - no new erasure logic, matching §6's own prediction that
 household erasure (and now staff erasure) "already exists in part" for a future feature to reuse.
-One exception: a `USER_ACCOUNT` match's deletion also deletes the linked `employees` row once it's
-no longer referenced by anything other than the just-deleted `users` row itself (issue #3423) -
-`UserEntity.employee` deliberately isn't cascade-`REMOVE`d (see its KDoc), so without this a staff
-erasure would otherwise leave personnel number and name behind until `EmployeeRetentionService`'s
-own age-gated sweep, up to `tafeladmin.employeeDeletion.retentionTime` (7 years by default) later -
-too long for an Art. 17 request. An employee still referenced elsewhere (household issuer, note
-author, food collection driver/co-driver, route stop completion) is left alone, same as that sweep,
-since those are still-live records rather than abandoned personal data.
+A `USER_ACCOUNT` match's deletion removes the account, which carries the user's own personnel number
+and name ([ADR-0060](adr/0060-users-and-employees-are-separate-records-with-no-link.md)), so nothing is
+left behind in `employees` for it; a person who is also a driver appears as a separate `EMPLOYEE` match
+and is erased by selecting it.
 
 No separate audit entry for the search itself - only the eventual export/delete stays audited, the
 same as before (§5's `AuditOperation.READ`/writes tracked per entity, not per screen).
@@ -1077,7 +1067,7 @@ number here.
 | 8 | [G8](#g8-encryption-at-rest-is-now-confirmed-with-the-operator) unencrypted storage | [#3182](https://github.com/wrk-tafel/admin/issues/3182) | done | operator confirmed the documents volume, database volume and backups are encrypted at rest; recorded in [ADR-0021](adr/0021-documents-on-a-volume-metadata-in-the-database.md) |
 | 9 | [G12](#g12-a-staff-data-subject-request-can-now-be-answered-from-the-application) no Art. 15/20 export for staff | [#3363](https://github.com/wrk-tafel/admin/issues/3363) | done | `GET /api/users/export`, `UserExportService` |
 | 10 | [G13](#g13-a-system-user-or-employee-account-now-expires-too-mirroring-g1) retention for staff accounts | [#3386](https://github.com/wrk-tafel/admin/issues/3386) | done | nightly jobs modelled on `HouseholdRetentionService`, `tafeladmin.userDeletion.*`/`tafeladmin.employeeDeletion.*` |
-| 11 | [G14](#g14-an-employee-with-no-user-account-can-now-be-exported-too-closing-a-gap-g12-left-open) no Art. 15/20 export for an employee with no user account | [#3394](https://github.com/wrk-tafel/admin/issues/3394) | done | `GET /api/employees/{employeeId}/export`, `EmployeeExportService` |
+| 11 | [G14](#g14-an-employee-can-now-be-exported-too-closing-a-gap-g12-left-open) no Art. 15/20 export for an employee | [#3394](https://github.com/wrk-tafel/admin/issues/3394) | done | `GET /api/employees/{employeeId}/export`, `EmployeeExportService` |
 | 11 | [G7](#g7-the-documents-tab-now-requires-its-own-permission-separate-from-customer) documents tab behind its own permission | [#3181](https://github.com/wrk-tafel/admin/issues/3181) | done | `CUSTOMER_DOCUMENTS`, see [ADR-0050](adr/0050-customer-documents-split-into-its-own-permission.md) |
 | 12 | [G11](#g11-a-fixed-threshold-now-flags-excessive-read-access) no breach detection | [#3184](https://github.com/wrk-tafel/admin/issues/3184) | done | `ExcessiveReadAccessDetectionService`, a fixed hourly read-count threshold |
 | 13 | [G15](#g15-a-central-screen-now-ties-the-three-gdpr-exports-together-and-can-erase-what-it-finds-too) no single entry point spanning G5/G12/G14 | [#3396](https://github.com/wrk-tafel/admin/issues/3396) | done | `DataSubjectRequestController`/`DataSubjectRequestService`, `DATA_SUBJECT_REQUESTS` |

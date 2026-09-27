@@ -10,17 +10,16 @@ codebase depending on which layer you're in.
 `@ApplicationModule(allowedDependencies = {"base::country", "base::exception"})` (see
 [`package-info.java`](package-info.java)) - this module is only allowed to reach into the `country`
 and `exception` named interfaces of the `base` module. It does **not** depend on `base::employee`
-directly; it reaches `EmployeeEntity` through `UserEntity.employee` instead (see below), which is an
-accepted pattern rather than a bypass - the shared `database.model.*` layer is available to every
-module, and named interfaces gate service/DTO access only (see
-[`base`'s README](../base/README.md#employees-are-reachable-two-ways)).
+at all: the issuer of a household and the author of a note are `UserEntity` references, which it reaches
+through the shared `database.model.*` layer - available to every module, while named interfaces gate
+service/DTO access only (see [`base`'s README](../base/README.md#entities-are-reachable-two-ways)).
 
 ## Domain model
 
 - A **household** (`households` table, [`HouseholdEntity`](../../database/model/household/HouseholdEntity.kt))
   is the case record: business number (`household_id`), address, contact data, validity
   (`valid_until`), lock state (`locked`/`lockedAt`/`lockedBy`/`lockReason`), cost-contribution state
-  (`pending_cost_contribution`) and the issuing employee (`issuer`).
+  (`pending_cost_contribution`) and the issuing user account (`issuer`, cleared when that account is deleted).
 - A household has one or more **persons** (`persons` table,
   [`PersonEntity`](../../database/model/person/PersonEntity.kt)), exactly one of which is flagged as
   the **main person** via `is_main_person`. This is enforced in the database by a partial unique
@@ -175,9 +174,10 @@ Bidirectional mapping between the API-facing `Household`/`Person` models and
 `HouseholdEntity`/`PersonEntity`. `mapHouseholdToEntity` also:
 - Resolves the next `household_id` from the `household_id_sequence` (via
   `HouseholdRepository.getNextHouseholdSequenceValue()`) for new households.
-- Stamps `issuer` from the authenticated user's linked `EmployeeEntity` (`userEntity.employee`) -
-  this is how the module gets employee data without depending on `base::employee`. It needs the
-  managed entity to assign, which is exactly what that named interface's service doesn't hand out.
+- Stamps `issuer` with the authenticated `UserEntity`. Users and employees are separate records with
+  no link between them (see ADR-0060, `docs/architecture/adr/0060-users-and-employees-are-separate-records-with-no-link.md`),
+  so the issuer is the account that registered the household, shown as personnel number and name and
+  as "Mitarbeiter gelöscht" once that account is deleted.
 - Tracks `prolongedAt`: set to "now" whenever an update pushes `validUntil` further into the future
   than it already was. Every other update leaves the stored value alone - `getHouseholdsOverview`'s
   "Verlängert" list and `DistributionStatisticService.countCustomersProlonged` both select on
@@ -421,9 +421,9 @@ is likewise omitted entirely, not shown blank, when `householdId` is empty.
 ### `HouseholdNoteController` / `HouseholdNoteService` (`internal/note`)
 Free-text notes attached to a household (`household_notes` table,
 [`HouseholdNoteEntity`](../../database/model/household/HouseholdNoteEntity.kt)), each stamped with
-the authoring employee and a timestamp. Create/list (paginated, 5 per page, newest first), plus
+the authoring user account and a timestamp. Create/list (paginated, 5 per page, newest first), plus
 `PUT`/`DELETE` by id (GDPR gap G21) - both scoped to the note's own author, so a note can only be
-corrected or erased by the employee who wrote it, not by anyone else holding `CUSTOMER`.
+corrected or erased by the account that wrote it, not by anyone else holding `CUSTOMER`.
 `HouseholdNoteItem` exposes the note's `id` because the timestamp does not identify a note - notes
 written in one batch share it to the microsecond, so the frontend needs the id as a stable list
 key - and an `editable` flag mirroring that authorship check, so the "Alle Notizen anzeigen" dialog
@@ -519,5 +519,5 @@ throws; the customer search screen's "Wird in den nächsten 30 Tagen gelöscht" 
    - if you add new duplicate-matching criteria, remember firstname/lastname/address for comparison
    live partly on `persons` (name) and partly on `households` (address).
 5. This module can only see `base::country` and `base::exception` (per
-   `package-info.java`) - if you need employee data, go through `UserEntity.employee` /
-   `HouseholdEntity.issuer`, not a direct `base::employee` dependency.
+   `package-info.java`) - the people behind a household are `UserEntity` references
+   (`HouseholdEntity.issuer`, `lockedBy`, `HouseholdNoteEntity.author`), not employees.

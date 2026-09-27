@@ -3,7 +3,6 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionReturnItemEntity
@@ -43,13 +42,14 @@ class RouteGuidanceServiceIT : TafelBaseIntegrationTest() {
 
     @BeforeEach
     fun beforeEach() {
-        val employee = EmployeeEntity(
-            personnelNumber = "guidance-it",
-            firstname = "Guidance",
-            lastname = "Driver",
-        )
         testEntityManager.persist(
-            UserEntity(username = "guidance-it", password = "irrelevant", employee = employee),
+            UserEntity(
+                username = "guidance-it",
+                password = "irrelevant",
+                personnelNumber = "guidance-it",
+                firstname = "Guidance",
+                lastname = "Driver",
+            ),
         )
 
         SecurityContextHolder.getContext().authentication = TafelJwtAuthentication("TOKEN", "guidance-it", true)

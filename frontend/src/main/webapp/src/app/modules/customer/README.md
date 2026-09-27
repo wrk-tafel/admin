@@ -216,6 +216,18 @@ picker silently won't offer it) - `customer-merge-fields.spec.ts` only checks th
 `HouseholdData`/`PersonData`) - it's a protocol enum, not a household/person shape, so it
 doesn't violate the "don't leak the household model" rule below.
 
+## Deleting from the search result
+
+Every row of the customer search (table and card list alike) has a trash button,
+`searchresult-deletecustomer-button-<id>`, that reuses the detail screen's own
+`DeleteCustomerDialogComponent` (`deletecustomer-dialog`, `okButton`/`cancelButton`) and the same
+`CustomerApiService.deleteCustomer` call. It follows the detail screen's rules exactly: a locked
+customer's button is disabled with "Kunde ist gesperrt" as its tooltip. Unlike the detail screen the
+list does not know whether the customer holds a ticket in the running distribution, so the dialog
+cannot mention one. On success it toasts "Kunde wurde gelöscht!" and reloads the page the user is on
+(one page back when the deleted customer was the only row of the last page); a refusal is toasted
+with the backend's own message under "Löschen fehlgeschlagen!".
+
 ## Income validation feedback
 
 Two independent layers, both scoped to the flat `CustomerData`/form model:

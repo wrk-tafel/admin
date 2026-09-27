@@ -75,7 +75,7 @@ export class AuthenticationService {
   }
 
   public redirectToMfaSetup(): Promise<boolean> {
-    return this.router.navigate(['konto', 'zwei-faktor']);
+    return this.router.navigate(['login', 'mfa-einrichtung']);
   }
 
   public redirectToMfa(): Promise<boolean> {
@@ -126,9 +126,9 @@ export class AuthenticationService {
    * A failed request still completes the logout locally - the user asked to leave, and the error
    * interceptor has already surfaced the failure.
    *
-   * Also drops the last `/sse/distributions` snapshot ({@link GlobalStateService#reset}) - that
-   * stream itself stays open across the logout by design, but without this a re-login in the same
-   * tab would render the previous session's distribution state until the next SSE message arrives.
+   * Also closes the `/sse/distributions` stream and drops its last snapshot
+   * ({@link GlobalStateService#reset}), so a re-login in the same tab opens a new stream and gets
+   * the current distribution state at once instead of the previous session's, or none at all.
    */
   public logout(): Observable<void> {
     return this.http.post<void>('/users/logout', null).pipe(
@@ -212,6 +212,9 @@ export interface LoginResult {
 
 interface UserInfo {
   username: string;
+  /** Behind the header's avatar initials; absent from an older backend, still running during a rolling deploy. */
+  firstname?: string;
+  lastname?: string;
   permissions: string[];
   /** Absent when an older backend, still running during a rolling deploy, does not send it. */
   theme?: ThemePreference;

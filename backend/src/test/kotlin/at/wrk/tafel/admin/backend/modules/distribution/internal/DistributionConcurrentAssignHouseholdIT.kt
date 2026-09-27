@@ -96,7 +96,7 @@ class DistributionConcurrentAssignHouseholdIT : TafelBaseIntegrationTest() {
     }
 
     private fun createTestHousehold(): HouseholdEntity = transactionTemplate.execute {
-        val household = householdRepository.saveAndFlush(createHousehold(testUser.employee!!, testCountry))
+        val household = householdRepository.saveAndFlush(createHousehold(testUser!!, testCountry))
         household.mainPerson = household.persons.first { it.isMainPerson }
         householdRepository.saveAndFlush(household)
     }!!.also { householdIds.add(it.id!!) }

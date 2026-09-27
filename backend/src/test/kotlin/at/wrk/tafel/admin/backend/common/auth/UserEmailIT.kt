@@ -76,9 +76,9 @@ class UserEmailIT : TafelBaseIntegrationTest() {
         user = UserRequest(
             id = user.id,
             username = user.username,
-            personnelNumber = user.employee.personnelNumber,
-            firstname = user.employee.firstname,
-            lastname = user.employee.lastname,
+            personnelNumber = user.personnelNumber,
+            firstname = user.firstname,
+            lastname = user.lastname,
             email = email,
             enabled = user.enabled,
             passwordChangeRequired = user.passwordChangeRequired,

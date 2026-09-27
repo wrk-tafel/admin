@@ -2,12 +2,6 @@ import {inject, Service} from '@angular/core';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {AuthenticationService} from './authentication.service';
 
-/**
- * The routes a session that must set up a second factor may open: the two-factor tab of the account page and the
- * account page itself, which is the parent the tab is rendered in (see account.routes.ts).
- */
-const MFA_SETUP_PATHS = ['konto', 'zwei-faktor'];
-
 @Service()
 export class AuthGuardService {
   private readonly authenticationService = inject(AuthenticationService);
@@ -50,12 +44,10 @@ export class AuthGuardService {
       return false;
     }
 
-    // The deployment requires a second factor and this user has none: the only page that works is the one
-    // that sets it up, so any other route leads there (and that one is let through, it has no permission to ask).
+    // The deployment requires a second factor and this user has none: the setup happens as the last step of the
+    // login flow (see LoginMfaSetupComponent), never inside the application itself - so every route here leads
+    // back to it.
     if (this.authenticationService.isMfaSetupRequired()) {
-      if (MFA_SETUP_PATHS.includes(childRoute.routeConfig?.path ?? '')) {
-        return true;
-      }
       this.authenticationService.redirectToMfaSetup();
       return false;
     }

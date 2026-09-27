@@ -42,7 +42,7 @@ class DocumentEntityIT : TafelBaseIntegrationTest() {
     @Test
     @Transactional
     fun `document entity is persisted with a generated id`() {
-        val household = createHousehold(testUser.employee, testCountry)
+        val household = createHousehold(testUser, testCountry)
         testEntityManager.persist(household)
         testEntityManager.flush()
 

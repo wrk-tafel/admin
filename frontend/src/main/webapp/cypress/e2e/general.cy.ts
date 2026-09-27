@@ -227,6 +227,13 @@ describe('Accessibility', () => {
     cy.checkDialogAccessibility();
   });
 
+  it('shows the first letters of first and last name of the logged-in user in the user icon', () => {
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+
+    cy.byTestId('usermenu-initials').should('have.text', 'ET');
+  });
+
   it('has no violations in the user menu', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');

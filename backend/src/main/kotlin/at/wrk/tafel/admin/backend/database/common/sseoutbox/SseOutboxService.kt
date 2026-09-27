@@ -14,6 +14,7 @@ import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
 import java.time.Duration
 import java.time.LocalDateTime
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 
 /**
@@ -38,10 +39,39 @@ class SseOutboxService(
         private val logger = LoggerFactory.getLogger(SseOutboxService::class.java)
     }
 
+    /**
+     * Every stream currently held open through [finalize], so [sendHeartbeats] has something to
+     * iterate without the outbox listener's per-notification-name callback registry (which doesn't
+     * keep the [SseEmitter] itself, only the closures a notification fans out to).
+     */
+    private val openEmitters = CopyOnWriteArrayList<SseEmitter>()
+
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     fun cleanupOutbox() {
         val date = LocalDateTime.now().minus(tafelAdminProperties.sse.outboxRetention)
         sseOutboxRepository.deleteAllByEventTimeBeforeSkipLocked(date)
+    }
+
+    /**
+     * Without this, a stream nobody is publishing an event to (the ticket screen when no ticket is
+     * being called, a dashboard nobody changes) can sit open for hours with nothing ever written to
+     * it - so a client that silently disappeared (a closed tab, a laptop put to sleep, a dropped
+     * network) is only ever noticed once the container itself eventually reclaims the connection on
+     * its own, without ever dispatching back into this application, which is why [finalize]'s
+     * `onError` - and with it [logStreamError] - never fires for most of these terminations
+     * (issue #3746). A periodic write gives every open stream a regular chance to fail on something
+     * this application actually observes, routing that same disappearance through the normal
+     * `onError`/[logStreamError] path instead. A comment line, not a data event, so `EventSource` on
+     * the other end never surfaces it as a message.
+     *
+     * The interval is a literal, not a [TafelAdminSseProperties] field, for the same reason
+     * [cleanupOutbox]'s own check cadence is: `@Scheduled` fixes its schedule when this bean is
+     * built, and 25 seconds is comfortably under common reverse-proxy idle-connection timeouts
+     * (nginx's `proxy_read_timeout` defaults to 60s) without needing to be operator-tunable.
+     */
+    @Scheduled(fixedRate = 25, timeUnit = TimeUnit.SECONDS)
+    fun sendHeartbeats() {
+        openEmitters.forEach { trySend(it, SseEmitter.event().comment("heartbeat")) }
     }
 
     @Transactional
@@ -136,7 +166,10 @@ class SseOutboxService(
         notificationName: String,
         callback: (String?) -> Unit,
     ) {
+        openEmitters.add(sseEmitter)
+
         val cleanup = {
+            openEmitters.remove(sseEmitter)
             sseOutboxListenerService.unregisterCallback(notificationName, callback)
             logger.debug("Unregistered SSE callback for notification: {}", notificationName)
         }
@@ -194,11 +227,15 @@ class SseOutboxService(
     }
 
     fun sendEvent(sseEmitter: SseEmitter, data: Any?) {
+        var event = SseEmitter.event()
+        if (data != null) {
+            event = event.data(data)
+        }
+        trySend(sseEmitter, event)
+    }
+
+    private fun trySend(sseEmitter: SseEmitter, event: SseEmitter.SseEventBuilder) {
         try {
-            var event = SseEmitter.event()
-            if (data != null) {
-                event = event.data(data)
-            }
             sseEmitter.send(event)
         } catch (e: AsyncRequestNotUsableException) {
             // Client disconnected during async processing — expected when clients

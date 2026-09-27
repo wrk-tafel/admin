@@ -159,8 +159,8 @@ space, not something to build a trigger migration for.
   distribution only — it has no relation to the historic per-year totals computed in the `reporting` module.
 - `organizationOverview`'s counts are all "currently entitled/enabled", not historic totals - a
   household whose validity lapsed years ago, a disabled car/route/shop/shelter, or a disabled user
-  account don't count. `employeesCount` is the one exception: `EmployeeEntity` has no enabled/active
-  concept at all, so it is a plain `EmployeeRepository.count()` over every row. The frontend gates each
+  account don't count. `employeesCount` is the one exception: `EmployeeEntity` (drivers and co-drivers, not user
+  accounts) has no enabled/active concept at all, so it is a plain `EmployeeRepository.count()` over every row. The frontend gates each
   figure behind the permission its own screen needs (`CUSTOMER`, `USER_MANAGEMENT`, `SETTINGS` for
   employees, `LOGISTICS` for the rest); the backend does not filter by the viewer's permissions at all,
   same as `statistics` already doesn't for a viewer without `LOGISTICS` - `isAuthenticated()` on

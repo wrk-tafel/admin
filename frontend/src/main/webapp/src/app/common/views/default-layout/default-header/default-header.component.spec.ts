@@ -52,7 +52,7 @@ describe('DefaultHeaderComponent', () => {
                 {
                     provide: AuthenticationService,
                     useValue: {
-                        userInfo: signal({username: 'max.mustermann', permissions: []}),
+                        userInfo: signal({username: '8607', firstname: 'Max', lastname: 'Mustermann', permissions: []}),
                         logout: vi.fn().mockName('AuthenticationService.logout'),
                         redirectToLogin: vi.fn().mockName('AuthenticationService.redirectToLogin')
                     }
@@ -156,7 +156,7 @@ describe('DefaultHeaderComponent', () => {
         expect(connectedBadge.textContent!.trim()).toBe('Live-Verbindung besteht');
     });
 
-    it('shows the initials of the username on the user menu button', () => {
+    it('shows the first letters of first and last name on the user menu button', () => {
         const fixture = TestBed.createComponent(DefaultHeaderComponent);
         fixture.detectChanges();
 
@@ -164,10 +164,17 @@ describe('DefaultHeaderComponent', () => {
         expect(initials.textContent!.trim()).toBe('MM');
     });
 
-    it('takes the first two characters of a one-word username, and a placeholder without one', () => {
+    it('falls back to the username without a name, and to a placeholder without a user', () => {
         const fixture = TestBed.createComponent(DefaultHeaderComponent);
         const component = fixture.componentInstance;
-        const userInfo = authenticationService.userInfo as unknown as WritableSignal<{ username: string; permissions: string[] } | null>;
+        const userInfo = authenticationService.userInfo as unknown as WritableSignal<
+            { username: string; firstname?: string; lastname?: string; permissions: string[] } | null>;
+
+        userInfo.set({username: 'anna', firstname: 'anna', lastname: '', permissions: []});
+        expect(component.userInitials()).toBe('A');
+
+        userInfo.set({username: 'max.mustermann', permissions: []});
+        expect(component.userInitials()).toBe('MM');
 
         userInfo.set({username: 'e2etest', permissions: []});
         expect(component.userInitials()).toBe('E2');

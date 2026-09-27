@@ -28,7 +28,7 @@ describe('Data Subject Request', () => {
     cy.byTestId('data-subject-request-empty').should('contain.text', 'Keine Treffer');
   });
 
-  it('searches across households and employees without an account, grouped by type', () => {
+  it('searches across households, user accounts and employees, grouped by type', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       // A dedicated prefix, deliberately not the 'lastname-' every cy.createDummyCustomer()/
       // cy.createDummyUser() fixture across the whole e2e suite shares - the search is fuzzy
@@ -60,28 +60,70 @@ describe('Data Subject Request', () => {
       }).then(() => {
         cy.request('POST', '/api/employees', {
           personnelNumber: 'DSR-' + randomId,
-          firstname: 'NoAccount',
+          firstname: 'Driver',
           lastname: discriminator
+        });
+        const password = 'Dsr-' + randomId + '-Password1';
+        cy.createUser({
+          username: 'dsr-user-' + randomId,
+          personnelNumber: 'DSR-USER-' + randomId,
+          firstname: 'Account',
+          lastname: discriminator,
+          enabled: true,
+          password,
+          passwordRepeat: password,
+          passwordChangeRequired: false,
+          permissions: []
         });
 
         cy.byTestId('data-subject-request-search-input').type(discriminator);
 
-        cy.byTestId('data-subject-request-search-announcement').should('contain.text', '2 Treffer');
+        cy.byTestId('data-subject-request-search-announcement').should('contain.text', '3 Treffer');
         cy.contains('h3', 'Kunde').should('be.visible');
-        cy.contains('h3', 'Mitarbeiter ohne Konto').should('be.visible');
-        cy.get(`[testid="data-subject-request-match"]:contains("${discriminator}")`).should('have.length', 2);
+        cy.contains('h3', 'Benutzerkonto').should('be.visible');
+        cy.contains('h3', 'Mitarbeiter').should('be.visible');
+        cy.get(`[testid="data-subject-request-match"]:contains("${discriminator}")`).should('have.length', 3);
       });
     });
   });
 
-  // '00000' is the e2e login user's own employee record (user 100, linked account 'e2etest') - the
-  // same fixture settings-employees.cy.ts uses to prove the reverse (no export button once linked).
-  it('does not list an employee under "Mitarbeiter ohne Konto" once a user account is linked', () => {
+  // A user account and an employee are separate records with no link, so the same person shows up
+  // under both headings - one match each, nothing is hidden behind the other.
+  it('lists a person once as a user account and once as an employee', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const personnelNumber = 'DSR-BOTH-' + randomId;
+      const password = 'Dsr-' + randomId + '-Password1';
+
+      cy.createUser({
+        username: 'dsr-both-' + randomId,
+        personnelNumber,
+        firstname: 'Both',
+        lastname: 'Records' + randomId,
+        enabled: true,
+        password,
+        passwordRepeat: password,
+        passwordChangeRequired: false,
+        permissions: []
+      });
+      cy.request('POST', '/api/employees', {personnelNumber, firstname: 'Both', lastname: 'Records' + randomId});
+
+      cy.byTestId('data-subject-request-search-input').type(personnelNumber);
+
+      cy.contains('h3', 'Benutzerkonto').should('be.visible');
+      cy.contains('h3', 'Mitarbeiter').should('be.visible');
+      // a user match shows the username as its key and an employee match the personnel number, so the
+      // two are told apart by the name they share
+      cy.get(`[testid="data-subject-request-match"]:contains("Records${randomId}")`).should('have.length', 2);
+    });
+  });
+
+  // '00000' is the personnel number of the e2etest fixture user, who has no employee record.
+  it('finds a user account by its own personnel number, without an employee match', () => {
     cy.byTestId('data-subject-request-search-input').type('00000');
 
     cy.contains('h3', 'Benutzerkonto').should('be.visible');
-    cy.contains('h3', 'Mitarbeiter ohne Konto').should('not.exist');
     cy.contains('[testid="data-subject-request-match"]', 'e2etest').should('be.visible');
+    cy.contains('h3', 'Mitarbeiter').should('not.exist');
   });
 
   it('shows a hint when an area\'s results were truncated at the per-area cap', () => {
@@ -99,11 +141,11 @@ describe('Data Subject Request', () => {
 
   it('reports a not-found match by name rather than only a count on delete', () => {
     cy.intercept('POST', '/api/data-subject-requests/search', {
-      items: [{type: 'EMPLOYEE_WITHOUT_ACCOUNT', id: 1, businessKey: 'DSR-GONE', name: 'Already Gone'}],
+      items: [{type: 'EMPLOYEE', id: 1, businessKey: 'DSR-GONE', name: 'Already Gone'}],
       truncated: false
     }).as('search');
     cy.intercept('POST', '/api/data-subject-requests/delete', {
-      results: [{match: {type: 'EMPLOYEE_WITHOUT_ACCOUNT', id: 1}, outcome: 'NOT_FOUND'}]
+      results: [{match: {type: 'EMPLOYEE', id: 1}, outcome: 'NOT_FOUND'}]
     }).as('delete');
 
     cy.byTestId('data-subject-request-search-input').type('DSR-GONE');

@@ -102,8 +102,8 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
         val householdEntry = entries.first { it.entityType == "Household" && it.operation.name == "INSERT" }
         assertThat(householdEntry.actorUsername).isEqualTo(testUser.username)
         assertThat(householdEntry.actorUserId).isEqualTo(testUser.id)
-        assertThat(householdEntry.actorFirstname).isEqualTo(testUser.employee.firstname)
-        assertThat(householdEntry.actorLastname).isEqualTo(testUser.employee.lastname)
+        assertThat(householdEntry.actorFirstname).isEqualTo(testUser.firstname)
+        assertThat(householdEntry.actorLastname).isEqualTo(testUser.lastname)
         assertThat(householdEntry.businessKey).isEqualTo(householdId.toString())
         assertThat(householdEntry.changedFields).contains("addressCity")
     }
@@ -223,8 +223,8 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
                     actorOverride = AuditLogWriter.Actor(
                         username = testUser.username,
                         userId = testUser.id,
-                        firstname = testUser.employee.firstname,
-                        lastname = testUser.employee.lastname,
+                        firstname = testUser.firstname,
+                        lastname = testUser.lastname,
                     ),
                 ),
             )
@@ -241,15 +241,15 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
         assertThat(entry.operation.name).isEqualTo("LOGIN")
         assertThat(entry.actorUsername).isEqualTo(testUser.username)
         assertThat(entry.actorUserId).isEqualTo(testUser.id)
-        assertThat(entry.actorFirstname).isEqualTo(testUser.employee.firstname)
-        assertThat(entry.actorLastname).isEqualTo(testUser.employee.lastname)
+        assertThat(entry.actorFirstname).isEqualTo(testUser.firstname)
+        assertThat(entry.actorLastname).isEqualTo(testUser.lastname)
 
         transactionTemplate.execute { auditLogRepository.delete(entry) }
     }
 
     private fun createTestHousehold() {
         transactionTemplate.execute {
-            val household = householdRepository.saveAndFlush(createHousehold(testUser.employee, testCountry))
+            val household = householdRepository.saveAndFlush(createHousehold(testUser, testCountry))
             household.mainPerson = household.persons.first()
             householdRepository.saveAndFlush(household)
             householdId = household.householdId

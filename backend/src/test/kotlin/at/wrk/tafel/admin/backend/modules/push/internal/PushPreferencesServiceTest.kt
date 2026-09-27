@@ -5,7 +5,6 @@ import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesRepository
@@ -119,7 +118,9 @@ internal class PushPreferencesServiceTest {
     private fun userWithPermissions(vararg permissions: UserPermissions) = UserEntity(
         username = "someone",
         password = "pw",
-        employee = EmployeeEntity(personnelNumber = "s-1", firstname = "first", lastname = "last"),
+        personnelNumber = "s-1",
+        firstname = "first",
+        lastname = "last",
     ).apply {
         id = 42
         authorities = permissions.map { UserAuthorityEntity(user = this, name = it.key) }.toMutableList()

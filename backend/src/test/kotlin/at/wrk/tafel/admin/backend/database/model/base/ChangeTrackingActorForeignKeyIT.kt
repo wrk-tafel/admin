@@ -85,11 +85,9 @@ internal class ChangeTrackingActorForeignKeyIT : TafelBaseIntegrationTest() {
     private fun testUserToDelete(): UserEntity = UserEntity(
         username = "actor-to-delete-${System.nanoTime()}",
         password = "irrelevant",
-        employee = EmployeeEntity(
-            personnelNumber = "fk-test-${System.nanoTime()}",
-            firstname = "Test",
-            lastname = "Actor",
-        ),
+        personnelNumber = "fk-test-${System.nanoTime()}",
+        firstname = "Test",
+        lastname = "Actor",
         enabled = true,
         passwordChangeRequired = false,
     )

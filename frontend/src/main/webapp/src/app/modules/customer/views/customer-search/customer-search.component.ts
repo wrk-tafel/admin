@@ -3,6 +3,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {catchError, debounceTime, distinctUntilChanged, EMPTY, filter, map, Observable, Subject, switchMap} from 'rxjs';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
+import {MatDialog} from '@angular/material/dialog';
 import {FormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
 import {CustomerApiService, CustomerData, CustomerSearchResult} from '../../../../api/customer-api.service';
@@ -24,13 +25,16 @@ import {parseContentDispositionFilename} from '../../../../common/util/content-d
 import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
+import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_activity-fill.svg';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
+import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {DeleteCustomerDialogComponent} from '../customer-detail/dialogs/delete-customer-dialog.component';
 
 /** Long enough not to search on every keystroke, short enough to still feel immediate. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -96,6 +100,7 @@ export class CustomerSearchComponent {
     lock: lockIcon,
     person: personIcon,
     edit: editIcon,
+    delete: deleteIcon,
     progress_activity: progressActivityIcon
   });
 
@@ -104,6 +109,7 @@ export class CustomerSearchComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly toastr = inject(TafelToastrService);
   private readonly fileHelperService = inject(FileHelperService);
+  private readonly dialog = inject(MatDialog);
 
   /** Whether the reference-less privacy notice template is currently being generated/downloaded. */
   downloadingPrivacyNoticeTemplate = signal(false);
@@ -301,6 +307,41 @@ export class CustomerSearchComponent {
 
   editCustomer(customerId: number) {
     this.router.navigate(['/kunden/bearbeiten', customerId]);
+  }
+
+  /**
+   * The same confirm dialog and call as the detail screen's "Kunde löschen" - a locked customer
+   * cannot be deleted from here either (the template disables the button). Unlike the detail screen
+   * this list does not know whether the customer holds a ticket in the running distribution, so the
+   * dialog cannot mention one. Afterwards the page the admin is on is reloaded, or the one before it
+   * when the deleted customer was the last row of the last page.
+   */
+  deleteCustomer(customer: CustomerData) {
+    this.dialog.open(DeleteCustomerDialogComponent, {
+      data: {customerName: `${customer.lastname} ${customer.firstname}`}
+    }).afterClosed().subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.customerApiService.deleteCustomer(customer.id!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+        next: () => {
+          this.toastr.success('Kunde wurde gelöscht!');
+          this.reloadAfterDelete();
+        },
+        error: (error: HttpErrorResponse) => {
+          this.toastr.error(extractErrorMessage(error), 'Löschen fehlgeschlagen!');
+        },
+      });
+    });
+  }
+
+  private reloadAfterDelete() {
+    const result = this.searchResult();
+    const page = result && result.currentPage > 1 && result.items.length === 1
+      ? result.currentPage - 1
+      : result?.currentPage;
+    this.search(page, result?.pageSize, true, false);
   }
 
   isValid(customer: CustomerData): boolean {

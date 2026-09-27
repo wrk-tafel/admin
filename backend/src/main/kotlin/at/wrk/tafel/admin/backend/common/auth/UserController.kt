@@ -68,9 +68,12 @@ class UserController(
     @GetMapping("/info")
     fun getUserInfo(): ResponseEntity<UserInfoResponse> {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val user = userDetailsManager.loadUserByUsername(authenticatedUser.username!!)
 
         val userInfo = UserInfoResponse(
-            username = authenticatedUser.username!!,
+            username = authenticatedUser.username,
+            firstname = user.firstname,
+            lastname = user.lastname,
             permissions = authenticatedUser.authorities.mapNotNull { it.authority },
             theme = userPreferencesService.getTheme(authenticatedUser.username!!),
             mfaPending = authenticatedUser.mfaPending,
@@ -98,7 +101,7 @@ class UserController(
      * [UserAccountRequest] for why nothing else). The username and the personnel number stay with
      * the administrator, so unlike [updateUser] nothing here can hand an account over, and the
      * session it came in on stays what it was - no replacement cookie needed. The write itself is
-     * on the audit trail like any other change to a user or an employee.
+     * on the audit trail like any other change to a user.
      *
      * With the e-mail method of two-factor authentication on, the address *is* the second factor, so
      * changing it takes a code of a method the user has (`mfaCode`) - otherwise a session left open in a
@@ -112,6 +115,7 @@ class UserController(
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val username = authenticatedUser.username!!
         val newEmail = normalizeEmail(request.email)
+        validateEmailPresentIfMandatory(newEmail)
 
         val currentUser = userDetailsManager.loadUserByUsername(username)
         val oldEmail = normalizeEmail(currentUser.email)
@@ -336,6 +340,7 @@ class UserController(
     ): ResponseEntity<UserResponse> {
         validateIfUserExists(user)
         validateAdministratorAssignment(requested = user.permissions, current = emptyList())
+        validateEmailPresentIfMandatory(normalizeEmail(user.email))
 
         if (user.password != user.passwordRepeat) {
             throw BusinessRuleException("Passwörter stimmen nicht überein!")
@@ -388,6 +393,7 @@ class UserController(
         )
         validateAdministratorAccountFieldChanges(existingUser, user)
         validateOwnCredentialsUnchanged(existingUser, user)
+        validateEmailPresentIfMandatory(normalizeEmail(user.email))
         // Revoking the permission and disabling the account are two ways of arriving at the same
         // place: an administrator who can no longer act.
         val keepsAdministrator = user.permissions.any { it.key == UserPermissions.ADMINISTRATOR.key } && user.enabled
@@ -413,11 +419,9 @@ class UserController(
     }
 
     /**
-     * Refuses a personnel number that already belongs to a *different* user account. Without this,
-     * `TafelUserDetailsManager.resolveEmployee` would happily re-link [excludedUserId] onto that
-     * other account's [at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity] and overwrite
-     * its name - `users.employee_id` is meant to be one-to-one (see `EmployeeService.deleteEmployee`'s
-     * KDoc), and this is the update-time counterpart of [validateIfUserExists]'s create-time check.
+     * Refuses a personnel number that already belongs to a *different* user account - the
+     * update-time counterpart of [validateIfUserExists]'s create-time check. Nothing in the schema
+     * makes the number unique across accounts, so this is what does.
      */
     private fun validatePersonnelNumberAvailable(user: UserRequest, excludedUserId: Long) {
         val ownerOfPersonnelNumber = userDetailsManager.loadUserByPersonnelNumber(user.personnelNumber)
@@ -643,6 +647,19 @@ class UserController(
     }
 
     private fun normalizeEmail(email: String?): String? = email?.trim()?.takeIf { it.isNotEmpty() }
+
+    /**
+     * While the deployment requires a second factor (`tafeladmin.mfa.required`), an e-mail address is
+     * mandatory for every account - not just a prerequisite for choosing the e-mail method (ADR-0062).
+     * Applies to every write of a user's own or another's e-mail address: [createUser], [updateUser] and
+     * [updateAccount] all call this with the value they are about to save, normalized the same way as a
+     * stored one so a blank string is refused exactly like a missing field.
+     */
+    private fun validateEmailPresentIfMandatory(email: String?) {
+        if (email == null && tafelAdminProperties.mfa.required) {
+            throw BusinessRuleException("Diese Anwendung verlangt eine Zwei-Faktor-Authentifizierung - eine E-Mail-Adresse ist daher für jedes Benutzerkonto erforderlich!")
+        }
+    }
 
     /**
      * Refuses a change that would leave nobody able to administer the application. Only an

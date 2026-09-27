@@ -3,19 +3,15 @@ package at.wrk.tafel.admin.backend.database.model.auth
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
-import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Expression
-import jakarta.persistence.criteria.JoinType
 import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
@@ -28,13 +24,12 @@ class UserEntity(
     var username: String,
     @Column(name = "password")
     var password: String,
-    // Employee rows are shared/independent (see EmployeeController) and can be referenced
-    // elsewhere (household issuer, household notes, food collection driver/co-driver) via plain,
-    // non-cascading FKs. PERSIST+MERGE keeps saving a user auto-saving its linked employee, but
-    // without REMOVE, deleting a user no longer cascades into deleting that shared employee record.
-    @OneToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
-    @JoinColumn(name = "employee_id", referencedColumnName = "id", nullable = false)
-    var employee: EmployeeEntity,
+    @Column(name = "personnel_number")
+    var personnelNumber: String,
+    @Column(name = "firstname")
+    var firstname: String,
+    @Column(name = "lastname")
+    var lastname: String,
     @Column(name = "enabled")
     var enabled: Boolean = false,
     @Column(name = "passwordchange_required")
@@ -98,8 +93,8 @@ class UserEntity(
     var tokenInvalidatedAt: LocalDateTime? = null
 
     /**
-     * Everything the single search box may match a user on - username plus the personnel number and
-     * name of the linked employee - concatenated and lower-cased. Maintained by a database trigger
+     * Everything the single search box may match a user on - username, personnel number and name -
+     * concatenated and lower-cased. Maintained by a database trigger
      * (see `R__00088_fulltext_search.sql`), hence read-only here.
      */
     @Column(name = "search_text", insertable = false, updatable = false)
@@ -154,14 +149,12 @@ class UserEntity(
                             add(cb.orderBy(enabled))
                         }
                         "personnelNumber" -> {
-                            val employee = root.join<UserEntity, EmployeeEntity>("employee", JoinType.LEFT)
-                            val personnelNumber: Expression<String> = employee["personnelNumber"]
+                            val personnelNumber: Expression<String> = root["personnelNumber"]
                             add(cb.orderBy(personnelNumber))
                         }
                         "name" -> {
-                            val employee = root.join<UserEntity, EmployeeEntity>("employee", JoinType.LEFT)
-                            val lastname: Expression<String> = employee["lastname"]
-                            val firstname: Expression<String> = employee["firstname"]
+                            val lastname: Expression<String> = root["lastname"]
+                            val firstname: Expression<String> = root["firstname"]
                             add(cb.orderBy(lastname))
                             add(cb.orderBy(firstname))
                         }

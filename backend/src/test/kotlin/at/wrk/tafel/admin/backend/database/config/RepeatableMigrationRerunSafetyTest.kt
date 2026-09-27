@@ -69,6 +69,7 @@ class RepeatableMigrationRerunSafetyTest {
             "R__00071_food_categories_enabled.sql",
             "R__00072_renumber_food_categories_sortorder.sql",
             "R__00079_cars_enabled_sortorder.sql",
+            "R__00088_fulltext_search.sql",
             "R__00106_employee_delete_set_null.sql",
             "R__00110_household_duplicate_dismissals_fk.sql",
             "R__00111_change_tracking_actor_user_fk.sql",

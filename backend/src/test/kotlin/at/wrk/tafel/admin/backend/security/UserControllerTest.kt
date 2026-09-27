@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.common.auth.UserController
 import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminMfaProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
@@ -115,10 +116,13 @@ class UserControllerTest {
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
         every { userPreferencesService.getTheme(testUser.username) } returns UserTheme.DARK
+        every { userDetailsManager.loadUserByUsername(testUser.username) } returns testUser
 
         val response = controller.getUserInfo()
 
         assertThat(response.body?.username).isEqualTo(testUser.username)
+        assertThat(response.body?.firstname).isEqualTo(testUser.firstname)
+        assertThat(response.body?.lastname).isEqualTo(testUser.lastname)
         assertThat(response.body?.permissions).isEqualTo(testUserPermissions.map { it.key })
         assertThat(response.body?.theme).isEqualTo(UserTheme.DARK)
 
@@ -279,6 +283,21 @@ class UserControllerTest {
 
         assertThat(response.email).isNull()
         verify(exactly = 1) { userDetailsManager.updateOwnAccount(testUser.username, "Maxi", "Muster", null) }
+    }
+
+    // ADR-0062: while the deployment requires a second factor, an e-mail address is mandatory for every
+    // account - not just a prerequisite for the e-mail method.
+    @Test
+    fun `update own account refuses a blank e-mail address while a second factor is required`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { tafelAdminProperties.mfa } returns TafelAdminMfaProperties().apply { required = true }
+
+        val exception = assertThrows<BusinessRuleException> {
+            controller.updateAccount(UserAccountRequest(firstname = "Maxi", lastname = "Muster", email = "   "))
+        }
+
+        assertThat(exception.body.detail).contains("E-Mail-Adresse")
+        verify(exactly = 0) { userDetailsManager.updateOwnAccount(any(), any(), any(), any()) }
     }
 
     @Test
@@ -667,6 +686,22 @@ class UserControllerTest {
         assertThat(created.captured.email).isNull()
     }
 
+    // ADR-0062: a new account is refused the same way an existing one is - the requirement applies from
+    // the moment it is created, not only once someone signs in with it.
+    @Test
+    fun `create user refuses a blank e-mail address while a second factor is required`() {
+        every { tafelAdminProperties.mfa } returns TafelAdminMfaProperties().apply { required = true }
+        every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy")
+        every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
+
+        val exception = assertThrows<BusinessRuleException> {
+            controller.createUser(user = testUserRequest.copy(email = null))
+        }
+
+        assertThat(exception.body.detail).contains("E-Mail-Adresse")
+        verify(exactly = 0) { userDetailsManager.createUser(any()) }
+    }
+
     @Test
     fun `get userinfo reports a login that still owes its code`() {
         SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
@@ -1000,6 +1035,22 @@ class UserControllerTest {
         controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(*testUserPermissions.toTypedArray()).copy(email = "new@example.org"))
 
         verify(exactly = 1) { userDetailsManager.updateUser(any()) }
+    }
+
+    // ADR-0062: an administrator cannot blank out someone else's e-mail address any more than the account's
+    // own owner can - the requirement applies to every write of the field, not just self-service ones.
+    @Test
+    fun `update user refuses a blank e-mail address while a second factor is required`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { tafelAdminProperties.mfa } returns TafelAdminMfaProperties().apply { required = true }
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val exception = assertThrows<BusinessRuleException> {
+            controller.updateUser(userId = testUser.id!!, user = requestWithPermissions(*testUserPermissions.toTypedArray()).copy(email = null))
+        }
+
+        assertThat(exception.body.detail).contains("E-Mail-Adresse")
+        verify(exactly = 0) { userDetailsManager.updateUser(any()) }
     }
 
     @Test

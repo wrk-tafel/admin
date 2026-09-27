@@ -32,6 +32,7 @@ object PushNotificationTypeTargeting {
         PushNotificationType.EXCESSIVE_READ_ACCESS to setOf(UserPermissions.ADMINISTRATOR),
         PushNotificationType.SCANNER_FILES_EXPIRING to setOf(UserPermissions.CUSTOMER_DOCUMENTS),
         PushNotificationType.RETENTION_RUN to setOf(UserPermissions.ADMINISTRATOR),
+        PushNotificationType.RETENTION_EXPIRING to setOf(UserPermissions.ADMINISTRATOR),
     )
 
     /**
@@ -60,6 +61,9 @@ object PushNotificationTypeTargeting {
         PushNotificationType.SCANNER_FILES_EXPIRING to "kunden/suchen",
         // a retention job's deletions are themselves recorded there, same as any other delete
         PushNotificationType.RETENTION_RUN to "zugriffsprotokoll",
+        // the screen listing exactly what the notification counts: user accounts, customers and
+        // employees about to be deleted, each with a link to where it can be dealt with
+        PushNotificationType.RETENTION_EXPIRING to "einstellungen/anstehende-loeschungen",
     )
 
     /**

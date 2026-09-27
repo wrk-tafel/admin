@@ -47,12 +47,12 @@ const MIN_SEARCH_CHARS = 2;
 const AREA_PERMISSION_BY_TYPE: Record<DataSubjectMatchType, string> = {
   CUSTOMER: 'CUSTOMER',
   USER_ACCOUNT: 'USER_MANAGEMENT',
-  EMPLOYEE_WITHOUT_ACCOUNT: 'SETTINGS'
+  EMPLOYEE: 'SETTINGS'
 };
 
 /**
  * The central "Datenauskunft" screen (issue #3396): one search box across households, user
- * accounts and employees without one, so a data-subject request ("what do you have on me?") no
+ * accounts and employees, so a data-subject request ("what do you have on me?") no
  * longer means guessing which of the three categories someone falls into and searching three
  * separate screens. Export and delete both reuse the household/user/employee area's own existing
  * flow per selected match - this screen only ties them together, it doesn't add a new export format

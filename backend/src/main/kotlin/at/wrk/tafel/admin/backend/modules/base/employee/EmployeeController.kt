@@ -65,9 +65,8 @@ class EmployeeController(
     }
 
     /**
-     * The GDPR Art. 15/20 data takeout (issue #3394) for an employee with no linked `users` account -
-     * the gap `UserController.exportUserById` (issue #3363) leaves open, since that one is keyed by a
-     * `userId` that such an employee never has. A ZIP (`datenexport.pdf` plus a machine-readable
+     * The GDPR Art. 15/20 data takeout (issue #3394) for an employee - the counterpart of
+     * `UserController.exportUserById` (issue #3363) for a record that has no user account. A ZIP (`datenexport.pdf` plus a machine-readable
      * `daten.json`, issue #3418). Behind `SETTINGS` rather than the class-level `LOGISTICS or SETTINGS`,
      * same override pattern as [deleteEmployee].
      */

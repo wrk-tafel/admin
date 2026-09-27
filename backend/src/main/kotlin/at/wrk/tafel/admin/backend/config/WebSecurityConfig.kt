@@ -9,7 +9,6 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import jakarta.servlet.DispatcherType
 import org.passay.DefaultPasswordValidator
 import org.passay.data.EnglishCharacterData
@@ -47,7 +46,6 @@ import java.time.Clock
 class WebSecurityConfig(
     private val jwtTokenService: JwtTokenService,
     private val userRepository: UserRepository,
-    private val employeeRepository: EmployeeRepository,
     private val applicationProperties: ApplicationProperties,
     private val tafelAdminProperties: TafelAdminProperties,
     private val jsonMapper: JsonMapper,
@@ -264,7 +262,6 @@ class WebSecurityConfig(
     @Bean
     fun tafelUserDetailsManager(): TafelUserDetailsManager = TafelUserDetailsManager(
         userRepository,
-        employeeRepository,
         passwordEncoder(),
         passwordValidator,
         tafelAdminProperties,

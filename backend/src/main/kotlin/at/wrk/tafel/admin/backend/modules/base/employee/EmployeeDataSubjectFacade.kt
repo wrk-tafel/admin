@@ -21,8 +21,9 @@ class EmployeeDataSubjectFacade(
         ?.let { ExportFileResult(filename = it.filename, bytes = it.bytes) }
 
     /**
-     * Delegates as-is to [EmployeeService.deleteEmployee] - same [at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException]/
-     * [at.wrk.tafel.admin.backend.modules.base.exception.ConflictException] behavior (linked user account) as the Mitarbeiter settings screen's own delete.
+     * Delegates as-is to [EmployeeService.deleteEmployee] - same
+     * [at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException] behavior as the
+     * Mitarbeiter settings screen's own delete.
      */
     fun delete(employeeId: Long) = employeeService.deleteEmployee(employeeId)
 }

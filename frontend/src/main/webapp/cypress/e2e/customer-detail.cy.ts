@@ -284,7 +284,7 @@ describe('Customer Detail', () => {
       cy.createCustomerNote(customerId, 'note written by e2etest').then((noteResponse) => {
         const noteId = noteResponse.body.id;
 
-        // e2etest2 holds CUSTOMER like the note's author, but is a different employee - it may
+        // e2etest2 holds CUSTOMER like the note's author, but is a different user - it may
         // read the note but not correct or erase what someone else wrote (GDPR gap G21).
         cy.loginE2ETest2();
         cy.visit('/kunden/detail/' + customerId);

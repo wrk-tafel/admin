@@ -115,15 +115,14 @@ class SupportService(
 
     /**
      * Who reported it, as both halves of the answer: the username identifies the account in the
-     * application, the employee's name is who to call back about the report. The bracket is left out
-     * entirely when there is no name to put in it - an account without an employee behind it, or one
-     * whose employee record carries no name. The username on its own is still an answer, "user ()"
-     * is not.
+     * application, the account's name is who to call back about the report. The bracket is left out
+     * entirely when there is no name to put in it - an account that no longer exists, or one whose
+     * name is blank. The username on its own is still an answer, "user ()" is not.
      */
     private fun reportedBy(): String {
         val username = SecurityContextHolder.getContext().authentication?.name ?: return "unbekannt"
-        val employee = userRepository.findByUsername(username)?.employee
-        val fullname = listOfNotNull(employee?.firstname, employee?.lastname)
+        val user = userRepository.findByUsername(username)
+        val fullname = listOfNotNull(user?.firstname, user?.lastname)
             .filter { it.isNotBlank() }
             .joinToString(" ")
         return if (fullname.isBlank()) username else "$username ($fullname)"

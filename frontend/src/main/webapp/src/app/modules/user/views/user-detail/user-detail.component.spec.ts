@@ -5,7 +5,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UserDetailComponent } from './user-detail.component';
 import { UserApiService, UserData, UserPermission } from '../../../../api/user-api.service';
 import { By } from '@angular/platform-browser';
-import { HttpHeaders, HttpResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { MatDialog } from '@angular/material/dialog';
+import { UserDeleteConfirmDialogComponent } from '../../components/user-delete-confirm-dialog/user-delete-confirm-dialog.component';
 import { of, throwError } from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -37,6 +39,7 @@ describe('UserDetailComponent', () => {
     let router: MockedObject<Router>;
     let toastr: MockedObject<TafelToastrService>;
     let fileHelperService: MockedObject<FileHelperService>;
+    let dialog: { open: ReturnType<typeof vi.fn> };
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -58,6 +61,12 @@ describe('UserDetailComponent', () => {
                     useValue: {
                         success: vi.fn().mockName('TafelToastrService.success'),
                         error: vi.fn().mockName('TafelToastrService.error')
+                    }
+                },
+                {
+                    provide: MatDialog,
+                    useValue: {
+                        open: vi.fn().mockName('MatDialog.open').mockReturnValue({afterClosed: () => of(true)})
                     }
                 },
                 {
@@ -90,6 +99,7 @@ describe('UserDetailComponent', () => {
         router = TestBed.inject(Router) as MockedObject<Router>;
         toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
         fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
+        dialog = TestBed.inject(MatDialog) as unknown as { open: ReturnType<typeof vi.fn> };
     });
 
     function createFixture(userData: UserData = mockUser): ComponentFixture<UserDetailComponent> {
@@ -196,28 +206,43 @@ describe('UserDetailComponent', () => {
         expect(component.currentUserData()).toEqual(updatedUserData);
     });
 
-    it('deleted user successfully', () => {
+    it('deleted user successfully after the confirmation', () => {
         const fixture = createFixture();
         const component = fixture.componentInstance;
         userApiService.deleteUser.mockReturnValueOnce(of(undefined));
 
         component.deleteUser();
 
-        expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id);
+        expect(dialog.open).toHaveBeenCalledWith(UserDeleteConfirmDialogComponent, {
+            data: {username: mockUser.username, name: 'first last'}
+        });
+        expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id, expect.anything());
         expect(router.navigate).toHaveBeenCalledWith(['/benutzer/suchen']);
         expect(toastr.success).toHaveBeenCalledWith('Benutzer wurde gelöscht!');
     });
 
-    it('delete user failed', () => {
+    it('does not delete without the confirmation', () => {
         const fixture = createFixture();
         const component = fixture.componentInstance;
-        userApiService.deleteUser.mockReturnValueOnce(throwError(() => ({ status: 404 })));
+        dialog.open.mockReturnValueOnce({afterClosed: () => of(undefined)});
 
         component.deleteUser();
 
-        expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id);
+        expect(userApiService.deleteUser).not.toHaveBeenCalled();
         expect(router.navigate).not.toHaveBeenCalled();
-        expect(toastr.error).toHaveBeenCalledWith('Löschen fehlgeschlagen!');
+    });
+
+    it('delete user failed shows the backend message', () => {
+        const fixture = createFixture();
+        const component = fixture.componentInstance;
+        const detail = 'Es muss mindestens ein aktiver Benutzer mit der Berechtigung "Administrator" verbleiben!';
+        userApiService.deleteUser.mockReturnValueOnce(throwError(() => new HttpErrorResponse({status: 409, error: {detail}})));
+
+        component.deleteUser();
+
+        expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id, expect.anything());
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(toastr.error).toHaveBeenCalledWith(detail, 'Löschen fehlgeschlagen!');
     });
 
     it('editUser should navigate properly', () => {

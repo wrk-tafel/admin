@@ -391,7 +391,7 @@ class StatisticsServiceIT : TafelBaseIntegrationTest() {
         validUntil: LocalDate = LocalDate.now().plusYears(1),
         mainPersonAge: Int = 30,
     ): HouseholdEntity {
-        val household = createHousehold(testUser.employee!!, testCountry)
+        val household = createHousehold(testUser!!, testCountry)
         household.validUntil = validUntil
         household.persons.first { it.isMainPerson }.birthDate = LocalDate.now().minusYears(mainPersonAge.toLong())
 

@@ -142,6 +142,9 @@ data class GeneratedPasswordResponse(
 @ExcludeFromTestCoverage
 data class UserInfoResponse(
     val username: String,
+    // The header's avatar shows their initials.
+    val firstname: String,
+    val lastname: String,
     val permissions: List<String>,
     val theme: UserTheme,
     // The password was accepted but the code from the authenticator app is still owed: the frontend

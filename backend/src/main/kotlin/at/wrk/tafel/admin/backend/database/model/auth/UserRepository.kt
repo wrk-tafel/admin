@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.model.auth
 
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Modifying
@@ -25,7 +26,7 @@ interface UserRepository :
     @Query("update User u set u.lastLogin = :lastLogin where u.username = :username")
     fun updateLastLogin(@Param("username") username: String, @Param("lastLogin") lastLogin: LocalDateTime)
 
-    fun findByEmployeePersonnelNumber(personnelNumber: String): UserEntity?
+    fun findByPersonnelNumber(personnelNumber: String): UserEntity?
 
     /**
      * Records [step] as the last accepted authenticator code, but only if it is later than the one
@@ -45,9 +46,6 @@ interface UserRepository :
     fun clearMfaStep(@Param("id") id: Long): Int
 
     fun existsByUsername(username: String): Boolean
-
-    /** Whether an employee is linked to a user account - what `EmployeeService.deleteEmployee` checks. */
-    fun existsByEmployeeId(employeeId: Long): Boolean
 
     /** What the dashboard's "Benutzer" tile shows while no distribution is active. */
     fun countByEnabledTrue(): Int
@@ -71,23 +69,51 @@ interface UserRepository :
     ): Long
 
     /**
-     * The accounts linked to [employeeIds] - one query for a whole page of employees rather than a
-     * lookup per row. A projection rather than the entities, because the only thing read of an
-     * account here is which employee it belongs to and how to address it.
-     */
-    @Query(
-        "select u.employee.id as employeeId, u.id as userId, u.username as username " +
-            "from User u where u.employee.id in :employeeIds",
-    )
-    fun findAccountsByEmployeeIds(@Param("employeeIds") employeeIds: Collection<Long>): List<EmployeeUserAccountProjection>
-
-    /**
      * The accounts behind [usernames] - one query for a whole page of login attempts rather than a
      * lookup per row. Compared lower-cased, since a login attempt records the username normalized
      * while an account keeps the spelling it was created with.
      */
     @Query("select lower(u.username) as username, u.id as userId from User u where lower(u.username) in :usernames")
     fun findIdsByUsernames(@Param("usernames") usernames: Collection<String>): List<UserIdProjection>
+
+    /**
+     * How many accounts `UserRetentionService` will delete once they have aged past [cutoff] - the
+     * same measure as [findExpiredUserIdsSkipLocked] (the last login, or the creation date for an
+     * account that never logged in; never an account holding [administratorAuthority]), but a plain
+     * count without the row locks, since it only feeds the advance warning to administrators
+     * (`RetentionExpiryReminderService`) and claims nothing.
+     */
+    @Query(
+        value = """
+            SELECT COUNT(*) FROM users u
+            WHERE COALESCE(u.last_login, u.created_at) < :cutoff
+              AND NOT EXISTS (
+                  SELECT 1 FROM users_authorities ua
+                  WHERE ua.user_id = u.id AND ua.name = :administratorAuthority
+              )
+        """,
+        nativeQuery = true,
+    )
+    fun countUsersLastActiveBefore(
+        @Param("cutoff") cutoff: LocalDateTime,
+        @Param("administratorAuthority") administratorAuthority: String,
+    ): Long
+
+    /**
+     * The accounts behind [countUsersLastActiveBefore], oldest activity first - what the "Anstehende
+     * Löschungen" screen lists (`PendingDeletionsService`). [pageable] caps the list, since the count
+     * next to it says how many there really are.
+     */
+    @Query(
+        "select u from User u where coalesce(u.lastLogin, u.createdAt) < :cutoff " +
+            "and not exists (select 1 from UserAuthority a where a.user = u and a.name = :administratorAuthority) " +
+            "order by coalesce(u.lastLogin, u.createdAt) asc, u.id asc",
+    )
+    fun findUsersLastActiveBefore(
+        @Param("cutoff") cutoff: LocalDateTime,
+        @Param("administratorAuthority") administratorAuthority: String,
+        pageable: Pageable,
+    ): List<UserEntity>
 
     /**
      * Candidate ids for `UserRetentionService` (GDPR gap G13) - every non-administrator account that
@@ -126,11 +152,4 @@ interface UserRepository :
 interface UserIdProjection {
     val username: String
     val userId: Long
-}
-
-/** One user account, as [UserRepository.findAccountsByEmployeeIds] reads them. */
-interface EmployeeUserAccountProjection {
-    val employeeId: Long
-    val userId: Long
-    val username: String
 }

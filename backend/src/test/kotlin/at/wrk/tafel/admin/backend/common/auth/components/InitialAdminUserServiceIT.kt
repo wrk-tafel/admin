@@ -20,7 +20,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 /**
  * Boots the application the way a brand-new installation does: migrations against a database that
  * has never held anything, and nothing but [InitialAdminUserService] to make it loggable into.
- * Whether the account it builds actually persists - sequences, the employee it needs, the encoded
+ * Whether the account it builds actually persists - sequences, the encoded
  * password - can only be answered against a real database, and only in the empty state a running
  * installation is never in again.
  *
@@ -73,9 +73,9 @@ class InitialAdminUserServiceIT {
         assertThat(passwordEncoder.matches("Startpasswort1", createdUser.password)).isTrue
         assertThat(createdUser.authorities.map { it.name })
             .containsExactly(UserPermissions.ADMINISTRATOR.key)
-        assertThat(createdUser.employee.personnelNumber).isEqualTo("00001")
-        assertThat(createdUser.employee.firstname).isEqualTo("Tafel")
-        assertThat(createdUser.employee.lastname).isEqualTo("Administrator")
+        assertThat(createdUser.personnelNumber).isEqualTo("00001")
+        assertThat(createdUser.firstname).isEqualTo("Tafel")
+        assertThat(createdUser.lastname).isEqualTo("Administrator")
     }
 
     /**
@@ -96,15 +96,13 @@ class InitialAdminUserServiceIT {
 
 /**
  * A brand-new installation is also what ADR-0035's "wipe the users table" recovery path produces -
- * except there `employees` was never wiped, so the configured personnel number can already be
- * sitting in the database when [InitialAdminUserService] runs. `TafelUserDetailsManager.resolveEmployee`
- * loads that row and `userRepository.save` has to cascade onto the very same managed instance, which
- * only works inside one transaction spanning both (issue #3522) - runs on its own container so this
- * class can control the exact database state the boot sees, and calls [InitialAdminUserService.run]
- * itself rather than [InitialAdminUserService.createInitialAdminUserIfMissing] directly: Spring's
- * transactional proxy never intercepts a self-invocation, so a transaction present only on the
- * latter would silently not apply to the real `ApplicationRunner` boot path (see
- * [InitialAdminUserService.run]'s KDoc).
+ * except there `employees` was never wiped, so an employee with the configured personnel number can
+ * already be sitting in the database when [InitialAdminUserService] runs. Users and employees are
+ * separate records, so that row must neither get in the way of the bootstrap nor be touched by it -
+ * runs on its own container so this class can control the exact database state the boot sees, and
+ * calls [InitialAdminUserService.run] itself rather than
+ * [InitialAdminUserService.createInitialAdminUserIfMissing] directly, since that is the real
+ * `ApplicationRunner` boot path.
  */
 @SpringBootTest(
     properties = [
@@ -148,7 +146,7 @@ class InitialAdminUserServiceExistingEmployeeIT {
     @Test
     fun `bootstrapping into a database whose employees table already has the configured personnel number succeeds`() {
         val properties = tafelAdminProperties.setup.initialAdmin
-        employeeRepository.save(
+        val employee = employeeRepository.save(
             EmployeeEntity(
                 personnelNumber = properties.personnelNumber,
                 firstname = "Pre-existing",
@@ -160,8 +158,15 @@ class InitialAdminUserServiceExistingEmployeeIT {
         initialAdminUserService.run(DefaultApplicationArguments())
 
         val createdUser = userRepository.findByUsername(properties.username)!!
-        assertThat(createdUser.employee.personnelNumber).isEqualTo(properties.personnelNumber)
-        assertThat(createdUser.employee.firstname).isEqualTo(properties.firstname)
-        assertThat(createdUser.employee.lastname).isEqualTo(properties.lastname)
+        assertThat(createdUser.personnelNumber).isEqualTo(properties.personnelNumber)
+        assertThat(createdUser.firstname).isEqualTo(properties.firstname)
+        assertThat(createdUser.lastname).isEqualTo(properties.lastname)
+
+        // the employee is a record of its own: neither replaced, renamed nor duplicated by the account
+        val employees = employeeRepository.findAll().filter { it.personnelNumber == properties.personnelNumber }
+        assertThat(employees).hasSize(1)
+        assertThat(employees.single().id).isEqualTo(employee.id)
+        assertThat(employees.single().firstname).isEqualTo("Pre-existing")
+        assertThat(employees.single().lastname).isEqualTo("Employee")
     }
 }

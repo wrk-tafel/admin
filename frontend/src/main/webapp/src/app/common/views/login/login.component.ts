@@ -148,8 +148,9 @@ export class LoginComponent {
           // until it was accepted, the password change included.
           this.router.navigate(['/login/mfa']);
         } else if (loginResult.mfaSetupRequired) {
-          // The deployment requires a second factor and this user has none: nothing else works until one is set up.
-          this.router.navigate(['/konto/zwei-faktor']);
+          // The deployment requires a second factor and this user has none: set one up as the last login step,
+          // rather than being let into the application to do it there.
+          this.router.navigate(['/login/mfa-einrichtung']);
         } else if (loginResult.passwordChangeRequired) {
           this.router.navigate(['/login/passwortaendern']);
         } else {

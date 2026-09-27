@@ -54,15 +54,6 @@ class InitialAdminUserService(
     @Transactional
     override fun run(args: ApplicationArguments) = createInitialAdminUserIfMissing()
 
-    /**
-     * Transactional as a whole: [resolveEmployee][TafelUserDetailsManager] loads any existing
-     * employee for the configured personnel number in one persistence context, and
-     * `userRepository.save` has to cascade onto that same managed instance - without a transaction
-     * spanning both, the employee load commits and detaches on its own, and the save that follows
-     * fails with `PersistentObjectException: detached entity passed to persist`. Triggered by an
-     * installation recovering via ADR-0035's "wipe the users table" path into a database whose
-     * `employees` table already has the configured personnel number.
-     */
     @Transactional
     fun createInitialAdminUserIfMissing() {
         val properties = tafelAdminProperties.setup.initialAdmin

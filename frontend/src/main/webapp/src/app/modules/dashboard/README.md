@@ -110,6 +110,12 @@ duplicate distribution state inside `/sse/dashboard` payloads or vice versa — 
 other modules (e.g. `checkin`, `logistics`) can reuse `GlobalStateService` without depending on
 this module.
 
+The server sends the current state once, when the stream opens, and only changes afterwards.
+`GlobalStateService.reset()` (called on logout) therefore closes the stream along with dropping
+the snapshot, and the layout resolver's `init()` opens a new one on the next login - clearing
+the snapshot alone would leave a re-login in the same tab on "Geschlossen" until the next
+start or close.
+
 `SseService.listen()` auto-reconnects on `EventSource` errors (1s backoff, see
 `common/sse/sse.service.ts`) and reports connection health via an optional callback —
 `GlobalStateService` wires that into `_connectionState`, but `DashboardComponent` currently

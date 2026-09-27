@@ -4,12 +4,14 @@ import {of, throwError} from 'rxjs';
 import {UserAccountDataComponent} from './user-account-data.component';
 import {MfaApiService} from '../../../../api/mfa-api.service';
 import {UserAccountData, UserApiService} from '../../../../api/user-api.service';
+import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('UserAccountDataComponent', () => {
   let userApiService: MockedObject<UserApiService>;
   let mfaApiService: MockedObject<MfaApiService>;
   let toastr: MockedObject<TafelToastrService>;
+  let authenticationService: MockedObject<AuthenticationService>;
 
   const account: UserAccountData = {
     username: 'max', personnelNumber: '0815', firstname: 'Max', lastname: 'Muster', email: null, mfaEmailEnabled: false
@@ -33,12 +35,17 @@ describe('UserAccountDataComponent', () => {
         {
           provide: TafelToastrService,
           useValue: {success: vi.fn(), error: vi.fn()}
+        },
+        {
+          provide: AuthenticationService,
+          useValue: {loadUserInfo: vi.fn().mockName('AuthenticationService.loadUserInfo').mockResolvedValue(null)}
         }
       ]
     });
     userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
     mfaApiService = TestBed.inject(MfaApiService) as MockedObject<MfaApiService>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+    authenticationService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
   });
 
   async function create() {
@@ -95,6 +102,8 @@ describe('UserAccountDataComponent', () => {
       expect.anything()
     );
     expect(toastr.success).toHaveBeenCalled();
+    // the header's avatar follows the changed name
+    expect(authenticationService.loadUserInfo).toHaveBeenCalled();
     expect(input(fixture, 'account-firstname').value).toBe('Maxi');
     expect(input(fixture, 'account-email').value).toBe('maxi@example.org');
     expect(button(fixture, 'account-save-button').disabled).toBe(true);
