@@ -235,14 +235,22 @@ describe('SettingsPendingDeletionsComponent', () => {
       expect(text(byTestId(fixture, 'pending-users-heading'))).toBe('Benutzerkonten (0)');
     });
 
-    it('says the automatic deletion is switched off when the job is disabled', async () => {
+    it('still shows the preview data alongside a hint when the job is disabled', async () => {
+      const fixture = await render({users: list([user], {enabled: false})});
+
+      expect(text(byTestId(fixture, 'pending-users-disabled'))).toBe('Die automatische Löschung ist deaktiviert.');
+      expect(byTestId(fixture, 'pending-users-description')).not.toBeNull();
+      expect(byTestId(fixture, 'pending-user-row-11')).not.toBeNull();
+      expect(text(byTestId(fixture, 'pending-users-heading'))).toBe('Benutzerkonten (1)');
+    });
+
+    it('says so when nothing is due even though the job is disabled', async () => {
       const fixture = await render({users: list<PendingUserDeletionItem>([], {enabled: false})});
 
       expect(text(byTestId(fixture, 'pending-users-disabled'))).toBe('Die automatische Löschung ist deaktiviert.');
-      expect(byTestId(fixture, 'pending-users-empty')).toBeNull();
-      expect(byTestId(fixture, 'pending-users-description')).toBeNull();
+      expect(text(byTestId(fixture, 'pending-users-empty'))).toBe('Keine Benutzerkonten in den nächsten 30 Tagen fällig.');
       expect(byTestId(fixture, 'pending-users-paginator')).toBeNull();
-      expect(text(byTestId(fixture, 'pending-users-heading'))).toBe('Benutzerkonten');
+      expect(text(byTestId(fixture, 'pending-users-heading'))).toBe('Benutzerkonten (0)');
     });
   });
 
@@ -286,10 +294,11 @@ describe('SettingsPendingDeletionsComponent', () => {
       expect(text(byTestId(fixture, 'pending-households-empty'))).toBe('Keine Kunden in den nächsten 30 Tagen fällig.');
     });
 
-    it('says the automatic deletion is switched off when the job is disabled', async () => {
-      const fixture = await render({households: list<PendingHouseholdDeletionItem>([], {enabled: false})});
+    it('still shows the preview data alongside a hint when the job is disabled', async () => {
+      const fixture = await render({households: list([household], {enabled: false})});
 
       expect(text(byTestId(fixture, 'pending-households-disabled'))).toBe('Die automatische Löschung ist deaktiviert.');
+      expect(byTestId(fixture, 'pending-household-row-4711')).not.toBeNull();
     });
   });
 
@@ -331,10 +340,11 @@ describe('SettingsPendingDeletionsComponent', () => {
       expect(text(byTestId(fixture, 'pending-employees-empty'))).toBe('Keine Mitarbeiter in den nächsten 30 Tagen fällig.');
     });
 
-    it('says the automatic deletion is switched off when the job is disabled', async () => {
-      const fixture = await render({employees: list<PendingEmployeeDeletionItem>([], {enabled: false})});
+    it('still shows the preview data alongside a hint when the job is disabled', async () => {
+      const fixture = await render({employees: list([employee], {enabled: false})});
 
       expect(text(byTestId(fixture, 'pending-employees-disabled'))).toBe('Die automatische Löschung ist deaktiviert.');
+      expect(byTestId(fixture, 'pending-employee-row-21')).not.toBeNull();
     });
   });
 

@@ -161,19 +161,26 @@ internal class PendingDeletionsServiceTest {
     }
 
     @Test
-    fun `a job that is switched off lists nothing and says so`() {
+    fun `a job that is switched off still previews what it would delete, unlike one with no valid retention time`() {
         properties.userDeletion.enabled = false
         properties.householdDeletion.retentionTime = Period.ZERO
+        val neverLoggedIn = TestdataGenerator.createUser().apply {
+            id = 2
+            createdAt = LocalDateTime.of(2026, 4, 1, 8, 0)
+        }
+        every { userRepository.countUsersLastActiveBefore(any(), any()) } returns 1
+        every { userRepository.findUsersLastActiveBefore(any(), any(), any()) } returns listOf(neverLoggedIn)
 
         val users = service.getPendingUserDeletions(null, null)
         val households = service.getPendingHouseholdDeletions(null, null)
         val employees = service.getPendingEmployeeDeletions(null, null)
 
         assertThat(users.enabled).isFalse
-        assertThat(users.items).isEmpty()
+        assertThat(users.items).hasSize(1)
         assertThat(households.enabled).isFalse
+        assertThat(households.items).isEmpty()
         assertThat(employees.enabled).isTrue
-        verify(exactly = 0) { userRepository.countUsersLastActiveBefore(any(), any()) }
+        verify { userRepository.countUsersLastActiveBefore(any(), any()) }
         verify(exactly = 0) { householdRepository.countByValidUntilBefore(any()) }
     }
 

@@ -27,6 +27,11 @@ import java.time.LocalDateTime
  * have been stopped by its ceiling. Every list is paged, oldest activity first, so an administrator
  * can look through all of it and not only the first rows a job would handle in one run.
  *
+ * `items` is populated from the retention window even when the job's own `enabled` is switched off,
+ * so the screen stays a preview of what would be deleted rather than going blank - only `enabled`
+ * itself reports whether the job actually runs. Retention/warning periods that are zero or negative
+ * still yield no items, since no meaningful cutoff exists to preview.
+ *
  * Reads the repositories directly, like the reminder does, rather than depending on the modules that
  * own the jobs. Only administrators reach it (see `PendingDeletionsController`), and an administrator
  * holds every area's permission, so nothing is filtered per area here.
@@ -42,7 +47,7 @@ class PendingDeletionsService(
 
     fun getPendingUserDeletions(page: Int?, pageSize: Int?): PendingUserDeletionListResponse {
         val config = tafelAdminProperties.userDeletion
-        val cutoff = RetentionWindow.warnCutoff(config.enabled, config.retentionTime, config.retentionWarning, LocalDateTime.now(clock))
+        val cutoff = RetentionWindow.warnCutoff(enabled = true, config.retentionTime, config.retentionWarning, LocalDateTime.now(clock))
         val pageRequest = pageRequestOf(page, pageSize)
         val administrator = UserPermissions.ADMINISTRATOR.key
 
@@ -63,7 +68,7 @@ class PendingDeletionsService(
         }.orEmpty()
 
         return PendingUserDeletionListResponse(
-            enabled = cutoff != null,
+            enabled = config.enabled && cutoff != null,
             retentionText = RetentionPeriodFormatter.format(config.retentionTime),
             warningText = RetentionPeriodFormatter.format(config.retentionWarning),
             totalCount = totalCount,
@@ -76,7 +81,7 @@ class PendingDeletionsService(
 
     fun getPendingHouseholdDeletions(page: Int?, pageSize: Int?): PendingHouseholdDeletionListResponse {
         val config = tafelAdminProperties.householdDeletion
-        val cutoff = RetentionWindow.warnCutoff(config.enabled, config.retentionTime, config.retentionWarning, LocalDateTime.now(clock))
+        val cutoff = RetentionWindow.warnCutoff(enabled = true, config.retentionTime, config.retentionWarning, LocalDateTime.now(clock))
             ?.toLocalDate()
         val pageRequest = pageRequestOf(page, pageSize)
 
@@ -93,7 +98,7 @@ class PendingDeletionsService(
         }.orEmpty()
 
         return PendingHouseholdDeletionListResponse(
-            enabled = cutoff != null,
+            enabled = config.enabled && cutoff != null,
             retentionText = RetentionPeriodFormatter.format(config.retentionTime),
             warningText = RetentionPeriodFormatter.format(config.retentionWarning),
             totalCount = totalCount,
@@ -106,7 +111,7 @@ class PendingDeletionsService(
 
     fun getPendingEmployeeDeletions(page: Int?, pageSize: Int?): PendingEmployeeDeletionListResponse {
         val config = tafelAdminProperties.employeeDeletion
-        val cutoff = RetentionWindow.warnCutoff(config.enabled, config.retentionTime, config.retentionWarning, LocalDateTime.now(clock))
+        val cutoff = RetentionWindow.warnCutoff(enabled = true, config.retentionTime, config.retentionWarning, LocalDateTime.now(clock))
         val pageRequest = pageRequestOf(page, pageSize)
 
         val totalCount = cutoff?.let { employeeRepository.countEmployeesLastUsedBefore(it) } ?: 0
@@ -125,7 +130,7 @@ class PendingDeletionsService(
         }.orEmpty()
 
         return PendingEmployeeDeletionListResponse(
-            enabled = cutoff != null,
+            enabled = config.enabled && cutoff != null,
             retentionText = RetentionPeriodFormatter.format(config.retentionTime),
             warningText = RetentionPeriodFormatter.format(config.retentionWarning),
             totalCount = totalCount,

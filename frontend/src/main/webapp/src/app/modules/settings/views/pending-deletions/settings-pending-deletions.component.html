@@ -7,7 +7,7 @@
   <mat-card class="w-full" testid="pending-users-section">
     <mat-card-header class="mb-2">
       <mat-card-title>
-        <h2 class="tafel-h5 mb-0 mt-1" testid="pending-users-heading">Benutzerkonten @if (users.data()?.enabled) {<span>({{ users.data()!.totalCount }})</span>}</h2>
+        <h2 class="tafel-h5 mb-0 mt-1" testid="pending-users-heading">Benutzerkonten @if (users.data(); as usersHeadingData) {<span>({{ usersHeadingData.totalCount }})</span>}</h2>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -24,9 +24,10 @@
         </div>
       } @else if (!usersPage) {
         <p class="text-sm" testid="pending-users-loading">Anstehende Löschungen werden geladen...</p>
-      } @else if (!usersPage.enabled) {
-        <p class="text-sm" testid="pending-users-disabled">Die automatische Löschung ist deaktiviert.</p>
       } @else {
+        @if (!usersPage.enabled) {
+          <p class="text-sm mb-4" testid="pending-users-disabled">Die automatische Löschung ist deaktiviert.</p>
+        }
         <p class="mb-4 text-sm text-slate-600" testid="pending-users-description">
           Benutzerkonten werden nach {{ usersPage.retentionText }} ohne Anmeldung automatisch gelöscht - hier stehen die,
           bei denen das in den nächsten {{ usersPage.warningText }} passiert.
@@ -124,7 +125,7 @@
   <mat-card class="w-full" testid="pending-households-section">
     <mat-card-header class="mb-2">
       <mat-card-title>
-        <h2 class="tafel-h5 mb-0 mt-1" testid="pending-households-heading">Kunden @if (households.data()?.enabled) {<span>({{ households.data()!.totalCount }})</span>}</h2>
+        <h2 class="tafel-h5 mb-0 mt-1" testid="pending-households-heading">Kunden @if (households.data(); as householdsHeadingData) {<span>({{ householdsHeadingData.totalCount }})</span>}</h2>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -141,9 +142,10 @@
         </div>
       } @else if (!householdsPage) {
         <p class="text-sm" testid="pending-households-loading">Anstehende Löschungen werden geladen...</p>
-      } @else if (!householdsPage.enabled) {
-        <p class="text-sm" testid="pending-households-disabled">Die automatische Löschung ist deaktiviert.</p>
       } @else {
+        @if (!householdsPage.enabled) {
+          <p class="text-sm mb-4" testid="pending-households-disabled">Die automatische Löschung ist deaktiviert.</p>
+        }
         <p class="mb-4 text-sm text-slate-600" testid="pending-households-description">
           Kunden werden nach {{ householdsPage.retentionText }} seit Ablauf der Gültigkeit automatisch gelöscht - hier stehen die,
           bei denen das in den nächsten {{ householdsPage.warningText }} passiert.
@@ -223,7 +225,7 @@
   <mat-card class="w-full" testid="pending-employees-section">
     <mat-card-header class="mb-2">
       <mat-card-title>
-        <h2 class="tafel-h5 mb-0 mt-1" testid="pending-employees-heading">Mitarbeiter @if (employees.data()?.enabled) {<span>({{ employees.data()!.totalCount }})</span>}</h2>
+        <h2 class="tafel-h5 mb-0 mt-1" testid="pending-employees-heading">Mitarbeiter @if (employees.data(); as employeesHeadingData) {<span>({{ employeesHeadingData.totalCount }})</span>}</h2>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -240,9 +242,10 @@
         </div>
       } @else if (!employeesPage) {
         <p class="text-sm" testid="pending-employees-loading">Anstehende Löschungen werden geladen...</p>
-      } @else if (!employeesPage.enabled) {
-        <p class="text-sm" testid="pending-employees-disabled">Die automatische Löschung ist deaktiviert.</p>
       } @else {
+        @if (!employeesPage.enabled) {
+          <p class="text-sm mb-4" testid="pending-employees-disabled">Die automatische Löschung ist deaktiviert.</p>
+        }
         <p class="mb-4 text-sm text-slate-600" testid="pending-employees-description">
           Mitarbeiter werden nach {{ employeesPage.retentionText }} ohne Einsatz als Fahrer:in oder Beifahrer:in automatisch gelöscht - hier stehen die,
           bei denen das in den nächsten {{ employeesPage.warningText }} passiert.
