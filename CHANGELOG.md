@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Der Tagesbericht zeigt Notschlafstellen-Adressen ohne Stiege/Top jetzt sauber ohne das überflüssige ", Stiege , Top ," in der Adresse.
 - Das Benutzer-Icon oben rechts zeigt jetzt die Anfangsbuchstaben von Vor- und Nachname statt der ersten Zeichen des Benutzernamens (bei der Personalnummer als Benutzername waren das nur die ersten beiden Ziffern); nach dem Ändern des Namens in "Mein Konto" aktualisiert es sich sofort.
 - Nach einem Abmelden und Anmelden im selben Browser-Tab zeigt die Übersicht bei laufender Ausgabe nicht mehr fälschlich "Geschlossen" an, sondern gleich den aktuellen Stand.
 - Benutzerkonten und Mitarbeiter sind jetzt getrennte Datensätze ohne Verbindung: Ein Benutzerkonto trägt Personalnummer, Vor- und Nachname selbst und das Benutzerformular nimmt sie direkt entgegen, statt einen Mitarbeiter zu verknüpfen; Mitarbeiter sind nur noch Fahrer:innen und Beifahrer:innen und lassen sich immer löschen und exportieren. Wer als Aussteller eines Kunden, als Verfasser:in einer Notiz oder beim Abhaken eines Routenstopps zu einem Benutzerkonto gehörte, bleibt erhalten; ohne Konto steht dort "Mitarbeiter gelöscht".

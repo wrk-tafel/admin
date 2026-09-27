@@ -323,6 +323,55 @@ class SseOutboxServiceTest {
     }
 
     @Test
+    fun `heartbeat sends a comment to every currently open stream`() {
+        service.forwardNotificationEventsToSse(
+            sseEmitter = sseEmitter,
+            notificationName = notificationName,
+            resultType = TestJsonPayload::class.java,
+        )
+
+        service.sendHeartbeats()
+
+        verify { sseEmitter.send(any<SseEventBuilder>()) }
+    }
+
+    @Test
+    fun `heartbeat stops once the stream has completed`() {
+        val onCompletionSlot = slot<Runnable>()
+        every { sseEmitter.onTimeout(any()) } returns Unit
+        every { sseEmitter.onCompletion(capture(onCompletionSlot)) } returns Unit
+        every { sseEmitter.onError(any<Consumer<Throwable>>()) } returns Unit
+
+        service.forwardNotificationEventsToSse(
+            sseEmitter = sseEmitter,
+            notificationName = notificationName,
+            resultType = TestJsonPayload::class.java,
+        )
+        onCompletionSlot.captured.run()
+
+        service.sendHeartbeats()
+
+        verify(exactly = 0) { sseEmitter.send(any<SseEventBuilder>()) }
+    }
+
+    @Test
+    fun `heartbeat send failure is handled the same way a real event's send failure is`() {
+        val sseEmitter = mockk<SseEmitter>()
+        every { sseEmitter.onTimeout(any()) } returns Unit
+        every { sseEmitter.onCompletion(any()) } returns Unit
+        every { sseEmitter.onError(any<Consumer<Throwable>>()) } returns Unit
+        every { sseEmitter.send(any<SseEventBuilder>()) } throws IOException("broken pipe")
+
+        service.forwardNotificationEventsToSse(
+            sseEmitter = sseEmitter,
+            notificationName = notificationName,
+            resultType = TestJsonPayload::class.java,
+        )
+
+        assertThatCode { service.sendHeartbeats() }.doesNotThrowAnyException()
+    }
+
+    @Test
     fun `callback is unregistered on emitter timeout`() {
         val onTimeoutSlot = slot<Runnable>()
         every { sseEmitter.onTimeout(capture(onTimeoutSlot)) } returns Unit
