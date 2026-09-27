@@ -70,6 +70,10 @@ Ab dann verlangt jede Anmeldung nach dem Passwort einen Code (siehe [Anmeldung m
 
 Ist die Zwei-Faktor-Authentifizierung für die gesamte Anwendung vorgeschrieben (das legt der Betreiber der Anwendung fest, nicht ein einzelner Benutzer), muss mindestens eine Methode eingerichtet sein. Wer noch keine hat, richtet sie direkt im Anmelde-Vorgang ein: Nach Benutzername und Passwort erscheint statt der Übersicht eine eigene Einrichtungsseite mit einem entsprechenden Hinweis und denselben beiden Methoden wie oben. Ist noch keine E-Mail-Adresse hinterlegt, trägt man sie direkt auf dieser Seite ein, statt dafür erst "Mein Konto" zu öffnen – ein Code wird im Anschluss sofort an die neue Adresse gesendet. Auch eine bereits geöffnete Sitzung wird auf diese Seite geleitet, sobald der Betreiber die Vorschrift einschaltet, und kann bis zur Einrichtung nichts anderes in der Anwendung tun, auch keine andere Adresse direkt aufrufen; über **Abbrechen und abmelden** lässt sich die Anmeldung stattdessen abbrechen. Sobald eine Methode eingerichtet ist, geht es normal weiter (bzw. mit einer noch fälligen Passwortänderung), und der Reiter **Zwei-Faktor-Authentifizierung** von **Mein Konto** zeigt von da an nur noch, dass sich die letzte eingerichtete Methode nicht mehr ausschalten lässt.
 
+![Zwei-Faktor-Authentifizierung ist vorgeschrieben: Einrichtungsseite im Anmelde-Vorgang](images/login-zwei-faktor-einrichten.jpg)
+
+![Noch keine E-Mail-Adresse hinterlegt: Eintragen direkt auf der Einrichtungsseite](images/login-zwei-faktor-einrichten-email-adresse.jpg)
+
 ![Datenschutz](images/konto-datenschutz.jpg)
 
 Auf dem Reiter **Datenschutz** lädt man über **Meine Daten exportieren** eine DSGVO-Datenauskunft (Art. 15/20) zum eigenen Benutzerkonto als PDF-Datei herunter: Benutzername, Personalnummer, Name, die E-Mail-Adresse, die zugewiesenen Berechtigungen, der Aktiv-Status sowie der letzte Login-Zeitpunkt. Das gespeicherte Passwort ist darin nie enthalten. Für eine andere Person kann dieselbe Auskunft auch von einem Benutzer mit Benutzerverwaltungs-Berechtigung über dessen Benutzerdetailseite abgerufen werden, siehe [Benutzer](benutzer.md).
