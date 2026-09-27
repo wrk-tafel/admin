@@ -1,0 +1,162 @@
+@if (setupOwed()) {
+  <main class="min-h-dvh flex items-center justify-center bg-[var(--tafel-background-secondary)] p-6">
+    <div class="w-full max-w-xl">
+      <mat-card class="shadow-md">
+        <mat-card-content class="p-8 md:p-10">
+          <div class="flex flex-col items-center mb-8 text-center">
+            <img ngSrc="assets/img/brand/logo.svg" width="200" height="54" priority alt="ÖRK Logo" class="mb-4 h-[54px] w-[200px] object-contain"/>
+            <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">Zwei-Faktor-Authentifizierung einrichten</h1>
+          </div>
+
+          <div testid="mfaForcedBanner" class="tafel-banner-error mb-4" role="alert">
+            Diese Anwendung verlangt eine Zwei-Faktor-Authentifizierung. Bitte richten Sie mindestens eine Methode ein,
+            um sich anzumelden.
+          </div>
+
+          @if (errorMessage()) {
+            <div #banner testid="errorMessage" class="tafel-banner-error" role="alert">{{ errorMessage() }}</div>
+          }
+          @if (infoMessage()) {
+            <div #banner testid="infoMessage" class="tafel-banner-success" role="status">{{ infoMessage() }}</div>
+          }
+
+          @if (status(); as status) {
+            <!-- ===== authenticator app ===== -->
+            <h2 class="tafel-h5 mb-2">Authenticator-App</h2>
+            @if (appSetup(); as appSetup) {
+              <p class="text-sm text-slate-700 mb-2" testid="mfaStoreHint">
+                Noch keine Authenticator-App? Jede App für zeitbasierte Codes (TOTP) funktioniert, zum Beispiel der
+                kostenlose Google Authenticator:
+                <a testid="mfaStoreLinkGoogle" class="underline text-blue-700"
+                   href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2"
+                   target="_blank" rel="noopener noreferrer"
+                   aria-label="Google Authenticator im Google Play Store (öffnet in neuem Tab)">Google Play</a>
+                |
+                <a testid="mfaStoreLinkApple" class="underline text-blue-700"
+                   href="https://apps.apple.com/app/google-authenticator/id388497605"
+                   target="_blank" rel="noopener noreferrer"
+                   aria-label="Google Authenticator im Apple App Store (öffnet in neuem Tab)">App Store</a>
+              </p>
+
+              <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700 mb-4">
+                <li>Authenticator-App öffnen und einen neuen Eintrag hinzufügen.</li>
+                <li>Den QR-Code scannen oder den Schlüssel darunter von Hand eingeben.</li>
+                <li>Den 6-stelligen Code aus der App unten eingeben und aktivieren.</li>
+              </ol>
+
+              <div class="flex flex-col items-start gap-2 mb-4">
+                <div #qrContainer testid="mfaQrCode" class="bg-white p-2 rounded border border-slate-200"></div>
+                <div class="text-sm">
+                  <span class="text-slate-600">Schlüssel zur Eingabe von Hand:</span>
+                  <code testid="mfaSecret" class="block font-mono text-base tracking-wider mt-1">{{ formattedSecret() }}</code>
+                </div>
+              </div>
+
+              <form (submit)="enableApp($event)" novalidate class="flex flex-col gap-2 max-w-xs">
+                <mat-form-field>
+                  <mat-label>Code aus der App</mat-label>
+                  <input [formField]="codeForm.appCode" matInput testid="mfaAppCode" type="text" inputmode="numeric"
+                         autocomplete="one-time-code">
+                  @for (message of visibleErrorMessages(codeForm.appCode()); track message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+                <div class="flex gap-2">
+                  <button testid="mfaEnableButton" matButton="filled" type="submit" [disabled]="working()">Aktivieren</button>
+                  <button testid="mfaCancelButton" matButton="outlined" type="button" (click)="cancelAppSetup()">Abbrechen</button>
+                </div>
+              </form>
+            } @else {
+              <button testid="mfaSetupButton" matButton="filled" type="button" (click)="startAppSetup()" [disabled]="working()">
+                Einrichten
+              </button>
+            }
+
+            <mat-divider class="!my-6"></mat-divider>
+
+            <!-- ===== e-mail ===== -->
+            <h2 class="tafel-h5 mb-2">Code per E-Mail</h2>
+            @if (!status.emailAvailable) {
+              <p class="text-sm text-slate-600" testid="mfaEmailUnavailable">
+                Auf diesem System ist kein E-Mail-Versand eingerichtet - ein Code per E-Mail steht daher nicht zur
+                Verfügung.
+              </p>
+            } @else if (addingEmailAddress()) {
+              <p class="text-sm text-slate-600 mb-2">
+                Für Ihr Benutzerkonto ist noch keine E-Mail-Adresse hinterlegt - tragen Sie eine ein, damit der Code
+                dorthin gesendet werden kann.
+              </p>
+              <form (submit)="saveEmailAddress($event)" novalidate class="flex flex-col gap-2 max-w-xs">
+                <mat-form-field>
+                  <mat-label>E-Mail-Adresse</mat-label>
+                  <input [formField]="emailAddressForm.email" matInput testid="mfaEmailAddressInput" type="email"
+                         autocomplete="email">
+                  @for (message of visibleErrorMessages(emailAddressForm.email()); track message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+                <div class="flex gap-2">
+                  <button testid="mfaEmailAddressSaveButton" matButton="filled" type="submit" [disabled]="working()">
+                    Speichern
+                  </button>
+                  <button testid="mfaEmailAddressCancelButton" matButton="outlined" type="button"
+                          (click)="cancelAddingEmailAddress()">
+                    Abbrechen
+                  </button>
+                </div>
+              </form>
+            } @else if (!status.emailAddress) {
+              <p class="text-sm text-slate-600 mb-2" testid="mfaEmailNoAddress">
+                Für Ihr Benutzerkonto ist keine E-Mail-Adresse hinterlegt.
+              </p>
+              <button testid="mfaAddEmailAddressButton" matButton="outlined" type="button"
+                      (click)="startAddingEmailAddress()" [disabled]="working()">
+                Adresse hinzufügen
+              </button>
+            } @else if (emailSetupStarted()) {
+              <p class="text-sm text-slate-700 mb-2">
+                Geben Sie den Code ein, der an {{ status.emailAddress }} gesendet wurde.
+              </p>
+              <form (submit)="enableEmail($event)" novalidate class="flex flex-col gap-2 max-w-xs">
+                <mat-form-field>
+                  <mat-label>Code aus der E-Mail</mat-label>
+                  <input [formField]="codeForm.emailCode" matInput testid="mfaEmailCode" type="text" inputmode="numeric"
+                         autocomplete="one-time-code">
+                  @for (message of visibleErrorMessages(codeForm.emailCode()); track message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+                <div class="flex flex-wrap gap-2">
+                  <button testid="mfaEmailEnableButton" matButton="filled" type="submit" [disabled]="working()">
+                    Aktivieren
+                  </button>
+                  <button testid="mfaEmailResendButton" matButton="outlined" type="button" (click)="startEmailSetup()"
+                          [disabled]="working()">
+                    Code erneut senden
+                  </button>
+                  <button testid="mfaEmailCancelButton" matButton="outlined" type="button" (click)="cancelEmailSetup()">
+                    Abbrechen
+                  </button>
+                </div>
+              </form>
+            } @else {
+              <p class="text-sm text-slate-600 mb-4" testid="mfaEmailAddress">
+                Der Code wird an {{ status.emailAddress }} gesendet.
+              </p>
+              <button testid="mfaEmailSetupButton" matButton="filled" type="button" (click)="startEmailSetup()"
+                      [disabled]="working()">
+                Einrichten
+              </button>
+            }
+          }
+
+          <div class="mt-8 text-center">
+            <button testid="cancelButton" matButton="outlined" type="button" class="w-full" (click)="cancel()">
+              Abbrechen und abmelden
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </main>
+}

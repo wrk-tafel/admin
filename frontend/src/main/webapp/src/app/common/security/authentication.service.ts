@@ -75,7 +75,7 @@ export class AuthenticationService {
   }
 
   public redirectToMfaSetup(): Promise<boolean> {
-    return this.router.navigate(['konto', 'zwei-faktor']);
+    return this.router.navigate(['login', 'mfa-einrichtung']);
   }
 
   public redirectToMfa(): Promise<boolean> {

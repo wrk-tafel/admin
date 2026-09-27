@@ -238,7 +238,7 @@ describe('LoginComponent', () => {
 
         await component.login();
 
-        expect(router.navigate).toHaveBeenCalledWith(['/konto/zwei-faktor']);
+        expect(router.navigate).toHaveBeenCalledWith(['/login/mfa-einrichtung']);
     });
 
     describe('environmentLabel', () => {

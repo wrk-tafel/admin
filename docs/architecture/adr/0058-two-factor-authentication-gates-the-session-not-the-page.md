@@ -50,8 +50,9 @@ configuration): "required" means *at least one method*, and the last one cannot 
 - **A required second factor gates the session the same way.** When it is required and the user has no
   method, `TafelJwtAuthProvider` grants no permissions and the filter lets through only what sets a method up
   (a second, narrower allow-list) - computed per request, like the pending state, so switching the setting on
-  reaches sessions that are already open. The frontend guard sends every route but the account page's
-  `zwei-faktor` tab there.
+  reaches sessions that are already open. The frontend guard sends every route to a dedicated setup page in the
+  login flow (see [ADR-0061](0061-mandatory-two-factor-setup-happens-in-the-login-flow.md) for where that page
+  lives and why).
 - **E-mail codes are single-use, short-lived and rate-limited.** One live code per user (`mfa_email_codes`),
   deleted when accepted, expiring after `tafeladmin.mfa.emailCodeValidity`, and a new one only after
   `emailCodeCooldown` - otherwise the send endpoint would fill somebody's mailbox (it is also rate-limited per

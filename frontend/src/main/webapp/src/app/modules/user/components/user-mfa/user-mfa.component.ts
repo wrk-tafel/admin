@@ -1,7 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {form, FormField, validate} from '@angular/forms/signals';
-import {Router, RouterLink} from '@angular/router';
+import {RouterLink} from '@angular/router';
 import {MatButton} from '@angular/material/button';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatDivider} from '@angular/material/divider';
@@ -39,8 +39,9 @@ function codeError(value: string) {
  * Switching a method off asks for a code of either method, so a browser left signed in cannot take the second
  * factor away - and so does adding a second method next to one that is on already (`appCurrentCode`/
  * `emailCurrentCode`), or a browser left signed in could put its own next to the user's. When the deployment
- * requires one the last method cannot be switched off, and a user who has none lands on this tab (see
- * `AuthGuardService`) and can do nothing else until one is set up.
+ * requires one the last method cannot be switched off. A user who has none yet never reaches this tab in the
+ * first place while the requirement is on - `AuthGuardService` sends that session to `LoginMfaSetupComponent`
+ * on the login flow instead.
  */
 @Component({
   selector: 'tafel-user-mfa',
@@ -63,7 +64,6 @@ function codeError(value: string) {
 export class UserMfaComponent {
   private readonly mfaApiService = inject(MfaApiService);
   private readonly authenticationService = inject(AuthenticationService);
-  private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
 
   private readonly qrContainer = viewChild<ElementRef<HTMLElement>>('qrContainer');
@@ -81,12 +81,6 @@ export class UserMfaComponent {
 
   /** The secret in groups of four, which is how it is easiest to copy by eye. */
   readonly formattedSecret = computed(() => this.appSetup()?.secret.match(/.{1,4}/g)?.join(' ') ?? '');
-
-  /** The deployment requires a second factor and this user has none: the only thing left to do here is to set one up. */
-  readonly setupRequired = computed(() => {
-    const status = this.status();
-    return !!status && status.required && !status.totpEnabled && !status.emailEnabled;
-  });
 
   /** Whether the last method is the only thing left, which cannot be switched off while the deployment requires one. */
   readonly lastMethodLocked = computed(() => {
@@ -237,7 +231,6 @@ export class UserMfaComponent {
     }
     const currentCode = needsCurrentCode ? this.codeForm[currentField]().value().replace(/\s/g, '') : null;
 
-    const wasSetupRequired = this.setupRequired();
     this.working.set(true);
     this.clearMessages();
     call(this.codeForm[field]().value().replace(/\s/g, ''), currentCode).subscribe({
@@ -245,13 +238,10 @@ export class UserMfaComponent {
         onSuccess();
         this.resetCodes();
         // The answer replaced the session (a method that was just set up completes it), so what the session may do
-        // is read again - and a user who had to set one up can now go on.
+        // is read again.
         await this.authenticationService.loadUserInfo();
         this.loadStatus();
         this.working.set(false);
-        if (wasSetupRequired) {
-          await this.router.navigate(['uebersicht']);
-        }
       },
       error: (error: HttpErrorResponse) => this.fail(error)
     });

@@ -7,14 +7,13 @@ import {PushNotificationSettingsComponent} from './components/push-notification-
 
 /**
  * "Mein Konto": one page for what a user settles about their own account, login and device, one tab per topic. The
- * tabs are child routes, so each has an address of its own - the two-factor tab is where a session that has to set up
- * a second factor is sent (see `AuthGuardService`), the others can be linked to. `/konto` itself lands on the first
+ * tabs are child routes, so each has an address of its own and can be linked to. `/konto` itself lands on the first
  * tab, the user's own data.
  *
  * These are the children of the `konto` route in `shell.routes.ts`, which renders them inside `UserAccountComponent`.
- * That route is the frame itself rather than a parent with an empty path, because `AuthGuardService` recognises the
- * routes a session that must set up a second factor may open by their path (`konto`, `zwei-faktor`).
- * It sits behind the login only: every user has an account, whatever their permissions.
+ * It sits behind the login only: every user has an account, whatever their permissions. A session that still has to
+ * set a second factor up never reaches here at all - `AuthGuardService` sends it to `LoginMfaSetupComponent` on the
+ * login flow instead, so the two-factor tab only ever shows a method that is already active or being changed.
  */
 export const routes: Routes = [
   {path: '', pathMatch: 'full', redirectTo: 'daten'},

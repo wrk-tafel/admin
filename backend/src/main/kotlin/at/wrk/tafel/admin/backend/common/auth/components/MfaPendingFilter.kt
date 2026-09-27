@@ -23,7 +23,9 @@ import org.springframework.web.filter.OncePerRequestFilter
  * - **A code is owed** (the user has a method): to hand the code in, to have the e-mailed one sent, to ask who the
  *   session is (which is how the frontend learns a code is owed), and to log out.
  * - **A method has to be set up** (the deployment requires one and the user has none): to read the status, to set
- *   either method up, and again to ask who the session is and to log out.
+ *   either method up, to read and change the caller's own account (the e-mail method needs an address on record,
+ *   which is what sends such a session to the "Meine Daten" tab first - see `AuthGuardService`), and again to ask
+ *   who the session is and to log out.
  */
 class MfaPendingFilter : OncePerRequestFilter() {
 
@@ -40,6 +42,8 @@ class MfaPendingFilter : OncePerRequestFilter() {
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/enable"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/email/setup"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/email/enable"),
+        PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/api/users/account"),
+        PathPatternRequestMatcher.pathPattern(HttpMethod.PUT, "/api/users/account"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/api/users/info"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/users/logout"),
     )

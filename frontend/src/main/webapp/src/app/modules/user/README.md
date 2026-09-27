@@ -186,11 +186,11 @@ Passwort, Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design and Datensch
 `USER_MANAGEMENT`-gated route tree, behind the login only, so *any* logged-in user reaches it whatever they hold. The
 tabs are child routes (`/konto/daten`, `/konto/passwort`, `/konto/zwei-faktor`, `/konto/benachrichtigungen`,
 `/konto/design`, `/konto/datenschutz`; `/konto` itself redirects to the first) rendered by `UserAccountComponent` as a
-`mat-tab-nav-bar`, so each tab has an address of its own. That is
-what lets the guard send a session that has to set up a second factor straight to `/konto/zwei-faktor`:
-`AuthGuardService` lets exactly `konto` (the parent the tab renders in) and `zwei-faktor` through for such a session,
-the other tabs lead to that one. The user menu has a single entry for all of it; the light/dark choice
-(`ThemeService`) lives on the Design tab and applies at once, without a save button.
+`mat-tab-nav-bar`, so each tab has an address of its own. A session that still has to set a second factor up never
+reaches any of this: `AuthGuardService` sends it to `LoginMfaSetupComponent` on the login flow instead (see
+`common/views/login-mfa-setup/`), so the two-factor tab here only ever shows a method that is already active or
+being changed voluntarily. The user menu has a single entry for all of it; the light/dark choice (`ThemeService`)
+lives on the Design tab and applies at once, without a save button.
 
 ### UserAccountDataComponent — "Meine Daten"
 

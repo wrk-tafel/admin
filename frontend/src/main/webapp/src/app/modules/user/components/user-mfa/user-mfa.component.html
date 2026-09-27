@@ -10,12 +10,7 @@
         ein Code aus einer der beiden Methoden. Wer nur das Passwort kennt, kann sich nicht anmelden.
       </p>
 
-      @if (setupRequired()) {
-        <div testid="mfaForcedBanner" class="tafel-banner-error" role="alert">
-          Diese Anwendung verlangt eine Zwei-Faktor-Authentifizierung. Bitte richten Sie mindestens eine Methode ein -
-          bis dahin ist nichts anderes in der Anwendung verfügbar.
-        </div>
-      } @else if (status.required) {
+      @if (status.required) {
         <p class="text-sm text-slate-600 mb-4" testid="mfaRequiredHint">
           Diese Anwendung verlangt eine Zwei-Faktor-Authentifizierung: Eine Methode muss immer eingerichtet bleiben.
         </p>

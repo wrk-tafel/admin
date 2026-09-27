@@ -51,6 +51,12 @@ export const routes: Routes = [
       .then(m => m.LoginMfaComponent)
   },
   {
+    path: 'login/mfa-einrichtung',
+    title: 'Zwei-Faktor-Authentifizierung einrichten',
+    loadComponent: () => import('./common/views/login-mfa-setup/login-mfa-setup.component')
+      .then(m => m.LoginMfaSetupComponent)
+  },
+  {
     path: 'login',
     title: 'Anmeldung',
     component: LoginComponent

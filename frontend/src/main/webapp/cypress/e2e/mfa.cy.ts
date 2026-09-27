@@ -542,18 +542,20 @@ describe('Two-factor authentication', () => {
       setRequired(false);
     });
 
-    it('sends a user with no method to set one up - and nowhere else - until they did', () => {
+    it('sends a user with no method to the login flow\'s setup page - and nowhere else - until they did', () => {
       createUser().then(user => {
         setRequired(true);
         cy.login(user.username, user.password);
         cy.request({url: '/api/users/export', failOnStatusCode: false}).its('status').should('eq', 403);
 
-        // every page leads to the setup page, which says why
+        // every page leads to the setup page, which says why - as part of the login flow, not inside the application
         cy.visit('/uebersicht');
-        cy.url().should('contain', '/konto/zwei-faktor');
+        cy.url().should('contain', '/login/mfa-einrichtung');
         cy.byTestId('mfaForcedBanner').should('be.visible').and('contain.text', 'verlangt eine Zwei-Faktor-Authentifizierung');
         cy.visit('/kunden/suchen');
-        cy.url().should('contain', '/konto/zwei-faktor');
+        cy.url().should('contain', '/login/mfa-einrichtung');
+        cy.visit('/konto/zwei-faktor');
+        cy.url().should('contain', '/login/mfa-einrichtung');
 
         // setting a method up ends that
         cy.byTestId('mfaEmailSetupButton').click();
@@ -561,13 +563,42 @@ describe('Two-factor authentication', () => {
         cy.byTestId('mfaEmailEnableButton').click();
         cy.url().should('contain', '/uebersicht');
 
-        // and the last method cannot be switched off while it is required
+        // and the last method cannot be switched off while it is required - the normal settings page works
+        // normally again now that a method is set up
         cy.visit('/konto/zwei-faktor');
-        cy.byTestId('mfaForcedBanner').should('not.exist');
         cy.byTestId('mfaRequiredHint').should('be.visible');
         // far down the page: Cypress counts what is scrolled out of the content area as hidden, so bring it in first
         cy.byTestId('mfaLastMethodHint').scrollIntoView().should('be.visible');
         cy.byTestId('mfaDisableEmailButton').should('be.disabled');
+      });
+    });
+
+    it('lets a user with no e-mail address on record add one right on the setup page', () => {
+      createUser().then(user => {
+        cy.login(user.username, user.password);
+        cy.request('/api/users/account').then(({body}) => {
+          cy.request({
+            method: 'PUT',
+            url: '/api/users/account',
+            body: {firstname: body.firstname, lastname: body.lastname, email: null}
+          });
+        });
+
+        setRequired(true);
+        cy.login(user.username, user.password);
+        cy.visit('/uebersicht');
+        cy.url().should('contain', '/login/mfa-einrichtung');
+
+        cy.byTestId('mfaEmailNoAddress').should('be.visible');
+        cy.byTestId('mfaEmailSetupButton').should('not.exist');
+        cy.byTestId('mfaAddEmailAddressButton').click();
+        cy.byTestId('mfaEmailAddressInput').type(user.username + '@example.org');
+        cy.byTestId('mfaEmailAddressSaveButton').click();
+
+        // the address is on record now, and a code was already sent for it
+        cy.byTestId('mfaEmailCode').should('be.visible').type(EMAIL_CODE);
+        cy.byTestId('mfaEmailEnableButton').click();
+        cy.url().should('contain', '/uebersicht');
       });
     });
 
@@ -578,6 +609,8 @@ describe('Two-factor authentication', () => {
         cy.visit('/uebersicht');
 
         cy.byTestId('mfaForcedBanner').should('be.visible');
+        cy.byTestId('mfaSetupButton').click();
+        cy.byTestId('mfaQrCode').find('svg').should('be.visible');
         cy.checkAccessibility('main');
       });
     });
