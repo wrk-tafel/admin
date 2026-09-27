@@ -552,7 +552,9 @@ class TafelAdminTestdataProperties {
 class TafelAdminMfaProperties {
     /**
      * Whether every user has to have a second factor. While it is on, a user with no method can do nothing but set
-     * one up - which is also true of sessions that were already open.
+     * one up - which is also true of sessions that were already open. It also makes an e-mail address on the
+     * account mandatory (ADR-0062), independently of the chosen method: a user whose only method is the app still
+     * owes one, and `UserController` refuses to save a blank address for anyone while this is on.
      */
     var required: Boolean = false
 

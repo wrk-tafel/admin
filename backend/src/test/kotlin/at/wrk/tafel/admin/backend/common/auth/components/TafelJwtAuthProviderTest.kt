@@ -158,7 +158,7 @@ internal class TafelJwtAuthProviderTest {
         assertThat(resultingAuthentication.authorities).isEmpty()
     }
 
-    private fun mfaUser(mfaEnabled: Boolean = false, emailEnabled: Boolean = false): UserEntity {
+    private fun mfaUser(mfaEnabled: Boolean = false, emailEnabled: Boolean = false, email: String? = null): UserEntity {
         val userEntity = UserEntity(
             username = "SUBJ",
             password = "pwd",
@@ -170,6 +170,7 @@ internal class TafelJwtAuthProviderTest {
         userEntity.id = 42
         userEntity.mfaTotpEnabled = mfaEnabled
         userEntity.mfaEmailEnabled = emailEnabled
+        userEntity.email = email
         userEntity.authorities = mutableListOf(UserAuthorityEntity(user = userEntity, name = UserPermissions.CHECKIN.key))
         every { userRepository.findByUsername("SUBJ") } returns userEntity
         return userEntity
@@ -259,16 +260,41 @@ internal class TafelJwtAuthProviderTest {
     }
 
     @Test
-    fun `authenticate does not ask a user who has a method to set one up, and asks nobody while it is not required`() {
+    fun `authenticate does not ask a user who has a method and an address to set one up, and asks nobody while it is not required`() {
         val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
         every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims(JwtTokenService.MFA_CLAIM to true)
 
         properties.mfa.required = true
-        mfaUser(mfaEnabled = true)
+        mfaUser(mfaEnabled = true, email = "user@example.org")
         assertThat(provider.authenticate(authentication).mfaSetupRequired).isFalse()
 
         properties.mfa.required = false
         mfaUser()
+        assertThat(provider.authenticate(authentication).mfaSetupRequired).isFalse()
+    }
+
+    // ADR-0062: the address itself is mandatory while the deployment requires a second factor, not just a
+    // prerequisite for choosing the e-mail method - a user whose only method is the app still owes one.
+    @Test
+    fun `authenticate asks a user who has a method but no address to add one, while it is required`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims(JwtTokenService.MFA_CLAIM to true)
+        properties.mfa.required = true
+        mfaUser(mfaEnabled = true, email = null)
+
+        val result = provider.authenticate(authentication)
+
+        assertThat(result.authorities).isEmpty()
+        assertThat(result.mfaSetupRequired).isTrue()
+    }
+
+    @Test
+    fun `authenticate does not ask a user with no method for an address while it is not required`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken("TOKEN") } returns claims()
+        properties.mfa.required = false
+        mfaUser(email = null)
+
         assertThat(provider.authenticate(authentication).mfaSetupRequired).isFalse()
     }
 

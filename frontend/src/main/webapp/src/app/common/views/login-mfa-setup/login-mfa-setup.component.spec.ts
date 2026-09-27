@@ -123,12 +123,14 @@ describe('LoginMfaSetupComponent', () => {
     expect(element(fixture, 'mfaForcedBanner')).toBeNull();
   });
 
-  it('offers to set both methods up while none is on, banner visible', async () => {
+  it('offers to set both methods up while none is on and an address is already present', async () => {
     const fixture = await create();
 
-    expect(text(fixture, 'mfaForcedBanner')).toContain('verlangt eine Zwei-Faktor-Authentifizierung');
+    expect(text(fixture, 'mfaForcedBanner')).toContain('verlangt eine Zwei-Faktor-Authentifizierung. Bitte');
     expect(element(fixture, 'mfaSetupButton')).not.toBeNull();
     expect(element(fixture, 'mfaEmailSetupButton')).not.toBeNull();
+    expect(element(fixture, 'mfaEmailAddressInput')).toBeNull();
+    expect(element(fixture, 'mfaAppRecommended')).not.toBeNull();
   });
 
   it('shows the secret in groups and draws a QR code once the app setup is started', async () => {
@@ -141,10 +143,12 @@ describe('LoginMfaSetupComponent', () => {
     expect(element(fixture, 'mfaQrCode')!.querySelector('svg')).not.toBeNull();
   });
 
-  it('switches the app on with a valid code and continues to the overview', async () => {
+  it('switches the app on with a valid code and continues to the overview once nothing else is owed', async () => {
     const fixture = await create();
     fixture.componentInstance.startAppSetup();
     type(fixture, 'appCode', '123 456');
+    // the app was the only gap (the address is already on record) - the fresh session now clears it
+    authService.isMfaSetupRequired.mockReturnValue(false);
 
     fixture.componentInstance.enableApp(new Event('submit'));
     await settle(fixture);
@@ -154,11 +158,29 @@ describe('LoginMfaSetupComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
   });
 
+  it('re-renders for the address step instead of continuing when the app was not the only gap', async () => {
+    mfaApiService.getStatus.mockReturnValue(of(status({emailAddress: null})));
+    userApiService.getAccount.mockReturnValue(of(account({email: null})));
+    const fixture = await create();
+    fixture.componentInstance.startAppSetup();
+    type(fixture, 'appCode', '123456');
+    // the address is still missing - the fresh session still owes something, just not a method any more
+    mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, emailAddress: null})));
+
+    fixture.componentInstance.enableApp(new Event('submit'));
+    await settle(fixture);
+
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(element(fixture, 'mfaEmailAddressInput')).not.toBeNull();
+    expect(element(fixture, 'mfaSetupButton')).toBeNull();
+  });
+
   it('goes on to the password change when one is due', async () => {
     authService.passwordChangeRequired.set(true);
     const fixture = await create();
     fixture.componentInstance.startAppSetup();
     type(fixture, 'appCode', '123456');
+    authService.isMfaSetupRequired.mockReturnValue(false);
 
     fixture.componentInstance.enableApp(new Event('submit'));
     await settle(fixture);
@@ -188,6 +210,7 @@ describe('LoginMfaSetupComponent', () => {
     expect(text(fixture, 'infoMessage')).toContain('gesendet');
 
     type(fixture, 'emailCode', '654321');
+    authService.isMfaSetupRequired.mockReturnValue(false);
     fixture.componentInstance.enableEmail(new Event('submit'));
     await settle(fixture);
 
@@ -195,47 +218,93 @@ describe('LoginMfaSetupComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
   });
 
-  it('lets a user with no e-mail address add one, then sends the code right away', async () => {
-    userApiService.getAccount.mockReturnValue(of(account({email: null})));
-    mfaApiService.getStatus.mockReturnValue(of(status({emailAddress: null})));
-    userApiService.updateAccount.mockReturnValue(of(account({email: 'new@example.org'})));
-    const fixture = await create();
+  // ADR-0062: the address is now its own, unconditional step - shown ahead of the method chooser, not
+  // reached only by first picking the e-mail method.
+  describe('the e-mail address step', () => {
 
-    expect(text(fixture, 'mfaEmailNoAddress')).toContain('keine E-Mail-Adresse hinterlegt');
-    expect(element(fixture, 'mfaEmailSetupButton')).toBeNull();
+    it('shows the address form alongside the method chooser, but keeps the e-mail method unavailable until it is saved', async () => {
+      userApiService.getAccount.mockReturnValue(of(account({email: null})));
+      mfaApiService.getStatus.mockReturnValue(of(status({emailAddress: null})));
 
-    (element(fixture, 'mfaAddEmailAddressButton') as HTMLButtonElement).click();
-    fixture.detectChanges();
-    fixture.componentInstance.emailAddressForm.email().value.set('new@example.org');
-    fixture.detectChanges();
+      const fixture = await create();
 
-    fixture.componentInstance.saveEmailAddress(new Event('submit'));
-    await settle(fixture);
+      expect(text(fixture, 'mfaForcedBanner')).toContain('mindestens eine Methode ein und tragen Sie eine E-Mail-Adresse');
+      expect(text(fixture, 'mfaEmailAddressHint')).toContain('keine E-Mail-Adresse hinterlegt');
+      expect(element(fixture, 'mfaEmailAddressInput')).not.toBeNull();
+      // the app needs no address, so it is offered right away - the e-mail method does need one, so it is not
+      expect(element(fixture, 'mfaSetupButton')).not.toBeNull();
+      expect(element(fixture, 'mfaEmailSetupButton')).toBeNull();
+      expect(text(fixture, 'mfaEmailNoAddress')).toContain('Tragen Sie oben zuerst eine E-Mail-Adresse ein');
+    });
 
-    expect(userApiService.updateAccount).toHaveBeenCalledWith(
-      {firstname: 'Max', lastname: 'Mustermann', email: 'new@example.org'},
-      expect.anything()
-    );
-    expect(mfaApiService.setupEmail).toHaveBeenCalled();
-    expect(element(fixture, 'mfaEmailCode')).not.toBeNull();
-  });
+    it('saves the address without starting the e-mail method, then shows the method chooser', async () => {
+      userApiService.getAccount.mockReturnValue(of(account({email: null})));
+      mfaApiService.getStatus.mockReturnValue(of(status({emailAddress: null})));
+      userApiService.updateAccount.mockReturnValue(of(account({email: 'new@example.org'})));
+      const fixture = await create();
 
-  it('does not save an empty or malformed e-mail address', async () => {
-    userApiService.getAccount.mockReturnValue(of(account({email: null})));
-    mfaApiService.getStatus.mockReturnValue(of(status({emailAddress: null})));
-    const fixture = await create();
-    (element(fixture, 'mfaAddEmailAddressButton') as HTMLButtonElement).click();
-    fixture.detectChanges();
+      // the reload afterStepCompleted triggers sees the address as saved, and no method yet
+      userApiService.getAccount.mockReturnValue(of(account({email: 'new@example.org'})));
+      mfaApiService.getStatus.mockReturnValue(of(status({emailAddress: 'new@example.org'})));
 
-    fixture.componentInstance.saveEmailAddress(new Event('submit'));
-    expect(userApiService.updateAccount).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.emailAddressForm.email().errors().map(error => error.kind)).toEqual(['required']);
+      fixture.componentInstance.emailAddressForm.email().value.set('new@example.org');
+      fixture.detectChanges();
+      fixture.componentInstance.saveEmailAddress(new Event('submit'));
+      await settle(fixture);
 
-    fixture.componentInstance.emailAddressForm.email().value.set('not-an-email');
-    fixture.detectChanges();
-    fixture.componentInstance.saveEmailAddress(new Event('submit'));
-    expect(userApiService.updateAccount).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.emailAddressForm.email().errors().map(error => error.kind)).toEqual(['email']);
+      expect(userApiService.updateAccount).toHaveBeenCalledWith(
+        {firstname: 'Max', lastname: 'Mustermann', email: 'new@example.org'},
+        expect.anything()
+      );
+      expect(mfaApiService.setupEmail).not.toHaveBeenCalled();
+      expect(router.navigate).not.toHaveBeenCalled();
+      expect(element(fixture, 'mfaEmailAddressInput')).toBeNull();
+      expect(element(fixture, 'mfaSetupButton')).not.toBeNull();
+    });
+
+    it('does not save an empty or malformed e-mail address', async () => {
+      userApiService.getAccount.mockReturnValue(of(account({email: null})));
+      mfaApiService.getStatus.mockReturnValue(of(status({emailAddress: null})));
+      const fixture = await create();
+
+      fixture.componentInstance.saveEmailAddress(new Event('submit'));
+      expect(userApiService.updateAccount).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.emailAddressForm.email().errors().map(error => error.kind)).toEqual(['required']);
+
+      fixture.componentInstance.emailAddressForm.email().value.set('not-an-email');
+      fixture.detectChanges();
+      fixture.componentInstance.saveEmailAddress(new Event('submit'));
+      expect(userApiService.updateAccount).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.emailAddressForm.email().errors().map(error => error.kind)).toEqual(['email']);
+    });
+
+    it('shows only the address step for a user who already has a method but no address', async () => {
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, emailAddress: null})));
+      userApiService.getAccount.mockReturnValue(of(account({email: null})));
+
+      const fixture = await create();
+
+      expect(text(fixture, 'mfaForcedBanner')).toContain('verlangt eine hinterlegte E-Mail-Adresse für jedes Benutzerkonto');
+      expect(element(fixture, 'mfaEmailAddressInput')).not.toBeNull();
+      expect(element(fixture, 'mfaSetupButton')).toBeNull();
+      expect(element(fixture, 'mfaEmailSetupButton')).toBeNull();
+    });
+
+    it('completes the login once the address was the only remaining gap', async () => {
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, emailAddress: null})));
+      userApiService.getAccount.mockReturnValue(of(account({email: null})));
+      userApiService.updateAccount.mockReturnValue(of(account({email: 'new@example.org'})));
+      const fixture = await create();
+      authService.isMfaSetupRequired.mockReturnValue(false);
+
+      fixture.componentInstance.emailAddressForm.email().value.set('new@example.org');
+      fixture.detectChanges();
+      fixture.componentInstance.saveEmailAddress(new Event('submit'));
+      await settle(fixture);
+
+      expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
+      expect(mfaApiService.setupEmail).not.toHaveBeenCalled();
+    });
   });
 
   it('says that e-mail is not available where no mail can be sent', async () => {

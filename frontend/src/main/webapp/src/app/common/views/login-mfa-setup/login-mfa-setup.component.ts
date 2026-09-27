@@ -29,15 +29,18 @@ function codeError(value: string) {
 
 /**
  * The last step of a login for a user whose deployment requires two-factor authentication (see ADR-0058) and who
- * has neither method yet: the password was right, but the session does nothing until one is set up, and this is
- * where that happens - as part of the login flow itself, the same way `LoginMfaComponent` is for a code that is
- * merely owed. `AuthGuardService` sends every route to this page while `mfaSetupRequired`, so a user in this
- * situation is never let into the application itself to set a method up there. Setting either method up completes
- * the login and goes on exactly where a plain login would have (`uebersicht`, or a still-due password change).
+ * still owes something for it: a method (neither is set up yet), an e-mail address (ADR-0062 makes one mandatory
+ * while it is required, independently of the chosen method), or both. The password was right, but the session does
+ * nothing until every gap is closed, and this is where that happens - as part of the login flow itself, the same
+ * way `LoginMfaComponent` is for a code that is merely owed. `AuthGuardService` sends every route to this page while
+ * `mfaSetupRequired`, so a user in this situation is never let into the application itself to close it there.
  *
- * The e-mail method needs an address on the account; a user who has none yet adds it right here (`GET`/`PUT
- * /api/users/account`, which `MfaPendingFilter` lets such a session use for exactly this reason) instead of being
- * sent into "Mein Konto" to do it.
+ * The address is collected in its own step, ahead of and independent from the method choice: a user who already
+ * has the app (`anyMethodEnabled`) but no address sees only that step, never the method chooser again; a user with
+ * neither sees both. Closing a step re-checks whether anything is still owed (`afterStepCompleted`) - only once
+ * nothing is does the login complete and the flow continues exactly where a plain login would have (`uebersicht`,
+ * or a still-due password change). The address itself is read/written via `GET`/`PUT /api/users/account`, which
+ * `MfaPendingFilter` lets such a session use for exactly this reason, instead of sending it into "Mein Konto".
  */
 @Component({
   selector: 'tafel-login-mfa-setup',
@@ -74,14 +77,20 @@ export class LoginMfaSetupComponent implements OnInit {
   appSetup = signal<MfaSetup | null>(null);
   /** A code was sent to set the e-mail method up and has not been entered yet. */
   emailSetupStarted = signal(false);
-  /** The account has no e-mail address yet and the user is entering one right here. */
-  addingEmailAddress = signal(false);
   working = signal(false);
   errorMessage = signal<string | null>(null);
   infoMessage = signal<string | null>(null);
 
   /** The secret in groups of four, which is how it is easiest to copy by eye. */
   readonly formattedSecret = computed(() => this.appSetup()?.secret.match(/.{1,4}/g)?.join(' ') ?? '');
+
+  /** Whether a method (either one) is already set up - the address step no longer implies choosing the e-mail one. */
+  readonly anyMethodEnabled = computed(() => !!this.status()?.totpEnabled || !!this.status()?.emailEnabled);
+  /** The one gap that can remain once a method is set up: an address is mandatory while the deployment requires MFA. */
+  readonly needsEmailAddress = computed(() => {
+    const status = this.status();
+    return !!status && !status.emailAddress;
+  });
 
   private readonly formModel = signal({appCode: '', emailCode: ''});
   codeForm = form(this.formModel, (schemaPath) => {
@@ -165,18 +174,7 @@ export class LoginMfaSetupComponent implements OnInit {
     this.submitMethodCode('appCode', code => this.mfaApiService.enable(code, null, SUPPRESS_ERROR_TOAST_CONTEXT));
   }
 
-  // ---- e-mail address (only asked for here when the account has none yet)
-
-  startAddingEmailAddress() {
-    this.addingEmailAddress.set(true);
-    this.clearMessages();
-    this.emailAddressFormModel.set({email: this.account()?.email ?? ''});
-  }
-
-  cancelAddingEmailAddress() {
-    this.addingEmailAddress.set(false);
-    this.clearMessages();
-  }
+  // ---- e-mail address (mandatory while the deployment requires MFA - ADR-0062 - independent of the method chosen)
 
   saveEmailAddress(event: Event) {
     event.preventDefault();
@@ -196,13 +194,11 @@ export class LoginMfaSetupComponent implements OnInit {
       lastname: account.lastname,
       email: this.emailAddressForm.email().value().trim()
     }, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
-      next: updatedAccount => {
-        this.account.set(updatedAccount);
-        this.status.update(status => status ? {...status, emailAddress: updatedAccount.email} : status);
-        this.addingEmailAddress.set(false);
-        this.working.set(false);
-        // The address is what a code goes to - send the first one right away instead of asking for another click.
-        this.startEmailSetup();
+      next: async () => {
+        // Not auto-continued into the e-mail method: the address may be the whole gap (a method already exists),
+        // so this only closes the address step - "Einrichten" under "Code per E-Mail" is a separate, deliberate
+        // next step for someone who wants that method too.
+        await this.afterStepCompleted();
       },
       error: (error: HttpErrorResponse) => this.fail(error)
     });
@@ -245,15 +241,27 @@ export class LoginMfaSetupComponent implements OnInit {
     this.working.set(true);
     this.clearMessages();
     call(this.codeForm[field]().value().replace(/\s/g, '')).subscribe({
-      next: async () => {
-        // The answer replaced the session cookie - the login is complete now that a method is set up, so what the
-        // session may do is read again and the flow continues exactly where a plain login would have.
-        await this.authenticationService.loadUserInfo();
-        this.working.set(false);
-        await this.router.navigate([this.authenticationService.passwordChangeRequired() ? '/login/passwortaendern' : 'uebersicht']);
-      },
+      // The answer replaced the session cookie - a method is set up now, but an address may still be owed.
+      next: async () => this.afterStepCompleted(),
       error: (error: HttpErrorResponse) => this.fail(error)
     });
+  }
+
+  /**
+   * A step (a method enabled, an address saved) may or may not have been the last thing owed - only the session
+   * itself, read fresh, knows: `isMfaSetupRequired()` is recomputed from the DB on every request (see
+   * `TafelJwtAuthProvider`), not from what this page has loaded. Nothing left owed continues the login exactly
+   * where a plain one would have; something still is re-renders this page for whatever step remains.
+   */
+  private async afterStepCompleted() {
+    await this.authenticationService.loadUserInfo();
+    if (this.authenticationService.isMfaSetupRequired()) {
+      this.working.set(false);
+      this.loadStatus();
+      this.loadAccount();
+    } else {
+      await this.router.navigate([this.authenticationService.passwordChangeRequired() ? '/login/passwortaendern' : 'uebersicht']);
+    }
   }
 
   private fail(error: HttpErrorResponse) {

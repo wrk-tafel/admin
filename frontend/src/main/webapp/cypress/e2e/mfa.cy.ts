@@ -573,32 +573,83 @@ describe('Two-factor authentication', () => {
       });
     });
 
-    it('lets a user with no e-mail address on record add one right on the setup page', () => {
-      createUser().then(user => {
-        cy.login(user.username, user.password);
-        cy.request('/api/users/account').then(({body}) => {
-          cy.request({
-            method: 'PUT',
-            url: '/api/users/account',
-            body: {firstname: body.firstname, lastname: body.lastname, email: null}
-          });
+    function clearEmail(user: MfaUser) {
+      cy.login(user.username, user.password);
+      cy.request('/api/users/account').then(({body}) => {
+        cy.request({
+          method: 'PUT',
+          url: '/api/users/account',
+          body: {firstname: body.firstname, lastname: body.lastname, email: null}
         });
+      });
+    }
+
+    // ADR-0062: the address is now its own step, shown ahead of the method chooser and independent of it - it
+    // does not, by itself, start the e-mail method any more (that stays a deliberate, separate click).
+    it('lets a user with no e-mail address on record add one right on the setup page, then set up the e-mail method separately', () => {
+      createUser().then(user => {
+        clearEmail(user);
 
         setRequired(true);
         cy.login(user.username, user.password);
         cy.visit('/uebersicht');
         cy.url().should('contain', '/login/mfa-einrichtung');
 
-        cy.byTestId('mfaEmailNoAddress').should('be.visible');
+        cy.byTestId('mfaEmailAddressHint').should('be.visible').and('contain.text', 'keine E-Mail-Adresse hinterlegt');
         cy.byTestId('mfaEmailSetupButton').should('not.exist');
-        cy.byTestId('mfaAddEmailAddressButton').click();
+        cy.byTestId('mfaEmailNoAddress').should('be.visible');
         cy.byTestId('mfaEmailAddressInput').type(user.username + '@example.org');
         cy.byTestId('mfaEmailAddressSaveButton').click();
 
-        // the address is on record now, and a code was already sent for it
+        // the address is on record now, but the e-mail method itself is still a separate step
+        cy.byTestId('mfaEmailAddressInput').should('not.exist');
+        cy.byTestId('mfaEmailSetupButton').should('be.visible').click();
         cy.byTestId('mfaEmailCode').should('be.visible').type(EMAIL_CODE);
         cy.byTestId('mfaEmailEnableButton').click();
         cy.url().should('contain', '/uebersicht');
+      });
+    });
+
+    it('sends a user who already has a method but no address to add one - and only that', () => {
+      createUser().then(user => {
+        // cleared before the app is set up: a session that owes a TOTP code cannot reach the account endpoints
+        clearEmail(user);
+        enableApp(user).then(secret => {
+          setRequired(true);
+          cy.login(user.username, user.password);
+          cy.visit('/uebersicht');
+          // the app is already set up, but it still owes its code before anything else
+          cy.url().should('contain', '/login/mfa');
+          cy.task('totpCode', {secret, stepOffset: 0}).then(code => enterCode(code as string));
+
+          cy.url().should('contain', '/login/mfa-einrichtung');
+          cy.byTestId('mfaForcedBanner').should('contain.text', 'verlangt eine hinterlegte E-Mail-Adresse für jedes Benutzerkonto');
+          cy.byTestId('mfaSetupButton').should('not.exist');
+          cy.byTestId('mfaEmailSetupButton').should('not.exist');
+          cy.byTestId('mfaEmailAddressInput').type(user.username + '@example.org');
+          cy.byTestId('mfaEmailAddressSaveButton').click();
+          cy.url().should('contain', '/uebersicht');
+        });
+      });
+    });
+
+    it('refuses to blank out the e-mail address on "Meine Daten" while it is required', () => {
+      createUser().then(user => {
+        enableApp(user).then(secret => {
+          setRequired(true);
+          cy.login(user.username, user.password);
+          cy.visit('/konto/daten');
+          // the app is already set up, so a code is still owed before "Meine Daten" is reachable
+          cy.url().should('contain', '/login/mfa');
+          cy.task('totpCode', {secret, stepOffset: 0}).then(code => enterCode(code as string));
+          cy.url().should('contain', '/uebersicht');
+          cy.visit('/konto/daten');
+
+          cy.byTestId('account-email').clear();
+          cy.byTestId('account-save-button').click();
+
+          cy.byTestId('account-error-message').should('be.visible').and('contain.text', 'E-Mail-Adresse');
+        });
       });
     });
 
