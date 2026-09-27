@@ -12,10 +12,11 @@ import java.time.LocalDateTime
  * screen never shows a name its viewer couldn't otherwise reach.
  *
  * Every list carries the same envelope: [enabled] is false when the job is switched off
- * (`enabled: false` or a retention time of zero or less), in which case nothing is listed.
- * `retentionText` and `warningText` are the configured windows as German dative text ("1 Jahr",
- * "30 Tagen") for a sentence like "nach ... ohne Anmeldung". The paging fields mirror `PagedResponse`,
- * oldest activity first.
+ * (`enabled: false` in its config), but `items`/`totalCount` are still a preview of what the job
+ * would delete - only a retention time of zero or less yields no items, since no cutoff exists to
+ * preview then. `retentionText` and `warningText` are the configured windows as German dative text
+ * ("1 Jahr", "30 Tagen") for a sentence like "nach ... ohne Anmeldung". The paging fields mirror
+ * `PagedResponse`, oldest activity first.
  */
 
 @ExcludeFromTestCoverage

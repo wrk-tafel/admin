@@ -45,7 +45,7 @@ export class PendingDeletionsApiService {
  * `items` is ordered oldest activity first, `totalCount` counts all pages.
  */
 export interface PendingDeletionListResponse<T> extends PagedResponse<T> {
-  /** `false` when the job is switched off - `items` is empty then. */
+  /** `false` when the job is switched off - `items` still previews what it would delete. */
   enabled: boolean;
   retentionText: string;
   warningText: string;

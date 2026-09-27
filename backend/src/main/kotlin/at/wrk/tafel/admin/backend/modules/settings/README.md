@@ -35,9 +35,12 @@ repositories without that counting as a `modules`-to-`modules` dependency at all
   activity first. Every list is paged so an administrator can look through all of it, not only the
   rows a job would handle in one run. `PendingDeletionsService` measures exactly as the jobs and the
   daily push reminder do, through `common/retention/RetentionWindow`, and reads the repositories
-  directly. The endpoints are for administrators only (`hasAuthority('ADMINISTRATOR')`): they list the
-  names of user accounts, customers and employees across every area. It is the deep-link target of the `RETENTION_EXPIRING`
-  push notification (`push`'s `PushNotificationTypeTargeting`).
+  directly. Each response's `enabled` reports whether its job actually runs, but `items` is populated
+  regardless - an administrator who switched a job off still sees what it would delete, alongside the
+  "deaktiviert" hint, rather than an empty screen. The endpoints are for administrators only
+  (`hasAuthority('ADMINISTRATOR')`): they list the names of user accounts, customers and employees
+  across every area. It is the deep-link target of the `RETENTION_EXPIRING` push notification
+  (`push`'s `PushNotificationTypeTargeting`).
 - **`internal/SettingsService`** — all the logic for both concerns (no further internal
   decomposition despite the two concerns being unrelated).
 - **`model/SettingsResponseModel.kt`** — `MailRecipientsRequest` / `MailRecipientsResponse` /
