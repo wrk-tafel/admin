@@ -10,12 +10,7 @@
         ein Code aus einer der beiden Methoden. Wer nur das Passwort kennt, kann sich nicht anmelden.
       </p>
 
-      @if (setupRequired()) {
-        <div testid="mfaForcedBanner" class="tafel-banner-error" role="alert">
-          Diese Anwendung verlangt eine Zwei-Faktor-Authentifizierung. Bitte richten Sie mindestens eine Methode ein -
-          bis dahin ist nichts anderes in der Anwendung verfügbar.
-        </div>
-      } @else if (status.required) {
+      @if (status.required) {
         <p class="text-sm text-slate-600 mb-4" testid="mfaRequiredHint">
           Diese Anwendung verlangt eine Zwei-Faktor-Authentifizierung: Eine Methode muss immer eingerichtet bleiben.
         </p>
@@ -28,8 +23,17 @@
         <div #banner testid="infoMessage" class="tafel-banner-success" role="status">{{ infoMessage() }}</div>
       }
 
-      <!-- ===== authenticator app ===== -->
-      <h2 class="tafel-h5 mb-2">Authenticator-App</h2>
+      <!-- ===== authenticator app - the recommended method, shown first ===== -->
+      <div class="flex items-center gap-2 mb-2">
+        <h2 class="tafel-h5 m-0">Authenticator-App</h2>
+        <span testid="mfaAppRecommended" class="px-2 py-0.5 rounded text-xs font-medium text-white bg-green-700">
+          Empfohlen
+        </span>
+      </div>
+      <p class="text-sm text-slate-600 mb-2">
+        Ein Code aus einer Authenticator-App ist sicherer als einer per E-Mail: Er funktioniert auch ohne
+        Internetverbindung und hängt nicht vom Schutz des E-Mail-Postfachs ab.
+      </p>
       @if (status.totpEnabled) {
         <div class="flex items-center gap-2 mb-4">
           <span class="font-medium">Status:</span>
@@ -115,7 +119,7 @@
 
       <mat-divider class="!my-6"></mat-divider>
 
-      <!-- ===== e-mail ===== -->
+      <!-- ===== e-mail - offered as the less secure alternative to the app ===== -->
       <h2 class="tafel-h5 mb-2">Code per E-Mail</h2>
       @if (!status.emailAvailable && !status.emailEnabled) {
         <p class="text-sm text-slate-600" testid="mfaEmailUnavailable">
@@ -194,9 +198,10 @@
         </div>
         <p class="text-sm text-slate-600 mb-4" testid="mfaEmailAddress">
           Der Code wird an {{ status.emailAddress }} gesendet - die Adresse ändern Sie unter
-          <a routerLink="/konto/daten" class="text-blue-700 underline">Meine Daten</a>.
+          <a routerLink="/konto/daten" class="text-blue-700 underline">Meine Daten</a>. Weniger sicher als die
+          Authenticator-App oben, aber ohne zusätzliche App nutzbar.
         </p>
-        <button testid="mfaEmailSetupButton" matButton="filled" type="button" (click)="startEmailSetup()" [disabled]="working()">
+        <button testid="mfaEmailSetupButton" matButton="outlined" type="button" (click)="startEmailSetup()" [disabled]="working()">
           Einrichten
         </button>
       }

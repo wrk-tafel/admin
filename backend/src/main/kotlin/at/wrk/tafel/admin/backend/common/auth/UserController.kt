@@ -115,6 +115,7 @@ class UserController(
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val username = authenticatedUser.username!!
         val newEmail = normalizeEmail(request.email)
+        validateEmailPresentIfMandatory(newEmail)
 
         val currentUser = userDetailsManager.loadUserByUsername(username)
         val oldEmail = normalizeEmail(currentUser.email)
@@ -339,6 +340,7 @@ class UserController(
     ): ResponseEntity<UserResponse> {
         validateIfUserExists(user)
         validateAdministratorAssignment(requested = user.permissions, current = emptyList())
+        validateEmailPresentIfMandatory(normalizeEmail(user.email))
 
         if (user.password != user.passwordRepeat) {
             throw BusinessRuleException("Passwörter stimmen nicht überein!")
@@ -391,6 +393,7 @@ class UserController(
         )
         validateAdministratorAccountFieldChanges(existingUser, user)
         validateOwnCredentialsUnchanged(existingUser, user)
+        validateEmailPresentIfMandatory(normalizeEmail(user.email))
         // Revoking the permission and disabling the account are two ways of arriving at the same
         // place: an administrator who can no longer act.
         val keepsAdministrator = user.permissions.any { it.key == UserPermissions.ADMINISTRATOR.key } && user.enabled
@@ -644,6 +647,19 @@ class UserController(
     }
 
     private fun normalizeEmail(email: String?): String? = email?.trim()?.takeIf { it.isNotEmpty() }
+
+    /**
+     * While the deployment requires a second factor (`tafeladmin.mfa.required`), an e-mail address is
+     * mandatory for every account - not just a prerequisite for choosing the e-mail method (ADR-0062).
+     * Applies to every write of a user's own or another's e-mail address: [createUser], [updateUser] and
+     * [updateAccount] all call this with the value they are about to save, normalized the same way as a
+     * stored one so a blank string is refused exactly like a missing field.
+     */
+    private fun validateEmailPresentIfMandatory(email: String?) {
+        if (email == null && tafelAdminProperties.mfa.required) {
+            throw BusinessRuleException("Diese Anwendung verlangt eine Zwei-Faktor-Authentifizierung - eine E-Mail-Adresse ist daher für jedes Benutzerkonto erforderlich!")
+        }
+    }
 
     /**
      * Refuses a change that would leave nobody able to administer the application. Only an

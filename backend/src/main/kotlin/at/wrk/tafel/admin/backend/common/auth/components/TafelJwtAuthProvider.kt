@@ -78,10 +78,12 @@ class TafelJwtAuthProvider(
             // from the DB just above, so switching it on takes effect on every session that has not passed it.
             val mfaVerified = claims[JwtTokenService.MFA_CLAIM] == true
             val mfaPending = userEntity.hasMfa && !mfaVerified
-            // The operator can require every user to have a second factor: one who has none can then do
-            // nothing but set one up. Read per request from the (hot-reloaded) configuration, so switching the
-            // requirement on reaches sessions that were open already.
-            val mfaSetupRequired = !userEntity.hasMfa && properties.mfa.required
+            // The operator can require every user to have a second factor - one who has none can then do
+            // nothing but set one up - and, independently, an e-mail address on the account: a user whose
+            // only method is the app still owes one, since ADR-0062 makes the address itself mandatory, not
+            // just a prerequisite for the e-mail method. Read per request from the (hot-reloaded)
+            // configuration, so switching the requirement on reaches sessions that were open already.
+            val mfaSetupRequired = properties.mfa.required && (!userEntity.hasMfa || userEntity.email.isNullOrBlank())
 
             return TafelJwtAuthentication(
                 tokenValue = tafelJwtAuthentication.tokenValue,

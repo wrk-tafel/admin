@@ -89,7 +89,7 @@ class MfaPendingFilterTest {
     }
 
     @Test
-    fun `a session that has to set a method up may read the status, set either method up, ask who it is and log out`() {
+    fun `a session that has to set a method up may read the status, set either method up, read and change its own account, ask who it is and log out`() {
         authenticate(mfaSetupRequired = true)
 
         assertAllowed(
@@ -99,6 +99,8 @@ class MfaPendingFilterTest {
                 "POST" to "/api/mfa/enable",
                 "POST" to "/api/mfa/email/setup",
                 "POST" to "/api/mfa/email/enable",
+                "GET" to "/api/users/account",
+                "PUT" to "/api/users/account",
                 "GET" to "/api/users/info",
                 "POST" to "/api/users/logout",
             ),

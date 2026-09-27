@@ -48,29 +48,20 @@ describe('AuthGuardService', () => {
         expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
     });
 
-    // The deployment requires a second factor and this user has none: only the page that sets one up works.
-    it('canActivate when a second factor has to be set up leads every route there, except that page itself', async () => {
+    // The deployment requires a second factor and this user has none: setup happens on the login flow's own
+    // page (LoginMfaSetupComponent), never inside the application - so every route here leads back to it.
+    it('canActivate when a second factor has to be set up leads every route to the login flow\'s setup page', async () => {
         const { service, authServiceSpy } = setup();
         authServiceSpy.isAuthenticated.mockReturnValue(true);
         authServiceSpy.loadUserInfo.mockResolvedValue({ username: 'u', permissions: [], mfaSetupRequired: true });
         authServiceSpy.isMfaSetupRequired.mockReturnValue(true);
 
-        const otherRoute = <ActivatedRouteSnapshot><AuthGuardData>{ data: { anyPermission: true }, routeConfig: { path: 'uebersicht' } };
-        expect(await service.canActivate(otherRoute)).toBe(false);
-        expect(authServiceSpy.redirectToMfaSetup).toHaveBeenCalledTimes(1);
-        expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
-
-        // the tab that sets it up, and the account page that tab is rendered in
-        for (const path of ['zwei-faktor', 'konto']) {
-            const setupRoute = <ActivatedRouteSnapshot><AuthGuardData>{ data: {}, routeConfig: { path } };
-            expect(await service.canActivate(setupRoute)).toBe(true);
+        for (const path of ['uebersicht', 'konto', 'zwei-faktor']) {
+            const route = <ActivatedRouteSnapshot><AuthGuardData>{ data: { anyPermission: true }, routeConfig: { path } };
+            expect(await service.canActivate(route)).toBe(false);
         }
-        expect(authServiceSpy.redirectToMfaSetup).toHaveBeenCalledTimes(1);
-
-        // the other tabs of the account page lead to the two-factor one
-        const passwordTab = <ActivatedRouteSnapshot><AuthGuardData>{ data: {}, routeConfig: { path: 'passwort' } };
-        expect(await service.canActivate(passwordTab)).toBe(false);
-        expect(authServiceSpy.redirectToMfaSetup).toHaveBeenCalledTimes(2);
+        expect(authServiceSpy.redirectToMfaSetup).toHaveBeenCalledTimes(3);
+        expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
     });
 
     it('canActivate when not authenticated redirects to plain login without an error message', async () => {

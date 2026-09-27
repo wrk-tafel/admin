@@ -351,34 +351,11 @@ describe('UserMfaComponent', () => {
 
   // ---- the deployment requires it
 
-  it('tells a user who has no method, while the deployment requires one, that nothing else works before', async () => {
-    mfaApiService.getStatus.mockReturnValue(of(status({required: true})));
-
-    const fixture = await create();
-
-    expect(text(fixture, 'mfaForcedBanner')).toContain('verlangt eine Zwei-Faktor-Authentifizierung');
-    expect(element(fixture, 'mfaRequiredHint')).toBeNull();
-  });
-
-  it('goes on to the overview once the method that had to be set up was accepted', async () => {
-    mfaApiService.getStatus.mockReturnValue(of(status({required: true})));
-    const fixture = await create();
-    fixture.componentInstance.startAppSetup();
-    type(fixture, 'appCode', '123456');
-    mfaApiService.getStatus.mockReturnValue(of(status({required: true, totpEnabled: true})));
-
-    fixture.componentInstance.enableApp(new Event('submit'));
-    await settle(fixture);
-
-    expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
-  });
-
   it('does not let the last method be switched off while the deployment requires one', async () => {
     mfaApiService.getStatus.mockReturnValue(of(status({required: true, totpEnabled: true})));
 
     const fixture = await create();
 
-    expect(element(fixture, 'mfaForcedBanner')).toBeNull();
     expect(text(fixture, 'mfaRequiredHint')).toContain('Eine Methode muss immer eingerichtet bleiben');
     expect(text(fixture, 'mfaLastMethodHint')).toContain('kann nicht ausgeschaltet werden');
     expect((element(fixture, 'mfaDisableTotpButton') as HTMLButtonElement).disabled).toBe(true);

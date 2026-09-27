@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Wer sich anmeldet, obwohl die Zwei-Faktor-Authentifizierung für alle vorgeschrieben ist und noch etwas davon fehlt (eine Methode, eine E-Mail-Adresse, oder beides), richtet das jetzt direkt im Anmelde-Vorgang ein - nicht mehr erst nach dem Einloggen in "Mein Konto".
+- Ist die Zwei-Faktor-Authentifizierung für alle vorgeschrieben, braucht jedes Benutzerkonto jetzt eine E-Mail-Adresse, unabhängig von der gewählten Methode; das Leeren des Felds unter "Meine Daten" oder in der Benutzerverwaltung wird dann mit einer Fehlermeldung abgelehnt.
+- Bei der Zwei-Faktor-Authentifizierung ist die Authenticator-App jetzt als "Empfohlen" gekennzeichnet und wird zuerst angeboten - ein Code aus einer App gilt als sicherer als einer per E-Mail.
 - Der Tagesbericht zeigt Notschlafstellen-Adressen ohne Stiege/Top jetzt sauber ohne das überflüssige ", Stiege , Top ," in der Adresse.
 - Das Benutzer-Icon oben rechts zeigt jetzt die Anfangsbuchstaben von Vor- und Nachname statt der ersten Zeichen des Benutzernamens (bei der Personalnummer als Benutzername waren das nur die ersten beiden Ziffern); nach dem Ändern des Namens in "Mein Konto" aktualisiert es sich sofort.
 - Nach einem Abmelden und Anmelden im selben Browser-Tab zeigt die Übersicht bei laufender Ausgabe nicht mehr fälschlich "Geschlossen" an, sondern gleich den aktuellen Stand.
