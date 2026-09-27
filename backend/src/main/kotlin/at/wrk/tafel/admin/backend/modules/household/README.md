@@ -252,11 +252,20 @@ Every new repository method added for this takes the entity primary key (`Househ
 never the business `householdId` - mixing the two is the most likely silent bug in this area.
 
 ### `HouseholdDuplicationService` (`internal`)
-Finds potential duplicate households via a raw SQL query (`JdbcTemplate`, not JPA) comparing every
-household's main person against every other household's main person:
-- `soundex(duplicate_name_key)` must match (phonetic equality), **and**
-- `levenshtein` between the two `duplicate_name_key` values must be `< 4`, **and**
-- `levenshtein(lower(street+housenumber+door))` between the two addresses must be `< 10`.
+Finds potential duplicate households via a raw SQL query (`JdbcTemplate`, not JPA), matching every
+household pair on either of two independent signals (`MATCHING_HOUSEHOLD_PAIRS_CTE`'s
+`main_person_pairs`/`person_pairs` branches, combined with `UNION`):
+- **main person + address**: `soundex(duplicate_name_key)` must match (phonetic equality) **and**
+  `levenshtein` between the two main persons' `duplicate_name_key` values must be `< 4`, **and**
+  `levenshtein(lower(street+housenumber+door))` between the two addresses must be `< 10`.
+- **any shared person**: any person (main or additional) of one household has the exact same
+  `birth_date` and a fuzzy-matching (`soundex`+`levenshtein`, same thresholds) `duplicate_name_key`
+  as any person (main or additional) of the other, address ignored. This is what catches a
+  household re-registered under a *different* member as main person - e.g. a parent registers a
+  household, and it's later re-registered under an adult child who was previously just an
+  additional person. The main-person-only signal above compares two different individuals in that
+  case (parent vs. child) and never matches, even though the rest of the household is identical.
+  Address is deliberately excluded here since a re-registration may well have used a different one.
 
 `persons.duplicate_name_key` (`R__00119_duplicate_name_key_persisted.sql`) lower-cases a person's
 combined firstname+lastname and sorts its words into a canonical order, kept in sync by a trigger -
@@ -285,11 +294,14 @@ statistics for the new column, so the self-join's join-selectivity estimate for
 stats until autovacuum's analyze threshold happens to fire - which can make the query slower right
 after a deploy, not faster.
 
-Both conditions must hold - phonetically-similar names at very different addresses (or vice versa)
-are not flagged. Since firstname/lastname now live on `persons` rather than `households`, the query
-joins through `households.main_person_id` (see the `MAIN_PERSON_CTE` companion constant) rather than
-reading name columns directly off `households`. Pagination here is one duplicate *group* per page
-(`PageRequest.of(page, 1)`), not one household per page.
+Within each signal both conditions must hold - phonetically-similar main-person names at very
+different addresses (or vice versa) are not flagged by that branch alone, though the pair could
+still match via the other branch. Since firstname/lastname now live on `persons` rather than
+`households`, the main-person branch joins through `households.main_person_id` (see the
+`MATCHING_HOUSEHOLD_PAIRS_CTE` companion constant) rather than reading name columns directly off
+`households`; the person-level branch joins every person to their household via
+`persons.household_id`. Pagination here is one duplicate *group* per page (`PageRequest.of(page,
+1)`), not one household per page.
 
 `loadDuplicates`'s paginated data query wraps the join+group in a `MATERIALIZED` CTE (`matches`)
 before applying `ORDER BY household_id DESC LIMIT ... OFFSET ...`, rather than ordering/limiting the
@@ -304,10 +316,10 @@ household count, the difference between tens of milliseconds and several seconds
 materialization makes the join+group run once as a whole with that cheap-filter-first plan, leaving
 only the small resulting match set to sort/paginate.
 
-The self-join condition anchors each match on the *smaller* `household_id`
-(`household.household_id < compare.household_id`, not `<>`) so an unordered pair {A, B} surfaces as
-exactly one row - anchored on whichever of A/B has the lower id - instead of two mirrored rows (once
-per direction).
+`DUPLICATE_CONDITIONS` anchors each match on the *smaller* `household_id`
+(`household_id < compare_household_id`, not `<>`) so an unordered pair {A, B} - which both
+`matching_pairs` branches produce symmetrically, once per direction - surfaces as exactly one row,
+anchored on whichever of A/B has the lower id.
 
 `dismiss(householdId, otherHouseholdId)` records a reviewer's "kein Duplikat" decision on the
 `/kunden/duplikate` screen: it normalizes the two ids into `household_id_low`/`household_id_high`
@@ -515,9 +527,12 @@ throws; the customer search screen's "Wird in den nächsten 30 Tagen gelöscht" 
 3. **Income validation happens twice on write** (once implicitly via the request the frontend
    already validated, once again server-side in `createHousehold`/`updateHousehold`) - never trust
    a client-supplied "valid" flag.
-4. **Duplicate detection reads `persons` via `households.main_person_id`, not `households` directly**
-   - if you add new duplicate-matching criteria, remember firstname/lastname/address for comparison
-   live partly on `persons` (name) and partly on `households` (address).
+4. **Duplicate detection has two branches with different join paths**: the main-person signal reads
+   `persons` via `households.main_person_id` and combines it with the household's own address
+   columns; the person-level signal joins every person (main or additional) to its household via
+   `persons.household_id` and ignores address entirely. If you add new duplicate-matching criteria,
+   remember firstname/lastname/address for comparison live partly on `persons` (name) and partly on
+   `households` (address).
 5. This module can only see `base::country` and `base::exception` (per
    `package-info.java`) - the people behind a household are `UserEntity` references
    (`HouseholdEntity.issuer`, `lockedBy`, `HouseholdNoteEntity.author`), not employees.

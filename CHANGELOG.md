@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Die Seite "Einstellungen > Anstehende Löschungen" zeigt jetzt auch dann, welche Benutzerkonten, Kunden oder Mitarbeiter demnächst automatisch gelöscht würden, wenn die automatische Löschung für den jeweiligen Bereich abgeschaltet ist - bisher stand dort nur der Hinweis "Die automatische Löschung ist deaktiviert." ohne die Vorschau der betroffenen Datensätze.
+- "Kunden > Duplikate" erkennt jetzt auch Haushalte, bei denen ein anderes Haushaltsmitglied (nicht die Hauptperson) mit Namen und Geburtsdatum zu einem Mitglied eines anderen Haushalts passt - bisher wurden nur die Hauptpersonen der beiden Haushalte verglichen, sodass ein wiederangelegter Haushalt mit neuer Hauptperson nicht als Duplikat auffiel.
 
 ## [1.24.0] - 2026-09-27
 - Wer sich anmeldet, obwohl die Zwei-Faktor-Authentifizierung für alle vorgeschrieben ist und noch etwas davon fehlt (eine Methode, eine E-Mail-Adresse, oder beides), richtet das jetzt direkt im Anmelde-Vorgang ein - nicht mehr erst nach dem Einloggen in "Mein Konto".
