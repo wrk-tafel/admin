@@ -385,7 +385,9 @@ describe('Settings - Pending deletions', () => {
       cy.byTestId('pending-users-disabled').should('have.text', 'Die automatische Löschung ist deaktiviert.');
       cy.byTestId('pending-users-table').should('be.visible');
       cy.byTestId('pending-user-row-9001').should('contain.text', 'Paula Pending');
-      cy.byTestId('pending-households-table').should('be.visible');
+      // the expanded users section (hint + description + table, instead of just the one-liner) pushes
+      // the households section further down the page than usual, past the initial viewport
+      cy.byTestId('pending-households-table').scrollIntoView().should('be.visible');
       cy.byTestId('pending-employees-table').scrollIntoView().should('be.visible');
 
       cy.checkAccessibility(MAIN_CONTENT);

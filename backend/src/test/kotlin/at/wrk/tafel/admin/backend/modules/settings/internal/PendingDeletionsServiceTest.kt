@@ -161,9 +161,10 @@ internal class PendingDeletionsServiceTest {
     }
 
     @Test
-    fun `a job that is switched off still previews what it would delete, unlike one with no valid retention time`() {
+    fun `a job that is switched off still previews what it would delete`() {
         properties.userDeletion.enabled = false
-        properties.householdDeletion.retentionTime = Period.ZERO
+        properties.householdDeletion.enabled = false
+        properties.employeeDeletion.enabled = false
         val neverLoggedIn = TestdataGenerator.createUser().apply {
             id = 2
             createdAt = LocalDateTime.of(2026, 4, 1, 8, 0)
@@ -178,10 +179,29 @@ internal class PendingDeletionsServiceTest {
         assertThat(users.enabled).isFalse
         assertThat(users.items).hasSize(1)
         assertThat(households.enabled).isFalse
-        assertThat(households.items).isEmpty()
-        assertThat(employees.enabled).isTrue
+        assertThat(employees.enabled).isFalse
         verify { userRepository.countUsersLastActiveBefore(any(), any()) }
+    }
+
+    @Test
+    fun `a retention time of zero or less previews nothing, unlike a job that is merely switched off`() {
+        properties.userDeletion.retentionTime = Period.ZERO
+        properties.householdDeletion.retentionTime = Period.ofDays(-1)
+        properties.employeeDeletion.retentionTime = Period.ZERO
+
+        val users = service.getPendingUserDeletions(null, null)
+        val households = service.getPendingHouseholdDeletions(null, null)
+        val employees = service.getPendingEmployeeDeletions(null, null)
+
+        assertThat(users.enabled).isFalse
+        assertThat(users.items).isEmpty()
+        assertThat(households.enabled).isFalse
+        assertThat(households.items).isEmpty()
+        assertThat(employees.enabled).isFalse
+        assertThat(employees.items).isEmpty()
+        verify(exactly = 0) { userRepository.countUsersLastActiveBefore(any(), any()) }
         verify(exactly = 0) { householdRepository.countByValidUntilBefore(any()) }
+        verify(exactly = 0) { employeeRepository.countEmployeesLastUsedBefore(any()) }
     }
 
     private fun employee(id: Long, lastUsed: LocalDateTime?, createdAt: LocalDateTime): EmployeeLastUseProjection = mockk {
