@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.config.properties
+package at.wrk.tafel.admin.backend.config
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
  * `application.yml` ships (see [EXPECTED_PATTERN], kept in sync with that file by
  * `AccessLogPatternCheckTest`).
  *
- * `server.tomcat.*` is bound once at startup (see [ConfigFileReloadService]'s KDoc) and production
+ * `server.tomcat.*` is bound once at startup (see `ConfigFileReloadService`'s KDoc) and production
  * layers its settings from an operator-managed `config.yml`
  * (`-Dspring.config.additional-location`), which takes precedence over this application's own
  * `application.yml`. A stale override there - one written before `application.yml`'s pattern last
