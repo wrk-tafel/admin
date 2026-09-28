@@ -370,6 +370,13 @@ export interface CustomerData {
   id?: number;
   issuer?: CustomerIssuer;
   issuedAt?: Date;
+  /**
+   * The underlying `persons` row id of the main person currently flattened onto this object -
+   * carried through purely so a "make main person" swap can tell the backend which existing row
+   * to flag as main instead of falling back to whichever one is already stored as such. `undefined`
+   * for a not-yet-saved customer, same as every other person id.
+   */
+  mainPersonId?: number;
   firstname?: string;
   lastname?: string;
   birthDate?: Date;
@@ -742,6 +749,7 @@ function mapHouseholdToCustomer(household: HouseholdData | null | undefined): Cu
     id: household?.id,
     issuer: household?.issuer,
     issuedAt: household?.issuedAt,
+    mainPersonId: mainPerson?.id,
     firstname: mainPerson?.firstname,
     lastname: mainPerson?.lastname,
     birthDate: mainPerson?.birthDate,
@@ -778,12 +786,14 @@ function mapHouseholdOverviewItemToCustomer(item: HouseholdOverviewItem): Custom
  * Frontend -> backend: turns the flat main-person fields into the household's main person and
  * appends the additional persons, so the request carries a single `persons` list.
  *
- * The main person's own `persons[]` id is not round-tripped (the flat CustomerData has nowhere to
- * keep it); the backend resolves it from the stored household instead, so the existing row is
- * updated rather than replaced.
+ * `customer.mainPersonId` is only ever populated by a prior {@link mapHouseholdToCustomer} (or a
+ * "make main person" swap building on one) - when it's absent (a not-yet-saved customer), the
+ * request's main-person entry goes out id-less and the backend falls back to whichever row is
+ * already stored as main, same as before this field existed.
  */
 function mapCustomerToHousehold(customer: CustomerData): HouseholdData {
   const mainPerson: PersonData = {
+    id: customer.mainPersonId,
     isMainPerson: true,
     firstname: customer.firstname,
     lastname: customer.lastname,

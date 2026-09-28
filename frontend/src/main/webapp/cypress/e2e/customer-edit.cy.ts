@@ -82,6 +82,70 @@ describe('Customer Edit', () => {
     });
   });
 
+  it('swaps the main person with an additional person via "Zum Hauptbezieher machen"', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const mainLastname = 'MainLastname-' + randomNumber;
+      const mainFirstname = 'MainFirstname-' + randomNumber;
+      const additionalLastname = 'AdditionalLastname-' + randomNumber;
+      const additionalFirstname = 'AdditionalFirstname-' + randomNumber;
+
+      cy.createCustomer({
+        firstname: mainFirstname,
+        lastname: mainLastname,
+        birthDate: dayjs().subtract(40, 'year').toDate(),
+        gender: Gender.MALE,
+        country: AUSTRIA,
+        telephoneNumber: '0123456789',
+        employer: 'employer-' + randomNumber,
+        income: 1000,
+        validUntil: dayjs().add(1, 'year').toDate(),
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        },
+        additionalPersons: [{
+          id: 0,
+          key: 0,
+          firstname: additionalFirstname,
+          lastname: additionalLastname,
+          birthDate: dayjs().subtract(30, 'year').toDate(),
+          gender: Gender.FEMALE,
+          country: AUSTRIA,
+          // required on the main-person slot it's about to be promoted into
+          employer: 'employer-additional-' + randomNumber,
+          excludeFromHousehold: false,
+          receivesFamilyAllowance: false
+        }]
+      }).then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/bearbeiten/' + customerId);
+
+        cy.byTestId('personform-header-0').click();
+        cy.byTestId('make-main-person-0').click();
+
+        // the promoted person's data now sits in the main-person fields...
+        cy.byTestId('lastnameInput').should('have.value', additionalLastname);
+        cy.byTestId('firstnameInput').should('have.value', additionalFirstname);
+        // ...while household-level data (not person data) is untouched
+        cy.byTestId('telephoneNumberInput').should('have.value', '0123456789');
+
+        // ...and the previous main person now shows up as the additional person instead
+        cy.byTestId('personform-header-0').should('contain.text', mainLastname).and('contain.text', mainFirstname);
+
+        cy.byTestId('save-button').click();
+
+        cy.url().should('contain', '/kunden/detail/' + customerId);
+        cy.byTestId('nameText').should('have.text', additionalLastname + ' ' + additionalFirstname);
+
+        cy.byTestId('additionalpersons-tab-label').click();
+        cy.byTestId('addperson-0-lastnameText').should('have.text', mainLastname);
+        cy.byTestId('addperson-0-firstnameText').should('have.text', mainFirstname);
+      });
+    });
+  });
+
   it('customer invalid and saved but invalid', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id;

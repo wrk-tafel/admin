@@ -194,6 +194,64 @@ describe('CustomerFormComponent', () => {
     }));
   });
 
+  it('makeMainPerson swaps the main person with an additional person, preserving both persons\' underlying ids', () => {
+    apiService.getCountries.mockReturnValue(of({countries: mockCountryList, frequentlyUsedCount: 1}));
+
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+
+    vi.spyOn(component.customerDataChange, 'emit');
+    fixture.componentRef.setInput('customerData', {...testCustomerData, mainPersonId: 999});
+    fixture.detectChanges();
+
+    component.makeMainPerson(1);
+    fixture.detectChanges();
+
+    // The promoted person's data - and its own row id, via mainPersonId - is now the main person.
+    expect(component.customerForm.lastname().value()).toBe(testCustomerData.additionalPersons![1].lastname);
+    expect(component.customerForm.firstname().value()).toBe(testCustomerData.additionalPersons![1].firstname);
+    expect(component.customerForm.birthDate().value()).toBe(testCustomerData.additionalPersons![1].birthDate);
+    expect(component.customerForm.gender().value()).toBe(testCustomerData.additionalPersons![1].gender);
+    // person 1's income was never set - the effect that loads persons into the form normalizes that to null
+    expect(component.customerForm.income().value()).toBeNull();
+
+    // Household-level fields (not person data) stay untouched.
+    expect(component.customerForm.telephoneNumber().value()).toBe(testCustomerData.telephoneNumber);
+    expect(component.customerForm.address.street().value()).toBe(testCustomerData.address.street);
+
+    expect(component.customerDataChange.emit).toHaveBeenCalledWith(expect.objectContaining({
+      mainPersonId: testCustomerData.additionalPersons![1].id,
+      lastname: testCustomerData.additionalPersons![1].lastname,
+      firstname: testCustomerData.additionalPersons![1].firstname
+    }));
+
+    // The previous main person now occupies that same array slot, keeping the slot's key but
+    // carrying its own row id along (999) instead of the promoted person's former id.
+    const additionalPersons = component.customerForm.additionalPersons().value();
+    expect(additionalPersons[1]).toEqual(expect.objectContaining({
+      key: testCustomerData.additionalPersons![1].key,
+      id: 999,
+      lastname: testCustomerData.lastname,
+      firstname: testCustomerData.firstname,
+      birthDate: testCustomerData.birthDate,
+      gender: testCustomerData.gender,
+      country: testCustomerData.country,
+      employer: testCustomerData.employer,
+      income: testCustomerData.income,
+      incomeDue: testCustomerData.incomeDue,
+      excludeFromHousehold: false,
+      receivesFamilyAllowance: true
+    }));
+
+    // The other additional person is untouched.
+    expect(additionalPersons[0]).toEqual(expect.objectContaining({
+      id: testCustomerData.additionalPersons![0].id,
+      lastname: testCustomerData.additionalPersons![0].lastname
+    }));
+
+    expect(component.customerForm().dirty()).toBe(true);
+  });
+
   it('validUntil set when incomeDue is updated by the operator', () => {
     apiService.getCountries.mockReturnValue(of({countries: mockCountryList, frequentlyUsedCount: 1}));
 
