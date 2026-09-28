@@ -17,28 +17,15 @@
         </button>
 
         <mat-form-field subscriptSizing="dynamic" class="w-full">
-          <!-- an autocomplete rather than a plain select: this list accumulates for as long as the
-               Tafel runs, so it needs to stay searchable rather than scrolled through -->
-          <input matInput type="text" autocomplete="off" testid="overviewDistributionInput" aria-label="Ausgabe"
-                 [matAutocomplete]="overviewDistributionAutocomplete"
-                 [ngModel]="distributionDisplayText()" [ngModelOptions]="{standalone: true}"
-                 (ngModelChange)="onDistributionInput($event)"
-                 (blur)="onDistributionBlur()">
-          <mat-autocomplete #overviewDistributionAutocomplete="matAutocomplete"
-                            [displayWith]="distributionAutocompleteDisplay"
-                            (optionSelected)="onDistributionSelected($event.option.value)">
-            <!-- mousedown, not click: a plain click handler would be too late - mousedown alone
-                 blurs the input, which (blur)="onDistributionBlur()" reacts to by re-filtering the
-                 option list against the reverted committed value. That can remove this very option
-                 from the list before the browser gets to fire its click, so the click - and the
-                 selection - never happens (#3654). -->
-            @for (distribution of distributionOptions(); track distribution.id) {
-              <!-- text tight against the tags: Angular collapses the indentation into leading/trailing
-                   spaces otherwise, and the e2e spec matches this label with an anchored pattern -->
-              <mat-option [value]="distribution.id" (mousedown)="$event.preventDefault()"
-                          [attr.testid]="'overviewDistributionInput-option-' + distribution.id">{{ distributionLabel(distribution) }}</mat-option>
+          <mat-select testid="overviewDistributionInput" aria-label="Ausgabe"
+                      [ngModel]="selectedDistributionId()" [ngModelOptions]="{standalone: true}"
+                      (ngModelChange)="onDistributionSelected($event)">
+            @for (distribution of distributionsDataInput()?.items ?? []; track distribution.id) {
+              <mat-option [value]="distribution.id" [attr.testid]="'overviewDistributionInput-option-' + distribution.id">
+                {{ distributionLabel(distribution) }}
+              </mat-option>
             }
-          </mat-autocomplete>
+          </mat-select>
         </mat-form-field>
 
         <button type="button" matIconButton testid="overview-distribution-next-button"
@@ -141,7 +128,7 @@
 
           <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Datum</th>
-            <td mat-cell *matCellDef="let row; let i = index" [attr.testid]="'overview-date-' + i" class="px-4 py-2">{{row.item.date | date : 'dd.MM.yyyy'}}</td>
+            <td mat-cell *matCellDef="let row; let i = index" [attr.testid]="'overview-date-' + i" class="px-4 py-2">{{row.item.date | date : 'EE, dd.MM.yyyy'}}</td>
           </ng-container>
 
           <ng-container matColumnDef="actions">
@@ -184,7 +171,7 @@
                     </div>
                   </div>
                   <div class="font-bold">Datum:</div>
-                  <div>{{row.item.date | date : 'dd.MM.yyyy'}}</div>
+                  <div>{{row.item.date | date : 'EE, dd.MM.yyyy'}}</div>
                 </div>
               </mat-card-content>
               <mat-card-actions class="mt-2">

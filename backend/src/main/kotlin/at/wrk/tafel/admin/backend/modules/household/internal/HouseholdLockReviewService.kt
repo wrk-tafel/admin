@@ -113,7 +113,7 @@ class HouseholdLockReviewService(
      * a lock and when stays in the household's history.
      */
     @Transactional
-    fun confirmLockReview(householdId: Long, username: String) {
+    fun confirmLockReview(householdId: Long, username: String): LockedHouseholdItem {
         val household = householdRepository.findByHouseholdId(householdId)
             ?: throw NotFoundException("Kunde nicht gefunden")
         if (!household.locked) {
@@ -122,7 +122,8 @@ class HouseholdLockReviewService(
 
         household.lockReviewedAt = LocalDateTime.now(clock)
         household.lockReviewedBy = userRepository.findByUsername(username)
-        householdRepository.save(household)
+        val saved = householdRepository.save(household)
+        return saved.toItem(dueCutoff())
     }
 
     private fun HouseholdEntity.reviewReference(): LocalDateTime = lockReviewedAt ?: lockedAt ?: LocalDateTime.MIN

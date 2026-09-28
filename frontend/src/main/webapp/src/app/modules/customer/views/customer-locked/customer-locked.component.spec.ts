@@ -139,9 +139,15 @@ describe('CustomerLockedComponent', () => {
     expect(customerApiService.getLockedCustomers).toHaveBeenLastCalledWith(1, 25, false, false);
   });
 
-  it('confirming a review calls the backend and reloads the list', async () => {
-    customerApiService.getLockedCustomers.mockReturnValue(of(response([openEndedDue])));
-    customerApiService.confirmLockReview.mockReturnValue(of(undefined));
+  it('confirming a review patches the row in place instead of reloading, so it keeps its position', async () => {
+    const confirmed: CustomerLockedItem = {
+      ...openEndedDue,
+      lockReviewedAt: '2026-09-28T10:00:00',
+      lockReviewedBy: '00100 Max Muster',
+      reviewDue: false
+    };
+    customerApiService.getLockedCustomers.mockReturnValue(of(response([openEndedDue, temporary])));
+    customerApiService.confirmLockReview.mockReturnValue(of(confirmed));
     const fixture = await render();
     customerApiService.getLockedCustomers.mockClear();
 
@@ -150,9 +156,31 @@ describe('CustomerLockedComponent', () => {
     await fixture.whenStable();
 
     expect(customerApiService.confirmLockReview).toHaveBeenCalledWith(4711);
-    expect(customerApiService.getLockedCustomers).toHaveBeenCalledTimes(1);
+    // the row is patched from the server response, not refetched - a reload here would resort the
+    // oldest-review-first list and yank the just-confirmed row out from under the user
+    expect(customerApiService.getLockedCustomers).not.toHaveBeenCalled();
+    const data = (fixture.componentInstance as any).data();
+    expect(data.items).toEqual([confirmed, temporary]);
     expect(fixture.nativeElement.querySelector('[testid="locked-announcement"]').textContent)
       .toContain('Sperre von Kunde 4711 als überprüft bestätigt');
+  });
+
+  it('drops a row from the "Überprüfung fällig" filter once it is no longer due', async () => {
+    const noLongerDue: CustomerLockedItem = {...openEndedDue, lockReviewedAt: '2026-09-28T10:00:00', reviewDue: false};
+    customerApiService.getLockedCustomers.mockReturnValue(of(response([openEndedDue])));
+    customerApiService.confirmLockReview.mockReturnValue(of(noLongerDue));
+    const fixture = await render();
+    (fixture.componentInstance as any).onFilterChange('due');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.componentInstance as any).confirmReview(openEndedDue);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const data = (fixture.componentInstance as any).data();
+    expect(data.items).toEqual([]);
+    expect(data.totalCount).toEqual(0);
   });
 
   it('treats a lock without an end date as open-ended', async () => {

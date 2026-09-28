@@ -117,10 +117,29 @@ export class CustomerLockedComponent {
     }
   }
 
+  /**
+   * Patches the confirmed row in place rather than reloading the whole page: the list is sorted
+   * oldest-review-first, so a `resource.reload()` here would immediately resort the very row the
+   * user just clicked out from under them. Kept in place until the next real navigation (a filter
+   * or page change) triggers a fresh, correctly sorted fetch - except in the "Überprüfung fällig"
+   * filter, where a row that just stopped being due no longer belongs on the page at all.
+   */
   protected confirmReview(item: CustomerLockedItem) {
-    this.customerApiService.confirmLockReview(item.householdId).subscribe(() => {
+    this.customerApiService.confirmLockReview(item.householdId).subscribe(updated => {
       this.confirmation.set(`Sperre von Kunde ${item.householdId} als überprüft bestätigt`);
-      this.resource.reload();
+      this.data.update(current => {
+        if (!current) {
+          return current;
+        }
+        if (this.filter() === 'due' && !updated.reviewDue) {
+          return {
+            ...current,
+            items: current.items.filter(i => i.householdId !== updated.householdId),
+            totalCount: Math.max(current.totalCount - 1, 0)
+          };
+        }
+        return {...current, items: current.items.map(i => i.householdId === updated.householdId ? updated : i)};
+      });
     });
   }
 

@@ -244,13 +244,16 @@ class HouseholdController(
         )
     }
 
-    /** "Reviewed, the lock stays" - restarts the review interval of a lock (issue #3763). */
+    /**
+     * "Reviewed, the lock stays" - restarts the review interval of a lock (issue #3763). Returns the
+     * refreshed row so the "Gesperrte Kunden" list can patch it in place instead of reloading (and
+     * so resorting) the whole page.
+     */
     @PostMapping("/{householdId}/lock-review")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun confirmLockReview(@PathVariable householdId: Long): ResponseEntity<Void> {
+    fun confirmLockReview(@PathVariable householdId: Long): LockedHouseholdItem {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-        householdLockReviewService.confirmLockReview(householdId, authenticatedUser.username!!)
-        return ResponseEntity.noContent().build()
+        return householdLockReviewService.confirmLockReview(householdId, authenticatedUser.username!!)
     }
 
     @GetMapping("/overview")

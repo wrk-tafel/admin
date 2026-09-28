@@ -202,10 +202,10 @@ describe('Customer Overview', () => {
 
           cy.visit('/kunden/uebersicht');
 
-          // defaults to the newest closed distribution, with its date visible in the field - an
-          // autocomplete input, so its value (not its text content) carries the current selection
+          // defaults to the newest closed distribution, with its weekday and date shown in the
+          // select's trigger
           cy.byTestId('overviewDistributionInput')
-            .invoke('val').should('match', /\S+, \d{2}\.\d{2}\.\d{4}/);
+            .should('contain.text', ',').invoke('text').should('match', /\S+, \d{2}\.\d{2}\.\d{4}/);
           cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('exist');
           cy.contains('[testid^="overview-id-"]', firstCustomer.id!.toString()).should('not.exist');
 
@@ -217,16 +217,7 @@ describe('Customer Overview', () => {
 
           cy.contains('[testid^="overview-id-"]', firstCustomer.id!.toString()).should('exist');
           cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('not.exist');
-
-          // re-picking the already-selected distribution must not leave its raw value's toString()
-          // behind - MatAutocompleteTrigger writes a selected option straight into the input,
-          // bypassing Angular's own binding, so this only self-corrects when [displayWith] formats
-          // that raw value too (#3654)
-          cy.byTestId('overviewDistributionInput').invoke('val').then((selectedLabel) => {
-            cy.byTestId('overviewDistributionInput').click();
-            cy.byTestId('overviewDistributionInput-option-' + firstDistributionId).click();
-            cy.byTestId('overviewDistributionInput').should('have.value', selectedLabel);
-          });
+          cy.byTestId('overviewDistributionInput').invoke('text').should('match', /\S+, \d{2}\.\d{2}\.\d{4}/);
         });
       });
     });
@@ -345,7 +336,7 @@ describe('Customer Overview', () => {
       });
     });
 
-    it('has no violations with the distribution autocomplete open', () => {
+    it('has no violations with the distribution select open', () => {
       cy.createDistribution();
 
       cy.createDummyCustomer().then(() => {
@@ -353,7 +344,7 @@ describe('Customer Overview', () => {
         cy.visit('/kunden/uebersicht');
 
         cy.byTestId('overviewDistributionInput').click();
-        cy.checkAutocompleteAccessibility();
+        cy.checkSelectAccessibility();
       });
     });
 

@@ -217,9 +217,12 @@ export class CustomerApiService {
     return this.http.get<CustomerLockedResponse>('/households/locked', {params: queryParams});
   }
 
-  /** "Reviewed, the lock stays": restarts the review interval of a lock. */
-  confirmLockReview(customerId: number): Observable<void> {
-    return this.http.post<void>(`/households/${customerId}/lock-review`, null);
+  /**
+   * "Reviewed, the lock stays": restarts the review interval of a lock. Returns the refreshed row so
+   * the caller can patch it into its list in place instead of reloading (and resorting) the whole page.
+   */
+  confirmLockReview(customerId: number): Observable<CustomerLockedItem> {
+    return this.http.post<CustomerLockedItem>(`/households/${customerId}/lock-review`, null);
   }
 
   generateCustomersAboveLimitCsv(sortBy?: string, sortDirection?: string): Observable<HttpResponse<Blob>> {

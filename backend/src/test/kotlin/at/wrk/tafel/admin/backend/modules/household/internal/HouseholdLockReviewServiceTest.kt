@@ -4,17 +4,16 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
-import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdLockReason
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
@@ -158,18 +157,24 @@ class HouseholdLockReviewServiceTest {
     }
 
     @Test
-    fun `confirming a review stamps the time and the reviewer`() {
+    fun `confirming a review stamps the time and the reviewer, and returns the refreshed item`() {
         val household = lockedHousehold(1, lockedAt = LocalDateTime.of(2025, 1, 10, 9, 0))
-        val reviewer = mockk<UserEntity>()
         every { householdRepository.findByHouseholdId(1) } returns household
-        every { userRepository.findByUsername("reviewer") } returns reviewer
+        every { userRepository.findByUsername("reviewer") } returns testUserEntity
         every { householdRepository.save(any<HouseholdEntity>()) } returns household
 
-        service.confirmLockReview(1, "reviewer")
+        val item = service.confirmLockReview(1, "reviewer")
 
         assertThat(household.lockReviewedAt).isEqualTo(LocalDateTime.of(2026, 9, 28, 8, 0))
-        assertThat(household.lockReviewedBy).isSameAs(reviewer)
+        assertThat(household.lockReviewedBy).isSameAs(testUserEntity)
         verify { householdRepository.save(household) }
+
+        // the returned item reflects the just-saved state, not a stale reviewDue flag - the caller
+        // patches its list from this instead of reloading
+        assertThat(item.householdId).isEqualTo(1)
+        assertThat(item.lockReviewedAt).isEqualTo(LocalDateTime.of(2026, 9, 28, 8, 0))
+        assertThat(item.lockReviewedBy).isEqualTo("test-personnelnumber test-firstname test-lastname")
+        assertThat(item.reviewDue).isFalse()
     }
 
     @Test

@@ -142,11 +142,22 @@ describe('Customer Locked', () => {
   });
 
   it('says so when no lock is due for review', () => {
+    // real testdata always has at least one due lock (so every filter has something to show) - the
+    // empty state itself is stubbed instead of relying on there being none
+    cy.intercept({method: 'GET', pathname: '/api/households/locked'}, (req) => {
+      const url = new URL(req.url);
+      if (url.searchParams.get('dueOnly') === 'true') {
+        req.reply({items: [], totalCount: 0, currentPage: 1, totalPages: 0, pageSize: 100});
+      } else {
+        req.continue();
+      }
+    }).as('getLockedDueEmpty');
+
     cy.visit('/kunden/gesperrt');
-    cy.wait('@getLocked');
+    cy.wait('@getLockedDueEmpty');
 
     cy.byTestId('locked-filter-due').click();
-    cy.wait('@getLocked').its('request.url').should('include', 'dueOnly=true');
+    cy.wait('@getLockedDueEmpty').its('request.url').should('include', 'dueOnly=true');
 
     cy.byTestId('locked-empty').should('contain.text', 'mit fälliger Überprüfung');
   });
