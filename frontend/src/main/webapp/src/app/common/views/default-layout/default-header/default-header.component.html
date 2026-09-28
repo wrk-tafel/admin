@@ -14,16 +14,16 @@
     </div>
   }
 
-  <div class="flex items-center justify-between px-3 sm:px-6 h-16">
-    <div class="flex items-center gap-2 min-w-0">
+  <div class="flex items-center justify-between px-2 sm:px-6 h-16">
+    <div class="flex items-center gap-1 sm:gap-2 min-w-0">
       <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
-              class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
+              class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
         <mat-icon svgIcon="menu" class="!w-5 !h-5"></mat-icon>
       </button>
 
       <button (click)="openQuickOpenDialog()" testid="quickOpenButton" aria-label="Schnellsuche öffnen (Strg+K)"
               matTooltip="Schnellsuche (Strg+K)"
-              class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
+              class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
         <mat-icon svgIcon="search" class="!w-5 !h-5"></mat-icon>
       </button>
 
@@ -63,7 +63,7 @@
       }
     </div>
 
-    <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+    <div class="flex items-center gap-1 sm:gap-4 shrink-0">
       <!--
         The taskbar clock is missing on any second screen the app runs on (Linux only draws it on the
         primary one), so the time lives here. Hidden below `sm`: a phone has its own clock in the status
@@ -119,7 +119,7 @@
       -->
       <button [matMenuTriggerFor]="notificationMenu" (menuOpened)="refreshNotifications()" testid="notifications-button"
               [attr.aria-label]="unreadCount() > 0 ? 'Benachrichtigungen, ' + unreadCount() + ' ungelesen' : 'Benachrichtigungen'"
-              class="relative w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0 cursor-pointer">
+              class="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0 cursor-pointer">
         <mat-icon svgIcon="notifications" class="!w-5 !h-5" aria-hidden="true"></mat-icon>
         @if (unreadCount() > 0) {
           <span aria-hidden="true" testid="notifications-badge"
@@ -154,7 +154,7 @@
         this is. The initials are decoration - the button's own label names it.
       -->
       <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
-              class="w-9 h-9 rounded-full cursor-pointer">
+              class="w-8 h-8 sm:w-9 sm:h-9 rounded-full cursor-pointer">
         <span aria-hidden="true" testid="usermenu-initials"
               class="flex h-full w-full items-center justify-center rounded-full bg-[#5856d6] text-sm font-semibold text-white">{{ userInitials() }}</span>
       </button>
