@@ -350,7 +350,10 @@
                                             text="Die Person zählt weiterhin zum Kunden, bleibt bei der Berechnung aber vollständig außen vor: Weder ihr Einkommen noch ihre Familienbeihilfe werden mitgezählt, und sie erhöht die Einkommensgrenze nicht."></tafel-info-tooltip>
                       </div>
                     </div>
-                    <div class="mt-4">
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <button type="button" [attr.testid]="'make-main-person-' + i" matButton="outlined"
+                              (click)="makeMainPerson(i)">Zum Hauptbezieher machen
+                      </button>
                       <button type="button" [attr.testid]="'remove-personform-' + i" matButton="filled"
                               class="button-danger"
                               (click)="removePerson(i)">Löschen
