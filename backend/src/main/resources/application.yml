@@ -526,6 +526,10 @@ tafeladmin:
     timeout: 12h
     reconnectTime: 1s
     outboxRetention: 14d
+  # The bell in the header: how long an inbox entry is kept after it arrived, and an announcement
+  # after it expired. Read per use.
+  notification:
+    retention: 30d
   storage:
     # Where uploaded customer documents are kept. A relative path resolves against the process's
     # working directory; in the container this is a mounted volume, since the files must outlive it.

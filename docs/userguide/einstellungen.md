@@ -205,7 +205,7 @@ Mitarbeiter, die seit zwei Jahren in keiner Warenerfassung mehr als Fahrer/Beifa
 Unter **Einstellungen → Ankündigungen** veröffentlichen Administratoren Nachrichten für alle Benutzer, etwa "Am Freitag bleibt die Ausgabe geschlossen". Eine Ankündigung erscheint bei allen Benutzern unter der Glocke in der Kopfzeile (siehe [Benachrichtigungen (Glocke)](README.md#benachrichtigungen-glocke)) - auch bei denen, die gerade nicht angemeldet sind, beim nächsten Login. Die Seite ist nur für Benutzer mit der Berechtigung **Administrator** sichtbar und zugänglich.
 
 - **Neue Ankündigung:** Titel und Nachricht sind Pflicht. Optional legt **Anzeigen bis** fest, bis wann die Ankündigung sichtbar ist; ohne Angabe bleibt sie, bis sie gelöscht wird. **Veröffentlichen** zeigt sie sofort allen Benutzern.
-- **Veröffentlichte Ankündigungen:** Die Liste darunter zeigt alle Ankündigungen samt Erstellungsdatum und Ablauf. Mit dem Stift-Symbol lässt sich eine Ankündigung bearbeiten (die Änderung gilt für alle Benutzer, auch für die, die sie schon gelesen haben), mit dem Papierkorb-Symbol wird sie gelöscht. Eine abgelaufene Ankündigung ist in keiner Glocke mehr sichtbar und wird nach 30 Tagen automatisch entfernt.
+- **Veröffentlichte Ankündigungen:** Die Liste darunter zeigt alle Ankündigungen samt Erstellungsdatum und Ablauf. Mit dem Stift-Symbol lässt sich eine Ankündigung bearbeiten (die Änderung gilt für alle Benutzer, auch für die, die sie schon gelesen haben), mit dem Papierkorb-Symbol wird sie gelöscht. Eine abgelaufene Ankündigung ist in keiner Glocke mehr sichtbar und wird nach 30 Tagen (einstellbar) automatisch entfernt.
 
 <a id="anstehende-loeschungen"></a>
 

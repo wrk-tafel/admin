@@ -206,7 +206,7 @@ Die **Glocke** in der Kopfzeile (links neben dem Benutzermenü) sammelt alles, w
 - **Benachrichtigungen**, die auch als Push-Nachricht verschickt werden (siehe [Benachrichtigungen](#benachrichtigungen)). Sie stehen in der Glocke auch dann, wenn Push auf dem Gerät nicht eingeschaltet ist - wer die Nachricht verpasst hat, findet sie beim nächsten Login hier. Jeder sieht nur die Benachrichtigungen, die für seine Berechtigungen bestimmt sind.
 - **Ankündigungen**, die Administratoren für alle Benutzer veröffentlichen (siehe [Ankündigungen](einstellungen.md#ankuendigungen)).
 
-Ungelesene Einträge sind fett dargestellt. Ein Klick auf einen Eintrag markiert ihn als gelesen und öffnet - falls vorhanden - die zugehörige Seite, etwa die Übersicht. **Alle als gelesen markieren** setzt alle Einträge auf einmal auf gelesen. Die Glocke aktualisiert sich etwa jede Minute und beim Öffnen; Einträge werden nach 30 Tagen automatisch entfernt.
+Ungelesene Einträge sind fett dargestellt. Ein Klick auf einen Eintrag markiert ihn als gelesen und öffnet - falls vorhanden - die zugehörige Seite, etwa die Übersicht. **Alle als gelesen markieren** setzt alle Einträge auf einmal auf gelesen. Die Glocke aktualisiert sich etwa jede Minute und beim Öffnen; Einträge werden nach 30 Tagen (einstellbar durch die Betreiberin bzw. den Betreiber) automatisch entfernt.
 
 <a id="bedienung-mit-der-tastatur"></a>
 
