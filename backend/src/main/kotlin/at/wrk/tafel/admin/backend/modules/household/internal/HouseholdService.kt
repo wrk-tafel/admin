@@ -224,11 +224,12 @@ class HouseholdService(
         force: Boolean,
         isSupervisor: Boolean,
     ): HouseholdUpdateResponse {
-        if (!force) {
+        val existingEntity = householdRepository.getReferenceByHouseholdId(householdId)
+
+        if (!force && !identityUnchanged(household, existingEntity)) {
             checkForDuplicates(household, excludeHouseholdId = householdId)
         }
 
-        val existingEntity = householdRepository.getReferenceByHouseholdId(householdId)
         val mappedEntity = householdConverter.mapHouseholdToEntity(household, existingEntity)
 
         val valid = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons())).valid
@@ -294,6 +295,52 @@ class HouseholdService(
         mainPerson?.isMainPerson = true
         savedEntity.mainPerson = mainPerson
         return householdRepository.saveAndFlush(savedEntity)
+    }
+
+    /**
+     * Whether [household] still carries exactly the same identity-relevant data as
+     * [existingEntity] - the fields [checkForDuplicates] (via
+     * [HouseholdDuplicationService.findPotentialDuplicates]) actually keys its fuzzy matching off:
+     * the household's address (street/house number/door) and every person's
+     * firstname/lastname/birthDate/[Person.isMainPerson] flag. A quick action
+     * (lock/unlock/prolong/deactivate) round-trips the rest of the household unchanged, so
+     * re-running the duplicate check on it can only ever repeat a warning that was already true (or
+     * already dismissed) before this save started - see issue #3755. Any added/removed/unmapped
+     * person, or any matched person's checked fields differing, counts as changed.
+     *
+     * Persons are matched to [existingEntity]'s the same way [HouseholdConverter.mapHouseholdToEntity]
+     * itself resolves them: by id where the request gives one, falling back to the stored main
+     * person for an id-less entry flagged as main - the frontend never sends the main person's own
+     * id (see `customer-api.service.ts`'s `mapCustomerToHousehold`), so requiring an id match there
+     * would make every quick action look like a change and defeat this check entirely.
+     */
+    private fun identityUnchanged(household: HouseholdRequest, existingEntity: HouseholdEntity): Boolean {
+        if (household.address.street != existingEntity.addressStreet ||
+            household.address.houseNumber != existingEntity.addressHouseNumber ||
+            household.address.door != existingEntity.addressDoor
+        ) {
+            return false
+        }
+
+        if (household.persons.size != existingEntity.persons.size) {
+            return false
+        }
+
+        val storedMainPerson = existingEntity.persons.firstOrNull { it.isMainPerson }
+        val storedPersonsById = existingEntity.persons.filter { it.id != null }.associateBy { it.id }
+
+        return household.persons.all { person ->
+            val existingPerson = when {
+                person.id != null -> storedPersonsById[person.id]
+                person.isMainPerson -> storedMainPerson
+                else -> null
+            } ?: return@all false
+
+            person.isMainPerson == existingPerson.isMainPerson &&
+                person.firstname == existingPerson.firstname &&
+                person.lastname == existingPerson.lastname &&
+                person.birthDate == existingPerson.birthDate
+        }
     }
 
     /**

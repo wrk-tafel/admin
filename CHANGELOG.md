@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Eine Kundensperre kann jetzt zusätzlich mit einer Kategorie (Hausverbot, Verstoß gegen die Hausordnung, Missbrauch der Leistungen oder Sonstiger Grund) und einem Datum ("Gesperrt bis") versehen werden, ab dem sie automatisch wieder aufgehoben wird; ohne Datum bleibt die Sperre wie bisher dauerhaft bestehen. Ein mit "Hausverbot" gesperrter Kunde wird zudem nicht mehr automatisch wegen abgelaufener Gültigkeit gelöscht, solange die Sperre besteht.
+- Sperren, Entsperren, Verlängern und Deaktivieren eines Kunden lösen jetzt keine Duplikat-Meldung ("Möglicherweise bereits vorhanden ... Trotzdem speichern?") mehr aus, wenn sich dabei weder Namen, Geburtsdaten noch die Adresse ändern - bisher erschien diese Meldung auch bei diesen Schnellaktionen, sobald der Kunde irgendeinen erkannten Duplikat-Kandidaten hatte.
 
 ## [1.24.2] - 2026-09-27
 - "Kunden > Duplikate" erkennt jetzt auch Haushalte, bei denen ein anderes Haushaltsmitglied (nicht die Hauptperson) mit Namen und Geburtsdatum zu einem Mitglied eines anderen Haushalts passt - bisher wurden nur die Hauptpersonen der beiden Haushalte verglichen, sodass ein wiederangelegter Haushalt mit neuer Hauptperson nicht als Duplikat auffiel.

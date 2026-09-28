@@ -634,6 +634,64 @@ class HouseholdServiceTest {
     }
 
     @Test
+    fun `update household - quick action leaving address and persons unchanged skips duplicate check`() {
+        val householdId = 123L
+        val birthDate = LocalDate.now().minusYears(30)
+
+        // Mirrors a quick action (e.g. locking a household): every identity-relevant field is
+        // round-tripped unchanged, only lock state is new. The main person entry carries no id -
+        // exactly what the real frontend sends (customer-api.service.ts's mapCustomerToHousehold
+        // never round-trips the flat CustomerData's main-person id) - so this also proves the
+        // id-less-main-person fallback, not just id-based matching.
+        val testHouseholdUpdate = HouseholdRequest(
+            id = householdId,
+            address = HouseholdAddress(street = "street", houseNumber = "1", postalCode = 1010, city = "Wien"),
+            locked = true,
+            lockReason = "Grund",
+            persons = listOf(
+                Person(
+                    isMainPerson = true,
+                    firstname = "Max",
+                    lastname = "Mustermann",
+                    birthDate = birthDate,
+                    gender = null,
+                    country = testCountry,
+                ),
+            ),
+        )
+
+        val testHouseholdEntity = HouseholdEntity(householdId = householdId, validUntil = LocalDate.now())
+        testHouseholdEntity.addressStreet = "street"
+        testHouseholdEntity.addressHouseNumber = "1"
+        val existingMainPerson = PersonEntity(household = testHouseholdEntity, country = testCountry1, isMainPerson = true).apply {
+            id = 555
+            firstname = "Max"
+            lastname = "Mustermann"
+            this.birthDate = birthDate
+        }
+        testHouseholdEntity.persons = mutableListOf(existingMainPerson)
+        testHouseholdEntity.mainPerson = existingMainPerson
+
+        val testHouseholdResponse = mockk<HouseholdResponse>(relaxed = true)
+        every { householdRepository.getReferenceByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdConverter.mapHouseholdToEntity(testHouseholdUpdate, testHouseholdEntity) } returns testHouseholdEntity
+        every { householdConverter.mapEntityToHousehold(testHouseholdEntity) } returns testHouseholdResponse
+        every { householdRepository.saveAndFlush(any()) } returns testHouseholdEntity
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = true,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4"),
+        )
+
+        val result = service.updateHousehold(householdId, testHouseholdUpdate, force = false, isSupervisor = false)
+
+        assertThat(result).isEqualTo(HouseholdUpdateResponse(data = testHouseholdResponse, errorMsg = null))
+        verify(exactly = 0) { householdDuplicationService.findPotentialDuplicates(any(), any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
     fun `update household is invalid and should set validUntil to yesterday when not supervisor`() {
         val householdId = 123L
 
