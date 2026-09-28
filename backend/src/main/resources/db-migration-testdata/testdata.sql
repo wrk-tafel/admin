@@ -23,6 +23,8 @@ SELECT setval('distributions_statistics_shelters_seq', 10000, false);
 SELECT setval('mail_recipients_seq', 10000, false);
 SELECT setval('login_attempts_seq', 10000, false);
 SELECT setval('audit_log_seq', 10000, false);
+SELECT setval('notifications_seq', 10000, false);
+SELECT setval('announcements_seq', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest
@@ -1721,3 +1723,28 @@ FROM (SELECT stops.distribution_id,
                      WHERE fc.distribution_id BETWEEN 1001 AND 1160
                      GROUP BY fc.distribution_id) items ON items.distribution_id = stops.distribution_id) totals
 WHERE ds.distribution_id = totals.distribution_id;
+
+-- The bell in the header: inbox entries for e2etest (100) and admin (300), a mix of unread and read,
+-- and two announcements for everybody - one without an end, one that is shown for another week.
+INSERT INTO notifications (id, created_at, user_id, type, title, body, target_path, read_at)
+VALUES (1, NOW() - interval '2 hours', 100, 'DISTRIBUTION_STARTED', 'Ausgabe gestartet',
+        'Die Ausgabe wurde soeben gestartet.', 'uebersicht', NULL),
+       (2, NOW() - interval '1 day', 100, 'DISTRIBUTION_CLOSED', 'Ausgabe beendet',
+        'Die Ausgabe wurde soeben beendet.', 'uebersicht', NOW() - interval '23 hours'),
+       (3, NOW() - interval '3 days', 100, 'HOUSEHOLD_LOCK_REVIEW_DUE', 'Sperren überprüfen',
+        'Für einige Kunden steht die Überprüfung der Sperre aus.', 'kunden/gesperrt', NULL),
+       (4, NOW() - interval '2 hours', 300, 'DISTRIBUTION_STARTED', 'Ausgabe gestartet',
+        'Die Ausgabe wurde soeben gestartet.', 'uebersicht', NULL),
+       (5, NOW() - interval '5 days', 300, 'USER_LOCKED_OUT', 'Benutzer gesperrt',
+        'Ein Benutzerkonto wurde nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt.',
+        'benutzer/anmelde-versuche', NOW() - interval '4 days');
+
+INSERT INTO announcements (id, created_at, created_by, title, message, expires_at)
+VALUES (1, NOW() - interval '1 day', 300, 'Neue Öffnungszeiten',
+        'Ab nächstem Monat startet die Ausgabe bereits um 11:30 Uhr. Bitte rechtzeitig einplanen.', NULL),
+       (2, NOW() - interval '3 hours', 300, 'Spendenaktion am Wochenende',
+        'Am Samstag findet vor dem Supermarkt eine Spendenaktion statt. Helfer:innen sind willkommen.',
+        NOW() + interval '7 days');
+
+INSERT INTO announcement_reads (announcement_id, user_id, read_at)
+VALUES (1, 300, NOW() - interval '20 hours');
