@@ -6,6 +6,9 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Neue Glocke in der Kopfzeile: sie sammelt Push-Benachrichtigungen (auch für Benutzer ohne aktiviertes Push, beim nächsten Login) und Ankündigungen, die Administratoren unter Einstellungen → Ankündigungen für alle Benutzer veröffentlichen, mit Zähler für ungelesene Einträge.
+- Die Seite "Kunden-Übersicht" heißt jetzt "Neu & Verlängert" (Name der Seite und der zugehörigen Berechtigung) und steht in der Gruppe "Auswertungen" an erster Stelle; die Ausgabe wird dort über eine einfache Auswahlliste statt einem Suchfeld gewählt.
+- Die Ausgabe-Auswahl auf den Seiten "Statistiken → Allgemein" und "Einstellungen → E-Mails erneut senden" ist jetzt ebenfalls eine einfache Auswahlliste statt einem Suchfeld.
+- Neue Seite "Gesperrte Kunden" (Kunden → Auswertungen → Gesperrte Kunden) listet alle gesperrten Kunden mit Sperrgrund, Sperrdatum und Enddatum und markiert Sperren ohne Enddatum, die überprüft werden müssen; "Bestätigen" startet die Frist für die nächste Überprüfung neu, und wöchentlich erinnert eine neue Benachrichtigung "Sperren überprüfen" daran, solange Überprüfungen offen sind.
 - Die ausdruckbare Datenschutzerklärung nennt jetzt unter "Speicherdauer", dass die Daten eines Haushalts mit Hausverbot für die Dauer des Hausverbots aufbewahrt werden, statt nur die allgemeine Löschfrist anzugeben.
 
 ## [1.26.0] - 2026-09-28

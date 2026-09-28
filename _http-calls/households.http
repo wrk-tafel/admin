@@ -234,6 +234,14 @@ Content-Type: application/json
 GET {{baseApiPath}}/households/above-limit
 Content-Type: application/json
 
+### Get locked households (optionally only the ones without an end date, or the ones due for review)
+GET {{baseApiPath}}/households/locked?page=1&pageSize=10&openEndedOnly=false&dueOnly=false
+Content-Type: application/json
+
+### Confirm that a lock stays (restarts its review interval)
+POST {{baseApiPath}}/households/100/lock-review
+Content-Type: application/json
+
 ### Get new/renewed households overview of the latest distribution
 GET {{baseApiPath}}/households/overview
 Content-Type: application/json

@@ -16,7 +16,7 @@
  * between (see {@code distribution.events} and {@code logistics.events}), and a report mail that
  * could not be sent ({@code reporting.events}).
  * <p>
- * Five more triggers need no module dependency at all: an account lockout, published from
+ * Six more triggers need no module dependency at all: an account lockout, published from
  * {@code common.auth}; a distribution left open; one user reading more sensitive data than the
  * configured threshold within an hour ({@code internal.ExcessiveReadAccessDetectionService}, reading
  * {@code database.model.audit} directly, same ambient-layer access as the distribution check reading
@@ -24,7 +24,10 @@
  * retention deadline ({@code internal.ScannerFileExpiryReminderService}, reading
  * {@code config.properties.TafelAdminProperties} and the share itself directly, rather than through
  * {@code household}'s {@code ScannerFileService}) - all scheduled checks rather than events, since
- * the point in each case is that nothing else noticed; and a retention job (household/user/employee/audit)
+ * the point in each case is that nothing else noticed; household locks without an expiration date
+ * that are due for a review ({@code internal.HouseholdLockReviewReminderService}, reading
+ * {@code database.model.household} directly, rather than through {@code household}'s
+ * {@code HouseholdLockReviewService}); and a retention job (household/user/employee/audit)
  * that failed or refused to run past its configured ceiling, published as
  * {@code common.retention.RetentionRunAlertEvent} from each of the four retention services - three of
  * which live in real modules (`household`, `base::employee`) with their own restricted

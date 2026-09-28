@@ -153,6 +153,7 @@ jobs:
               /kunden/detail/100,
               /kunden/bearbeiten/100,
               /kunden/duplikate,
+              /kunden/gesperrt,
               /kunden/ueber-limit,
               /kunden/uebersicht,
               /kunden/zusammenfuehren/100?quellen=101

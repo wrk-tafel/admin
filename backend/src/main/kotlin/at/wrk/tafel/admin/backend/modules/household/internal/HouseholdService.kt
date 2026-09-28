@@ -814,6 +814,8 @@ class HouseholdService(
         household.lockReason = null
         household.lockReasonType = null
         household.lockedUntil = null
+        household.lockReviewedAt = null
+        household.lockReviewedBy = null
         householdRepository.saveAndFlush(household)
         log.debug("Lifted expired temporary lock on household {}", householdId)
     }

@@ -69,4 +69,11 @@ enum class PushNotificationType {
      * - a heads-up to administrators before the deletion happens, see `RetentionExpiryReminderService`.
      */
     RETENTION_EXPIRING,
+
+    /**
+     * Household locks without an expiration date are due for a review - the lock has stood longer
+     * than `tafeladmin.householdLockReview.interval` without anyone confirming it should stay
+     * (issue #3763), see `HouseholdLockReviewReminderService`.
+     */
+    HOUSEHOLD_LOCK_REVIEW_DUE,
 }

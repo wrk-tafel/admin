@@ -110,6 +110,18 @@ class HouseholdEntity(
     @Column(name = "locked_until")
     var lockedUntil: LocalDate? = null
 
+    /**
+     * When a staff member last confirmed that a lock without a [lockedUntil] date should stay
+     * (issue #3763) - the review interval restarts from here, or from [lockedAt] while the lock has
+     * never been reviewed. Cleared together with the rest of the lock.
+     */
+    @Column(name = "lock_reviewed_at")
+    var lockReviewedAt: LocalDateTime? = null
+
+    @ManyToOne
+    @JoinColumn(name = "lock_reviewed_by")
+    var lockReviewedBy: UserEntity? = null
+
     @Column(name = "pending_cost_contribution")
     var pendingCostContribution: BigDecimal = BigDecimal.ZERO
 
@@ -279,6 +291,31 @@ class HouseholdEntity(
             fun lockedHousehold(): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 val locked: Expression<Boolean> = root["locked"]
                 cb.isTrue(locked)
+            }
+
+            /** A lock with no [HouseholdEntity.lockedUntil] date - the ones that never lift themselves. */
+            fun openEndedLock(): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                val locked: Expression<Boolean> = root["locked"]
+                val lockedUntil: Expression<LocalDate> = root["lockedUntil"]
+                cb.and(cb.isTrue(locked), cb.isNull(lockedUntil))
+            }
+
+            /**
+             * An open-ended lock whose last review - or, never reviewed, the lock itself - is older
+             * than [cutoff] (issue #3763). A lock with neither timestamp (one predating `locked_at`)
+             * counts as due: nobody can say when it was last looked at.
+             */
+            fun lockReviewDue(cutoff: LocalDateTime): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                val locked: Expression<Boolean> = root["locked"]
+                val lockedUntil: Expression<LocalDate> = root["lockedUntil"]
+                val reviewedAt: Expression<LocalDateTime> = root["lockReviewedAt"]
+                val lockedAt: Expression<LocalDateTime> = root["lockedAt"]
+                val reference = cb.coalesce(reviewedAt, lockedAt)
+                cb.and(
+                    cb.isTrue(locked),
+                    cb.isNull(lockedUntil),
+                    cb.or(cb.isNull(reference), cb.lessThan(reference, cutoff)),
+                )
             }
 
             /**

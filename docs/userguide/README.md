@@ -7,7 +7,7 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | Kapitel | Beschreibung |
 |---|---|
 | [Anmeldung & Übersicht](anmeldung.md) | Login, Dashboard, Ausgabetag starten/beenden, Kunden-Annahme, Scanner, Ticket-Monitor |
-| [Kunden](kunden.md) | Kunden suchen, Anspruch-Schnellcheck, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, Kunden-Übersicht, Kunden zusammenführen, Dokumente |
+| [Kunden](kunden.md) | Kunden suchen, Anspruch-Schnellcheck, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, gesperrte Kunden, Neu & Verlängert, Kunden zusammenführen, Dokumente |
 | [Logistik](logistik.md) | Routen-Navi auf der Route, Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
 | [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Länder, Mitarbeiter, anstehende Löschungen, Ankündigungen |
@@ -124,6 +124,7 @@ Die Bereiche **Erinnerungen** und **Technisches** setzen eine Berechtigung vorau
 | --- | --- | --- |
 | Ausgabe noch offen | eine Ausgabe an einem früheren Tag gestartet und bis dahin nicht beendet wurde (Erinnerung jeweils in der Früh, bis die Ausgabe beendet ist) | Ausgabe-Ablauf oder Supervisor |
 | Gescannte Dateien werden bald gelöscht | eine Datei im Scanner-Ordner (siehe [Kunden](kunden.md)) bald automatisch gelöscht wird, weil sie zu lange nicht importiert oder gelöscht wurde (Erinnerung jeweils in der Früh, bis die Datei importiert, gelöscht oder tatsächlich automatisch entfernt wurde) | Kunden-Dokumente |
+| Sperren überprüfen | Kunden ohne Enddatum gesperrt sind und ihre Sperre seit mehr als der konfigurierten Frist (standardmäßig 6 Monate) nicht überprüft wurde (Erinnerung jeweils montags in der Früh, solange es solche Sperren gibt). Die Benachrichtigung nennt die Anzahl und öffnet die Seite [Gesperrte Kunden](kunden.md#gesperrte-kunden) | Kunden |
 | E-Mail nicht versendet | eine E-Mail auch nach mehreren Versuchen nicht versendet werden konnte – etwa eine der E-Mails nach dem Ende einer Ausgabe (Tagesreport, Statistiken, Retourkisten) oder eine Support-Anfrage. Die Benachrichtigung nennt den Betreff der E-Mail | Administrator |
 | Benutzer gesperrt | ein Benutzer nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt wurde | Administrator |
 | Ungewöhnlich viele Zugriffe | ein Benutzerkonto innerhalb einer Stunde mehr sensible Kundendaten abgerufen hat (Dokument-Downloads, Stammdatenblatt/Ausweis/Kundenliste) als der konfigurierte Schwellenwert erlaubt. Die Benachrichtigung nennt den Benutzernamen und die Anzahl der Abrufe | Administrator |
@@ -168,7 +169,7 @@ Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer
 Die Menüstruktur gliedert sich in folgende Bereiche:
 
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
-- **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, sowie unter der aufklappbaren Gruppe "Auswertungen": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
+- **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, sowie unter der aufklappbaren Gruppe "Auswertungen": Neu & Verlängert, Duplikate, Über Limit, Gesperrt
 - **Logistik**: Routen-Navi, Waren-Eingabe
 - **Verwaltung**: Benutzer, Statistiken, Zugriffsprotokoll, Einstellungen
 

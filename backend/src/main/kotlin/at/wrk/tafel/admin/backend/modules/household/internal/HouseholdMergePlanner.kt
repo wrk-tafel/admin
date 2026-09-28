@@ -87,6 +87,8 @@ internal object HouseholdMergePlanner {
                 target.lockReason = winner.lockReason
                 target.lockReasonType = winner.lockReasonType
                 target.lockedUntil = winner.lockedUntil
+                target.lockReviewedAt = winner.lockReviewedAt
+                target.lockReviewedBy = winner.lockReviewedBy
             }
 
             HouseholdMergeField.PENDING_COST_CONTRIBUTION -> target.pendingCostContribution = winner.pendingCostContribution

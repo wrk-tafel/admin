@@ -266,7 +266,7 @@ export const auditValueLabel: Record<string, Record<string, string>> = {
     CUSTOMER_DOCUMENTS: 'Kunden-Dokumente',
     CUSTOMER_DUPLICATES: 'Kunden-Duplikate',
     CUSTOMERS_ABOVE_LIMIT: 'Kunden über dem Limit',
-    CUSTOMERS_OVERVIEW: 'Kunden-Übersicht (Neu & Verlängert)',
+    CUSTOMERS_OVERVIEW: 'Neu & Verlängert',
     DATA_SUBJECT_REQUESTS: 'Datenauskunft',
     LOGISTICS: 'Transport/Logistik',
     SCANNER: 'Scanner',

@@ -58,7 +58,7 @@ enum class UserPermissions(val key: String, val title: String, val category: Per
      * `/generate-csv`). Additive to `CUSTOMER`, enforced server-side, for the same reason as
      * `CUSTOMER_DUPLICATES` above (GDPR G26, issue #3508).
      */
-    CUSTOMERS_OVERVIEW("CUSTOMERS_OVERVIEW", "Kunden-Übersicht (Neu & Verlängert)", PermissionCategory.ADMINISTRATION),
+    CUSTOMERS_OVERVIEW("CUSTOMERS_OVERVIEW", "Neu & Verlängert", PermissionCategory.ADMINISTRATION),
 
     /**
      * The central "Datenauskunft" screen (issue #3396) that searches across households, user

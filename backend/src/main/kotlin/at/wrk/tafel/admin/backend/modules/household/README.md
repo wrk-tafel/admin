@@ -28,6 +28,9 @@ service/DTO access only (see [`base`'s README](../base/README.md#entities-are-re
   date has passed, the same row-claim pattern `HouseholdRetentionService` uses (see below). A
   household currently locked for `HouseholdLockReason.BANNED_FROM_PREMISES` is never swept by that
   retention job regardless of `valid_until` (issue #3753) - kept around for as long as the lock lasts.
+  A lock with no `lockedUntil` never lifts itself, so it is reviewed periodically instead (issue
+  #3763): `lockReviewedAt`/`lockReviewedBy` record the last "the lock stays" confirmation, see
+  `HouseholdLockReviewService` below.
 - A household has one or more **persons** (`persons` table,
   [`PersonEntity`](../../database/model/person/PersonEntity.kt)), exactly one of which is flagged as
   the **main person** via `is_main_person`. This is enforced in the database by a partial unique
@@ -537,6 +540,23 @@ row-claim pattern as `HouseholdRetentionService` (ADR-0047). Running before that
 household whose temporary lock *and* `validUntil` have both expired is already unlocked by the time
 the deletion job decides whether a `BANNED_FROM_PREMISES` lock should keep it around longer - it
 never does, once the lock itself is gone.
+
+### `HouseholdLockReviewService` (`internal`)
+Issue #3763, GDPR Art. 5(1)(e): backs the "Gesperrte Kunden" screen. `getLockedHouseholds`
+(`GET /api/households/locked`, filterable to open-ended locks or the ones due for review) lists every
+locked household as a slim `LockedHouseholdItem` rather than a full record, sorted by the last review
+(or, never reviewed, the lock date) and sliced in memory - the sort key has no column of its own and
+locked households are few. Each call records one bulk-report `READ`
+(`AuditScope.LOCKED_HOUSEHOLDS_ENTITY_TYPE`). `confirmLockReview`
+(`POST /api/households/{id}/lock-review`) stamps `lock_reviewed_at`/`lock_reviewed_by`; that is an
+ordinary audited household update, so who confirmed what and when shows in the "Verlauf". A lock is
+*due* when it is open-ended and its last review (or the lock itself) is older than
+`tafeladmin.householdLockReview.interval`, read per call - `dueCutoff()` is `null` while the review is
+switched off (`enabled` or a zero/negative interval), and nothing is due then. Unlocking, by hand or
+through `HouseholdLockExpiryService`, clears both review columns with the rest of the lock. The
+weekly notification is `push`'s `HouseholdLockReviewReminderService`, which counts with
+`HouseholdRepository.countLockReviewsDue` - the same rule as `HouseholdEntity.Specs.lockReviewDue`,
+kept in two places because `push` may not depend on this module, so change them together.
 
 ## Gotchas / best practices
 

@@ -298,7 +298,7 @@ describe('Accessibility', () => {
     cy.focused().should('contain.text', 'Auswertungen').click();
 
     cy.contains('button', 'Auswertungen').should('have.attr', 'aria-expanded', 'true');
-    cy.contains('a', 'Kunden über Limit').should('be.visible');
+    cy.contains('a', 'Über Limit').should('be.visible');
   });
 
 });
@@ -347,9 +347,9 @@ describe('Navigation Progress Bar', () => {
     }).as('aboveLimit');
 
     cy.byTestId('nav-progress-bar').should('not.exist');
-    // "Kunden über Limit" lives under the collapsible "Auswertungen" nav group - expand it first
+    // "Über Limit" lives under the collapsible "Auswertungen" nav group - expand it first
     cy.contains('button', 'Auswertungen').click();
-    cy.contains('Kunden über Limit').click();
+    cy.contains('Über Limit').click();
 
     cy.byTestId('nav-progress-bar').should('be.visible');
 

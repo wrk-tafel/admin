@@ -292,6 +292,25 @@ data class HouseholdAboveLimitItem(
     val percentageExceededLimit: BigDecimal,
 )
 
+/**
+ * One row of the "Gesperrte Kunden" list (issue #3763) - deliberately slim, unlike
+ * [HouseholdAboveLimitItem]: what a reviewer needs to judge a lock, not the whole household record.
+ * [reviewDue] is only ever `true` for a lock without a [lockedUntil] date.
+ */
+@ExcludeFromTestCoverage
+data class LockedHouseholdItem(
+    val householdId: Long,
+    val name: String?,
+    val lockedAt: LocalDateTime?,
+    val lockedBy: String?,
+    val lockReasonType: HouseholdLockReason?,
+    val lockReason: String?,
+    val lockedUntil: LocalDate?,
+    val lockReviewedAt: LocalDateTime?,
+    val lockReviewedBy: String?,
+    val reviewDue: Boolean,
+)
+
 @ExcludeFromTestCoverage
 data class HouseholdOverviewResponse(
     val distributionId: Long?,

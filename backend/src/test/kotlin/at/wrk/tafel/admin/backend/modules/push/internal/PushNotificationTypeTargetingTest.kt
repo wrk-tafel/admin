@@ -74,6 +74,24 @@ internal class PushNotificationTypeTargetingTest {
         ).isFalse()
     }
 
+    @Test
+    fun `the lock review reminder requires CUSTOMER`() {
+        assertThat(
+            PushNotificationTypeTargeting.isAllowedFor(
+                PushNotificationType.HOUSEHOLD_LOCK_REVIEW_DUE,
+                listOf(UserPermissions.CUSTOMER.key),
+            ),
+        ).isTrue()
+        assertThat(
+            PushNotificationTypeTargeting.isAllowedFor(
+                PushNotificationType.HOUSEHOLD_LOCK_REVIEW_DUE,
+                listOf(UserPermissions.CHECKIN.key),
+            ),
+        ).isFalse()
+        assertThat(PushNotificationTypeTargeting.targetPathOf(PushNotificationType.HOUSEHOLD_LOCK_REVIEW_DUE))
+            .isEqualTo("kunden/gesperrt")
+    }
+
     /**
      * The technical notifications go to whoever keeps the application running, which is a different
      * person from whoever runs the distribution - so leading the distribution must not, on its own,
