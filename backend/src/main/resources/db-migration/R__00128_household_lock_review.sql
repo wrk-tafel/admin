@@ -4,5 +4,5 @@
 -- locked_at while the lock has never been reviewed). Both are cleared together with the rest of the
 -- lock when the household is unlocked.
 
-alter table households add column if not exists lock_reviewed_at timestamp;
+alter table households add column if not exists lock_reviewed_at timestamptz;
 alter table households add column if not exists lock_reviewed_by bigint references users (id) on delete set null;

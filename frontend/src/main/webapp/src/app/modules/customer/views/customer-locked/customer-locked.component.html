@@ -117,7 +117,7 @@
                 @if (isOpenEnded(item)) {
                   <button type="button" matButton="outlined" [attr.testid]="'locked-confirm-button-' + i" (click)="confirmReview(item)"
                           matTooltip="Die Sperre bleibt bestehen - die Frist für die nächste Überprüfung beginnt von vorn"
-                          [attr.aria-label]="'Sperre von Kunde ' + item.householdId + ' bestätigt'">
+                          [attr.aria-label]="'Sperre von Kunde ' + item.householdId + ' bestätigen'">
                     <mat-icon svgIcon="check"></mat-icon>
                     Bestätigen
                   </button>
@@ -184,7 +184,7 @@
                 @if (isOpenEnded(item)) {
                   <button type="button" matButton="outlined" [attr.testid]="'locked-confirm-button-' + i" (click)="confirmReview(item)"
                           matTooltip="Die Sperre bleibt bestehen - die Frist für die nächste Überprüfung beginnt von vorn"
-                          [attr.aria-label]="'Sperre von Kunde ' + item.householdId + ' bestätigt'">
+                          [attr.aria-label]="'Sperre von Kunde ' + item.householdId + ' bestätigen'">
                     <mat-icon svgIcon="check"></mat-icon>
                     Bestätigen
                   </button>
