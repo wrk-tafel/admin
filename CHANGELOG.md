@@ -6,6 +6,7 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 
 ## [Unreleased]
 - Neue Seite "Gesperrte Kunden" (Kunden → Gesperrte Kunden) listet alle gesperrten Kunden mit Sperrgrund, Sperrdatum und Enddatum und markiert Sperren ohne Enddatum, die überprüft werden müssen; "Bestätigen" startet die Frist für die nächste Überprüfung neu, und wöchentlich erinnert eine neue Benachrichtigung "Sperren überprüfen" daran, solange Überprüfungen offen sind.
+- Die ausdruckbare Datenschutzerklärung nennt jetzt unter "Speicherdauer", dass die Daten eines Haushalts mit Hausverbot für die Dauer des Hausverbots aufbewahrt werden, statt nur die allgemeine Löschfrist anzugeben.
 
 ## [1.26.0] - 2026-09-28
 - Im Kundenformular kann eine weitere Person jetzt per Klick auf "Zum Hauptbezieher machen" zur Hauptbezugsperson des Haushalts gemacht werden; die bisherige Hauptbezugsperson wird dabei automatisch zur weiteren Person.

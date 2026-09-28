@@ -351,6 +351,11 @@ class HouseholdPdfServiceTest {
         // TafelAdminAuditProperties' own default, same as the retentionText assertion would.
         assertThat(PDFTextStripper().getText(document)).contains("30 Tagen")
 
+        // A household locked for a Hausverbot is kept past the retention window, so the notice
+        // must not promise a deletion that would not happen (GDPR G1).
+        assertThat(PDFTextStripper().getText(document).replace(Regex("\\s+"), " "))
+            .contains("Haushalte, für die ein Hausverbot besteht")
+
         document.close()
     }
 
