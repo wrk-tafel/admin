@@ -14,6 +14,9 @@ describe('Settings - Announcements and the notification bell', () => {
       cy.byTestId('announcement-save-button').click();
 
       cy.get('.toast-message').should('be.visible').and('contain.text', 'veröffentlicht');
+      // a successful save leaves an empty form without validation errors
+      cy.byTestId('announcement-title-input').should('have.value', '');
+      cy.contains('Bitte einen Titel angeben').should('not.exist');
       cy.byTestId('announcements-list').should('contain.text', title);
 
       // the bell picks it up when it is opened

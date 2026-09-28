@@ -579,7 +579,7 @@ return true;
         const links = Array.from<HTMLAnchorElement>(group.querySelectorAll('a')).map(a => a.textContent!.trim());
         expect(links).toEqual([
             'Fahrzeuge', 'Filialen', 'Länder', 'Notschlafstellen', 'Routen', 'Waren-Kategorien', 'Retour-Kategorien',
-            'Anstehende Löschungen', 'E-Mail', 'Grenzwerte', 'Mitarbeiter'
+            'Ankündigungen', 'Anstehende Löschungen', 'E-Mail', 'Grenzwerte', 'Mitarbeiter'
         ]);
     });
 

@@ -111,6 +111,7 @@ Der Bereich **Ablauf der Ausgabe** begleitet einen Ausgabetag von Anfang bis End
 | Benachrichtigungsart | Wird ausgelöst, wenn … |
 | --- | --- |
 | Ausgabe gestartet | eine Ausgabe gestartet wurde |
+| Ankündigungen | ein Administrator eine neue Ankündigung für alle Benutzer veröffentlicht (siehe [Ankündigungen](einstellungen.md#ankuendigungen)); sie steht zusätzlich in der [Glocke](#benachrichtigungen-glocke). Erreicht alle Benutzer mit eingeschaltetem Push, solange sie diese Art nicht abgeschaltet haben |
 | Anmeldung gestartet | der erste Kunde des Tages angemeldet wurde |
 | Route beim letzten Stopp | eine Route im [Routen-Navi](logistik.md#routen-navi) bis auf den letzten Stopp abgehakt ist, das Fahrzeug also bald zurückkommt. Die Benachrichtigung nennt die Route und den Stopp, bei dem sie gerade steht |
 | Warenerfassung abgeschlossen | für alle aktiven Routen die Waren vollständig erfasst wurden |
@@ -202,6 +203,8 @@ Links in der Kopfzeile wird neben den Schaltflächen immer der Name der gerade g
 ### Benachrichtigungen (Glocke)
 
 Die **Glocke** in der Kopfzeile (links neben dem Benutzermenü) sammelt alles, was für einen selbst bestimmt ist. Ein roter Zähler nennt die Anzahl der ungelesenen Einträge. Ein Klick öffnet die Liste, neueste zuerst:
+
+![Glocke mit Benachrichtigungen](images/benachrichtigungen-glocke.jpg)
 
 - **Benachrichtigungen**, die auch als Push-Nachricht verschickt werden (siehe [Benachrichtigungen](#benachrichtigungen)). Sie stehen in der Glocke auch dann, wenn Push auf dem Gerät nicht eingeschaltet ist - wer die Nachricht verpasst hat, findet sie beim nächsten Login hier. Jeder sieht nur die Benachrichtigungen, die für seine Berechtigungen bestimmt sind.
 - **Ankündigungen**, die Administratoren für alle Benutzer veröffentlichen (siehe [Ankündigungen](einstellungen.md#ankuendigungen)).

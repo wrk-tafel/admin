@@ -88,6 +88,15 @@ internal class PushBroadcastServiceTest {
     }
 
     @Test
+    fun `does not touch the inboxes when asked not to`() {
+        every { pushSubscriptionRepository.findAll() } returns emptyList()
+
+        service.broadcast(type = PushNotificationType.ANNOUNCEMENT, title = "title", body = "body", addToInbox = false)
+
+        verify(exactly = 0) { notificationPublisher.publish(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
     fun `still pushes when the inbox cannot be written`() {
         val subscription = subscriptionOf(id = 10, userId = 100)
         every { pushSubscriptionRepository.findAll() } returns listOf(subscription)

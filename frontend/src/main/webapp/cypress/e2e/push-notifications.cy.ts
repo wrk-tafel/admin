@@ -122,7 +122,7 @@ describe('PushNotifications', () => {
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'true');
     // e2etest holds ADMINISTRATOR, which grants every other permission, so every type is listed
     // here - the filtered case is the separate test below.
-    cy.byTestId('push-type-preference').should('have.length', 15);
+    cy.byTestId('push-type-preference').should('have.length', 16);
 
     cy.byTestId('push-master-toggle').click();
     cy.byTestId('push-master-toggle').find('button[role="switch"]').should('have.attr', 'aria-checked', 'false');
@@ -130,7 +130,7 @@ describe('PushNotifications', () => {
     // Switching the master off overrules the per-type settings rather than discarding them, so they
     // stay on screen and inert - hiding them read as "my settings are gone".
     cy.byTestId('push-master-disabled-hint').should('be.visible');
-    cy.byTestId('push-type-preference').should('have.length', 15);
+    cy.byTestId('push-type-preference').should('have.length', 16);
     cy.byTestId('push-type-preference-toggle').first().find('button[role="switch"]').should('be.disabled');
     // The hint and the disabled section exist only after this click, so no other accessibility gate
     // sees them - see cypress/support/accessibility.ts
@@ -152,13 +152,13 @@ describe('PushNotifications', () => {
   // The permission filtering lives entirely in the backend's preferences response, so the only way
   // to see it work is with a real login of a user who lacks those permissions - a mocked component
   // test would just be asserting the fixture it was handed. e2etest2 holds CUSTOMER alone, so it
-  // gets the seven types that carry no permission requirement, the lock review reminder that
+  // gets the eight types that carry no permission requirement (announcements included), the lock review reminder that
   // CUSTOMER itself unlocks, and none of the administrator or distribution-leadership ones.
   it('offers only the notification types a user can actually receive', () => {
     cy.loginE2ETest2();
     cy.visit('/konto/benachrichtigungen');
 
-    cy.byTestId('push-type-preference').should('have.length', 8);
+    cy.byTestId('push-type-preference').should('have.length', 9);
     cy.get('[testid="push-type-preference"][data-type="HOUSEHOLD_LOCK_REVIEW_DUE"]').should('exist');
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STARTED"]').should('exist');
     cy.get('[testid="push-type-preference"][data-type="ALL_TICKETS_PROCESSED"]').should('exist');
@@ -168,9 +168,9 @@ describe('PushNotifications', () => {
     cy.get('[testid="push-type-preference"][data-type="DISTRIBUTION_STILL_OPEN"]').should('not.exist');
 
     // A group with nothing left in it is dropped rather than shown as a bare heading, so the
-    // "Technisches" group disappears entirely for this user, and "Erinnerungen" keeps only the one
+    // "Technisches" group disappears entirely for this user, "Mitteilungen" holds the announcements, and "Erinnerungen" keeps only the one
     // reminder they may receive.
-    cy.byTestId('push-type-group').should('have.length', 2);
+    cy.byTestId('push-type-group').should('have.length', 3);
     cy.byTestId('push-type-group-title').eq(0).should('contain.text', 'Ablauf der Ausgabe');
     cy.byTestId('push-type-group-title').eq(1).should('contain.text', 'Erinnerungen');
     cy.get('[testid="push-type-group"][data-group="Erinnerungen"]')

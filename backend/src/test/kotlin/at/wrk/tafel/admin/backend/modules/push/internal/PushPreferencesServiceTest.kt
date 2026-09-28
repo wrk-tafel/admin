@@ -86,6 +86,7 @@ internal class PushPreferencesServiceTest {
             PushNotificationTypeApi.FOOD_HANDOUT_STARTED,
             PushNotificationTypeApi.ALL_TICKETS_PROCESSED,
             PushNotificationTypeApi.DISTRIBUTION_CLOSED,
+            PushNotificationTypeApi.ANNOUNCEMENT,
         )
     }
 

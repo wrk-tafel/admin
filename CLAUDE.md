@@ -156,7 +156,8 @@ The backend uses **Spring Modulith** architecture with 13 core feature modules (
   broadcast is *for*, subscribed or not, so someone without push sees it at the next login; the
   dependency points from `push` to `notification`, never back. Entries are read per user
   (`notifications.read_at`, `announcement_reads`), the frontend polls once a minute instead of holding
-  another SSE stream, and `NotificationCleanupService` drops history after `tafeladmin.notification.retention` (30 days by default)
+  another SSE stream, a newly created announcement is also pushed (`AnnouncementPublishedEvent` →
+  `push`'s `AnnouncementPushListener`, type `ANNOUNCEMENT`, per-user opt-out like any type), and `NotificationCleanupService` drops history after `tafeladmin.notification.retention` (30 days by default)
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
   itself: the running release version, the image build time, and the flags for optional features
   this environment has switched on (currently `scannerFolderEnabled`). Read only by the frontend.

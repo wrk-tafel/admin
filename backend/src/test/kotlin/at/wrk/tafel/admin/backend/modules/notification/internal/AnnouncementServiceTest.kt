@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.notification.AnnouncementEntity
 import at.wrk.tafel.admin.backend.database.model.notification.AnnouncementRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.notification.AnnouncementPublishedEvent
 import at.wrk.tafel.admin.backend.modules.notification.model.AnnouncementRequest
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.core.context.SecurityContextHolder
 import java.time.LocalDateTime
 import java.util.Optional
@@ -32,11 +34,14 @@ internal class AnnouncementServiceTest {
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
 
+    @RelaxedMockK
+    private lateinit var eventPublisher: ApplicationEventPublisher
+
     private lateinit var service: AnnouncementService
 
     @BeforeEach
     fun beforeEach() {
-        service = AnnouncementService(announcementRepository, userRepository)
+        service = AnnouncementService(announcementRepository, userRepository, eventPublisher)
         val authentication = mockk<TafelJwtAuthentication>()
         every { authentication.username } returns "admin"
         SecurityContextHolder.getContext().authentication = authentication
@@ -66,6 +71,7 @@ internal class AnnouncementServiceTest {
         assertThat(saved.captured.message).isEqualTo("Text")
         assertThat(saved.captured.createdBy).isEqualTo(3)
         assertThat(response.active).isTrue()
+        verify { eventPublisher.publishEvent(AnnouncementPublishedEvent("Titel", "Text")) }
     }
 
     @Test
@@ -90,6 +96,7 @@ internal class AnnouncementServiceTest {
 
         assertThat(response.title).isEqualTo("Neu")
         assertThat(existing.message).isEqualTo("Neuer Text")
+        verify(exactly = 0) { eventPublisher.publishEvent(any<Any>()) }
     }
 
     @Test

@@ -105,6 +105,7 @@ enum class PushNotificationType {
     RETENTION_RUN,
     RETENTION_EXPIRING,
     HOUSEHOLD_LOCK_REVIEW_DUE,
+    ANNOUNCEMENT,
 }
 
 @ExcludeFromTestCoverage

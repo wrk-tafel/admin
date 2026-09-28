@@ -67,6 +67,8 @@ object PushNotificationTypeTargeting {
         PushNotificationType.RETENTION_EXPIRING to "einstellungen/anstehende-loeschungen",
         // the list of locked customers, with the ones due for review marked
         PushNotificationType.HOUSEHOLD_LOCK_REVIEW_DUE to "kunden/gesperrt",
+        // an announcement carries its own text; the dashboard is where the bell is within reach
+        PushNotificationType.ANNOUNCEMENT to "uebersicht",
     )
 
     /**

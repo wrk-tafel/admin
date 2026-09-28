@@ -39,13 +39,15 @@ class PushBroadcastService(
         private val logger = LoggerFactory.getLogger(PushBroadcastService::class.java)
     }
 
-    fun broadcast(type: PushNotificationType, title: String, body: String) {
+    fun broadcast(type: PushNotificationType, title: String, body: String, addToInbox: Boolean = true) {
         // Memoized per user within this one broadcast call - a user with several devices would
         // otherwise trigger the same permission and preference lookup once per device.
         val recipientCache = mutableMapOf<Long, Boolean>()
         val targetPath = PushNotificationTypeTargeting.targetPathOf(type) ?: ""
 
-        addToInboxes(type, title, body, targetPath)
+        if (addToInbox) {
+            addToInboxes(type, title, body, targetPath)
+        }
 
         val resultCounts = mutableMapOf<PushSendResult, Int>()
         pushSubscriptionRepository.findAll().forEach { subscription ->

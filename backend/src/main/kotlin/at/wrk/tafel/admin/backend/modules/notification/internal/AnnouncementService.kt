@@ -5,9 +5,11 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.notification.AnnouncementEntity
 import at.wrk.tafel.admin.backend.database.model.notification.AnnouncementRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
+import at.wrk.tafel.admin.backend.modules.notification.AnnouncementPublishedEvent
 import at.wrk.tafel.admin.backend.modules.notification.model.AnnouncementListResponse
 import at.wrk.tafel.admin.backend.modules.notification.model.AnnouncementRequest
 import at.wrk.tafel.admin.backend.modules.notification.model.AnnouncementResponse
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,6 +20,7 @@ import java.time.LocalDateTime
 class AnnouncementService(
     private val announcementRepository: AnnouncementRepository,
     private val userRepository: UserRepository,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     @Transactional(readOnly = true)
@@ -32,7 +35,10 @@ class AnnouncementService(
             createdBy = currentUserId()
         }
         apply(entity, request)
-        return announcementRepository.save(entity).toResponse()
+        val saved = announcementRepository.save(entity)
+        // pushed to the devices that opted in, once the row is committed - see push's AnnouncementPushListener
+        eventPublisher.publishEvent(AnnouncementPublishedEvent(saved.title, saved.message))
+        return saved.toResponse()
     }
 
     @Transactional

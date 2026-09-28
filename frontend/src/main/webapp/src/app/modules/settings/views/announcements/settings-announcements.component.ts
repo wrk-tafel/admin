@@ -1,6 +1,6 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, inject, signal, viewChild} from '@angular/core';
 import {DatePipe} from '@angular/common';
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormControl, FormGroup, FormGroupDirective, ReactiveFormsModule, Validators} from '@angular/forms';
 import {HttpErrorResponse} from '@angular/common/http';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -49,6 +49,8 @@ export class SettingsAnnouncementsComponent {
   protected readonly announcements = signal<AnnouncementResponse[]>([]);
   protected readonly loaded = signal(false);
   protected readonly editingId = signal<number | null>(null);
+
+  private readonly formDirective = viewChild(FormGroupDirective);
 
   protected readonly form = new FormGroup({
     title: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.maxLength(200)]}),
@@ -111,7 +113,15 @@ export class SettingsAnnouncementsComponent {
 
   protected resetForm() {
     this.editingId.set(null);
-    this.form.reset({title: '', message: '', expiresAt: ''});
+    // through the directive: a plain `form.reset()` leaves the form 'submitted', so the fields would
+    // show their required errors right after a successful save
+    const empty = {title: '', message: '', expiresAt: ''};
+    const directive = this.formDirective();
+    if (directive) {
+      directive.resetForm(empty);
+    } else {
+      this.form.reset(empty);
+    }
   }
 
   protected remove(announcement: AnnouncementResponse) {
