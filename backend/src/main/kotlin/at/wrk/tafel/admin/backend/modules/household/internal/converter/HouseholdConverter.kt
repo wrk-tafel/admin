@@ -119,6 +119,8 @@ class HouseholdConverter(
             householdEntity.lockReason = null
             householdEntity.lockReasonType = null
             householdEntity.lockedUntil = null
+            householdEntity.lockReviewedAt = null
+            householdEntity.lockReviewedBy = null
         }
 
         // The main person row is always updated in place (never removed and re-created), so that

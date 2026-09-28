@@ -149,7 +149,8 @@ The backend uses **Spring Modulith** architecture with 12 core feature modules (
   client-side error to `app.log` the moment it happens, without waiting for a user to notice it and
   write a support request. See ADR-0053
 - **push**: Web Push (VAPID) device subscriptions and per-user notification preferences; broadcasts
-  on distribution started/closed events
+  on distribution started/closed events, plus the scheduled reminders (`HouseholdLockReviewReminderService`
+  weekly for household locks without an end date that are due for review, issue #3763)
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
   itself: the running release version, the image build time, and the flags for optional features
   this environment has switched on (currently `scannerFolderEnabled`). Read only by the frontend.
@@ -656,7 +657,7 @@ term-less `GET` listing are unaffected.
   caller's light/dark `theme`, which `PUT /api/users/theme` changes (stored in `user_preferences`).
   `GET`/`PUT /api/users/account` is the caller's own record for the "Meine Daten" tab — the `PUT` takes
   name and e-mail only, never username, personnel number, password or permissions
-- `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`. Search is `POST /api/households/search`
+- `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`. Search is `POST /api/households/search`; `GET /api/households/locked` lists every locked household for the "Gesperrte Kunden" screen and `POST /api/households/{id}/lock-review` confirms that an open-ended lock stays (restarting its review interval, issue #3763)
 - `/api/households/{householdId}/notes`: Household notes
 - `/api/households/{householdId}/ticket`: Current ticket for a household in the active distribution
 - `/api/distributions`: Distribution management (SSE updates on `/api/sse/distributions`)

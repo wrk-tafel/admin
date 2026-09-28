@@ -67,7 +67,7 @@ Im unteren Bereich werden die **Berechtigungen** einzeln oder je Kategorie ("All
 | Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kunden-Dokumente, Kundenverwaltung, Scanner |
 | Logistik | Transport/Logistik |
 | Leitung | Benutzerverwaltung, Einstellungen, Supervisor |
-| Verwaltung | Zugriffsprotokoll, Datenauskunft, Kunden über dem Limit, Kunden-Duplikate, Kunden-Übersicht (Neu & Verlängert), Statistiken, Administrator |
+| Verwaltung | Zugriffsprotokoll, Datenauskunft, Kunden über dem Limit, Kunden-Duplikate, Neu & Verlängert, Statistiken, Administrator |
 
 Die Berechtigung **Zugriffsprotokoll** gibt Einsicht in den Verlauf aller Änderungen und Zugriffe – sowohl in den gleichnamigen Menüpunkt als auch in den Reiter "Verlauf" auf der Kunden-Detailseite (siehe [Zugriffsprotokoll](zugriffsprotokoll.md)). Sie ist bewusst von "Kundenverwaltung" getrennt, da sie auch Vorgängerwerte und Änderungen an Benutzern und Einstellungen sichtbar macht.
 

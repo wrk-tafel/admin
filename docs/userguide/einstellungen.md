@@ -31,7 +31,7 @@ Unter **Einstellungen → E-Mail** werden die Empfänger (An/CC/BCC) für automa
 
 Auf schmalen Bildschirmen stehen An, CC und BCC nicht nebeneinander, sondern durch Trennlinien getrennt untereinander.
 
-Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (durchsuchbares Eingabefeld, standardmäßig die aktuellste) der zugehörige Tagesreport erneut versendet werden.
+Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (Auswahlliste, standardmäßig die aktuellste) der zugehörige Tagesreport erneut versendet werden.
 
 <a id="notschlafstellen"></a>
 

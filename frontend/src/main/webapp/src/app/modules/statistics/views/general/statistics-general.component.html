@@ -64,35 +64,20 @@
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
               <span id="distributionLabel">Ausgabe</span>
               <mat-form-field subscriptSizing="dynamic" class="w-full sm:w-64">
-                <!-- an autocomplete rather than a plain select: the list grows by one every week the
-                     app runs, so it needs to stay searchable rather than scrolled through -->
-                <input matInput type="text" autocomplete="off" testid="distributionDateInput"
-                       aria-labelledby="distributionLabel"
-                       [matAutocomplete]="distributionAutocomplete"
-                       [ngModel]="distributionDisplayText()" [ngModelOptions]="{standalone: true}"
-                       (ngModelChange)="onDistributionInput($event)"
-                       (blur)="onDistributionBlur()">
-                <mat-autocomplete #distributionAutocomplete="matAutocomplete"
-                                  [displayWith]="distributionAutocompleteDisplay"
-                                  (optionSelected)="onDistributionSelected($event.option.value)">
-                  <!-- mousedown, not click: a plain click handler would be too late - mousedown alone
-                       blurs the input, which (blur)="onDistributionBlur()" reacts to by re-filtering
-                       the option list against the reverted committed value. That can remove this very
-                       option from the list before the browser gets to fire its click, so the click -
-                       and the selection - never happens (#3654). -->
-                  @for (distribution of distributionOptions(); track distribution?.startDate ?? 'none') {
-                    @if (distribution) {
-                      <!-- the weekday tells the distributions apart at a glance: which of them a
-                           number belongs to is usually remembered as "der Samstag", not as a date -->
-                      <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate"
-                                  (mousedown)="$event.preventDefault()">{{ distributionLabel(distribution) }}</mat-option>
-                    } @else {
-                      <!-- visually blank on purpose - it clears the field back to "no distribution
-                           chosen" - but still needs a name a screen reader can announce -->
-                      <mat-option [value]="undefined" aria-label="Keine Auswahl" (mousedown)="$event.preventDefault()"></mat-option>
-                    }
+                <mat-select testid="distributionDateInput" aria-labelledby="distributionLabel"
+                            [ngModel]="selectedDistribution()" [ngModelOptions]="{standalone: true}"
+                            (ngModelChange)="onDistributionSelected($event)">
+                  <!-- clears the field back to "no distribution chosen" - but still needs a name a
+                       screen reader can announce -->
+                  <mat-option [value]="undefined" aria-label="Keine Auswahl"></mat-option>
+                  @for (distribution of settings()?.distributions ?? []; track distribution.startDate) {
+                    <!-- text tight against the tags: Angular collapses the indentation into
+                         leading/trailing spaces otherwise, and the e2e spec matches this label with
+                         an anchored pattern -->
+                    <mat-option [value]="distribution"
+                                [attr.testid]="'distributionDateInput-option-' + distribution.startDate">{{ distributionLabel(distribution) }}</mat-option>
                   }
-                </mat-autocomplete>
+                </mat-select>
               </mat-form-field>
             </div>
           }

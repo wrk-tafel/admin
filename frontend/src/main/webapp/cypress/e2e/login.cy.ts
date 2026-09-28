@@ -254,9 +254,9 @@ describe('Login', () => {
 
     // Route resolvers (e.g. the above-limit list's data fetch) fire an authenticated request
     // before the target component even mounts - that's what's used here to trigger the 401.
-    // "Kunden über Limit" lives under the collapsible "Auswertungen" nav group - expand it first
+    // "Über Limit" lives under the collapsible "Auswertungen" nav group - expand it first
     cy.contains('button', 'Auswertungen').click();
-    cy.contains('Kunden über Limit').click();
+    cy.contains('Über Limit').click();
 
     cy.url().should('contain', '/login/abgelaufen');
     cy.byTestId('errorMessage').should('exist').and('contain.text', 'Sitzung abgelaufen');

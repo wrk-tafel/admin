@@ -106,6 +106,7 @@ modules/customer/
   │   ├── customer-above-limit/           # list of customers whose income exceeds the limit
   │   ├── customer-detail/                # detail page + its dialogs/ (notes, lock, delete)
   │   ├── customer-duplicates/            # list of already-flagged duplicate customer pairs
+  │   ├── customer-locked/                # every locked customer, open-ended locks due for review marked
   │   ├── customer-edit/                  # create (no id) / edit (:id) — hosts customer-form + its dialogs/
   │   ├── customer-merge/                 # field-conflict picker + confirm screen for merging a duplicate group
   │   └── customer-search/                # single omnibox (exact id jump or fuzzy search) + chip filters, state in query params
@@ -138,6 +139,7 @@ to this module) rather than a class with an `@Injectable()`-style suffix.
 | `duplikate` | `CustomerDuplicatesComponent` | `CustomerDuplicatesDataResolver` (reads `?seite=` too) |
 | `zusammenfuehren/:id` | `CustomerMergeComponent` | `CustomerMergePreviewResolver` (reads `?quellen=` too) |
 | `ueber-limit` | `CustomerAboveLimitComponent` | `CustomerAboveLimitDataResolver` |
+| `gesperrt` | `CustomerLockedComponent` | none - loads and pages its own list |
 
 `CustomerEditComponent` doubles as both the create and edit view: `editMode` is a
 `computed()` off whether the `customerData` input is set, not a separate component.
@@ -251,6 +253,12 @@ Two independent layers, both scoped to the flat `CustomerData`/form model:
   `views/customer-above-limit/` + `CustomerAboveLimitDataResolver`, backed by `GET
   /households/above-limit` — the same list-for-manual-review pattern as the duplicates
   view above.
+- `views/customer-locked/` (`/kunden/gesperrt`, "Gesperrte Kunden") lists every locked customer,
+  backed by `GET /households/locked`, and is where an open-ended lock is reviewed: "Bestätigen" calls
+  `POST /households/{id}/lock-review` and restarts the review interval, lifting the lock happens on
+  the customer's detail screen. Unlike the lists above it has no resolver - the filter chips
+  (all / no end date / due) change the request, so the component owns an `rxResource` keyed by
+  filter and page. The weekly `HOUSEHOLD_LOCK_REVIEW_DUE` push notification opens it.
 
 ## Angular idioms used here
 

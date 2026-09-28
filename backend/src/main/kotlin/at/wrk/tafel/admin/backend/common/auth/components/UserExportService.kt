@@ -92,6 +92,7 @@ class UserExportService(
             PushNotificationType.SCANNER_FILES_EXPIRING to "Gescannte Dateien werden bald gelöscht",
             PushNotificationType.RETENTION_RUN to "Bereinigungsjob auffällig",
             PushNotificationType.RETENTION_EXPIRING to "Daten werden bald gelöscht",
+            PushNotificationType.HOUSEHOLD_LOCK_REVIEW_DUE to "Sperren überprüfen",
         )
     }
 
