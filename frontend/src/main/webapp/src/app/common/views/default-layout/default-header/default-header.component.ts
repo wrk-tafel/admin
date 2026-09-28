@@ -33,6 +33,7 @@ import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import linkIcon from '@material-symbols/svg-400/outlined/link-fill.svg';
 import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
 import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import arrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
 
 const CLOCK_FORMAT = new Intl.DateTimeFormat('de-AT', {
   timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
@@ -76,6 +77,14 @@ export class DefaultHeaderComponent {
    * `GlobalStateService.getNotificationsVersion`) - and whenever the menu is opened.
    */
   readonly notificationItems = computed(() => this.notifications()?.items ?? []);
+  /** How many entries the menu lists before "Alle anzeigen" - more than this does not fit the screen. */
+  private static readonly NOTIFICATIONS_SHOWN = 10;
+
+  protected readonly showAllNotifications = signal(false);
+  readonly visibleNotificationItems = computed(() =>
+    this.showAllNotifications() ? this.notificationItems() : this.notificationItems().slice(0, DefaultHeaderComponent.NOTIFICATIONS_SHOWN)
+  );
+  readonly hiddenNotificationCount = computed(() => this.notificationItems().length - this.visibleNotificationItems().length);
   readonly unreadCount = computed(() => this.notifications()?.unreadCount ?? 0);
 
   readonly sseConnected = this.globalStateService.getConnectionState();
@@ -184,12 +193,23 @@ export class DefaultHeaderComponent {
       lock: lockIcon,
       link: linkIcon,
       link_off: linkOffIcon,
-      check: checkIcon
+      check: checkIcon,
+      keyboard_arrow_down: arrowDownIcon
     });
   }
 
   public refreshNotifications() {
     this.refreshNotifications$.next();
+  }
+
+  public showMoreNotifications(event: Event) {
+    // keeps the menu open, so the rest appears in place
+    event.stopPropagation();
+    this.showAllNotifications.set(true);
+  }
+
+  public resetNotificationList() {
+    this.showAllNotifications.set(false);
   }
 
   public openNotification(item: NotificationItem) {

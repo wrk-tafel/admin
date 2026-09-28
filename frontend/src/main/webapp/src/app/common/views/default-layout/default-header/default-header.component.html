@@ -117,7 +117,7 @@
         The bell: a badge with the number of unread entries, a menu with the entries themselves.
         The count is part of the button's label, so a screen reader announces it with the button.
       -->
-      <button [matMenuTriggerFor]="notificationMenu" (menuOpened)="refreshNotifications()" testid="notifications-button"
+      <button [matMenuTriggerFor]="notificationMenu" (menuOpened)="refreshNotifications()" (menuClosed)="resetNotificationList()" testid="notifications-button"
               [attr.aria-label]="unreadCount() > 0 ? 'Benachrichtigungen, ' + unreadCount() + ' ungelesen' : 'Benachrichtigungen'"
               class="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0 cursor-pointer">
         <mat-icon svgIcon="notifications" class="!w-5 !h-5" aria-hidden="true"></mat-icon>
@@ -132,7 +132,7 @@
             <mat-icon svgIcon="check"></mat-icon> Alle als gelesen markieren
           </button>
         }
-        @for (item of notificationItems(); track item.kind + item.id) {
+        @for (item of visibleNotificationItems(); track item.kind + item.id) {
           <button mat-menu-item [attr.testid]="'notification-' + item.kind + '-' + item.id" (click)="openNotification(item)"
                   [class.font-semibold]="!item.read">
             <span class="flex flex-col whitespace-normal py-2 leading-snug">
@@ -145,6 +145,11 @@
           </button>
         } @empty {
           <button mat-menu-item disabled testid="notifications-empty">Keine Benachrichtigungen</button>
+        }
+        @if (hiddenNotificationCount() > 0) {
+          <button mat-menu-item testid="notifications-show-all" (click)="showMoreNotifications($event)">
+            <mat-icon svgIcon="keyboard_arrow_down"></mat-icon> Alle anzeigen ({{ hiddenNotificationCount() }} weitere)
+          </button>
         }
       </mat-menu>
 

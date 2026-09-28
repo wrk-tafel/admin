@@ -243,6 +243,49 @@ describe('DefaultHeaderComponent', () => {
                 .toBe('Benachrichtigungen, 2 ungelesen');
         });
 
+        function manyNotifications(count: number): NotificationListResponse {
+            return {
+                unreadCount: 0,
+                items: Array.from({length: count}, (_, index) => ({
+                    id: index + 1, kind: 'NOTIFICATION' as const, title: 'Eintrag ' + (index + 1), body: 'Text',
+                    targetPath: null, createdAt: '2026-09-28T10:00:00', read: true
+                }))
+            };
+        }
+
+        it('lists at most ten entries and offers the rest on request', async () => {
+            notificationApiService.getNotifications.mockReturnValue(of(manyNotifications(25)));
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            const component = fixture.componentInstance;
+
+            expect(component.visibleNotificationItems()).toHaveLength(10);
+            expect(component.hiddenNotificationCount()).toBe(15);
+
+            const event = {stopPropagation: vi.fn()} as unknown as Event;
+            component.showMoreNotifications(event);
+
+            expect(event.stopPropagation).toHaveBeenCalled();
+            expect(component.visibleNotificationItems()).toHaveLength(25);
+            expect(component.hiddenNotificationCount()).toBe(0);
+        });
+
+        it('offers nothing more with ten entries or fewer, and starts short again once the menu closed', async () => {
+            notificationApiService.getNotifications.mockReturnValue(of(manyNotifications(10)));
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            const component = fixture.componentInstance;
+            expect(component.hiddenNotificationCount()).toBe(0);
+
+            notificationApiService.getNotifications.mockReturnValue(of(manyNotifications(12)));
+            component.refreshNotifications();
+            component.showMoreNotifications({stopPropagation: vi.fn()} as unknown as Event);
+            expect(component.visibleNotificationItems()).toHaveLength(12);
+
+            component.resetNotificationList();
+            expect(component.visibleNotificationItems()).toHaveLength(10);
+        });
+
         it('shows no badge without unread entries', async () => {
             notificationApiService.getNotifications.mockReturnValue(of({items: [], unreadCount: 0}));
             const fixture = TestBed.createComponent(DefaultHeaderComponent);

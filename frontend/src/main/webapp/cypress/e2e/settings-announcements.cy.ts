@@ -94,4 +94,23 @@ describe('Settings - Announcements and the notification bell', () => {
       cy.contains('li', title).should('not.exist');
     });
   });
+
+  it('lists ten entries in the bell and shows the rest on request', () => {
+    const ids: number[] = [];
+    Cypress._.times(12, index => {
+      cy.request('POST', '/api/announcements', {title: `E2E Liste ${index}`, message: 'Text'})
+        .then(response => ids.push(response.body.id));
+    });
+
+    cy.reload();
+    cy.byTestId('notifications-button').click();
+    cy.get('.tafel-notification-menu [testid^="notification-"]').should('have.length', 10);
+    cy.byTestId('notifications-show-all').should('be.visible').click();
+    cy.get('.tafel-notification-menu [testid^="notification-"]').should('have.length.greaterThan', 10);
+    cy.byTestId('notifications-show-all').should('not.exist');
+    cy.get('body').type('{esc}');
+
+    // clean up
+    cy.then(() => ids.forEach(id => cy.request('DELETE', `/api/announcements/${id}`)));
+  });
 });
