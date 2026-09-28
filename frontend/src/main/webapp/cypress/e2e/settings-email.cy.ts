@@ -2,6 +2,11 @@ describe('Settings - Email - Resend distribution mails', () => {
 
   beforeEach(() => {
     cy.loginDefault();
+    // Unlike the other two screens with a distribution select, this one loads its options from a
+    // component-internal effect rather than a route resolver - nothing blocks the page from
+    // becoming interactive before that request resolves, so every test waits for it before
+    // opening the select.
+    cy.intercept('GET', '/api/distributions').as('getDistributions');
   });
 
   // The list this select opens accumulates across the whole e2e run, so the target distribution
@@ -12,6 +17,7 @@ describe('Settings - Email - Resend distribution mails', () => {
       cy.closeDistribution();
 
       cy.visit('/einstellungen/email');
+      cy.wait('@getDistributions');
 
       cy.byTestId('sendMailsDistributionInput').click();
       cy.byTestId('sendMailsDistributionInput-option-' + distributionId).click();
@@ -32,6 +38,7 @@ describe('Settings - Email - Resend distribution mails', () => {
       cy.closeDistribution();
 
       cy.visit('/einstellungen/email');
+      cy.wait('@getDistributions');
 
       cy.byTestId('sendMailsDistributionInput').click();
       cy.checkSelectAccessibility();
