@@ -48,6 +48,7 @@ settings/
         route-edit-dialog.component.ts
     countries/                     # route: einstellungen/laender
     pending-deletions/             # route: einstellungen/anstehende-loeschungen
+    announcements/                 # route: einstellungen/ankuendigungen
   settings.routes.ts
 ```
 
@@ -587,3 +588,13 @@ As elsewhere, HTTP access lives in `app/api/`, not under this module:
 - `pending-deletions-api.service.ts` — `PendingDeletionsApiService` with one paged getter per kind of
   record (`getPendingUserDeletions()`, `getPendingHouseholdDeletions()`,
   `getPendingEmployeeDeletions()`) and the response types of the `pending-deletions` view.
+
+## `announcements` (`SettingsAnnouncementsComponent`)
+
+The administrators' side of the header bell: a form (title, message, optional expiry) and the list of
+published messages with edit and delete. Everything published shows up in every user's bell, which is
+the header's own concern (`default-header.component.ts`) and reads `/api/notifications`. Administrators
+only, like `pending-deletions`: the route carries `data: {anyPermissionOf: ['ADMINISTRATOR']}` and the
+menu entry `permissions: ['ADMINISTRATOR']`; the backend endpoint (`/api/announcements`) enforces the
+same. Deleting has no confirmation dialog on purpose — a message is cheap to write again and there is
+nothing else that references it.

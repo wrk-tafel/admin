@@ -81,3 +81,21 @@
 .mat-mdc-menu-panel .mat-divider + .mat-mdc-menu-item {
   min-height: 44px !important;
 }
+
+// The bell's menu holds free text of any length: wide enough to read, tall enough to be a list, and
+// its items may wrap and grow instead of keeping the single-line height the other menus use.
+.tafel-notification-menu.mat-mdc-menu-panel {
+  min-width: min(20rem, 95vw);
+  max-width: min(24rem, 95vw);
+  max-height: min(32rem, 80vh);
+  overflow-y: auto !important;
+
+  .mat-mdc-menu-item {
+    height: auto;
+    min-height: 3rem;
+  }
+
+  .mat-mdc-menu-item-text {
+    white-space: normal;
+  }
+}

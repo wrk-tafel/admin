@@ -1,0 +1,84 @@
+describe('Settings - Announcements and the notification bell', () => {
+
+  beforeEach(() => {
+    cy.loginDefault();
+    cy.visit('/einstellungen/ankuendigungen');
+  });
+
+  it('publishes an announcement that shows up in the bell, can be read and is deleted again', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const title = 'E2E Ankündigung ' + randomId;
+
+      cy.byTestId('announcement-title-input').type(title);
+      cy.byTestId('announcement-message-input').type('Am Freitag bleibt die Ausgabe geschlossen.');
+      cy.byTestId('announcement-save-button').click();
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'veröffentlicht');
+      cy.byTestId('announcements-list').should('contain.text', title);
+
+      // the bell picks it up when it is opened
+      cy.byTestId('notifications-button').click();
+      cy.get('[testid^="notification-ANNOUNCEMENT-"]').contains(title).should('be.visible');
+      cy.checkMenuAccessibility();
+      cy.get('[testid^="notification-ANNOUNCEMENT-"]').contains(title).click();
+
+      // read: the entry is no longer marked, and the badge counts one less
+      cy.byTestId('notifications-button').click();
+      cy.get('[testid^="notification-ANNOUNCEMENT-"]').contains(title).closest('button').should('not.have.class', 'font-semibold');
+      cy.get('body').type('{esc}');
+
+      // clean up through the screen itself
+      cy.byTestId('announcements-list').contains('li', title).find('[testid^="announcement-delete-"]').click();
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'gelöscht');
+      cy.contains('li', title).should('not.exist');
+    });
+  });
+
+  it('edits an announcement', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const title = 'E2E Bearbeiten ' + randomId;
+
+      cy.byTestId('announcement-title-input').type(title);
+      cy.byTestId('announcement-message-input').type('Text');
+      cy.byTestId('announcement-save-button').click();
+      cy.byTestId('announcements-list').should('contain.text', title);
+
+      cy.byTestId('announcements-list').contains('li', title).find('[testid^="announcement-edit-"]').click();
+      cy.byTestId('announcement-form-heading').should('contain.text', 'bearbeiten');
+      cy.byTestId('announcement-message-input').clear().type('Geänderter Text');
+      cy.byTestId('announcement-save-button').click();
+
+      cy.byTestId('announcements-list').contains('li', title).should('contain.text', 'Geänderter Text');
+
+      cy.byTestId('announcements-list').contains('li', title).find('[testid^="announcement-delete-"]').click();
+      cy.contains('li', title).should('not.exist');
+    });
+  });
+
+  it('requires a title and a message', () => {
+    cy.byTestId('announcement-save-button').click();
+
+    cy.contains('Bitte einen Titel angeben').should('be.visible');
+    cy.contains('Bitte eine Nachricht angeben').should('be.visible');
+  });
+
+  it('marks everything read from the bell', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const title = 'E2E Alles gelesen ' + randomId;
+
+      cy.byTestId('announcement-title-input').type(title);
+      cy.byTestId('announcement-message-input').type('Text');
+      cy.byTestId('announcement-save-button').click();
+      cy.byTestId('announcements-list').should('contain.text', title);
+
+      cy.byTestId('notifications-button').click();
+      cy.byTestId('notifications-mark-all-read').click();
+      cy.byTestId('notifications-mark-all-read').should('not.exist');
+      cy.get('body').type('{esc}');
+      cy.byTestId('notifications-badge').should('not.exist');
+
+      cy.byTestId('announcements-list').contains('li', title).find('[testid^="announcement-delete-"]').click();
+      cy.contains('li', title).should('not.exist');
+    });
+  });
+});

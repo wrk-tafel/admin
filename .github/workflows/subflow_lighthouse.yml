@@ -167,7 +167,8 @@ jobs:
               /einstellungen/mitarbeiter,
               /einstellungen/routen,
               /einstellungen/filialen,
-              /einstellungen/laender
+              /einstellungen/laender,
+              /einstellungen/ankuendigungen
           - name: benutzer-logistik-statistik
             urls: >-
               /benutzer/suchen,

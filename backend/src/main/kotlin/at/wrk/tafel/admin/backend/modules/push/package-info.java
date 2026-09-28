@@ -5,6 +5,9 @@
  * (permissions, see {@code internal.PushNotificationTypeTargeting}) and by what the user asked for
  * (a master switch plus a per-type opt-out, see {@code internal.PushPreferencesService}).
  * <p>
+ * Every notification it broadcasts is also put in the bell of each user it is for ({@code notification},
+ * the one module this one calls, see {@code internal.PushBroadcastService}).
+ * <p>
  * This module only ever listens - it calls no other module's services, and no module knows it
  * exists. The dependencies below are on the {@code ::events} named interfaces alone, which is as
  * narrow as the declaration can be made: an event still has to be referenced as a type to be
@@ -31,6 +34,6 @@
  * is not an event - the exceptions this module's own controllers throw.
  */
 @org.springframework.modulith.ApplicationModule(
-        allowedDependencies = {"distribution::events", "logistics::events", "reporting::events", "base::exception"}
+        allowedDependencies = {"distribution::events", "logistics::events", "reporting::events", "base::exception", "notification"}
 )
 package at.wrk.tafel.admin.backend.modules.push;

@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Neue Glocke in der Kopfzeile: sie sammelt Push-Benachrichtigungen (auch für Benutzer ohne aktiviertes Push, beim nächsten Login) und Ankündigungen, die Administratoren unter Einstellungen → Ankündigungen für alle Benutzer veröffentlichen, mit Zähler für ungelesene Einträge.
 - Die ausdruckbare Datenschutzerklärung nennt jetzt unter "Speicherdauer", dass die Daten eines Haushalts mit Hausverbot für die Dauer des Hausverbots aufbewahrt werden, statt nur die allgemeine Löschfrist anzugeben.
 
 ## [1.26.0] - 2026-09-28

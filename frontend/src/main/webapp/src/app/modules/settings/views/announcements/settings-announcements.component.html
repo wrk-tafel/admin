@@ -1,0 +1,97 @@
+<div class="flex flex-col gap-4">
+  <mat-card class="w-full">
+    <mat-card-header class="mb-2">
+      <mat-card-title>
+        <h2 class="tafel-h5 mb-0 mt-1" testid="announcement-form-heading">
+          {{ editingId() === null ? 'Neue Ankündigung' : 'Ankündigung bearbeiten' }}
+        </h2>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p class="mb-4 text-sm text-slate-600">
+        Eine Ankündigung erscheint bei allen Benutzern unter der Glocke in der Kopfzeile - auch bei denen, die
+        gerade nicht angemeldet sind, beim nächsten Login. Sie bleibt dort, bis sie abläuft oder gelöscht wird.
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-2 max-w-2xl">
+        <mat-form-field>
+          <mat-label>Titel</mat-label>
+          <input matInput formControlName="title" maxlength="200" testid="announcement-title-input"/>
+          @if (form.controls.title.hasError('required')) {
+            <mat-error>Bitte einen Titel angeben</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Nachricht</mat-label>
+          <textarea matInput formControlName="message" rows="4" maxlength="2000" testid="announcement-message-input"></textarea>
+          @if (form.controls.message.hasError('required')) {
+            <mat-error>Bitte eine Nachricht angeben</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Anzeigen bis (optional)</mat-label>
+          <input matInput type="datetime-local" formControlName="expiresAt" testid="announcement-expires-input"/>
+          <mat-hint>Ohne Angabe bleibt die Ankündigung, bis sie gelöscht wird.</mat-hint>
+        </mat-form-field>
+
+        <div class="flex gap-2 mt-4">
+          <button matButton="filled" type="submit" testid="announcement-save-button">
+            {{ editingId() === null ? 'Veröffentlichen' : 'Speichern' }}
+          </button>
+          @if (editingId() !== null) {
+            <button matButton="outlined" type="button" testid="announcement-cancel-button" (click)="resetForm()">
+              Abbrechen
+            </button>
+          }
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="w-full">
+    <mat-card-header class="mb-2">
+      <mat-card-title>
+        <h2 class="tafel-h5 mb-0 mt-1">Veröffentlichte Ankündigungen</h2>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (!loaded()) {
+        <p class="text-sm" testid="announcements-loading">Ankündigungen werden geladen...</p>
+      } @else if (announcements().length === 0) {
+        <p class="text-sm" testid="announcements-empty">Keine Ankündigungen vorhanden.</p>
+      } @else {
+        <ul class="flex flex-col gap-3" testid="announcements-list">
+          @for (announcement of announcements(); track announcement.id) {
+            <li class="flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 pb-3"
+                [attr.testid]="'announcement-' + announcement.id">
+              <div class="min-w-0 flex-1">
+                <div class="font-semibold">{{ announcement.title }}</div>
+                <div class="whitespace-pre-line text-sm">{{ announcement.message }}</div>
+                <div class="mt-1 text-xs text-slate-500">
+                  Erstellt am {{ announcement.createdAt | date: 'dd.MM.yyyy HH:mm' }}
+                  @if (announcement.expiresAt) {
+                    · {{ announcement.active ? 'läuft ab am' : 'abgelaufen am' }} {{ announcement.expiresAt | date: 'dd.MM.yyyy HH:mm' }}
+                  } @else {
+                    · unbegrenzt
+                  }
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button matButton="outlined" type="button" [attr.testid]="'announcement-edit-' + announcement.id"
+                        [attr.aria-label]="'Ankündigung ' + announcement.title + ' bearbeiten'" (click)="edit(announcement)">
+                  <mat-icon svgIcon="edit"></mat-icon>
+                </button>
+                <button matButton="outlined" type="button" [attr.testid]="'announcement-delete-' + announcement.id"
+                        [attr.aria-label]="'Ankündigung ' + announcement.title + ' löschen'" (click)="remove(announcement)">
+                  <mat-icon svgIcon="delete"></mat-icon>
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -130,7 +130,7 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 ### Backend Architecture
 
-The backend uses **Spring Modulith** architecture with 12 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
+The backend uses **Spring Modulith** architecture with 13 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
 
 - **audit**: read access to the audit trail — "who changed or accessed what, and what a change
   looked like before". Only reads: the listener that fills `audit_log` lives in
@@ -150,6 +150,12 @@ The backend uses **Spring Modulith** architecture with 12 core feature modules (
   write a support request. See ADR-0053
 - **push**: Web Push (VAPID) device subscriptions and per-user notification preferences; broadcasts
   on distribution started/closed events
+- **notification**: the bell in the header — each user's inbox plus the announcements administrators
+  publish for everybody. `push` writes into it (`NotificationPublisher`) for every enabled user a
+  broadcast is *for*, subscribed or not, so someone without push sees it at the next login; the
+  dependency points from `push` to `notification`, never back. Entries are read per user
+  (`notifications.read_at`, `announcement_reads`), the frontend polls once a minute instead of holding
+  another SSE stream, and `NotificationCleanupService` drops history after 30 days
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
   itself: the running release version, the image build time, and the flags for optional features
   this environment has switched on (currently `scannerFolderEnabled`). Read only by the frontend.
@@ -673,6 +679,8 @@ term-less `GET` listing are unaffected.
 - `/api/settings`: Application settings; `GET /api/settings/pending-deletions/{users,households,employees}` list (paged, administrators only) what the retention jobs will delete soon (the target of the daily `RETENTION_EXPIRING` push reminder)
 - `/api/support`: Mails an in-app support request (title, text, and the browser's `clientContext`) to the configured support addresses
 - `/api/client-errors`: Logs one client-side error (message, page, user agent) to `app.log` as it happens, rate-limited per IP; behind `isAuthenticated()`, no dedicated permission
+- `/api/notifications`: the caller's bell — `GET` the merged list plus unread count, `POST /{kind}/{id}/read` and `/read-all`; `isAuthenticated()`
+- `/api/announcements`: CRUD for the messages shown in every user's bell; `ADMINISTRATOR` only (frontend screen `einstellungen/ankuendigungen`)
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 - `/api/data-subject-requests`: the central "Datenauskunft" screen — `POST /search` across households, user accounts and employees; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
 

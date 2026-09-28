@@ -1,7 +1,7 @@
-import {Component, computed, DestroyRef, inject, output} from '@angular/core';
-import {defer, map, repeat, startWith, timer} from 'rxjs';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {RouterLink} from '@angular/router';
+import {Component, computed, DestroyRef, inject, output, signal} from '@angular/core';
+import {catchError, defer, EMPTY, interval, map, merge, repeat, startWith, Subject, switchMap, timer} from 'rxjs';
+import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
+import {Router, RouterLink} from '@angular/router';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatDialog, MatDialogRef} from '@angular/material/dialog';
@@ -18,6 +18,7 @@ import {SupportDialogComponent, SupportDialogResult} from './dialogs/support-dia
 import {QuickOpenDialogComponent} from './dialogs/quick-open-dialog.component';
 import {MatButton} from '@angular/material/button';
 import {ConfigApiService} from '../../../../api/config-api.service';
+import {NotificationApiService, NotificationItem, NotificationListResponse} from '../../../../api/notification-api.service';
 import {TafelTitleStrategy} from '../../../util/tafel-title-strategy';
 import {registerSvgIcons} from '../../../util/svg-icon.util';
 import menuIcon from '@material-symbols/svg-400/outlined/menu-fill.svg';
@@ -62,6 +63,20 @@ export class DefaultHeaderComponent {
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
   private readonly configApiService = inject(ConfigApiService);
+  private readonly notificationApiService = inject(NotificationApiService);
+  private readonly router = inject(Router);
+
+  private readonly refreshNotifications$ = new Subject<void>();
+  private readonly notifications = signal<NotificationListResponse | null>(null);
+
+  /**
+   * The bell: what the backend keeps for this user (pushed notifications and the announcements
+   * administrators published), newest first. Polled once a minute and whenever the menu is opened
+   * rather than held on a stream of its own - the app already keeps permanent SSE streams open
+   * against the browser's small per-host connection budget.
+   */
+  readonly notificationItems = computed(() => this.notifications()?.items ?? []);
+  readonly unreadCount = computed(() => this.notifications()?.unreadCount ?? 0);
 
   readonly sseConnected = this.globalStateService.getConnectionState();
 
@@ -140,6 +155,13 @@ export class DefaultHeaderComponent {
     document.addEventListener('keydown', quickOpenShortcut);
     inject(DestroyRef).onDestroy(() => document.removeEventListener('keydown', quickOpenShortcut));
 
+    merge(interval(60_000), this.refreshNotifications$).pipe(
+      startWith(null),
+      // A failed poll leaves the last known state in place - the bell is not worth an error.
+      switchMap(() => this.notificationApiService.getNotifications().pipe(catchError(() => EMPTY))),
+      takeUntilDestroyed()
+    ).subscribe(response => this.notifications.set(response));
+
     registerSvgIcons({
       menu: menuIcon,
       help: helpIcon,
@@ -154,6 +176,25 @@ export class DefaultHeaderComponent {
       link_off: linkOffIcon,
       check: checkIcon
     });
+  }
+
+  public refreshNotifications() {
+    this.refreshNotifications$.next();
+  }
+
+  public openNotification(item: NotificationItem) {
+    if (!item.read) {
+      this.notificationApiService.markRead(item.kind, item.id).subscribe(() => this.refreshNotifications());
+    }
+    if (item.targetPath) {
+      this.router.navigateByUrl('/' + item.targetPath);
+    }
+  }
+
+  public markAllNotificationsRead(event: Event) {
+    // keeps the menu open, so the list visibly turns read instead of vanishing under the click
+    event.stopPropagation();
+    this.notificationApiService.markAllRead().subscribe(() => this.refreshNotifications());
   }
 
   public openQuickOpenDialog() {
