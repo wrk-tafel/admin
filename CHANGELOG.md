@@ -5,8 +5,14 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
-- Die Seite "Einstellungen > Anstehende Löschungen" zeigt jetzt auch dann, welche Benutzerkonten, Kunden oder Mitarbeiter demnächst automatisch gelöscht würden, wenn die automatische Löschung für den jeweiligen Bereich abgeschaltet ist - bisher stand dort nur der Hinweis "Die automatische Löschung ist deaktiviert." ohne die Vorschau der betroffenen Datensätze.
+- Eine Kundensperre kann jetzt zusätzlich mit einer Kategorie (Hausverbot, Verstoß gegen die Hausordnung, Missbrauch der Leistungen oder Sonstiger Grund) und einem Datum ("Gesperrt bis") versehen werden, ab dem sie automatisch wieder aufgehoben wird; ohne Datum bleibt die Sperre wie bisher dauerhaft bestehen. Ein mit "Hausverbot" gesperrter Kunde wird zudem nicht mehr automatisch wegen abgelaufener Gültigkeit gelöscht, solange die Sperre besteht.
+- Sperren, Entsperren, Verlängern und Deaktivieren eines Kunden lösen jetzt keine Duplikat-Meldung ("Möglicherweise bereits vorhanden ... Trotzdem speichern?") mehr aus, wenn sich dabei weder Namen, Geburtsdaten noch die Adresse ändern - bisher erschien diese Meldung auch bei diesen Schnellaktionen, sobald der Kunde irgendeinen erkannten Duplikat-Kandidaten hatte.
+
+## [1.24.2] - 2026-09-27
 - "Kunden > Duplikate" erkennt jetzt auch Haushalte, bei denen ein anderes Haushaltsmitglied (nicht die Hauptperson) mit Namen und Geburtsdatum zu einem Mitglied eines anderen Haushalts passt - bisher wurden nur die Hauptpersonen der beiden Haushalte verglichen, sodass ein wiederangelegter Haushalt mit neuer Hauptperson nicht als Duplikat auffiel.
+
+## [1.24.1] - 2026-09-27
+- Die Seite "Einstellungen > Anstehende Löschungen" zeigt jetzt auch dann, welche Benutzerkonten, Kunden oder Mitarbeiter demnächst automatisch gelöscht würden, wenn die automatische Löschung für den jeweiligen Bereich abgeschaltet ist - bisher stand dort nur der Hinweis "Die automatische Löschung ist deaktiviert." ohne die Vorschau der betroffenen Datensätze.
 
 ## [1.24.0] - 2026-09-27
 - Wer sich anmeldet, obwohl die Zwei-Faktor-Authentifizierung für alle vorgeschrieben ist und noch etwas davon fehlt (eine Methode, eine E-Mail-Adresse, oder beides), richtet das jetzt direkt im Anmelde-Vorgang ein - nicht mehr erst nach dem Einloggen in "Mein Konto".

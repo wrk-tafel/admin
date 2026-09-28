@@ -61,6 +61,8 @@ object TestdataGenerator {
         household.lockedAt = null
         household.lockedBy = null
         household.lockReason = null
+        household.lockReasonType = null
+        household.lockedUntil = null
 
         val mainPerson = PersonEntity(household = household, country = country, isMainPerson = true)
         mainPerson.lastname = "lastname-$randomNumber"

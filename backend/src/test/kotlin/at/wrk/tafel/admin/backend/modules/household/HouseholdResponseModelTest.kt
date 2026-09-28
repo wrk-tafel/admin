@@ -112,6 +112,78 @@ class HouseholdResponseModelTest {
     }
 
     @Test
+    fun `locking a household without a reason is invalid`() {
+        val household = HouseholdRequest(
+            address = validAddress(),
+            persons = listOf(validPerson()),
+            locked = true,
+        )
+
+        val violations = validator.validate(household)
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }
+            .containsExactly("lockReasonValid")
+    }
+
+    @Test
+    fun `locking a household with a reason but no category is valid - the category is only a convenience tag`() {
+        val household = HouseholdRequest(
+            address = validAddress(),
+            persons = listOf(validPerson()),
+            locked = true,
+            lockReason = "threw a chair",
+        )
+
+        val violations = validator.validate(household)
+
+        assertThat(violations).isEmpty()
+    }
+
+    @Test
+    fun `locking a household with an expiration date in the past is invalid`() {
+        val household = HouseholdRequest(
+            address = validAddress(),
+            persons = listOf(validPerson()),
+            locked = true,
+            lockReason = "threw a chair",
+            lockedUntil = LocalDate.now().minusDays(1),
+        )
+
+        val violations = validator.validate(household)
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }
+            .containsExactly("lockedUntilValid")
+    }
+
+    @Test
+    fun `locking a household with today as the expiration date is valid`() {
+        val household = HouseholdRequest(
+            address = validAddress(),
+            persons = listOf(validPerson()),
+            locked = true,
+            lockReason = "threw a chair",
+            lockedUntil = LocalDate.now(),
+        )
+
+        val violations = validator.validate(household)
+
+        assertThat(violations).isEmpty()
+    }
+
+    @Test
+    fun `an unlocked household needs no reason regardless of lockedUntil`() {
+        val household = HouseholdRequest(
+            address = validAddress(),
+            persons = listOf(validPerson()),
+            locked = false,
+        )
+
+        val violations = validator.validate(household)
+
+        assertThat(violations).isEmpty()
+    }
+
+    @Test
     fun `household merge request with empty ids is invalid`() {
         val request = HouseholdMergeRequest(sourceHouseholdIds = emptyList())
 

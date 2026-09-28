@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 import {MAIN_CONTENT} from '../support/accessibility';
+import {Gender} from '../support/commands';
 
 dayjs.extend(customParseFormat);
 
@@ -140,12 +141,85 @@ describe('Customer Detail', () => {
       cy.byTestId('okButton').click();
     });
 
-    cy.byTestId('lock-info-banner').should('exist');
+    cy.byTestId('lock-info-banner').should('exist').and('contain.text', 'dummy lockreason');
 
     openEditMenu();
     cy.byTestId('unlockCustomerButton').click();
 
     cy.byTestId('lock-info-banner').should('not.exist');
+  });
+
+  it('lock customer with a category and a temporary expiration date', () => {
+    cy.visit('/kunden/detail/101');
+
+    const lockedUntil = dayjs().add(14, 'day');
+
+    openEditMenu();
+    cy.byTestId('lockCustomerButton').click();
+    cy.byTestId('lock-customer-dialog').within(() => {
+      // the reason category is only a convenience tag - the free-text reason is what is actually
+      // required to save, regardless of which (or whether any) category is picked
+      cy.byTestId('okButton').should('be.disabled');
+      cy.byTestId('lockreason-type-select').click();
+    });
+    cy.byTestId('lockreason-type-select-option-BANNED_FROM_PREMISES').click();
+    cy.byTestId('lock-customer-dialog').within(() => {
+      cy.byTestId('okButton').should('be.disabled');
+    });
+    cy.byTestId('lockreason-input-text').type('threw a chair');
+    cy.byTestId('lockeduntil-input').type(lockedUntil.format('YYYY-MM-DD'));
+    cy.byTestId('lock-customer-dialog').within(() => {
+      cy.byTestId('okButton').click();
+    });
+
+    cy.byTestId('lock-info-banner').should('exist')
+      .and('contain.text', 'Hausverbot')
+      .and('contain.text', 'threw a chair')
+      .and('contain.text', lockedUntil.format('DD.MM.YYYY'));
+
+    openEditMenu();
+    cy.byTestId('unlockCustomerButton').click();
+
+    cy.byTestId('lock-info-banner').should('not.exist');
+  });
+
+  it('locking a customer with an already-existing duplicate candidate does not trigger the duplicate-detection confirmation', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const customerData = {
+        firstname: 'Max' + randomNumber,
+        lastname: 'Mustermann' + randomNumber,
+        birthDate: dayjs().subtract(30, 'year').toDate(),
+        gender: Gender.MALE,
+        country: {id: 165, name: 'Österreich'},
+        telephoneNumber: '0123456789',
+        email: 'lock-duplicate@test.com',
+        employer: 'employer',
+        income: 500,
+        address: {street: 'Sperrduplikatstraße', houseNumber: '1', city: 'Wien', postalCode: 1010},
+        validUntil: dayjs().add(1, 'year').toDate()
+      };
+
+      // Two households sharing the same name/birthdate/address are duplicates of each other -
+      // force: true bypasses each create's own duplicate check so both get saved.
+      cy.createCustomer(customerData, true);
+      cy.createCustomer(customerData, true).then((response) => {
+        const customerId = response.body.data.id;
+        cy.visit('/kunden/detail/' + customerId);
+
+        openEditMenu();
+        cy.byTestId('lockCustomerButton').click();
+        cy.byTestId('lockreason-input-text').type('dummy lockreason');
+        cy.byTestId('lock-customer-dialog').within(() => {
+          cy.byTestId('okButton').click();
+        });
+
+        // Locking doesn't touch name/birthdate/address, so the duplicate-detection confirmation
+        // must not appear even though this customer has a known duplicate candidate (issue #3755) -
+        // only the lock itself needs confirming.
+        cy.byTestId('confirm-customer-save-dialog').should('not.exist');
+        cy.byTestId('lock-info-banner').should('exist').and('contain.text', 'dummy lockreason');
+      });
+    });
   });
 
   it('customer note shown', () => {

@@ -10,6 +10,8 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
@@ -95,6 +97,18 @@ class HouseholdEntity(
 
     @Column(name = "lock_reason")
     var lockReason: String? = null
+
+    @Column(name = "lock_reason_type")
+    @Enumerated(EnumType.STRING)
+    var lockReasonType: HouseholdLockReason? = null
+
+    /**
+     * The date a temporary lock lifts itself on - `null` means the lock is permanent, same as
+     * before this field existed. [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdLockExpiryService]
+     * is what actually unlocks it once this date has passed.
+     */
+    @Column(name = "locked_until")
+    var lockedUntil: LocalDate? = null
 
     @Column(name = "pending_cost_contribution")
     var pendingCostContribution: BigDecimal = BigDecimal.ZERO
@@ -291,18 +305,31 @@ class HouseholdEntity(
              * counterpart to the job's cutoff, so an upcoming deletion is visible on this screen
              * before it happens rather than only in the "Verlauf" tab afterwards. A zero or negative
              * [retentionTime] means the job is disabled and nothing will ever be swept, so nothing
-             * matches.
+             * matches. Also excludes a household locked for [HouseholdLockReason.BANNED_FROM_PREMISES] -
+             * see [findExpiredHouseholdIdsSkipLocked][at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository.findExpiredHouseholdIdsSkipLocked],
+             * which that job actually never deletes it against. The exclusion is written as an
+             * explicit null check rather than `not(locked and reason = BANNED_FROM_PREMISES)` - SQL's
+             * three-valued logic would otherwise make that `NOT` evaluate to `NULL` (filtering the
+             * row out) for a household locked with no reason type at all, e.g. one predating this
+             * column.
              */
             fun willBeDeletedSoon(retentionTime: Period, withinDays: Long): Specification<HouseholdEntity> = Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 if (retentionTime.isZero || retentionTime.isNegative) {
                     cb.disjunction()
                 } else {
                     val validUntil: Expression<LocalDate> = root["validUntil"]
+                    val locked: Expression<Boolean> = root["locked"]
+                    val lockReasonType: Expression<HouseholdLockReason> = root["lockReasonType"]
                     val cutoff = LocalDate.now().minus(retentionTime)
                     cb.and(
                         cb.isNotNull(validUntil),
                         cb.greaterThanOrEqualTo(validUntil, cutoff),
                         cb.lessThan(validUntil, cutoff.plusDays(withinDays)),
+                        cb.or(
+                            cb.isFalse(locked),
+                            cb.isNull(lockReasonType),
+                            cb.notEqual(lockReasonType, HouseholdLockReason.BANNED_FROM_PREMISES),
+                        ),
                     )
                 }
             }

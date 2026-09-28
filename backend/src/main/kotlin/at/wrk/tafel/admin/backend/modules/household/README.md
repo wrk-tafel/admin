@@ -18,8 +18,16 @@ service/DTO access only (see [`base`'s README](../base/README.md#entities-are-re
 
 - A **household** (`households` table, [`HouseholdEntity`](../../database/model/household/HouseholdEntity.kt))
   is the case record: business number (`household_id`), address, contact data, validity
-  (`valid_until`), lock state (`locked`/`lockedAt`/`lockedBy`/`lockReason`), cost-contribution state
-  (`pending_cost_contribution`) and the issuing user account (`issuer`, cleared when that account is deleted).
+  (`valid_until`), lock state (`locked`/`lockedAt`/`lockedBy`/`lockReason`/`lockReasonType`/
+  `lockedUntil`), cost-contribution state (`pending_cost_contribution`) and the issuing user account
+  (`issuer`, cleared when that account is deleted). `lockReasonType`
+  ([`HouseholdLockReason`](../../database/model/household/HouseholdLockReason.kt)) tags the always-
+  required free-text `lockReason` with one of a handful of common categories - a convenience, not an
+  exhaustive list the reason must be chosen from, so it stays optional even on a locked household.
+  `lockedUntil` makes a lock temporary: `HouseholdLockExpiryService` lifts it automatically once that
+  date has passed, the same row-claim pattern `HouseholdRetentionService` uses (see below). A
+  household currently locked for `HouseholdLockReason.BANNED_FROM_PREMISES` is never swept by that
+  retention job regardless of `valid_until` (issue #3753) - kept around for as long as the lock lasts.
 - A household has one or more **persons** (`persons` table,
   [`PersonEntity`](../../database/model/person/PersonEntity.kt)), exactly one of which is flagged as
   the **main person** via `is_main_person`. This is enforced in the database by a partial unique
@@ -515,7 +523,20 @@ independent of the retention window. Modelled directly on `AuditRetentionService
 run above `tafeladmin.householdDeletion.maxDeletionsPerRun` refuses to delete anything and alerts
 administrators (`RETENTION_RUN` push notification) instead of proceeding, same for a run that
 throws; the customer search screen's "Wird in den nächsten 30 Tagen gelöscht" filter chip
-(`HouseholdEntity.Specs.willBeDeletedSoon`) previews what the job is about to sweep.
+(`HouseholdEntity.Specs.willBeDeletedSoon`) previews what the job is about to sweep. A household
+currently locked for `HouseholdLockReason.BANNED_FROM_PREMISES` is excluded from every one of these
+- the candidate query, the preview filter and `PendingDeletionsService`'s "Anstehende Löschungen"
+screen - regardless of `validUntil` (issue #3753); no other lock reason gets this treatment.
+
+### `HouseholdLockExpiryService` (`internal`)
+Issue #3753: a nightly job (05:50, `@Scheduled`, just before `HouseholdRetentionService` at 06:00)
+that lifts a household's temporary lock (`HouseholdEntity.lockedUntil`) once that date has passed,
+via `HouseholdService.unlockHouseholdByHouseholdId`. Candidate ids are selected and locked with
+`FOR UPDATE SKIP LOCKED` (`HouseholdRepository.findHouseholdIdsWithExpiredLockSkipLocked`), the same
+row-claim pattern as `HouseholdRetentionService` (ADR-0047). Running before that job means a
+household whose temporary lock *and* `validUntil` have both expired is already unlocked by the time
+the deletion job decides whether a `BANNED_FROM_PREMISES` lock should keep it around longer - it
+never does, once the lock itself is gone.
 
 ## Gotchas / best practices
 

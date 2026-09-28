@@ -28,8 +28,12 @@ import java.time.LocalDate
  * service needs only one retention window rather than one per data class: master data, documents and
  * attendance history all age out together.
  *
- * Runs once a night, at 06:00 - after the audit (05:00) and document-storage (05:00) cleanups, so a
- * night's deletions don't overlap with either.
+ * Runs once a night, at 06:00 - after the audit (05:00), document-storage (05:00) and lock-expiry
+ * (05:50) cleanups, so a night's deletions don't overlap with either. A household currently locked
+ * for [at.wrk.tafel.admin.backend.database.model.household.HouseholdLockReason.BANNED_FROM_PREMISES]
+ * (issue #3753) is never a candidate here regardless of `validUntil` - see
+ * [HouseholdRepository.findExpiredHouseholdIdsSkipLocked] - so the record of a ban outlives the
+ * household's own retention window for as long as that lock lasts.
  *
  * A run that throws, or that would delete more than [TafelAdminHouseholdRetentionProperties.maxDeletionsPerRun],
  * publishes [RetentionRunAlertEvent] instead of proceeding silently - GDPR gap G19. The ceiling check

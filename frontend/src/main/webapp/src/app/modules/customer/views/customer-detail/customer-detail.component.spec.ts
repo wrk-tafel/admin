@@ -5,7 +5,7 @@ import {By} from '@angular/platform-browser';
 import dayjs from 'dayjs';
 import {of, Subject, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
-import {CustomerApiService, CustomerData, Gender, CustomerUpdateResponse} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerData, Gender, CustomerUpdateResponse, HouseholdLockReason} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule, Location} from '@angular/common';
 import {signal} from '@angular/core';
@@ -663,7 +663,8 @@ describe('CustomerDetailComponent', () => {
   it('lock customer', () => {
     const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
     const lockReasonText = 'locked due to lorem ipsum';
-    matDialog.open.mockReturnValue({afterClosed: () => of(lockReasonText)} as any);
+    const lockResult = {reasonType: HouseholdLockReason.BANNED_FROM_PREMISES, reasonText: lockReasonText, lockedUntil: null};
+    matDialog.open.mockReturnValue({afterClosed: () => of(lockResult)} as any);
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
@@ -675,7 +676,9 @@ describe('CustomerDetailComponent', () => {
     const expectedCustomerData = {
       ...mockCustomer,
       locked: true,
-      lockReason: lockReasonText
+      lockReasonType: lockResult.reasonType,
+      lockReason: lockReasonText,
+      lockedUntil: null
     };
     const mockUpdateSuccessResponse: CustomerUpdateResponse = {
       data: expectedCustomerData,
@@ -691,16 +694,19 @@ describe('CustomerDetailComponent', () => {
 
   it('lock customer with 409 conflict shows confirmation dialog and keeps the entered lock reason', () => {
     const lockReasonText = 'locked due to lorem ipsum';
+    const lockResult = {reasonType: HouseholdLockReason.BANNED_FROM_PREMISES, reasonText: lockReasonText, lockedUntil: null};
     const expectedCustomerData = {
       ...mockCustomer,
       locked: true,
-      lockReason: lockReasonText
+      lockReasonType: lockResult.reasonType,
+      lockReason: lockReasonText,
+      lockedUntil: null
     };
 
     const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
     matDialog.open.mockImplementation((component: unknown) => {
       if (component === LockCustomerDialogComponent) {
-        return {afterClosed: () => of(lockReasonText)} as any;
+        return {afterClosed: () => of(lockResult)} as any;
       }
       return {afterClosed: vi.fn().mockReturnValue(of(false))} as any;
     });
@@ -736,7 +742,9 @@ describe('CustomerDetailComponent', () => {
       ...mockCustomer,
       locked: true,
       lockedBy: 'whoever',
-      lockReason: 'lock-text'
+      lockReason: 'lock-text',
+      lockReasonType: HouseholdLockReason.OTHER,
+      lockedUntil: '2027-01-01'
     });
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
     fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
@@ -747,7 +755,9 @@ describe('CustomerDetailComponent', () => {
       ...mockCustomer,
       locked: false,
       lockedBy: null,
-      lockReason: null
+      lockReason: null,
+      lockReasonType: null,
+      lockedUntil: null
     };
     const mockUpdateSuccessResponse: CustomerUpdateResponse = {
       data: expectedCustomerData,
@@ -766,13 +776,17 @@ describe('CustomerDetailComponent', () => {
       ...mockCustomer,
       locked: true,
       lockedBy: 'whoever',
-      lockReason: 'lock-text'
+      lockReason: 'lock-text',
+      lockReasonType: HouseholdLockReason.OTHER,
+      lockedUntil: '2027-01-01'
     };
     const expectedCustomerData = {
       ...lockedCustomer,
       locked: false,
       lockedBy: null,
-      lockReason: null
+      lockReason: null,
+      lockReasonType: null,
+      lockedUntil: null
     };
 
     customerApiService.updateCustomer.mockReturnValue(throwError(() => ({

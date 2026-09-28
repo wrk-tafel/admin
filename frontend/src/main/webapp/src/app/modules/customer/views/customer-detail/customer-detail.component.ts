@@ -10,7 +10,8 @@ import {
   CustomerAddressData,
   CustomerApiService,
   CustomerData,
-  CustomerUpdateResponse
+  CustomerUpdateResponse,
+  householdLockReasonLabel
 } from '../../../../api/customer-api.service';
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {
@@ -28,7 +29,7 @@ import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.co
 import {EditNoteDialogComponent} from './dialogs/edit-note-dialog.component';
 import {DeleteNoteDialogComponent} from './dialogs/delete-note-dialog.component';
 import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
-import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.component';
+import {LockCustomerDialogComponent, LockCustomerDialogResult} from './dialogs/lock-customer-dialog.component';
 import {
   PayCostContributionDialogComponent
 } from '../../../../common/components/pay-cost-contribution-dialog/pay-cost-contribution-dialog.component';
@@ -426,12 +427,14 @@ export class CustomerDetailComponent {
   }
 
   openLockCustomerDialog() {
-    this.dialog.open(LockCustomerDialogComponent).afterClosed().subscribe(reason => {
-      if (reason) {
+    this.dialog.open(LockCustomerDialogComponent).afterClosed().subscribe((result: LockCustomerDialogResult | undefined) => {
+      if (result) {
         const updatedCustomerData: CustomerData = {
           ...this.customerData(),
           locked: true,
-          lockReason: reason
+          lockReasonType: result.reasonType,
+          lockReason: result.reasonText,
+          lockedUntil: result.lockedUntil
         };
         this.updateCustomerWithConflictRetry(updatedCustomerData, 'Kunde wurde gesperrt!', 'Sperren fehlgeschlagen!');
       }
@@ -443,7 +446,9 @@ export class CustomerDetailComponent {
       ...this.customerData(),
       locked: false,
       lockedBy: null,
-      lockReason: null
+      lockReason: null,
+      lockReasonType: null,
+      lockedUntil: null
     };
 
     this.updateCustomerWithConflictRetry(updatedCustomerData, 'Kunde wurde entsperrt!', 'Entsperren fehlgeschlagen!');
@@ -666,6 +671,7 @@ export class CustomerDetailComponent {
   }
 
   protected readonly documentTypeLabel = documentTypeLabel;
+  protected readonly householdLockReasonLabel = householdLockReasonLabel;
   protected readonly Number = Number;
   protected readonly CustomerValidityState = CustomerValidityState;
 }

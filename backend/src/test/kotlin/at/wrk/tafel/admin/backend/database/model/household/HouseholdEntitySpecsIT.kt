@@ -327,6 +327,51 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `willBeDeletedSoon excludes a household locked for BANNED_FROM_PREMISES, unlike any other lock state`() {
+        val tag = "Findme${generateRandomLong()}"
+        val retentionTime = Period.ofYears(7)
+        val dueValidUntil = LocalDate.now().minus(retentionTime).plusDays(29)
+
+        val bannedFromPremises = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = {
+                validUntil = dueValidUntil
+                locked = true
+                lockReasonType = HouseholdLockReason.BANNED_FROM_PREMISES
+            },
+        )
+        val lockedOtherReason = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = {
+                validUntil = dueValidUntil
+                locked = true
+                lockReasonType = HouseholdLockReason.CODE_OF_CONDUCT_VIOLATION
+            },
+        )
+        // predates the lockReasonType column - locked, but with no reason type at all
+        val lockedNoReasonType = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = {
+                validUntil = dueValidUntil
+                locked = true
+            },
+        )
+        val unlocked = persistHousehold(
+            customizeMainPerson = { firstname = tag },
+            customize = { validUntil = dueValidUntil },
+        )
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(
+            HouseholdEntity.Specs.willBeDeletedSoon(retentionTime, 30).and(searchSpec(tag)),
+        )
+
+        assertThat(result.map { it.id })
+            .contains(lockedOtherReason.id, lockedNoReasonType.id, unlocked.id)
+            .doesNotContain(bannedFromPremises.id)
+    }
+
+    @Test
     fun `willBeDeletedSoon matches nothing when the retention job itself is disabled`() {
         val tag = "Findme${generateRandomLong()}"
         persistHousehold(

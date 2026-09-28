@@ -12,6 +12,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
 import at.wrk.tafel.admin.backend.modules.household.HouseholdIssuer
+import at.wrk.tafel.admin.backend.modules.household.HouseholdLockReason
 import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
 import at.wrk.tafel.admin.backend.modules.household.HouseholdResponse
 import at.wrk.tafel.admin.backend.modules.household.Person
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdLockReason as HouseholdLockReasonEntity
 
 @Component
 class HouseholdConverter(
@@ -87,26 +89,36 @@ class HouseholdConverter(
             val previousLockedAt = storedEntity?.lockedAt
             val previousLockedBy = storedEntity?.lockedBy
             val previousLockReason = storedEntity?.lockReason
+            val previousLockReasonType = storedEntity?.lockReasonType
+            val previousLockedUntil = storedEntity?.lockedUntil
 
             householdEntity.locked = true
-            // A household that was already locked keeps its original "Gesperrt seit/von" - only a
-            // fresh lock (storedEntity wasn't locked yet) re-stamps it. Without this, any later edit
-            // of an already-locked household (e.g. disableCustomer's validUntil update, which round-
-            // trips the full record) would silently rewrite who locked it and when.
+            // A household that was already locked keeps its original "Gesperrt seit/von" and its
+            // reason/expiration - only a fresh lock (storedEntity wasn't locked yet) re-stamps them.
+            // Without this, any later edit of an already-locked household (e.g. disableCustomer's
+            // validUntil update, which round-trips the full record) would silently rewrite who locked
+            // it, when, why and until when - there is no "edit an existing lock" action, only
+            // lock/unlock.
             if (wasAlreadyLocked) {
                 householdEntity.lockedAt = previousLockedAt
                 householdEntity.lockedBy = previousLockedBy
                 householdEntity.lockReason = previousLockReason
+                householdEntity.lockReasonType = previousLockReasonType
+                householdEntity.lockedUntil = previousLockedUntil
             } else {
                 householdEntity.lockedAt = LocalDateTime.now()
                 householdEntity.lockedBy = userEntity
                 householdEntity.lockReason = householdUpdate.lockReason
+                householdEntity.lockReasonType = householdUpdate.lockReasonType?.let { HouseholdLockReasonEntity.valueOf(it.name) }
+                householdEntity.lockedUntil = householdUpdate.lockedUntil
             }
         } else {
             householdEntity.locked = false
             householdEntity.lockedAt = null
             householdEntity.lockedBy = null
             householdEntity.lockReason = null
+            householdEntity.lockReasonType = null
+            householdEntity.lockedUntil = null
         }
 
         // The main person row is always updated in place (never removed and re-created), so that
@@ -211,6 +223,8 @@ class HouseholdConverter(
             lockedAt = householdEntity.lockedAt,
             lockedBy = householdEntity.lockedBy?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" },
             lockReason = householdEntity.lockReason,
+            lockReasonType = householdEntity.lockReasonType?.let { HouseholdLockReason.valueOf(it.name) },
+            lockedUntil = householdEntity.lockedUntil,
             pendingCostContribution = householdEntity.pendingCostContribution,
             singleParent = householdEntity.singleParent,
             persons = listOfNotNull(mainPersonEntity?.let { mapPerson(it) }) + additionalPersons,

@@ -1,5 +1,6 @@
-import {CustomerData, CustomerMergeField, genderLabel} from '../../../../api/customer-api.service';
+import {CustomerData, CustomerMergeField, genderLabel, householdLockReasonLabel} from '../../../../api/customer-api.service';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
+import dayjs from 'dayjs';
 
 export type CustomerMergeFieldKind = 'text' | 'date' | 'currency' | 'boolean';
 
@@ -31,7 +32,15 @@ export const CUSTOMER_MERGE_FIELDS: Record<CustomerMergeField, CustomerMergeFiel
   LOCK_STATE: {
     label: 'Sperrstatus',
     kind: 'text',
-    read: customer => customer.locked ? `Gesperrt${customer.lockReason ? ' (' + customer.lockReason + ')' : ''}` : 'Nicht gesperrt'
+    read: customer => {
+      if (!customer.locked) {
+        return 'Nicht gesperrt';
+      }
+      const category = customer.lockReasonType ? householdLockReasonLabel[customer.lockReasonType] : undefined;
+      const detail = [category, customer.lockReason].filter(Boolean).join(': ');
+      const until = customer.lockedUntil ? ` (befristet bis ${dayjs(customer.lockedUntil).format('DD.MM.YYYY')})` : '';
+      return `Gesperrt${detail ? ' (' + detail + ')' : ''}${until}`;
+    }
   },
   PENDING_COST_CONTRIBUTION: {
     label: 'Offener Kostenbeitrag',

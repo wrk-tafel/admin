@@ -329,6 +329,15 @@ tafeladmin:
     retentionWarning: 30d
     maxDeletionsPerRun: 50
     cleanupCron: "0 0 6 * * *"
+  # A household lock can carry a lockedUntil expiration date (HouseholdEntity.lockedUntil) instead of
+  # staying locked until a staff member unlocks it by hand - HouseholdLockExpiryService lifts it once
+  # that date has passed. Runs at 05:50, just before householdDeletion above at 06:00, so a household
+  # whose temporary lock and validUntil have both expired is already unlocked before that job decides
+  # whether a BANNED_FROM_PREMISES lock should keep it around longer. `cron` is startup-only, for the
+  # same reason as householdDeletion.cleanupCron: @Scheduled fixes its expression when the bean is
+  # created.
+  householdLockExpiry:
+    cron: "0 50 5 * * *"
   # GDPR gap G13 (docs/architecture/gdpr-compliance.md), the "users" half - mirrors householdDeletion
   # above for staff accounts. Candidate accounts are measured by lastLogin (falling back to createdAt
   # for an account that has never logged in), regardless of enabled - see
