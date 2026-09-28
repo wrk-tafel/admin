@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.notification
 
 import at.wrk.tafel.admin.backend.database.model.notification.NotificationEntity
 import at.wrk.tafel.admin.backend.database.model.notification.NotificationRepository
+import at.wrk.tafel.admin.backend.modules.notification.internal.NotificationChangeSignal
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -15,6 +16,7 @@ import java.time.LocalDateTime
 @Service
 class NotificationPublisher(
     private val notificationRepository: NotificationRepository,
+    private val changeSignal: NotificationChangeSignal,
 ) {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -33,5 +35,6 @@ class NotificationPublisher(
                 }
             },
         )
+        changeSignal.signal()
     }
 }

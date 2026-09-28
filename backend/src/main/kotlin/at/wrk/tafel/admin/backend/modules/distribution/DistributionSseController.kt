@@ -28,6 +28,12 @@ class DistributionSseController(
          * imported from `dashboard`, which this module has no dependency on.
          */
         private const val REGISTRATION_CHANGE_NOTIFICATION_NAME = "dashboard_update"
+
+        /** Filed by the `notification` module whenever a bell entry or announcement is added or changed. */
+        private const val NOTIFICATIONS_CHANGE_NOTIFICATION_NAME = "notifications_changed"
+
+        /** The SSE event name the frontend listens for; `sse.service.ts` and `GlobalStateService` use the same. */
+        private const val NOTIFICATIONS_CHANGED_EVENT_NAME = "notifications-changed"
     }
 
     @GetMapping
@@ -62,6 +68,19 @@ class DistributionSseController(
             } else if (lastSentCount.getAndSet(update.registeredCustomers) != update.registeredCustomers) {
                 sseOutboxService.sendEvent(sseEmitter, update)
             }
+        }
+
+        // The bell in the header: every session holds this stream open anyway, so the signal that
+        // its list changed rides on it too, as a named event, instead of the bell polling or
+        // costing a stream of its own. It carries no content - the client fetches its own list -
+        // and fires for everybody, since only the client knows whose entries changed. Named here
+        // rather than imported from `notification`, which this module has no dependency on.
+        sseOutboxService.listenForNotificationEvents<Unit>(
+            sseEmitter = sseEmitter,
+            notificationName = NOTIFICATIONS_CHANGE_NOTIFICATION_NAME,
+            resultType = null,
+        ) {
+            sseOutboxService.sendEvent(sseEmitter, "{}", NOTIFICATIONS_CHANGED_EVENT_NAME)
         }
 
         return sseEmitter

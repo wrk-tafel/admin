@@ -37,11 +37,14 @@ internal class AnnouncementServiceTest {
     @RelaxedMockK
     private lateinit var eventPublisher: ApplicationEventPublisher
 
+    @RelaxedMockK
+    private lateinit var changeSignal: NotificationChangeSignal
+
     private lateinit var service: AnnouncementService
 
     @BeforeEach
     fun beforeEach() {
-        service = AnnouncementService(announcementRepository, userRepository, eventPublisher)
+        service = AnnouncementService(announcementRepository, userRepository, eventPublisher, changeSignal)
         val authentication = mockk<TafelJwtAuthentication>()
         every { authentication.username } returns "admin"
         SecurityContextHolder.getContext().authentication = authentication
@@ -72,6 +75,7 @@ internal class AnnouncementServiceTest {
         assertThat(saved.captured.createdBy).isEqualTo(3)
         assertThat(response.active).isTrue()
         verify { eventPublisher.publishEvent(AnnouncementPublishedEvent("Titel", "Text")) }
+        verify { changeSignal.signal() }
     }
 
     @Test
@@ -116,6 +120,7 @@ internal class AnnouncementServiceTest {
         service.delete(5)
 
         verify { announcementRepository.delete(existing) }
+        verify { changeSignal.signal() }
     }
 
     @Test

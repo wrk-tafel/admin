@@ -38,7 +38,16 @@ export class SseService {
    * @param url Backend path relative to the API base, e.g. `/sse/dashboard`
    * @param connectionStateCallback Optional hook fired with `true`/`false` on connect/permanent-close
    */
-  listen<T>(url: string, connectionStateCallback?: (connected: boolean) => void): Observable<T> {
+  /**
+   * @param namedEventHandlers handlers for the stream's *named* events (the SSE `event:` field), for a
+   * stream that carries a second kind of message next to its main one. The main payload keeps going
+   * to the returned observable; a named event only calls its handler, with no payload parsed.
+   */
+  listen<T>(
+    url: string,
+    connectionStateCallback?: (connected: boolean) => void,
+    namedEventHandlers?: Record<string, () => void>
+  ): Observable<T> {
     return new Observable<T>((observer) => {
       const baseUrl = this.urlHelperService.getBaseUrl();
       let eventSource: EventSource | null = null;
@@ -56,6 +65,10 @@ export class SseService {
 
       const connect = () => {
         eventSource = new EventSource(`${baseUrl}/api${url}`);
+
+        Object.entries(namedEventHandlers ?? {}).forEach(([eventName, handler]) => {
+          eventSource!.addEventListener(eventName, () => handler());
+        });
 
         eventSource.onopen = () => {
           // Only a connection that actually opened proves the backend is reachable again, so the

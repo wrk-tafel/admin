@@ -9,6 +9,9 @@ describe('Settings - Announcements and the notification bell', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       const title = 'E2E Ankündigung ' + randomId;
 
+      // the badge is absent while nothing is unread
+      cy.get('body').then($body => Number($body.find('[testid="notifications-badge"]').text().trim()) || 0).as('unreadBefore');
+
       cy.byTestId('announcement-title-input').type(title);
       cy.byTestId('announcement-message-input').type('Am Freitag bleibt die Ausgabe geschlossen.');
       cy.byTestId('announcement-save-button').click();
@@ -18,6 +21,13 @@ describe('Settings - Announcements and the notification bell', () => {
       cy.byTestId('announcement-title-input').should('have.value', '');
       cy.contains('Bitte einen Titel angeben').should('not.exist');
       cy.byTestId('announcements-list').should('contain.text', title);
+
+      // the bell learns of it over the open stream, without being opened or the page reloaded
+      cy.get('@unreadBefore').then(before => {
+        cy.byTestId('notifications-badge').should($badge => {
+          expect(Number($badge.text().trim())).to.be.greaterThan(Number(before));
+        });
+      });
 
       // the bell picks it up when it is opened
       cy.byTestId('notifications-button').click();

@@ -5,6 +5,9 @@
  * without push enabled sees the same message the next time they open the application. Announcements
  * are created on the administrators' own screen and shown to all users, with a per-user read state.
  * <p>
+ * Every change is signalled to the open sessions through the SSE outbox ({@code NotificationChangeSignal});
+ * {@code distribution}'s stream, which every session holds open, forwards it as a named event.
+ * <p>
  * Nothing here knows {@code push}; the dependency points the other way.
  */
 @org.springframework.modulith.ApplicationModule(

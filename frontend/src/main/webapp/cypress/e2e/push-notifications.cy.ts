@@ -183,10 +183,11 @@ describe('PushNotifications', () => {
   it('groups the notification types and lists the distribution day in order', () => {
     cy.visit('/konto/benachrichtigungen');
 
-    cy.byTestId('push-type-group-title').should('have.length', 3);
+    cy.byTestId('push-type-group-title').should('have.length', 4);
     cy.byTestId('push-type-group-title').eq(0).should('contain.text', 'Ablauf der Ausgabe');
     cy.byTestId('push-type-group-title').eq(1).should('contain.text', 'Erinnerungen');
     cy.byTestId('push-type-group-title').eq(2).should('contain.text', 'Technisches');
+    cy.byTestId('push-type-group-title').eq(3).should('contain.text', 'Mitteilungen');
 
     cy.get('[testid="push-type-group"][data-group="Ablauf der Ausgabe"]')
       .find('[testid="push-type-preference"]')

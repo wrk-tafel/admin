@@ -226,8 +226,16 @@ class SseOutboxService(
         return sanitizeForLog("${request.method} ${request.requestURI}")
     }
 
-    fun sendEvent(sseEmitter: SseEmitter, data: Any?) {
+    /**
+     * @param eventName sent as the SSE `event:` field. A stream that carries more than one kind of
+     * message names all but its main one, so the browser can route them to different listeners
+     * (`EventSource.addEventListener`) instead of parsing everything as the main payload.
+     */
+    fun sendEvent(sseEmitter: SseEmitter, data: Any?, eventName: String? = null) {
         var event = SseEmitter.event()
+        if (eventName != null) {
+            event = event.name(eventName)
+        }
         if (data != null) {
             event = event.data(data)
         }

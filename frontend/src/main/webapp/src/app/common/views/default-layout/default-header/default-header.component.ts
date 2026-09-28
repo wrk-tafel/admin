@@ -1,5 +1,5 @@
-import {Component, computed, DestroyRef, inject, output, signal} from '@angular/core';
-import {catchError, defer, EMPTY, interval, map, merge, repeat, startWith, Subject, switchMap, timer} from 'rxjs';
+import {Component, computed, DestroyRef, effect, inject, output, signal, untracked} from '@angular/core';
+import {catchError, defer, EMPTY, map, repeat, startWith, Subject, switchMap, timer} from 'rxjs';
 import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
 import {Router, RouterLink} from '@angular/router';
 import {MatMenuModule} from '@angular/material/menu';
@@ -71,9 +71,9 @@ export class DefaultHeaderComponent {
 
   /**
    * The bell: what the backend keeps for this user (pushed notifications and the announcements
-   * administrators published), newest first. Polled once a minute and whenever the menu is opened
-   * rather than held on a stream of its own - the app already keeps permanent SSE streams open
-   * against the browser's small per-host connection budget.
+   * administrators published), newest first. Reloaded when the server says it changed - that signal
+   * rides on the distribution stream every session holds open anyway (see
+   * `GlobalStateService.getNotificationsVersion`) - and whenever the menu is opened.
    */
   readonly notificationItems = computed(() => this.notifications()?.items ?? []);
   readonly unreadCount = computed(() => this.notifications()?.unreadCount ?? 0);
@@ -155,12 +155,22 @@ export class DefaultHeaderComponent {
     document.addEventListener('keydown', quickOpenShortcut);
     inject(DestroyRef).onDestroy(() => document.removeEventListener('keydown', quickOpenShortcut));
 
-    merge(interval(60_000), this.refreshNotifications$).pipe(
+    this.refreshNotifications$.pipe(
       startWith(null),
       // A failed poll leaves the last known state in place - the bell is not worth an error.
       switchMap(() => this.notificationApiService.getNotifications().pipe(catchError(() => EMPTY))),
       takeUntilDestroyed()
     ).subscribe(response => this.notifications.set(response));
+
+    // Reloads on every change signal, and on every (re)connect of the stream: a signal sent while it
+    // was down is lost, and the first connect is also the first moment the signal can be trusted.
+    const notificationsVersion = this.globalStateService.getNotificationsVersion();
+    effect(() => {
+      if (this.sseConnected()) {
+        notificationsVersion();
+        untracked(() => this.refreshNotifications());
+      }
+    });
 
     registerSvgIcons({
       menu: menuIcon,

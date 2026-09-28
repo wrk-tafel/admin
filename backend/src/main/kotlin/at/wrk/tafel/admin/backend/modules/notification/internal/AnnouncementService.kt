@@ -21,6 +21,7 @@ class AnnouncementService(
     private val announcementRepository: AnnouncementRepository,
     private val userRepository: UserRepository,
     private val eventPublisher: ApplicationEventPublisher,
+    private val changeSignal: NotificationChangeSignal,
 ) {
 
     @Transactional(readOnly = true)
@@ -36,6 +37,7 @@ class AnnouncementService(
         }
         apply(entity, request)
         val saved = announcementRepository.save(entity)
+        changeSignal.signal()
         // pushed to the devices that opted in, once the row is committed - see push's AnnouncementPushListener
         eventPublisher.publishEvent(AnnouncementPublishedEvent(saved.title, saved.message))
         return saved.toResponse()
@@ -45,13 +47,16 @@ class AnnouncementService(
     fun update(id: Long, request: AnnouncementRequest): AnnouncementResponse {
         val entity = announcementRepository.findById(id).orElseThrow { NotFoundException(NOT_FOUND) }
         apply(entity, request)
-        return announcementRepository.save(entity).toResponse()
+        val saved = announcementRepository.save(entity)
+        changeSignal.signal()
+        return saved.toResponse()
     }
 
     @Transactional
     fun delete(id: Long) {
         val entity = announcementRepository.findById(id).orElseThrow { NotFoundException(NOT_FOUND) }
         announcementRepository.delete(entity)
+        changeSignal.signal()
     }
 
     private fun apply(entity: AnnouncementEntity, request: AnnouncementRequest) {

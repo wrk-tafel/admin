@@ -101,6 +101,21 @@ describe('GlobalStateService', () => {
         expect(service.getConnectionState()()).toBe(false);
     });
 
+    it('counts the notifications-changed signals of the stream and starts over after reset', () => {
+        const { service, sseServiceSpy } = setup();
+        sseServiceSpy.listen.mockReturnValue(new Subject<DistributionItemUpdate>());
+        service.init();
+        const handlers = sseServiceSpy.listen.mock.lastCall![2];
+        expect(service.getNotificationsVersion()()).toBe(0);
+
+        handlers['notifications-changed']();
+        handlers['notifications-changed']();
+        expect(service.getNotificationsVersion()()).toBe(2);
+
+        service.reset();
+        expect(service.getNotificationsVersion()()).toBe(0);
+    });
+
     it('exposes the registered customer count of the open distribution', () => {
         const { service, sseServiceSpy } = setup();
         const updates = new Subject<DistributionItemUpdate>();

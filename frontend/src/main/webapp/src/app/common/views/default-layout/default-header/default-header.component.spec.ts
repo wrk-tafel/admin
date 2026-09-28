@@ -42,6 +42,7 @@ describe('DefaultHeaderComponent', () => {
     let supportContextService: MockedObject<SupportContextService>;
     let screenshotService: MockedObject<ScreenshotService>;
     let notificationApiService: MockedObject<NotificationApiService>;
+    const notificationsVersion = signal(0);
 
     const unreadNotifications: NotificationListResponse = {
         unreadCount: 2,
@@ -80,6 +81,8 @@ describe('DefaultHeaderComponent', () => {
                           .mockReturnValue(signal(false).asReadonly()),
                         getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
                           .mockReturnValue(signal<DistributionItem | null>(null).asReadonly()),
+                        getNotificationsVersion: vi.fn().mockName('GlobalStateService.getNotificationsVersion')
+                          .mockReturnValue(notificationsVersion.asReadonly()),
                         getRegisteredCustomers: vi.fn().mockName('GlobalStateService.getRegisteredCustomers')
                           .mockReturnValue(signal<number | null>(null).asReadonly())
                     }
@@ -210,6 +213,26 @@ describe('DefaultHeaderComponent', () => {
     });
 
     describe('notification bell', () => {
+        it('reloads when the server signals a change, but not before the stream is connected', async () => {
+            const connected = signal(false);
+            globalStateService.getConnectionState.mockReturnValue(connected.asReadonly());
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            notificationApiService.getNotifications.mockClear();
+
+            notificationsVersion.update(v => v + 1);
+            await fixture.whenStable();
+            expect(notificationApiService.getNotifications).not.toHaveBeenCalled();
+
+            connected.set(true);
+            await fixture.whenStable();
+            expect(notificationApiService.getNotifications).toHaveBeenCalledTimes(1);
+
+            notificationsVersion.update(v => v + 1);
+            await fixture.whenStable();
+            expect(notificationApiService.getNotifications).toHaveBeenCalledTimes(2);
+        });
+
         it('shows the number of unread entries on the bell and names it in the label', async () => {
             const fixture = TestBed.createComponent(DefaultHeaderComponent);
             await fixture.whenStable();
