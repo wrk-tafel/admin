@@ -247,6 +247,29 @@ describe('CustomerApiService', () => {
     expect(result!.additionalPersons![0].receivesFamilyAllowance).toBe(true);
     // the main person must not leak into the additional persons list
     expect(result!.additionalPersons!.map(person => person.firstname)).not.toContain('Max');
+    // its own persons-row id is carried along too, so a later "make main person" swap can send it back
+    expect(result!.mainPersonId).toEqual(1);
+  });
+
+  it('request carries mainPersonId as the main-person entry\'s id, so a "make main person" swap updates the right stored row', () => {
+    apiService.updateCustomer({...mockCustomer, mainPersonId: 1}, false).subscribe();
+
+    const req = httpMock.expectOne({method: 'PUT', url: '/households/133?force=false'});
+    expect(req.request.body.persons[0].id).toEqual(1);
+    expect(req.request.body.persons[0].isMainPerson).toBe(true);
+
+    req.flush({data: mockHousehold, errorMsg: null});
+    httpMock.verify();
+  });
+
+  it('request omits the main-person entry\'s id when mainPersonId is unset (not-yet-saved customer)', () => {
+    apiService.createCustomer(mockCustomer, false).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households?force=false'});
+    expect(req.request.body.persons[0].id).toBeUndefined();
+
+    req.flush({data: mockHousehold, errorMsg: null});
+    httpMock.verify();
   });
 
   it('get customer', () => {

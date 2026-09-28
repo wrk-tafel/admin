@@ -78,6 +78,7 @@ export class CustomerFormComponent {
   // Signal for form model
   private formModel = signal<CustomerFormModel>({
     id: null,
+    mainPersonId: null,
     lastname: '',
     firstname: '',
     birthDate: null,
@@ -215,6 +216,7 @@ export class CustomerFormComponent {
 
         this.formModel.set({
           id: customerData.id ?? null,
+          mainPersonId: customerData.mainPersonId ?? null,
           lastname: customerData.lastname ?? '',
           firstname: customerData.firstname ?? '',
           birthDate: customerData.birthDate ?? null,
@@ -452,6 +454,64 @@ export class CustomerFormComponent {
     this.expandedPersonKeys.set(new Set([newPerson.key]));
   }
 
+  /**
+   * Swaps the household's main person with the additional person at `index`: the promoted person's
+   * own fields move onto the main-person slot (carrying its real `id` along via `mainPersonId`, so
+   * the backend flags that same stored row as main instead of overwriting whichever one already was
+   * - see `HouseholdService.saveWithMainPerson`), and the previous main person's fields take its
+   * place in the additional-persons array, keeping the same array `key` so the accordion panel isn't
+   * torn down and rebuilt. Household-level fields (address, phone, e-mail, validUntil, ...) are not
+   * person-level data and stay untouched.
+   *
+   * `excludeFromHousehold`/`receivesFamilyAllowance` have no main-person equivalent (the main person
+   * is never excluded and never counted for family allowance - see `HouseholdService`), so the
+   * demoted person gets the same defaults `addNewPerson` does; the panel is reopened so the operator
+   * can review/correct them.
+   */
+  makeMainPerson(index: number) {
+    const model = this.formModel();
+    const promoted = model.additionalPersons[index];
+    if (!promoted) {
+      return;
+    }
+
+    const demoted: AdditionalPersonFormItem = {
+      key: promoted.key,
+      id: model.mainPersonId,
+      firstname: model.firstname,
+      lastname: model.lastname,
+      birthDate: model.birthDate,
+      gender: model.gender,
+      country: model.country,
+      employer: model.employer,
+      income: model.income,
+      incomeDue: model.incomeDue,
+      excludeFromHousehold: false,
+      receivesFamilyAllowance: true
+    };
+
+    this.formModel.update(current => ({
+      ...current,
+      mainPersonId: promoted.id,
+      firstname: promoted.firstname,
+      lastname: promoted.lastname,
+      birthDate: promoted.birthDate,
+      gender: promoted.gender,
+      country: promoted.country,
+      employer: promoted.employer,
+      income: promoted.income,
+      incomeDue: promoted.incomeDue,
+      additionalPersons: current.additionalPersons.map((person, i) => i === index ? demoted : person)
+    }));
+    this.customerForm().markAsDirty();
+
+    // Both slots now show different data under the same autocomplete keys - drop any in-progress
+    // free-typed country filter text rather than let it keep narrowing the wrong person's list.
+    this.setCountryFilterOverride(MAIN_COUNTRY_KEY, null);
+    this.setCountryFilterOverride(promoted.key, null);
+    this.togglePersonPanel(promoted.key, true);
+  }
+
   removePerson(index: number) {
     const removedKey = this.formModel().additionalPersons[index]?.key;
     this.formModel.update(model => ({
@@ -541,6 +601,8 @@ export interface CountryGroups {
 
 export interface CustomerFormModel {
   id: number | null;
+  /** See {@link CustomerData.mainPersonId}. */
+  mainPersonId: number | null;
   lastname: string;
   firstname: string;
   birthDate: Date | null;

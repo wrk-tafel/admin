@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Im Kundenformular kann eine weitere Person jetzt per Klick auf "Zum Hauptbezieher machen" zur Hauptbezugsperson des Haushalts gemacht werden; die bisherige Hauptbezugsperson wird dabei automatisch zur weiteren Person.
+
+## [1.25.0] - 2026-09-28
 - Eine Kundensperre kann jetzt zusätzlich mit einer Kategorie (Hausverbot, Verstoß gegen die Hausordnung, Missbrauch der Leistungen oder Sonstiger Grund) und einem Datum ("Gesperrt bis") versehen werden, ab dem sie automatisch wieder aufgehoben wird; ohne Datum bleibt die Sperre wie bisher dauerhaft bestehen. Ein mit "Hausverbot" gesperrter Kunde wird zudem nicht mehr automatisch wegen abgelaufener Gültigkeit gelöscht, solange die Sperre besteht.
 - Sperren, Entsperren, Verlängern und Deaktivieren eines Kunden lösen jetzt keine Duplikat-Meldung ("Möglicherweise bereits vorhanden ... Trotzdem speichern?") mehr aus, wenn sich dabei weder Namen, Geburtsdaten noch die Adresse ändern - bisher erschien diese Meldung auch bei diesen Schnellaktionen, sobald der Kunde irgendeinen erkannten Duplikat-Kandidaten hatte.
 
