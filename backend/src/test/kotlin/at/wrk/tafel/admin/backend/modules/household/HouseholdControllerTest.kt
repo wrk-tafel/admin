@@ -42,6 +42,9 @@ class HouseholdControllerTest {
     @RelaxedMockK
     private lateinit var householdExportService: HouseholdExportService
 
+    @RelaxedMockK
+    private lateinit var householdLockReviewService: HouseholdLockReviewService
+
     @InjectMockKs
     private lateinit var controller: HouseholdController
 
@@ -645,6 +648,61 @@ class HouseholdControllerTest {
         assertThat(response.currentPage).isEqualTo(searchResult.currentPage)
         assertThat(response.totalPages).isEqualTo(searchResult.totalPages)
         assertThat(response.pageSize).isEqualTo(searchResult.pageSize)
+    }
+
+    @Test
+    fun `get locked households`() {
+        val item = LockedHouseholdItem(
+            householdId = 1001,
+            name = "Muster Max",
+            lockedAt = null,
+            lockedBy = null,
+            lockReasonType = HouseholdLockReason.BANNED_FROM_PREMISES,
+            lockReason = "Grund",
+            lockedUntil = null,
+            lockReviewedAt = null,
+            lockReviewedBy = null,
+            reviewDue = true,
+        )
+        every { householdLockReviewService.getLockedHouseholds(2, 25, true, false) } returns LockedHouseholdSearchResult(
+            items = listOf(item),
+            totalCount = 26,
+            currentPage = 2,
+            totalPages = 2,
+            pageSize = 25,
+        )
+
+        val response = controller.getLockedHouseholds(page = 2, pageSize = 25, openEndedOnly = true, dueOnly = false)
+
+        assertThat(response.items).containsExactly(item)
+        assertThat(response.totalCount).isEqualTo(26)
+        assertThat(response.currentPage).isEqualTo(2)
+        assertThat(response.totalPages).isEqualTo(2)
+        assertThat(response.pageSize).isEqualTo(25)
+    }
+
+    @Test
+    fun `get locked households - without parameters`() {
+        every { householdLockReviewService.getLockedHouseholds(null, null, false, false) } returns LockedHouseholdSearchResult(
+            items = emptyList(),
+            totalCount = 0,
+            currentPage = 1,
+            totalPages = 0,
+            pageSize = 10,
+        )
+
+        val response = controller.getLockedHouseholds()
+
+        assertThat(response.totalCount).isEqualTo(0)
+        verify { householdLockReviewService.getLockedHouseholds(null, null, false, false) }
+    }
+
+    @Test
+    fun `confirm lock review by the authenticated user`() {
+        val response = controller.confirmLockReview(1001)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        verify { householdLockReviewService.confirmLockReview(1001, testUserEntity.username) }
     }
 
     @Test

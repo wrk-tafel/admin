@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Neue Seite "Gesperrte Kunden" (Kunden → Gesperrte Kunden) listet alle gesperrten Kunden mit Sperrgrund, Sperrdatum und Enddatum und markiert Sperren ohne Enddatum, die überprüft werden müssen; "Bestätigen" startet die Frist für die nächste Überprüfung neu, und wöchentlich erinnert eine neue Benachrichtigung "Sperren überprüfen" daran, solange Überprüfungen offen sind.
+
+## [1.26.0] - 2026-09-28
 - Im Kundenformular kann eine weitere Person jetzt per Klick auf "Zum Hauptbezieher machen" zur Hauptbezugsperson des Haushalts gemacht werden; die bisherige Hauptbezugsperson wird dabei automatisch zur weiteren Person.
 
 ## [1.25.0] - 2026-09-28

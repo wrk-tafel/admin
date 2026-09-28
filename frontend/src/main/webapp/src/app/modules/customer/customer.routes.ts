@@ -11,6 +11,7 @@ import {CustomerDuplicatesComponent} from './views/customer-duplicates/customer-
 import {CustomerDuplicatesDataResolver} from './resolver/customer-duplicates-data-resolver.component';
 import {CustomerAboveLimitComponent} from './views/customer-above-limit/customer-above-limit.component';
 import {CustomerAboveLimitDataResolver} from './resolver/customer-above-limit-data-resolver.component';
+import {CustomerLockedComponent} from './views/customer-locked/customer-locked.component';
 import {CustomerMergeComponent} from './views/customer-merge/customer-merge.component';
 import {CustomerMergePreviewResolver} from './resolver/customer-merge-preview-resolver.component';
 import {CustomerOverviewComponent} from './views/customer-overview/customer-overview.component';
@@ -69,6 +70,11 @@ export const routes: Routes = [
     resolve: {
       customerAboveLimitData: CustomerAboveLimitDataResolver
     }
+  },
+  {
+    path: 'gesperrt',
+    title: 'Gesperrte Kunden',
+    component: CustomerLockedComponent
   },
   {
     path: 'uebersicht',

@@ -194,6 +194,34 @@ export class CustomerApiService {
     );
   }
 
+  /**
+   * Every locked customer, or only the ones without an end date / the ones whose lock is due for a
+   * review - see the "Gesperrte Kunden" screen. The response is deliberately not a full customer.
+   */
+  getLockedCustomers(
+    page?: number, pageSize?: number, openEndedOnly?: boolean, dueOnly?: boolean
+  ): Observable<CustomerLockedResponse> {
+    let queryParams = new HttpParams();
+    if (page) {
+      queryParams = queryParams.set('page', page);
+    }
+    if (pageSize) {
+      queryParams = queryParams.set('pageSize', pageSize);
+    }
+    if (openEndedOnly) {
+      queryParams = queryParams.set('openEndedOnly', true);
+    }
+    if (dueOnly) {
+      queryParams = queryParams.set('dueOnly', true);
+    }
+    return this.http.get<CustomerLockedResponse>('/households/locked', {params: queryParams});
+  }
+
+  /** "Reviewed, the lock stays": restarts the review interval of a lock. */
+  confirmLockReview(customerId: number): Observable<void> {
+    return this.http.post<void>(`/households/${customerId}/lock-review`, null);
+  }
+
   generateCustomersAboveLimitCsv(sortBy?: string, sortDirection?: string): Observable<HttpResponse<Blob>> {
     return this.http.get('/households/above-limit/csv', {
       params: this.aboveLimitParams(undefined, undefined, sortBy, sortDirection),
@@ -471,6 +499,21 @@ export type CustomerDuplicatesResponse = PagedResponse<CustomerDuplicatesItem>;
 export interface CustomerDuplicatesItem {
   customer: CustomerData;
   similarCustomers: CustomerData[];
+}
+
+export type CustomerLockedResponse = PagedResponse<CustomerLockedItem>;
+
+export interface CustomerLockedItem {
+  householdId: number;
+  name?: string | null;
+  lockedAt?: string | null;
+  lockedBy?: string | null;
+  lockReasonType?: HouseholdLockReason | null;
+  lockReason?: string | null;
+  lockedUntil?: string | null;
+  lockReviewedAt?: string | null;
+  lockReviewedBy?: string | null;
+  reviewDue: boolean;
 }
 
 export type CustomerAboveLimitResponse = PagedResponse<CustomerAboveLimitItem>;

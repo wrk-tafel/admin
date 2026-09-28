@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdExportService
+import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdLockReviewService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
@@ -27,6 +28,7 @@ class HouseholdController(
     private val householdDuplicationService: HouseholdDuplicationService,
     private val householdMergeService: HouseholdMergeService,
     private val householdExportService: HouseholdExportService,
+    private val householdLockReviewService: HouseholdLockReviewService,
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -221,6 +223,34 @@ class HouseholdController(
             .headers(headers)
             .contentType(MediaType.TEXT_PLAIN)
             .body(InputStreamResource(ByteArrayInputStream(csvResult.bytes)))
+    }
+
+    /** Every locked household for the "Gesperrte Kunden" screen (issue #3763), optionally narrowed. */
+    @GetMapping("/locked")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun getLockedHouseholds(
+        @RequestParam page: Int? = null,
+        @RequestParam pageSize: Int? = null,
+        @RequestParam openEndedOnly: Boolean = false,
+        @RequestParam dueOnly: Boolean = false,
+    ): PagedResponse<LockedHouseholdItem> {
+        val result = householdLockReviewService.getLockedHouseholds(page, pageSize, openEndedOnly, dueOnly)
+        return PagedResponse(
+            items = result.items,
+            totalCount = result.totalCount,
+            currentPage = result.currentPage,
+            totalPages = result.totalPages,
+            pageSize = result.pageSize,
+        )
+    }
+
+    /** "Reviewed, the lock stays" - restarts the review interval of a lock (issue #3763). */
+    @PostMapping("/{householdId}/lock-review")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun confirmLockReview(@PathVariable householdId: Long): ResponseEntity<Void> {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        householdLockReviewService.confirmLockReview(householdId, authenticatedUser.username!!)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/overview")

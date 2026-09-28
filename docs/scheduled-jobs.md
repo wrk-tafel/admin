@@ -32,12 +32,13 @@ checked at a glance.
 | 06:15 | `UserRetentionService.cleanupExpiredUsers` (`tafeladmin.userDeletion.cleanupCron`) | Row-claim | Deletes user accounts unused for longer than `tafeladmin.userDeletion.retentionTime` (1y default), never an `ADMINISTRATOR` — GDPR gap G13; refuses and alerts above `tafeladmin.userDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
 | 06:30 | `EmployeeRetentionService.cleanupExpiredEmployees` (`tafeladmin.employeeDeletion.cleanupCron`) | Row-claim | Deletes employees not used as driver or co-driver on any food collection for longer than `tafeladmin.employeeDeletion.retentionTime` (2y default) — GDPR gap G13; refuses and alerts above `tafeladmin.employeeDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
 
-## Daily, other times
+## Daily and weekly, other times
 
 | Time | Job | Coordination | Purpose |
 |---|---|---|---|
 | 08:00 | `DistributionStillOpenReminderService.remindAboutStillOpenDistribution` | `@SchedulerLock` | Push reminder while a distribution started on an earlier day is still open |
 | 08:00 | `ScannerFileExpiryReminderService.remindAboutExpiringScannerFiles` | `@SchedulerLock` | Push reminder to `CUSTOMER_DOCUMENTS` holders once a scanner-share file is within `tafeladmin.storage.scannerFileRetentionWarning` (1d default) of `ScannerFileCleanupService` deleting it — GDPR gap G18 |
+| Mon 08:10 (`tafeladmin.householdLockReview.cron`) | `HouseholdLockReviewReminderService.remindAboutLocksDueForReview` | `@SchedulerLock` | Push reminder to `CUSTOMER` holders while households locked without a `lockedUntil` date have gone longer than `tafeladmin.householdLockReview.interval` (6m default) without a review — GDPR Art. 5(1)(e), issue #3763 |
 | 08:05 | `RetentionExpiryReminderService.remindAboutExpiringData` | `@SchedulerLock` | One combined push reminder to administrators when user accounts, households or employees will reach their retention window within that job's `retentionWarning` (30d default) — GDPR gaps G1/G13 |
 
 ## Hourly or faster

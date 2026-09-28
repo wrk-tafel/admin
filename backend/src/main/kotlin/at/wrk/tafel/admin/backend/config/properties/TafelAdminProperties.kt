@@ -40,6 +40,7 @@ class TafelAdminProperties {
     var distribution: TafelAdminDistributionProperties = TafelAdminDistributionProperties()
     var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
     var householdDeletion: TafelAdminHouseholdRetentionProperties = TafelAdminHouseholdRetentionProperties()
+    var householdLockReview: TafelAdminHouseholdLockReviewProperties = TafelAdminHouseholdLockReviewProperties()
     var userDeletion: TafelAdminUserRetentionProperties = TafelAdminUserRetentionProperties()
     var employeeDeletion: TafelAdminEmployeeRetentionProperties = TafelAdminEmployeeRetentionProperties()
     var mail: TafelAdminMailProperties? = null
@@ -771,4 +772,29 @@ class TafelAdminPushDeliveryProperties {
      * would rather have the battery.
      */
     var urgency: String = "high"
+}
+
+/**
+ * `tafeladmin.householdLockReview.*` - the periodic review of household locks that have no
+ * `lockedUntil` date (issue #3763, GDPR Art. 5(1)(e)). Such a lock never lifts itself, and one for
+ * `BANNED_FROM_PREMISES` also keeps the record out of `HouseholdRetentionService` for as long as it
+ * lasts, so without a review nothing ever asks whether it is still needed. A lock is due for review
+ * once its last review (or, never reviewed, the lock itself) is older than [interval];
+ * `HouseholdLockReviewReminderService` tells staff, and the "Gesperrte Kunden" screen lists them.
+ *
+ * `tafeladmin.householdLockReview.cron` - when the reminder runs, default Mondays 08:10 - is
+ * deliberately *not* a field here, same as the other schedules: `@Scheduled` fixes its expression at
+ * bean creation. It lives in `application.yml` as a plain placeholder.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminHouseholdLockReviewProperties {
+    /** Kill switch for the reminder and for the "due" marking - nothing is due while it is off. */
+    var enabled: Boolean = true
+
+    /**
+     * How long an open-ended lock may stand without a review. A [Period] for the same reason as
+     * [TafelAdminHouseholdRetentionProperties.retentionTime]. Read per use; a zero or negative
+     * period switches the review off, like [enabled].
+     */
+    var interval: Period = Period.ofMonths(6)
 }

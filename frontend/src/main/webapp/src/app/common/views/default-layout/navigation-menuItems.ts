@@ -13,6 +13,7 @@ import checklistIcon from '@material-symbols/svg-400/outlined/checklist-fill.svg
 import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
 import localShippingIcon from '@material-symbols/svg-400/outlined/local_shipping-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
+import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import lockPersonIcon from '@material-symbols/svg-400/outlined/lock_person-fill.svg';
 import monitoringIcon from '@material-symbols/svg-400/outlined/monitoring-fill.svg';
 import historyIcon from '@material-symbols/svg-400/outlined/history-fill.svg';
@@ -39,6 +40,7 @@ export function registerNavigationIcons(): void {
     route: routeIcon,
     local_shipping: localShippingIcon,
     person: personIcon,
+    lock: lockIcon,
     lock_person: lockPersonIcon,
     monitoring: monitoringIcon,
     history: historyIcon,
@@ -108,6 +110,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     name: 'Anspruch-Schnellcheck',
     url: '/kunden/schnellcheck',
     icon: 'bolt',
+    permissions: ['CUSTOMER']
+  },
+  {
+    name: 'Gesperrte Kunden',
+    url: '/kunden/gesperrt',
+    icon: 'lock',
     permissions: ['CUSTOMER']
   },
   {
