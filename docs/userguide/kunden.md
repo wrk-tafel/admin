@@ -191,7 +191,7 @@ Beim Zusammenführen bleibt der als Ziel gewählte Kunde bestehen, die übrigen 
 
 ## Gesperrte Kunden
 
-Unter **Kunden → Gesperrte Kunden** werden alle gesperrten Kunden aufgelistet - mit Nummer, Name, Sperrgrund (Kategorie und Freitext), dem Zeitpunkt und der Person der Sperrung, dem Enddatum und dem Stand der Überprüfung. Die Seite steht allen Benutzern mit der Berechtigung "Kunden" zur Verfügung. Die Liste ist so sortiert, dass die Sperren, die am längsten nicht angesehen wurden, ganz oben stehen.
+Unter **Kunden → Auswertungen → Gesperrte Kunden** werden alle gesperrten Kunden aufgelistet - mit Nummer, Name, Sperrgrund (Kategorie und Freitext), dem Zeitpunkt und der Person der Sperrung, dem Enddatum und dem Stand der Überprüfung. Die Seite steht allen Benutzern mit der Berechtigung "Kunden" zur Verfügung. Die Liste ist so sortiert, dass die Sperren, die am längsten nicht angesehen wurden, ganz oben stehen.
 
 Eine Sperre mit Enddatum hebt sich zu diesem Datum von selbst auf (Hinweis "Hebt sich selbst auf"). Eine Sperre **ohne Enddatum** bleibt dagegen bestehen, bis jemand sie aufhebt - und ein Kunde, der mit der Kategorie Hausverbot gesperrt ist, bleibt dadurch auch über die reguläre Aufbewahrungsfrist hinaus gespeichert. Damit regelmäßig jemand entscheidet, ob die Sperre noch nötig ist, gilt eine Sperre ohne Enddatum als **überprüfungsfällig**, wenn ihre Sperrung bzw. letzte Überprüfung länger als die konfigurierte Frist zurückliegt (standardmäßig 6 Monate). Solche Sperren sind mit **Überprüfung fällig** markiert.
 
@@ -224,16 +224,16 @@ Angezeigt werden u. a. das Gesamteinkommen, das gültige Limit und die Differenz
 
 Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).
 
-<a id="kunden-übersicht"></a>
+<a id="neu-und-verlaengert"></a>
 
-## Kunden-Übersicht
+## Neu & Verlängert
 
-Unter **Kunden → Kunden-Übersicht** werden die neu angelegten und die verlängerten Kunden eines Ausgabetags aufgelistet. Ein Kunde gilt als "verlängert", sobald sein Gültigkeitsdatum ("Bezug verlängern", siehe [Kunden-Detail](#kapitel-kunden)) während des Ausgabetags erweitert wurde. Ein Kunde, der im selben Ausgabetag sowohl neu angelegt als auch verlängert wurde, erscheint in beiden Zählungen.
+Unter **Kunden → Auswertungen → Neu & Verlängert** werden die neu angelegten und die verlängerten Kunden eines Ausgabetags aufgelistet. Ein Kunde gilt als "verlängert", sobald sein Gültigkeitsdatum ("Bezug verlängern", siehe [Kunden-Detail](#kapitel-kunden)) während des Ausgabetags erweitert wurde. Ein Kunde, der im selben Ausgabetag sowohl neu angelegt als auch verlängert wurde, erscheint in beiden Zählungen.
 
 Ganz oben zeigen zwei Kacheln die Anzahl der neuen und der verlängerten Kunden des ausgewählten Ausgabetags auf einen Blick. Über das durchsuchbare Eingabefeld **Ausgabe** kann zwischen den bereits abgeschlossenen Ausgabetagen gewechselt werden (mit Wochentag, z. B. "Sa, 08.08.2026"); vorausgewählt ist der zuletzt abgeschlossene Ausgabetag. Die Pfeile links und rechts des Feldes blättern schrittweise zum vorherigen bzw. nächsten Ausgabetag, ohne die Liste jedes Mal neu öffnen zu müssen.
 
 Darunter listet eine einzige Tabelle beide Kundengruppen gemeinsam auf, jede Zeile mit einem Typ-Chip ("Neu" bzw. "Verlängert"), der Personenanzahl des Haushalts und einem Gültigkeits-Chip ("Gültig", "Ungültig" oder "Gesperrt"). Über die Schaltflächen **Alle**/**Neu**/**Verlängert** wird die Liste auf eine der beiden Gruppen eingeschränkt. **CSV-Export** lädt die aktuell angezeigte (ungefilterte) Liste des ausgewählten Ausgabetags als CSV-Datei herunter. Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht des jeweiligen Kunden.
 
-![Kunden-Übersicht](images/kunden-uebersicht.jpg)
+![Neu & Verlängert](images/kunden-uebersicht.jpg)
 
 Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)).

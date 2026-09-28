@@ -78,7 +78,7 @@ export const routes: Routes = [
   },
   {
     path: 'uebersicht',
-    title: 'Kunden-Übersicht',
+    title: 'Neu & Verlängert',
     component: CustomerOverviewComponent,
     resolve: {
       customerOverviewData: CustomerOverviewDataResolver,

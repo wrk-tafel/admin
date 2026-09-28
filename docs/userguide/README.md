@@ -7,7 +7,7 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | Kapitel | Beschreibung |
 |---|---|
 | [Anmeldung & Übersicht](anmeldung.md) | Login, Dashboard, Ausgabetag starten/beenden, Kunden-Annahme, Scanner, Ticket-Monitor |
-| [Kunden](kunden.md) | Kunden suchen, Anspruch-Schnellcheck, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, Kunden-Übersicht, Kunden zusammenführen, Dokumente |
+| [Kunden](kunden.md) | Kunden suchen, Anspruch-Schnellcheck, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, gesperrte Kunden, Neu & Verlängert, Kunden zusammenführen, Dokumente |
 | [Logistik](logistik.md) | Routen-Navi auf der Route, Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
 | [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Länder, Mitarbeiter, anstehende Löschungen |
@@ -169,7 +169,7 @@ Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer
 Die Menüstruktur gliedert sich in folgende Bereiche:
 
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
-- **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, Gesperrte Kunden, sowie unter der aufklappbaren Gruppe "Auswertungen": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
+- **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, sowie unter der aufklappbaren Gruppe "Auswertungen": Neu & Verlängert, Duplikate, Über Limit, Gesperrt
 - **Logistik**: Routen-Navi, Waren-Eingabe
 - **Verwaltung**: Benutzer, Statistiken, Zugriffsprotokoll, Einstellungen
 

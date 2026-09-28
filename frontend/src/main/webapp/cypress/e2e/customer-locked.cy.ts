@@ -154,7 +154,9 @@ describe('Customer Locked', () => {
   it('is reachable from the sidebar', () => {
     cy.visit('/uebersicht');
 
-    cy.contains('Gesperrte Kunden').click();
+    // lives under the collapsible "Auswertungen" nav group - expand it first
+    cy.contains('button', 'Auswertungen').click();
+    cy.get('a[href="/kunden/gesperrt"]').click();
 
     cy.url().should('include', '/kunden/gesperrt');
     cy.title().should('contain', 'Gesperrte Kunden');

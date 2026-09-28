@@ -323,6 +323,46 @@ values (105, NOW(), NOW(), 105, true, 'Grete', 'GESPERRT', '1980-01-01', 'FEMALE
         '2999-12-31', false, false);
 UPDATE households SET main_person_id = 105 WHERE id = 105;
 
+-- The "Gesperrte Kunden" screen (/kunden/gesperrt) has one row for each of its filters. 105 above is a
+-- lock without an end date that is not due yet; these add the other states: a lock that has been
+-- waiting for its review for months (107, "Überprüfung fällig"), one that was reviewed recently
+-- (108, open-ended but not due) and a temporary one that lifts itself (109).
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, locked,
+                        locked_at, locked_by, lock_reason_type, lock_reason, pending_cost_contribution)
+values (107, NOW(), NOW(), 107, 100, null, 'Erdberg', 1, null, null, '1030',
+        'Wien', null, null, '2999-12-31', true, NOW() - interval '8 months', 100, 'BANNED_FROM_PREMISES', 'Hausverbot nach Vorfall bei der Ausgabe, seit Monaten nicht überprüft', 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (107, NOW(), NOW(), 107, true, 'Hannelore', 'HAUSVERBOT', '1980-01-01', 'FEMALE', 1, 'Stadt Wien', 123.00,
+        '2999-12-31', false, false);
+UPDATE households SET main_person_id = 107 WHERE id = 107;
+
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, locked,
+                        locked_at, locked_by, lock_reason_type, lock_reason, lock_reviewed_at, lock_reviewed_by, pending_cost_contribution)
+values (108, NOW(), NOW(), 108, 100, null, 'Erdberg', 1, null, null, '1030',
+        'Wien', null, null, '2999-12-31', true, NOW() - interval '9 months', 100, 'MISUSE_OF_SERVICES', 'Mehrfachbezug festgestellt, Sperre vor Kurzem bestätigt', NOW() - interval '2 months', 100, 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (108, NOW(), NOW(), 108, true, 'Ingrid', 'ÜBERPRÜFT', '1980-01-01', 'FEMALE', 1, 'Stadt Wien', 123.00,
+        '2999-12-31', false, false);
+UPDATE households SET main_person_id = 108 WHERE id = 108;
+
+INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
+                        address_street, address_housenumber, address_stairway, address_door, address_postalcode,
+                        address_city, telephone_number, email, valid_until, locked,
+                        locked_at, locked_by, lock_reason_type, lock_reason, locked_until, pending_cost_contribution)
+values (109, NOW(), NOW(), 109, 100, null, 'Erdberg', 1, null, null, '1030',
+        'Wien', null, null, '2999-12-31', true, NOW() - interval '1 week', 100, 'CODE_OF_CONDUCT_VIOLATION', 'Befristete Sperre nach Streit in der Warteschlange', CURRENT_DATE + 30, 0);
+INSERT INTO persons (id, created_at, updated_at, household_id, is_main_person, firstname, lastname, birth_date, gender,
+                     country_id, employer, income, income_due, exclude_household, receives_family_allowance)
+values (109, NOW(), NOW(), 109, true, 'Berta', 'BEFRISTET', '1980-01-01', 'FEMALE', 1, 'Stadt Wien', 123.00,
+        '2999-12-31', false, false);
+UPDATE households SET main_person_id = 109 WHERE id = 109;
+
 -- household with (mostly) missing master data - shows up in the "Nachbearbeitung" search filter
 INSERT INTO households (id, created_at, updated_at, household_id, issuer_user_id, main_person_id,
                         address_street, address_housenumber, address_stairway, address_door, address_postalcode,

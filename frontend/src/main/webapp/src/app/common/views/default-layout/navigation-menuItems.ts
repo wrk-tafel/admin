@@ -113,32 +113,32 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['CUSTOMER']
   },
   {
-    name: 'Gesperrte Kunden',
-    url: '/kunden/gesperrt',
-    icon: 'lock',
-    permissions: ['CUSTOMER']
-  },
-  {
     name: 'Auswertungen',
     icon: 'more_horiz',
     children: [
       {
-        name: 'Kunden-Duplikate',
+        name: 'Neu & Verlängert',
+        url: '/kunden/uebersicht',
+        icon: 'checklist',
+        permissions: ['CUSTOMERS_OVERVIEW']
+      },
+      {
+        name: 'Duplikate',
         url: '/kunden/duplikate',
         icon: 'content_copy',
         permissions: ['CUSTOMER_DUPLICATES']
       },
       {
-        name: 'Kunden über Limit',
+        name: 'Über Limit',
         url: '/kunden/ueber-limit',
         icon: 'warning',
         permissions: ['CUSTOMERS_ABOVE_LIMIT']
       },
       {
-        name: 'Kunden-Übersicht',
-        url: '/kunden/uebersicht',
-        icon: 'checklist',
-        permissions: ['CUSTOMERS_OVERVIEW']
+        name: 'Gesperrt',
+        url: '/kunden/gesperrt',
+        icon: 'lock',
+        permissions: ['CUSTOMER']
       }
     ]
   },
