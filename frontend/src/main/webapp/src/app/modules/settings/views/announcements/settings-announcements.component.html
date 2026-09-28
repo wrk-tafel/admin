@@ -30,11 +30,18 @@
           }
         </mat-form-field>
 
-        <mat-form-field>
-          <mat-label>Anzeigen bis (optional)</mat-label>
-          <input matInput type="datetime-local" formControlName="expiresAt" testid="announcement-expires-input"/>
-          <mat-hint>Ohne Angabe bleibt die Ankündigung, bis sie gelöscht wird.</mat-hint>
-        </mat-form-field>
+        <div class="flex flex-wrap gap-4">
+          <mat-form-field>
+            <mat-label>Anzeigen bis (optional)</mat-label>
+            <input matInput type="date" formControlName="expiresDate" testid="announcement-expires-date-input"/>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Uhrzeit (optional)</mat-label>
+            <input matInput type="time" formControlName="expiresTime" testid="announcement-expires-time-input"/>
+            <mat-hint>Ohne Uhrzeit bis 23:59 Uhr.</mat-hint>
+          </mat-form-field>
+        </div>
+        <p class="text-xs text-slate-500">Ohne Datum bleibt die Ankündigung, bis sie gelöscht wird.</p>
 
         <div class="flex gap-2 mt-4">
           <button matButton="filled" type="submit" testid="announcement-save-button">

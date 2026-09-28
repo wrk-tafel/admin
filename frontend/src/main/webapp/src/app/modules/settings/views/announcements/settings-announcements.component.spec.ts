@@ -48,7 +48,7 @@ describe('SettingsAnnouncementsComponent', () => {
   interface Internals {
     controls: { title: { setValue(v: string): void }; message: { setValue(v: string): void } };
     setValue(v: unknown): void;
-    getRawValue(): { title: string; message: string; expiresAt: string };
+    getRawValue(): { title: string; message: string; expiresDate: string; expiresTime: string };
   }
 
   function form(component: SettingsAnnouncementsComponent) {
@@ -105,11 +105,21 @@ describe('SettingsAnnouncementsComponent', () => {
   it('sends the expiry as a local datetime', () => {
     const fixture = create();
     const component = form(fixture.componentInstance);
-    component.setValue({title: 'T', message: 'M', expiresAt: '2026-10-05T18:30'});
+    component.setValue({title: 'T', message: 'M', expiresDate: '2026-10-05', expiresTime: '18:30'});
 
     component.save();
 
     expect(apiMock.createAnnouncement).toHaveBeenCalledWith({title: 'T', message: 'M', expiresAt: '2026-10-05T18:30:00'});
+  });
+
+  it('a date without a time runs to the end of that day', () => {
+    const fixture = create();
+    const component = form(fixture.componentInstance);
+    component.setValue({title: 'T', message: 'M', expiresDate: '2026-10-05', expiresTime: ''});
+
+    component.save();
+
+    expect(apiMock.createAnnouncement).toHaveBeenCalledWith({title: 'T', message: 'M', expiresAt: '2026-10-05T23:59:59'});
   });
 
   it('editing loads the announcement into the form and saves it as an update', () => {
@@ -119,7 +129,9 @@ describe('SettingsAnnouncementsComponent', () => {
     component.edit(announcement);
 
     expect(component.editingId()).toBe(5);
-    expect(component.getRawValue()).toEqual({title: 'Hinweis', message: 'Am Freitag geschlossen', expiresAt: '2026-10-05T18:30'});
+    expect(component.getRawValue()).toEqual({
+      title: 'Hinweis', message: 'Am Freitag geschlossen', expiresDate: '2026-10-05', expiresTime: '18:30'
+    });
 
     component.save();
 
@@ -143,7 +155,7 @@ describe('SettingsAnnouncementsComponent', () => {
     apiMock.createAnnouncement = vi.fn(() => throwError(() => ({error: {}, status: 500})));
     const fixture = create();
     const component = form(fixture.componentInstance);
-    component.setValue({title: 'T', message: 'M', expiresAt: ''});
+    component.setValue({title: 'T', message: 'M', expiresDate: '', expiresTime: ''});
 
     component.save();
 

@@ -15,7 +15,10 @@ import {registerSvgIcons} from '../../../../common/util/svg-icon.util';
 import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import editIcon from '@material-symbols/svg-400/outlined/edit-fill.svg';
 
-const INPUT_FORMAT = 'YYYY-MM-DDTHH:mm';
+const DATE_FORMAT = 'YYYY-MM-DD';
+const TIME_FORMAT = 'HH:mm';
+/** What an expiry date without a time means: the announcement stays through the end of that day. */
+const END_OF_DAY = '23:59:59';
 
 /**
  * Messages for every user: what an administrator writes here shows up in everybody's bell (header)
@@ -55,7 +58,8 @@ export class SettingsAnnouncementsComponent {
   protected readonly form = new FormGroup({
     title: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.maxLength(200)]}),
     message: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.maxLength(2000)]}),
-    expiresAt: new FormControl('', {nonNullable: true})
+    expiresDate: new FormControl('', {nonNullable: true}),
+    expiresTime: new FormControl('', {nonNullable: true})
   });
 
   constructor() {
@@ -85,7 +89,8 @@ export class SettingsAnnouncementsComponent {
     const request = {
       title: value.title,
       message: value.message,
-      expiresAt: value.expiresAt ? dayjs(value.expiresAt).format('YYYY-MM-DDTHH:mm:ss') : null
+      // the time is optional - a date alone runs to the end of that day
+      expiresAt: value.expiresDate ? `${value.expiresDate}T${value.expiresTime ? value.expiresTime + ':00' : END_OF_DAY}` : null
     };
     const id = this.editingId();
     const call = id === null
@@ -107,7 +112,8 @@ export class SettingsAnnouncementsComponent {
     this.form.setValue({
       title: announcement.title,
       message: announcement.message,
-      expiresAt: announcement.expiresAt ? dayjs(announcement.expiresAt).format(INPUT_FORMAT) : ''
+      expiresDate: announcement.expiresAt ? dayjs(announcement.expiresAt).format(DATE_FORMAT) : '',
+      expiresTime: announcement.expiresAt ? dayjs(announcement.expiresAt).format(TIME_FORMAT) : ''
     });
   }
 
@@ -115,7 +121,7 @@ export class SettingsAnnouncementsComponent {
     this.editingId.set(null);
     // through the directive: a plain `form.reset()` leaves the form 'submitted', so the fields would
     // show their required errors right after a successful save
-    const empty = {title: '', message: '', expiresAt: ''};
+    const empty = {title: '', message: '', expiresDate: '', expiresTime: ''};
     const directive = this.formDirective();
     if (directive) {
       directive.resetForm(empty);
