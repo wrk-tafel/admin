@@ -5,13 +5,13 @@
 create table if not exists notifications
 (
     id          bigint primary key,
-    created_at  timestamp     not null,
+    created_at  timestamptz not null,
     user_id     bigint        not null references users (id) on delete cascade,
     type        varchar(100)  not null,
     title       varchar(200)  not null,
     body        varchar(1000) not null,
     target_path varchar(200)  null,
-    read_at     timestamp     null
+    read_at     timestamptz null
 );
 
 create index if not exists notifications_user_created_idx on notifications (user_id, created_at desc);
@@ -25,11 +25,11 @@ create sequence if not exists notifications_seq
 create table if not exists announcements
 (
     id         bigint primary key,
-    created_at timestamp     not null,
+    created_at timestamptz not null,
     created_by bigint        null references users (id) on delete set null,
     title      varchar(200)  not null,
     message    varchar(2000) not null,
-    expires_at timestamp     null
+    expires_at timestamptz null
 );
 
 create sequence if not exists announcements_seq
@@ -41,6 +41,6 @@ create table if not exists announcement_reads
 (
     announcement_id bigint    not null references announcements (id) on delete cascade,
     user_id         bigint    not null references users (id) on delete cascade,
-    read_at         timestamp not null,
+    read_at         timestamptz not null,
     primary key (announcement_id, user_id)
 );
