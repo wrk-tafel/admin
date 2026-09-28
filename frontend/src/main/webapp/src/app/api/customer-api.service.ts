@@ -386,6 +386,8 @@ export interface CustomerData {
   lockedAt?: Date;
   lockedBy?: string | null;
   lockReason?: string | null;
+  lockReasonType?: HouseholdLockReason | null;
+  lockedUntil?: string | null;
   pendingCostContribution?: number;
   singleParent?: boolean;
   additionalPersons?: CustomerAddPersonData[];
@@ -434,6 +436,25 @@ export enum Gender {
 export const genderLabel: { [key in Gender]: string } = {
   [Gender.FEMALE]: 'Weiblich',
   [Gender.MALE]: 'Männlich'
+};
+
+/**
+ * A handful of common categories a household lock's reason can be tagged with - always alongside the
+ * actual, always-required free-text {@link CustomerData.lockReason}, never instead of it: this is a
+ * convenience tag, not an exhaustive list a lock's reason must be chosen from.
+ */
+export enum HouseholdLockReason {
+  BANNED_FROM_PREMISES = 'BANNED_FROM_PREMISES',
+  CODE_OF_CONDUCT_VIOLATION = 'CODE_OF_CONDUCT_VIOLATION',
+  MISUSE_OF_SERVICES = 'MISUSE_OF_SERVICES',
+  OTHER = 'OTHER'
+}
+
+export const householdLockReasonLabel: { [key in HouseholdLockReason]: string } = {
+  [HouseholdLockReason.BANNED_FROM_PREMISES]: 'Hausverbot',
+  [HouseholdLockReason.CODE_OF_CONDUCT_VIOLATION]: 'Verstoß gegen die Hausordnung',
+  [HouseholdLockReason.MISUSE_OF_SERVICES]: 'Missbrauch der Leistungen',
+  [HouseholdLockReason.OTHER]: 'Sonstiger Grund'
 };
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'PRIVACY_NOTICE';
@@ -551,6 +572,8 @@ interface HouseholdData {
   lockedAt?: Date;
   lockedBy?: string | null;
   lockReason?: string | null;
+  lockReasonType?: HouseholdLockReason | null;
+  lockedUntil?: string | null;
   pendingCostContribution?: number;
   singleParent?: boolean;
   persons: PersonData[];
@@ -735,6 +758,8 @@ function mapHouseholdToCustomer(household: HouseholdData | null | undefined): Cu
     lockedAt: household?.lockedAt,
     lockedBy: household?.lockedBy,
     lockReason: household?.lockReason,
+    lockReasonType: household?.lockReasonType,
+    lockedUntil: household?.lockedUntil,
     pendingCostContribution: household?.pendingCostContribution,
     singleParent: household?.singleParent,
     additionalPersons: additionalPersons,
@@ -799,6 +824,8 @@ function mapCustomerToHousehold(customer: CustomerData): HouseholdData {
     lockedAt: customer.lockedAt,
     lockedBy: customer.lockedBy,
     lockReason: customer.lockReason,
+    lockReasonType: customer.lockReasonType,
+    lockedUntil: customer.lockedUntil,
     pendingCostContribution: customer.pendingCostContribution,
     singleParent: customer.singleParent,
     persons: [mainPerson, ...additionalPersons]

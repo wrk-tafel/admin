@@ -17,6 +17,7 @@ import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentType
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdLockReason
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
@@ -1555,6 +1556,40 @@ class HouseholdServiceTest {
         service.deleteHouseholdByHouseholdId(999L)
 
         verify(exactly = 0) { householdRepository.delete(any<HouseholdEntity>()) }
+    }
+
+    @Test
+    fun `unlock household by householdId clears every lock field`() {
+        val householdId = 123L
+        val testHouseholdEntity = testHouseholdEntityWithMainPerson().apply {
+            locked = true
+            lockedAt = LocalDateTime.now()
+            lockedBy = testUserEntity
+            lockReason = "dummy reason"
+            lockReasonType = HouseholdLockReason.BANNED_FROM_PREMISES
+            lockedUntil = LocalDate.now().plusDays(1)
+        }
+        every { householdRepository.findByHouseholdId(householdId) } returns testHouseholdEntity
+        every { householdRepository.saveAndFlush(any<HouseholdEntity>()) } returns testHouseholdEntity
+
+        service.unlockHouseholdByHouseholdId(householdId)
+
+        assertThat(testHouseholdEntity.locked).isFalse()
+        assertThat(testHouseholdEntity.lockedAt).isNull()
+        assertThat(testHouseholdEntity.lockedBy).isNull()
+        assertThat(testHouseholdEntity.lockReason).isNull()
+        assertThat(testHouseholdEntity.lockReasonType).isNull()
+        assertThat(testHouseholdEntity.lockedUntil).isNull()
+        verify(exactly = 1) { householdRepository.saveAndFlush(testHouseholdEntity) }
+    }
+
+    @Test
+    fun `unlock household by householdId - unknown household is ignored`() {
+        every { householdRepository.findByHouseholdId(any()) } returns null
+
+        service.unlockHouseholdByHouseholdId(999L)
+
+        verify(exactly = 0) { householdRepository.saveAndFlush(any<HouseholdEntity>()) }
     }
 
     @Test

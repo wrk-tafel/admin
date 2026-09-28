@@ -10,6 +10,7 @@ import {
   CustomerCreationResponse,
   CustomerData,
   CustomerUpdateResponse,
+  householdLockReasonLabel,
   QuickCheckPersonData,
   ValidateCustomerResponse
 } from '../../../../api/customer-api.service';
@@ -41,6 +42,8 @@ import {MatTooltipModule} from '@angular/material/tooltip';
   ]
 })
 export class CustomerEditComponent implements HasUnsavedChanges {
+  protected readonly householdLockReasonLabel = householdLockReasonLabel;
+
   customerData = input<CustomerData>();
 
   // Writable signal linked to input - resets when customerData changes, locally writable from form updates

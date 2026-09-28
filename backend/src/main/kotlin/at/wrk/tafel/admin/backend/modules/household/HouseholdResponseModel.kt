@@ -58,6 +58,8 @@ data class HouseholdRequest(
     val lockedAt: LocalDateTime? = null,
     val lockedBy: String? = null,
     val lockReason: String? = null,
+    val lockReasonType: HouseholdLockReason? = null,
+    val lockedUntil: LocalDate? = null,
     val pendingCostContribution: BigDecimal? = null,
     val singleParent: Boolean? = null,
     val persons: List<@Valid Person> = emptyList(),
@@ -80,6 +82,19 @@ data class HouseholdRequest(
      */
     @AssertTrue(message = "Es muss genau eine Hauptperson vorhanden sein!")
     fun isMainPersonCountValid(): Boolean = persons.count { it.isMainPerson } == 1
+
+    /**
+     * The reason itself is always free text - [lockReasonType] only tags it with one of a handful of
+     * common categories for [at.wrk.tafel.admin.backend.database.model.household.HouseholdRetentionService]
+     * (issue #3753) to key off, and is entirely optional, not an exhaustive enumeration a caller must
+     * pick from.
+     */
+    @AssertTrue(message = "Sperrgrund muss angegeben werden!")
+    fun isLockReasonValid(): Boolean = locked != true || !lockReason.isNullOrBlank()
+
+    /** A lock that already expired the moment it is set would never actually lock anything. */
+    @AssertTrue(message = "Das Ablaufdatum der Sperre darf nicht in der Vergangenheit liegen!")
+    fun isLockedUntilValid(): Boolean = locked != true || lockedUntil == null || !lockedUntil.isBefore(LocalDate.now())
 }
 
 @ExcludeFromTestCoverage
@@ -95,6 +110,8 @@ data class HouseholdResponse(
     val lockedAt: LocalDateTime? = null,
     val lockedBy: String? = null,
     val lockReason: String? = null,
+    val lockReasonType: HouseholdLockReason? = null,
+    val lockedUntil: LocalDate? = null,
     val pendingCostContribution: BigDecimal? = null,
     val singleParent: Boolean? = null,
     val persons: List<Person> = emptyList(),
@@ -223,6 +240,20 @@ enum class HouseholdPdfType {
 enum class PersonGender {
     MALE,
     FEMALE,
+}
+
+/**
+ * API-facing counterpart of [at.wrk.tafel.admin.backend.database.model.household.HouseholdLockReason] -
+ * controllers must not depend on `database.model` types directly (see `ProjectSpecificRulesTest`),
+ * so this mirrors it structurally; `HouseholdConverter` converts between the two, same as
+ * `PersonGender`/`Gender` for households/persons.
+ */
+@ExcludeFromTestCoverage
+enum class HouseholdLockReason {
+    BANNED_FROM_PREMISES,
+    CODE_OF_CONDUCT_VIOLATION,
+    MISUSE_OF_SERVICES,
+    OTHER,
 }
 
 @ExcludeFromTestCoverage

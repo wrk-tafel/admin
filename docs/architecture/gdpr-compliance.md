@@ -132,7 +132,10 @@ to persons, documents (removing the files on disk too) and notes, while the data
 attendance history are all one retention window rather than three, and the year-end statistics
 aggregates (frozen at distribution close, ADR-0020) are unaffected. `tafeladmin.householdDeletion.enabled`
 is a kill switch independent of the window, and both are read per use so an operator can change
-either on a running deployment.
+either on a running deployment. A household currently locked for `BANNED_FROM_PREMISES` (issue
+#3753) is never a candidate here regardless of `valid_until` - the record of a ban is kept around
+for as long as that lock lasts, a deliberate exception to the window above for exactly one lock
+reason, not a general "locked households are exempt" rule.
 
 What remains open: the window is a floor picked without a documented legal-basis decision (see G2).
 The job now reports what it is about to delete before it runs, and alerts on failure — see G19.

@@ -13,6 +13,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAddress
 import at.wrk.tafel.admin.backend.modules.household.HouseholdIssuer
+import at.wrk.tafel.admin.backend.modules.household.HouseholdLockReason
 import at.wrk.tafel.admin.backend.modules.household.HouseholdRequest
 import at.wrk.tafel.admin.backend.modules.household.Person
 import at.wrk.tafel.admin.backend.modules.household.PersonGender
@@ -36,6 +37,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdLockReason as HouseholdLockReasonEntity
 
 @ExtendWith(MockKExtension::class)
 internal class HouseholdConverterTest {
@@ -197,6 +199,8 @@ internal class HouseholdConverterTest {
             telephoneNumber = "0043660123123"
             email = "test2@mail.com"
             lockReason = "dummy reason"
+            lockReasonType = HouseholdLockReasonEntity.CODE_OF_CONDUCT_VIOLATION
+            lockedUntil = LocalDate.now().plusDays(14)
             lockedBy = testUserEntity
             pendingCostContribution = BigDecimal.ZERO
         }
@@ -262,6 +266,8 @@ internal class HouseholdConverterTest {
         assertThat(household.lockedAt).isNull()
         assertThat(household.lockedBy).isNull()
         assertThat(household.lockReason).isNull()
+        assertThat(household.lockReasonType).isNull()
+        assertThat(household.lockedUntil).isNull()
 
         // the main person is always first, additional persons follow sorted by name
         assertThat(household.persons).hasSize(3)
@@ -293,6 +299,16 @@ internal class HouseholdConverterTest {
         val household = converter.mapEntityToHousehold(testHouseholdEntity1, hasPrivacyNotice = true)
 
         assertThat(household.hasPrivacyNotice).isTrue()
+    }
+
+    @Test
+    fun `map entity to household maps a locked household's reason type and expiration`() {
+        val household = converter.mapEntityToHousehold(testHouseholdEntity2)
+
+        assertThat(household.locked).isTrue()
+        assertThat(household.lockReason).isEqualTo("dummy reason")
+        assertThat(household.lockReasonType).isEqualTo(HouseholdLockReason.CODE_OF_CONDUCT_VIOLATION)
+        assertThat(household.lockedUntil).isEqualTo(testHouseholdEntity2.lockedUntil)
     }
 
     @Test
@@ -414,9 +430,12 @@ internal class HouseholdConverterTest {
 
     @Test
     fun `update household and lock`() {
+        val lockedUntil = LocalDate.now().plusDays(30)
         val updatedHousehold = testHousehold.copy(
             locked = true,
             lockReason = "locked due to lorem ipsum",
+            lockReasonType = HouseholdLockReason.BANNED_FROM_PREMISES,
+            lockedUntil = lockedUntil,
             persons = listOf(testMainPerson),
         )
 
@@ -425,6 +444,8 @@ internal class HouseholdConverterTest {
         assertThat(result.locked).isTrue()
         assertThat(result.lockedAt).isNotNull()
         assertThat(result.lockReason).isEqualTo(updatedHousehold.lockReason)
+        assertThat(result.lockReasonType).isEqualTo(HouseholdLockReasonEntity.BANNED_FROM_PREMISES)
+        assertThat(result.lockedUntil).isEqualTo(lockedUntil)
         assertThat(result.lockedBy).isEqualTo(testUserEntity)
     }
 
@@ -450,6 +471,8 @@ internal class HouseholdConverterTest {
             validUntil = LocalDate.now().plusMonths(1),
             locked = true,
             lockReason = "different reason submitted by the request",
+            lockReasonType = HouseholdLockReason.MISUSE_OF_SERVICES,
+            lockedUntil = LocalDate.now().plusDays(1),
             persons = listOf(testMainPerson.copy(id = 20)),
         )
 
@@ -459,6 +482,10 @@ internal class HouseholdConverterTest {
         assertThat(result.lockedAt).isEqualTo(originalLockedAt)
         assertThat(result.lockedBy).isEqualTo(originalLockedBy)
         assertThat(result.lockReason).isEqualTo("dummy reason")
+        // the original lockReasonType/lockedUntil (fixture values, set on testHouseholdEntity2) win
+        // too - not the request's, same as lockedAt/lockedBy/lockReason above
+        assertThat(result.lockReasonType).isEqualTo(HouseholdLockReasonEntity.CODE_OF_CONDUCT_VIOLATION)
+        assertThat(result.lockedUntil).isEqualTo(testHouseholdEntity2.lockedUntil)
     }
 
     @Test
@@ -475,6 +502,8 @@ internal class HouseholdConverterTest {
         assertThat(result.lockedAt).isNull()
         assertThat(result.lockReason).isNull()
         assertThat(result.lockedBy).isNull()
+        assertThat(result.lockReasonType).isNull()
+        assertThat(result.lockedUntil).isNull()
     }
 
     @Test

@@ -5,8 +5,14 @@
       @if (customerData()!.lockedBy) {
         <div>Gesperrt am {{ customerData()!.lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{ customerData()!.lockedBy }}</div>
       }
+      @if (customerData()!.lockReasonType) {
+        <div><strong>Kategorie:</strong> {{ householdLockReasonLabel[customerData()!.lockReasonType!] }}</div>
+      }
       @if (customerData()!.lockReason) {
         <div><strong>Sperrgrund:</strong> {{ customerData()!.lockReason }}</div>
+      }
+      @if (customerData()!.lockedUntil) {
+        <div>Gesperrt bis {{ customerData()!.lockedUntil | date : 'dd.MM.yyyy' }}</div>
       }
     </div>
   }

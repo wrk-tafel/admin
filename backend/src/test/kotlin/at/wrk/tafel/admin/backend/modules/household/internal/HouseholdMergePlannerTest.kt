@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionHouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
+import at.wrk.tafel.admin.backend.database.model.household.HouseholdLockReason
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
@@ -152,15 +153,18 @@ class HouseholdMergePlannerTest {
     }
 
     @Test
-    fun `applyField for LOCK_STATE copies locked, lockedAt, lockedBy and lockReason together`() {
+    fun `applyField for LOCK_STATE copies locked, lockedAt, lockedBy, lockReason, lockReasonType and lockedUntil together`() {
         val lockedAt = LocalDateTime.now()
         val lockedBy = testUserEntity
+        val lockedUntil = LocalDate.now().plusDays(10)
         val target = household(1)
         val source = household(2).apply {
             locked = true
             this.lockedAt = lockedAt
             this.lockedBy = lockedBy
             lockReason = "fraud suspicion"
+            lockReasonType = HouseholdLockReason.MISUSE_OF_SERVICES
+            this.lockedUntil = lockedUntil
         }
 
         HouseholdMergePlanner.applyField(HouseholdMergeField.LOCK_STATE, target, source)
@@ -169,6 +173,34 @@ class HouseholdMergePlannerTest {
         assertThat(target.lockedAt).isEqualTo(lockedAt)
         assertThat(target.lockedBy).isEqualTo(lockedBy)
         assertThat(target.lockReason).isEqualTo("fraud suspicion")
+        assertThat(target.lockReasonType).isEqualTo(HouseholdLockReason.MISUSE_OF_SERVICES)
+        assertThat(target.lockedUntil).isEqualTo(lockedUntil)
+    }
+
+    @Test
+    fun `LOCK_STATE field conflict is detected when only lockReasonType or lockedUntil differ`() {
+        val lockedAt = LocalDateTime.now()
+        val lockedBy = testUserEntity
+        val target = household(1).apply {
+            locked = true
+            this.lockedAt = lockedAt
+            this.lockedBy = lockedBy
+            lockReason = "fraud suspicion"
+            lockReasonType = HouseholdLockReason.MISUSE_OF_SERVICES
+            lockedUntil = LocalDate.now().plusDays(10)
+        }
+        val sameReasonDifferentUntil = household(2).apply {
+            locked = true
+            this.lockedAt = lockedAt
+            this.lockedBy = lockedBy
+            lockReason = "fraud suspicion"
+            lockReasonType = HouseholdLockReason.MISUSE_OF_SERVICES
+            lockedUntil = LocalDate.now().plusDays(20)
+        }
+
+        val plan = HouseholdMergePlanner.buildPlan(target, listOf(sameReasonDifferentUntil), emptyList(), fakePersonMapper)
+
+        assertThat(plan.fieldConflicts.map { it.field }).contains(HouseholdMergeField.LOCK_STATE)
     }
 
     @Test
