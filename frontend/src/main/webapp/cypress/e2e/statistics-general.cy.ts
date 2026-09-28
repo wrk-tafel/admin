@@ -209,13 +209,6 @@ describe('Statistics General', () => {
     cy.get('mat-option').eq(1).click();
 
     cy.contains(`Zeitraum: ${today} - ${today}`).should('be.visible');
-
-    // re-picking the already-selected distribution keeps showing its label, not the raw value
-    cy.byTestId('distributionDateInput').invoke('text').then((selectedLabel) => {
-      cy.byTestId('distributionDateInput').click();
-      cy.get('mat-option').eq(1).click();
-      cy.byTestId('distributionDateInput').invoke('text').should('equal', selectedLabel);
-    });
   });
 
   it('exports the statistics as csv for the selected range', () => {

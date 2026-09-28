@@ -56,7 +56,7 @@ describe('Customer Locked', () => {
           cy.get('[testid^="locked-confirm-button-"]').click();
         });
 
-      cy.wait('@getLocked');
+      // confirming patches the row in place rather than reloading the list - no second request
       cy.contains('[testid^="locked-id-"]', customer.id!.toString())
         .closest('tr')
         .within(() => {
@@ -193,7 +193,7 @@ describe('Customer Locked', () => {
         cy.contains('[testid="locked-card"]', customer.lastname).within(() => {
           cy.get('[testid^="locked-confirm-button-"]').click();
         });
-        cy.wait('@getLocked');
+        // confirming patches the card in place rather than reloading the list - no second request
         cy.contains('[testid="locked-card"]', customer.lastname).contains('Zuletzt überprüft am').should('be.visible');
 
         unlockCustomer(customer.id!);

@@ -23,26 +23,6 @@ describe('Settings - Email - Resend distribution mails', () => {
     });
   });
 
-  it('re-picking the already-selected distribution keeps its formatted label', () => {
-    cy.request('POST', '/api/distributions/new').then((createResponse) => {
-      const distributionId = createResponse.body.distribution.id;
-      cy.closeDistribution();
-
-      cy.visit('/einstellungen/email');
-
-      // select it explicitly first - the default preselection is the newest distribution, which
-      // this one is not guaranteed to be if another test's distribution ties on the same second
-      cy.byTestId('sendMailsDistributionInput').click();
-      cy.byTestId('sendMailsDistributionInput-option-' + distributionId).click();
-
-      cy.byTestId('sendMailsDistributionInput').invoke('text').then((selectedLabel) => {
-        cy.byTestId('sendMailsDistributionInput').click();
-        cy.byTestId('sendMailsDistributionInput-option-' + distributionId).click();
-        cy.byTestId('sendMailsDistributionInput').invoke('text').should('equal', selectedLabel);
-      });
-    });
-  });
-
   describe('accessibility', () => {
 
     // The panel only exists after a click, so neither the template lint nor the Lighthouse

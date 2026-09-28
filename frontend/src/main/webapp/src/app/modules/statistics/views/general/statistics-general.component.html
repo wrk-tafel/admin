@@ -71,9 +71,11 @@
                        screen reader can announce -->
                   <mat-option [value]="undefined" aria-label="Keine Auswahl"></mat-option>
                   @for (distribution of settings()?.distributions ?? []; track distribution.startDate) {
-                    <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate">
-                      {{ distributionLabel(distribution) }}
-                    </mat-option>
+                    <!-- text tight against the tags: Angular collapses the indentation into
+                         leading/trailing spaces otherwise, and the e2e spec matches this label with
+                         an anchored pattern -->
+                    <mat-option [value]="distribution"
+                                [attr.testid]="'distributionDateInput-option-' + distribution.startDate">{{ distributionLabel(distribution) }}</mat-option>
                   }
                 </mat-select>
               </mat-form-field>

@@ -20,9 +20,10 @@
                     [ngModel]="selectedDistribution()" [ngModelOptions]="{standalone: true}"
                     (ngModelChange)="onDistributionSelected($event)">
           @for (distribution of distributions(); track distribution.id) {
-            <mat-option [value]="distribution" [attr.testid]="'sendMailsDistributionInput-option-' + distribution.id">
-              {{ distributionLabel(distribution) }}
-            </mat-option>
+            <!-- text tight against the tags: Angular collapses the indentation into leading/trailing
+                 spaces otherwise, and the e2e spec matches this label with an anchored pattern -->
+            <mat-option [value]="distribution"
+                        [attr.testid]="'sendMailsDistributionInput-option-' + distribution.id">{{ distributionLabel(distribution) }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
