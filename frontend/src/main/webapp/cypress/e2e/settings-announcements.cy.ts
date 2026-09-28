@@ -71,8 +71,9 @@ describe('Settings - Announcements and the notification bell', () => {
   it('requires a title and a message', () => {
     cy.byTestId('announcement-save-button').click();
 
-    cy.contains('Bitte einen Titel angeben').should('be.visible');
-    cy.contains('Bitte eine Nachricht angeben').should('be.visible');
+    // scrolled to: the save button was scrolled into view for the click, which can leave the fields above the fold
+    cy.contains('Bitte einen Titel angeben').scrollIntoView().should('be.visible');
+    cy.contains('Bitte eine Nachricht angeben').scrollIntoView().should('be.visible');
   });
 
   it('marks everything read from the bell', () => {
@@ -97,6 +98,12 @@ describe('Settings - Announcements and the notification bell', () => {
 
   it('lists ten entries in the bell and shows the rest on request', () => {
     const ids: number[] = [];
+    // an aborted earlier run may have left its entries behind
+    cy.request('/api/announcements').then(response => {
+      response.body.items
+        .filter((item: { title: string }) => item.title.startsWith('E2E Liste'))
+        .forEach((item: { id: number }) => cy.request('DELETE', `/api/announcements/${item.id}`));
+    });
     Cypress._.times(12, index => {
       cy.request('POST', '/api/announcements', {title: `E2E Liste ${index}`, message: 'Text'})
         .then(response => ids.push(response.body.id));
@@ -105,7 +112,7 @@ describe('Settings - Announcements and the notification bell', () => {
     cy.reload();
     cy.byTestId('notifications-button').click();
     cy.get('.tafel-notification-menu [testid^="notification-"]').should('have.length', 10);
-    cy.byTestId('notifications-show-all').should('be.visible').click();
+    cy.byTestId('notifications-show-all').scrollIntoView().should('be.visible').click();
     cy.get('.tafel-notification-menu [testid^="notification-"]').should('have.length.greaterThan', 10);
     cy.byTestId('notifications-show-all').should('not.exist');
     cy.get('body').type('{esc}');
