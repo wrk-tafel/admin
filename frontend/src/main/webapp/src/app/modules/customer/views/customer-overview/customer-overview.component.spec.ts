@@ -168,11 +168,11 @@ describe('CustomerOverviewComponent', () => {
       expect(component.selectedDistributionId()).toEqual(mockCustomerOverviewResponse.distributionId);
     });
 
-    it('formats a distribution label with weekday and date', () => {
+    it('formats a distribution label as a plain date', () => {
       const fixture = TestBed.createComponent(CustomerOverviewComponent);
       const component = fixture.componentInstance;
 
-      expect(component.distributionLabel(mockDistributionsResponse.items[0])).toMatch(/^[\wäöü.]+, \d{2}\.\d{2}\.\d{4}$/);
+      expect(component.distributionLabel(mockDistributionsResponse.items[0])).toMatch(/^\d{2}\.\d{2}\.\d{4}$/);
     });
 
     it('reloads the list for the newly selected distribution', () => {

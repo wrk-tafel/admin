@@ -15,7 +15,7 @@ describe('Settings - Email - Resend distribution mails', () => {
 
       cy.byTestId('sendMailsDistributionInput').click();
       cy.byTestId('sendMailsDistributionInput-option-' + distributionId).click();
-      cy.byTestId('sendMailsDistributionInput').invoke('text').should('match', /^\S+, \d{2}\.\d{2}\.\d{4}$/);
+      cy.byTestId('sendMailsDistributionInput').invoke('text').should('match', /^\d{2}\.\d{2}\.\d{4}$/);
 
       cy.byTestId('send-mails-button').should('be.enabled').click();
 

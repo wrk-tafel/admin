@@ -71,7 +71,7 @@ export class StatisticsGeneralComponent {
   selectedDistribution = signal<StatisticsDistribution | undefined>(undefined);
 
   distributionLabel(distribution: StatisticsDistribution | undefined): string {
-    return distribution ? this.datePipe.transform(distribution.startDate, 'EEEE, dd.MM.yyyy') ?? '' : '';
+    return distribution ? this.datePipe.transform(distribution.startDate, 'dd.MM.yyyy') ?? '' : '';
   }
 
   /**

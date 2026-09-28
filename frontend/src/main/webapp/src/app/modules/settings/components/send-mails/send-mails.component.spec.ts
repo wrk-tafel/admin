@@ -119,11 +119,11 @@ describe('SendMailsComponent', () => {
 
   describe('distribution select', () => {
 
-    it('formats a distribution label with weekday and date', () => {
+    it('formats a distribution label as a plain date', () => {
       const fixture = TestBed.createComponent(SendMailsComponent);
       const component = fixture.componentInstance;
 
-      expect(component.distributionLabel(testDistributions[0])).toMatch(/^[\wäöü.]+, \d{2}\.\d{2}\.\d{4}$/);
+      expect(component.distributionLabel(testDistributions[0])).toMatch(/^\d{2}\.\d{2}\.\d{4}$/);
     });
 
     it('formats an unselected distribution as an empty string', () => {

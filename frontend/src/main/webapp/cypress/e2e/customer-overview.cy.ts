@@ -202,22 +202,19 @@ describe('Customer Overview', () => {
 
           cy.visit('/kunden/uebersicht');
 
-          // defaults to the newest closed distribution, with its weekday and date shown in the
-          // select's trigger
-          cy.byTestId('overviewDistributionInput')
-            .should('contain.text', ',').invoke('text').should('match', /\S+, \d{2}\.\d{2}\.\d{4}/);
+          // defaults to the newest closed distribution, with its date shown in the select's trigger
+          cy.byTestId('overviewDistributionInput').invoke('text').should('match', /^\d{2}\.\d{2}\.\d{4}$/);
           cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('exist');
           cy.contains('[testid^="overview-id-"]', firstCustomer.id!.toString()).should('not.exist');
 
           cy.byTestId('overviewDistributionInput').click();
-          // the weekday is what tells the distributions apart in the list
           cy.byTestId('overviewDistributionInput-option-' + firstDistributionId)
-            .invoke('text').should('match', /^\S+, \d{2}\.\d{2}\.\d{4}$/);
+            .invoke('text').should('match', /^\d{2}\.\d{2}\.\d{4}$/);
           cy.byTestId('overviewDistributionInput-option-' + firstDistributionId).click();
 
           cy.contains('[testid^="overview-id-"]', firstCustomer.id!.toString()).should('exist');
           cy.contains('[testid^="overview-id-"]', secondCustomer.id!.toString()).should('not.exist');
-          cy.byTestId('overviewDistributionInput').invoke('text').should('match', /\S+, \d{2}\.\d{2}\.\d{4}/);
+          cy.byTestId('overviewDistributionInput').invoke('text').should('match', /^\d{2}\.\d{2}\.\d{4}$/);
         });
       });
     });

@@ -133,7 +133,7 @@ export class CustomerOverviewComponent {
   private readonly datePipe = inject(DatePipe);
 
   distributionLabel(distribution: DistributionItem | null): string {
-    return distribution ? this.datePipe.transform(distribution.startedAt, 'EE, dd.MM.yyyy') ?? '' : '';
+    return distribution ? this.datePipe.transform(distribution.startedAt, 'dd.MM.yyyy') ?? '' : '';
   }
 
   onDistributionSelected(distributionId: number) {

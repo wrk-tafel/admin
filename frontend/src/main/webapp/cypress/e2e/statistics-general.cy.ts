@@ -204,9 +204,8 @@ describe('Statistics General', () => {
     // select by position (the freshly closed one sorts first, right after the blank placeholder)
     // rather than by text.
     cy.byTestId('distributionDateInput').click();
-    // the weekday is what tells the distributions apart in the list
     cy.get('mat-option').eq(1).invoke('text').should('contain', today);
-    cy.get('mat-option').eq(1).invoke('text').should('match', /^\S+, \d{2}\.\d{2}\.\d{4}$/);
+    cy.get('mat-option').eq(1).invoke('text').should('match', /^\d{2}\.\d{2}\.\d{4}$/);
     cy.get('mat-option').eq(1).click();
 
     cy.contains(`Zeitraum: ${today} - ${today}`).should('be.visible');

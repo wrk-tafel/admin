@@ -71,8 +71,6 @@
                        screen reader can announce -->
                   <mat-option [value]="undefined" aria-label="Keine Auswahl"></mat-option>
                   @for (distribution of settings()?.distributions ?? []; track distribution.startDate) {
-                    <!-- the weekday tells the distributions apart at a glance: which of them a
-                         number belongs to is usually remembered as "der Samstag", not as a date -->
                     <mat-option [value]="distribution" [attr.testid]="'distributionDateInput-option-' + distribution.startDate">
                       {{ distributionLabel(distribution) }}
                     </mat-option>

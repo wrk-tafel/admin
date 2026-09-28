@@ -201,12 +201,12 @@ describe('StatisticsGeneralComponent', () => {
 
   describe('distribution select', () => {
 
-    it('formats a distribution label with weekday and date', () => {
+    it('formats a distribution label as a plain date', () => {
       const fixture = createComponent();
       respond(fixture, 1, 1);
       const distribution = settings.distributions[0];
 
-      expect(fixture.componentInstance.distributionLabel(distribution)).toMatch(/^[\wäöü.]+, \d{2}\.\d{2}\.\d{4}$/);
+      expect(fixture.componentInstance.distributionLabel(distribution)).toMatch(/^\d{2}\.\d{2}\.\d{4}$/);
     });
 
     it('formats an unselected distribution as an empty string', () => {
