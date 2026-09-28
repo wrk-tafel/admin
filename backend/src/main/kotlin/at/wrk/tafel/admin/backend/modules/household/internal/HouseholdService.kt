@@ -26,6 +26,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.validHousehold
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.willBeDeletedSoon
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
+import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAboveLimitItem
@@ -297,16 +298,29 @@ class HouseholdService(
         return householdRepository.saveAndFlush(savedEntity)
     }
 
+    /** The subset of [HouseholdAddress] fields [checkForDuplicates] itself matches households on. */
+    private data class AddressIdentity(val street: String?, val houseNumber: String?, val door: String?)
+
+    private fun HouseholdAddress.identity() = AddressIdentity(street, houseNumber, door)
+
+    private fun HouseholdEntity.addressIdentity() = AddressIdentity(addressStreet, addressHouseNumber, addressDoor)
+
+    /** The subset of a person's fields [checkForDuplicates] itself matches persons on. */
+    private data class PersonIdentity(val isMainPerson: Boolean, val firstname: String?, val lastname: String?, val birthDate: LocalDate?)
+
+    private fun Person.identity() = PersonIdentity(isMainPerson, firstname, lastname, birthDate)
+
+    private fun PersonEntity.identity() = PersonIdentity(isMainPerson, firstname, lastname, birthDate)
+
     /**
-     * Whether [household] still carries exactly the same identity-relevant data as
-     * [existingEntity] - the fields [checkForDuplicates] (via
-     * [HouseholdDuplicationService.findPotentialDuplicates]) actually keys its fuzzy matching off:
-     * the household's address (street/house number/door) and every person's
-     * firstname/lastname/birthDate/[Person.isMainPerson] flag. A quick action
-     * (lock/unlock/prolong/deactivate) round-trips the rest of the household unchanged, so
-     * re-running the duplicate check on it can only ever repeat a warning that was already true (or
-     * already dismissed) before this save started - see issue #3755. Any added/removed/unmapped
-     * person, or any matched person's checked fields differing, counts as changed.
+     * Whether [household] still carries exactly the same identity-relevant data as [existingEntity]
+     * - the household's address and every person's [PersonIdentity], the same fields
+     * [checkForDuplicates] (via [HouseholdDuplicationService.findPotentialDuplicates]) actually
+     * keys its fuzzy matching off. A quick action (lock/unlock/prolong/deactivate) round-trips the
+     * rest of the household unchanged, so re-running the duplicate check on it can only ever repeat
+     * a warning that was already true (or already dismissed) before this save started - see issue
+     * #3755. Any added/removed/unmapped person, or any matched person's identity differing, counts
+     * as changed.
      *
      * Persons are matched to [existingEntity]'s the same way [HouseholdConverter.mapHouseholdToEntity]
      * itself resolves them: by id where the request gives one, falling back to the stored main
@@ -315,10 +329,7 @@ class HouseholdService(
      * would make every quick action look like a change and defeat this check entirely.
      */
     private fun identityUnchanged(household: HouseholdRequest, existingEntity: HouseholdEntity): Boolean {
-        if (household.address.street != existingEntity.addressStreet ||
-            household.address.houseNumber != existingEntity.addressHouseNumber ||
-            household.address.door != existingEntity.addressDoor
-        ) {
+        if (household.address.identity() != existingEntity.addressIdentity()) {
             return false
         }
 
@@ -327,19 +338,19 @@ class HouseholdService(
         }
 
         val storedMainPerson = existingEntity.persons.firstOrNull { it.isMainPerson }
-        val storedPersonsById = existingEntity.persons.filter { it.id != null }.associateBy { it.id }
+        // Keyed by the nullable id as-is rather than filtering nulls out first: the lookup below is
+        // only ever done with a non-null id (guarded by the `person.id != null` branch), so a
+        // null-id entry - which shouldn't occur for an already-persisted person, but costs nothing to
+        // tolerate - simply never matches and stays unused.
+        val storedPersonsById = existingEntity.persons.associateBy { it.id }
 
         return household.persons.all { person ->
             val existingPerson = when {
                 person.id != null -> storedPersonsById[person.id]
                 person.isMainPerson -> storedMainPerson
                 else -> null
-            } ?: return@all false
-
-            person.isMainPerson == existingPerson.isMainPerson &&
-                person.firstname == existingPerson.firstname &&
-                person.lastname == existingPerson.lastname &&
-                person.birthDate == existingPerson.birthDate
+            }
+            existingPerson != null && person.identity() == existingPerson.identity()
         }
     }
 
