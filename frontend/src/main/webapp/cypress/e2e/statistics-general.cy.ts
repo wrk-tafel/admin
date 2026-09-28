@@ -211,16 +211,11 @@ describe('Statistics General', () => {
 
     cy.contains(`Zeitraum: ${today} - ${today}`).should('be.visible');
 
-    // re-picking the already-selected distribution must not leave its raw value's toString()
-    // behind - MatAutocompleteTrigger writes a selected option straight into the input, bypassing
-    // Angular's own binding, so this only self-corrects when [displayWith] formats that raw value
-    // too (#3654)
-    cy.byTestId('distributionDateInput').invoke('val').then((selectedLabel) => {
-      // clear first: reopening with the committed label already in the field would filter the
-      // list down to just its own match(es), and eq(1) can miss if only one distribution matches
-      cy.byTestId('distributionDateInput').clear().click();
+    // re-picking the already-selected distribution keeps showing its label, not the raw value
+    cy.byTestId('distributionDateInput').invoke('text').then((selectedLabel) => {
+      cy.byTestId('distributionDateInput').click();
       cy.get('mat-option').eq(1).click();
-      cy.byTestId('distributionDateInput').should('have.value', selectedLabel);
+      cy.byTestId('distributionDateInput').invoke('text').should('equal', selectedLabel);
     });
   });
 
@@ -332,10 +327,10 @@ describe('Statistics General', () => {
       cy.checkAccessibility(MAIN_CONTENT);
     });
 
-    it('has no violations with the distribution autocomplete open', () => {
+    it('has no violations with the distribution select open', () => {
       cy.byTestId('dateRangeModeInput').contains('Ausgabe').click();
       cy.byTestId('distributionDateInput').click();
-      cy.checkAutocompleteAccessibility();
+      cy.checkSelectAccessibility();
     });
 
   });
