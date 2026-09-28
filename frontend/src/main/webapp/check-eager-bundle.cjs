@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Fails the production build when the JavaScript a first visit has to download before anything
 // renders grows past the ceilings below. Run as the second half of `npm run build-prod`, against the
-// `dist/stats.json` that build writes.
+// stats file that build writes (`dist/browser-stats.json`, or `dist/stats.json` on older builders).
 //
 // Why this exists next to `angular.json`'s `budgets` rather than as one more entry in them: the
 // builder's `initial` classification is wrong for this application. Its chunk optimizer (rolldown,
@@ -36,11 +36,13 @@ const MAX_EAGER_SCRIPT_BYTES_ERROR = 950 * 1024;
 // eager payload into ever more files is therefore not free, however small each one gets.
 const MAX_EAGER_SCRIPT_FILES = 8;
 
-const statsPath = path.join(__dirname, 'dist', 'stats.json');
+const statsPath = ['browser-stats.json', 'stats.json']
+  .map(name => path.join(__dirname, 'dist', name))
+  .find(candidate => fs.existsSync(candidate));
 const outputDir = path.join(__dirname, 'dist', 'browser');
 
-if (!fs.existsSync(statsPath)) {
-  console.error(`No ${path.relative(__dirname, statsPath)} found - build with \`ng build --stats-json\` (see the \`build-prod\` script).`);
+if (!statsPath) {
+  console.error(`No dist/browser-stats.json or dist/stats.json found - build with \`ng build --stats-json\` (see the \`build-prod\` script).`);
   process.exit(1);
 }
 
