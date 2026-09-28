@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die ausdruckbare Datenschutzerklärung nennt jetzt unter "Speicherdauer", dass die Daten eines Haushalts mit Hausverbot für die Dauer des Hausverbots aufbewahrt werden, statt nur die allgemeine Löschfrist anzugeben.
+
+## [1.26.0] - 2026-09-28
 - Im Kundenformular kann eine weitere Person jetzt per Klick auf "Zum Hauptbezieher machen" zur Hauptbezugsperson des Haushalts gemacht werden; die bisherige Hauptbezugsperson wird dabei automatisch zur weiteren Person.
 
 ## [1.25.0] - 2026-09-28

@@ -99,7 +99,10 @@
         </xsl:call-template>
         <fo:block font-size="10pt" color="{$tafelInk}" space-after="3mm" line-height="1.4">
             Ihre Daten werden gelöscht, sobald Ihre Anspruchsberechtigung seit mehr als
-            <xsl:value-of select="./retentionText"/> abgelaufen ist. Einträge im
+            <xsl:value-of select="./retentionText"/> abgelaufen ist. Ausgenommen davon sind
+            Haushalte, für die ein Hausverbot besteht: Deren Daten werden für die Dauer des
+            Hausverbots aufbewahrt; nach Aufhebung des Hausverbots gilt wieder die oben genannte
+            Frist. Einträge im
             Änderungsprotokoll, die Ihren Datensatz betreffen, werden nach
             <xsl:value-of select="./auditRetentionDays"/> Tagen gelöscht.
         </fo:block>
