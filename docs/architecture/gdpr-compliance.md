@@ -20,7 +20,7 @@ Two things to be clear about before reading on:
 
 | Store | Whose | What | How long it stays |
 |---|---|---|---|
-| `households` | customers | address, phone, e-mail, validity, lock state and reason, pending cost contribution, single-parent flag | until someone deletes the household by hand, or `validUntil` has been in the past for longer than `tafeladmin.householdDeletion.retentionTime` (`HouseholdRetentionService`, 7 years by default) |
+| `households` | customers | address, phone, e-mail, validity, lock state and reason, pending cost contribution, single-parent flag | until someone deletes the household by hand, or `validUntil` has been in the past for longer than `tafeladmin.householdDeletion.retentionTime` (`HouseholdRetentionService`, 7 years by default) - except while the household is locked for `BANNED_FROM_PREMISES` ("Hausverbot"): then it is kept for as long as that lock lasts, which without a `lockedUntil` date has no end, see G1. That applies to every row below marked "same as `households`" |
 | `persons` | customers and every household member, children included | name, birth date, gender, nationality, employer, monthly income, family-allowance flag | same as `households` (cascades on delete) |
 | `household_notes` | customers | free text written by staff, no restriction on content | same as `households` (cascades on delete) |
 | `household_documents` + the files under `tafeladmin.storage.documentsPath` | customers | uploaded ID scans and proofs of income, as plain files (`DocumentStorageService`) | same as `households` (cascades on delete, files removed from disk too) |
@@ -140,6 +140,16 @@ reason, not a general "locked households are exempt" rule.
 What remains open: the window is a floor picked without a documented legal-basis decision (see G2).
 The job now reports what it is about to delete before it runs, and alerts on failure — see G19.
 
+The `BANNED_FROM_PREMISES` exception has no upper bound of its own. A lock with a `lockedUntil` date
+is lifted by `HouseholdLockExpiryService` (05:50), after which the normal window applies again; a
+lock without one keeps the household - persons, documents, notes and attendance history included -
+for as long as somebody leaves it locked, and nothing prompts anyone to ask whether the ban still
+applies (Art. 5(1)(e)). A periodic review reminder is tracked as
+[issue #3763](https://github.com/wrk-tafel/admin/issues/3763). The exception also has no legal basis
+of its own yet: G2's consent cannot carry a record kept against the person's wishes, so this needs a
+documented decision (likely Art. 6(1)(f) with a balancing test). The customer notice's retention
+paragraph names the exception so it does not promise a deletion that will not happen.
+
 ### G2 A privacy notice now exists as a printable consent form, signed on paper
 
 **Art. 13, Art. 5(1)(a), Art. 30(1).** Data subjects must be informed at collection; the controller
@@ -166,7 +176,9 @@ checked).
 
 What remains open: this was drafted against the organisation's public website text rather than
 routed through a documented legal/DPO sign-off process, and nothing in the application tracks
-*whether* that sign-off happened — see issue #3185.
+*whether* that sign-off happened — see issue #3185. The consent basis also does not cover a household
+kept because of a `BANNED_FROM_PREMISES` lock (see G1): a ban is not something the person can
+withdraw consent from.
 
 ### G3 The support form now hints at using the household number instead of a name
 
