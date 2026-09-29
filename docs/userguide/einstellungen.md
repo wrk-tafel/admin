@@ -2,7 +2,9 @@
 
 # Einstellungen
 
-Der Bereich "Einstellungen" bündelt die zentrale Konfiguration der Anwendung. Der Menüpunkt ist nur für Benutzer mit der Berechtigung "Einstellungen" sichtbar.
+Der Bereich "Einstellungen" bündelt die zentrale Konfiguration der Anwendung. Der Menüpunkt ist nur für Benutzer mit der Berechtigung "Einstellungen" sichtbar. Er öffnet eine Übersichtsseite mit allen Bereichen als Karten, gruppiert nach **Logistik**, **Kunden & Betreuung** und **System**; ein Klick auf eine Karte öffnet den Bereich.
+
+![Einstellungen – Übersicht](images/einstellungen-uebersicht.jpg)
 
 Die Tabellen dieses Bereichs werden auf schmalen Bildschirmen als Kartenliste dargestellt – eine Karte je Eintrag, mit denselben Angaben und denselben Aktionen wie in der Tabelle, inklusive Drag-Handle (⋮⋮) zum Sortieren (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)). [Notschlafstellen](#notschlafstellen), [Filialen](#filialen) und [Routen](#routen) sind keine Tabellen, sondern aufklappbare Listen und funktionieren daher auf jeder Bildschirmbreite gleich. Am Beispiel der Fahrzeuge:
 

@@ -557,31 +557,22 @@ return true;
         expect(linkDebugEl.injector.get(MatTooltip).message).toBe('Keine Verteilung aktiv');
     });
 
-    // "Einstellungen" mixes logistics master data with system administration - the sub-group labels
-    // are what makes the right entry findable without reading all ten flat entries.
-    it('splits the Einstellungen submenu into labeled sub-groups instead of one flat list', () => {
+    // The settings screens are listed on the overview page (and in quick-open), not as a long
+    // submenu: the sidebar carries "Einstellungen" as one plain link.
+    it('shows Einstellungen as a plain link to its overview page instead of an expandable submenu', () => {
         authService.hasPermission.mockReturnValue(true);
         authService.hasAnyPermission.mockReturnValue(true);
 
         const fixture = TestBed.createComponent(DefaultLayoutComponent);
         fixture.detectChanges();
 
-        const settingsToggle: HTMLButtonElement = Array.from<HTMLButtonElement>(fixture.nativeElement.querySelectorAll('nav button'))
-            .find(button => button.textContent!.includes('Einstellungen'))!;
-        settingsToggle.click();
-        fixture.detectChanges();
+        const toggle = Array.from<HTMLButtonElement>(fixture.nativeElement.querySelectorAll('nav button'))
+            .find(button => button.textContent!.includes('Einstellungen'));
+        expect(toggle).toBeUndefined();
 
-        const group: HTMLElement = fixture.nativeElement.querySelector('#nav-group-' + fixture.componentInstance.navItems()
-            .findIndex(item => item.name === 'Einstellungen'));
-        const labels = Array.from(group.querySelectorAll('div')).map(el => el.textContent!.trim());
-        expect(labels).toEqual(['Stammdaten', 'Systemverwaltung']);
-
-        // the sub-group labels are not links - only the actual entries are
-        const links = Array.from<HTMLAnchorElement>(group.querySelectorAll('a')).map(a => a.textContent!.trim());
-        expect(links).toEqual([
-            'Fahrzeuge', 'Filialen', 'Länder', 'Notschlafstellen', 'Routen', 'Waren-Kategorien', 'Retour-Kategorien',
-            'Ankündigungen', 'Anstehende Löschungen', 'E-Mail', 'Grenzwerte', 'Mitarbeiter'
-        ]);
+        const link = Array.from<HTMLAnchorElement>(fixture.nativeElement.querySelectorAll('nav a'))
+            .find(a => a.textContent!.includes('Einstellungen'))!;
+        expect(link.getAttribute('href')).toBe('/einstellungen');
     });
 
     // The pending-deletions screen is for administrators only, so a user holding SETTINGS alone

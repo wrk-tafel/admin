@@ -464,20 +464,20 @@ describe('Settings - Pending deletions', () => {
       cy.visit('/einstellungen/mitarbeiter');
       cy.get('h1').should('contain.text', 'Mitarbeiter');
 
-      cy.contains('button', 'Einstellungen').should('be.visible').click();
-      cy.contains('a', 'Mitarbeiter').should('be.visible');
-      cy.contains('a', 'Anstehende Löschungen').should('not.exist');
+      cy.get('nav[aria-label="Hauptnavigation"]').contains('a', 'Einstellungen').should('be.visible').click();
+      cy.byTestId('settings-overview-/einstellungen/mitarbeiter').should('be.visible');
+      cy.byTestId(`settings-overview-${SCREEN_URL}`).should('not.exist');
     });
   });
 
   describe('navigation', () => {
 
-    it('is reachable from the settings menu under Systemverwaltung', () => {
+    it('is reachable from the settings overview', () => {
       cy.visit('/uebersicht');
 
       // be.visible: the sidebar is still hidden for a moment after the shell appears - see general.cy.ts
-      cy.contains('button', 'Einstellungen').scrollIntoView().should('be.visible').click();
-      cy.contains('a', 'Anstehende Löschungen').scrollIntoView().should('be.visible').click();
+      cy.get('nav[aria-label="Hauptnavigation"]').contains('a', 'Einstellungen').scrollIntoView().should('be.visible').click();
+      cy.byTestId(`settings-overview-${SCREEN_URL}`).should('be.visible').click();
 
       cy.location('pathname').should('eq', SCREEN_URL);
       cy.get('h1').should('contain.text', 'Anstehende Löschungen');

@@ -165,7 +165,7 @@ Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzernam
 
 ## Navigation
 
-Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Waren-Eingabe"), werden grau dargestellt und mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde; ein Kurzhinweis (Tooltip) "Keine Verteilung aktiv" erklärt den Grund, statt den Menüpunkt einfach verschwinden zu lassen. Untergeordnete Bereiche wie "Benutzer", "Statistiken" und "Einstellungen" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Menü-Symbol ein-/ausgeblendet (siehe [Darstellung auf schmalen Bildschirmen](#darstellung-auf-schmalen-bildschirmen)). Der eingeklappte Zustand der Seitenleiste sowie aufgeklappte Gruppen bleiben auch nach einem Neuladen der Seite erhalten.
+Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Waren-Eingabe"), werden grau dargestellt und mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde; ein Kurzhinweis (Tooltip) "Keine Verteilung aktiv" erklärt den Grund, statt den Menüpunkt einfach verschwinden zu lassen. Untergeordnete Bereiche wie "Benutzer" und "Statistiken" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Menü-Symbol ein-/ausgeblendet (siehe [Darstellung auf schmalen Bildschirmen](#darstellung-auf-schmalen-bildschirmen)). Der eingeklappte Zustand der Seitenleiste sowie aufgeklappte Gruppen bleiben auch nach einem Neuladen der Seite erhalten.
 
 Die Menüstruktur gliedert sich in folgende Bereiche:
 
@@ -174,7 +174,7 @@ Die Menüstruktur gliedert sich in folgende Bereiche:
 - **Logistik**: Routen-Navi, Waren-Eingabe
 - **Verwaltung**: Benutzer, Statistiken, Zugriffsprotokoll, Einstellungen
 
-Innerhalb von "Einstellungen" sind die zwölf Menüpunkte zusätzlich in zwei Gruppen unterteilt: **Stammdaten** (Fahrzeuge, Filialen, Länder, Notschlafstellen, Routen, Waren-Kategorien, Retour-Kategorien) für logistische Stammdaten und **Systemverwaltung** (Ankündigungen, Anstehende Löschungen, E-Mail, Grenzwerte, Mitarbeiter) für allgemeine Systemeinstellungen.
+"Einstellungen" ist ein einzelner Menüpunkt: Er öffnet eine Übersichtsseite, die alle Einstellungsbereiche als Karten nach Themen gruppiert zeigt – **Logistik** (Fahrzeuge, Filialen, Mitarbeiter, Routen, Waren-Kategorien, Retour-Kategorien), **Kunden & Betreuung** (Grenzwerte, Länder, Notschlafstellen) und **System** (Ankündigungen, Anstehende Löschungen, E-Mail). Ein Klick auf eine Karte öffnet den jeweiligen Bereich; Bereiche ohne Berechtigung werden nicht angezeigt. Über die Schnellsuche (Strg+K) lässt sich jeder Bereich weiterhin direkt aufrufen.
 
 Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berechtigungen ab (siehe [Benutzer](benutzer.md)).
 
@@ -218,7 +218,7 @@ Die Liste zeigt die zehn neuesten Einträge; **Alle anzeigen** klappt die weiter
 Die Anwendung lässt sich vollständig ohne Maus bedienen. Mit der **Tabulator-Taste** wird von Bedienelement zu Bedienelement gesprungen, mit **Enter** bzw. **Leertaste** wird das gerade angesprungene Element ausgelöst.
 
 - Der erste Tabulator-Schritt auf jeder Seite ist der Sprunglink **"Zum Hauptinhalt springen"**. Er ist nur sichtbar, solange er angesprungen ist, und überspringt die gesamte Seitenleiste – ohne ihn müsste man sich auf jeder Seite erneut durch das komplette Menü tabben.
-- Die aufklappbaren Menügruppen ("Auswertungen", "Benutzer", "Statistiken", "Einstellungen") lassen sich ebenso mit der Tastatur auf- und zuklappen.
+- Die aufklappbaren Menügruppen ("Auswertungen", "Benutzer", "Statistiken") lassen sich ebenso mit der Tastatur auf- und zuklappen.
 - Menüpunkte, die eine aktive Ausgabe voraussetzen und mit **INAKTIV** gekennzeichnet sind, werden beim Tabben übersprungen.
 - Das Augen-Symbol in Passwortfeldern, mit dem das eingegebene Passwort sichtbar gemacht wird, ist ebenfalls per Tastatur erreichbar.
 - Die [Schnellsuche](#schnellsuche) öffnet sich von jeder Seite aus mit **Strg+K** (bzw. **Cmd+K** auf macOS) und wird vollständig mit Suchfeld, Pfeiltasten und Enter bedient.
