@@ -198,6 +198,17 @@ Mitarbeiter, die seit zwei Jahren in keiner Warenerfassung mehr als Fahrer/Beifa
 
 Über den Download-Button lässt sich pro Mitarbeiter eine DSGVO-Datenauskunft (Art. 15/20) als ZIP-Datei herunterladen – Personalnummer, Name und Anlagedatum, sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei. Der Button steht bei jedem Mitarbeiter zur Verfügung; die Daten eines gleichnamigen Benutzerkontos sind ein eigener Datensatz und werden über die [Benutzer-Detailseite](benutzer.md) exportiert. Ist die Personalnummer nicht bekannt, hilft die Suche unter [Datenauskunft](datenauskunft.md), die Benutzerkonto und Mitarbeiter in einem Durchgang findet.
 
+<a id="ankuendigungen"></a>
+
+## Ankündigungen
+
+Unter **Einstellungen → Ankündigungen** veröffentlichen Administratoren Nachrichten für alle Benutzer, etwa "Am Freitag bleibt die Ausgabe geschlossen". Eine Ankündigung erscheint bei allen Benutzern unter der Glocke in der Kopfzeile (siehe [Benachrichtigungen (Glocke)](README.md#benachrichtigungen-glocke)) - auch bei denen, die gerade nicht angemeldet sind, beim nächsten Login. Die Seite ist nur für Benutzer mit der Berechtigung **Administrator** sichtbar und zugänglich.
+
+![Ankündigungen](images/einstellungen-ankuendigungen.jpg)
+
+- **Neue Ankündigung:** Titel und Nachricht sind Pflicht. Optional legt **Anzeigen bis** (Datum, dazu optional eine Uhrzeit) fest, bis wann die Ankündigung sichtbar ist; ohne Uhrzeit gilt das Ende des Tages (23:59 Uhr), ohne Datum bleibt sie, bis sie gelöscht wird. **Veröffentlichen** zeigt sie sofort allen Benutzern und schickt sie zusätzlich als Push-Benachrichtigung an alle Geräte, bei denen Push eingeschaltet ist. Wer das nicht möchte, schaltet die Art "Ankündigungen" unter Mein Konto → Benachrichtigungen ab (siehe [Benachrichtigungen](README.md#benachrichtigungen)). Eine spätere Änderung wird nicht erneut gepusht.
+- **Veröffentlichte Ankündigungen:** Die Liste darunter zeigt alle Ankündigungen samt Erstellungsdatum und Ablauf. Mit dem Stift-Symbol lässt sich eine Ankündigung bearbeiten (die Änderung gilt für alle Benutzer, auch für die, die sie schon gelesen haben), mit dem Papierkorb-Symbol wird sie gelöscht. Eine abgelaufene Ankündigung ist in keiner Glocke mehr sichtbar und wird nach 30 Tagen (einstellbar) automatisch entfernt.
+
 <a id="anstehende-loeschungen"></a>
 
 ## Anstehende Löschungen

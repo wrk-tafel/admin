@@ -38,6 +38,7 @@ function configureModule(mobile: boolean) {
     const globalStateServiceSpy = {
         getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution'),
         getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly()),
+        getNotificationsVersion: vi.fn().mockName('GlobalStateService.getNotificationsVersion').mockReturnValue(signal(0).asReadonly()),
         getRegisteredCustomers: vi.fn().mockName('GlobalStateService.getRegisteredCustomers')
             .mockReturnValue(signal<number | null>(null).asReadonly())
     };
@@ -579,7 +580,7 @@ return true;
         const links = Array.from<HTMLAnchorElement>(group.querySelectorAll('a')).map(a => a.textContent!.trim());
         expect(links).toEqual([
             'Fahrzeuge', 'Filialen', 'Länder', 'Notschlafstellen', 'Routen', 'Waren-Kategorien', 'Retour-Kategorien',
-            'Anstehende Löschungen', 'E-Mail', 'Grenzwerte', 'Mitarbeiter'
+            'Ankündigungen', 'Anstehende Löschungen', 'E-Mail', 'Grenzwerte', 'Mitarbeiter'
         ]);
     });
 

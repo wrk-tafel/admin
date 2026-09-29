@@ -18,6 +18,7 @@ export class GlobalStateService {
   private readonly _connectionState: WritableSignal<boolean> = signal(false);
   private readonly _hasReceivedDistribution: WritableSignal<boolean> = signal(false);
   private readonly _registeredCustomers: WritableSignal<number | null> = signal(null);
+  private readonly _notificationsVersion: WritableSignal<number> = signal(0);
 
   private subscription: Subscription | null = null;
 
@@ -52,7 +53,10 @@ export class GlobalStateService {
     };
 
     // Subscribe to SSE and update the signal
-    this.subscription = this.sseService.listen<DistributionItemUpdate>('/sse/distributions', connectionStateCallback).subscribe({
+    this.subscription = this.sseService.listen<DistributionItemUpdate>('/sse/distributions', connectionStateCallback, {
+      // the bell's list changed on the server - see getNotificationsVersion
+      'notifications-changed': () => this._notificationsVersion.update(version => version + 1)
+    }).subscribe({
       next: (distributionUpdate: DistributionItemUpdate) => {
         const distributionItem = distributionUpdate.distribution;
         // The server re-sends this message whenever the registered-customer count changes. A new
@@ -86,6 +90,15 @@ export class GlobalStateService {
     return this._registeredCustomers.asReadonly();
   }
 
+  /**
+   * Counts the "your bell changed" signals this stream delivered - the stream every session holds
+   * open anyway carries them, so the header needs no timer and no stream of its own. Only the
+   * change matters, not the value: whoever reads it reloads their list when it moves.
+   */
+  getNotificationsVersion(): Signal<number> {
+    return this._notificationsVersion.asReadonly();
+  }
+
   getConnectionState(): Signal<boolean> {
     return this._connectionState.asReadonly();
   }
@@ -114,6 +127,7 @@ export class GlobalStateService {
     this.subscription?.unsubscribe();
     this.subscription = null;
     this._connectionState.set(false);
+    this._notificationsVersion.set(0);
     this._currentDistribution.set(null);
     this._registeredCustomers.set(null);
     this._hasReceivedDistribution.set(false);

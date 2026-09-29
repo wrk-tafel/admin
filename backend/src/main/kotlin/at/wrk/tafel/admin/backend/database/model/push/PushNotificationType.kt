@@ -76,4 +76,7 @@ enum class PushNotificationType {
      * (issue #3763), see `HouseholdLockReviewReminderService`.
      */
     HOUSEHOLD_LOCK_REVIEW_DUE,
+
+    /** An administrator published an announcement for every user, see the `notification` module. */
+    ANNOUNCEMENT,
 }

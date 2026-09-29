@@ -2,9 +2,11 @@ package at.wrk.tafel.admin.backend.modules.push.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
+import at.wrk.tafel.admin.backend.modules.notification.NotificationPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import tools.jackson.databind.json.JsonMapper
@@ -30,16 +32,22 @@ class PushBroadcastService(
     private val webPushSenderService: WebPushSenderService,
     private val jsonMapper: JsonMapper,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val userRepository: UserRepository,
+    private val notificationPublisher: NotificationPublisher,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(PushBroadcastService::class.java)
     }
 
-    fun broadcast(type: PushNotificationType, title: String, body: String) {
+    fun broadcast(type: PushNotificationType, title: String, body: String, addToInbox: Boolean = true) {
         // Memoized per user within this one broadcast call - a user with several devices would
         // otherwise trigger the same permission and preference lookup once per device.
         val recipientCache = mutableMapOf<Long, Boolean>()
         val targetPath = PushNotificationTypeTargeting.targetPathOf(type) ?: ""
+
+        if (addToInbox) {
+            addToInboxes(type, title, body, targetPath)
+        }
 
         val resultCounts = mutableMapOf<PushSendResult, Int>()
         pushSubscriptionRepository.findAll().forEach { subscription ->
@@ -93,6 +101,23 @@ class PushBroadcastService(
                 expired,
                 notConfigured,
             )
+        }
+    }
+
+    /**
+     * Puts the notification in the bell of everybody it is *for* - permissions only, deliberately
+     * not the push preferences and not whether the user has any device subscribed. The inbox is
+     * what a user without push (or with it switched off) finds at the next login. A failure here
+     * must not stop the push itself.
+     */
+    private fun addToInboxes(type: PushNotificationType, title: String, body: String, targetPath: String) {
+        try {
+            val recipientIds = userRepository.findAll()
+                .filter { it.enabled && PushNotificationTypeTargeting.isAllowedFor(type, it.authorities.map { authority -> authority.name }) }
+                .mapNotNull { it.id }
+            notificationPublisher.publish(recipientIds, type.name, title, body, targetPath)
+        } catch (e: Exception) {
+            logger.warn("Could not add {} notification to the users' inboxes", type, e)
         }
     }
 

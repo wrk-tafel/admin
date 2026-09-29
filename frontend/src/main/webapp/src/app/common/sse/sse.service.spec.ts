@@ -15,6 +15,10 @@ class FakeEventSource {
   onopen: (() => void) | null = null;
   onmessage: ((event: MessageEvent) => void) | null = null;
   onerror: ((event: Event) => void) | null = null;
+  readonly listeners = new Map<string, () => void>();
+  readonly addEventListener = vi.fn((name: string, listener: () => void) => {
+    this.listeners.set(name, listener);
+  });
   readonly close = vi.fn(() => {
     this.readyState = FakeEventSource.CLOSED;
   });
@@ -72,6 +76,33 @@ describe('SseService', () => {
     FakeEventSource.latest().onmessage!({ data: JSON.stringify({ value: 'hello' }) } as MessageEvent);
 
     expect(received).toEqual([{ value: 'hello' }]);
+  });
+
+  it('routes a named event to its handler without touching the main payload', () => {
+    const service = setup();
+    const received: unknown[] = [];
+    const handler = vi.fn();
+    service.listen('/sse/distributions', undefined, { 'notifications-changed': handler }).subscribe((data) => received.push(data));
+
+    FakeEventSource.latest().listeners.get('notifications-changed')!();
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(received).toEqual([]);
+  });
+
+  it('registers the named handlers again on the replacement EventSource after a reconnect', () => {
+    vi.useFakeTimers();
+    const service = setup();
+    service.listen('/sse/distributions', undefined, { 'notifications-changed': vi.fn() }).subscribe();
+    const first = FakeEventSource.latest();
+    first.readyState = FakeEventSource.CLOSED;
+    first.onerror!(new Event('error'));
+
+    vi.advanceTimersByTime(1000);
+
+    expect(FakeEventSource.latest()).not.toBe(first);
+    expect(FakeEventSource.latest().listeners.has('notifications-changed')).toBe(true);
+    vi.useRealTimers();
   });
 
   it('reports connected true via the callback once the connection opens', () => {

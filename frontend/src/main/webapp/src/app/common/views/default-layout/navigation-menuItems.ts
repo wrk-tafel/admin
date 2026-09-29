@@ -256,6 +256,11 @@ export const navigationMenuItems: ITafelNavData[] = [
         title: true
       },
       {
+        name: 'Ankündigungen',
+        url: '/einstellungen/ankuendigungen',
+        permissions: ['ADMINISTRATOR']
+      },
+      {
         name: 'Anstehende Löschungen',
         url: '/einstellungen/anstehende-loeschungen',
         permissions: ['ADMINISTRATOR']

@@ -62,7 +62,28 @@ internal class DistributionSseControllerTest {
                 resultType = null,
                 resultCallback = any(),
             )
+
+            sseOutboxService.listenForNotificationEvents<Unit>(
+                sseEmitter = sseEmitter,
+                notificationName = "notifications_changed",
+                resultType = null,
+                resultCallback = any(),
+            )
         }
+    }
+
+    @Test
+    fun `a change of the bell is forwarded to the session as a named event without content`() {
+        every { service.getCurrentDistributionUpdate() } returns DistributionUpdateResponse(distributionItem, registeredCustomers = 7)
+        val callback = slot<(Unit?) -> Unit>()
+        every {
+            sseOutboxService.listenForNotificationEvents<Unit>(any(), "notifications_changed", null, capture(callback))
+        } returns Unit
+
+        val sseEmitter = controller.listenForDistributionUpdates()
+        callback.captured(null)
+
+        verify(exactly = 1) { sseOutboxService.sendEvent(sseEmitter, "{}", "notifications-changed") }
     }
 
     @Test

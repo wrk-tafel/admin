@@ -10,7 +10,7 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | [Kunden](kunden.md) | Kunden suchen, Anspruch-Schnellcheck, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, gesperrte Kunden, Neu & Verlängert, Kunden zusammenführen, Dokumente |
 | [Logistik](logistik.md) | Routen-Navi auf der Route, Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
-| [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Länder, Mitarbeiter, anstehende Löschungen |
+| [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Länder, Mitarbeiter, anstehende Löschungen, Ankündigungen |
 | [Zugriffsprotokoll](zugriffsprotokoll.md) | Wer hat wann was geändert oder auf sensible Daten zugegriffen, und wie war der Wert davor |
 | [Datenauskunft](datenauskunft.md) | Kunden, Benutzerkonten und Mitarbeiter durchsuchen, DSGVO-Datenexport und -Löschung |
 | [Statistiken](statistiken.md) | Allgemeine Statistik, Auswertung Kinder |
@@ -111,6 +111,7 @@ Der Bereich **Ablauf der Ausgabe** begleitet einen Ausgabetag von Anfang bis End
 | Benachrichtigungsart | Wird ausgelöst, wenn … |
 | --- | --- |
 | Ausgabe gestartet | eine Ausgabe gestartet wurde |
+| Ankündigungen | ein Administrator eine neue Ankündigung für alle Benutzer veröffentlicht (siehe [Ankündigungen](einstellungen.md#ankuendigungen)); sie steht zusätzlich in der [Glocke](#benachrichtigungen-glocke). Erreicht alle Benutzer mit eingeschaltetem Push, solange sie diese Art nicht abgeschaltet haben |
 | Anmeldung gestartet | der erste Kunde des Tages angemeldet wurde |
 | Route beim letzten Stopp | eine Route im [Routen-Navi](logistik.md#routen-navi) bis auf den letzten Stopp abgehakt ist, das Fahrzeug also bald zurückkommt. Die Benachrichtigung nennt die Route und den Stopp, bei dem sie gerade steht |
 | Warenerfassung abgeschlossen | für alle aktiven Routen die Waren vollständig erfasst wurden |
@@ -173,7 +174,7 @@ Die Menüstruktur gliedert sich in folgende Bereiche:
 - **Logistik**: Routen-Navi, Waren-Eingabe
 - **Verwaltung**: Benutzer, Statistiken, Zugriffsprotokoll, Einstellungen
 
-Innerhalb von "Einstellungen" sind die elf Menüpunkte zusätzlich in zwei Gruppen unterteilt: **Stammdaten** (Fahrzeuge, Filialen, Länder, Notschlafstellen, Routen, Waren-Kategorien, Retour-Kategorien) für logistische Stammdaten und **Systemverwaltung** (E-Mail, Grenzwerte, Mitarbeiter, Anstehende Löschungen) für allgemeine Systemeinstellungen.
+Innerhalb von "Einstellungen" sind die zwölf Menüpunkte zusätzlich in zwei Gruppen unterteilt: **Stammdaten** (Fahrzeuge, Filialen, Länder, Notschlafstellen, Routen, Waren-Kategorien, Retour-Kategorien) für logistische Stammdaten und **Systemverwaltung** (Ankündigungen, Anstehende Löschungen, E-Mail, Grenzwerte, Mitarbeiter) für allgemeine Systemeinstellungen.
 
 Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berechtigungen ab (siehe [Benutzer](benutzer.md)).
 
@@ -196,6 +197,19 @@ Angezeigt werden nur Menüpunkte, Aktionen und Kunden, für die der angemeldete 
 Links in der Kopfzeile wird neben den Schaltflächen immer der Name der gerade geöffneten Seite angezeigt. Oben rechts zeigt ein Badge **Live-Verbindung**, ob die Anwendung aktuell aktiv mit dem Server verbunden ist (z. B. relevant für Live-Updates wie den Ticket-Monitor); ist die Verbindung unterbrochen, wechselt der Status entsprechend. Direkt daneben zeigt ein weiteres Badge dauerhaft den Status des Ausgabetags ("Ausgabe geöffnet" bzw. "Ausgabe geschlossen"), bei einer geöffneten Ausgabe zusätzlich mit ihrer Startzeit – nicht nur auf der Übersicht (siehe [Übersicht (Dashboard)](#übersicht-dashboard)), sondern auf jeder Seite der Anwendung. Links neben diesem Badge steht die aktuelle Uhrzeit (Wiener Zeit), sodass sie auch auf einem zweiten Bildschirm ohne Systemuhr sichtbar bleibt; auf Smartphones entfällt sie, dort zeigt das Gerät selbst die Uhrzeit. Solange eine Ausgabe geöffnet ist, zeigt ein weiteres Badge **„x Kunden angemeldet“** die aktuelle Zahl der angemeldeten Kunden – dieselbe Zahl wie auf der Übersicht, aber auch während der Annahme sichtbar und live aktualisiert. Damit lässt sich Kund:innen, die eine hohe Ticketnummer beanstanden, zeigen, wie viele Kunden tatsächlich angemeldet sind. Das Badge erscheint ab einer Bildschirmbreite von etwa 1280 Pixeln; auf schmaleren Bildschirmen bleibt die Zahl auf der Übersicht. Vorleseprogramme lesen die Zahl nicht bei jeder neuen Anmeldung vor. Unten in der Seitenleiste werden zudem die aktuelle Version und das Build-Datum der Anwendung angezeigt.
 
 ![Kopfzeile bei geöffneter Ausgabe](images/kopfzeile-ausgabe-geoeffnet.jpg)
+
+<a id="benachrichtigungen-glocke"></a>
+
+### Benachrichtigungen (Glocke)
+
+Die **Glocke** in der Kopfzeile (links neben dem Benutzermenü) sammelt alles, was für einen selbst bestimmt ist. Ein roter Zähler nennt die Anzahl der ungelesenen Einträge. Ein Klick öffnet die Liste, neueste zuerst:
+
+![Glocke mit Benachrichtigungen](images/benachrichtigungen-glocke.jpg)
+
+- **Benachrichtigungen**, die auch als Push-Nachricht verschickt werden (siehe [Benachrichtigungen](#benachrichtigungen)). Sie stehen in der Glocke auch dann, wenn Push auf dem Gerät nicht eingeschaltet ist - wer die Nachricht verpasst hat, findet sie beim nächsten Login hier. Jeder sieht nur die Benachrichtigungen, die für seine Berechtigungen bestimmt sind.
+- **Ankündigungen**, die Administratoren für alle Benutzer veröffentlichen (siehe [Ankündigungen](einstellungen.md#ankuendigungen)).
+
+Die Liste zeigt die zehn neuesten Einträge; **Alle anzeigen** klappt die weiteren (bis zu 50) in derselben Liste auf. Ungelesene Einträge sind fett dargestellt. Ein Klick auf einen Eintrag markiert ihn als gelesen und öffnet - falls vorhanden - die zugehörige Seite, etwa die Übersicht. **Alle als gelesen markieren** setzt alle Einträge auf einmal auf gelesen. Die Glocke aktualisiert sich von selbst, sobald etwas Neues eintrifft, und beim Öffnen; Einträge werden nach 30 Tagen (einstellbar durch die Betreiberin bzw. den Betreiber) automatisch entfernt.
 
 <a id="bedienung-mit-der-tastatur"></a>
 

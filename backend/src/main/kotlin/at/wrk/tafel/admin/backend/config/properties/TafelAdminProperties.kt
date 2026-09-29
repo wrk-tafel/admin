@@ -47,6 +47,7 @@ class TafelAdminProperties {
     var mfa: TafelAdminMfaProperties = TafelAdminMfaProperties()
     var mailOutbox: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties()
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
+    var notification: TafelAdminNotificationProperties = TafelAdminNotificationProperties()
     var sse: TafelAdminSseProperties = TafelAdminSseProperties()
     var support: TafelAdminSupportProperties? = null
     var storage: TafelAdminStorageProperties = TafelAdminStorageProperties()
@@ -476,6 +477,19 @@ class TafelAdminSseProperties {
      * update. That trade is what this value sets.
      */
     var outboxRetention: Duration = Duration.ofDays(14)
+}
+
+/**
+ * The bell in the header - see the `notification` module.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminNotificationProperties {
+    /**
+     * How long an inbox entry is kept after it arrived, and an announcement after it expired -
+     * `NotificationCleanupService` deletes both once they are older. Read per use, so it can be
+     * changed on a running deployment.
+     */
+    var retention: Duration = Duration.ofDays(30)
 }
 
 @ExcludeFromTestCoverage
