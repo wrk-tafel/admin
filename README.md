@@ -111,7 +111,7 @@ cp -r frontend/src/main/webapp/dist/browser/* frontend-dist/
 docker build -t wrk-tafel-admin:local -f _build/Dockerfile .
 ```
 
-The Docker image runs on Amazon Corretto 26 Alpine with timezone set to `Europe/Vienna`.
+The Docker image runs on Amazon Corretto 26 Alpine with the timezone set through the `TIMEZONE` build argument (`Europe/Vienna` by default).
 
 ## New Installation
 

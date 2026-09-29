@@ -10,6 +10,7 @@ import {DatePipe, NgClass} from '@angular/common';
 import {MatIcon} from '@angular/material/icon';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {GlobalStateService} from '../../../state/global-state.service';
+import {TAFEL_TIME_ZONE} from '../../../util/time-zone';
 import {SupportApiService} from '../../../../api/support-api.service';
 import {SupportContextService} from '../../../support/support-context.service';
 import {ScreenshotService} from '../../../support/screenshot.service';
@@ -36,7 +37,7 @@ import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
 import arrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
 
 const CLOCK_FORMAT = new Intl.DateTimeFormat('de-AT', {
-  timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+  timeZone: TAFEL_TIME_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
 });
 
 @Component({

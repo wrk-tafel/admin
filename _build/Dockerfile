@@ -55,6 +55,10 @@ RUN apk add --no-cache --upgrade libssl3 libcrypto3
 ARG VERSION=dev
 ARG BUILD_DATE=unknown
 ENV TAFELADMIN_VERSION=$VERSION
+# The one place the process's time zone is named (ADR-0027): the JVM's default zone follows TZ, and
+# application.yml pins every database session to the same value. Change it with --build-arg TIMEZONE.
+ARG TIMEZONE=Europe/Vienna
+ENV TZ=$TIMEZONE
 ENV TAFELADMIN_BUILD_DATE=$BUILD_DATE
 VOLUME /app/config
 VOLUME /app/logs
@@ -75,7 +79,7 @@ COPY ./frontend-dist/ ./static/
 # makes an OOM kill the process instead of leaving it running in a corrupted state, so the
 # container's restart policy is what recovers it (see issue #2879/#2935) rather than a wedged app
 # silently serving errors until someone notices.
-ENTRYPOINT ["java","-Duser.timezone=Europe/Vienna","-Duser.language=de","-Duser.country=DE","-XX:SharedArchiveFile=/app/app-cds.jsa","-XX:MaxRAMPercentage=75.0","-XX:+ExitOnOutOfMemoryError","-Dspring.config.additional-location=file:/app/config/config.yml","org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java","-Duser.language=de","-Duser.country=DE","-XX:SharedArchiveFile=/app/app-cds.jsa","-XX:MaxRAMPercentage=75.0","-XX:+ExitOnOutOfMemoryError","-Dspring.config.additional-location=file:/app/config/config.yml","org.springframework.boot.loader.launch.JarLauncher"]
 
 # Management port (see application.yml) is separate from the app's server port and stays reachable
 # even if the main servlet container is wedged. wget is busybox's, not GNU's - it ships in the base
