@@ -51,7 +51,10 @@ describe('Global quick-open', () => {
 
   it('Enter opens the first result', () => {
     openPaletteViaShortcut();
-    cy.byTestId('quickOpenInput').type('Fahrzeuge{enter}');
+    cy.byTestId('quickOpenInput').type('Fahrzeuge');
+    // Enter acts on the rendered first result, so wait for the list to reflect the query first
+    cy.byTestId('quickOpenNav-/einstellungen/fahrzeuge').should('exist');
+    cy.byTestId('quickOpenInput').type('{enter}');
 
     cy.url().should('include', '/einstellungen/fahrzeuge');
     cy.byTestId('quick-open-dialog').should('not.exist');
