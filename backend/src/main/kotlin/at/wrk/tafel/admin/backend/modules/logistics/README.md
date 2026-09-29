@@ -133,6 +133,26 @@ DB level — it only governs `modules`-to-`modules` traffic.
   return items too: the screen replaces that one stop with the response, so leaving them off would
   make them vanish the moment a driver ticks the stop.
 
+### Return boxes overview (`ReturnBoxesController`, `internal/ReturnBoxesService`)
+- Serves the `/logistik/retourkisten` screen for whoever coordinates the routes: `GET /api/return-boxes`
+  lists, per route and shop, which boxes are out and since which distribution; `PUT
+  /api/return-boxes/routes/{routeId}/shops/{shopId}` with `{returned}` confirms them back or takes
+  that confirmation back. Both require `LOGISTICS`, and both answer with the whole list.
+- A box is outstanding until `food_collections_return_items.returned_at` is set, so a box a route did
+  not take along on its next trip **carries over** to every later week instead of dropping out of
+  the list - unlike route guidance, which only ever looks at a route's previous collection and stays
+  as it is (it is the drivers' phone screen and is deliberately independent of this one).
+- The running distribution's collections are excluded, same cut-off as guidance. Confirmation is per
+  shop and route, not per box: it settles every outstanding row of that pair across all past
+  collections. Undo only reaches confirmations made today (server date), which is also how long a
+  returned box is still listed, struck through.
+- Migration `R__00130` backfills `returned_at` for every row that is not part of its route's newest
+  collection, so history recorded before the column existed does not show up as outstanding.
+- Confirming rewrites the collection's `returnItems` element collection, so it takes the same two
+  advisory locks as the return-item saves (`PATCH_FOOD_COLLECTION_ITEM`, then
+  `SAVE_FOOD_COLLECTION_RETURN_ITEMS`). `ReturnBoxesServiceIT` covers carry-over, confirm/undo and the
+  zero-amount filter.
+
 ### Shelters (`SheltersController`, `internal/ShelterService`)
 - `ShelterEntity` (`shelters`) holds a full address (street/house number/stairway/door/postal
   code/city), a `personsCount`, an `enabled` flag, and `sortOrder` (added recently alongside

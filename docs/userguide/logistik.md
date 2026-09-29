@@ -2,7 +2,7 @@
 
 # Logistik
 
-Der Bereich "Logistik" begleitet die Routen-Teams: das **Routen-Navi** unterwegs auf der Route, die **Waren-Eingabe** bei der Erfassung der eingesammelten Warenmengen. Die Waren-Eingabe ist nur aktiv, solange ein Ausgabetag gestartet ist; das Routen-Navi ist jederzeit erreichbar, damit eine Route auch vorab durchgesehen werden kann.
+Der Bereich "Logistik" begleitet die Routen-Teams: das **Routen-Navi** unterwegs auf der Route, die **Retourkisten**-Übersicht für die Leitung, die **Waren-Eingabe** bei der Erfassung der eingesammelten Warenmengen. Die Waren-Eingabe ist nur aktiv, solange ein Ausgabetag gestartet ist; das Routen-Navi ist jederzeit erreichbar, damit eine Route auch vorab durchgesehen werden kann.
 
 <a id="routen-navi"></a>
 
@@ -35,6 +35,18 @@ Der abgehakte Fortschritt ist außerdem auf der [Übersicht](README.md#übersich
 **Restliche Route planen** oberhalb der Punktreihe übergibt gleich mehrere noch offene Stopps als eine Fahrt an die Karten-App — eingeklappt, da das Planen der restlichen Fahrt nicht zum eigentlichen Stopp-für-Stopp-Ablauf gehört; ein Antippen klappt den Bereich auf. In eine solche Fahrt passen bis zu zehn Stopps; sind mehr als zehn Stopps offen, erscheint statt eines einzelnen Knopfes ein Knopf je zehn Stopps (z. B. "Stopps 1–10 in Karte öffnen", "Stopps 11–15 in Karte öffnen") — jeder startet vom aktuellen Standort, der nächste wird erst geöffnet, sobald die Stopps des vorigen erledigt sind.
 
 Abgehakte Stopps gelten für den **jeweiligen Tag** und sind auch auf anderen Geräten sichtbar — ein zweites Handy oder die Zentrale sehen denselben Stand. Am nächsten Tag beginnt die Route wieder mit lauter offenen Stopps. Wird eine Route zwischenzeitlich unter [Einstellungen → Routen](einstellungen.md#routen) bearbeitet, geht der Fortschritt des Tages für diese Route verloren, da die Stopps dabei neu angelegt werden.
+
+## Retourkisten
+
+Unter **Logistik → Retourkisten** sieht die Leitung (oder wer die Fahrten koordiniert) auf einen Blick, **welche Kisten bei welcher Filiale stehen und von welcher Route zurückgebracht werden müssen** — nicht nur wie viele. Die Liste ist nach Routen gegliedert, darunter je Filiale mit Adresse und den einzelnen Kistenarten samt Menge und dem Ausgabetag, seit dem sie draußen sind ("seit 15.09.2026"). Oben steht, wie viele Kisten insgesamt noch bei den Filialen sind, bei jeder Route die Summe ihrer offenen Kisten.
+
+![Retourkisten-Übersicht](images/logistik-retourkisten.jpg)
+
+Die Kisten der Filialen einer Route werden bei der Waren-Eingabe erfasst (siehe [Retourware](#retourware)). Sie bleiben in dieser Übersicht so lange stehen, bis sie zurückgebracht wurden: **Retourniert** markiert alle offenen Kisten dieser Filiale auf dieser Route als zurückgebracht. Wurde eine Kiste bei der nächsten Fahrt nicht mitgenommen, verschwindet sie also nicht, sondern steht in der Woche darauf weiterhin — mit dem ursprünglichen Datum — in der Liste. Die Kisten des gerade laufenden Ausgabetags erscheinen erst nach dessen Ende, da sie erst bei der nächsten Fahrt zurückgehen.
+
+Wurde versehentlich **Retourniert** gedrückt, stellt **Rückgängig machen** den Stand wieder her — allerdings nur am selben Tag. Zurückgebrachte Kisten sind an diesem Tag noch durchgestrichen zu sehen und verschwinden danach aus der Liste; sind alle Kisten zurück, steht dort "Alle Retourkisten sind zurückgebracht.".
+
+Das Routen-Navi bleibt davon unberührt: Es zeigt weiterhin nur die Kisten der letzten Fahrt an der jeweiligen Filiale, damit unterwegs nichts abgehakt werden muss.
 
 ## Warenerfassung
 

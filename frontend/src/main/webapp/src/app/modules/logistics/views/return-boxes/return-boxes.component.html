@@ -1,0 +1,51 @@
+<mat-card class="w-full">
+  <mat-card-content>
+    @if (loaded() && returnBoxes().routes.length === 0) {
+      <p class="m-0" testid="return-boxes-empty">Alle Retourkisten sind zurückgebracht.</p>
+    } @else if (loaded()) {
+      <p class="mt-0 mb-4" testid="return-boxes-total">
+        Noch <strong>{{ outstandingTotal() }}</strong> Kisten bei den Filialen.
+      </p>
+      @for (route of returnBoxes().routes; track route.routeId) {
+        <section class="mb-6" [attr.testid]="'return-boxes-route-' + route.routeId">
+          <h2 class="tafel-h5 mt-0 mb-2">
+            {{ route.routeName }}
+            <span class="text-slate-500 text-base font-normal">({{ routeTotal(route) }} Kisten)</span>
+          </h2>
+          @for (shop of route.shops; track shop.shopId) {
+            <div class="mb-3 rounded border border-slate-200 p-3" [attr.testid]="'return-boxes-shop-' + shop.shopId">
+              <div class="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <div class="font-semibold">{{ shop.shopName }}</div>
+                  <div class="text-slate-500 text-sm">{{ shop.address }}</div>
+                </div>
+                @if (hasOutstanding(shop)) {
+                  <button mat-flat-button type="button" [disabled]="saving()"
+                          [attr.testid]="'return-boxes-returned-' + shop.shopId"
+                          (click)="setReturned(route, shop, true)">
+                    Retourniert
+                  </button>
+                } @else {
+                  <button mat-stroked-button type="button" [disabled]="saving()"
+                          [attr.testid]="'return-boxes-undo-' + shop.shopId"
+                          (click)="setReturned(route, shop, false)">
+                    Rückgängig machen
+                  </button>
+                }
+              </div>
+              <ul class="m-0 mt-2 list-none p-0">
+                @for (box of shop.boxes; track $index) {
+                  <li class="flex justify-between gap-2" [class.line-through]="box.returned"
+                      [class.text-slate-500]="box.returned" testid="return-boxes-entry">
+                    <span>{{ box.amount }} × {{ box.description }}</span>
+                    <span class="text-sm">seit {{ box.since | date: 'dd.MM.yyyy' }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </section>
+      }
+    }
+  </mat-card-content>
+</mat-card>

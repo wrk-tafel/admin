@@ -12,6 +12,7 @@ import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
 import checklistIcon from '@material-symbols/svg-400/outlined/checklist-fill.svg';
 import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
 import localShippingIcon from '@material-symbols/svg-400/outlined/local_shipping-fill.svg';
+import inventory2Icon from '@material-symbols/svg-400/outlined/inventory_2-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
 import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import lockPersonIcon from '@material-symbols/svg-400/outlined/lock_person-fill.svg';
@@ -39,6 +40,7 @@ export function registerNavigationIcons(): void {
     checklist: checklistIcon,
     route: routeIcon,
     local_shipping: localShippingIcon,
+    inventory_2: inventory2Icon,
     person: personIcon,
     lock: lockIcon,
     lock_person: lockPersonIcon,
@@ -150,6 +152,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     name: 'Routen-Navi',
     url: '/logistik/routen-navi',
     icon: 'route',
+    permissions: ['LOGISTICS']
+  },
+  {
+    name: 'Retourkisten',
+    url: '/logistik/retourkisten',
+    icon: 'inventory_2',
     permissions: ['LOGISTICS']
   },
   {
