@@ -38,7 +38,7 @@ export class TicketScreenComponent {
   readonly connected = signal(true);
 
   private readonly ticketScreenData: Signal<TicketScreenText | undefined> = toSignal(
-    this.sseService.listen<TicketScreenText>('/sse/distributions/ticket-screen/current', (connected) => this.connected.set(connected))
+    this.sseService.topic<TicketScreenText>('ticket-screen', {connectionStateCallback: (connected) => this.connected.set(connected)})
   );
 
   readonly text = computed(() => this.ticketScreenData()?.text ?? undefined);

@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
@@ -10,16 +9,17 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifySequence
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
-internal class DistributionSseControllerTest {
+internal class DistributionSseTopicTest {
 
     @RelaxedMockK
     private lateinit var service: DistributionService
@@ -27,11 +27,8 @@ internal class DistributionSseControllerTest {
     @RelaxedMockK
     private lateinit var sseOutboxService: SseOutboxService
 
-    @RelaxedMockK
-    private lateinit var sseEmitterFactory: SseEmitterFactory
-
     @InjectMockKs
-    private lateinit var controller: DistributionSseController
+    private lateinit var topic: DistributionSseTopic
 
     private val distributionItem = DistributionItem(
         id = 123,
@@ -44,16 +41,17 @@ internal class DistributionSseControllerTest {
         val update = DistributionUpdateResponse(distribution = distributionItem, registeredCustomers = 7)
         every { service.getCurrentDistributionUpdate() } returns update
 
-        val sseEmitter = controller.listenForDistributionUpdates()
-        assertThat(sseEmitter).isNotNull
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
+        topic.subscribe(sseEmitter, null)
 
         verifySequence {
-            sseOutboxService.sendEvent(sseEmitter, update)
+            sseOutboxService.sendEvent(sseEmitter, update, "distribution")
 
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = sseEmitter,
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
                 resultType = DistributionUpdateResponse::class.java,
+                eventName = "distribution",
             )
 
             sseOutboxService.listenForNotificationEvents<Unit>(
@@ -62,43 +60,23 @@ internal class DistributionSseControllerTest {
                 resultType = null,
                 resultCallback = any(),
             )
-
-            sseOutboxService.listenForNotificationEvents<Unit>(
-                sseEmitter = sseEmitter,
-                notificationName = "notifications_changed",
-                resultType = null,
-                resultCallback = any(),
-            )
         }
-    }
-
-    @Test
-    fun `a change of the bell is forwarded to the session as a named event without content`() {
-        every { service.getCurrentDistributionUpdate() } returns DistributionUpdateResponse(distributionItem, registeredCustomers = 7)
-        val callback = slot<(Unit?) -> Unit>()
-        every {
-            sseOutboxService.listenForNotificationEvents<Unit>(any(), "notifications_changed", null, capture(callback))
-        } returns Unit
-
-        val sseEmitter = controller.listenForDistributionUpdates()
-        callback.captured(null)
-
-        verify(exactly = 1) { sseOutboxService.sendEvent(sseEmitter, "{}", "notifications-changed") }
     }
 
     @Test
     fun `listen for distribution updates without active distribution`() {
         every { service.getCurrentDistributionUpdate() } returns DistributionUpdateResponse(distribution = null)
 
-        val sseEmitter = controller.listenForDistributionUpdates()
-        assertThat(sseEmitter).isNotNull
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
+        topic.subscribe(sseEmitter, null)
 
         verify {
-            sseOutboxService.sendEvent(sseEmitter, DistributionUpdateResponse(distribution = null))
+            sseOutboxService.sendEvent(sseEmitter, DistributionUpdateResponse(distribution = null), "distribution")
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = sseEmitter,
                 notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
                 resultType = DistributionUpdateResponse::class.java,
+                eventName = "distribution",
             )
         }
     }
@@ -111,18 +89,19 @@ internal class DistributionSseControllerTest {
             sseOutboxService.listenForNotificationEvents<Unit>(any(), "dashboard_update", null, capture(callback))
         } returns Unit
 
-        val sseEmitter = controller.listenForDistributionUpdates()
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
+        topic.subscribe(sseEmitter, null)
 
         // unrelated dashboard change: same count as already sent
         callback.captured(null)
-        verify(exactly = 1) { sseOutboxService.sendEvent(sseEmitter, any()) }
+        verify(exactly = 1) { sseOutboxService.sendEvent(sseEmitter, any(), "distribution") }
 
         // a household got registered
         val updated = DistributionUpdateResponse(distributionItem, registeredCustomers = 8)
         every { service.getCurrentDistributionUpdate() } returns updated
         callback.captured(null)
         callback.captured(null)
-        verify(exactly = 1) { sseOutboxService.sendEvent(sseEmitter, updated) }
+        verify(exactly = 1) { sseOutboxService.sendEvent(sseEmitter, updated, "distribution") }
     }
 
     @Test
@@ -133,12 +112,13 @@ internal class DistributionSseControllerTest {
             sseOutboxService.listenForNotificationEvents<Unit>(any(), "dashboard_update", null, capture(callback))
         } returns Unit
 
-        val sseEmitter = controller.listenForDistributionUpdates()
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
+        topic.subscribe(sseEmitter, null)
 
         every { service.getCurrentDistributionUpdate() } returns DistributionUpdateResponse(distribution = null)
         callback.captured(null)
 
-        verify(exactly = 1) { sseOutboxService.sendEvent(sseEmitter, any()) }
+        verify(exactly = 1) { sseOutboxService.sendEvent(sseEmitter, any(), "distribution") }
     }
 
     @Test
@@ -149,7 +129,8 @@ internal class DistributionSseControllerTest {
             sseOutboxService.listenForNotificationEvents<Unit>(any(), "dashboard_update", null, capture(callback))
         } returns Unit
 
-        val sseEmitter = controller.listenForDistributionUpdates()
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
+        topic.subscribe(sseEmitter, null)
 
         every { service.getCurrentDistributionUpdate() } returns DistributionUpdateResponse(distribution = null)
         callback.captured(null)
@@ -157,6 +138,6 @@ internal class DistributionSseControllerTest {
         every { service.getCurrentDistributionUpdate() } returns restarted
         callback.captured(null)
 
-        verify(exactly = 2) { sseOutboxService.sendEvent(sseEmitter, restarted) }
+        verify(exactly = 2) { sseOutboxService.sendEvent(sseEmitter, restarted, "distribution") }
     }
 }

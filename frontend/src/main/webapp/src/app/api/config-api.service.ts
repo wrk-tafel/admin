@@ -19,7 +19,7 @@ export class ConfigApiService {
   // unreachable. Callers treat null as "assume nothing optional is available".
   private readonly config$ = merge(
     this.http.get<AppConfig>('/config').pipe(catchError(() => of(null))),
-    this.sseService.listen<AppConfig>('/sse/config')
+    this.sseService.topic<AppConfig>('config')
   ).pipe(
     // One request and one SSE connection for the whole session no matter how many components read
     // the config, and a component created later starts from the value already known instead of

@@ -1,25 +1,19 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
+import at.wrk.tafel.admin.backend.common.sse.SseTopic
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionUpdateResponse
-import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.stereotype.Component
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.util.concurrent.atomic.AtomicReference
 
-@RestController
-@RequestMapping("/api/sse/distributions")
-@PreAuthorize("isAuthenticated()")
-class DistributionSseController(
+@Component
+class DistributionSseTopic(
     private val service: DistributionService,
     private val sseOutboxService: SseOutboxService,
-    private val sseEmitterFactory: SseEmitterFactory,
-) {
+) : SseTopic {
 
     companion object {
         /**
@@ -28,34 +22,27 @@ class DistributionSseController(
          * imported from `dashboard`, which this module has no dependency on.
          */
         private const val REGISTRATION_CHANGE_NOTIFICATION_NAME = "dashboard_update"
-
-        /** Filed by the `notification` module whenever a bell entry or announcement is added or changed. */
-        private const val NOTIFICATIONS_CHANGE_NOTIFICATION_NAME = "notifications_changed"
-
-        /** The SSE event name the frontend listens for; `sse.service.ts` and `GlobalStateService` use the same. */
-        private const val NOTIFICATIONS_CHANGED_EVENT_NAME = "notifications-changed"
     }
 
-    @GetMapping
-    fun listenForDistributionUpdates(): SseEmitter {
-        val sseEmitter = sseEmitterFactory.createSseEmitter()
+    override val name = "distribution"
 
+    override fun subscribe(emitter: SseEmitter, argument: String?) {
         // initial data
         val initialUpdate = service.getCurrentDistributionUpdate()
-        sseOutboxService.sendEvent(sseEmitter, initialUpdate)
+        sseOutboxService.sendEvent(emitter, initialUpdate, name)
 
         sseOutboxService.forwardNotificationEventsToSse(
-            sseEmitter = sseEmitter,
+            sseEmitter = emitter,
             notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
             resultType = DistributionUpdateResponse::class.java,
+            eventName = name,
         )
 
-        // The header shows the registered-customer count on every screen, so it rides on this stream
-        // (which every session holds open anyway) instead of costing each one a second connection.
+        // The header shows the registered-customer count on every screen, so it rides on this topic.
         // The trigger fires for much more than registrations, hence the send only on a changed count.
         val lastSentCount = AtomicReference(initialUpdate.registeredCustomers)
         sseOutboxService.listenForNotificationEvents<Unit>(
-            sseEmitter = sseEmitter,
+            sseEmitter = emitter,
             notificationName = REGISTRATION_CHANGE_NOTIFICATION_NAME,
             resultType = null,
         ) {
@@ -66,23 +53,8 @@ class DistributionSseController(
             if (update.registeredCustomers == null) {
                 lastSentCount.set(null)
             } else if (lastSentCount.getAndSet(update.registeredCustomers) != update.registeredCustomers) {
-                sseOutboxService.sendEvent(sseEmitter, update)
+                sseOutboxService.sendEvent(emitter, update, name)
             }
         }
-
-        // The bell in the header: every session holds this stream open anyway, so the signal that
-        // its list changed rides on it too, as a named event, instead of the bell polling or
-        // costing a stream of its own. It carries no content - the client fetches its own list -
-        // and fires for everybody, since only the client knows whose entries changed. Named here
-        // rather than imported from `notification`, which this module has no dependency on.
-        sseOutboxService.listenForNotificationEvents<Unit>(
-            sseEmitter = sseEmitter,
-            notificationName = NOTIFICATIONS_CHANGE_NOTIFICATION_NAME,
-            resultType = null,
-        ) {
-            sseOutboxService.sendEvent(sseEmitter, "{}", NOTIFICATIONS_CHANGED_EVENT_NAME)
-        }
-
-        return sseEmitter
     }
 }

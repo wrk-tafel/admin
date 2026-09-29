@@ -197,7 +197,10 @@ export class CheckinComponent {
 
     if (scannerId) {
       this.scannerSubscription = this.sseService
-        .listen<ScanResult>(`/sse/scanners/${scannerId}/results`, (connected) => this.scannerReadyState.set(connected))
+        .topic<ScanResult>('scanner-results', {
+          argument: scannerId,
+          connectionStateCallback: (connected) => this.scannerReadyState.set(connected)
+        })
         .subscribe((result: ScanResult) => {
           this.customerId.set(result.value);
           this.searchForCustomerId();

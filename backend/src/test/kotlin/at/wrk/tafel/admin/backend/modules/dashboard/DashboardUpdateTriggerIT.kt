@@ -112,7 +112,7 @@ class DashboardUpdateTriggerIT : TafelBaseIntegrationTest() {
         val notified = CountDownLatch(1)
         val callback: (String?) -> Unit = { notified.countDown() }
         sseOutboxListenerService.registerCallback(
-            DashboardController.DASHBOARD_UPDATE_NOTIFICATION_NAME,
+            DashboardSseTopic.DASHBOARD_UPDATE_NOTIFICATION_NAME,
             callback,
         )
 
@@ -129,7 +129,7 @@ class DashboardUpdateTriggerIT : TafelBaseIntegrationTest() {
                 .isTrue()
         } finally {
             sseOutboxListenerService.unregisterCallback(
-                DashboardController.DASHBOARD_UPDATE_NOTIFICATION_NAME,
+                DashboardSseTopic.DASHBOARD_UPDATE_NOTIFICATION_NAME,
                 callback,
             )
         }
@@ -161,7 +161,7 @@ class DashboardUpdateTriggerIT : TafelBaseIntegrationTest() {
             firstNotified.countDown()
             secondNotified.countDown()
         }
-        sseOutboxListenerService.registerCallback(DashboardController.DASHBOARD_UPDATE_NOTIFICATION_NAME, callback)
+        sseOutboxListenerService.registerCallback(DashboardSseTopic.DASHBOARD_UPDATE_NOTIFICATION_NAME, callback)
 
         try {
             transactionTemplate.executeWithoutResult {
@@ -187,7 +187,7 @@ class DashboardUpdateTriggerIT : TafelBaseIntegrationTest() {
                 .describedAs("dashboard_update rows - both stops shared one second, so they share one row")
                 .isEqualTo(1)
         } finally {
-            sseOutboxListenerService.unregisterCallback(DashboardController.DASHBOARD_UPDATE_NOTIFICATION_NAME, callback)
+            sseOutboxListenerService.unregisterCallback(DashboardSseTopic.DASHBOARD_UPDATE_NOTIFICATION_NAME, callback)
         }
     }
 

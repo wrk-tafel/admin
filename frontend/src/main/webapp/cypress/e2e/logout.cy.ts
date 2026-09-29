@@ -55,18 +55,17 @@ describe('Logout', () => {
   });
 
   /**
-   * A browser gives an origin only six concurrent HTTP/1.1 connections and an open SSE stream holds
-   * one of them for as long as it lives. The resolver that starts the `/sse/distributions` stream
+   * A tab holds exactly one event stream (`/api/sse/events`), however many topics the open screen
+   * listens to - the dashboard alone uses four. The resolver that subscribes to the session's topics
    * runs again on every login, so a logout/login round trip in the same tab used to leave the
-   * previous stream open and add a second one - a few round trips and the tab had no connections
-   * left for anything else, so API calls, images and even a reload just queued up until the reverse
-   * proxy gave up with a 504. Only closing the tab recovered it.
+   * previous stream open and add a second one; every leaked stream is a long-lived request the
+   * server keeps for nothing until the tab is closed.
    *
    * This has to be an e2e case: the leak is one of real browser sockets surviving a real navigation
    * between the login page and the authenticated layout, which a unit spec with a mocked
    * `SseService` cannot observe at all.
    */
-  it('keeps a single distributions stream open across a logout/login round trip in the same tab', () => {
+  it('keeps a single event stream open across a logout/login round trip in the same tab', () => {
     const streams: EventSource[] = [];
 
     // `/uebersicht` rather than the `/#` the other cases use: `beforeEach` has already visited that
@@ -85,7 +84,7 @@ describe('Logout', () => {
     });
 
     const openDistributionStreams = () => streams.filter(
-      stream => new URL(stream.url).pathname.endsWith('/api/sse/distributions')
+      stream => new URL(stream.url).pathname.endsWith('/api/sse/events')
         && stream.readyState !== EventSource.CLOSED
     );
 

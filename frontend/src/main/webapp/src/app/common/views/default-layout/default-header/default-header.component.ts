@@ -73,7 +73,7 @@ export class DefaultHeaderComponent {
   /**
    * The bell: what the backend keeps for this user (pushed notifications and the announcements
    * administrators published), newest first. Reloaded when the server says it changed - that signal
-   * rides on the distribution stream every session holds open anyway (see
+   * comes in on the `notifications` topic of the tab's one event stream (see
    * `GlobalStateService.getNotificationsVersion`) - and whenever the menu is opened.
    */
   readonly notificationItems = computed(() => this.notifications()?.items ?? []);
@@ -102,7 +102,7 @@ export class DefaultHeaderComponent {
   /**
    * Households registered for the running distribution - what the dashboard's "Kunden angemeldet"
    * panel shows, but available here on every screen (e.g. during the intake). It arrives on the
-   * distribution stream the shell already holds, see `GlobalStateService.getRegisteredCustomers`.
+   * `distribution` topic the shell already holds, see `GlobalStateService.getRegisteredCustomers`.
    */
   readonly registeredCustomers = computed(() => this.distributionActive() ? this.globalStateService.getRegisteredCustomers()() : null);
 

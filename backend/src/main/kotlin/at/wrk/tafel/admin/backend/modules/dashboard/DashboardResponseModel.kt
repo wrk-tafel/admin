@@ -24,7 +24,7 @@ data class DashboardData(
      * Organization-wide counts, populated in the same case as [lastDistribution] - while no
      * distribution is active, so the overview page has more to show than the status card and the
      * last-distribution summary. Not refreshed by every household/user/car change (see
-     * `DashboardController`'s `dashboard_update` trigger tables) - only as fresh as the last time
+     * `DashboardSseTopic`'s `dashboard_update` trigger tables) - only as fresh as the last time
      * something distribution-related pushed a new snapshot, which is acceptable for a background
      * figure like this one.
      */

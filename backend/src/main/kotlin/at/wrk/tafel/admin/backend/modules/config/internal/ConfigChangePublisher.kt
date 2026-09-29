@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 
 /**
  * Turns a reloaded backend configuration into the frontend's view of it and hands it to the SSE
- * outbox, from where `ConfigSseController` fans it out to every open session.
+ * outbox, from where `ConfigSseTopic` fans it out to every open session.
  *
  * The reload event fires for any change to the configuration - not just this application's own
  * settings, and certainly not just the handful the frontend is told about. Comparing against what

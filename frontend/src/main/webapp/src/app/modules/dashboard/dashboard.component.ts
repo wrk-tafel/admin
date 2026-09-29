@@ -58,7 +58,7 @@ export class DashboardComponent {
   readonly sheltersData = input<ShelterListResponse>();
 
   readonly data: Signal<DashboardData | undefined> = toSignal(
-    this.sseService.listen<DashboardData>('/sse/dashboard')
+    this.sseService.topic<DashboardData>('dashboard')
   );
 
   /**

@@ -8,11 +8,11 @@ import {SseService} from '../common/sse/sse.service';
 describe('DocumentScannerApiService', () => {
   let httpMock: HttpTestingController;
   let apiService: DocumentScannerApiService;
-  let sseServiceSpy: { listen: ReturnType<typeof vi.fn> };
+  let sseServiceSpy: { topic: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     sseServiceSpy = {
-      listen: vi.fn().mockName('SseService.listen')
+      topic: vi.fn().mockName('SseService.topic')
     };
 
     TestBed.configureTestingModule({
@@ -44,13 +44,13 @@ describe('DocumentScannerApiService', () => {
 
   it('listen for scanner file changes delegates to SseService', () => {
     const mockResponse: ScannerFilesResponse = {items: []};
-    sseServiceSpy.listen.mockReturnValue(of(mockResponse));
+    sseServiceSpy.topic.mockReturnValue(of(mockResponse));
 
     apiService.listenForScannerFileChanges().subscribe((response) => {
       expect(response).toEqual(mockResponse);
     });
 
-    expect(sseServiceSpy.listen).toHaveBeenCalledWith('/sse/document-scanner-files');
+    expect(sseServiceSpy.topic).toHaveBeenCalledWith('scanner-files');
   });
 
 });

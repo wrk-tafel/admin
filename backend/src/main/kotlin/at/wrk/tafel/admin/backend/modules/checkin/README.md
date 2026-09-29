@@ -14,9 +14,9 @@ know what a scan means (customer lookup, ticket assignment, etc.) — that's ent
   existing one; returns the assigned `scannerId`.
 - `POST /api/scanners/{scannerId}/results?scanResult=<long>` — accept a raw scan result value (e.g. a
   decoded QR code payload) for a given scanner and publish it via the SSE outbox.
-- `GET /api/sse/scanners/{scannerId}/results` — SSE stream of `ScanResult` events for one specific
-  scanner (filtered by `scannerId` client-side of the outbox forwarding, via `acceptFilter`).
-  Registered as `replayable = false`: this is the only stream excluded from the replay
+- The `scanner-results:{scannerId}` topic (`ScannerResultsSseTopic`, on `GET /api/sse/events`) — `ScanResult`
+  events for one specific scanner (filtered by `scannerId` client-side of the outbox forwarding, via
+  `acceptFilter`). Registered as `replayable = false`: this is the only topic excluded from the replay
   `SseOutboxListenerService` does after it reconnects, because the check-in screen *acts* on a scan
   result (loads that customer and resets the form) instead of just displaying it — so a duplicate
   would discard a ticket number being typed, and a late one would jump to a customer scanned
@@ -63,7 +63,7 @@ infrastructure that sits *outside* the `modules` tree and isn't subject to the M
 **Architectural implication:** `checkin` cannot call into `distribution` to assign a ticket, nor into
 `household` to look up a customer from a scanned code. Turning a physical scan into "customer X gets
 ticket Y" is entirely a frontend responsibility — the frontend listens on
-`/api/sse/scanners/{scannerId}/results`, decodes/interprets `ScanResult.value` itself, and then calls the
+the `scanner-results:{scannerId}` topic, decodes/interprets `ScanResult.value` itself, and then calls the
 appropriate `household`/`distribution` endpoints separately. If a future feature needs the backend
 itself to react to a scan (e.g. server-side auto ticket assignment), it cannot be added directly inside
 `ScannerService` without either loosening `allowedDependencies`, or wiring it through the SSE outbox /

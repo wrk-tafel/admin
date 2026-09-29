@@ -15,7 +15,7 @@ describe('TicketScreenComponent', () => {
                 {
                     provide: SseService,
                     useValue: {
-                        listen: vi.fn().mockName('SseService.listen')
+                        topic: vi.fn().mockName('SseService.topic')
                     }
                 }
             ]
@@ -36,7 +36,7 @@ describe('TicketScreenComponent', () => {
     }
 
     it('component can be created', () => {
-        sseService.listen.mockReturnValue(of({} as TicketScreenText));
+        sseService.topic.mockReturnValue(of({} as TicketScreenText));
 
         const fixture = createFixture();
         const component = fixture.componentInstance;
@@ -45,25 +45,27 @@ describe('TicketScreenComponent', () => {
 
     it('data change fills states correctly', () => {
         const testData: TicketScreenText = { text: 'Test Text', value: 'Test Value' };
-        sseService.listen.mockReturnValue(of(testData));
+        sseService.topic.mockReturnValue(of(testData));
 
         const fixture = createFixture();
         const component = fixture.componentInstance;
 
-        expect(sseService.listen).toHaveBeenCalledWith('/sse/distributions/ticket-screen/current', expect.any(Function));
+        expect(sseService.topic).toHaveBeenCalledWith('ticket-screen', {connectionStateCallback: expect.any(Function)});
         expect(component.text()).toBe(testData.text);
         expect(component.value()).toBe(testData.value);
     });
 
     it('connected reflects the connection-state callback passed to SseService', () => {
-        sseService.listen.mockReturnValue(of({} as TicketScreenText));
+        sseService.topic.mockReturnValue(of({} as TicketScreenText));
 
         const fixture = createFixture();
         const component = fixture.componentInstance;
 
         expect(component.connected()).toBe(true);
 
-        const connectionStateCallback = sseService.listen.mock.calls[0][1] as (connected: boolean) => void;
+        const connectionStateCallback = (sseService.topic.mock.calls[0][1] as {
+            connectionStateCallback: (connected: boolean) => void
+        }).connectionStateCallback;
         connectionStateCallback(false);
         expect(component.connected()).toBe(false);
 
@@ -75,7 +77,7 @@ describe('TicketScreenComponent', () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date('2026-08-13T10:00:00'));
         const data = new Subject<TicketScreenText>();
-        sseService.listen.mockReturnValue(data.asObservable());
+        sseService.topic.mockReturnValue(data.asObservable());
 
         const fixture = createFixture();
         const component = fixture.componentInstance;
@@ -96,7 +98,7 @@ describe('TicketScreenComponent', () => {
 
     it('shows the previously called ticket number once it changes, but not on the first message', async () => {
         const data = new Subject<TicketScreenText>();
-        sseService.listen.mockReturnValue(data.asObservable());
+        sseService.topic.mockReturnValue(data.asObservable());
 
         const fixture = createFixture();
         const component = fixture.componentInstance;
@@ -119,7 +121,7 @@ describe('TicketScreenComponent', () => {
 
     it('clears the previous-ticket caption once the display switches away from a ticket number', async () => {
         const data = new Subject<TicketScreenText>();
-        sseService.listen.mockReturnValue(data.asObservable());
+        sseService.topic.mockReturnValue(data.asObservable());
 
         const fixture = createFixture();
         const component = fixture.componentInstance;
@@ -148,7 +150,7 @@ describe('TicketScreenComponent', () => {
     it('briefly toggles justChanged to drive the change animation when the ticket number changes', async () => {
         vi.useFakeTimers();
         const data = new Subject<TicketScreenText>();
-        sseService.listen.mockReturnValue(data.asObservable());
+        sseService.topic.mockReturnValue(data.asObservable());
 
         const fixture = createFixture();
         const component = fixture.componentInstance;
@@ -173,7 +175,7 @@ describe('TicketScreenComponent', () => {
         const audioContextSpy = vi.fn();
         vi.stubGlobal('AudioContext', audioContextSpy);
         const data = new Subject<TicketScreenText>();
-        sseService.listen.mockReturnValue(data.asObservable());
+        sseService.topic.mockReturnValue(data.asObservable());
 
         const fixture = createFixture(false);
 
@@ -204,7 +206,7 @@ describe('TicketScreenComponent', () => {
         vi.stubGlobal('AudioContext', audioContextSpy);
 
         const data = new Subject<TicketScreenText>();
-        sseService.listen.mockReturnValue(data.asObservable());
+        sseService.topic.mockReturnValue(data.asObservable());
 
         const fixture = createFixture(true);
 
@@ -223,7 +225,7 @@ describe('TicketScreenComponent', () => {
         const audioContextSpy = vi.fn();
         vi.stubGlobal('AudioContext', audioContextSpy);
         const data = new Subject<TicketScreenText>();
-        sseService.listen.mockReturnValue(data.asObservable());
+        sseService.topic.mockReturnValue(data.asObservable());
 
         const fixture = createFixture(true);
 

@@ -133,7 +133,7 @@ describe('TicketScreen', () => {
         win.EventSource = class extends nativeEventSource {
           constructor(url: string | URL, eventSourceInitDict?: EventSourceInit) {
             super(url, eventSourceInitDict);
-            this.addEventListener('message', () => {
+            this.addEventListener('ticket-screen', () => {
               if (dropped) {
                 return;
               }
