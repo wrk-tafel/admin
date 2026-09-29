@@ -59,7 +59,6 @@ export default defineConfig({
   viewportHeight: 768,
   videoCompression: false,
   video: true,
-  allowCypressEnv: false,
   e2e: {
     experimentalRunAllSpecs: true,
     setupNodeEvents(on) {
