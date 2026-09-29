@@ -70,18 +70,9 @@ class ReturnBoxesService(
             advisoryLockService.withLock(AdvisoryLockKey.SAVE_FOOD_COLLECTION_RETURN_ITEMS) {
                 val now = LocalDateTime.now()
                 val user = currentUsername()
-                var changed = 0
-                findCollections().filter { it.route.id == routeId }.forEach { collection ->
-                    val items = collection.returnItems.orEmpty().filter { it.shop.id == shopId }
-                    val affected = items.filter { if (returned) isOutstanding(it) else isReturnedToday(it) }
-                    if (affected.isNotEmpty()) {
-                        affected.forEach {
-                            it.returnedAt = if (returned) now else null
-                            it.returnedBy = if (returned) user else null
-                        }
-                        changed += affected.size
-                    }
-                }
+                val changed = findCollections()
+                    .filter { it.route.id == routeId }
+                    .sumOf { applyReturned(it, shopId, returned, now, user) }
                 logger.info(
                     "Return boxes of shop {} on route {} marked returned={} ({} entries, by {})",
                     shopId,
@@ -93,6 +84,24 @@ class ReturnBoxesService(
             }
         }
         return getReturnBoxes()
+    }
+
+    /** Sets or clears the confirmation on the shop's boxes of one collection, returning how many it touched. */
+    private fun applyReturned(
+        collection: FoodCollectionEntity,
+        shopId: Long,
+        returned: Boolean,
+        now: LocalDateTime,
+        user: String?,
+    ): Int {
+        val affected = collection.returnItems.orEmpty()
+            .filter { it.shop.id == shopId }
+            .filter { if (returned) isOutstanding(it) else isReturnedToday(it) }
+        affected.forEach {
+            it.returnedAt = if (returned) now else null
+            it.returnedBy = if (returned) user else null
+        }
+        return affected.size
     }
 
     private fun findCollections(): List<FoodCollectionEntity> {
