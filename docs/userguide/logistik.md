@@ -38,7 +38,7 @@ Abgehakte Stopps gelten für den **jeweiligen Tag** und sind auch auf anderen Ge
 
 ## Retourkisten
 
-Unter **Logistik → Retourkisten** sieht die Leitung (oder wer die Fahrten koordiniert) auf einen Blick, **welche Kisten bei welcher Filiale stehen und von welcher Route zurückgebracht werden müssen** — nicht nur wie viele. Die Liste ist nach Routen gegliedert, darunter je Filiale mit Adresse und den einzelnen Kistenarten samt Menge und dem Ausgabetag, seit dem sie draußen sind ("seit 15.09.2026"). Oben steht, wie viele Kisten insgesamt noch bei den Filialen sind, bei jeder Route die Summe ihrer offenen Kisten.
+Unter **Logistik → Retourkisten** sieht die Leitung (oder wer die Fahrten koordiniert) auf einen Blick, **welche Kisten bei welcher Filiale stehen und von welcher Route zurückgebracht werden müssen** — nicht nur wie viele. Die Liste ist nach Routen gegliedert, darunter je Filiale mit Adresse und den einzelnen Kistenarten samt Menge und dem Ausgabetag, seit dem sie draußen sind ("seit 15.09.2026"). Oben steht, wie viele Kisten insgesamt noch an die Filialen zurückzugeben sind, bei jeder Route die Summe ihrer offenen Kisten.
 
 ![Retourkisten-Übersicht](images/logistik-retourkisten.jpg)
 

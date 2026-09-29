@@ -4,7 +4,7 @@
       <p class="m-0" testid="return-boxes-empty">Alle Retourkisten sind zurückgebracht.</p>
     } @else if (loaded()) {
       <p class="mt-0 mb-4" testid="return-boxes-total">
-        Noch <strong>{{ outstandingTotal() }}</strong> Kisten bei den Filialen.
+        Noch <strong>{{ outstandingTotal() }}</strong> Kisten von den Filialen zurückzugeben.
       </p>
       @for (route of returnBoxes().routes; track route.routeId) {
         <section class="mb-6" [attr.testid]="'return-boxes-route-' + route.routeId">
