@@ -12,7 +12,7 @@ $$
                          and column_name = 'returned_at') then
 
             alter table food_collections_return_items
-                add column returned_at timestamp,
+                add column returned_at timestamptz,
                 add column returned_by varchar(255);
 
             update food_collections_return_items r
