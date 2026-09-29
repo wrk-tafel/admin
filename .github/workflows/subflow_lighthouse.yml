@@ -159,6 +159,7 @@ jobs:
               /kunden/zusammenfuehren/100?quellen=101
           - name: einstellungen
             urls: >-
+              /einstellungen,
               /einstellungen/email,
               /einstellungen/notschlafstellen,
               /einstellungen/statische-werte,

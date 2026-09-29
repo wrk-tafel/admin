@@ -20,6 +20,7 @@ settings/
     mail-recipients/    # recipient address matrix, used by views/email
     send-mails/          # re-send mails for a past distribution, used by views/email
   views/
+    overview/                    # route: einstellungen (cards for every screen below, grouped by topic)
     email/                       # route: einstellungen/email
     shelters/                    # route: einstellungen/notschlafstellen
       dialogs/
@@ -52,7 +53,11 @@ settings/
   settings.routes.ts
 ```
 
-Note the `views/` folders here nest their own `dialogs/` subfolders directly
+The sidebar has one plain "Einstellungen" link (`linkOnly` in `navigation-menuItems.ts`); the
+entries, their topic groups and descriptions are that item's `children`, which the overview page and
+the quick-open palette both read. A new settings screen is added there.
+
+Note the `views/` here nest their own `dialogs/` subfolders directly
 (rather than a top-level `components/` shared across all views) — `components/`
 is reserved for the two pieces shared by the `email` view specifically.
 

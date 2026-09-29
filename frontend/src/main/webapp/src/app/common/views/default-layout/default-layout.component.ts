@@ -115,6 +115,7 @@ export class DefaultLayoutComponent {
   readonly navItems = computed(() => {
     const distribution = this.distribution();
     let items = this.filterNavItemsByPermissions(navigationMenuItems);
+    items = items.map(item => item.linkOnly ? {...item, children: undefined} : item);
     items = this.filterEmptyTitleItems(items);
     items = this.editNavItemsForDistributionState(items, distribution);
     return items;

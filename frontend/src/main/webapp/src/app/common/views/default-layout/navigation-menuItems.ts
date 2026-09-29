@@ -56,6 +56,13 @@ export interface ITafelNavData {
   permissions?: string[];
   activeDistributionRequired?: boolean;
   title?: boolean;
+  /** Short explanation shown on the entry's card in an overview page. */
+  description?: string;
+  /**
+   * The entry is a plain link in the sidebar; its children are listed on the page it links to (and
+   * still reachable from the quick-open palette) instead of expanding below it.
+   */
+  linkOnly?: boolean;
   badge?: { text: string; color: string };
   attributes?: { disabled?: boolean };
   children?: ITafelNavData[];
@@ -218,65 +225,82 @@ export const navigationMenuItems: ITafelNavData[] = [
     icon: 'settings',
     url: '/einstellungen',
     permissions: ['SETTINGS'],
+    linkOnly: true,
     children: [
       {
-        name: 'Stammdaten',
+        name: 'Logistik',
         title: true
       },
       {
         name: 'Fahrzeuge',
-        url: '/einstellungen/fahrzeuge'
+        url: '/einstellungen/fahrzeuge',
+        description: 'Fahrzeuge für Warenabholungen verwalten'
       },
       {
         name: 'Filialen',
-        url: '/einstellungen/filialen'
+        url: '/einstellungen/filialen',
+        description: 'Filialen und Ansprechpersonen der Warenspender'
       },
       {
-        name: 'Länder',
-        url: '/einstellungen/laender'
-      },
-      {
-        name: 'Notschlafstellen',
-        url: '/einstellungen/notschlafstellen'
+        name: 'Mitarbeiter',
+        url: '/einstellungen/mitarbeiter',
+        description: 'Fahrer und Beifahrer der Warenabholungen'
       },
       {
         name: 'Routen',
-        url: '/einstellungen/routen'
+        url: '/einstellungen/routen',
+        description: 'Abholrouten mit ihren Filialen'
       },
       {
         name: 'Waren-Kategorien',
-        url: '/einstellungen/lebensmittelkategorien'
+        url: '/einstellungen/lebensmittelkategorien',
+        description: 'Kategorien der erfassten Waren'
       },
       {
         name: 'Retour-Kategorien',
-        url: '/einstellungen/retourkategorien'
+        url: '/einstellungen/retourkategorien',
+        description: 'Kategorien der retournierten Waren'
       },
       {
-        name: 'Systemverwaltung',
+        name: 'Kunden & Betreuung',
+        title: true
+      },
+      {
+        name: 'Grenzwerte',
+        url: '/einstellungen/statische-werte',
+        description: 'Einkommensgrenzen und weitere statische Werte'
+      },
+      {
+        name: 'Länder',
+        url: '/einstellungen/laender',
+        description: 'Länder zur Auswahl der Staatsangehörigkeit'
+      },
+      {
+        name: 'Notschlafstellen',
+        url: '/einstellungen/notschlafstellen',
+        description: 'Notschlafstellen und ihre Personenzahl'
+      },
+      {
+        name: 'System',
         title: true
       },
       {
         name: 'Ankündigungen',
         url: '/einstellungen/ankuendigungen',
+        description: 'Nachrichten an alle Benutzer veröffentlichen',
         permissions: ['ADMINISTRATOR']
       },
       {
         name: 'Anstehende Löschungen',
         url: '/einstellungen/anstehende-loeschungen',
+        description: 'Was die automatische Datenlöschung bald entfernt',
         permissions: ['ADMINISTRATOR']
       },
       {
         name: 'E-Mail',
-        url: '/einstellungen/email'
-      },
-      {
-        name: 'Grenzwerte',
-        url: '/einstellungen/statische-werte'
-      },
-      {
-        name: 'Mitarbeiter',
-        url: '/einstellungen/mitarbeiter'
-      },
+        url: '/einstellungen/email',
+        description: 'Empfänger automatischer E-Mails und erneuter Versand'
+      }
     ],
   },
 ];

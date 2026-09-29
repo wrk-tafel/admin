@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Einstellungen sind übersichtlicher: In der Seitenleiste gibt es nur noch einen Menüpunkt "Einstellungen", der eine Übersichtsseite mit allen Einstellungsbereichen nach Themen gruppiert (Logistik, Kunden & Betreuung, System) öffnet; die Schnellsuche (Strg+K) findet weiterhin jeden Bereich direkt.
 - Neue Glocke in der Kopfzeile: sie sammelt Push-Benachrichtigungen (auch für Benutzer ohne aktiviertes Push, beim nächsten Login) und Ankündigungen, die Administratoren unter Einstellungen → Ankündigungen für alle Benutzer veröffentlichen, mit Zähler für ungelesene Einträge; neue Ankündigungen werden zusätzlich als Push-Benachrichtigung verschickt (unter Mein Konto → Benachrichtigungen abschaltbar).
 - Die Seite "Kunden-Übersicht" heißt jetzt "Neu & Verlängert" (Name der Seite und der zugehörigen Berechtigung) und steht in der Gruppe "Auswertungen" an erster Stelle; die Ausgabe wird dort über eine einfache Auswahlliste statt einem Suchfeld gewählt.
 - Die Ausgabe-Auswahl auf den Seiten "Statistiken → Allgemein" und "Einstellungen → E-Mails erneut senden" ist jetzt ebenfalls eine einfache Auswahlliste statt einem Suchfeld.
