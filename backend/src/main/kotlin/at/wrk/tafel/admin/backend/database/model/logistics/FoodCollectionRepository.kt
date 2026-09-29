@@ -1,6 +1,9 @@
 package at.wrk.tafel.admin.backend.database.model.logistics
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
+import java.time.LocalDateTime
 
 interface FoodCollectionRepository : JpaRepository<FoodCollectionEntity, Long> {
 
@@ -22,6 +25,23 @@ interface FoodCollectionRepository : JpaRepository<FoodCollectionEntity, Long> {
         routeId: Long,
         distributionId: Long,
     ): FoodCollectionEntity?
+
+    /**
+     * The collections of every distribution but the given one that still hold a return box waiting
+     * to go back, or one that was confirmed back since [returnedSince] (so a misclick can be taken
+     * back on the same day). Pass `-1` when no distribution is running.
+     */
+    @Query(
+        """
+        select distinct fc from FoodCollection fc join fc.returnItems ri
+        where fc.distribution.id <> :distributionId
+          and ((ri.returnedAt is null and ri.amount > 0) or ri.returnedAt >= :returnedSince)
+        """,
+    )
+    fun findAllWithOutstandingReturnItems(
+        @Param("distributionId") distributionId: Long,
+        @Param("returnedSince") returnedSince: LocalDateTime,
+    ): List<FoodCollectionEntity>
 
     /** Whether a car is referenced by any recorded food collection - what `CarService.deleteCar` checks. */
     fun existsByCarId(carId: Long): Boolean

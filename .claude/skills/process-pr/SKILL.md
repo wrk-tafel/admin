@@ -117,6 +117,21 @@ from is the most recent one for the current head SHA. Older failed runs on the s
 something to chase down or explain — they're superseded by the latest run, which is the one that
 actually gates the merge.
 
+### Sonar issues count even when the gate is green
+
+`gh pr checks` going green is **not** the finish line: the SonarCloud quality gate can pass while
+the PR still carries open issues (e.g. `kotlin:S3776` cognitive complexity over 15), and those are
+findings the reviewer will see and expect fixed. Once the checks are done, always list the open
+issues and fix every one that is new on this PR — don't stop at the gate status:
+
+```bash
+curl -s "https://sonarcloud.io/api/issues/search?componentKeys=wrk-tafel-admin&pullRequest=<pr-number>&resolved=false&ps=100" | jq '.issues[] | {rule, severity, component, line, message}'
+```
+
+The analysis only refreshes after a push's backend tests have finished, so after a fix, wait for
+that run and query again to confirm the issue is actually gone before reporting "all green".
+"All green" means checks green **and** no open Sonar issues on the PR.
+
 ## 7. Investigate and fix any red check
 
 Pull the actual failing log rather than guessing from the job name alone:
@@ -168,5 +183,5 @@ Loop steps 6–8 until `gh pr checks` reports every job green.
 ## 9. Report
 
 Reply with the PR URL, a one-line summary of what the review found and fixed (or "no issues found"
-if step 3 turned up nothing), and confirmation that every check is green. Stop there — the user
+if step 3 turned up nothing), and confirmation that every check is green and that SonarCloud lists no open issues on the PR. Stop there — the user
 reviews and merges manually.

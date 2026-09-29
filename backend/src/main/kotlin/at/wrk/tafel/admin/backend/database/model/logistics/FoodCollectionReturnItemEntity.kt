@@ -5,6 +5,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import java.time.LocalDateTime
 
 /**
  * A return box that has no matching [FoodCategoryEntity] with `returnItem = true`, recorded with a
@@ -22,4 +23,9 @@ class FoodCollectionReturnItemEntity(
     var description: String,
     @Column(name = "amount")
     var amount: Int,
+    /** When the box was confirmed as back at its shop - null while it still has to go. */
+    @Column(name = "returned_at")
+    var returnedAt: LocalDateTime? = null,
+    @Column(name = "returned_by")
+    var returnedBy: String? = null,
 )

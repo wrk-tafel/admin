@@ -160,10 +160,15 @@ class RouteGuidanceService(
         }
     }
 
-    private fun returnItemsByShopId(collection: FoodCollectionEntity?): Map<Long?, List<RouteGuidanceReturnItem>> = collection?.returnItems.orEmpty()
-        // a recorded zero means "nothing came back from this shop", not an empty crate to carry
-        .filter { it.amount > 0 }
-        .groupBy({ it.shop.id }, { RouteGuidanceReturnItem(it.shop.name, it.description, it.amount) })
+    private fun returnItemsByShopId(collection: FoodCollectionEntity?): Map<Long?, List<RouteGuidanceReturnItem>> {
+        val startOfToday = LocalDate.now().atStartOfDay()
+        return collection?.returnItems.orEmpty()
+            // a recorded zero means "nothing came back from this shop", not an empty crate to carry;
+            // a box confirmed back earlier than today has left the list, one confirmed today stays
+            // (ticked off) so the confirmation can be taken back
+            .filter { it.amount > 0 && (it.returnedAt == null || it.returnedAt!! >= startOfToday) }
+            .groupBy({ it.shop.id }, { RouteGuidanceReturnItem(it.shop.name, it.description, it.amount, it.returnedAt != null) })
+    }
 
     private fun findRoute(routeId: Long): RouteEntity = routeRepository.findByIdOrNull(routeId)
         ?: throw NotFoundException("Route $routeId nicht gefunden!")
