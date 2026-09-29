@@ -13,8 +13,15 @@ import {SettingsShopsComponent} from './views/shops/settings-shops.component';
 import {SettingsCountriesComponent} from './views/countries/settings-countries.component';
 import {SettingsAnnouncementsComponent} from './views/announcements/settings-announcements.component';
 import {SettingsPendingDeletionsComponent} from './views/pending-deletions/settings-pending-deletions.component';
+import {SettingsOverviewComponent} from './views/overview/settings-overview.component';
 
 export const routes: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    title: 'Einstellungen',
+    component: SettingsOverviewComponent,
+  },
   {
     path: 'email',
     title: 'E-Mail',

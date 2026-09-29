@@ -470,18 +470,6 @@ describe('Shell', () => {
     cy.get('.mat-mdc-tooltip').should('have.text', 'Keine Verteilung aktiv');
   });
 
-  it('groups the Einstellungen submenu into labeled sub-groups instead of one flat list', () => {
-    cy.loginDefault();
-    cy.visit('/uebersicht');
-
-    cy.contains('button', 'Einstellungen').click();
-
-    cy.contains('Stammdaten').should('be.visible');
-    cy.contains('Systemverwaltung').should('be.visible');
-    cy.contains('a', 'Fahrzeuge').should('be.visible');
-    cy.contains('a', 'Mitarbeiter').should('be.visible');
-  });
-
   it('remembers the collapsed sidebar and an expanded nav group across a reload', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');
