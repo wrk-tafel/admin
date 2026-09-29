@@ -20,7 +20,7 @@ Die Abbildung zeigt die Seite so, wie sie unterwegs tatsächlich verwendet wird:
 
 ![Routen-Navi am Handy](images/logistik-routen-navi.jpg)
 
-Hat die Route bei ihrer letzten Fahrt Retourware mitgebracht, steht oberhalb des Stopps ein Hinweis, wie viele Kisten heute zurückgehen und von welchem Ausgabetag sie stammen. Beim jeweiligen Stopp ist dann unter **Retourware abgeben** aufgelistet, was bei dieser Filiale abzugeben ist (z. B. "4 × Graue Kisten"). Kisten einer Filiale, die auf der Route inzwischen nicht mehr angefahren wird, werden im Hinweis oben gesondert unter "Ohne Stopp auf dieser Route" angeführt, damit sie nicht übersehen werden. Grundlage ist die zuletzt erfasste Retourware der Route aus der [Waren-Eingabe](#warenerfassung); der laufende Ausgabetag wird dabei nicht herangezogen.
+Hat die Route bei ihrer letzten Fahrt Retourware mitgebracht, steht oberhalb des Stopps ein Hinweis, wie viele Kisten heute zurückgehen und von welchem Ausgabetag sie stammen. Beim jeweiligen Stopp ist dann unter **Retourware** aufgelistet, was bei dieser Filiale abzugeben ist (z. B. "4 × Graue Kisten"); mit **Abgegeben** in derselben Zeile wird bestätigt, dass die Kisten dieser Filiale zurückgebracht wurden — sie erscheinen dann durchgestrichen, **Rückgängig** nimmt das am selben Tag wieder zurück. Die Bestätigung gilt auch in der [Retourkisten-Übersicht](#retourkisten), und sind alle Kisten abgegeben, verschwindet der Hinweis oben. Kisten einer Filiale, die auf der Route inzwischen nicht mehr angefahren wird, werden im Hinweis oben gesondert unter "Ohne Stopp auf dieser Route" angeführt, damit sie nicht übersehen werden. Grundlage ist die zuletzt erfasste Retourware der Route aus der [Waren-Eingabe](#warenerfassung); der laufende Ausgabetag wird dabei nicht herangezogen.
 
 Neben dem abgehakten Stopp werden Uhrzeit und Name der Person angezeigt, die ihn abgehakt hat. Der Zähler oben rechts zeigt den Fortschritt ("2 von 7 Stopps erledigt") — dieselbe Information, die auch die Punktreihe darüber schon farblich zeigt.
 
@@ -46,7 +46,7 @@ Die Kisten der Filialen einer Route werden bei der Waren-Eingabe erfasst (siehe 
 
 Wurde versehentlich **Retourniert** gedrückt, stellt **Rückgängig machen** den Stand wieder her — allerdings nur am selben Tag. Zurückgebrachte Kisten sind an diesem Tag noch durchgestrichen zu sehen und verschwinden danach aus der Liste; sind alle Kisten zurück, steht dort "Alle Retourkisten sind zurückgebracht.".
 
-Das Routen-Navi bleibt davon unberührt: Es zeigt weiterhin nur die Kisten der letzten Fahrt an der jeweiligen Filiale, damit unterwegs nichts abgehakt werden muss.
+Dieselbe Bestätigung gibt es auch im [Routen-Navi](#routen-navi) beim jeweiligen Stopp (**Abgegeben**), damit sie direkt vor Ort erfolgen kann; das Routen-Navi zeigt dort aber weiterhin nur die Kisten der letzten Fahrt, nicht die aus früheren Wochen.
 
 ## Warenerfassung
 

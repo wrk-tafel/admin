@@ -5,7 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
-- Neue Seite "Retourkisten" (Logistik → Retourkisten) zeigt je Route und Filiale, welche Kisten wie oft zurückgebracht werden müssen und seit wann; über "Retourniert" wird eine Filiale als erledigt markiert, nicht mitgenommene Kisten bleiben bis zur Rückgabe in der Liste.
+- Neue Seite "Retourkisten" (Logistik → Retourkisten) zeigt je Route und Filiale, welche Kisten wie oft zurückgebracht werden müssen und seit wann; über "Retourniert" wird eine Filiale als erledigt markiert, nicht mitgenommene Kisten bleiben bis zur Rückgabe in der Liste; dieselbe Bestätigung ("Abgegeben") gibt es im Routen-Navi direkt beim Stopp.
 - Neue Glocke in der Kopfzeile: sie sammelt Push-Benachrichtigungen (auch für Benutzer ohne aktiviertes Push, beim nächsten Login) und Ankündigungen, die Administratoren unter Einstellungen → Ankündigungen für alle Benutzer veröffentlichen, mit Zähler für ungelesene Einträge; neue Ankündigungen werden zusätzlich als Push-Benachrichtigung verschickt (unter Mein Konto → Benachrichtigungen abschaltbar).
 - Die Seite "Kunden-Übersicht" heißt jetzt "Neu & Verlängert" (Name der Seite und der zugehörigen Berechtigung) und steht in der Gruppe "Auswertungen" an erster Stelle; die Ausgabe wird dort über eine einfache Auswahlliste statt einem Suchfeld gewählt.
 - Die Ausgabe-Auswahl auf den Seiten "Statistiken → Allgemein" und "Einstellungen → E-Mails erneut senden" ist jetzt ebenfalls eine einfache Auswahlliste statt einem Suchfeld.

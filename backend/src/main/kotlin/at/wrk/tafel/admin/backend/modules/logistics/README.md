@@ -140,8 +140,9 @@ DB level — it only governs `modules`-to-`modules` traffic.
   that confirmation back. Both require `LOGISTICS`, and both answer with the whole list.
 - A box is outstanding until `food_collections_return_items.returned_at` is set, so a box a route did
   not take along on its next trip **carries over** to every later week instead of dropping out of
-  the list - unlike route guidance, which only ever looks at a route's previous collection and stays
-  as it is (it is the drivers' phone screen and is deliberately independent of this one).
+  the list - unlike route guidance, which still only looks at a route's previous collection. Guidance
+  reads the same `returned_at` (a box confirmed back today stays listed, ticked off; an older
+  confirmation drops out) and its stop card confirms through the same `PUT`, so both screens agree.
 - The running distribution's collections are excluded, same cut-off as guidance. Confirmation is per
   shop and route, not per box: it settles every outstanding row of that pair across all past
   collections. Undo only reaches confirmations made today (server date), which is also how long a
