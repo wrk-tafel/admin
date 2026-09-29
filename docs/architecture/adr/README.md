@@ -55,6 +55,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0059](0059-second-factor-changes-need-an-existing-second-factor.md) | A completed session proves an existing second factor before it changes the second factor | accepted |
 | [0061](0061-mandatory-two-factor-setup-happens-in-the-login-flow.md) | A mandatory two-factor setup happens in the login flow, not inside the application | accepted |
 | [0062](0062-mandatory-mfa-also-requires-an-email-address.md) | A mandatory second factor also requires an e-mail address on file | accepted |
+| [0063](0063-one-event-stream-per-tab-with-topics.md) | One event stream per browser tab, made of topics | accepted |
 | [0060](0060-users-and-employees-are-separate-records-with-no-link.md) | Users and employees are separate records with no link between them | accepted |
 | [0050](0050-customer-documents-split-into-its-own-permission.md) | The documents tab gets its own permission, separate from CUSTOMER | accepted |
 | [0051](0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md) | Data-subject requests search across areas, then delegate to each area's own export/delete | accepted |

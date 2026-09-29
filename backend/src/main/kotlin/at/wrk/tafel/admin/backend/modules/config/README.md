@@ -26,7 +26,7 @@ while this module is the read-only HTTP view of it for the frontend.
 
 - [`ConfigController`](ConfigController.kt): `GET /api/config`, requires only `isAuthenticated()`,
   plus `GET /api/config/public`, which anyone may call.
-- [`ConfigSseController`](ConfigSseController.kt): `GET /api/sse/config`, which pushes the config
+- [`ConfigSseTopic`](ConfigSseTopic.kt): the `config` topic of `GET /api/sse/events`, which pushes the config
   again whenever it changes in the backend. It emits nothing on subscribe — `GET /api/config` is
   what a page load reads, this carries only the deltas after it.
 - [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildDate, scannerFolderEnabled)`

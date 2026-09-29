@@ -7,7 +7,7 @@ import { TestBed } from '@angular/core/testing';
 describe('GlobalStateService', () => {
     function setup() {
         const sseServiceSpy = {
-            listen: vi.fn().mockName('SseService.listen')
+            topic: vi.fn().mockName('SseService.topic')
         };
 
         TestBed.configureTestingModule({
@@ -22,6 +22,15 @@ describe('GlobalStateService', () => {
         return { service, sseServiceSpy };
     }
 
+    // The service listens to two topics; each test feeds the stream it is about and leaves the other idle.
+    function mockTopics(sseServiceSpy: { topic: ReturnType<typeof vi.fn> }, streams: Record<string, unknown>) {
+        sseServiceSpy.topic.mockImplementation((name: string) => streams[name] ?? new Subject());
+    }
+
+    function callsOf(sseServiceSpy: { topic: ReturnType<typeof vi.fn> }, name: string) {
+        return sseServiceSpy.topic.mock.calls.filter(call => call[0] === name);
+    }
+
     it('init calls services correctly', () => {
         const { service, sseServiceSpy } = setup();
         expect(service.getCurrentDistribution()()).toBeNull();
@@ -33,17 +42,17 @@ describe('GlobalStateService', () => {
                 startedAt: new Date()
             }
         };
-        sseServiceSpy.listen.mockReturnValue(of(testDistributionUpdate));
+        mockTopics(sseServiceSpy, {distribution: of(testDistributionUpdate)});
 
         service.init();
 
         expect(service.getCurrentDistribution()()).toEqual(testDistributionUpdate.distribution);
         expect(service.getHasReceivedDistribution()()).toBe(true);
 
-        const args = vi.mocked(sseServiceSpy.listen).mock.lastCall!;
-        expect(args[0]).toBe('/sse/distributions');
+        const args = callsOf(sseServiceSpy, 'distribution')[0];
+        expect(args[0]).toBe('distribution');
 
-        const connectionStateCallback = args[1];
+        const connectionStateCallback = args[1].connectionStateCallback;
         connectionStateCallback(false);
         expect(service.getConnectionState()()).toBe(false);
         connectionStateCallback(true);
@@ -55,13 +64,13 @@ describe('GlobalStateService', () => {
     // connection for good and eventually starves the tab of them entirely.
     it('opens the sse connection only once even when init is called repeatedly', () => {
         const { service, sseServiceSpy } = setup();
-        sseServiceSpy.listen.mockReturnValue(of());
+        mockTopics(sseServiceSpy, {distribution: of()});
 
         service.init();
         service.init();
         service.init();
 
-        expect(sseServiceSpy.listen).toHaveBeenCalledTimes(1);
+        expect(callsOf(sseServiceSpy, 'distribution')).toHaveLength(1);
     });
 
     // The server sends the current state once, when a stream opens. A reset that left the old stream
@@ -71,7 +80,9 @@ describe('GlobalStateService', () => {
         const { service, sseServiceSpy } = setup();
         const firstStream = new Subject<DistributionItemUpdate>();
         const secondStream = new Subject<DistributionItemUpdate>();
-        sseServiceSpy.listen.mockReturnValueOnce(firstStream).mockReturnValueOnce(secondStream);
+        let distributionCalls = 0;
+        sseServiceSpy.topic.mockImplementation((name: string) =>
+            name === 'distribution' ? (distributionCalls++ === 0 ? firstStream : secondStream) : new Subject());
         const distribution = { id: 123, startedAt: new Date() };
 
         service.init();
@@ -83,7 +94,7 @@ describe('GlobalStateService', () => {
         expect(service.getHasReceivedDistribution()()).toBe(false);
 
         service.init();
-        expect(sseServiceSpy.listen).toHaveBeenCalledTimes(2);
+        expect(callsOf(sseServiceSpy, 'distribution')).toHaveLength(2);
         secondStream.next({ distribution });
 
         expect(service.getCurrentDistribution()()).toEqual(distribution);
@@ -92,34 +103,35 @@ describe('GlobalStateService', () => {
 
     it('reports the connection as down after reset', () => {
         const { service, sseServiceSpy } = setup();
-        sseServiceSpy.listen.mockReturnValue(new Subject<DistributionItemUpdate>());
+        mockTopics(sseServiceSpy, {distribution: new Subject<DistributionItemUpdate>()});
         service.init();
-        sseServiceSpy.listen.mock.lastCall![1](true);
+        callsOf(sseServiceSpy, 'distribution')[0][1].connectionStateCallback(true);
 
         service.reset();
 
         expect(service.getConnectionState()()).toBe(false);
     });
 
-    it('counts the notifications-changed signals of the stream and starts over after reset', () => {
+    it('counts the signals of the notifications topic and starts over after reset', () => {
         const { service, sseServiceSpy } = setup();
-        sseServiceSpy.listen.mockReturnValue(new Subject<DistributionItemUpdate>());
+        const signals = new Subject<unknown>();
+        mockTopics(sseServiceSpy, {notifications: signals});
         service.init();
-        const handlers = sseServiceSpy.listen.mock.lastCall![2];
         expect(service.getNotificationsVersion()()).toBe(0);
 
-        handlers['notifications-changed']();
-        handlers['notifications-changed']();
+        signals.next({});
+        signals.next({});
         expect(service.getNotificationsVersion()()).toBe(2);
 
         service.reset();
+        expect(signals.observed).toBe(false);
         expect(service.getNotificationsVersion()()).toBe(0);
     });
 
     it('exposes the registered customer count of the open distribution', () => {
         const { service, sseServiceSpy } = setup();
         const updates = new Subject<DistributionItemUpdate>();
-        sseServiceSpy.listen.mockReturnValue(updates);
+        mockTopics(sseServiceSpy, {distribution: updates});
         expect(service.getRegisteredCustomers()()).toBeNull();
 
         service.init();
@@ -143,7 +155,7 @@ describe('GlobalStateService', () => {
     it('keeps the distribution object while only the customer count changes', () => {
         const { service, sseServiceSpy } = setup();
         const updates = new Subject<DistributionItemUpdate>();
-        sseServiceSpy.listen.mockReturnValue(updates);
+        mockTopics(sseServiceSpy, {distribution: updates});
         service.init();
 
         const startedAt = new Date('2026-09-19T10:00:00Z');
@@ -156,7 +168,7 @@ describe('GlobalStateService', () => {
 
     it('drops the registered customer count on reset', () => {
         const { service, sseServiceSpy } = setup();
-        sseServiceSpy.listen.mockReturnValue(of({ distribution: { id: 1, startedAt: new Date() }, registeredCustomers: 5 }));
+        mockTopics(sseServiceSpy, {distribution: of({ distribution: { id: 1, startedAt: new Date() }, registeredCustomers: 5 })});
         service.init();
 
         service.reset();

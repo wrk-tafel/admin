@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
-import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketScreenController.Companion.TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME
@@ -8,13 +7,14 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.verify
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
 @ExtendWith(MockKExtension::class)
-internal class DistributionTicketScreenSseControllerTest {
+internal class TicketScreenSseTopicTest {
 
     @RelaxedMockK
     private lateinit var service: DistributionService
@@ -22,11 +22,8 @@ internal class DistributionTicketScreenSseControllerTest {
     @RelaxedMockK
     private lateinit var sseOutboxService: SseOutboxService
 
-    @RelaxedMockK
-    private lateinit var sseEmitterFactory: SseEmitterFactory
-
     @InjectMockKs
-    private lateinit var controller: DistributionTicketScreenSseController
+    private lateinit var topic: TicketScreenSseTopic
 
     @Test
     fun `listen for changes replays what the monitor last showed`() {
@@ -41,9 +38,10 @@ internal class DistributionTicketScreenSseControllerTest {
             )
         } returns lastShown
 
-        val emitter = controller.listenForChanges()
+        val emitter = mockk<SseEmitter>(relaxed = true)
+        topic.subscribe(emitter, null)
 
-        verify { sseOutboxService.sendEvent(emitter, lastShown) }
+        verify { sseOutboxService.sendEvent(emitter, lastShown, "ticket-screen") }
         verify(exactly = 0) { service.getCurrentTicketNumberValue() }
     }
 
@@ -61,23 +59,25 @@ internal class DistributionTicketScreenSseControllerTest {
         every { service.hasCurrentDistribution() } returns true
         every { service.getCurrentTicketNumberValue() } returns 50
 
-        val emitter = controller.listenForChanges()
-        assertThat(emitter).isNotNull
+        val emitter = mockk<SseEmitter>(relaxed = true)
+        topic.subscribe(emitter, null)
 
         verify {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 resultType = TicketScreenShowTextRequest::class.java,
+                eventName = "ticket-screen",
             )
         }
 
-        verify { sseOutboxService.sendEvent(emitter, testValue) }
+        verify { sseOutboxService.sendEvent(emitter, testValue, "ticket-screen") }
         verify {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 resultType = TicketScreenShowTextRequest::class.java,
+                eventName = "ticket-screen",
             )
         }
     }
@@ -95,23 +95,25 @@ internal class DistributionTicketScreenSseControllerTest {
         } returns null
         every { service.hasCurrentDistribution() } returns false
 
-        val emitter = controller.listenForChanges()
-        assertThat(emitter).isNotNull
+        val emitter = mockk<SseEmitter>(relaxed = true)
+        topic.subscribe(emitter, null)
 
         verify {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 resultType = TicketScreenShowTextRequest::class.java,
+                eventName = "ticket-screen",
             )
         }
 
-        verify { sseOutboxService.sendEvent(emitter, testValue) }
+        verify { sseOutboxService.sendEvent(emitter, testValue, "ticket-screen") }
         verify {
             sseOutboxService.forwardNotificationEventsToSse(
                 sseEmitter = emitter,
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 resultType = TicketScreenShowTextRequest::class.java,
+                eventName = "ticket-screen",
             )
         }
     }

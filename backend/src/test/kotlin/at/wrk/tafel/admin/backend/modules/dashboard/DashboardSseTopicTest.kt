@@ -1,22 +1,22 @@
 package at.wrk.tafel.admin.backend.modules.dashboard
 
-import at.wrk.tafel.admin.backend.common.sse.SseEmitterFactory
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
-import at.wrk.tafel.admin.backend.modules.dashboard.DashboardController.Companion.DASHBOARD_UPDATE_NOTIFICATION_NAME
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardSseTopic.Companion.DASHBOARD_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
-internal class DashboardControllerTest {
+internal class DashboardSseTopicTest {
 
     @RelaxedMockK
     private lateinit var service: DashboardService
@@ -24,11 +24,8 @@ internal class DashboardControllerTest {
     @RelaxedMockK
     private lateinit var sseOutboxService: SseOutboxService
 
-    @RelaxedMockK
-    private lateinit var sseEmitterFactory: SseEmitterFactory
-
     @InjectMockKs
-    private lateinit var controller: DashboardController
+    private lateinit var topic: DashboardSseTopic
 
     @Test
     fun `listen for dashboard data`() {
@@ -65,10 +62,10 @@ internal class DashboardControllerTest {
         )
         every { service.getData() } returns data
 
-        val sseEmitter = controller.listenForDashboardData()
-        assertThat(sseEmitter).isNotNull
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
+        topic.subscribe(sseEmitter, null)
 
-        verify { sseOutboxService.sendEvent(sseEmitter, data) }
+        verify { sseOutboxService.sendEvent(sseEmitter, data, "dashboard") }
 
         val callbackSlot = slot<(Void?) -> Unit>()
         verify {
@@ -83,6 +80,6 @@ internal class DashboardControllerTest {
         val callback = callbackSlot.captured
         callback(null)
 
-        verify { sseOutboxService.sendEvent(sseEmitter, data) }
+        verify { sseOutboxService.sendEvent(sseEmitter, data, "dashboard") }
     }
 }

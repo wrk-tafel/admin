@@ -14,7 +14,7 @@ internal class NotificationChangeSignalTest {
     private lateinit var sseOutboxService: SseOutboxService
 
     @Test
-    fun `files an empty change signal in the sse outbox under the name the distribution stream forwards`() {
+    fun `files an empty change signal in the sse outbox under the name its topic forwards`() {
         NotificationChangeSignal(sseOutboxService).signal()
 
         verify { sseOutboxService.saveOutboxEntry("notifications_changed", emptyMap<String, String>()) }

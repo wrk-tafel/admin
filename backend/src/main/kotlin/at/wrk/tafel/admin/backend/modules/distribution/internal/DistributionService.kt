@@ -149,7 +149,7 @@ class DistributionService(
     /**
      * When the most recently ended distribution ended - the ticket-screen SSE stream uses it as
      * the lower bound for replaying what the monitor last showed (see
-     * [at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketScreenSseController]),
+     * [at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.TicketScreenSseTopic]),
      * so state from a past distribution day never resurfaces on a freshly opened monitor.
      */
     fun getLastEndedDistributionTime(): LocalDateTime? = distributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()?.endedAt

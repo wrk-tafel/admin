@@ -35,7 +35,7 @@ describe('DashboardComponent', () => {
         {
           provide: SseService,
           useValue: {
-            listen: vi.fn().mockName('SseService.listen')
+            topic: vi.fn().mockName('SseService.topic')
           }
         },
         {
@@ -56,7 +56,7 @@ describe('DashboardComponent', () => {
   }));
 
   it('component can be created', () => {
-    sseService.listen.mockReturnValueOnce(of({}));
+    sseService.topic.mockReturnValueOnce(of({}));
 
     const fixture = TestBed.createComponent(DashboardComponent);
     const component = fixture.componentInstance;
@@ -77,17 +77,17 @@ describe('DashboardComponent', () => {
         selectedShelterNames: ['Shelter 1', 'Shelter 2', 'Shelter 3'],
       }
     };
-    sseService.listen.mockReturnValueOnce(of(mockData));
+    sseService.topic.mockReturnValueOnce(of(mockData));
 
     const fixture = TestBed.createComponent(DashboardComponent);
     const component = fixture.componentInstance;
 
     expect(component.data()).toEqual(mockData);
-    expect(sseService.listen).toHaveBeenCalledWith('/sse/dashboard');
+    expect(sseService.topic).toHaveBeenCalledWith('dashboard');
   });
 
   it('isDistributionActive is true while a distribution is open', () => {
-    sseService.listen.mockReturnValueOnce(of({}));
+    sseService.topic.mockReturnValueOnce(of({}));
 
     const fixture = TestBed.createComponent(DashboardComponent);
     const component = fixture.componentInstance;
@@ -96,7 +96,7 @@ describe('DashboardComponent', () => {
   });
 
   it('isDistributionActive is false once the distribution has ended', () => {
-    sseService.listen.mockReturnValueOnce(of({}));
+    sseService.topic.mockReturnValueOnce(of({}));
     currentDistribution.set({...mockDistribution, endedAt: new Date()});
 
     const fixture = TestBed.createComponent(DashboardComponent);
@@ -106,7 +106,7 @@ describe('DashboardComponent', () => {
   });
 
   it('isDistributionActive is false when no distribution has been received yet', () => {
-    sseService.listen.mockReturnValueOnce(of({}));
+    sseService.topic.mockReturnValueOnce(of({}));
     currentDistribution.set(null);
 
     const fixture = TestBed.createComponent(DashboardComponent);

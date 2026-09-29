@@ -6,7 +6,7 @@
  * are created on the administrators' own screen and shown to all users, with a per-user read state.
  * <p>
  * Every change is signalled to the open sessions through the SSE outbox ({@code NotificationChangeSignal});
- * {@code distribution}'s stream, which every session holds open, forwards it as a named event.
+ * {@code NotificationsSseTopic} forwards it as the {@code notifications} topic of the tab's one event stream.
  * <p>
  * Nothing here knows {@code push}; the dependency points the other way.
  */

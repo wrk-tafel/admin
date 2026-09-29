@@ -5,7 +5,7 @@ import {SseService} from '../sse/sse.service';
 
 /**
  * App-wide "is a distribution currently open" state, kept in sync via a single shared SSE
- * subscription to `/sse/distributions` (see `common/sse/sse.service.ts`). Any module that needs
+ * subscription to the `distribution` topic (see `common/sse/sse.service.ts`). Any module that needs
  * to know whether a distribution is active (checkin, logistics, dashboard, ...) should read it
  * from here rather than opening its own subscription or re-deriving the state locally, so they
  * all agree on the same value.
@@ -23,7 +23,7 @@ export class GlobalStateService {
   private subscription: Subscription | null = null;
 
   /**
-   * Starts the `/sse/distributions` subscription. Called from `default-layout-resolver`, before any
+   * Starts the `distribution` and `notifications` subscriptions. Called from `default-layout-resolver`, before any
    * consumer reads {@link getCurrentDistribution}/{@link getConnectionState}/
    * {@link getHasReceivedDistribution} - until the first SSE message arrives,
    * `getCurrentDistribution()` stays `null`, which looks identical to "no distribution is open".
@@ -32,15 +32,12 @@ export class GlobalStateService {
    * initial snapshot has arrived". Consumers that need to tell "not loaded yet" apart from
    * "confirmed closed" must gate on {@link getHasReceivedDistribution} instead.
    *
-   * Keeps at most one connection open, however often it is called. The resolver runs again every
+   * Keeps at most one subscription open, however often it is called. The resolver runs again every
    * time the authenticated layout is entered - so once per login, and a logout/login round trip in
    * the same tab goes through it again - while this service is root-scoped and survives all of
-   * that, so a second subscription here would be a second `EventSource` that nothing ever closes.
-   * Browsers cap an origin at six concurrent HTTP/1.1 connections, and a permanently open SSE
-   * stream holds one for good: a few of those leaked and the tab ran out of connections entirely,
-   * leaving every later request - API calls, images, even a reload - queued until the reverse
-   * proxy answered 504. Reconnecting after a drop is
-   * `SseService`'s job (see `common/sse/sse.service.ts`), not a reason to subscribe again.
+   * that, so a second subscription here would be a subscriber nothing ever unsubscribes, keeping
+   * its topics (and with them the tab's one stream) alive after the session ended. Reconnecting after
+   * a drop is `SseService`'s job (see `common/sse/sse.service.ts`), not a reason to subscribe again.
    * {@link reset} closes the connection, so the next call after a logout opens a new one.
    */
   init() {
@@ -53,10 +50,7 @@ export class GlobalStateService {
     };
 
     // Subscribe to SSE and update the signal
-    this.subscription = this.sseService.listen<DistributionItemUpdate>('/sse/distributions', connectionStateCallback, {
-      // the bell's list changed on the server - see getNotificationsVersion
-      'notifications-changed': () => this._notificationsVersion.update(version => version + 1)
-    }).subscribe({
+    this.subscription = this.sseService.topic<DistributionItemUpdate>('distribution', {connectionStateCallback}).subscribe({
       next: (distributionUpdate: DistributionItemUpdate) => {
         const distributionItem = distributionUpdate.distribution;
         // The server re-sends this message whenever the registered-customer count changes. A new
@@ -75,6 +69,11 @@ export class GlobalStateService {
         this._hasReceivedDistribution.set(true);
       }
     });
+
+    // the bell's list changed on the server - see getNotificationsVersion
+    this.subscription.add(
+      this.sseService.topic('notifications').subscribe(() => this._notificationsVersion.update(version => version + 1))
+    );
   }
 
   getCurrentDistribution(): Signal<DistributionItem | null> {
@@ -82,7 +81,7 @@ export class GlobalStateService {
   }
 
   /**
-   * Households registered for the open distribution, pushed on the same `/sse/distributions` stream
+   * Households registered for the open distribution, pushed on the same `distribution` topic
    * so the header can show it on every screen without a stream of its own. `null` while no
    * distribution is open or before the first message.
    */
@@ -104,7 +103,7 @@ export class GlobalStateService {
   }
 
   /**
-   * `true` once the first `/sse/distributions` message has actually been processed - unlike
+   * `true` once the first `distribution` message has actually been processed - unlike
    * {@link getConnectionState}, this can't flip to `true` before {@link getCurrentDistribution}
    * reflects real server state, so it's safe to gate "confirmed closed" redirects on.
    */
@@ -113,7 +112,7 @@ export class GlobalStateService {
   }
 
   /**
-   * Closes the `/sse/distributions` stream and drops the last-known distribution snapshot. Call
+   * Gives up the `distribution` and `notifications` topics and drops the last-known distribution snapshot. Call
    * this from {@link AuthenticationService#logout}.
    *
    * The stream has to go with the snapshot: the server sends the current state once, when a stream

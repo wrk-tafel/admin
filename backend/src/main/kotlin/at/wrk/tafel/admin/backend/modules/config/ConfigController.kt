@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
  * The injected [TafelAdminProperties] are re-bound in place when an operator edits the mounted
  * config file (see `ConfigFileReloadService`), so reading them per request is what makes this
  * endpoint answer with the new values without a restart. Sessions that are already open don't have
- * to wait for their next request - `ConfigSseController` pushes the same change to them.
+ * to wait for their next request - `ConfigSseTopic` pushes the same change to them.
  */
 @RestController
 @RequestMapping("/api/config")
