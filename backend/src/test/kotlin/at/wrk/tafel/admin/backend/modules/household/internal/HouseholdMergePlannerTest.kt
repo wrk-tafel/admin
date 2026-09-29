@@ -153,11 +153,16 @@ class HouseholdMergePlannerTest {
     }
 
     @Test
-    fun `applyField for LOCK_STATE copies locked, lockedAt, lockedBy, lockReason, lockReasonType and lockedUntil together`() {
+    fun `applyField for LOCK_STATE copies locked, lockedAt, lockedBy, lockReason, lockReasonType, lockedUntil and the lock review together`() {
         val lockedAt = LocalDateTime.now()
         val lockedBy = testUserEntity
         val lockedUntil = LocalDate.now().plusDays(10)
-        val target = household(1)
+        val lockReviewedAt = LocalDateTime.now().minusDays(3)
+        val target = household(1).apply {
+            // a review of the target's own lock must not outlive the lock that replaces it
+            this.lockReviewedAt = LocalDateTime.now().minusYears(1)
+            this.lockReviewedBy = lockedBy
+        }
         val source = household(2).apply {
             locked = true
             this.lockedAt = lockedAt
@@ -165,6 +170,7 @@ class HouseholdMergePlannerTest {
             lockReason = "fraud suspicion"
             lockReasonType = HouseholdLockReason.MISUSE_OF_SERVICES
             this.lockedUntil = lockedUntil
+            this.lockReviewedAt = lockReviewedAt
         }
 
         HouseholdMergePlanner.applyField(HouseholdMergeField.LOCK_STATE, target, source)
@@ -175,6 +181,8 @@ class HouseholdMergePlannerTest {
         assertThat(target.lockReason).isEqualTo("fraud suspicion")
         assertThat(target.lockReasonType).isEqualTo(HouseholdLockReason.MISUSE_OF_SERVICES)
         assertThat(target.lockedUntil).isEqualTo(lockedUntil)
+        assertThat(target.lockReviewedAt).isEqualTo(lockReviewedAt)
+        assertThat(target.lockReviewedBy).isNull()
     }
 
     @Test

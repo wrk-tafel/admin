@@ -105,6 +105,7 @@ class SseOutboxService(
     /**
      * @param replayable see [SseOutboxListenerService.registerCallback] - whether this stream's
      * subscribers can take a duplicate or a late delivery of an event after a reconnect.
+     * @param eventName the SSE `event:` name the forwarded payloads carry, see [sendEvent].
      */
     fun <T> forwardNotificationEventsToSse(
         sseEmitter: SseEmitter,
@@ -112,11 +113,12 @@ class SseOutboxService(
         resultType: Class<T>,
         acceptFilter: (data: T?) -> Boolean = { true },
         replayable: Boolean = true,
+        eventName: String? = null,
     ) {
         val callback: (String?) -> Unit = { payload ->
             val value = if (payload != null) jsonMapper.readValue(payload, resultType) else null
             if (acceptFilter(value)) {
-                sendEvent(sseEmitter, payload)
+                sendEvent(sseEmitter, payload, eventName)
             }
         }
 
@@ -226,8 +228,16 @@ class SseOutboxService(
         return sanitizeForLog("${request.method} ${request.requestURI}")
     }
 
-    fun sendEvent(sseEmitter: SseEmitter, data: Any?) {
+    /**
+     * @param eventName sent as the SSE `event:` field. A stream that carries more than one kind of
+     * message names all but its main one, so the browser can route them to different listeners
+     * (`EventSource.addEventListener`) instead of parsing everything as the main payload.
+     */
+    fun sendEvent(sseEmitter: SseEmitter, data: Any?, eventName: String? = null) {
         var event = SseEmitter.event()
+        if (eventName != null) {
+            event = event.name(eventName)
+        }
         if (data != null) {
             event = event.data(data)
         }

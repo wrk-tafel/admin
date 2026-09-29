@@ -33,6 +33,7 @@ object PushNotificationTypeTargeting {
         PushNotificationType.SCANNER_FILES_EXPIRING to setOf(UserPermissions.CUSTOMER_DOCUMENTS),
         PushNotificationType.RETENTION_RUN to setOf(UserPermissions.ADMINISTRATOR),
         PushNotificationType.RETENTION_EXPIRING to setOf(UserPermissions.ADMINISTRATOR),
+        PushNotificationType.HOUSEHOLD_LOCK_REVIEW_DUE to setOf(UserPermissions.CUSTOMER),
     )
 
     /**
@@ -64,6 +65,10 @@ object PushNotificationTypeTargeting {
         // the screen listing exactly what the notification counts: user accounts, customers and
         // employees about to be deleted, each with a link to where it can be dealt with
         PushNotificationType.RETENTION_EXPIRING to "einstellungen/anstehende-loeschungen",
+        // the list of locked customers, with the ones due for review marked
+        PushNotificationType.HOUSEHOLD_LOCK_REVIEW_DUE to "kunden/gesperrt",
+        // an announcement carries its own text; the dashboard is where the bell is within reach
+        PushNotificationType.ANNOUNCEMENT to "uebersicht",
     )
 
     /**

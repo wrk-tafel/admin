@@ -15,7 +15,7 @@ export class DocumentScannerApiService {
   }
 
   listenForScannerFileChanges(): Observable<ScannerFilesResponse> {
-    return this.sseService.listen<ScannerFilesResponse>('/sse/document-scanner-files');
+    return this.sseService.topic<ScannerFilesResponse>('scanner-files');
   }
 
   /**

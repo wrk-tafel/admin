@@ -185,6 +185,57 @@ class HouseholdRepositoryIT : TafelBaseIntegrationTest() {
         assertThat(result).doesNotContain(notYetExpiredLock.householdId, permanentLock.householdId)
     }
 
+    @Test
+    fun `countLockReviewsDue counts only open-ended locks not reviewed within the cutoff`() {
+        val now = LocalDateTime.now()
+        val cutoff = now.minusMonths(6)
+        val before = householdRepository.countLockReviewsDue(cutoff)
+
+        persistLocked(lockedAt = now.minusYears(1))
+        persistLocked(lockedAt = now.minusYears(1), reviewedAt = now.minusDays(3))
+        persistLocked(lockedAt = now.minusYears(1), reviewedAt = now.minusYears(1))
+        persistLocked(lockedAt = now.minusDays(3))
+        persistLocked(lockedAt = now.minusYears(1), lockedUntil = LocalDate.now().plusDays(10))
+        persistLocked(lockedAt = null)
+        val notLocked = persistHousehold(validUntil = LocalDate.now().plusYears(1))
+        testEntityManager.persist(notLocked)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        // due: old never reviewed, reviewed long ago, and the lock with no timestamp at all
+        assertThat(householdRepository.countLockReviewsDue(cutoff) - before).isEqualTo(3)
+    }
+
+    @Test
+    fun `the lockReviewDue and openEndedLock specs match what the count query counts`() {
+        val now = LocalDateTime.now()
+        val cutoff = now.minusMonths(6)
+        val due = persistLocked(lockedAt = now.minusYears(1))
+        val reviewed = persistLocked(lockedAt = now.minusYears(1), reviewedAt = now.minusDays(3))
+        val temporary = persistLocked(lockedAt = now.minusYears(1), lockedUntil = LocalDate.now().plusDays(10))
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val dueIds = householdRepository.findAll(HouseholdEntity.Specs.lockReviewDue(cutoff)).map { it.householdId }
+        val openEndedIds = householdRepository.findAll(HouseholdEntity.Specs.openEndedLock()).map { it.householdId }
+
+        assertThat(dueIds).contains(due.householdId).doesNotContain(reviewed.householdId, temporary.householdId)
+        assertThat(openEndedIds).contains(due.householdId, reviewed.householdId).doesNotContain(temporary.householdId)
+        assertThat(householdRepository.findAll(HouseholdEntity.Specs.lockedHousehold()).map { it.householdId })
+            .contains(due.householdId, reviewed.householdId, temporary.householdId)
+    }
+
+    private fun persistLocked(lockedAt: LocalDateTime?, lockedUntil: LocalDate? = null, reviewedAt: LocalDateTime? = null): HouseholdEntity {
+        val household = persistHousehold(validUntil = LocalDate.now().plusYears(1)).apply {
+            locked = true
+            this.lockedAt = lockedAt
+            this.lockedUntil = lockedUntil
+            lockReviewedAt = reviewedAt
+        }
+        testEntityManager.persist(household)
+        return household
+    }
+
     /**
      * `updated_at` is filled by JPA auditing on write, so testing a specific window requires updating
      * the column afterwards, the same way `StatisticsServiceIT.setRegisteredAt` does for `created_at`.

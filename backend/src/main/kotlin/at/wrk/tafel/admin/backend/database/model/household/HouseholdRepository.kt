@@ -59,6 +59,17 @@ interface HouseholdRepository :
     fun findIdByUpdatedAtBetween(@Param("fromDate") fromDate: LocalDateTime, @Param("toDate") toDate: LocalDateTime): List<Long>
 
     /**
+     * Open-ended locks (no `lockedUntil`) whose last review - or, never reviewed, the lock itself -
+     * is older than [cutoff]; the count behind `HouseholdLockReviewReminderService` (issue #3763).
+     * Same rule as `HouseholdEntity.Specs.lockReviewDue`, which the "Gesperrte Kunden" list uses.
+     */
+    @Query(
+        "select count(h) from Household h where h.locked = true and h.lockedUntil is null " +
+            "and (coalesce(h.lockReviewedAt, h.lockedAt) is null or coalesce(h.lockReviewedAt, h.lockedAt) < :cutoff)",
+    )
+    fun countLockReviewsDue(@Param("cutoff") cutoff: LocalDateTime): Long
+
+    /**
      * Every household still entitled today and not locked - what the dashboard's "Kunden gesamt"
      * tile shows while no distribution is active. `date` is a parameter rather than `CURRENT_DATE`
      * baked into the query so the count stays testable with a fixed reference date.

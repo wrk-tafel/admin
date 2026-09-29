@@ -2,7 +2,9 @@
 
 # Einstellungen
 
-Der Bereich "Einstellungen" bündelt die zentrale Konfiguration der Anwendung. Der Menüpunkt ist nur für Benutzer mit der Berechtigung "Einstellungen" sichtbar.
+Der Bereich "Einstellungen" bündelt die zentrale Konfiguration der Anwendung. Der Menüpunkt ist nur für Benutzer mit der Berechtigung "Einstellungen" sichtbar. Er öffnet eine Übersichtsseite mit allen Bereichen als Karten, gruppiert nach **Logistik**, **Kunden & Betreuung** und **System**; ein Klick auf eine Karte öffnet den Bereich.
+
+![Einstellungen – Übersicht](images/einstellungen-uebersicht.jpg)
 
 Die Tabellen dieses Bereichs werden auf schmalen Bildschirmen als Kartenliste dargestellt – eine Karte je Eintrag, mit denselben Angaben und denselben Aktionen wie in der Tabelle, inklusive Drag-Handle (⋮⋮) zum Sortieren (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)). [Notschlafstellen](#notschlafstellen), [Filialen](#filialen) und [Routen](#routen) sind keine Tabellen, sondern aufklappbare Listen und funktionieren daher auf jeder Bildschirmbreite gleich. Am Beispiel der Fahrzeuge:
 
@@ -31,7 +33,7 @@ Unter **Einstellungen → E-Mail** werden die Empfänger (An/CC/BCC) für automa
 
 Auf schmalen Bildschirmen stehen An, CC und BCC nicht nebeneinander, sondern durch Trennlinien getrennt untereinander.
 
-Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (durchsuchbares Eingabefeld, standardmäßig die aktuellste) der zugehörige Tagesreport erneut versendet werden.
+Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (Auswahlliste, standardmäßig die aktuellste) der zugehörige Tagesreport erneut versendet werden.
 
 <a id="notschlafstellen"></a>
 
@@ -198,6 +200,17 @@ Mitarbeiter, die seit zwei Jahren in keiner Warenerfassung mehr als Fahrer/Beifa
 
 Über den Download-Button lässt sich pro Mitarbeiter eine DSGVO-Datenauskunft (Art. 15/20) als ZIP-Datei herunterladen – Personalnummer, Name und Anlagedatum, sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei. Der Button steht bei jedem Mitarbeiter zur Verfügung; die Daten eines gleichnamigen Benutzerkontos sind ein eigener Datensatz und werden über die [Benutzer-Detailseite](benutzer.md) exportiert. Ist die Personalnummer nicht bekannt, hilft die Suche unter [Datenauskunft](datenauskunft.md), die Benutzerkonto und Mitarbeiter in einem Durchgang findet.
 
+<a id="ankuendigungen"></a>
+
+## Ankündigungen
+
+Unter **Einstellungen → Ankündigungen** veröffentlichen Administratoren Nachrichten für alle Benutzer, etwa "Am Freitag bleibt die Ausgabe geschlossen". Eine Ankündigung erscheint bei allen Benutzern unter der Glocke in der Kopfzeile (siehe [Benachrichtigungen (Glocke)](README.md#benachrichtigungen-glocke)) - auch bei denen, die gerade nicht angemeldet sind, beim nächsten Login. Die Seite ist nur für Benutzer mit der Berechtigung **Administrator** sichtbar und zugänglich.
+
+![Ankündigungen](images/einstellungen-ankuendigungen.jpg)
+
+- **Neue Ankündigung:** Titel und Nachricht sind Pflicht. Optional legt **Anzeigen bis** (Datum, dazu optional eine Uhrzeit) fest, bis wann die Ankündigung sichtbar ist; ohne Uhrzeit gilt das Ende des Tages (23:59 Uhr), ohne Datum bleibt sie, bis sie gelöscht wird. **Veröffentlichen** zeigt sie sofort allen Benutzern und schickt sie zusätzlich als Push-Benachrichtigung an alle Geräte, bei denen Push eingeschaltet ist. Wer das nicht möchte, schaltet die Art "Ankündigungen" unter Mein Konto → Benachrichtigungen ab (siehe [Benachrichtigungen](README.md#benachrichtigungen)). Eine spätere Änderung wird nicht erneut gepusht.
+- **Veröffentlichte Ankündigungen:** Die Liste darunter zeigt alle Ankündigungen samt Erstellungsdatum und Ablauf. Mit dem Stift-Symbol lässt sich eine Ankündigung bearbeiten (die Änderung gilt für alle Benutzer, auch für die, die sie schon gelesen haben), mit dem Papierkorb-Symbol wird sie gelöscht. Eine abgelaufene Ankündigung ist in keiner Glocke mehr sichtbar und wird nach 30 Tagen (einstellbar) automatisch entfernt.
+
 <a id="anstehende-loeschungen"></a>
 
 ## Anstehende Löschungen
@@ -211,7 +224,7 @@ Die Seite ist nur für Benutzer mit der Berechtigung **Administrator** sichtbar 
 Jeder Abschnitt nennt die geltende Aufbewahrungsfrist und listet, was innerhalb der nächsten 30 Tage gelöscht wird - **einschließlich dessen, was schon fällig ist** (Kennzeichen "Fällig"), aber noch nicht gelöscht wurde, etwa weil die nächtliche Bereinigung noch nicht gelaufen ist oder wegen der Sicherheitsgrenze pro Lauf angehalten hat. Jede Liste ist seitenweise abrufbar (Seitennavigation oberhalb und unterhalb, Anzahl pro Seite einstellbar, die Gesamtanzahl steht in der Überschrift) und zeigt die längsten Ungenutzten zuerst - so lässt sich auch ansehen, was über die Menge hinausgeht, die eine einzelne nächtliche Bereinigung löscht. Jeder Abschnitt blättert für sich.
 
 - **Benutzerkonten** werden nach einem Jahr ohne Anmeldung gelöscht (Administrator-Konten nie). Die Liste nennt Benutzername (als Link zu den [Benutzerdetails](benutzer.md)), Name, Personalnummer, den letzten Login - bei einem Konto, das sich nie angemeldet hat, das Anlagedatum - und das Datum der Löschung. Eine Anmeldung der Person genügt, damit das Konto bleibt.
-- **Kunden** werden 7 Jahre nach Ablauf ihrer Gültigkeit gelöscht. Die Liste nennt Kundennummer (als Link zur [Kunden-Detailansicht](kunden.md)), Name der Hauptperson, das Ende der Gültigkeit und das Datum der Löschung. Eine Verlängerung der Gültigkeit nimmt den Kunden wieder aus der Liste.
+- **Kunden** werden 7 Jahre nach Ablauf ihrer Gültigkeit gelöscht. Die Liste nennt Kundennummer (als Link zur [Kunden-Detailansicht](kunden.md)), Name der Hauptperson, das Ende der Gültigkeit und das Datum der Löschung. Eine Verlängerung der Gültigkeit nimmt den Kunden wieder aus der Liste. Ein Kunde, der wegen eines **Hausverbots** gesperrt ist, steht nie in der Liste und wird nicht gelöscht, solange die Sperre besteht - auch nicht, wenn seine Gültigkeit längst abgelaufen ist.
 - **Mitarbeiter** werden nach zwei Jahren ohne Einsatz als Fahrer:in oder Beifahrer:in in einer Warenerfassung gelöscht. Die Liste nennt Personalnummer, Name, den letzten Einsatz - bei einem nie eingesetzten Mitarbeiter das Anlagedatum - und das Datum der Löschung. Ein Link führt zur Mitarbeiterverwaltung (siehe [Mitarbeiter](#mitarbeiter)), wo sich ein Mitarbeiter auch sofort löschen lässt.
 
 Ist die automatische Löschung eines Bereichs abgeschaltet, steht über der Liste zusätzlich der Hinweis "Die automatische Löschung ist deaktiviert." - die Liste selbst bleibt sichtbar und zeigt weiterhin, was gelöscht würde, sobald die Löschung wieder eingeschaltet wird. Die Fristen und die 30 Tage Vorlauf legt die Betreiberin bzw. der Betreiber der Anwendung in der Konfiguration fest.

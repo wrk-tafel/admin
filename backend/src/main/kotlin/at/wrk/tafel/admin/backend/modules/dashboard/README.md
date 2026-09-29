@@ -11,7 +11,7 @@ request/response poll.
 
 Only three source files (plus `package-info.java`):
 
-- **`DashboardController`** – `GET /api/sse/dashboard`. Opens an `SseEmitter`, immediately pushes one snapshot,
+- **`DashboardSseTopic`** – the `dashboard` topic of `GET /api/sse/events`. On subscribe it immediately pushes one snapshot,
   then subscribes to a single outbox notification (`dashboard_update`) and re-pushes a fresh snapshot every
   time that notification fires. It never queries the database itself.
 - **`internal/DashboardService`** – Builds the `DashboardData` snapshot from scratch on every call
@@ -133,7 +133,7 @@ module — or anywhere in application code — ever calls `saveOutboxEntry("dash
    for good — so a callback can see the same event twice, but shouldn't miss one. `dashboard_update` carries
    no payload at all and just makes the controller re-read the current snapshot, so a duplicate costs one
    extra query and changes nothing.
-5. `DashboardController`'s call to `listenForNotificationEvents(notificationName = "dashboard_update", ...)`
+5. `DashboardSseTopic`'s call to `listenForNotificationEvents(notificationName = "dashboard_update", ...)`
    is what registered the callback in step 4. When it fires, the controller re-fetches and re-sends the
    dashboard snapshot over its own `SseEmitter`.
 
@@ -164,5 +164,5 @@ space, not something to build a trigger migration for.
   figure behind the permission its own screen needs (`CUSTOMER`, `USER_MANAGEMENT`, `SETTINGS` for
   employees, `LOGISTICS` for the rest); the backend does not filter by the viewer's permissions at all,
   same as `statistics` already doesn't for a viewer without `LOGISTICS` - `isAuthenticated()` on
-  `DashboardController` is the actual security boundary for this endpoint, permission directives
+  the `SseTopic`'s `requiredAuthorities` (none here) is the actual security boundary for this topic, permission directives
   client-side are UX only.

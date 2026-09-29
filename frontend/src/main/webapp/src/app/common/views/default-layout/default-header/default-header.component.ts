@@ -1,7 +1,7 @@
-import {Component, computed, DestroyRef, inject, output} from '@angular/core';
-import {defer, map, repeat, startWith, timer} from 'rxjs';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {RouterLink} from '@angular/router';
+import {Component, computed, DestroyRef, effect, inject, output, signal, untracked} from '@angular/core';
+import {catchError, defer, EMPTY, map, repeat, startWith, Subject, switchMap, timer} from 'rxjs';
+import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
+import {Router, RouterLink} from '@angular/router';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatDialog, MatDialogRef} from '@angular/material/dialog';
@@ -18,6 +18,7 @@ import {SupportDialogComponent, SupportDialogResult} from './dialogs/support-dia
 import {QuickOpenDialogComponent} from './dialogs/quick-open-dialog.component';
 import {MatButton} from '@angular/material/button';
 import {ConfigApiService} from '../../../../api/config-api.service';
+import {NotificationApiService, NotificationItem, NotificationListResponse} from '../../../../api/notification-api.service';
 import {TafelTitleStrategy} from '../../../util/tafel-title-strategy';
 import {registerSvgIcons} from '../../../util/svg-icon.util';
 import menuIcon from '@material-symbols/svg-400/outlined/menu-fill.svg';
@@ -32,6 +33,7 @@ import lockIcon from '@material-symbols/svg-400/outlined/lock-fill.svg';
 import linkIcon from '@material-symbols/svg-400/outlined/link-fill.svg';
 import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
 import checkIcon from '@material-symbols/svg-400/outlined/check-fill.svg';
+import arrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
 
 const CLOCK_FORMAT = new Intl.DateTimeFormat('de-AT', {
   timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
@@ -62,6 +64,28 @@ export class DefaultHeaderComponent {
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
   private readonly configApiService = inject(ConfigApiService);
+  private readonly notificationApiService = inject(NotificationApiService);
+  private readonly router = inject(Router);
+
+  private readonly refreshNotifications$ = new Subject<void>();
+  private readonly notifications = signal<NotificationListResponse | null>(null);
+
+  /**
+   * The bell: what the backend keeps for this user (pushed notifications and the announcements
+   * administrators published), newest first. Reloaded when the server says it changed - that signal
+   * comes in on the `notifications` topic of the tab's one event stream (see
+   * `GlobalStateService.getNotificationsVersion`) - and whenever the menu is opened.
+   */
+  readonly notificationItems = computed(() => this.notifications()?.items ?? []);
+  /** How many entries the menu lists before "Alle anzeigen" - more than this does not fit the screen. */
+  private static readonly NOTIFICATIONS_SHOWN = 10;
+
+  protected readonly showAllNotifications = signal(false);
+  readonly visibleNotificationItems = computed(() =>
+    this.showAllNotifications() ? this.notificationItems() : this.notificationItems().slice(0, DefaultHeaderComponent.NOTIFICATIONS_SHOWN)
+  );
+  readonly hiddenNotificationCount = computed(() => this.notificationItems().length - this.visibleNotificationItems().length);
+  readonly unreadCount = computed(() => this.notifications()?.unreadCount ?? 0);
 
   readonly sseConnected = this.globalStateService.getConnectionState();
 
@@ -78,7 +102,7 @@ export class DefaultHeaderComponent {
   /**
    * Households registered for the running distribution - what the dashboard's "Kunden angemeldet"
    * panel shows, but available here on every screen (e.g. during the intake). It arrives on the
-   * distribution stream the shell already holds, see `GlobalStateService.getRegisteredCustomers`.
+   * `distribution` topic the shell already holds, see `GlobalStateService.getRegisteredCustomers`.
    */
   readonly registeredCustomers = computed(() => this.distributionActive() ? this.globalStateService.getRegisteredCustomers()() : null);
 
@@ -140,6 +164,23 @@ export class DefaultHeaderComponent {
     document.addEventListener('keydown', quickOpenShortcut);
     inject(DestroyRef).onDestroy(() => document.removeEventListener('keydown', quickOpenShortcut));
 
+    this.refreshNotifications$.pipe(
+      startWith(null),
+      // A failed poll leaves the last known state in place - the bell is not worth an error.
+      switchMap(() => this.notificationApiService.getNotifications().pipe(catchError(() => EMPTY))),
+      takeUntilDestroyed()
+    ).subscribe(response => this.notifications.set(response));
+
+    // Reloads on every change signal, and on every (re)connect of the stream: a signal sent while it
+    // was down is lost, and the first connect is also the first moment the signal can be trusted.
+    const notificationsVersion = this.globalStateService.getNotificationsVersion();
+    effect(() => {
+      if (this.sseConnected()) {
+        notificationsVersion();
+        untracked(() => this.refreshNotifications());
+      }
+    });
+
     registerSvgIcons({
       menu: menuIcon,
       help: helpIcon,
@@ -152,8 +193,38 @@ export class DefaultHeaderComponent {
       lock: lockIcon,
       link: linkIcon,
       link_off: linkOffIcon,
-      check: checkIcon
+      check: checkIcon,
+      keyboard_arrow_down: arrowDownIcon
     });
+  }
+
+  public refreshNotifications() {
+    this.refreshNotifications$.next();
+  }
+
+  public showMoreNotifications(event: Event) {
+    // keeps the menu open, so the rest appears in place
+    event.stopPropagation();
+    this.showAllNotifications.set(true);
+  }
+
+  public resetNotificationList() {
+    this.showAllNotifications.set(false);
+  }
+
+  public openNotification(item: NotificationItem) {
+    if (!item.read) {
+      this.notificationApiService.markRead(item.kind, item.id).subscribe(() => this.refreshNotifications());
+    }
+    if (item.targetPath) {
+      this.router.navigateByUrl('/' + item.targetPath);
+    }
+  }
+
+  public markAllNotificationsRead(event: Event) {
+    // keeps the menu open, so the list visibly turns read instead of vanishing under the click
+    event.stopPropagation();
+    this.notificationApiService.markAllRead().subscribe(() => this.refreshNotifications());
   }
 
   public openQuickOpenDialog() {

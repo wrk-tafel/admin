@@ -14,16 +14,16 @@
     </div>
   }
 
-  <div class="flex items-center justify-between px-3 sm:px-6 h-16">
-    <div class="flex items-center gap-2 min-w-0">
+  <div class="flex items-center justify-between px-2 sm:px-6 h-16">
+    <div class="flex items-center gap-1 sm:gap-2 min-w-0">
       <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
-              class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
+              class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
         <mat-icon svgIcon="menu" class="!w-5 !h-5"></mat-icon>
       </button>
 
       <button (click)="openQuickOpenDialog()" testid="quickOpenButton" aria-label="Schnellsuche öffnen (Strg+K)"
               matTooltip="Schnellsuche (Strg+K)"
-              class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
+              class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0">
         <mat-icon svgIcon="search" class="!w-5 !h-5"></mat-icon>
       </button>
 
@@ -63,7 +63,7 @@
       }
     </div>
 
-    <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+    <div class="flex items-center gap-1 sm:gap-4 shrink-0">
       <!--
         The taskbar clock is missing on any second screen the app runs on (Linux only draws it on the
         primary one), so the time lives here. Hidden below `sm`: a phone has its own clock in the status
@@ -114,12 +114,52 @@
       </span>
 
       <!--
+        The bell: a badge with the number of unread entries, a menu with the entries themselves.
+        The count is part of the button's label, so a screen reader announces it with the button.
+      -->
+      <button [matMenuTriggerFor]="notificationMenu" (menuOpened)="refreshNotifications()" (menuClosed)="resetNotificationList()" testid="notifications-button"
+              [attr.aria-label]="unreadCount() > 0 ? 'Benachrichtigungen, ' + unreadCount() + ' ungelesen' : 'Benachrichtigungen'"
+              class="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-md hover:bg-gray-100 shrink-0 cursor-pointer">
+        <mat-icon svgIcon="notifications" class="!w-5 !h-5" aria-hidden="true"></mat-icon>
+        @if (unreadCount() > 0) {
+          <span aria-hidden="true" testid="notifications-badge"
+                class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-red-600 text-white text-[10px] font-semibold leading-4 text-center">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
+        }
+      </button>
+      <mat-menu #notificationMenu="matMenu" class="tafel-notification-menu">
+        @if (unreadCount() > 0) {
+          <button mat-menu-item testid="notifications-mark-all-read" (click)="markAllNotificationsRead($event)">
+            <mat-icon svgIcon="check"></mat-icon> Alle als gelesen markieren
+          </button>
+        }
+        @for (item of visibleNotificationItems(); track item.kind + item.id) {
+          <button mat-menu-item [attr.testid]="'notification-' + item.kind + '-' + item.id" (click)="openNotification(item)"
+                  [class.font-semibold]="!item.read">
+            <span class="flex flex-col whitespace-normal py-2 leading-snug">
+              <span class="text-sm">
+                @if (!item.read) {<span class="sr-only">Ungelesen: </span>}{{ item.title }}
+              </span>
+              <span class="text-xs font-normal text-[var(--tafel-text-inactive)]">{{ item.body }}</span>
+              <span class="text-xs font-normal text-[var(--tafel-text-inactive)]">{{ item.createdAt | date: 'dd.MM.yyyy HH:mm' }}</span>
+            </span>
+          </button>
+        } @empty {
+          <button mat-menu-item disabled testid="notifications-empty">Keine Benachrichtigungen</button>
+        }
+        @if (hiddenNotificationCount() > 0) {
+          <button mat-menu-item testid="notifications-show-all" (click)="showMoreNotifications($event)">
+            <mat-icon svgIcon="keyboard_arrow_down"></mat-icon> Alle anzeigen ({{ hiddenNotificationCount() }} weitere)
+          </button>
+        }
+      </mat-menu>
+
+      <!--
         The user's initials (first letter of first and last name) on the brand colour rather than a
         picture: nothing to load, nothing that clashes with either theme, and it says whose menu
         this is. The initials are decoration - the button's own label names it.
       -->
       <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
-              class="w-9 h-9 rounded-full cursor-pointer">
+              class="w-8 h-8 sm:w-9 sm:h-9 rounded-full cursor-pointer">
         <span aria-hidden="true" testid="usermenu-initials"
               class="flex h-full w-full items-center justify-center rounded-full bg-[#5856d6] text-sm font-semibold text-white">{{ userInitials() }}</span>
       </button>

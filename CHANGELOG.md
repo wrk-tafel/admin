@@ -5,6 +5,15 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Neue Seite "Retourkisten" (Logistik → Retourkisten) zeigt je Route und Filiale, welche Kisten wie oft zurückgebracht werden müssen und seit wann; über "Retourniert" wird eine Filiale als erledigt markiert, nicht mitgenommene Kisten bleiben bis zur Rückgabe in der Liste; dieselbe Bestätigung ("Abgegeben") gibt es im Routen-Navi direkt beim Stopp.
+- Die Einstellungen sind übersichtlicher: In der Seitenleiste gibt es nur noch einen Menüpunkt "Einstellungen", der eine Übersichtsseite mit allen Einstellungsbereichen nach Themen gruppiert (Logistik, Kunden & Betreuung, System) öffnet; die Schnellsuche (Strg+K) findet weiterhin jeden Bereich direkt.
+- Neue Glocke in der Kopfzeile: sie sammelt Push-Benachrichtigungen (auch für Benutzer ohne aktiviertes Push, beim nächsten Login) und Ankündigungen, die Administratoren unter Einstellungen → Ankündigungen für alle Benutzer veröffentlichen, mit Zähler für ungelesene Einträge; neue Ankündigungen werden zusätzlich als Push-Benachrichtigung verschickt (unter Mein Konto → Benachrichtigungen abschaltbar).
+- Die Seite "Kunden-Übersicht" heißt jetzt "Neu & Verlängert" (Name der Seite und der zugehörigen Berechtigung) und steht in der Gruppe "Auswertungen" an erster Stelle; die Ausgabe wird dort über eine einfache Auswahlliste statt einem Suchfeld gewählt.
+- Die Ausgabe-Auswahl auf den Seiten "Statistiken → Allgemein" und "Einstellungen → E-Mails erneut senden" ist jetzt ebenfalls eine einfache Auswahlliste statt einem Suchfeld.
+- Neue Seite "Gesperrte Kunden" (Kunden → Auswertungen → Gesperrte Kunden) listet alle gesperrten Kunden mit Sperrgrund, Sperrdatum und Enddatum und markiert Sperren ohne Enddatum, die überprüft werden müssen; "Bestätigen" startet die Frist für die nächste Überprüfung neu, und wöchentlich erinnert eine neue Benachrichtigung "Sperren überprüfen" daran, solange Überprüfungen offen sind.
+- Die ausdruckbare Datenschutzerklärung nennt jetzt unter "Speicherdauer", dass die Daten eines Haushalts mit Hausverbot für die Dauer des Hausverbots aufbewahrt werden, statt nur die allgemeine Löschfrist anzugeben.
+
+## [1.26.0] - 2026-09-28
 - Im Kundenformular kann eine weitere Person jetzt per Klick auf "Zum Hauptbezieher machen" zur Hauptbezugsperson des Haushalts gemacht werden; die bisherige Hauptbezugsperson wird dabei automatisch zur weiteren Person.
 
 ## [1.25.0] - 2026-09-28

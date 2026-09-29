@@ -207,6 +207,38 @@ class RouteGuidanceServiceIT : TafelBaseIntegrationTest() {
         assertThat(guidance.unassignedReturnItems).isEmpty()
     }
 
+    @Test
+    fun `guidance keeps boxes confirmed back today ticked off and drops older confirmations`() {
+        val shop = ShopEntity(
+            number = 92_006,
+            name = "IT Shop 92006",
+            address = ShopAddress(street = "Street 1", postalCode = 1100, city = "Wien"),
+        )
+        testEntityManager.persist(shop)
+        val route = RouteEntity(number = 92.6, name = "IT Guidance Route").apply {
+            stops = mutableListOf(RouteStopEntity(route = this, time = LocalTime.of(9, 0)).apply { this.shop = shop })
+        }
+        testEntityManager.persist(route)
+        val lastDistribution = persistDistribution(startedAt = LocalDateTime.now().minusDays(7)).apply {
+            endedAt = startedAt.plusHours(8)
+        }
+        testEntityManager.persist(
+            FoodCollectionEntity(distribution = lastDistribution, route = route).apply {
+                returnItems = listOf(
+                    FoodCollectionReturnItemEntity(shop = shop, description = "Graue Kisten", amount = 4, returnedAt = LocalDateTime.now()),
+                    FoodCollectionReturnItemEntity(shop = shop, description = "Alte Kisten", amount = 1, returnedAt = LocalDateTime.now().minusDays(2)),
+                )
+            },
+        )
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val items = routeGuidanceService.getGuidance(route.id!!).stops.single().returnItems
+
+        assertThat(items).extracting<String> { it.description }.containsExactly("Graue Kisten")
+        assertThat(items.single().returned).isTrue()
+    }
+
     private fun persistDistribution(startedAt: LocalDateTime): DistributionEntity {
         val user = testEntityManager.entityManager
             .createQuery("select u from User u where u.username = :name", UserEntity::class.java)

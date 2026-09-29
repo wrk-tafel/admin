@@ -21,6 +21,10 @@ describe('Route Guidance', () => {
         cy.request('PUT', `/api/routes/${routeId}/guidance/stops/${stopId}`, {completed: false})
       )
     );
+    // a confirmation made by a spec lasts the day - route 3's boxes start every test as still out
+    [30, 31].forEach(shopId =>
+      cy.request('PUT', `/api/return-boxes/routes/3/shops/${shopId}`, {returned: false})
+    );
     // a leftover "remembered route" from another spec would silently preselect on visit and break
     // the assumption every test starts from the picker itself
     cy.window().then(win => win.localStorage.removeItem(SELECTED_ROUTE_STORAGE_KEY));
@@ -157,6 +161,33 @@ describe('Route Guidance', () => {
     cy.byTestId('guidance-stop-return-items').should('contain.text', '3 × Klappkisten schwarz');
     // a zero amount means nothing came back - it must not be listed
     cy.byTestId('guidance-stop-return-items').should('not.contain.text', 'Ströck');
+  });
+
+  it('confirms the return boxes of a shop on the phone without the screen growing', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    selectRoute('Route 3');
+
+    // what a driver has to see straight after loading: the button that completes the stop
+    const completeBottom = () => cy.byTestId('guidance-complete-button').then($button => $button[0].getBoundingClientRect().bottom);
+    let bottomBefore = 0;
+    completeBottom().then(bottom => {
+      bottomBefore = bottom;
+      expect(bottom).to.be.at.most(Cypress.config('viewportHeight'));
+    });
+
+    // the heading row stays a single line with the button in it - a wrapped row would push the
+    // whole card down
+    cy.byTestId('guidance-stop-return-items').children('div').first()
+      .invoke('outerHeight').should('be.at.most', 24);
+    cy.byTestId('guidance-return-toggle').should('contain.text', 'Abgegeben').click();
+
+    cy.byTestId('guidance-return-toggle').should('contain.text', 'Rückgängig');
+    cy.byTestId('guidance-stop-return-items').find('li.line-through').should('have.length', 2);
+    completeBottom().then(bottom => expect(bottom).to.equal(bottomBefore));
+
+    cy.byTestId('guidance-return-toggle').click();
+    cy.byTestId('guidance-return-toggle').should('contain.text', 'Abgegeben');
+    cy.byTestId('guidance-stop-return-items').find('li.line-through').should('not.exist');
   });
 
   it('leaves a stop without a shop out of the return boxes', () => {

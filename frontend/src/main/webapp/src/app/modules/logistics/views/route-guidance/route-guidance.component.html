@@ -223,13 +223,23 @@
             <!-- a plain detail row like address/phone/contact above, not a second boxed callout -
                  the route-level "Retourware mitnehmen" banner already carries that visual weight -->
             <div class="mt-3 text-slate-700" testid="guidance-stop-return-items">
+              <!-- the confirmation sits in the heading's own row, with a negative margin that keeps
+                   the row exactly as tall as before - the screen must not grow for it -->
               <div class="flex items-center gap-2 font-medium">
                 <mat-icon svgIcon="inventory_2" class="text-slate-400"></mat-icon>
-                Retourware abgeben
+                Retourware
+                @if (view.stop.shop; as returnShop) {
+                  <button type="button" testid="guidance-return-toggle"
+                          class="-my-0.5 ms-auto rounded-full border border-blue-700 px-3 text-sm leading-6 text-blue-700 disabled:opacity-50"
+                          [disabled]="returnPendingShopId() === returnShop.id"
+                          (click)="toggleReturned(returnShop.id, !stopReturned(view.stop))">
+                    {{ stopReturned(view.stop) ? 'Rückgängig' : 'Abgegeben' }}
+                  </button>
+                }
               </div>
               <ul class="ms-7 mt-0.5 list-disc">
                 @for (item of view.stop.returnItems; track item.description) {
-                  <li>{{ item.amount }} × {{ item.description }}</li>
+                  <li [class.line-through]="item.returned" [class.text-slate-400]="item.returned">{{ item.amount }} × {{ item.description }}</li>
                 }
               </ul>
             </div>

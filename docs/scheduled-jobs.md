@@ -32,12 +32,13 @@ checked at a glance.
 | 06:15 | `UserRetentionService.cleanupExpiredUsers` (`tafeladmin.userDeletion.cleanupCron`) | Row-claim | Deletes user accounts unused for longer than `tafeladmin.userDeletion.retentionTime` (1y default), never an `ADMINISTRATOR` — GDPR gap G13; refuses and alerts above `tafeladmin.userDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
 | 06:30 | `EmployeeRetentionService.cleanupExpiredEmployees` (`tafeladmin.employeeDeletion.cleanupCron`) | Row-claim | Deletes employees not used as driver or co-driver on any food collection for longer than `tafeladmin.employeeDeletion.retentionTime` (2y default) — GDPR gap G13; refuses and alerts above `tafeladmin.employeeDeletion.maxDeletionsPerRun`, alerts on failure — G19 |
 
-## Daily, other times
+## Daily and weekly, other times
 
 | Time | Job | Coordination | Purpose |
 |---|---|---|---|
 | 08:00 | `DistributionStillOpenReminderService.remindAboutStillOpenDistribution` | `@SchedulerLock` | Push reminder while a distribution started on an earlier day is still open |
 | 08:00 | `ScannerFileExpiryReminderService.remindAboutExpiringScannerFiles` | `@SchedulerLock` | Push reminder to `CUSTOMER_DOCUMENTS` holders once a scanner-share file is within `tafeladmin.storage.scannerFileRetentionWarning` (1d default) of `ScannerFileCleanupService` deleting it — GDPR gap G18 |
+| Mon 08:10 (`tafeladmin.householdLockReview.cron`) | `HouseholdLockReviewReminderService.remindAboutLocksDueForReview` | `@SchedulerLock` | Push reminder to `CUSTOMER` holders while households locked without a `lockedUntil` date have gone longer than `tafeladmin.householdLockReview.interval` (6m default) without a review — GDPR Art. 5(1)(e), issue #3763 |
 | 08:05 | `RetentionExpiryReminderService.remindAboutExpiringData` | `@SchedulerLock` | One combined push reminder to administrators when user accounts, households or employees will reach their retention window within that job's `retentionWarning` (30d default) — GDPR gaps G1/G13 |
 
 ## Hourly or faster
@@ -50,6 +51,7 @@ checked at a glance.
 | Hourly, on the hour (`tafeladmin.audit.breachDetectionCron`) | `ExcessiveReadAccessDetectionService.detectExcessiveReadAccess` | `@SchedulerLock` | Push warning when a user reads more sensitive records in the trailing hour than `tafeladmin.audit.breachDetection.readThreshold` — GDPR gap G11 |
 | Every 1h | `LoginAttemptService.cleanupStaleEntries` | Row-claim | Deletes `login_attempts` rows past the lockout window |
 | Every 1h | `LoginAttemptIpService.cleanupStaleEntries` | Row-claim | Deletes `login_attempts_ip` rows past the lockout window |
+| Every 1h | `NotificationCleanupService.cleanup` | Row-claim | Deletes `notifications` older than `tafeladmin.notification.retention` (30d default) and `announcements` that expired more than that long ago (bell history) |
 | Every 1h | `RateLimiterIpService.cleanupStaleEntries` | None — local in-memory state per instance | Evicts token buckets that are back at full capacity, so an IP that stopped sending requests doesn't sit in memory forever |
 | Every 1h | `ScannerService.cleanupScannerRegistrations` | Row-claim | Deletes `scanner_registrations` older than `tafeladmin.checkin.scannerRegistrationRetention` (2d default) |
 | Every 1h | `SseOutboxService.cleanupOutbox` | Row-claim | Deletes `sse_outbox` rows older than `tafeladmin.sse.outboxRetention` (14d default) |

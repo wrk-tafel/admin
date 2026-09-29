@@ -47,7 +47,7 @@ and `sendMails()` (manual re-send, see below).
 
 ### Controllers
 - **DistributionController** — `/api/distributions*`: list, create, close, notes, statistics,
-  household-list PDF, manual mail re-send, and the `/api/sse/distributions` SSE stream that pushes
+  household-list PDF, manual mail re-send, and the `distribution` SSE topic (`DistributionSseTopic`) that pushes
   `DistributionUpdateResponse` whenever the current distribution starts/ends. The response also
   carries `registeredCustomers` (the header's live count): the stream re-sends it whenever the
   count changes, driven by the `dashboard_update` notification, so the header needs no stream of its own.
@@ -55,7 +55,7 @@ and `sendMails()` (manual re-send, see below).
   get/delete the ticket assigned to a household.
 - **DistributionTicketScreenController** (`internal/ticket/`) — `/api/distributions/ticket-screen/*`
   (`show-text`, `show-current`, `show-previous`, `show-next`) plus
-  `/api/sse/distributions/ticket-screen/current`: drives the fullscreen "now serving" ticket display.
+  the `ticket-screen` SSE topic (`TicketScreenSseTopic`): drives the fullscreen "now serving" ticket display.
 
 ### DistributionEndedEventListener (`internal/DistributionEndedEventListener.kt`)
 An `@Async` `@EventListener` reacting to `DistributionEndedEvent` (published by
@@ -277,8 +277,8 @@ client is fed an out-of-band "initial state" event first (`sseOutboxService.send
 directly before `forwardNotificationEventsToSse`), because the outbox mechanism only forwards *future*
 notifications, not backlog.
 
-**Note on auth:** `DistributionTicketScreenSseController.listenForChanges()` (the SSE endpoint for the
-fullscreen ticket display) intentionally has no `@PreAuthorize` beyond `isAuthenticated()`, per the
+**Note on auth:** `TicketScreenSseTopic` (the SSE topic for the
+fullscreen ticket display) intentionally has no `requiredAuthorities`, only the stream's `isAuthenticated()`, per the
 class-level comment: the physical ticket-screen monitor authenticates as a low-privilege display
 account with no other permissions, so the read-only SSE stream (number-only, no household data) is
 left open to any authenticated user while the state-changing/household-carrying endpoints on

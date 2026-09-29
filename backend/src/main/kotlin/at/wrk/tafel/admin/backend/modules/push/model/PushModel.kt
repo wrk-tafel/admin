@@ -104,6 +104,8 @@ enum class PushNotificationType {
     SCANNER_FILES_EXPIRING,
     RETENTION_RUN,
     RETENTION_EXPIRING,
+    HOUSEHOLD_LOCK_REVIEW_DUE,
+    ANNOUNCEMENT,
 }
 
 @ExcludeFromTestCoverage

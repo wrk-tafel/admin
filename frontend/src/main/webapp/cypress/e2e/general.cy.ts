@@ -298,7 +298,7 @@ describe('Accessibility', () => {
     cy.focused().should('contain.text', 'Auswertungen').click();
 
     cy.contains('button', 'Auswertungen').should('have.attr', 'aria-expanded', 'true');
-    cy.contains('a', 'Kunden über Limit').should('be.visible');
+    cy.contains('a', 'Über Limit').should('be.visible');
   });
 
 });
@@ -347,9 +347,9 @@ describe('Navigation Progress Bar', () => {
     }).as('aboveLimit');
 
     cy.byTestId('nav-progress-bar').should('not.exist');
-    // "Kunden über Limit" lives under the collapsible "Auswertungen" nav group - expand it first
+    // "Über Limit" lives under the collapsible "Auswertungen" nav group - expand it first
     cy.contains('button', 'Auswertungen').click();
-    cy.contains('Kunden über Limit').click();
+    cy.contains('Über Limit').click();
 
     cy.byTestId('nav-progress-bar').should('be.visible');
 
@@ -468,18 +468,6 @@ describe('Shell', () => {
       .and('have.attr', 'aria-disabled', 'true')
       .trigger('mouseenter');
     cy.get('.mat-mdc-tooltip').should('have.text', 'Keine Verteilung aktiv');
-  });
-
-  it('groups the Einstellungen submenu into labeled sub-groups instead of one flat list', () => {
-    cy.loginDefault();
-    cy.visit('/uebersicht');
-
-    cy.contains('button', 'Einstellungen').click();
-
-    cy.contains('Stammdaten').should('be.visible');
-    cy.contains('Systemverwaltung').should('be.visible');
-    cy.contains('a', 'Fahrzeuge').should('be.visible');
-    cy.contains('a', 'Mitarbeiter').should('be.visible');
   });
 
   it('remembers the collapsed sidebar and an expanded nav group across a reload', () => {

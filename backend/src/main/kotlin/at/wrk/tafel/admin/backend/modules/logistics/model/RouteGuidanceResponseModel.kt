@@ -41,6 +41,8 @@ data class RouteGuidanceReturnItem(
     val shopName: String,
     val description: String,
     val amount: Int,
+    // Confirmed back at the shop today - see the return boxes overview.
+    val returned: Boolean = false,
 )
 
 @ExcludeFromTestCoverage

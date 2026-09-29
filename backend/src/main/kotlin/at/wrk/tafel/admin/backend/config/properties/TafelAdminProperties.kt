@@ -40,12 +40,14 @@ class TafelAdminProperties {
     var distribution: TafelAdminDistributionProperties = TafelAdminDistributionProperties()
     var features: TafelAdminFeaturesProperties = TafelAdminFeaturesProperties()
     var householdDeletion: TafelAdminHouseholdRetentionProperties = TafelAdminHouseholdRetentionProperties()
+    var householdLockReview: TafelAdminHouseholdLockReviewProperties = TafelAdminHouseholdLockReviewProperties()
     var userDeletion: TafelAdminUserRetentionProperties = TafelAdminUserRetentionProperties()
     var employeeDeletion: TafelAdminEmployeeRetentionProperties = TafelAdminEmployeeRetentionProperties()
     var mail: TafelAdminMailProperties? = null
     var mfa: TafelAdminMfaProperties = TafelAdminMfaProperties()
     var mailOutbox: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties()
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
+    var notification: TafelAdminNotificationProperties = TafelAdminNotificationProperties()
     var sse: TafelAdminSseProperties = TafelAdminSseProperties()
     var support: TafelAdminSupportProperties? = null
     var storage: TafelAdminStorageProperties = TafelAdminStorageProperties()
@@ -477,6 +479,19 @@ class TafelAdminSseProperties {
     var outboxRetention: Duration = Duration.ofDays(14)
 }
 
+/**
+ * The bell in the header - see the `notification` module.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminNotificationProperties {
+    /**
+     * How long an inbox entry is kept after it arrived, and an announcement after it expired -
+     * `NotificationCleanupService` deletes both once they are older. Read per use, so it can be
+     * changed on a running deployment.
+     */
+    var retention: Duration = Duration.ofDays(30)
+}
+
 @ExcludeFromTestCoverage
 class TafelAdminSearchProperties {
     /**
@@ -771,4 +786,29 @@ class TafelAdminPushDeliveryProperties {
      * would rather have the battery.
      */
     var urgency: String = "high"
+}
+
+/**
+ * `tafeladmin.householdLockReview.*` - the periodic review of household locks that have no
+ * `lockedUntil` date (issue #3763, GDPR Art. 5(1)(e)). Such a lock never lifts itself, and one for
+ * `BANNED_FROM_PREMISES` also keeps the record out of `HouseholdRetentionService` for as long as it
+ * lasts, so without a review nothing ever asks whether it is still needed. A lock is due for review
+ * once its last review (or, never reviewed, the lock itself) is older than [interval];
+ * `HouseholdLockReviewReminderService` tells staff, and the "Gesperrte Kunden" screen lists them.
+ *
+ * `tafeladmin.householdLockReview.cron` - when the reminder runs, default Mondays 08:10 - is
+ * deliberately *not* a field here, same as the other schedules: `@Scheduled` fixes its expression at
+ * bean creation. It lives in `application.yml` as a plain placeholder.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminHouseholdLockReviewProperties {
+    /** Kill switch for the reminder and for the "due" marking - nothing is due while it is off. */
+    var enabled: Boolean = true
+
+    /**
+     * How long an open-ended lock may stand without a review. A [Period] for the same reason as
+     * [TafelAdminHouseholdRetentionProperties.retentionTime]. Read per use; a zero or negative
+     * period switches the review off, like [enabled].
+     */
+    var interval: Period = Period.ofMonths(6)
 }

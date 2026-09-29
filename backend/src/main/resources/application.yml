@@ -338,6 +338,15 @@ tafeladmin:
   # created.
   householdLockExpiry:
     cron: "0 50 5 * * *"
+  # GDPR Art. 5(1)(e), issue #3763: a household lock with no lockedUntil date never lifts itself, so
+  # HouseholdLockReviewReminderService asks staff to confirm it still applies. A lock is due once its
+  # last review (or, never reviewed, the lock itself) is older than `interval`; `enabled` and
+  # `interval` are read per use (a zero or negative interval switches the review off). `cron` is
+  # startup-only, same as householdDeletion.cleanupCron.
+  householdLockReview:
+    enabled: true
+    interval: 6m
+    cron: "0 10 8 * * MON"
   # GDPR gap G13 (docs/architecture/gdpr-compliance.md), the "users" half - mirrors householdDeletion
   # above for staff accounts. Candidate accounts are measured by lastLogin (falling back to createdAt
   # for an account that has never logged in), regardless of enabled - see
@@ -517,6 +526,10 @@ tafeladmin:
     timeout: 12h
     reconnectTime: 1s
     outboxRetention: 14d
+  # The bell in the header: how long an inbox entry is kept after it arrived, and an announcement
+  # after it expired. Read per use.
+  notification:
+    retention: 30d
   storage:
     # Where uploaded customer documents are kept. A relative path resolves against the process's
     # working directory; in the container this is a mounted volume, since the files must outlive it.

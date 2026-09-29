@@ -1,0 +1,34 @@
+### The caller's bell: pushed notifications and announcements, newest first, plus the unread count
+GET {{baseApiPath}}/notifications
+
+### Mark one entry read (kind is NOTIFICATION or ANNOUNCEMENT)
+POST {{baseApiPath}}/notifications/NOTIFICATION/1/read
+
+### Mark everything read
+POST {{baseApiPath}}/notifications/read-all
+
+### List all announcements (administrators)
+GET {{baseApiPath}}/announcements
+
+### Publish an announcement for every user (expiresAt is optional)
+POST {{baseApiPath}}/announcements
+Content-Type: application/json
+
+{
+  "title": "Ausgabe geschlossen",
+  "message": "Am Freitag bleibt die Ausgabe geschlossen.",
+  "expiresAt": "2026-10-05T18:00:00"
+}
+
+### Change an announcement
+PUT {{baseApiPath}}/announcements/1
+Content-Type: application/json
+
+{
+  "title": "Ausgabe geschlossen",
+  "message": "Am Freitag und Samstag bleibt die Ausgabe geschlossen.",
+  "expiresAt": null
+}
+
+### Delete an announcement
+DELETE {{baseApiPath}}/announcements/1

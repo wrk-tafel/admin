@@ -83,6 +83,14 @@ object AuditScope {
     const val HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE = "HouseholdsAboveLimit"
 
     /**
+     * The "Gesperrte Kunden" list (issue #3763) - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdLockReviewService.getLockedHouseholds].
+     * Spans every locked household rather than one, so it has no [auditedEntities] map entry
+     * (GDPR G24).
+     */
+    const val LOCKED_HOUSEHOLDS_ENTITY_TYPE = "LockedHouseholds"
+
+    /**
      * The new-and-renewed-households report (its JSON view and its CSV export alike) - see
      * [at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService.getHouseholdsOverview]/
      * `generateHouseholdsOverviewCsv`. Spans every household new/renewed in the distribution rather
@@ -199,6 +207,7 @@ object AuditScope {
         HOUSEHOLDS_OVERVIEW_ENTITY_TYPE,
         HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
         HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
+        LOCKED_HOUSEHOLDS_ENTITY_TYPE,
     )
 
     val allEntityTypes: List<String> = (
@@ -213,6 +222,7 @@ object AuditScope {
                 HOUSEHOLDS_OVERVIEW_ENTITY_TYPE,
                 HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
                 HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
+                LOCKED_HOUSEHOLDS_ENTITY_TYPE,
             )
         ).distinct().sorted()
 

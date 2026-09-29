@@ -54,7 +54,7 @@ describe('CheckinComponent', () => {
             getScanners: vi.fn().mockName('ScannerApiService.getScanners').mockReturnValue(of({ scannerIds: [] }))
         };
         const sseServiceSpy = {
-            listen: vi.fn().mockName('SseService.listen')
+            topic: vi.fn().mockName('SseService.topic')
         };
         const defaultDistribution: DistributionItem = {
             id: 1,
@@ -214,8 +214,8 @@ describe('CheckinComponent', () => {
 
         const customerId = 11111;
         const scanResult: ScanResult = { value: customerId };
-        sseService.listen.mockImplementation((_url, connectionStateCallback) => {
-            connectionStateCallback?.(true);
+        sseService.topic.mockImplementation((_name, options?: {connectionStateCallback?: (connected: boolean) => void}) => {
+            options?.connectionStateCallback?.(true);
             return of(scanResult);
         });
 
@@ -233,12 +233,14 @@ describe('CheckinComponent', () => {
         expect(component.currentScannerId()).toBe(newScannerId);
         expect(component.customerId()).toBe(customerId);
         expect(component.scannerReadyState()).toBeTruthy();
-        expect(sseService.listen).toHaveBeenCalledWith(`/sse/scanners/${newScannerId}/results`, expect.any(Function));
+        expect(sseService.topic).toHaveBeenCalledWith(
+            'scanner-results', {argument: newScannerId, connectionStateCallback: expect.any(Function)}
+        );
         expect(customerApiService.getCustomer).toHaveBeenCalled();
     });
 
     it('selectedScannerId badge stays inactive when the SSE stream never connects (e.g. an expired scanner id)', () => {
-        sseService.listen.mockReturnValue(EMPTY);
+        sseService.topic.mockReturnValue(EMPTY);
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
@@ -268,7 +270,7 @@ describe('CheckinComponent', () => {
         expect(component.customerId()).not.toBeUndefined();
         expect(component.scannerReadyState()).toBeFalsy();
         expect(testSubscription.unsubscribe).toHaveBeenCalled();
-        expect(sseService.listen).not.toHaveBeenCalled();
+        expect(sseService.topic).not.toHaveBeenCalled();
         expect(customerApiService.getCustomer).not.toHaveBeenCalled();
     });
 
@@ -276,8 +278,8 @@ describe('CheckinComponent', () => {
         const testSubscription = {
             unsubscribe: vi.fn().mockName('Subscription.unsubscribe')
         } as any;
-        sseService.listen.mockImplementation((_url, connectionStateCallback) => {
-            connectionStateCallback?.(true);
+        sseService.topic.mockImplementation((_name, options?: {connectionStateCallback?: (connected: boolean) => void}) => {
+            options?.connectionStateCallback?.(true);
             return EMPTY;
         });
 
@@ -295,7 +297,9 @@ describe('CheckinComponent', () => {
         expect(component.currentScannerId()).toBe(newScannerId);
         expect(component.scannerReadyState()).toBeTruthy();
         expect(testSubscription.unsubscribe).toHaveBeenCalled();
-        expect(sseService.listen).toHaveBeenCalledWith(`/sse/scanners/${newScannerId}/results`, expect.any(Function));
+        expect(sseService.topic).toHaveBeenCalledWith(
+            'scanner-results', {argument: newScannerId, connectionStateCallback: expect.any(Function)}
+        );
     });
 
     it('searchForCustomerId found valid customer', async () => {

@@ -153,11 +153,13 @@ jobs:
               /kunden/detail/100,
               /kunden/bearbeiten/100,
               /kunden/duplikate,
+              /kunden/gesperrt,
               /kunden/ueber-limit,
               /kunden/uebersicht,
               /kunden/zusammenfuehren/100?quellen=101
           - name: einstellungen
             urls: >-
+              /einstellungen,
               /einstellungen/email,
               /einstellungen/notschlafstellen,
               /einstellungen/statische-werte,
@@ -167,7 +169,8 @@ jobs:
               /einstellungen/mitarbeiter,
               /einstellungen/routen,
               /einstellungen/filialen,
-              /einstellungen/laender
+              /einstellungen/laender,
+              /einstellungen/ankuendigungen
           - name: benutzer-logistik-statistik
             urls: >-
               /benutzer/suchen,

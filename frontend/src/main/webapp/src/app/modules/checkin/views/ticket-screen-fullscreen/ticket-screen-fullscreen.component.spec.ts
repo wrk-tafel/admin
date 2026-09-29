@@ -35,7 +35,7 @@ describe('TicketScreenFullscreenComponent', () => {
 
         TestBed.configureTestingModule({
             providers: [
-                { provide: SseService, useValue: { listen: vi.fn().mockReturnValue(of({})) } },
+                { provide: SseService, useValue: { topic: vi.fn().mockReturnValue(of({})) } },
                 { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap(options.queryParams ?? {}) } } },
                 { provide: Window, useValue: windowSpy }
             ]

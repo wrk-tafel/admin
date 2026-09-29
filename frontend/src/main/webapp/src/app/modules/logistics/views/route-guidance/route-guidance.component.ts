@@ -30,6 +30,7 @@ import {
   RouteGuidanceStop,
   RouteList
 } from '../../../../api/route-api.service';
+import {ReturnBoxesApiService} from '../../../../api/return-boxes-api.service';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
@@ -122,6 +123,7 @@ export class RouteGuidanceComponent {
   routeList = model.required<RouteList>();
 
   private readonly routeApiService = inject(RouteApiService);
+  private readonly returnBoxesApi = inject(ReturnBoxesApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly connectivityService = inject(ConnectivityService);
   private readonly offlineQueueService = inject(RouteGuidanceOfflineQueueService);
@@ -183,7 +185,8 @@ export class RouteGuidanceComponent {
   // date; undefined when the last trip brought nothing back
   protected readonly returnItemsFrom = computed(() => {
     const isoDate = this._guidance()?.returnItemsFrom;
-    if (!isoDate) {
+    // nothing left to take once every box is confirmed back - the banner goes with them
+    if (!isoDate || this.returnItemsTotal() === 0) {
       return undefined;
     }
     const [year, month, day] = isoDate.split('-');
@@ -192,8 +195,43 @@ export class RouteGuidanceComponent {
 
   protected readonly returnItemsTotal = computed(() =>
     [...this.stops().flatMap(stop => stop.returnItems), ...this.unassignedReturnItems()]
+      .filter(item => !item.returned)
       .reduce((total, item) => total + item.amount, 0)
   );
+
+  // the shop whose confirmation is being saved right now, so its button can't be pressed twice
+  protected readonly returnPendingShopId = signal<number | undefined>(undefined);
+
+  protected stopReturned(stop: RouteGuidanceStop): boolean {
+    return stop.returnItems.length > 0 && stop.returnItems.every(item => item.returned);
+  }
+
+  /** Confirms a shop's boxes as handed back (or takes that back) - the same call as the overview's button. */
+  protected toggleReturned(shopId: number, returned: boolean) {
+    const routeId = this._guidance()?.routeId;
+    if (routeId === undefined) {
+      return;
+    }
+    this.returnPendingShopId.set(shopId);
+    this.returnBoxesApi.setReturned(routeId, shopId, returned).subscribe({
+      next: () => {
+        const current = this._guidance();
+        if (current?.routeId === routeId) {
+          this._guidance.set({
+            ...current,
+            stops: current.stops.map(stop => stop.shop?.id === shopId
+              ? {...stop, returnItems: stop.returnItems.map(item => ({...item, returned}))}
+              : stop)
+          });
+        }
+        this.returnPendingShopId.set(undefined);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(extractErrorMessage(error), 'Speichern fehlgeschlagen');
+        this.returnPendingShopId.set(undefined);
+      }
+    });
+  }
 
   private readonly nextStopId = computed(() => this.stops().find(stop => !stop.completed)?.stopId);
 

@@ -1,0 +1,204 @@
+<mat-card>
+  <mat-card-header class="text-xl font-bold">Gesperrte Kunden</mat-card-header>
+  <mat-card-content>
+    <div class="mb-4">
+      <p class="mb-1">Alle gesperrten Kunden. Eine Sperre ohne Enddatum hebt sich nicht von selbst auf und muss regelmäßig überprüft werden.</p>
+      <p class="text-sm text-slate-600">
+        Bleibt eine Sperre bestehen, bestätigen Sie sie mit „Bestätigen“ - die Frist für die nächste Überprüfung beginnt dann von vorn.
+        Aufheben lässt sich eine Sperre in den Kundendetails.
+      </p>
+    </div>
+
+    <div class="mb-4">
+      <mat-chip-listbox aria-label="Filter" testid="locked-filters" class="flex flex-wrap gap-2" [value]="filter()"
+                        (change)="onFilterChange($event.value)">
+        <mat-chip-option testid="locked-filter-all" value="all">Alle gesperrten</mat-chip-option>
+        <mat-chip-option testid="locked-filter-openEnded" value="openEnded">Ohne Enddatum</mat-chip-option>
+        <mat-chip-option testid="locked-filter-due" value="due">Überprüfung fällig</mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+
+    <hr/>
+
+    <!-- Permanently in the DOM and only ever refilled: a live region that is inserted together
+         with its text is not reliably announced. -->
+    <div class="sr-only" role="status" testid="locked-announcement">{{ confirmation() || announcement() }}</div>
+
+    @if (failed()) {
+      <p class="mt-4 text-red-600" role="alert" testid="locked-error">Die gesperrten Kunden konnten nicht geladen werden.</p>
+    } @else if (initialLoading()) {
+      <p class="mt-4" testid="locked-loading">Wird geladen ...</p>
+    } @else if ((data()?.items?.length ?? 0) === 0) {
+      <h2 class="tafel-h4 font-bold mt-4" testid="locked-empty">
+        @if (filter() === 'all') {
+          Aktuell ist kein Kunde gesperrt
+        } @else {
+          Aktuell ist kein gesperrter Kunde {{ filterLabel() }}
+        }
+      </h2>
+    } @else {
+      <div class="mt-4">
+        <mat-paginator class="tafel-paginator-responsive" [length]="data()!.totalCount" [pageSize]="data()!.pageSize"
+                       [pageIndex]="data()!.currentPage - 1" [pageSizeOptions]="pageSizeOptions" [showFirstLastButtons]="true"
+                       (page)="onPage($event)"></mat-paginator>
+      </div>
+
+      <div class="hidden md:block mt-4">
+        <table mat-table [dataSource]="data()!.items" class="min-w-full divide-y divide-gray-200" aria-label="Liste der gesperrten Kunden">
+          <ng-container matColumnDef="householdId">
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Nr.</th>
+            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'locked-id-' + i" class="px-4 py-2">{{ item.householdId }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Name</th>
+            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'locked-name-' + i" class="px-4 py-2">{{ item.name }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="reason">
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Sperrgrund</th>
+            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'locked-reason-' + i" class="px-4 py-2">
+              @if (item.lockReasonType) {
+                <div class="font-semibold">{{ reasonLabelOf(item) }}</div>
+              }
+              <div>{{ item.lockReason }}</div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="lockedAt">
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Gesperrt seit</th>
+            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'locked-lockedAt-' + i" class="px-4 py-2">
+              {{ item.lockedAt | date : 'dd.MM.yyyy' }}
+              @if (item.lockedBy) {
+                <div class="text-xs text-slate-600">von {{ item.lockedBy }}</div>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="lockedUntil">
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Gesperrt bis</th>
+            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'locked-lockedUntil-' + i" class="px-4 py-2">
+              @if (item.lockedUntil) {
+                {{ item.lockedUntil | date : 'dd.MM.yyyy' }}
+              } @else {
+                Kein Enddatum
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="review">
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Überprüfung</th>
+            <td mat-cell *matCellDef="let item; let i = index" [attr.testid]="'locked-review-' + i" class="px-4 py-2">
+              @if (!isOpenEnded(item)) {
+                <span class="text-slate-600">Hebt sich selbst auf</span>
+              } @else {
+                @if (item.reviewDue) {
+                  <span class="px-2 py-1 rounded text-white bg-red-600" [attr.testid]="'locked-due-' + i">Überprüfung fällig</span>
+                }
+                <div class="text-xs text-slate-600 mt-1">
+                  @if (item.lockReviewedAt) {
+                    Zuletzt überprüft am {{ item.lockReviewedAt | date : 'dd.MM.yyyy' }}@if (item.lockReviewedBy) { von {{ item.lockReviewedBy }}}
+                  } @else {
+                    Noch nicht überprüft
+                  }
+                </div>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
+            <td mat-cell *matCellDef="let item; let i = index" class="px-4 py-2">
+              <div class="flex flex-wrap gap-2">
+                <a matButton="filled" class="button-info" [attr.testid]="'locked-showcustomer-button-' + i"
+                   [routerLink]="['/kunden/detail', item.householdId]" matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
+                  <mat-icon svgIcon="search"></mat-icon>
+                </a>
+                @if (isOpenEnded(item)) {
+                  <button type="button" matButton="outlined" [attr.testid]="'locked-confirm-button-' + i" (click)="confirmReview(item)"
+                          matTooltip="Die Sperre bleibt bestehen - die Frist für die nächste Überprüfung beginnt von vorn"
+                          [attr.aria-label]="'Sperre von Kunde ' + item.householdId + ' bestätigen'">
+                    <mat-icon svgIcon="check"></mat-icon>
+                    Bestätigen
+                  </button>
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" testid="locked-row"></tr>
+        </table>
+
+        <mat-paginator class="tafel-paginator-responsive mt-4" [length]="data()!.totalCount" [pageSize]="data()!.pageSize"
+                       [pageIndex]="data()!.currentPage - 1" [pageSizeOptions]="pageSizeOptions" [showFirstLastButtons]="true"
+                       (page)="onPage($event)"></mat-paginator>
+      </div>
+
+      <div class="block md:hidden mt-4">
+        <div class="flex flex-col gap-4 mb-4">
+          @for (item of data()!.items; track trackByHouseholdId($index, item); let i = $index) {
+            <mat-card testid="locked-card">
+              <mat-card-header class="font-semibold">{{ item.householdId }} - {{ item.name }}</mat-card-header>
+              <mat-card-content>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="font-bold">Sperrgrund:</div>
+                  <div>
+                    @if (item.lockReasonType) {
+                      <div class="font-semibold">{{ reasonLabelOf(item) }}</div>
+                    }
+                    <div>{{ item.lockReason }}</div>
+                  </div>
+                  <div class="font-bold">Gesperrt seit:</div>
+                  <div>{{ item.lockedAt | date : 'dd.MM.yyyy' }}</div>
+                  <div class="font-bold">Gesperrt bis:</div>
+                  <div>
+                    @if (item.lockedUntil) {
+                      {{ item.lockedUntil | date : 'dd.MM.yyyy' }}
+                    } @else {
+                      Kein Enddatum
+                    }
+                  </div>
+                  @if (isOpenEnded(item)) {
+                    <div class="font-bold">Überprüfung:</div>
+                    <div>
+                      @if (item.reviewDue) {
+                        <span class="px-2 py-1 rounded text-white bg-red-600">Überprüfung fällig</span>
+                      }
+                      <div class="text-xs text-slate-600 mt-1">
+                        @if (item.lockReviewedAt) {
+                          Zuletzt überprüft am {{ item.lockReviewedAt | date : 'dd.MM.yyyy' }}
+                        } @else {
+                          Noch nicht überprüft
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+              <mat-card-actions class="mt-2">
+                <a matButton="filled" class="button-info" [attr.testid]="'locked-showcustomer-button-' + i"
+                   [routerLink]="['/kunden/detail', item.householdId]" matTooltip="Kundendetails anzeigen" aria-label="Kundendetails anzeigen">
+                  <mat-icon svgIcon="search"></mat-icon>
+                </a>
+                @if (isOpenEnded(item)) {
+                  <button type="button" matButton="outlined" [attr.testid]="'locked-confirm-button-' + i" (click)="confirmReview(item)"
+                          matTooltip="Die Sperre bleibt bestehen - die Frist für die nächste Überprüfung beginnt von vorn"
+                          [attr.aria-label]="'Sperre von Kunde ' + item.householdId + ' bestätigen'">
+                    <mat-icon svgIcon="check"></mat-icon>
+                    Bestätigen
+                  </button>
+                }
+              </mat-card-actions>
+            </mat-card>
+          }
+        </div>
+        <div class="mt-2">
+          <mat-paginator class="tafel-paginator-responsive" [length]="data()!.totalCount" [pageSize]="data()!.pageSize"
+                         [pageIndex]="data()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                         (page)="onPage($event)"></mat-paginator>
+        </div>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

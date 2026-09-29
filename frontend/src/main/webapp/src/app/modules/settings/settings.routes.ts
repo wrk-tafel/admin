@@ -11,9 +11,17 @@ import {SettingsEmployeesComponent} from './views/employees/settings-employees.c
 import {SettingsRoutesComponent} from './views/routes/settings-routes.component';
 import {SettingsShopsComponent} from './views/shops/settings-shops.component';
 import {SettingsCountriesComponent} from './views/countries/settings-countries.component';
+import {SettingsAnnouncementsComponent} from './views/announcements/settings-announcements.component';
 import {SettingsPendingDeletionsComponent} from './views/pending-deletions/settings-pending-deletions.component';
+import {SettingsOverviewComponent} from './views/overview/settings-overview.component';
 
 export const routes: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    title: 'Einstellungen',
+    component: SettingsOverviewComponent,
+  },
   {
     path: 'email',
     title: 'E-Mail',
@@ -70,6 +78,14 @@ export const routes: Routes = [
     component: SettingsPendingDeletionsComponent,
     // Replaces the parent's SETTINGS requirement for this route's own check - the guard still runs for
     // `einstellungen` too, so both apply. Administrators hold every permission.
+    data: {
+      anyPermissionOf: ['ADMINISTRATOR']
+    },
+  },
+  {
+    path: 'ankuendigungen',
+    title: 'Ankündigungen',
+    component: SettingsAnnouncementsComponent,
     data: {
       anyPermissionOf: ['ADMINISTRATOR']
     },

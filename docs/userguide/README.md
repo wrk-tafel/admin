@@ -7,10 +7,10 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 | Kapitel | Beschreibung |
 |---|---|
 | [Anmeldung & Übersicht](anmeldung.md) | Login, Dashboard, Ausgabetag starten/beenden, Kunden-Annahme, Scanner, Ticket-Monitor |
-| [Kunden](kunden.md) | Kunden suchen, Anspruch-Schnellcheck, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, Kunden-Übersicht, Kunden zusammenführen, Dokumente |
-| [Logistik](logistik.md) | Routen-Navi auf der Route, Warenerfassung pro Route |
+| [Kunden](kunden.md) | Kunden suchen, Anspruch-Schnellcheck, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, gesperrte Kunden, Neu & Verlängert, Kunden zusammenführen, Dokumente |
+| [Logistik](logistik.md) | Routen-Navi auf der Route, Retourkisten-Übersicht, Warenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
-| [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Länder, Mitarbeiter, anstehende Löschungen |
+| [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Länder, Mitarbeiter, anstehende Löschungen, Ankündigungen |
 | [Zugriffsprotokoll](zugriffsprotokoll.md) | Wer hat wann was geändert oder auf sensible Daten zugegriffen, und wie war der Wert davor |
 | [Datenauskunft](datenauskunft.md) | Kunden, Benutzerkonten und Mitarbeiter durchsuchen, DSGVO-Datenexport und -Löschung |
 | [Statistiken](statistiken.md) | Allgemeine Statistik, Auswertung Kinder |
@@ -111,6 +111,7 @@ Der Bereich **Ablauf der Ausgabe** begleitet einen Ausgabetag von Anfang bis End
 | Benachrichtigungsart | Wird ausgelöst, wenn … |
 | --- | --- |
 | Ausgabe gestartet | eine Ausgabe gestartet wurde |
+| Ankündigungen | ein Administrator eine neue Ankündigung für alle Benutzer veröffentlicht (siehe [Ankündigungen](einstellungen.md#ankuendigungen)); sie steht zusätzlich in der [Glocke](#benachrichtigungen-glocke). Erreicht alle Benutzer mit eingeschaltetem Push, solange sie diese Art nicht abgeschaltet haben |
 | Anmeldung gestartet | der erste Kunde des Tages angemeldet wurde |
 | Route beim letzten Stopp | eine Route im [Routen-Navi](logistik.md#routen-navi) bis auf den letzten Stopp abgehakt ist, das Fahrzeug also bald zurückkommt. Die Benachrichtigung nennt die Route und den Stopp, bei dem sie gerade steht |
 | Warenerfassung abgeschlossen | für alle aktiven Routen die Waren vollständig erfasst wurden |
@@ -124,6 +125,7 @@ Die Bereiche **Erinnerungen** und **Technisches** setzen eine Berechtigung vorau
 | --- | --- | --- |
 | Ausgabe noch offen | eine Ausgabe an einem früheren Tag gestartet und bis dahin nicht beendet wurde (Erinnerung jeweils in der Früh, bis die Ausgabe beendet ist) | Ausgabe-Ablauf oder Supervisor |
 | Gescannte Dateien werden bald gelöscht | eine Datei im Scanner-Ordner (siehe [Kunden](kunden.md)) bald automatisch gelöscht wird, weil sie zu lange nicht importiert oder gelöscht wurde (Erinnerung jeweils in der Früh, bis die Datei importiert, gelöscht oder tatsächlich automatisch entfernt wurde) | Kunden-Dokumente |
+| Sperren überprüfen | Kunden ohne Enddatum gesperrt sind und ihre Sperre seit mehr als der konfigurierten Frist (standardmäßig 6 Monate) nicht überprüft wurde (Erinnerung jeweils montags in der Früh, solange es solche Sperren gibt). Die Benachrichtigung nennt die Anzahl und öffnet die Seite [Gesperrte Kunden](kunden.md#gesperrte-kunden) | Kunden |
 | E-Mail nicht versendet | eine E-Mail auch nach mehreren Versuchen nicht versendet werden konnte – etwa eine der E-Mails nach dem Ende einer Ausgabe (Tagesreport, Statistiken, Retourkisten) oder eine Support-Anfrage. Die Benachrichtigung nennt den Betreff der E-Mail | Administrator |
 | Benutzer gesperrt | ein Benutzer nach zu vielen fehlgeschlagenen Anmeldeversuchen gesperrt wurde | Administrator |
 | Ungewöhnlich viele Zugriffe | ein Benutzerkonto innerhalb einer Stunde mehr sensible Kundendaten abgerufen hat (Dokument-Downloads, Stammdatenblatt/Ausweis/Kundenliste) als der konfigurierte Schwellenwert erlaubt. Die Benachrichtigung nennt den Benutzernamen und die Anzahl der Abrufe | Administrator |
@@ -163,16 +165,16 @@ Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzernam
 
 ## Navigation
 
-Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Waren-Eingabe"), werden grau dargestellt und mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde; ein Kurzhinweis (Tooltip) "Keine Verteilung aktiv" erklärt den Grund, statt den Menüpunkt einfach verschwinden zu lassen. Untergeordnete Bereiche wie "Benutzer", "Statistiken" und "Einstellungen" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Menü-Symbol ein-/ausgeblendet (siehe [Darstellung auf schmalen Bildschirmen](#darstellung-auf-schmalen-bildschirmen)). Der eingeklappte Zustand der Seitenleiste sowie aufgeklappte Gruppen bleiben auch nach einem Neuladen der Seite erhalten.
+Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Waren-Eingabe"), werden grau dargestellt und mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde; ein Kurzhinweis (Tooltip) "Keine Verteilung aktiv" erklärt den Grund, statt den Menüpunkt einfach verschwinden zu lassen. Untergeordnete Bereiche wie "Benutzer" und "Statistiken" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Menü-Symbol ein-/ausgeblendet (siehe [Darstellung auf schmalen Bildschirmen](#darstellung-auf-schmalen-bildschirmen)). Der eingeklappte Zustand der Seitenleiste sowie aufgeklappte Gruppen bleiben auch nach einem Neuladen der Seite erhalten.
 
 Die Menüstruktur gliedert sich in folgende Bereiche:
 
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
-- **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, sowie unter der aufklappbaren Gruppe "Auswertungen": Kunden-Duplikate, Kunden über Limit, Kunden-Übersicht
+- **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, sowie unter der aufklappbaren Gruppe "Auswertungen": Neu & Verlängert, Duplikate, Über Limit, Gesperrt
 - **Logistik**: Routen-Navi, Waren-Eingabe
 - **Verwaltung**: Benutzer, Statistiken, Zugriffsprotokoll, Einstellungen
 
-Innerhalb von "Einstellungen" sind die elf Menüpunkte zusätzlich in zwei Gruppen unterteilt: **Stammdaten** (Fahrzeuge, Filialen, Länder, Notschlafstellen, Routen, Waren-Kategorien, Retour-Kategorien) für logistische Stammdaten und **Systemverwaltung** (E-Mail, Grenzwerte, Mitarbeiter, Anstehende Löschungen) für allgemeine Systemeinstellungen.
+"Einstellungen" ist ein einzelner Menüpunkt: Er öffnet eine Übersichtsseite, die alle Einstellungsbereiche als Karten nach Themen gruppiert zeigt – **Logistik** (Fahrzeuge, Filialen, Mitarbeiter, Routen, Waren-Kategorien, Retour-Kategorien), **Kunden & Betreuung** (Grenzwerte, Länder, Notschlafstellen) und **System** (Ankündigungen, Anstehende Löschungen, E-Mail). Ein Klick auf eine Karte öffnet den jeweiligen Bereich; Bereiche ohne Berechtigung werden nicht angezeigt. Über die Schnellsuche (Strg+K) lässt sich jeder Bereich weiterhin direkt aufrufen.
 
 Welche Menüpunkte sichtbar sind, hängt von den dem Benutzer zugewiesenen Berechtigungen ab (siehe [Benutzer](benutzer.md)).
 
@@ -196,6 +198,19 @@ Links in der Kopfzeile wird neben den Schaltflächen immer der Name der gerade g
 
 ![Kopfzeile bei geöffneter Ausgabe](images/kopfzeile-ausgabe-geoeffnet.jpg)
 
+<a id="benachrichtigungen-glocke"></a>
+
+### Benachrichtigungen (Glocke)
+
+Die **Glocke** in der Kopfzeile (links neben dem Benutzermenü) sammelt alles, was für einen selbst bestimmt ist. Ein roter Zähler nennt die Anzahl der ungelesenen Einträge. Ein Klick öffnet die Liste, neueste zuerst:
+
+![Glocke mit Benachrichtigungen](images/benachrichtigungen-glocke.jpg)
+
+- **Benachrichtigungen**, die auch als Push-Nachricht verschickt werden (siehe [Benachrichtigungen](#benachrichtigungen)). Sie stehen in der Glocke auch dann, wenn Push auf dem Gerät nicht eingeschaltet ist - wer die Nachricht verpasst hat, findet sie beim nächsten Login hier. Jeder sieht nur die Benachrichtigungen, die für seine Berechtigungen bestimmt sind.
+- **Ankündigungen**, die Administratoren für alle Benutzer veröffentlichen (siehe [Ankündigungen](einstellungen.md#ankuendigungen)).
+
+Die Liste zeigt die zehn neuesten Einträge; **Alle anzeigen** klappt die weiteren (bis zu 50) in derselben Liste auf. Ungelesene Einträge sind fett dargestellt. Ein Klick auf einen Eintrag markiert ihn als gelesen und öffnet - falls vorhanden - die zugehörige Seite, etwa die Übersicht. **Alle als gelesen markieren** setzt alle Einträge auf einmal auf gelesen. Die Glocke aktualisiert sich von selbst, sobald etwas Neues eintrifft, und beim Öffnen; Einträge werden nach 30 Tagen (einstellbar durch die Betreiberin bzw. den Betreiber) automatisch entfernt.
+
 <a id="bedienung-mit-der-tastatur"></a>
 
 ## Bedienung mit der Tastatur
@@ -203,7 +218,7 @@ Links in der Kopfzeile wird neben den Schaltflächen immer der Name der gerade g
 Die Anwendung lässt sich vollständig ohne Maus bedienen. Mit der **Tabulator-Taste** wird von Bedienelement zu Bedienelement gesprungen, mit **Enter** bzw. **Leertaste** wird das gerade angesprungene Element ausgelöst.
 
 - Der erste Tabulator-Schritt auf jeder Seite ist der Sprunglink **"Zum Hauptinhalt springen"**. Er ist nur sichtbar, solange er angesprungen ist, und überspringt die gesamte Seitenleiste – ohne ihn müsste man sich auf jeder Seite erneut durch das komplette Menü tabben.
-- Die aufklappbaren Menügruppen ("Auswertungen", "Benutzer", "Statistiken", "Einstellungen") lassen sich ebenso mit der Tastatur auf- und zuklappen.
+- Die aufklappbaren Menügruppen ("Auswertungen", "Benutzer", "Statistiken") lassen sich ebenso mit der Tastatur auf- und zuklappen.
 - Menüpunkte, die eine aktive Ausgabe voraussetzen und mit **INAKTIV** gekennzeichnet sind, werden beim Tabben übersprungen.
 - Das Augen-Symbol in Passwortfeldern, mit dem das eingegebene Passwort sichtbar gemacht wird, ist ebenfalls per Tastatur erreichbar.
 - Die [Schnellsuche](#schnellsuche) öffnet sich von jeder Seite aus mit **Strg+K** (bzw. **Cmd+K** auf macOS) und wird vollständig mit Suchfeld, Pfeiltasten und Enter bedient.

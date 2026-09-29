@@ -16,7 +16,7 @@ describe('ConfigApiService', () => {
   beforeEach(() => {
     configChanges = new Subject<AppConfig>();
     const sseServiceSpy = {
-      listen: vi.fn().mockName('SseService.listen').mockReturnValue(configChanges.asObservable())
+      topic: vi.fn().mockName('SseService.topic').mockReturnValue(configChanges.asObservable())
     };
 
     TestBed.configureTestingModule({
@@ -63,7 +63,7 @@ describe('ConfigApiService', () => {
     configChanges.next(changedConfig);
 
     expect(received).toEqual([testConfig, changedConfig]);
-    expect(TestBed.inject(SseService).listen).toHaveBeenCalledWith('/sse/config');
+    expect(TestBed.inject(SseService).topic).toHaveBeenCalledWith('config');
   });
 
   // One HTTP request and one SSE connection for the whole app, not one per component reading it.
@@ -78,7 +78,7 @@ describe('ConfigApiService', () => {
 
     // The late subscriber starts from the value already known rather than fetching it again.
     expect(second).toEqual([testConfig]);
-    expect(TestBed.inject(SseService).listen).toHaveBeenCalledTimes(1);
+    expect(TestBed.inject(SseService).topic).toHaveBeenCalledTimes(1);
   });
 
   it('fetch public config', () => {

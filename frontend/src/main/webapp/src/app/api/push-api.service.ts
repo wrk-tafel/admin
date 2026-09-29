@@ -50,7 +50,9 @@ export enum PushNotificationType {
   EXCESSIVE_READ_ACCESS = 'EXCESSIVE_READ_ACCESS',
   SCANNER_FILES_EXPIRING = 'SCANNER_FILES_EXPIRING',
   RETENTION_RUN = 'RETENTION_RUN',
-  RETENTION_EXPIRING = 'RETENTION_EXPIRING'
+  RETENTION_EXPIRING = 'RETENTION_EXPIRING',
+  HOUSEHOLD_LOCK_REVIEW_DUE = 'HOUSEHOLD_LOCK_REVIEW_DUE',
+  ANNOUNCEMENT = 'ANNOUNCEMENT'
 }
 
 export const pushNotificationTypeLabel: { [key in PushNotificationType]: string } = {
@@ -67,7 +69,9 @@ export const pushNotificationTypeLabel: { [key in PushNotificationType]: string 
   [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ungewöhnlich viele Zugriffe',
   [PushNotificationType.SCANNER_FILES_EXPIRING]: 'Gescannte Dateien werden bald gelöscht',
   [PushNotificationType.RETENTION_RUN]: 'Bereinigungsjob auffällig',
-  [PushNotificationType.RETENTION_EXPIRING]: 'Daten werden bald gelöscht'
+  [PushNotificationType.RETENTION_EXPIRING]: 'Daten werden bald gelöscht',
+  [PushNotificationType.HOUSEHOLD_LOCK_REVIEW_DUE]: 'Sperren überprüfen',
+  [PushNotificationType.ANNOUNCEMENT]: 'Ankündigungen'
 };
 
 /**
@@ -90,7 +94,10 @@ export const pushNotificationTypeDescription: { [key in PushNotificationType]: s
   [PushNotificationType.RETENTION_RUN]: 'Ein Bereinigungsjob (Haushalte, Benutzer, Mitarbeiter, ' +
     'Zugriffsprotokoll) ist fehlgeschlagen oder hätte mehr Datensätze gelöscht als konfiguriert.',
   [PushNotificationType.RETENTION_EXPIRING]: 'Benutzerkonten, Kunden oder Mitarbeiter stehen kurz vor der automatischen ' +
-    'Löschung wegen abgelaufener Aufbewahrungsfrist.'
+    'Löschung wegen abgelaufener Aufbewahrungsfrist.',
+  [PushNotificationType.HOUSEHOLD_LOCK_REVIEW_DUE]: 'Kunden sind ohne Enddatum gesperrt und die Sperre wurde seit ' +
+    'längerer Zeit nicht überprüft. Wöchentlich, solange Überprüfungen offen sind.',
+  [PushNotificationType.ANNOUNCEMENT]: 'Ein Administrator hat eine Ankündigung für alle Benutzer veröffentlicht.'
 };
 
 /**
@@ -129,7 +136,8 @@ export const pushNotificationTypeGroups: PushNotificationTypeGroup[] = [
     title: 'Erinnerungen',
     types: [
       PushNotificationType.DISTRIBUTION_STILL_OPEN,
-      PushNotificationType.SCANNER_FILES_EXPIRING
+      PushNotificationType.SCANNER_FILES_EXPIRING,
+      PushNotificationType.HOUSEHOLD_LOCK_REVIEW_DUE
     ]
   },
   {
@@ -140,6 +148,12 @@ export const pushNotificationTypeGroups: PushNotificationTypeGroup[] = [
       PushNotificationType.EXCESSIVE_READ_ACCESS,
       PushNotificationType.RETENTION_RUN,
       PushNotificationType.RETENTION_EXPIRING
+    ]
+  },
+  {
+    title: 'Mitteilungen',
+    types: [
+      PushNotificationType.ANNOUNCEMENT
     ]
   }
 ];

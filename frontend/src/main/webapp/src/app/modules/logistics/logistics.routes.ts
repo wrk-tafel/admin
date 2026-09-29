@@ -4,6 +4,7 @@ import {FoodCategoriesDataResolver} from './resolver/food-categories-data-resolv
 import {FoodReturnCategoriesDataResolver} from './resolver/food-return-categories-data-resolver.component';
 import {CarDataResolver} from './resolver/car-data-resolver.component';
 import {FoodCollectionRecordingComponent} from './views/food-collection-recording/food-collection-recording.component';
+import {ReturnBoxesComponent} from './views/return-boxes/return-boxes.component';
 import {RouteGuidanceComponent} from './views/route-guidance/route-guidance.component';
 
 // Delegates straight to the component, which is where the unsaved-changes state actually lives -
@@ -19,6 +20,11 @@ export const routes: Routes = [
     resolve: {
       routeList: RouteDataResolver
     }
+  },
+  {
+    path: 'retourkisten',
+    title: 'Retourkisten',
+    component: ReturnBoxesComponent
   },
   {
     path: 'warenerfassung',

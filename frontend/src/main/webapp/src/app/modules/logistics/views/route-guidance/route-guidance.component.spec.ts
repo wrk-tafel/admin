@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import {provideHttpClient, withXhr} from '@angular/common/http';
+import {HttpErrorResponse, provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {signal} from '@angular/core';
@@ -12,6 +12,7 @@ import {
   RouteGuidanceStop,
   RouteList
 } from '../../../../api/route-api.service';
+import {ReturnBoxesApiService} from '../../../../api/return-boxes-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {ConnectivityService} from '../../../../common/connectivity/connectivity.service';
 import {ScreenWakeLockService} from '../../../../common/wake-lock/screen-wake-lock.service';
@@ -72,6 +73,7 @@ describe('RouteGuidanceComponent', () => {
 
   let routeApiMock: Partial<RouteApiService>;
   let toastrMock: Partial<TafelToastrService>;
+  let returnBoxesApiMock: {setReturned: ReturnType<typeof vi.fn>};
   let onlineSignal: ReturnType<typeof signal<boolean>>;
   let storedRouteId: string | null;
   let windowMock: {
@@ -101,6 +103,7 @@ describe('RouteGuidanceComponent', () => {
       }))
     };
     toastrMock = {success: vi.fn(), error: vi.fn()};
+    returnBoxesApiMock = {setReturned: vi.fn(() => of({routes: []}))};
 
     const pendingKeys = new Set<string>();
     const pendingCountSignal = signal(0);
@@ -144,6 +147,7 @@ describe('RouteGuidanceComponent', () => {
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {provide: RouteApiService, useValue: routeApiMock},
+        {provide: ReturnBoxesApiService, useValue: returnBoxesApiMock},
         {provide: TafelToastrService, useValue: toastrMock},
         {provide: ConnectivityService, useValue: {isOnline: () => onlineSignal.asReadonly()}},
         {provide: RouteGuidanceOfflineQueueService, useValue: offlineQueueMock},
@@ -424,6 +428,37 @@ describe('RouteGuidanceComponent', () => {
     // 4 at the first stop plus 5 with no stop on this route any more
     expect(component['returnItemsTotal']()).toBe(9);
     expect(component['unassignedReturnItems']()[0].shopName).toBe('Hofer Alt');
+  });
+
+  it('confirms the return boxes of a shop and drops them from what is left to take', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    component['toggleReturned'](20, true);
+
+    expect(returnBoxesApiMock.setReturned).toHaveBeenCalledWith(2, 20, true);
+    expect(component['stopReturned'](component['stops']()[0])).toBe(true);
+    // only the 5 without a stop on this route are left
+    expect(component['returnItemsTotal']()).toBe(5);
+
+    component['toggleReturned'](20, false);
+
+    expect(component['stopReturned'](component['stops']()[0])).toBe(false);
+    expect(component['returnItemsTotal']()).toBe(9);
+  });
+
+  it('keeps the boxes as they were when confirming them fails', () => {
+    returnBoxesApiMock.setReturned = vi.fn(() => throwError(() => new HttpErrorResponse({status: 500})));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+
+    component['toggleReturned'](20, true);
+
+    expect(toastrMock.error).toHaveBeenCalled();
+    expect(component['stopReturned'](component['stops']()[0])).toBe(false);
+    expect(component['returnPendingShopId']()).toBeUndefined();
   });
 
   it('reports no return date when the last trip brought nothing back', () => {

@@ -83,6 +83,7 @@ export interface RouteGuidanceReturnItem {
   shopName: string;
   description: string;
   amount: number;
+  returned?: boolean;
 }
 
 export interface RouteGuidanceStop {

@@ -4,9 +4,11 @@ import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionEntity
 import at.wrk.tafel.admin.backend.database.model.push.PushSubscriptionRepository
+import at.wrk.tafel.admin.backend.modules.notification.NotificationPublisher
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -39,13 +41,19 @@ internal class PushBroadcastServiceTest {
     @RelaxedMockK
     private lateinit var jsonMapper: JsonMapper
 
+    @RelaxedMockK
+    private lateinit var userRepository: UserRepository
+
+    @RelaxedMockK
+    private lateinit var notificationPublisher: NotificationPublisher
+
     private val tafelAdminProperties = TafelAdminProperties()
 
     private lateinit var service: PushBroadcastService
 
     @BeforeEach
     fun beforeEach() {
-        service = PushBroadcastService(pushSubscriptionRepository, pushPreferencesService, webPushSenderService, jsonMapper, tafelAdminProperties)
+        service = PushBroadcastService(pushSubscriptionRepository, pushPreferencesService, webPushSenderService, jsonMapper, tafelAdminProperties, userRepository, notificationPublisher)
 
         every { jsonMapper.writeValueAsString(any()) } returns "payload-json"
         every { pushPreferencesService.isEnabled(any(), any()) } returns true
@@ -64,6 +72,40 @@ internal class PushBroadcastServiceTest {
             this.id = userId
             authorities = permissions.map { UserAuthorityEntity(user = this, name = it.key) }.toMutableList()
         }
+    }
+
+    @Test
+    fun `puts the notification in the inbox of every enabled user it is for, subscribed or not`() {
+        val admin = subscriptionOf(id = 10, userId = 100, permissions = listOf(UserPermissions.ADMINISTRATOR)).user!!
+        val plain = subscriptionOf(id = 11, userId = 101).user!!
+        val disabled = subscriptionOf(id = 12, userId = 102, enabled = false).user!!
+        every { userRepository.findAll() } returns listOf(admin, plain, disabled)
+        every { pushSubscriptionRepository.findAll() } returns emptyList()
+
+        service.broadcast(type = PushNotificationType.USER_LOCKED_OUT, title = "title", body = "body")
+
+        verify { notificationPublisher.publish(listOf(100L), "USER_LOCKED_OUT", "title", "body", "benutzer/anmelde-versuche") }
+    }
+
+    @Test
+    fun `does not touch the inboxes when asked not to`() {
+        every { pushSubscriptionRepository.findAll() } returns emptyList()
+
+        service.broadcast(type = PushNotificationType.ANNOUNCEMENT, title = "title", body = "body", addToInbox = false)
+
+        verify(exactly = 0) { notificationPublisher.publish(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `still pushes when the inbox cannot be written`() {
+        val subscription = subscriptionOf(id = 10, userId = 100)
+        every { pushSubscriptionRepository.findAll() } returns listOf(subscription)
+        every { userRepository.findAll() } throws IllegalStateException("db down")
+        every { webPushSenderService.send(any(), any()) } returns PushSendResult.SENT
+
+        service.broadcast(type = PushNotificationType.DISTRIBUTION_STARTED, title = "title", body = "body")
+
+        verify { webPushSenderService.send(subscription, "payload-json") }
     }
 
     @Test
@@ -352,6 +394,8 @@ internal class PushBroadcastServiceTest {
             webPushSenderService,
             realMapper,
             TafelAdminProperties(),
+            userRepository,
+            notificationPublisher,
         )
         val subscription = subscriptionOf(id = 10, userId = 100, permissions = listOf(UserPermissions.ADMINISTRATOR))
         every { pushSubscriptionRepository.findAll() } returns listOf(subscription)
@@ -373,6 +417,8 @@ internal class PushBroadcastServiceTest {
             webPushSenderService,
             realMapper,
             properties,
+            userRepository,
+            notificationPublisher,
         )
         val subscription = subscriptionOf(id = 10, userId = 100)
         val payload = slot<String>()

@@ -533,6 +533,31 @@ describe('CustomerApiService', () => {
     expect(result!.totalCount).toEqual(1);
   });
 
+  it('get locked customers without parameters', () => {
+    apiService.getLockedCustomers().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/locked'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('get locked customers with paging and filters', () => {
+    apiService.getLockedCustomers(2, 25, true, true).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/locked?page=2&pageSize=25&openEndedOnly=true&dueOnly=true'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('confirm lock review', () => {
+    apiService.confirmLockReview(4711).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/4711/lock-review'});
+    expect(req.request.body).toBeNull();
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('generate customers above limit csv', () => {
     apiService.generateCustomersAboveLimitCsv('amountExceededLimit', 'desc').subscribe();
 

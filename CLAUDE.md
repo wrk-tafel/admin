@@ -130,7 +130,7 @@ Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips
 
 ### Backend Architecture
 
-The backend uses **Spring Modulith** architecture with 12 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
+The backend uses **Spring Modulith** architecture with 13 core feature modules (plus `base` for shared utilities), each with explicit boundaries enforced via `package-info.java` annotations:
 
 - **audit**: read access to the audit trail — "who changed or accessed what, and what a change
   looked like before". Only reads: the listener that fills `audit_log` lives in
@@ -149,13 +149,21 @@ The backend uses **Spring Modulith** architecture with 12 core feature modules (
   client-side error to `app.log` the moment it happens, without waiting for a user to notice it and
   write a support request. See ADR-0053
 - **push**: Web Push (VAPID) device subscriptions and per-user notification preferences; broadcasts
-  on distribution started/closed events
+  on distribution started/closed events, plus the scheduled reminders (`HouseholdLockReviewReminderService`
+  weekly for household locks without an end date that are due for review, issue #3763)
+- **notification**: the bell in the header — each user's inbox plus the announcements administrators
+  publish for everybody. `push` writes into it (`NotificationPublisher`) for every enabled user a
+  broadcast is *for*, subscribed or not, so someone without push sees it at the next login; the
+  dependency points from `push` to `notification`, never back. Entries are read per user
+  (`notifications.read_at`, `announcement_reads`), the bell reloads on a content-free event of the `notifications` topic (no polling;
+  `NotificationChangeSignal` files it in the SSE outbox), a newly created announcement is also pushed (`AnnouncementPublishedEvent` →
+  `push`'s `AnnouncementPushListener`, type `ANNOUNCEMENT`, per-user opt-out like any type), and `NotificationCleanupService` drops history after `tafeladmin.notification.retention` (30 days by default)
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
   itself: the running release version, the image build time, and the flags for optional features
   this environment has switched on (currently `scannerFolderEnabled`). Read only by the frontend.
   Operator-managed configuration only — anything a *user* can change at runtime belongs in
   `settings`. `GET /api/config/public` serves the environment label on its own to anonymous callers,
-  for the login page, and `GET /api/sse/config` pushes the config again whenever an operator's edit
+  for the login page, and the `config` topic of `GET /api/sse/events` pushes the config again whenever an operator's edit
   changes it (see Config Hot-Reload below)
 - **datasubjectrequest**: the central "Datenauskunft" screen — one search box across households,
   user accounts and employees, so a GDPR data-subject request doesn't mean guessing
@@ -284,7 +292,7 @@ The frontend is an Angular single-page application using Angular Material and Ta
   and what the browser tab shows, so a new route needs one — a route without a `title` silently
   falls back to the bare application name
 - Global state service using RxJS BehaviorSubjects
-- SSE service for real-time updates from backend
+- SSE service for real-time updates from backend: one shared `EventSource` per tab, `SseService.topic(name)` per screen (ADR-0063)
 - Custom directives (`tafelIfPermission`, `tafelAutofocus`, `tafelIfDistributionActive`)
 
 **Module Structure Convention:**
@@ -596,9 +604,10 @@ rather than waiting for CI to flag it.
 
 The backend exposes REST APIs under `/api/` prefix. Update-by-id endpoints use `PUT`, create
 endpoints return `201`, delete endpoints return `204` — this is a project-wide convention, not
-just a pattern that happens to repeat. SSE endpoints for a given resource live under a sibling
-`.../sse/...` controller (e.g. `DistributionController` + `DistributionSseController`) so their
-URLs stay stable even as the REST resource's own base path changes.
+just a pattern that happens to repeat. Live updates for a resource are an `SseTopic` bean next to its controller (e.g.
+`DistributionController` + `DistributionSseTopic`) on the one event stream every tab holds,
+`GET /api/sse/events?topics=...` ([ADR-0063](docs/architecture/adr/0063-one-event-stream-per-tab-with-topics.md)) -
+not an endpoint of its own; the topic name stays stable even as the REST resource's base path changes.
 
 ### REST DTO naming convention
 
@@ -656,14 +665,14 @@ term-less `GET` listing are unaffected.
   caller's light/dark `theme`, which `PUT /api/users/theme` changes (stored in `user_preferences`).
   `GET`/`PUT /api/users/account` is the caller's own record for the "Meine Daten" tab — the `PUT` takes
   name and e-mail only, never username, personnel number, password or permissions
-- `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`. Search is `POST /api/households/search`
+- `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`. Search is `POST /api/households/search`; `GET /api/households/locked` lists every locked household for the "Gesperrte Kunden" screen and `POST /api/households/{id}/lock-review` confirms that an open-ended lock stays (restarting its review interval, issue #3763)
 - `/api/households/{householdId}/notes`: Household notes
 - `/api/households/{householdId}/ticket`: Current ticket for a household in the active distribution
-- `/api/distributions`: Distribution management (SSE updates on `/api/sse/distributions`)
-- `/api/distributions/ticket-screen`: Ticket screen control (SSE on `/api/sse/distributions/ticket-screen/current`)
+- `/api/distributions`: Distribution management (live updates via the `distribution` topic, see `/api/sse/events`)
+- `/api/distributions/ticket-screen`: Ticket screen control (live via the `ticket-screen` topic)
 - `/api/countries`: Country list
 - `/api/employees`: Employee management. Search is `POST /api/employees/search`
-- `/api/scanners`: Scanner registration (SSE on `/api/sse/scanners/{scannerId}/results`)
+- `/api/scanners`: Scanner registration (results via the `scanner-results:{scannerId}` topic)
 - `/api/routes`: Route management
 - `/api/food-categories`: Food category management
 - `/api/food-collections`: Food collection recording (nested under `/routes/{routeId}` and `/routes/{routeId}/shops/{shopId}`)
@@ -673,7 +682,9 @@ term-less `GET` listing are unaffected.
 - `/api/settings`: Application settings; `GET /api/settings/pending-deletions/{users,households,employees}` list (paged, administrators only) what the retention jobs will delete soon (the target of the daily `RETENTION_EXPIRING` push reminder)
 - `/api/support`: Mails an in-app support request (title, text, and the browser's `clientContext`) to the configured support addresses
 - `/api/client-errors`: Logs one client-side error (message, page, user agent) to `app.log` as it happens, rate-limited per IP; behind `isAuthenticated()`, no dedicated permission
-- `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (SSE updates on `/api/sse/config`). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
+- `/api/notifications`: the caller's bell — `GET` the merged list plus unread count, `POST /{kind}/{id}/read` and `/read-all`; `isAuthenticated()`
+- `/api/announcements`: CRUD for the messages shown in every user's bell; `ADMINISTRATOR` only (frontend screen `einstellungen/ankuendigungen`)
+- `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (live via the `config` topic). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 - `/api/data-subject-requests`: the central "Datenauskunft" screen — `POST /search` across households, user accounts and employees; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
 
 Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two-factor authentication switched on gets a session that grants nothing until the code was handed in (`TafelJwtAuthProvider`/`MfaPendingFilter`, ADR-0058); `tafeladmin.mfa.required` (operator config, hot-reloaded) makes it mandatory for everyone.

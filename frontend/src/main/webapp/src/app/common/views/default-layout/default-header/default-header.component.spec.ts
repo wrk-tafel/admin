@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { DefaultHeaderComponent } from './default-header.component';
 import { AuthenticationService } from '../../../security/authentication.service';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { GlobalStateService } from '../../../state/global-state.service';
@@ -17,6 +17,7 @@ import { SupportContextService } from '../../../support/support-context.service'
 import { ScreenshotService } from '../../../support/screenshot.service';
 import { ConfigApiService } from '../../../../api/config-api.service';
 import { DistributionItem } from '../../../../api/distribution-api.service';
+import { NotificationApiService, NotificationListResponse } from '../../../../api/notification-api.service';
 import { TafelTitleStrategy } from '../../../util/tafel-title-strategy';
 
 const screenshot = 'data:image/jpeg;base64,AAAA';
@@ -40,6 +41,22 @@ describe('DefaultHeaderComponent', () => {
     let dialog: MockedObject<MatDialog>;
     let supportContextService: MockedObject<SupportContextService>;
     let screenshotService: MockedObject<ScreenshotService>;
+    let notificationApiService: MockedObject<NotificationApiService>;
+    const notificationsVersion = signal(0);
+
+    const unreadNotifications: NotificationListResponse = {
+        unreadCount: 2,
+        items: [
+            {
+                id: 1, kind: 'NOTIFICATION', title: 'Ausgabe gestartet', body: 'Los geht es',
+                targetPath: 'uebersicht', createdAt: '2026-09-28T10:00:00', read: false
+            },
+            {
+                id: 2, kind: 'ANNOUNCEMENT', title: 'Hinweis', body: 'Am Freitag geschlossen',
+                targetPath: null, createdAt: '2026-09-27T10:00:00', read: false
+            }
+        ]
+    };
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
@@ -64,6 +81,8 @@ describe('DefaultHeaderComponent', () => {
                           .mockReturnValue(signal(false).asReadonly()),
                         getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
                           .mockReturnValue(signal<DistributionItem | null>(null).asReadonly()),
+                        getNotificationsVersion: vi.fn().mockName('GlobalStateService.getNotificationsVersion')
+                          .mockReturnValue(notificationsVersion.asReadonly()),
                         getRegisteredCustomers: vi.fn().mockName('GlobalStateService.getRegisteredCustomers')
                           .mockReturnValue(signal<number | null>(null).asReadonly())
                     }
@@ -75,6 +94,15 @@ describe('DefaultHeaderComponent', () => {
                           .mockReturnValue(of({
                               version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true, environmentLabel: ''
                           }))
+                    }
+                },
+                {
+                    provide: NotificationApiService,
+                    useValue: {
+                        getNotifications: vi.fn().mockName('NotificationApiService.getNotifications')
+                          .mockReturnValue(of(unreadNotifications)),
+                        markRead: vi.fn().mockName('NotificationApiService.markRead').mockReturnValue(of(undefined)),
+                        markAllRead: vi.fn().mockName('NotificationApiService.markAllRead').mockReturnValue(of(undefined))
                     }
                 },
                 {
@@ -119,6 +147,7 @@ describe('DefaultHeaderComponent', () => {
         dialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
         supportContextService = TestBed.inject(SupportContextService) as MockedObject<SupportContextService>;
         screenshotService = TestBed.inject(ScreenshotService) as MockedObject<ScreenshotService>;
+        notificationApiService = TestBed.inject(NotificationApiService) as MockedObject<NotificationApiService>;
     });
 
     it('should create', () => {
@@ -181,6 +210,137 @@ describe('DefaultHeaderComponent', () => {
 
         userInfo.set(null);
         expect(component.userInitials()).toBe('?');
+    });
+
+    describe('notification bell', () => {
+        it('reloads when the server signals a change, but not before the stream is connected', async () => {
+            const connected = signal(false);
+            globalStateService.getConnectionState.mockReturnValue(connected.asReadonly());
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            notificationApiService.getNotifications.mockClear();
+
+            notificationsVersion.update(v => v + 1);
+            await fixture.whenStable();
+            expect(notificationApiService.getNotifications).not.toHaveBeenCalled();
+
+            connected.set(true);
+            await fixture.whenStable();
+            expect(notificationApiService.getNotifications).toHaveBeenCalledTimes(1);
+
+            notificationsVersion.update(v => v + 1);
+            await fixture.whenStable();
+            expect(notificationApiService.getNotifications).toHaveBeenCalledTimes(2);
+        });
+
+        it('shows the number of unread entries on the bell and names it in the label', async () => {
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            const element: HTMLElement = fixture.nativeElement;
+
+            expect(element.querySelector('[testid="notifications-badge"]')?.textContent?.trim()).toBe('2');
+            expect(element.querySelector('[testid="notifications-button"]')?.getAttribute('aria-label'))
+                .toBe('Benachrichtigungen, 2 ungelesen');
+        });
+
+        function manyNotifications(count: number): NotificationListResponse {
+            return {
+                unreadCount: 0,
+                items: Array.from({length: count}, (_, index) => ({
+                    id: index + 1, kind: 'NOTIFICATION' as const, title: 'Eintrag ' + (index + 1), body: 'Text',
+                    targetPath: null, createdAt: '2026-09-28T10:00:00', read: true
+                }))
+            };
+        }
+
+        it('lists at most ten entries and offers the rest on request', async () => {
+            notificationApiService.getNotifications.mockReturnValue(of(manyNotifications(25)));
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            const component = fixture.componentInstance;
+
+            expect(component.visibleNotificationItems()).toHaveLength(10);
+            expect(component.hiddenNotificationCount()).toBe(15);
+
+            const event = {stopPropagation: vi.fn()} as unknown as Event;
+            component.showMoreNotifications(event);
+
+            expect(event.stopPropagation).toHaveBeenCalled();
+            expect(component.visibleNotificationItems()).toHaveLength(25);
+            expect(component.hiddenNotificationCount()).toBe(0);
+        });
+
+        it('offers nothing more with ten entries or fewer, and starts short again once the menu closed', async () => {
+            notificationApiService.getNotifications.mockReturnValue(of(manyNotifications(10)));
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            const component = fixture.componentInstance;
+            expect(component.hiddenNotificationCount()).toBe(0);
+
+            notificationApiService.getNotifications.mockReturnValue(of(manyNotifications(12)));
+            component.refreshNotifications();
+            component.showMoreNotifications({stopPropagation: vi.fn()} as unknown as Event);
+            expect(component.visibleNotificationItems()).toHaveLength(12);
+
+            component.resetNotificationList();
+            expect(component.visibleNotificationItems()).toHaveLength(10);
+        });
+
+        it('shows no badge without unread entries', async () => {
+            notificationApiService.getNotifications.mockReturnValue(of({items: [], unreadCount: 0}));
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+
+            expect(fixture.nativeElement.querySelector('[testid="notifications-badge"]')).toBeNull();
+        });
+
+        it('keeps the last state when a poll fails', async () => {
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            notificationApiService.getNotifications.mockReturnValue(throwError(() => new Error('down')));
+
+            fixture.componentInstance.refreshNotifications();
+            await fixture.whenStable();
+
+            expect(fixture.componentInstance.unreadCount()).toBe(2);
+        });
+
+        it('opening an unread entry marks it read and follows its target', async () => {
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            const router = TestBed.inject(Router);
+            const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+            fixture.componentInstance.openNotification(unreadNotifications.items[0]);
+
+            expect(notificationApiService.markRead).toHaveBeenCalledWith('NOTIFICATION', 1);
+            expect(navigate).toHaveBeenCalledWith('/uebersicht');
+        });
+
+        it('an entry without a target only gets marked read, and a read one is not marked again', async () => {
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+            fixture.componentInstance.openNotification(unreadNotifications.items[1]);
+            fixture.componentInstance.openNotification({...unreadNotifications.items[0], read: true, targetPath: null});
+
+            expect(notificationApiService.markRead).toHaveBeenCalledTimes(1);
+            expect(navigate).not.toHaveBeenCalled();
+        });
+
+        it('marking all read keeps the menu open and reloads the bell', async () => {
+            const fixture = TestBed.createComponent(DefaultHeaderComponent);
+            await fixture.whenStable();
+            const event = {stopPropagation: vi.fn()} as unknown as Event;
+            notificationApiService.getNotifications.mockClear();
+
+            fixture.componentInstance.markAllNotificationsRead(event);
+
+            expect(event.stopPropagation).toHaveBeenCalled();
+            expect(notificationApiService.markAllRead).toHaveBeenCalled();
+            expect(notificationApiService.getNotifications).toHaveBeenCalled();
+        });
     });
 
     it('logout', () => {
