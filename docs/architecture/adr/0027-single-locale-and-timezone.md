@@ -6,6 +6,10 @@
 > relying on every reader/writer agreeing on the implicit `Europe/Vienna` zone — is superseded by
 > [ADR-0054](0054-event-timestamps-stored-as-utc-instants.md). The locale, language, currency and
 > JVM-zone-for-computation-and-display decisions below are unchanged.
+>
+> The entrypoint no longer passes `-Duser.timezone`: the image's `TZ` (from its `TIMEZONE` build
+> argument, `Europe/Vienna` by default) names the zone once, and both the JVM's default zone and
+> the database session's `SET TIME ZONE` follow it.
 
 ## Context
 
