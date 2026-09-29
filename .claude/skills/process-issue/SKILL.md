@@ -169,5 +169,8 @@ The PR title itself must pass `pr-title-lint` (same Conventional Commits rule as
 repo squash-merges with the PR title becoming the final commit). The `Closes
 #<issue-number>` line is what auto-closes the issue once the squash commit lands on `main`.
 
-Report the PR URL back to the user. Stop there — this skill's own workflow ends once the PR is
-open; it does not review the diff further or babysit CI.
+Report the PR URL back to the user. This skill's own workflow ends once the PR is open; it does
+not review the diff further or babysit CI — with one exception: check the new PR's SonarCloud
+issues once its analysis has run (see `process-pr`, "Sonar issues count even when the gate is
+green") and fix what it lists. A green quality gate does not mean there are no open issues, and
+complexity/duplication findings on the new code are part of the ticket's work, not a follow-up.
