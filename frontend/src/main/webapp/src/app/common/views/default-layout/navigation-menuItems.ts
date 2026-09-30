@@ -20,6 +20,16 @@ import monitoringIcon from '@material-symbols/svg-400/outlined/monitoring-fill.s
 import historyIcon from '@material-symbols/svg-400/outlined/history-fill.svg';
 import settingsIcon from '@material-symbols/svg-400/outlined/settings-fill.svg';
 import personSearchIcon from '@material-symbols/svg-400/outlined/person_search-fill.svg';
+import storeIcon from '@material-symbols/svg-400/outlined/store-fill.svg';
+import badgeIcon from '@material-symbols/svg-400/outlined/badge-fill.svg';
+import categoryIcon from '@material-symbols/svg-400/outlined/category-fill.svg';
+import assignmentReturnIcon from '@material-symbols/svg-400/outlined/assignment_return-fill.svg';
+import straightenIcon from '@material-symbols/svg-400/outlined/straighten-fill.svg';
+import publicIcon from '@material-symbols/svg-400/outlined/public-fill.svg';
+import bedIcon from '@material-symbols/svg-400/outlined/bed-fill.svg';
+import campaignIcon from '@material-symbols/svg-400/outlined/campaign-fill.svg';
+import deleteHistoryIcon from '@material-symbols/svg-400/outlined/delete_history-fill.svg';
+import mailIcon from '@material-symbols/svg-400/outlined/mail-fill.svg';
 
 // Every icon name used anywhere in navigationMenuItems below, registered once from here rather than
 // by each consumer (DefaultLayoutComponent's sidebar, QuickOpenDialogComponent's flattened search
@@ -47,7 +57,17 @@ export function registerNavigationIcons(): void {
     monitoring: monitoringIcon,
     history: historyIcon,
     settings: settingsIcon,
-    person_search: personSearchIcon
+    person_search: personSearchIcon,
+    store: storeIcon,
+    badge: badgeIcon,
+    category: categoryIcon,
+    assignment_return: assignmentReturnIcon,
+    straighten: straightenIcon,
+    public: publicIcon,
+    bed: bedIcon,
+    campaign: campaignIcon,
+    delete_history: deleteHistoryIcon,
+    mail: mailIcon
   });
 }
 
@@ -242,31 +262,37 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Fahrzeuge',
         url: '/einstellungen/fahrzeuge',
+        icon: 'local_shipping',
         description: 'Fahrzeuge für Warenabholungen verwalten'
       },
       {
         name: 'Filialen',
         url: '/einstellungen/filialen',
+        icon: 'store',
         description: 'Filialen und Ansprechpersonen der Warenspender'
       },
       {
         name: 'Mitarbeiter',
         url: '/einstellungen/mitarbeiter',
+        icon: 'badge',
         description: 'Fahrer und Beifahrer der Warenabholungen'
       },
       {
         name: 'Routen',
         url: '/einstellungen/routen',
+        icon: 'route',
         description: 'Abholrouten mit ihren Filialen'
       },
       {
         name: 'Waren-Kategorien',
         url: '/einstellungen/lebensmittelkategorien',
+        icon: 'category',
         description: 'Kategorien der erfassten Waren'
       },
       {
         name: 'Retour-Kategorien',
         url: '/einstellungen/retourkategorien',
+        icon: 'assignment_return',
         description: 'Kategorien der retournierten Waren'
       },
       {
@@ -276,16 +302,19 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Grenzwerte',
         url: '/einstellungen/statische-werte',
+        icon: 'straighten',
         description: 'Einkommensgrenzen und weitere statische Werte'
       },
       {
         name: 'Länder',
         url: '/einstellungen/laender',
+        icon: 'public',
         description: 'Länder zur Auswahl der Staatsangehörigkeit'
       },
       {
         name: 'Notschlafstellen',
         url: '/einstellungen/notschlafstellen',
+        icon: 'bed',
         description: 'Notschlafstellen und ihre Personenzahl'
       },
       {
@@ -295,18 +324,21 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Ankündigungen',
         url: '/einstellungen/ankuendigungen',
+        icon: 'campaign',
         description: 'Nachrichten an alle Benutzer veröffentlichen',
         permissions: ['ADMINISTRATOR']
       },
       {
         name: 'Anstehende Löschungen',
         url: '/einstellungen/anstehende-loeschungen',
+        icon: 'delete_history',
         description: 'Was die automatische Datenlöschung bald entfernt',
         permissions: ['ADMINISTRATOR']
       },
       {
         name: 'E-Mail',
         url: '/einstellungen/email',
+        icon: 'mail',
         description: 'Empfänger automatischer E-Mails und erneuter Versand'
       }
     ],

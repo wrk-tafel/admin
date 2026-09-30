@@ -6,11 +6,18 @@
         @for (entry of group.entries; track entry.url) {
           <li>
             <a [routerLink]="entry.url" [attr.testid]="'settings-overview-' + entry.url"
-               class="block h-full rounded-lg border border-slate-300 bg-[var(--tafel-surface)] p-4 no-underline hover:border-slate-500 focus-visible:outline focus-visible:outline-2">
-              <span class="block font-semibold">{{ entry.name }}</span>
-              @if (entry.description) {
-                <span class="block mt-1 text-sm text-slate-600">{{ entry.description }}</span>
+               class="flex h-full items-start gap-3 rounded-lg border border-slate-300 bg-[var(--tafel-surface)] p-4 no-underline hover:border-slate-500 focus-visible:outline focus-visible:outline-2">
+              @if (entry.icon) {
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100" aria-hidden="true">
+                  <mat-icon [svgIcon]="entry.icon" class="!w-6 !h-6"></mat-icon>
+                </span>
               }
+              <span class="min-w-0">
+                <span class="block font-semibold">{{ entry.name }}</span>
+                @if (entry.description) {
+                  <span class="block mt-1 text-sm text-slate-600">{{ entry.description }}</span>
+                }
+              </span>
             </a>
           </li>
         }

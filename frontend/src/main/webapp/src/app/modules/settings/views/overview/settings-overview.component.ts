@@ -1,7 +1,8 @@
 import {Component, computed, inject} from '@angular/core';
+import {MatIcon} from '@angular/material/icon';
 import {RouterLink} from '@angular/router';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
-import {ITafelNavData, navigationMenuItems} from '../../../../common/views/default-layout/navigation-menuItems';
+import {ITafelNavData, navigationMenuItems, registerNavigationIcons} from '../../../../common/views/default-layout/navigation-menuItems';
 
 interface SettingsGroup {
   title: string;
@@ -17,10 +18,11 @@ interface SettingsGroup {
 @Component({
   selector: 'tafel-settings-overview',
   templateUrl: 'settings-overview.component.html',
-  imports: [RouterLink]
+  imports: [RouterLink, MatIcon]
 })
 export class SettingsOverviewComponent {
   private readonly authenticationService = inject(AuthenticationService);
+  private readonly registerIcons = registerNavigationIcons();
 
   readonly groups = computed<SettingsGroup[]>(() => {
     const settings = navigationMenuItems.find(item => item.url === '/einstellungen');
