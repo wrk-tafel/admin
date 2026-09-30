@@ -1,6 +1,6 @@
 import type {MockedObject} from 'vitest';
 import {of, throwError} from 'rxjs';
-import {TestBed} from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import dayjs from 'dayjs';
@@ -147,12 +147,21 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
   beforeEach(() => configureTestBed());
 
-  it('initial checks', () => {
+  async function openPersonsTab(fixture: ComponentFixture<CustomerEditComponent>) {
+    const tabs = fixture.debugElement.queryAll(By.css('[role="tab"]'));
+    tabs[1].nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  it('initial checks', async () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
     fixture.detectChanges();
 
+    await openPersonsTab(fixture);
     expect(fixture.debugElement.query(By.css('[testid="nopersons-label"]'))).toBeTruthy();
     expect(component.editMode()).toBe(false);
   });
@@ -168,7 +177,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     expect(fixture.debugElement.query(By.css('[testid="lastnameInput"]')).nativeElement.value).toBe('Mustermann');
   });
 
-  it('prefills persons handed over from the quick-check screen via navigation state', () => {
+  it('prefills persons handed over from the quick-check screen via navigation state', async () => {
     TestBed.resetTestingModule();
     // birthdates arrive as 'YYYY-MM-DD' strings, exactly as the quick-check's native date inputs provide them
     configureTestBed({
@@ -185,6 +194,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
       .toBe('1990-05-12');
     expect(fixture.debugElement.query(By.css('[testid="incomeInput"]')).nativeElement.value).toBe('1000');
     // the handed-over child arrives as a collapsed additional person
+    await openPersonsTab(fixture);
     expect(fixture.debugElement.query(By.css('[testid="personform-header-0"]'))).toBeTruthy();
     expect(fixture.debugElement.query(By.css('[testid="nopersons-label"]'))).toBeNull();
   });
