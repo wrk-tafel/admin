@@ -122,16 +122,19 @@ describe('Customer Edit', () => {
         const customerId = response.body.data.id;
         cy.visit('/kunden/bearbeiten/' + customerId);
 
+        cy.contains('[role=tab]', 'Weitere Personen').click();
         cy.byTestId('personform-header-0').click();
         cy.byTestId('make-main-person-0').click();
 
         // the promoted person's data now sits in the main-person fields...
+        cy.contains('[role=tab]', 'Hauptbezieher').click();
         cy.byTestId('lastnameInput').should('have.value', additionalLastname);
         cy.byTestId('firstnameInput').should('have.value', additionalFirstname);
         // ...while household-level data (not person data) is untouched
         cy.byTestId('telephoneNumberInput').should('have.value', '0123456789');
 
         // ...and the previous main person now shows up as the additional person instead
+        cy.contains('[role=tab]', 'Weitere Personen').click();
         cy.byTestId('personform-header-0').should('contain.text', mainLastname).and('contain.text', mainFirstname);
 
         cy.byTestId('save-button').click();

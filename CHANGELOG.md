@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Im Kundenformular sind "Hauptbezieher" und "Weitere Personen" jetzt zwei Tabs statt zwei Karten nebeneinander.
+
+## [1.28.0] - 2026-09-30
 - Auf der Einstellungen-Übersicht hat jede Kachel jetzt ein passendes Symbol.
 
 ## [1.27.1] - 2026-09-29
