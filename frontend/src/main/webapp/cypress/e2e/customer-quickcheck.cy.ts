@@ -95,6 +95,7 @@ describe('Customer QuickCheck', () => {
     cy.byTestId('birthDateInput').should('have.value', adultBirthDate);
     cy.byTestId('incomeInput').should('have.value', '1000');
     // the handed-over child arrives as a collapsed additional person with its flag intact
+    cy.contains('[role=tab]', 'Weitere Personen').click();
     cy.byTestId('personform-header-0')
       .should('be.visible')
       .and('contain.text', 'Familienbeihilfe');

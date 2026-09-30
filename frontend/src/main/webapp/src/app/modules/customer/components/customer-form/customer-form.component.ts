@@ -13,6 +13,7 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatExpansionModule} from '@angular/material/expansion';
+import {MatTabsModule} from '@angular/material/tabs';
 import {MatIcon} from '@angular/material/icon';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
@@ -52,6 +53,7 @@ const MAIN_COUNTRY_KEY = 'main';
     MatDividerModule,
     MatCheckboxModule,
     MatExpansionModule,
+    MatTabsModule,
     MatIcon,
     TafelAutofocusDirective,
     GenderLabelPipe,

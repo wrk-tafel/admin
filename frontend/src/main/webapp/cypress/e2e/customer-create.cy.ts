@@ -254,6 +254,9 @@ describe('Customer Creation', () => {
       excludeFromHousehold: false
     });
 
+    openTab('Weitere Personen');
+    cy.contains('[role=tab]', 'Weitere Personen (2)').should('exist');
+
     // only the newly-added person (index 1) stays open - the first one collapses back into its summary line
     cy.byTestId('personform-1').should('be.visible');
     cy.byTestId('personform-0').should('not.be.visible');
@@ -495,7 +498,12 @@ describe('Customer Creation', () => {
     cy.byTestId('validUntilInput').type(dayjs().add(2, 'years').startOf('day').format('YYYY-MM-DD'));
   }
 
+  function openTab(label: string) {
+    cy.contains('[role=tab]', label).click();
+  }
+
   function enterAdditionalPersonData(index: number, data: CustomerAddPersonData) {
+    openTab('Weitere Personen');
     cy.byTestId('addperson-button-bottom').click();
 
     cy.byTestId('personform-' + index).within(() => {
@@ -520,6 +528,7 @@ describe('Customer Creation', () => {
         cy.byTestId('excludeFromHouseholdInput').click();
       }
     });
+    openTab('Hauptbezieher');
   }
 
   function getBirthDateForAge(age: number): Date {

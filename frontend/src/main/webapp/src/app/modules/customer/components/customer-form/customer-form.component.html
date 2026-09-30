@@ -1,6 +1,7 @@
 <form>
-  <div class="grid grid-cols-1 gap-6">
-    <mat-card>
+  <mat-tab-group animationDuration="0ms" testid="customer-form-tabs">
+    <mat-tab label="Hauptbezieher">
+    <mat-card class="mt-4">
       <mat-card-header>
         <h2 class="tafel-h5">Hauptbezieher</h2>
       </mat-card-header>
@@ -195,8 +196,10 @@
         </div>
       </mat-card-content>
     </mat-card>
-    <div>
-      <mat-card>
+    </mat-tab>
+    <mat-tab>
+      <ng-template mat-tab-label>Weitere Personen ({{ customerForm.additionalPersons().value()?.length ?? 0 }})</ng-template>
+      <mat-card class="mt-4">
         <mat-card-header class="w-full">
           <div class="flex justify-between items-center w-full">
             <h2 class="tafel-h5">Weitere Personen ({{ customerForm.additionalPersons().value()?.length ?? 0 }})</h2>
@@ -372,6 +375,6 @@
           </button>
         </mat-card-actions>
       </mat-card>
-    </div>
-  </div>
+    </mat-tab>
+  </mat-tab-group>
 </form>
