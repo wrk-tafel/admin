@@ -81,9 +81,9 @@
     "jsdom": "30.1.1",
     "ts-node": "10.9.2",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.70.1",
+    "typescript-eslint": "8.71.0",
     "vitest": "5.0.2",
-    "wait-on": "9.1.0"
+    "wait-on": "9.4.0"
   },
   "engines": {
     "node": "^22.22.3 || ^24.15.0 || ^26.0.0",
