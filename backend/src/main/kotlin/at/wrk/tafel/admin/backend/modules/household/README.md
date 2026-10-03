@@ -531,6 +531,30 @@ currently locked for `HouseholdLockReason.BANNED_FROM_PREMISES` is excluded from
 - the candidate query, the preview filter and `PendingDeletionsService`'s "Anstehende Löschungen"
 screen - regardless of `validUntil` (issue #3753); no other lock reason gets this treatment.
 
+### `HouseholdLockService` (`internal`)
+Locking and unlocking by hand - the customer detail screen's "Sperren"/"Entsperren".
+`lockHousehold` (`POST /api/households/{id}/lock`, body `HouseholdLockRequest`: the required
+free-text `lockReason`, the optional `lockReasonType` and `lockedUntil`) and `unlockHousehold`
+(`POST /api/households/{id}/unlock`) write the lock fields of the stored household and nothing else,
+and both answer with the full `HouseholdResponse`. Neither takes the household as input: an
+incomplete household (see above) fails `PUT /api/households/{id}`'s required-field validation, so a
+lock that round-tripped the record could never be put on exactly the households nobody can complete -
+and it would re-run an income check that has nothing to do with a lock. An already locked household
+is refused (`BusinessRuleException`), since there is no "edit an existing lock" action. Both are
+ordinary audited household updates.
+
+### Prolonging and deactivating
+The detail screen's two validity actions have their own endpoints for the same reason locking does:
+neither changes anything but `validUntil`, so neither submits the household.
+`HouseholdService.prolongHousehold` (`POST /api/households/{id}/prolong?force=`, body
+`HouseholdProlongRequest` with `months` 1-12) moves the stored `validUntil` out and stamps
+`prolongedAt`. A renewal is an eligibility decision, so it runs the income check exactly as
+`updateHousehold` does - a 409 for a supervisor until `force`d, "saved as invalid" for everybody
+else - and answers with the same `HouseholdUpdateResponse`. The income check needs every person's
+birth date; a household missing one is refused with a `BusinessRuleException` that says so, which is
+the one kind of incompleteness that stops a renewal. `HouseholdService.deactivateHousehold`
+(`POST /api/households/{id}/deactivate`) sets `validUntil` to yesterday and checks nothing.
+
 ### `HouseholdLockExpiryService` (`internal`)
 Issue #3753: a nightly job (05:50, `@Scheduled`, just before `HouseholdRetentionService` at 06:00)
 that lifts a household's temporary lock (`HouseholdEntity.lockedUntil`) once that date has passed,

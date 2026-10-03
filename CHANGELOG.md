@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Kunden mit unvollständigen Daten (z. B. ohne Geschlecht) lassen sich wieder sperren, entsperren, deaktivieren und verlängern; bisher schlug das mit "Validierung fehlgeschlagen" fehl. Fehlt ein Geburtsdatum, weist das Verlängern nun ausdrücklich darauf hin, da es für die Einkommensprüfung nötig ist.
+- Beim Sperren, Entsperren und Deaktivieren eines Kunden erscheint keine Rückfrage zum Einkommenslimit mehr.
+- Ältere Kundennotizen zeigen Zeilenumbrüche wieder als Zeilenumbruch statt als sichtbares `<br/>` im Text.
 
 ## [1.28.0] - 2026-09-30
 - Auf der Einstellungen-Übersicht hat jede Kachel jetzt ein passendes Symbol.

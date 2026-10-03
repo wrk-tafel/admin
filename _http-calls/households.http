@@ -242,6 +242,32 @@ Content-Type: application/json
 POST {{baseApiPath}}/households/100/lock-review
 Content-Type: application/json
 
+### Lock a household (only the lock is sent, never the household itself)
+POST {{baseApiPath}}/households/100/lock
+Content-Type: application/json
+
+{
+  "lockReason": "Grund der Sperre",
+  "lockReasonType": "OTHER",
+  "lockedUntil": null
+}
+
+### Prolong a household by a number of months (force=true: supervisor override for an above-limit income)
+POST {{baseApiPath}}/households/100/prolong?force=false
+Content-Type: application/json
+
+{
+  "months": 3
+}
+
+### Deactivate a household (valid until yesterday)
+POST {{baseApiPath}}/households/100/deactivate
+Content-Type: application/json
+
+### Unlock a household
+POST {{baseApiPath}}/households/100/unlock
+Content-Type: application/json
+
 ### Get new/renewed households overview of the latest distribution
 GET {{baseApiPath}}/households/overview
 Content-Type: application/json

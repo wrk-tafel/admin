@@ -225,6 +225,44 @@ export class CustomerApiService {
     return this.http.post<CustomerLockedItem>(`/households/${customerId}/lock-review`, null);
   }
 
+  /**
+   * Prolongs the stored customer by a number of months. `force` is the supervisor's override for an
+   * income above the limit, which the backend answers with a 409 until it is set.
+   */
+  prolongCustomer(customerId: number, months: number, force: boolean, context?: HttpContext): Observable<CustomerUpdateResponse> {
+    return this.http.post<HouseholdUpdateResponse>(`/households/${customerId}/prolong`, {months}, {params: {force}, context})
+      .pipe(
+        map(response => ({data: mapHouseholdToCustomer(response?.data), errorMsg: response?.errorMsg ?? null})),
+        tap(response => {
+          const errorMsg = response.errorMsg;
+          if (errorMsg) {
+            this.toastr.error(errorMsg);
+          }
+        })
+      );
+  }
+
+  deactivateCustomer(customerId: number, context?: HttpContext): Observable<CustomerData> {
+    return this.http.post<HouseholdData>(`/households/${customerId}/deactivate`, null, {context})
+      .pipe(map(mapHouseholdToCustomer));
+  }
+
+  /**
+   * Sends the lock alone, never the customer it is put on: a customer whose stored data is
+   * incomplete would fail the required-field validation of a full update, and could then never be
+   * locked. {@link prolongCustomer}, {@link deactivateCustomer} and {@link unlockCustomer} leave
+   * the customer out of the request for the same reason.
+   */
+  lockCustomer(customerId: number, lock: CustomerLockData, context?: HttpContext): Observable<CustomerData> {
+    return this.http.post<HouseholdData>(`/households/${customerId}/lock`, lock, {context})
+      .pipe(map(mapHouseholdToCustomer));
+  }
+
+  unlockCustomer(customerId: number, context?: HttpContext): Observable<CustomerData> {
+    return this.http.post<HouseholdData>(`/households/${customerId}/unlock`, null, {context})
+      .pipe(map(mapHouseholdToCustomer));
+  }
+
   generateCustomersAboveLimitCsv(sortBy?: string, sortDirection?: string): Observable<HttpResponse<Blob>> {
     return this.http.get('/households/above-limit/csv', {
       params: this.aboveLimitParams(undefined, undefined, sortBy, sortDirection),
@@ -502,6 +540,12 @@ export type CustomerDuplicatesResponse = PagedResponse<CustomerDuplicatesItem>;
 export interface CustomerDuplicatesItem {
   customer: CustomerData;
   similarCustomers: CustomerData[];
+}
+
+export interface CustomerLockData {
+  lockReason: string;
+  lockReasonType?: HouseholdLockReason | null;
+  lockedUntil?: string | null;
 }
 
 export type CustomerLockedResponse = PagedResponse<CustomerLockedItem>;

@@ -222,6 +222,43 @@ describe('Customer Detail', () => {
     });
   });
 
+  it('lock and unlock a customer whose data is incomplete', () => {
+    // Customer 106 has neither a name, a birth date nor a gender on its main person. Locking sends
+    // only the lock, so the required-field validation of a full customer update never sees it.
+    cy.visit('/kunden/detail/106');
+
+    cy.byTestId('lock-info-banner').should('not.exist');
+
+    openEditMenu();
+    cy.byTestId('lockCustomerButton').click();
+    cy.byTestId('lockreason-input-text').type('incomplete lockreason');
+    cy.byTestId('lock-customer-dialog').within(() => {
+      cy.byTestId('okButton').click();
+    });
+
+    cy.byTestId('lock-info-banner').should('exist').and('contain.text', 'incomplete lockreason');
+
+    openEditMenu();
+    cy.byTestId('unlockCustomerButton').click();
+
+    cy.byTestId('lock-info-banner').should('not.exist');
+  });
+
+  it('deactivate a customer whose data is incomplete, and prolonging names the missing birth date', () => {
+    // The main person of customer 106 has no birth date. Deactivating needs none; prolonging runs
+    // the income check, which does - and says so instead of a generic validation error.
+    cy.visit('/kunden/detail/106');
+
+    cy.byTestId('prolongButton').click();
+    cy.byTestId('prolongThreeMonthsButton').click();
+    cy.contains('Bei mindestens einer Person fehlt das Geburtsdatum').should('be.visible');
+
+    openEditMenu();
+    cy.byTestId('invalidateCustomerButton').click();
+
+    cy.byTestId('validUntilText').should('have.text', dayjs().subtract(1, 'day').endOf('day').format('DD.MM.YYYY'));
+  });
+
   it('customer note shown', () => {
     cy.visit('/kunden/detail/101');
 
@@ -1161,7 +1198,7 @@ describe('Customer Detail', () => {
       });
     });
 
-    it('lock customer with invalid income triggers confirm dialog when supervisor, keeping the entered lock reason', () => {
+    it('lock customer with invalid income locks without an income confirmation', () => {
       cy.createDummyCustomer(10000, true).then((response) => {
         const customerId = response.body.data.id;
         cy.visit('/kunden/detail/' + customerId);
@@ -1175,15 +1212,9 @@ describe('Customer Detail', () => {
           cy.byTestId('okButton').click();
         });
 
-        // Should trigger confirm dialog instead of dead-ending on the 409 - see issue #3636
-        cy.byTestId('confirm-customer-save-dialog')
-          .should('be.visible')
-          .within(() => {
-            cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)');
-            cy.byTestId('ok-button').click();
-          });
-
+        // A lock says nothing about eligibility, so the income limit has no say in it
         cy.byTestId('lock-info-banner').should('exist').and('contain.text', 'dummy lockreason');
+        cy.byTestId('confirm-customer-save-dialog').should('not.exist');
       });
     });
 

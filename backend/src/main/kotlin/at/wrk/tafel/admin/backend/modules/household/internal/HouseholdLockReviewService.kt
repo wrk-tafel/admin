@@ -27,8 +27,8 @@ import java.time.LocalDateTime
  * The review of household locks that have no `lockedUntil` date (issue #3763, GDPR Art. 5(1)(e)): the
  * "Gesperrte Kunden" list and the "reviewed, the lock stays" confirmation that restarts a lock's
  * review interval. The reminder that tells staff a review is due is `push`'s
- * `HouseholdLockReviewReminderService`; lifting a lock goes through the ordinary household update,
- * and a temporary one lifts itself ([HouseholdLockExpiryService]).
+ * `HouseholdLockReviewReminderService`; lifting a lock is [HouseholdLockService.unlockHousehold], and
+ * a temporary one lifts itself ([HouseholdLockExpiryService]).
  *
  * A lock is due once its last review - or, never reviewed, the lock itself - is older than
  * `tafeladmin.householdLockReview.interval`, read per call.

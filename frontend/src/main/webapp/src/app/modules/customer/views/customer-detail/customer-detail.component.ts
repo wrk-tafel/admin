@@ -364,94 +364,70 @@ export class CustomerDetailComponent {
     });
   }
 
-  openConfirmUpdateCustomerDialog(customerData: CustomerData, message: string, successMessage: string, errorTitle: string) {
+  /**
+   * Prolonging is the one quick action the backend may answer with a 409: a supervisor prolonging a
+   * customer whose income is above the limit has to confirm it, and the confirmed retry carries
+   * `force`. Without this the request would dead-end silently on that state - see issue #3636.
+   */
+  prolongCustomer(countMonths: number) {
+    this.customerApiService.prolongCustomer(this.customerData().id!, countMonths, false, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+      next: (response: CustomerUpdateResponse) => {
+        this.customerData.set(response.data);
+      },
+      error: (error: HttpErrorResponse) => {
+        if (error.status === 409) {
+          this.openConfirmProlongCustomerDialog(countMonths, extractErrorMessage(error));
+        } else {
+          this.toastr.error(extractErrorMessage(error), 'Verlängerung fehlgeschlagen!');
+        }
+      },
+    });
+  }
+
+  openConfirmProlongCustomerDialog(countMonths: number, message: string) {
     this.dialog.open(ConfirmCustomerSaveDialog, {
       data: {
         message: message
       }
     }).afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.customerApiService.updateCustomer(customerData, true, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+        this.customerApiService.prolongCustomer(this.customerData().id!, countMonths, true, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
           next: (response: CustomerUpdateResponse) => {
             this.customerData.set(response.data);
-            this.toastr.success(successMessage);
+            this.toastr.success('Kunde wurde verlängert!');
           },
           error: (error: HttpErrorResponse) => {
-            this.toastr.error(extractErrorMessage(error), errorTitle);
+            this.toastr.error(extractErrorMessage(error), 'Verlängerung fehlgeschlagen!');
           },
         });
       }
     });
   }
 
-  /**
-   * Shared by every action that round-trips the full customer record through `updateCustomer`
-   * (prolong/disable/lock/unlock): the backend rejects an unreviewed duplicate candidate or an
-   * above-limit income with a 409 *before* saving, so a plain unhandled request would dead-end
-   * silently on those two states - see issue #3636. [updatedCustomerData] already carries whatever
-   * the action just changed (e.g. a freshly entered lock reason), so it survives into the retry
-   * unchanged.
-   */
-  private updateCustomerWithConflictRetry(updatedCustomerData: CustomerData, successMessage: string, errorTitle: string) {
-    this.customerApiService.updateCustomer(updatedCustomerData, false, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
-      next: (response: CustomerUpdateResponse) => {
-        this.customerData.set(response.data);
-      },
-      error: (error: HttpErrorResponse) => {
-        if (error.status === 409) {
-          this.openConfirmUpdateCustomerDialog(updatedCustomerData, extractErrorMessage(error), successMessage, errorTitle);
-        } else {
-          this.toastr.error(extractErrorMessage(error), errorTitle);
-        }
-      },
-    });
-  }
-
-  prolongCustomer(countMonths : number) {
-    const newValidUntilDate = dayjs(this.customerData().validUntil).add(countMonths, 'months').endOf('day').toDate();
-    const updatedCustomerData = {
-      ...this.customerData(),
-      validUntil: newValidUntilDate
-    };
-
-    this.updateCustomerWithConflictRetry(updatedCustomerData, 'Kunde wurde verlängert!', 'Verlängerung fehlgeschlagen!');
-  }
-
   disableCustomer() {
-    const updatedCustomerData = {
-      ...this.customerData(),
-      validUntil: dayjs().subtract(1, 'day').endOf('day').toDate()
-    };
-
-    this.updateCustomerWithConflictRetry(updatedCustomerData, 'Kunde wurde deaktiviert!', 'Deaktivieren fehlgeschlagen!');
+    this.customerApiService.deactivateCustomer(this.customerData().id!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+      next: (customerData: CustomerData) => this.customerData.set(customerData),
+      error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Deaktivieren fehlgeschlagen!'),
+    });
   }
 
   openLockCustomerDialog() {
     this.dialog.open(LockCustomerDialogComponent).afterClosed().subscribe((result: LockCustomerDialogResult | undefined) => {
       if (result) {
-        const updatedCustomerData: CustomerData = {
-          ...this.customerData(),
-          locked: true,
-          lockReasonType: result.reasonType,
-          lockReason: result.reasonText,
-          lockedUntil: result.lockedUntil
-        };
-        this.updateCustomerWithConflictRetry(updatedCustomerData, 'Kunde wurde gesperrt!', 'Sperren fehlgeschlagen!');
+        const lock = {lockReason: result.reasonText, lockReasonType: result.reasonType, lockedUntil: result.lockedUntil};
+        this.customerApiService.lockCustomer(this.customerData().id!, lock, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+          next: (customerData: CustomerData) => this.customerData.set(customerData),
+          error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Sperren fehlgeschlagen!'),
+        });
       }
     });
   }
 
   unlockCustomer() {
-    const updatedCustomerData: CustomerData = {
-      ...this.customerData(),
-      locked: false,
-      lockedBy: null,
-      lockReason: null,
-      lockReasonType: null,
-      lockedUntil: null
-    };
-
-    this.updateCustomerWithConflictRetry(updatedCustomerData, 'Kunde wurde entsperrt!', 'Entsperren fehlgeschlagen!');
+    this.customerApiService.unlockCustomer(this.customerData().id!, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+      next: (customerData: CustomerData) => this.customerData.set(customerData),
+      error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Entsperren fehlgeschlagen!'),
+    });
   }
 
   openPayCostContributionDialog() {

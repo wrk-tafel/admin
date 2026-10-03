@@ -27,6 +27,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.Specs.Companion.willBeDeletedSoon
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.HouseholdAboveLimitItem
@@ -89,6 +90,9 @@ class HouseholdService(
 
         /** How far ahead the "wird bald gelöscht" filter (GDPR gap G19) looks, see [getHouseholds]. */
         private const val DELETION_PREVIEW_WINDOW_DAYS = 30L
+
+        private const val INCOME_ABOVE_LIMIT_MESSAGE = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)"
+        private const val SAVED_AS_INVALID_MESSAGE = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"
     }
 
     fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
@@ -190,7 +194,7 @@ class HouseholdService(
         val valid = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons())).valid
         if (!valid && isSupervisor) {
             if (!force) {
-                throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
+                throw ConflictException(INCOME_ABOVE_LIMIT_MESSAGE)
             } else {
                 val savedEntity = saveWithMainPerson(entity)
                 log.info("Created household {} (income above limit, forced by supervisor)", savedEntity.householdId)
@@ -206,7 +210,7 @@ class HouseholdService(
             log.info("Created household {} (income above limit, saved as invalid)", savedEntity.householdId)
             return HouseholdCreationResponse(
                 data = householdConverter.mapEntityToHousehold(savedEntity),
-                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
+                errorMsg = SAVED_AS_INVALID_MESSAGE,
             )
         }
 
@@ -236,7 +240,7 @@ class HouseholdService(
         val valid = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons())).valid
         if (!valid && isSupervisor) {
             if (!force) {
-                throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
+                throw ConflictException(INCOME_ABOVE_LIMIT_MESSAGE)
             } else {
                 val savedEntity = saveWithMainPerson(mappedEntity)
                 log.info("Updated household {} (income above limit, forced by supervisor)", savedEntity.householdId)
@@ -256,7 +260,7 @@ class HouseholdService(
             log.info("Updated household {} (income above limit, saved as invalid)", savedEntity.householdId)
             return HouseholdUpdateResponse(
                 data = householdConverter.mapEntityToHousehold(savedEntity),
-                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
+                errorMsg = SAVED_AS_INVALID_MESSAGE,
             )
         }
 
@@ -266,6 +270,67 @@ class HouseholdService(
             data = householdConverter.mapEntityToHousehold(savedEntity),
             errorMsg = null,
         )
+    }
+
+    /**
+     * "Verlängern": moves the stored `validUntil` out by [months] and stamps `prolongedAt`. Works on
+     * the stored household instead of taking one as input, so a household whose remaining data is
+     * incomplete (see the module README) is not refused by [updateHousehold]'s required-field
+     * validation over fields a renewal never touches.
+     *
+     * A renewal is still an eligibility decision, so the income check runs exactly as it does in
+     * [updateHousehold]: above the limit is a [ConflictException] for a supervisor until [force]d,
+     * and saves the household as invalid for everybody else. That check needs every person's birth
+     * date - the one piece of incompleteness that does stop a renewal, with a message saying so.
+     */
+    @Transactional
+    fun prolongHousehold(householdId: Long, months: Int, force: Boolean, isSupervisor: Boolean): HouseholdUpdateResponse {
+        val household = householdRepository.findByHouseholdId(householdId)
+            ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+        if (household.persons.any { it.birthDate == null }) {
+            throw BusinessRuleException(
+                "Verlängern nicht möglich: Bei mindestens einer Person fehlt das Geburtsdatum. Bitte zuerst die Kundendaten vervollständigen!",
+            )
+        }
+
+        val valid = incomeValidatorService.validate(mapEntityToValidationPersons(household)).valid
+        if (!valid && isSupervisor && !force) {
+            throw ConflictException(INCOME_ABOVE_LIMIT_MESSAGE)
+        }
+        if (!valid && !isSupervisor) {
+            household.validUntil = LocalDate.now(clock).minusDays(1)
+            household.prolongedAt = null
+            val savedEntity = householdRepository.saveAndFlush(household)
+            log.info("Prolonging household {} refused (income above limit, saved as invalid)", householdId)
+            return HouseholdUpdateResponse(
+                data = householdConverter.mapEntityToHousehold(savedEntity),
+                errorMsg = SAVED_AS_INVALID_MESSAGE,
+            )
+        }
+
+        household.validUntil = household.validUntil.plusMonths(months.toLong())
+        household.prolongedAt = LocalDateTime.now(clock)
+        val savedEntity = householdRepository.saveAndFlush(household)
+        log.info("Prolonged household {} by {} months", householdId, months)
+        return HouseholdUpdateResponse(
+            data = householdConverter.mapEntityToHousehold(savedEntity),
+            errorMsg = null,
+        )
+    }
+
+    /**
+     * "Kunde deaktivieren": ends the household's validity as of yesterday and changes nothing else,
+     * so neither the completeness of its data nor its income has any say in it.
+     */
+    @Transactional
+    fun deactivateHousehold(householdId: Long): HouseholdResponse {
+        val household = householdRepository.findByHouseholdId(householdId)
+            ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+
+        household.validUntil = LocalDate.now(clock).minusDays(1)
+        val savedEntity = householdRepository.saveAndFlush(household)
+        log.info("Deactivated household {}", householdId)
+        return householdConverter.mapEntityToHousehold(savedEntity)
     }
 
     /**
@@ -316,9 +381,9 @@ class HouseholdService(
      * Whether [household] still carries exactly the same identity-relevant data as [existingEntity]
      * - the household's address and every person's [PersonIdentity], the same fields
      * [checkForDuplicates] (via [HouseholdDuplicationService.findPotentialDuplicates]) actually
-     * keys its fuzzy matching off. A quick action (lock/unlock/prolong/deactivate) round-trips the
-     * rest of the household unchanged, so re-running the duplicate check on it can only ever repeat
-     * a warning that was already true (or already dismissed) before this save started - see issue
+     * keys its fuzzy matching off. An edit that leaves all of that alone (a phone number, an income)
+     * cannot create a duplicate, so re-running the duplicate check on it can only ever repeat a
+     * warning that was already true (or already dismissed) before this save started - see issue
      * #3755. Any added/removed/unmapped person, or any matched person's identity differing, counts
      * as changed.
      *
@@ -800,9 +865,8 @@ class HouseholdService(
 
     /**
      * Lifts a temporary lock whose [at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.lockedUntil]
-     * has passed - called only by [HouseholdLockExpiryService]. A manual unlock always goes through
-     * [updateHousehold] with a full request body instead, since that path still applies its own
-     * conflict/duplicate/income checks.
+     * has passed - called only by [HouseholdLockExpiryService]. A manual unlock is
+     * [HouseholdLockService.unlockHousehold].
      */
     @Transactional
     fun unlockHouseholdByHouseholdId(householdId: Long) {
