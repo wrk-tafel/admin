@@ -207,6 +207,17 @@ class HouseholdResponseModelTest {
     }
 
     @Test
+    fun `household prolong request accepts one to twelve months only`() {
+        listOf(null, 0, 13).forEach { months ->
+            assertThat(validator.validate(HouseholdProlongRequest(months = months)))
+                .extracting<String> { it.propertyPath.toString() }
+                .containsExactly("months")
+        }
+        assertThat(validator.validate(HouseholdProlongRequest(months = 1))).isEmpty()
+        assertThat(validator.validate(HouseholdProlongRequest(months = 12))).isEmpty()
+    }
+
+    @Test
     fun `household lock request without a reason is invalid`() {
         val violations = validator.validate(HouseholdLockRequest(lockReason = " "))
 

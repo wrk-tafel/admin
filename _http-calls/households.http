@@ -252,6 +252,18 @@ Content-Type: application/json
   "lockedUntil": null
 }
 
+### Prolong a household by a number of months (force=true: supervisor override for an above-limit income)
+POST {{baseApiPath}}/households/100/prolong?force=false
+Content-Type: application/json
+
+{
+  "months": 3
+}
+
+### Deactivate a household (valid until yesterday)
+POST {{baseApiPath}}/households/100/deactivate
+Content-Type: application/json
+
 ### Unlock a household
 POST {{baseApiPath}}/households/100/unlock
 Content-Type: application/json

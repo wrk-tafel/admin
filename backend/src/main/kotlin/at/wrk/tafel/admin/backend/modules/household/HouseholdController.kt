@@ -276,6 +276,27 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun unlockHousehold(@PathVariable householdId: Long): HouseholdResponse = householdLockService.unlockHousehold(householdId)
 
+    /**
+     * A renewal by a number of months, measured against the stored household rather than a submitted
+     * one. [force] is the same supervisor override [updateHousehold] takes for an above-limit income.
+     */
+    @PostMapping("/{householdId}/prolong")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun prolongHousehold(
+        @PathVariable householdId: Long,
+        @RequestParam force: Boolean = false,
+        @Valid @RequestBody request: HouseholdProlongRequest,
+    ): HouseholdUpdateResponse {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
+
+        return householdService.prolongHousehold(householdId, request.months!!, force, isSupervisor)
+    }
+
+    @PostMapping("/{householdId}/deactivate")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun deactivateHousehold(@PathVariable householdId: Long): HouseholdResponse = householdService.deactivateHousehold(householdId)
+
     @GetMapping("/overview")
     @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_OVERVIEW')")
     fun getHouseholdsOverview(@RequestParam distributionId: Long? = null): HouseholdOverviewResponse = householdService.getHouseholdsOverview(distributionId)

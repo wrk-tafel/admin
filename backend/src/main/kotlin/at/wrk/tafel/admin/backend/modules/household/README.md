@@ -543,6 +543,18 @@ and it would re-run an income check that has nothing to do with a lock. An alrea
 is refused (`BusinessRuleException`), since there is no "edit an existing lock" action. Both are
 ordinary audited household updates.
 
+### Prolonging and deactivating
+The detail screen's two validity actions have their own endpoints for the same reason locking does:
+neither changes anything but `validUntil`, so neither submits the household.
+`HouseholdService.prolongHousehold` (`POST /api/households/{id}/prolong?force=`, body
+`HouseholdProlongRequest` with `months` 1-12) moves the stored `validUntil` out and stamps
+`prolongedAt`. A renewal is an eligibility decision, so it runs the income check exactly as
+`updateHousehold` does - a 409 for a supervisor until `force`d, "saved as invalid" for everybody
+else - and answers with the same `HouseholdUpdateResponse`. The income check needs every person's
+birth date; a household missing one is refused with a `BusinessRuleException` that says so, which is
+the one kind of incompleteness that stops a renewal. `HouseholdService.deactivateHousehold`
+(`POST /api/households/{id}/deactivate`) sets `validUntil` to yesterday and checks nothing.
+
 ### `HouseholdLockExpiryService` (`internal`)
 Issue #3753: a nightly job (05:50, `@Scheduled`, just before `HouseholdRetentionService` at 06:00)
 that lifts a household's temporary lock (`HouseholdEntity.lockedUntil`) once that date has passed,

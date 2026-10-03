@@ -558,6 +558,33 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
+  it('prolong customer sends only the months and maps the response to a customer', () => {
+    let result: CustomerData | undefined;
+    apiService.prolongCustomer(133, 3, true).subscribe(response => result = response.data);
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133/prolong?force=true'});
+    expect(req.request.body).toEqual({months: 3});
+
+    req.flush({data: mockHousehold, errorMsg: null});
+    httpMock.verify();
+
+    expect(result?.id).toEqual(mockCustomer.id);
+    expect(result?.lastname).toEqual(mockCustomer.lastname);
+  });
+
+  it('deactivate customer maps the response to a customer', () => {
+    let result: CustomerData | undefined;
+    apiService.deactivateCustomer(133).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133/deactivate'});
+    expect(req.request.body).toBeNull();
+
+    req.flush(mockHousehold);
+    httpMock.verify();
+
+    expect(result?.id).toEqual(mockCustomer.id);
+  });
+
   it('lock customer sends only the lock and maps the response to a customer', () => {
     let result: CustomerData | undefined;
     const lock = {lockReason: 'reason', lockReasonType: HouseholdLockReason.OTHER, lockedUntil: '2027-01-01'};

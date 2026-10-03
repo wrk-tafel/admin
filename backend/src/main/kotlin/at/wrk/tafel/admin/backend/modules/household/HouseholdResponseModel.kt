@@ -6,6 +6,8 @@ import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdSearchFilt
 import jakarta.validation.Valid
 import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
@@ -286,6 +288,18 @@ data class HouseholdLockRequest(
     @AssertTrue(message = "Das Ablaufdatum der Sperre darf nicht in der Vergangenheit liegen!")
     fun isLockedUntilValid(): Boolean = lockedUntil == null || !lockedUntil.isBefore(LocalDate.now())
 }
+
+/**
+ * Input for `POST /{householdId}/prolong`: by how many months the stored `validUntil` moves out. The
+ * household itself is never part of it - see `HouseholdService.prolongHousehold`.
+ */
+@ExcludeFromTestCoverage
+data class HouseholdProlongRequest(
+    @field:NotNull
+    @field:Min(1)
+    @field:Max(12)
+    val months: Int? = null,
+)
 
 @ExcludeFromTestCoverage
 data class HouseholdCostContributionPaymentRequest(

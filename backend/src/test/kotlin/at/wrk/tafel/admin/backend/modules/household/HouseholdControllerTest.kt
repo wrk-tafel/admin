@@ -745,6 +745,27 @@ class HouseholdControllerTest {
     }
 
     @Test
+    fun `prolong household passes months, force and the supervisor role`() {
+        val updateResponse = HouseholdUpdateResponse(data = testHouseholdResponse, errorMsg = null)
+        every { householdService.prolongHousehold(1001, 3, true, isSupervisor) } returns updateResponse
+
+        val response = controller.prolongHousehold(1001, true, HouseholdProlongRequest(months = 3))
+
+        assertThat(response).isEqualTo(updateResponse)
+        verify { householdService.prolongHousehold(1001, 3, true, isSupervisor) }
+    }
+
+    @Test
+    fun `deactivate household`() {
+        every { householdService.deactivateHousehold(1001) } returns testHouseholdResponse
+
+        val response = controller.deactivateHousehold(1001)
+
+        assertThat(response).isEqualTo(testHouseholdResponse)
+        verify { householdService.deactivateHousehold(1001) }
+    }
+
+    @Test
     fun `generate households above limit csv`() {
         val sortBy = "amountExceededLimit"
         val sortDirection = "desc"
