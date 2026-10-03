@@ -90,6 +90,9 @@ class HouseholdService(
 
         /** How far ahead the "wird bald gelöscht" filter (GDPR gap G19) looks, see [getHouseholds]. */
         private const val DELETION_PREVIEW_WINDOW_DAYS = 30L
+
+        private const val INCOME_ABOVE_LIMIT_MESSAGE = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)"
+        private const val SAVED_AS_INVALID_MESSAGE = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"
     }
 
     fun validate(household: HouseholdRequest): IncomeValidatorResult = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons()))
@@ -191,7 +194,7 @@ class HouseholdService(
         val valid = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons())).valid
         if (!valid && isSupervisor) {
             if (!force) {
-                throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
+                throw ConflictException(INCOME_ABOVE_LIMIT_MESSAGE)
             } else {
                 val savedEntity = saveWithMainPerson(entity)
                 log.info("Created household {} (income above limit, forced by supervisor)", savedEntity.householdId)
@@ -207,7 +210,7 @@ class HouseholdService(
             log.info("Created household {} (income above limit, saved as invalid)", savedEntity.householdId)
             return HouseholdCreationResponse(
                 data = householdConverter.mapEntityToHousehold(savedEntity),
-                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
+                errorMsg = SAVED_AS_INVALID_MESSAGE,
             )
         }
 
@@ -237,7 +240,7 @@ class HouseholdService(
         val valid = incomeValidatorService.validate(mapToValidationPersons(household.mainPerson(), household.additionalPersons())).valid
         if (!valid && isSupervisor) {
             if (!force) {
-                throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
+                throw ConflictException(INCOME_ABOVE_LIMIT_MESSAGE)
             } else {
                 val savedEntity = saveWithMainPerson(mappedEntity)
                 log.info("Updated household {} (income above limit, forced by supervisor)", savedEntity.householdId)
@@ -257,7 +260,7 @@ class HouseholdService(
             log.info("Updated household {} (income above limit, saved as invalid)", savedEntity.householdId)
             return HouseholdUpdateResponse(
                 data = householdConverter.mapEntityToHousehold(savedEntity),
-                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
+                errorMsg = SAVED_AS_INVALID_MESSAGE,
             )
         }
 
@@ -292,7 +295,7 @@ class HouseholdService(
 
         val valid = incomeValidatorService.validate(mapEntityToValidationPersons(household)).valid
         if (!valid && isSupervisor && !force) {
-            throw ConflictException("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
+            throw ConflictException(INCOME_ABOVE_LIMIT_MESSAGE)
         }
         if (!valid && !isSupervisor) {
             household.validUntil = LocalDate.now(clock).minusDays(1)
@@ -301,7 +304,7 @@ class HouseholdService(
             log.info("Prolonging household {} refused (income above limit, saved as invalid)", householdId)
             return HouseholdUpdateResponse(
                 data = householdConverter.mapEntityToHousehold(savedEntity),
-                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet",
+                errorMsg = SAVED_AS_INVALID_MESSAGE,
             )
         }
 
