@@ -5,6 +5,11 @@ concurrency:
 
 on:
   workflow_dispatch:
+    inputs:
+      overrideDeployFreeze:
+        description: 'Deploy to prod even on a Saturday (only once the distribution is over)'
+        type: boolean
+        default: false
   push:
     branches: [ 'release' ]
 
@@ -225,16 +230,27 @@ jobs:
       - name: Check for the Saturday event window
         env:
           TZ: Europe/Vienna
+          # Only a manually started run carries the input - on a push it is empty, so the freeze
+          # cannot be lifted by accident. Passed through the environment rather than interpolated
+          # into the script.
+          OVERRIDE_DEPLOY_FREEZE: ${{ inputs.overrideDeployFreeze }}
         # The app is used live Sat ~12:00-24:00 and must not restart (Flyway migrations run on
         # boot) during that window - see issue #2931. Block the whole Saturday to be safe.
         # This fails the run on purpose so a blocked prod deploy is visible instead of a silent skip.
         run: |
           day=$(date +%u) # ISO weekday, 6 = Saturday
-          if [ "$day" -eq 6 ]; then
+          if [ "$day" -eq 6 ] && [ "$OVERRIDE_DEPLOY_FREEZE" = "true" ]; then
+            {
+              echo "### :warning: Saturday deploy freeze overridden"
+              echo "Current day in Europe/Vienna is $(date '+%A %H:%M'). This run was started by @${GITHUB_ACTOR} with \`overrideDeployFreeze\`, so prod is deployed anyway."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning title=Deploy freeze overridden::Prod is deployed on a Saturday (Europe/Vienna) because this run was started with overrideDeployFreeze."
+          elif [ "$day" -eq 6 ]; then
             {
               echo "### :no_entry: Prod deploy blocked"
               echo "Current day in Europe/Vienna is $(date '+%A %H:%M'). Prod deploys are blocked all day Saturday."
               echo "Re-run this workflow's failed jobs once it is no longer Saturday to deploy to prod."
+              echo "If the distribution is already over, start this workflow manually on \`release\` with \`overrideDeployFreeze\` instead."
             } >> "$GITHUB_STEP_SUMMARY"
             echo "::error title=Prod deploy blocked::Prod deploys are blocked all day Saturday (Europe/Vienna) - see issue #2931."
             exit 1

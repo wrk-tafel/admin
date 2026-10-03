@@ -698,7 +698,12 @@ Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two
   Saturday rather than skipping quietly, so a blocked deploy is visible: everything up to and
   including `deploy-test` still succeeds, and prod is deployed by re-running the failed jobs once it
   is no longer Saturday. A red release run whose only failure is `check-deploy-window` means the
-  freeze, not a broken build.
+  freeze, not a broken build. The one way past it on a Saturday is to start the workflow by hand
+  with its `overrideDeployFreeze` input
+  (`gh workflow run release.yml --ref release -f overrideDeployFreeze=true`) — for when the
+  distribution is over. A push never carries that input, and neither does re-running a
+  push-triggered run, so the override is a whole new run: it builds, tests and deploys test and dev
+  again before it reaches prod.
 - **Deploys run in GitHub Environments**: `subflow_deploy.yml`'s job declares
   `environment: ${{ inputs.environment }}` — one name for both the folder on the server and the
   GitHub environment the deployment is recorded against. `dev`/`test`/`prod` are the only three, all

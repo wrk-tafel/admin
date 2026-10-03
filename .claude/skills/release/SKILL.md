@@ -49,8 +49,10 @@ and `main` would not have it.
   A path-aware run whose jobs were *skipped* (docs-only change) is fine.
 - **It is not Saturday** in Europe/Vienna. `deploy-prod` refuses to run then (the app is live during
   Saturday distributions and Flyway migrations run on boot), so the release would go out to test and
-  fail its `check-deploy-window` job. `TZ=Europe/Vienna date +%A` tells. If it is Saturday, say so and
-  stop - unless the user explicitly wants test/dev only, which this skill does not distinguish.
+  fail its `check-deploy-window` job. `TZ=Europe/Vienna date +%A` tells (in Git Bash on Windows `TZ` is
+  not applied reliably - compare against the local clock). If it is Saturday, say so and
+  stop - unless the user explicitly wants test/dev only, which this skill does not distinguish, or
+  explicitly asks to override the freeze because the distribution is over (see step 4).
 - **`CHANGELOG.md`'s `## [Unreleased]` is not stale** - it feeds the release notes only through the
   added `- ` lines since the previous tag, so nothing breaks, but mention it to the user if the
   heading still holds bullets of an earlier release (see CLAUDE.md's "Changelog" section).
@@ -83,7 +85,16 @@ job/step and let the user decide, since this pipeline touches prod. A red run wh
 `check-deploy-window` is the Saturday freeze, not a broken build: everything up to `deploy-test` succeeded and prod
 is deployed by re-running the failed jobs once it is no longer Saturday.
 
+Only when the user explicitly asked to override the freeze: once that push-triggered run has ended with
+`check-deploy-window` as its only failure, start a second run that carries the override and watch it the
+same way. It is a full run (build, test, e2e, image, test and dev deploy) on the same commit.
+
+```bash
+gh workflow run release.yml --ref release -f overrideDeployFreeze=true
+```
+
 **Never:**
+- override the Saturday freeze unless the user asked for exactly that in this conversation
 - force-push `release`, or push anything to it but a merge of `main`
 - release a `main` commit whose pipeline is red or missing
 - retry a failed release deploy automatically
