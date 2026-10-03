@@ -316,7 +316,7 @@ class HouseholdService(
      * Whether [household] still carries exactly the same identity-relevant data as [existingEntity]
      * - the household's address and every person's [PersonIdentity], the same fields
      * [checkForDuplicates] (via [HouseholdDuplicationService.findPotentialDuplicates]) actually
-     * keys its fuzzy matching off. A quick action (lock/unlock/prolong/deactivate) round-trips the
+     * keys its fuzzy matching off. A quick action (prolong/deactivate) round-trips the
      * rest of the household unchanged, so re-running the duplicate check on it can only ever repeat
      * a warning that was already true (or already dismissed) before this save started - see issue
      * #3755. Any added/removed/unmapped person, or any matched person's identity differing, counts
@@ -800,9 +800,8 @@ class HouseholdService(
 
     /**
      * Lifts a temporary lock whose [at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity.lockedUntil]
-     * has passed - called only by [HouseholdLockExpiryService]. A manual unlock always goes through
-     * [updateHousehold] with a full request body instead, since that path still applies its own
-     * conflict/duplicate/income checks.
+     * has passed - called only by [HouseholdLockExpiryService]. A manual unlock is
+     * [HouseholdLockService.unlockHousehold].
      */
     @Transactional
     fun unlockHouseholdByHouseholdId(householdId: Long) {

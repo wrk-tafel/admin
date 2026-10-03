@@ -242,6 +242,20 @@ Content-Type: application/json
 POST {{baseApiPath}}/households/100/lock-review
 Content-Type: application/json
 
+### Lock a household (only the lock is sent, never the household itself)
+POST {{baseApiPath}}/households/100/lock
+Content-Type: application/json
+
+{
+  "lockReason": "Grund der Sperre",
+  "lockReasonType": "OTHER",
+  "lockedUntil": null
+}
+
+### Unlock a household
+POST {{baseApiPath}}/households/100/unlock
+Content-Type: application/json
+
 ### Get new/renewed households overview of the latest distribution
 GET {{baseApiPath}}/households/overview
 Content-Type: application/json

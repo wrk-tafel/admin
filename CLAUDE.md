@@ -665,7 +665,7 @@ term-less `GET` listing are unaffected.
   caller's light/dark `theme`, which `PUT /api/users/theme` changes (stored in `user_preferences`).
   `GET`/`PUT /api/users/account` is the caller's own record for the "Meine Daten" tab — the `PUT` takes
   name and e-mail only, never username, personnel number, password or permissions
-- `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`. Search is `POST /api/households/search`; `GET /api/households/locked` lists every locked household for the "Gesperrte Kunden" screen and `POST /api/households/{id}/lock-review` confirms that an open-ended lock stays (restarting its review interval, issue #3763)
+- `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`. Search is `POST /api/households/search`; `POST /api/households/{id}/lock` and `/unlock` set and lift a lock without the household record in the body (so an incomplete household can be locked), `GET /api/households/locked` lists every locked household for the "Gesperrte Kunden" screen and `POST /api/households/{id}/lock-review` confirms that an open-ended lock stays (restarting its review interval, issue #3763)
 - `/api/households/{householdId}/notes`: Household notes
 - `/api/households/{householdId}/ticket`: Current ticket for a household in the active distribution
 - `/api/distributions`: Distribution management (live updates via the `distribution` topic, see `/api/sse/events`)

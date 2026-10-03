@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import dayjs from 'dayjs';
-import {CustomerApiService, CustomerData, Gender} from './customer-api.service';
+import {CustomerApiService, CustomerData, Gender, HouseholdLockReason} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
@@ -556,6 +556,35 @@ describe('CustomerApiService', () => {
     expect(req.request.body).toBeNull();
     req.flush(null);
     httpMock.verify();
+  });
+
+  it('lock customer sends only the lock and maps the response to a customer', () => {
+    let result: CustomerData | undefined;
+    const lock = {lockReason: 'reason', lockReasonType: HouseholdLockReason.OTHER, lockedUntil: '2027-01-01'};
+    apiService.lockCustomer(133, lock).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133/lock'});
+    expect(req.request.body).toEqual(lock);
+
+    req.flush(mockHousehold);
+    httpMock.verify();
+
+    expect(result?.id).toEqual(mockCustomer.id);
+    expect(result?.lastname).toEqual(mockCustomer.lastname);
+  });
+
+  it('unlock customer maps the response to a customer', () => {
+    let result: CustomerData | undefined;
+    apiService.unlockCustomer(133).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133/unlock'});
+    expect(req.request.body).toBeNull();
+
+    req.flush(mockHousehold);
+    httpMock.verify();
+
+    expect(result?.id).toEqual(mockCustomer.id);
+    expect(result?.lastname).toEqual(mockCustomer.lastname);
   });
 
   it('generate customers above limit csv', () => {

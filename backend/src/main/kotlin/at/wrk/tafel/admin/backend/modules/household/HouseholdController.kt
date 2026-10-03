@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdDuplicationService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdExportService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdLockReviewService
+import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdLockService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
@@ -29,6 +30,7 @@ class HouseholdController(
     private val householdMergeService: HouseholdMergeService,
     private val householdExportService: HouseholdExportService,
     private val householdLockReviewService: HouseholdLockReviewService,
+    private val householdLockService: HouseholdLockService,
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -255,6 +257,24 @@ class HouseholdController(
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         return householdLockReviewService.confirmLockReview(householdId, authenticatedUser.username!!)
     }
+
+    /**
+     * Takes the lock alone rather than the household it is put on, so a household whose stored data
+     * is incomplete can still be locked - see [HouseholdLockService].
+     */
+    @PostMapping("/{householdId}/lock")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun lockHousehold(
+        @PathVariable householdId: Long,
+        @Valid @RequestBody request: HouseholdLockRequest,
+    ): HouseholdResponse {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        return householdLockService.lockHousehold(householdId, request, authenticatedUser.username!!)
+    }
+
+    @PostMapping("/{householdId}/unlock")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun unlockHousehold(@PathVariable householdId: Long): HouseholdResponse = householdLockService.unlockHousehold(householdId)
 
     @GetMapping("/overview")
     @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMERS_OVERVIEW')")

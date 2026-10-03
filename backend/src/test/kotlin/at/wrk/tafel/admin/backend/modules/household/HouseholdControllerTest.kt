@@ -46,6 +46,9 @@ class HouseholdControllerTest {
     @RelaxedMockK
     private lateinit var householdLockReviewService: HouseholdLockReviewService
 
+    @RelaxedMockK
+    private lateinit var householdLockService: HouseholdLockService
+
     @InjectMockKs
     private lateinit var controller: HouseholdController
 
@@ -718,6 +721,27 @@ class HouseholdControllerTest {
 
         assertThat(response).isEqualTo(item)
         verify { householdLockReviewService.confirmLockReview(1001, testUserEntity.username) }
+    }
+
+    @Test
+    fun `lock household as the authenticated user`() {
+        val request = HouseholdLockRequest(lockReason = "Grund", lockReasonType = HouseholdLockReason.OTHER)
+        every { householdLockService.lockHousehold(1001, request, testUserEntity.username) } returns testHouseholdResponse
+
+        val response = controller.lockHousehold(1001, request)
+
+        assertThat(response).isEqualTo(testHouseholdResponse)
+        verify { householdLockService.lockHousehold(1001, request, testUserEntity.username) }
+    }
+
+    @Test
+    fun `unlock household`() {
+        every { householdLockService.unlockHousehold(1001) } returns testHouseholdResponse
+
+        val response = controller.unlockHousehold(1001)
+
+        assertThat(response).isEqualTo(testHouseholdResponse)
+        verify { householdLockService.unlockHousehold(1001) }
     }
 
     @Test

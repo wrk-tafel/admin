@@ -205,4 +205,24 @@ class HouseholdResponseModelTest {
         assertThat(violations).extracting<String> { it.propertyPath.toString() }
             .containsExactly("fieldSelections[0].field")
     }
+
+    @Test
+    fun `household lock request without a reason is invalid`() {
+        val violations = validator.validate(HouseholdLockRequest(lockReason = " "))
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }.containsExactly("lockReason")
+    }
+
+    @Test
+    fun `household lock request with an expiration date in the past is invalid`() {
+        val violations = validator.validate(HouseholdLockRequest(lockReason = "Grund", lockedUntil = LocalDate.now().minusDays(1)))
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }.containsExactly("lockedUntilValid")
+    }
+
+    @Test
+    fun `household lock request with a reason alone or an expiration date from today on is valid`() {
+        assertThat(validator.validate(HouseholdLockRequest(lockReason = "Grund"))).isEmpty()
+        assertThat(validator.validate(HouseholdLockRequest(lockReason = "Grund", lockedUntil = LocalDate.now()))).isEmpty()
+    }
 }

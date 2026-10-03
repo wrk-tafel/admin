@@ -270,6 +270,23 @@ data class HouseholdDuplicateDismissRequest(
     val otherHouseholdId: Long? = null,
 )
 
+/**
+ * Input for `POST /{householdId}/lock`: the lock alone, never the household it is put on - see
+ * `HouseholdLockService`. [lockReasonType] only tags the always-required free-text [lockReason] and
+ * stays optional.
+ */
+@ExcludeFromTestCoverage
+data class HouseholdLockRequest(
+    @field:NotBlank(message = "Sperrgrund muss angegeben werden!")
+    val lockReason: String? = null,
+    val lockReasonType: HouseholdLockReason? = null,
+    val lockedUntil: LocalDate? = null,
+) {
+    /** A lock that already expired the moment it is set would never actually lock anything. */
+    @AssertTrue(message = "Das Ablaufdatum der Sperre darf nicht in der Vergangenheit liegen!")
+    fun isLockedUntilValid(): Boolean = lockedUntil == null || !lockedUntil.isBefore(LocalDate.now())
+}
+
 @ExcludeFromTestCoverage
 data class HouseholdCostContributionPaymentRequest(
     @field:Positive

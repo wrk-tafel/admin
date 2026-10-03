@@ -222,6 +222,28 @@ describe('Customer Detail', () => {
     });
   });
 
+  it('lock and unlock a customer whose data is incomplete', () => {
+    // Customer 106 has neither a name, a birth date nor a gender on its main person. Locking sends
+    // only the lock, so the required-field validation of a full customer update never sees it.
+    cy.visit('/kunden/detail/106');
+
+    cy.byTestId('lock-info-banner').should('not.exist');
+
+    openEditMenu();
+    cy.byTestId('lockCustomerButton').click();
+    cy.byTestId('lockreason-input-text').type('incomplete lockreason');
+    cy.byTestId('lock-customer-dialog').within(() => {
+      cy.byTestId('okButton').click();
+    });
+
+    cy.byTestId('lock-info-banner').should('exist').and('contain.text', 'incomplete lockreason');
+
+    openEditMenu();
+    cy.byTestId('unlockCustomerButton').click();
+
+    cy.byTestId('lock-info-banner').should('not.exist');
+  });
+
   it('customer note shown', () => {
     cy.visit('/kunden/detail/101');
 

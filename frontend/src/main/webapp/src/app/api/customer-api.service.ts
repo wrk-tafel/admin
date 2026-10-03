@@ -225,6 +225,21 @@ export class CustomerApiService {
     return this.http.post<CustomerLockedItem>(`/households/${customerId}/lock-review`, null);
   }
 
+  /**
+   * Sends the lock alone, never the customer it is put on: a customer whose stored data is
+   * incomplete would fail the required-field validation of a full update, and could then never be
+   * locked.
+   */
+  lockCustomer(customerId: number, lock: CustomerLockData, context?: HttpContext): Observable<CustomerData> {
+    return this.http.post<HouseholdData>(`/households/${customerId}/lock`, lock, {context})
+      .pipe(map(mapHouseholdToCustomer));
+  }
+
+  unlockCustomer(customerId: number, context?: HttpContext): Observable<CustomerData> {
+    return this.http.post<HouseholdData>(`/households/${customerId}/unlock`, null, {context})
+      .pipe(map(mapHouseholdToCustomer));
+  }
+
   generateCustomersAboveLimitCsv(sortBy?: string, sortDirection?: string): Observable<HttpResponse<Blob>> {
     return this.http.get('/households/above-limit/csv', {
       params: this.aboveLimitParams(undefined, undefined, sortBy, sortDirection),
@@ -502,6 +517,12 @@ export type CustomerDuplicatesResponse = PagedResponse<CustomerDuplicatesItem>;
 export interface CustomerDuplicatesItem {
   customer: CustomerData;
   similarCustomers: CustomerData[];
+}
+
+export interface CustomerLockData {
+  lockReason: string;
+  lockReasonType?: HouseholdLockReason | null;
+  lockedUntil?: string | null;
 }
 
 export type CustomerLockedResponse = PagedResponse<CustomerLockedItem>;

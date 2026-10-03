@@ -32,7 +32,6 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 import {
   ConfirmCustomerSaveDialog
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
-import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {
   EditCostContributionDialogComponent
@@ -162,6 +161,8 @@ describe('CustomerDetailComponent', () => {
         data: customerData,
         errorMsg: null
       })),
+      lockCustomer: vi.fn().mockName('CustomerApiService.lockCustomer'),
+      unlockCustomer: vi.fn().mockName('CustomerApiService.unlockCustomer'),
       payCostContribution: vi.fn().mockName('CustomerApiService.payCostContribution'),
       editCostContribution: vi.fn().mockName('CustomerApiService.editCostContribution')
     };
@@ -673,51 +674,32 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    const expectedCustomerData = {
+    const lockedCustomer = {
       ...mockCustomer,
       locked: true,
       lockReasonType: lockResult.reasonType,
       lockReason: lockReasonText,
       lockedUntil: null
     };
-    const mockUpdateSuccessResponse: CustomerUpdateResponse = {
-      data: expectedCustomerData,
-      errorMsg: null
-    };
-    customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
+    customerApiService.lockCustomer.mockReturnValue(of(lockedCustomer));
 
     component.openLockCustomerDialog();
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
-    expect(component.customerData()).toEqual(expectedCustomerData);
+    // only the lock is sent, never the customer record - an incomplete customer has to stay lockable
+    expect(customerApiService.lockCustomer).toHaveBeenCalledWith(
+      mockCustomer.id,
+      {lockReason: lockReasonText, lockReasonType: lockResult.reasonType, lockedUntil: null},
+      expect.anything()
+    );
+    expect(customerApiService.updateCustomer).not.toHaveBeenCalled();
+    expect(component.customerData()).toEqual(lockedCustomer);
   });
 
-  it('lock customer with 409 conflict shows confirmation dialog and keeps the entered lock reason', () => {
-    const lockReasonText = 'locked due to lorem ipsum';
-    const lockResult = {reasonType: HouseholdLockReason.BANNED_FROM_PREMISES, reasonText: lockReasonText, lockedUntil: null};
-    const expectedCustomerData = {
-      ...mockCustomer,
-      locked: true,
-      lockReasonType: lockResult.reasonType,
-      lockReason: lockReasonText,
-      lockedUntil: null
-    };
-
+  it('lock customer failed shows the error and keeps the customer unchanged', () => {
     const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
-    matDialog.open.mockImplementation((component: unknown) => {
-      if (component === LockCustomerDialogComponent) {
-        return {afterClosed: () => of(lockResult)} as any;
-      }
-      return {afterClosed: vi.fn().mockReturnValue(of(false))} as any;
-    });
-
-    customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
-      status: 409,
-      error: {
-        detail: 'Conflict: customer was updated by another user',
-        body: { data: mockCustomer, errorMsg: 'Conflict: customer was updated by another user' }
-      }
-    })));
+    const lockResult = {reasonType: HouseholdLockReason.OTHER, reasonText: 'reason', lockedUntil: null};
+    matDialog.open.mockReturnValue({afterClosed: () => of(lockResult)} as any);
+    customerApiService.lockCustomer.mockReturnValue(throwError(() => ({status: 400, error: {detail: 'Kunde ist bereits gesperrt!'}})));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
@@ -728,12 +710,24 @@ describe('CustomerDetailComponent', () => {
 
     component.openLockCustomerDialog();
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
-    expect(matDialog.open).toHaveBeenCalledWith(ConfirmCustomerSaveDialog, {
-      data: {
-        message: 'Conflict: customer was updated by another user'
-      }
-    });
+    expect(toastr.error).toHaveBeenCalledWith('Kunde ist bereits gesperrt!', 'Sperren fehlgeschlagen!');
+    expect(component.customerData()).toEqual(mockCustomer);
+  });
+
+  it('lock customer dialog cancelled does nothing', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(undefined)} as any);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.openLockCustomerDialog();
+
+    expect(customerApiService.lockCustomer).not.toHaveBeenCalled();
   });
 
   it('unlock customer', () => {
@@ -751,7 +745,7 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    const expectedCustomerData = {
+    const unlockedCustomer = {
       ...mockCustomer,
       locked: false,
       lockedBy: null,
@@ -759,19 +753,16 @@ describe('CustomerDetailComponent', () => {
       lockReasonType: null,
       lockedUntil: null
     };
-    const mockUpdateSuccessResponse: CustomerUpdateResponse = {
-      data: expectedCustomerData,
-      errorMsg: null
-    };
-    customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
+    customerApiService.unlockCustomer.mockReturnValue(of(unlockedCustomer));
 
     component.unlockCustomer();
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
-    expect(component.customerData()).toEqual(expectedCustomerData);
+    expect(customerApiService.unlockCustomer).toHaveBeenCalledWith(mockCustomer.id, expect.anything());
+    expect(customerApiService.updateCustomer).not.toHaveBeenCalled();
+    expect(component.customerData()).toEqual(unlockedCustomer);
   });
 
-  it('unlock customer with 409 conflict shows confirmation dialog', () => {
+  it('unlock customer failed shows the error and keeps the customer locked', () => {
     const lockedCustomer = {
       ...mockCustomer,
       locked: true,
@@ -780,22 +771,7 @@ describe('CustomerDetailComponent', () => {
       lockReasonType: HouseholdLockReason.OTHER,
       lockedUntil: '2027-01-01'
     };
-    const expectedCustomerData = {
-      ...lockedCustomer,
-      locked: false,
-      lockedBy: null,
-      lockReason: null,
-      lockReasonType: null,
-      lockedUntil: null
-    };
-
-    customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
-      status: 409,
-      error: {
-        detail: 'Conflict: customer was updated by another user',
-        body: { data: lockedCustomer, errorMsg: 'Conflict: customer was updated by another user' }
-      }
-    })));
+    customerApiService.unlockCustomer.mockReturnValue(throwError(() => ({status: 404, error: {detail: 'Kunde Nr. 133 nicht vorhanden!'}})));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', lockedCustomer);
@@ -804,19 +780,10 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
-    matDialog.open.mockReturnValue({
-      afterClosed: vi.fn().mockReturnValue(of(false))
-    } as any);
-
     component.unlockCustomer();
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false, expect.anything());
-    expect(matDialog.open).toHaveBeenCalledWith(ConfirmCustomerSaveDialog, {
-      data: {
-        message: 'Conflict: customer was updated by another user'
-      }
-    });
+    expect(toastr.error).toHaveBeenCalledWith('Kunde Nr. 133 nicht vorhanden!', 'Entsperren fehlgeschlagen!');
+    expect(component.customerData()).toEqual(lockedCustomer);
   });
 
   it('add new note to customer', () => {

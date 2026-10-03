@@ -5,6 +5,8 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Kunden mit unvollständigen Daten (z. B. ohne Geschlecht oder Geburtsdatum) lassen sich wieder sperren und entsperren; bisher schlug das mit "Validierung fehlgeschlagen" fehl.
+- Ältere Kundennotizen zeigen Zeilenumbrüche wieder als Zeilenumbruch statt als sichtbares `<br/>` im Text.
 
 ## [1.28.0] - 2026-09-30
 - Auf der Einstellungen-Übersicht hat jede Kachel jetzt ein passendes Symbol.
