@@ -21,6 +21,7 @@ import {MatIcon} from '@angular/material/icon';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
+import {expectedErrorContext} from '../../../../common/http/suppress-client-log-record.token';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
@@ -222,7 +223,7 @@ export class UserSearchComponent {
     const query = this.query().trim();
 
     if (request.tryExactMatch && /^\d+$/.test(query)) {
-      return this.userApiService.getUserForPersonnelNumber(query, SUPPRESS_ERROR_TOAST_CONTEXT).pipe(
+      return this.userApiService.getUserForPersonnelNumber(query, expectedErrorContext(404)).pipe(
         map(user => ({type: 'navigate' as const, userId: user.id!})),
         catchError((error: HttpErrorResponse) => {
           if (error.status === 404) {

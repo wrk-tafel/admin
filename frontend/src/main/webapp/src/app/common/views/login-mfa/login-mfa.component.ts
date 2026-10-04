@@ -9,6 +9,7 @@ import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/inpu
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 import {extractErrorMessage} from '../../api/problem-detail';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../http/suppress-error-toast.token';
+import {expectedErrorContext} from '../../http/suppress-client-log-record.token';
 import {AuthenticationService} from '../../security/authentication.service';
 import {visibleErrorMessages} from '../../util/signal-form-helper';
 import {MfaApiService} from '../../../api/mfa-api.service';
@@ -113,7 +114,7 @@ export class LoginMfaComponent implements OnInit {
     this.submitting.set(true);
     this.errorMessage.set(null);
     this.infoMessage.set(null);
-    this.mfaApiService.verify(this.codeForm.code().value().replace(/\s/g, ''), SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+    this.mfaApiService.verify(this.codeForm.code().value().replace(/\s/g, ''), expectedErrorContext(400, 429)).subscribe({
       next: async () => {
         // The answer replaced the session cookie - what the session may do is read again, now that
         // the code was accepted.

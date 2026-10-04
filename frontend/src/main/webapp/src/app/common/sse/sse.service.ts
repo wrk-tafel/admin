@@ -1,5 +1,5 @@
 import {inject, Service} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, Subject} from 'rxjs';
 import {UrlHelperService} from '../util/url-helper.service';
 
 // Backoff bounds for reconnecting a dropped stream. The first retry stays quick because the common
@@ -15,6 +15,13 @@ const RECONNECT_DELAY_MAX_MILLIS = 30000;
 // indefinitely instead, which is why `onerror` alone can't be trusted to report a drop. Give the
 // browser's own retry this long to succeed before telling the caller the connection is down.
 const DISCONNECT_GRACE_MILLIS = 5000;
+
+// The Angular service worker handles every request in its scope, a stream included: it fetches it
+// itself and pipes the body through to the page. A browser may stop an idle service worker - Firefox
+// does after 30 seconds - and the stream it was piping ends with it, so the tab would reconnect twice
+// a minute for as long as it is open. A request carrying this parameter is one the service worker
+// leaves to the browser.
+const SERVICE_WORKER_BYPASS = 'ngsw-bypass=true';
 
 /**
  * The topics the backend's `GET /api/sse/events` offers (`SseTopic.name` there). The event a topic
@@ -50,6 +57,11 @@ interface Subscriber {
  * and hands each event to the subscribers of its topic. When the set changes - a screen with its own
  * topic opens or closes - the connection is replaced by one for the new set, in the next microtask
  * so that several subscriptions made together cost one reconnect.
+ *
+ * A stream needs a session the server accepts, and this service cannot know about sessions (the
+ * authentication service depends on it, not the other way round). `SseSessionService` tells it:
+ * {@link setEnabled} closes the stream while nobody is fully logged in, and {@link refused} is how
+ * it learns that the server turned a stream down.
  */
 @Service()
 export class SseService {
@@ -65,6 +77,29 @@ export class SseService {
   private reconnectDelay = RECONNECT_DELAY_MIN_MILLIS;
   private disconnectGraceTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private consecutiveFailures = 0;
+  private enabled = true;
+  private readonly refusedSubject = new Subject<void>();
+
+  /**
+   * Emits whenever the server answered a stream with something other than an event stream - the
+   * browser gives up on it (`CLOSED`) instead of retrying by itself. `EventSource` does not say
+   * which status that was, so a subscriber that wants to tell an expired session from a backend
+   * that is restarting has to ask the server.
+   */
+  readonly refused: Observable<void> = this.refusedSubject.asObservable();
+
+  /**
+   * Whether a stream may be open at all. While `false` the subscriptions are kept but no request is
+   * made - a stream the server would refuse is not worth retrying every 30 seconds for as long as
+   * the tab stays open - and switching back to `true` connects for whatever is subscribed by then.
+   */
+  setEnabled(enabled: boolean) {
+    if (this.enabled === enabled) {
+      return;
+    }
+    this.enabled = enabled;
+    this.refresh();
+  }
 
   /**
    * Emits every message of one topic, parsed. The observable never errors: a dropped connection is
@@ -116,6 +151,9 @@ export class SseService {
   }
 
   private wantedTopics(): string {
+    if (!this.enabled) {
+      return '';
+    }
     return [...this.subscribers.keys()].sort().map(encodeURIComponent).join(',');
   }
 
@@ -129,7 +167,8 @@ export class SseService {
     this.teardown();
     this.connectedTopics = wanted === '' ? null : wanted;
     if (wanted === '') {
-      this.setConnected(false, false);
+      // Subscribers exist here only when the stream was switched off underneath them.
+      this.setConnected(false, true);
       return;
     }
 
@@ -150,7 +189,7 @@ export class SseService {
 
   private connect(topics: string) {
     const baseUrl = this.urlHelperService.getBaseUrl();
-    const url = `/sse/events?topics=${topics}`;
+    const url = `/sse/events?topics=${topics}&${SERVICE_WORKER_BYPASS}`;
     const eventSource = new EventSource(`${baseUrl}/api${url}`);
     this.eventSource = eventSource;
 
@@ -174,6 +213,7 @@ export class SseService {
         this.clearDisconnectGrace();
         this.setConnected(false, true);
         this.reconnect(url);
+        this.refusedSubject.next();
       } else if (eventSource.readyState === EventSource.CONNECTING && this.disconnectGraceTimeoutId === null) {
         // A network-level failure leaves the native EventSource retrying in CONNECTING forever
         // rather than ever reaching CLOSED, so the branch above never fires for it and nothing

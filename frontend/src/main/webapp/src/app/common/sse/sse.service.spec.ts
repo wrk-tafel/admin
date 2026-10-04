@@ -45,6 +45,7 @@ class FakeEventSource {
 
 describe('SseService', () => {
   const BASE_URL = 'http://localhost:4200';
+  const BYPASS = '&ngsw-bypass=true';
   let originalEventSource: typeof EventSource;
 
   beforeEach(() => {
@@ -78,7 +79,7 @@ describe('SseService', () => {
     await Promise.resolve();
 
     expect(FakeEventSource.instances).toHaveLength(1);
-    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=dashboard`);
+    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=dashboard${BYPASS}`);
 
     FakeEventSource.latest().emit('dashboard', JSON.stringify({ value: 'hello' }));
 
@@ -94,7 +95,7 @@ describe('SseService', () => {
     await Promise.resolve();
 
     expect(FakeEventSource.instances).toHaveLength(1);
-    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=config,distribution`);
+    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=config,distribution${BYPASS}`);
 
     FakeEventSource.latest().emit('config', JSON.stringify({ a: 1 }));
 
@@ -122,7 +123,7 @@ describe('SseService', () => {
     service.topic('scanner-results', { argument: 5 }).subscribe();
     await Promise.resolve();
 
-    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=scanner-results%3A5`);
+    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=scanner-results%3A5${BYPASS}`);
   });
 
   it('replaces the connection when the set of topics changes, and closes it when none is left', async () => {
@@ -136,17 +137,87 @@ describe('SseService', () => {
 
     expect(first.close).toHaveBeenCalled();
     expect(FakeEventSource.instances).toHaveLength(2);
-    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=dashboard,distribution`);
+    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=dashboard,distribution${BYPASS}`);
 
     dashboard.unsubscribe();
     await Promise.resolve();
     expect(FakeEventSource.instances).toHaveLength(3);
-    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=distribution`);
+    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=distribution${BYPASS}`);
 
     distribution.unsubscribe();
     await Promise.resolve();
     expect(FakeEventSource.latest().close).toHaveBeenCalled();
     expect(FakeEventSource.instances).toHaveLength(3);
+  });
+
+  it('keeps the service worker out of the stream', async () => {
+    const service = setup();
+    service.topic('dashboard').subscribe();
+    await Promise.resolve();
+
+    expect(new URL(FakeEventSource.latest().url).searchParams.has('ngsw-bypass')).toBe(true);
+  });
+
+  it('closes the stream when it is switched off and tells the subscribers', async () => {
+    const service = setup();
+    const connectionStateCallback = vi.fn();
+    service.topic('config', { connectionStateCallback }).subscribe();
+    await Promise.resolve();
+    const stream = FakeEventSource.latest();
+    stream.onopen!();
+
+    service.setEnabled(false);
+
+    expect(stream.close).toHaveBeenCalled();
+    expect(connectionStateCallback).toHaveBeenLastCalledWith(false);
+  });
+
+  it('opens no stream while switched off, and one for what is subscribed once switched on', async () => {
+    const service = setup();
+    service.setEnabled(false);
+    service.topic('config').subscribe();
+    service.topic('distribution').subscribe();
+    await Promise.resolve();
+
+    expect(FakeEventSource.instances).toHaveLength(0);
+
+    service.setEnabled(true);
+
+    expect(FakeEventSource.instances).toHaveLength(1);
+    expect(FakeEventSource.latest().url).toBe(`${BASE_URL}/api/sse/events?topics=config,distribution${BYPASS}`);
+  });
+
+  it('does not retry a refused stream once it is switched off', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    const service = setup();
+    service.topic('config').subscribe();
+    await Promise.resolve();
+    const stream = FakeEventSource.latest();
+    stream.readyState = FakeEventSource.CLOSED;
+    stream.onerror!(new Event('error'));
+
+    service.setEnabled(false);
+    vi.advanceTimersByTime(60000);
+
+    expect(FakeEventSource.instances).toHaveLength(1);
+  });
+
+  it('announces a stream the server refused, and not one the browser is still retrying', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    const service = setup();
+    const refused = vi.fn();
+    service.refused.subscribe(refused);
+    service.topic('config').subscribe();
+    await Promise.resolve();
+    const stream = FakeEventSource.latest();
+
+    stream.readyState = FakeEventSource.CONNECTING;
+    stream.onerror!(new Event('error'));
+    expect(refused).not.toHaveBeenCalled();
+
+    stream.readyState = FakeEventSource.CLOSED;
+    stream.onerror!(new Event('error'));
+    expect(refused).toHaveBeenCalledTimes(1);
   });
 
   it('opens one connection for subscriptions made in the same tick', async () => {

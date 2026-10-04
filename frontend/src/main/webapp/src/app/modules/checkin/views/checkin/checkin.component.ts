@@ -31,7 +31,7 @@ import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
-import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
+import {expectedErrorContext} from '../../../../common/http/suppress-client-log-record.token';
 
 @Component({
     selector: 'tafel-checkin',
@@ -223,7 +223,7 @@ export class CheckinComponent {
 
   constructor() {
     this.customerSearchTrigger.pipe(
-      switchMap(customerId => this.customerApiService.getCustomer(customerId, SUPPRESS_ERROR_TOAST_CONTEXT).pipe(
+      switchMap(customerId => this.customerApiService.getCustomer(customerId, expectedErrorContext(404)).pipe(
         switchMap(customerData => {
           this.processCustomer(customerData);
 

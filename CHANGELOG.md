@@ -5,6 +5,11 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die Live-Aktualisierung (Übersicht, Ticketmonitor, Glocke) soll in Firefox nicht mehr rund alle 30 Sekunden abreißen und neu aufgebaut werden: die Verbindung läuft nun am Service Worker der Anwendung vorbei.
+- Ein abgemeldeter Tab und ein Tab, der noch auf den Code der Zwei-Faktor-Authentifizierung wartet, fragen den Server nicht mehr laufend im Hintergrund an; läuft die Sitzung in einem offen gelassenen Tab ab, wechselt er von selbst zur Anmeldeseite.
+- Das Anwendungsprotokoll meldet erwartbare Ergebnisse nicht mehr als Fehler: eine unbekannte Kundennummer, ein falscher Code bei der Anmeldung und eine vom Browser beendete Live-Verbindung erscheinen dort nicht mehr als Client-Fehler bzw. als Fehler mit Stacktrace.
+
+## [1.28.4] - 2026-10-03
 - Im dunklen Design ist das Logo auf der Anmeldeseite, bei der Code-Eingabe, beim Einrichten der Zwei-Faktor-Authentifizierung und beim erzwungenen Passwortwechsel wieder gut lesbar: es steht dort nun wie in der Seitenleiste auf weißem Grund.
 
 ## [1.28.2] - 2026-10-03

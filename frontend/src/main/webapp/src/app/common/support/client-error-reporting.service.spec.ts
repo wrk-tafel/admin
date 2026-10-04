@@ -3,11 +3,13 @@ import {of, throwError} from 'rxjs';
 import {ClientLogService} from './client-log.service';
 import {ClientErrorReportingService} from './client-error-reporting.service';
 import {ClientErrorApiService} from '../../api/client-error-api.service';
+import {AuthenticationService} from '../security/authentication.service';
 
 describe('ClientErrorReportingService', () => {
   let service: ClientErrorReportingService;
   let clientLogService: ClientLogService;
   let apiServiceSpy: {reportClientError: ReturnType<typeof vi.fn>};
+  let authenticationServiceSpy: {hasCompletedLogin: ReturnType<typeof vi.fn>};
 
   const windowMock = {
     location: {origin: 'http://localhost', pathname: '/uebersicht'},
@@ -16,12 +18,14 @@ describe('ClientErrorReportingService', () => {
 
   beforeEach(() => {
     apiServiceSpy = {reportClientError: vi.fn().mockReturnValue(of(undefined))};
+    authenticationServiceSpy = {hasCompletedLogin: vi.fn().mockReturnValue(true)};
 
     TestBed.configureTestingModule({
       providers: [
         ClientLogService,
         ClientErrorReportingService,
         {provide: ClientErrorApiService, useValue: apiServiceSpy},
+        {provide: AuthenticationService, useValue: authenticationServiceSpy},
         {provide: Window, useValue: windowMock}
       ]
     });
@@ -35,6 +39,18 @@ describe('ClientErrorReportingService', () => {
     clientLogService.record('TypeError: boom');
 
     expect(apiServiceSpy.reportClientError).toHaveBeenCalledWith('TypeError: boom', 'http://localhost/uebersicht', 'Mozilla/5.0');
+  });
+
+  it('reports nothing without a completed login, and the same message once there is one', () => {
+    service.init();
+    authenticationServiceSpy.hasCompletedLogin.mockReturnValue(false);
+
+    clientLogService.record('TypeError: boom');
+    expect(apiServiceSpy.reportClientError).not.toHaveBeenCalled();
+
+    authenticationServiceSpy.hasCompletedLogin.mockReturnValue(true);
+    clientLogService.record('TypeError: boom');
+    expect(apiServiceSpy.reportClientError).toHaveBeenCalledTimes(1);
   });
 
   it('does not report anything before init is called', () => {

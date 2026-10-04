@@ -1,6 +1,7 @@
 import {inject, Service} from '@angular/core';
 import {ClientLogEntry, ClientLogService} from './client-log.service';
 import {ClientErrorApiService} from '../../api/client-error-api.service';
+import {AuthenticationService} from '../security/authentication.service';
 
 /**
  * No more than this many reports go out per session, regardless of how many distinct messages are
@@ -21,6 +22,11 @@ const MAX_REPORTS_PER_SESSION = 20;
  * An identical message is only ever reported once per session - a render loop throwing the same
  * error every frame must not turn into a request storm - on top of the hard cap above.
  *
+ * Nothing is sent without a completed login: the endpoint is behind the session, so a report from
+ * the login page or from a session that still owes its second factor is only ever refused - a
+ * request made for a `401`/`403` line in the access log. Such an entry stays in
+ * {@link ClientLogService} for a support request, and is not marked as reported.
+ *
  * `init()` is called once at startup (see `app.config.ts`), same as
  * `ClientLogService.captureGlobalErrors`.
  */
@@ -28,6 +34,7 @@ const MAX_REPORTS_PER_SESSION = 20;
 export class ClientErrorReportingService {
   private readonly clientLogService = inject(ClientLogService);
   private readonly clientErrorApiService = inject(ClientErrorApiService);
+  private readonly authenticationService = inject(AuthenticationService);
   private readonly window = inject(Window);
 
   private readonly reportedMessages = new Set<string>();
@@ -38,6 +45,9 @@ export class ClientErrorReportingService {
   }
 
   private report(entry: ClientLogEntry) {
+    if (!this.authenticationService.hasCompletedLogin()) {
+      return;
+    }
     if (this.reportCount >= MAX_REPORTS_PER_SESSION || this.reportedMessages.has(entry.message)) {
       return;
     }

@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { errorHandlerInterceptor } from './errorhandler-interceptor.service';
 import { SUPPRESS_ERROR_TOAST } from './suppress-error-toast.token';
-import { SUPPRESS_CLIENT_LOG_RECORD } from './suppress-client-log-record.token';
+import { expectedErrorContext, SUPPRESS_CLIENT_LOG_RECORD } from './suppress-client-log-record.token';
 import { ProblemDetail } from '../api/problem-detail';
 import { AuthenticationService } from '../security/authentication.service';
 import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
@@ -266,6 +266,33 @@ describe('ErrorHandlerInterceptor', () => {
 
         const mockReq = httpTestingController.expectOne('/test');
         mockReq.flush(null, { status: 500, statusText: 'Internal Server Error' });
+        httpTestingController.verify();
+    });
+
+    it('records nothing and shows no toast for a status the caller expects', () => {
+        authServiceSpy.isAuthenticated.mockReturnValue(false);
+        const clientLogService = TestBed.inject(ClientLogService);
+        const errorCallback = vi.fn();
+
+        httpClient.get('/test', { context: expectedErrorContext(404) }).subscribe({ error: errorCallback });
+
+        httpTestingController.expectOne('/test').flush(null, { status: 404, statusText: 'Not Found' });
+        expect(errorCallback).toHaveBeenCalled();
+        expect(clientLogService.getEntries()).toEqual([]);
+        expect(toastrSpy.error).not.toHaveBeenCalled();
+        httpTestingController.verify();
+    });
+
+    it('still records a status the caller did not expect', () => {
+        authServiceSpy.isAuthenticated.mockReturnValue(false);
+        const clientLogService = TestBed.inject(ClientLogService);
+
+        httpClient.get('/test', { context: expectedErrorContext(404) }).subscribe({ error: () => {} });
+
+        httpTestingController.expectOne('/test').flush(null, { status: 500, statusText: 'Internal Server Error' });
+        expect(clientLogService.getEntries().map(entry => entry.message)).toEqual([
+            expect.stringContaining('HTTP 500 - GET /test')
+        ]);
         httpTestingController.verify();
     });
 

@@ -37,6 +37,7 @@ import org.springframework.web.context.request.ServletWebRequest
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import tools.jackson.databind.json.JsonMapper
+import java.io.IOException
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -353,6 +354,23 @@ internal class GenericExceptionHandlerTest {
         assertThat(logEvent.level).isEqualTo(Level.ERROR)
         assertThat(logEvent.formattedMessage).contains("GET").contains("uri=/dummy-path")
         assertThat(logEvent.throwableProxy.message).isEqualTo(originalException.message)
+    }
+
+    @Test
+    fun `handles HttpMessageNotWritableException after a client disconnect with one info line and no stack trace`() {
+        every { request.request.getAttribute(RequestDispatcher.ERROR_EXCEPTION) } returns IOException("Broken pipe")
+        every { request.request.method } returns "GET"
+        val exception = HttpMessageNotWritableException(
+            "No converter for [class java.util.LinkedHashMap] with preset Content-Type 'text/event-stream'",
+        )
+
+        val response = exceptionHandler.handleHttpMessageNotWritable(exception, HttpHeaders.EMPTY, HttpStatus.INTERNAL_SERVER_ERROR, request)
+
+        assertThat(response).isNull()
+        val logEvent = logAppender.list.single()
+        assertThat(logEvent.level).isEqualTo(Level.INFO)
+        assertThat(logEvent.formattedMessage).contains("GET").contains("uri=/dummy-path").contains("Broken pipe")
+        assertThat(logEvent.throwableProxy).isNull()
     }
 
     @Test

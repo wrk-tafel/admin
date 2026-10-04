@@ -24,6 +24,7 @@ import org.springframework.web.context.request.WebRequest
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import tools.jackson.databind.json.JsonMapper
+import java.io.IOException
 
 @ControllerAdvice
 class GenericExceptionHandler(
@@ -208,6 +209,12 @@ class GenericExceptionHandler(
      * attribute `DefaultErrorAttributes` reads to build the body that then failed to write), so
      * reading it here is the only way to recover and log it before it's lost for good.
      *
+     * An original exception that is an [IOException] is the one case that is not a failure of the
+     * application: the client went away (`Broken pipe`, `Connection reset by peer`) and a write onto
+     * its stream - for an SSE stream, usually the next heartbeat - was the first thing to notice.
+     * `SseOutboxService` already logs that disconnect where it happens, so it is one INFO line here,
+     * without a stack trace, rather than an ERROR that reads as a defect.
+     *
      * Returns no body: the response is unusable for the same reason [ex] itself was thrown, so
      * attempting to render anything here would only fail the same way again.
      */
@@ -219,6 +226,16 @@ class GenericExceptionHandler(
     ): ResponseEntity<Any>? {
         val servletRequest = (request as? ServletWebRequest)?.request
         val originalException = servletRequest?.getAttribute(RequestDispatcher.ERROR_EXCEPTION) as? Throwable
+
+        if (originalException is IOException) {
+            log.info(
+                "{} {} ended because the client went away ({})",
+                sanitizeForLog(servletRequest.method),
+                sanitizeForLog(request.getDescription(false)),
+                sanitizeForLog(originalException.toString()),
+            )
+            return null
+        }
 
         log.error(
             "{} {} could not write any response body ({}) - original exception that triggered this:",
