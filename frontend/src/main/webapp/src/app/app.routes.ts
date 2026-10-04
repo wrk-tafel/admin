@@ -6,6 +6,7 @@ import {P500Component} from './common/views/error/500.component';
 import {LoginComponent} from './common/views/login/login.component';
 
 import {AuthGuardService} from './common/security/authguard.service';
+import {RELOAD_ON_NEW_VERSION} from './common/pwa/sw-update.service';
 
 const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => inject(AuthGuardService).canActivate(route);
 
@@ -31,7 +32,8 @@ export const routes: Routes = [
     title: 'Ticket-Monitor',
     loadComponent: () => import('./modules/checkin/views/ticket-screen-fullscreen/ticket-screen-fullscreen.component')
       .then(m => m.TicketScreenFullscreenComponent),
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    data: {[RELOAD_ON_NEW_VERSION]: true}
   },
   {
     path: '500',
