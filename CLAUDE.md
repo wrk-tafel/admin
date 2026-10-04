@@ -292,7 +292,7 @@ The frontend is an Angular single-page application using Angular Material and Ta
   and what the browser tab shows, so a new route needs one — a route without a `title` silently
   falls back to the bare application name
 - Global state service using RxJS BehaviorSubjects
-- SSE service for real-time updates from backend: one shared `EventSource` per tab, `SseService.topic(name)` per screen (ADR-0063)
+- SSE service for real-time updates from backend: one shared `EventSource` per tab, `SseService.topic(name)` per screen (ADR-0063); the stream is open only while the login is complete (`SseSessionService`), and a request whose caller treats an error status as a normal answer declares it with `expectedErrorContext(...)` so it is not logged as a client error (ADR-0064)
 - Custom directives (`tafelIfPermission`, `tafelAutofocus`, `tafelIfDistributionActive`)
 
 **Module Structure Convention:**

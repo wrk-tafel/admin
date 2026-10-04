@@ -35,6 +35,7 @@ import {handleNavigationError} from './common/util/navigation-error-handler';
 import {TafelErrorHandler} from './common/support/tafel-error-handler';
 import {ClientLogService} from './common/support/client-log.service';
 import {ClientErrorReportingService} from './common/support/client-error-reporting.service';
+import {SseSessionService} from './common/sse/sse-session.service';
 
 // `MatDialog` is `providedIn: 'root'` and reads its defaults from the root injector, so this one
 // has to stay app-wide even though no screen outside the shell opens a dialog. The Material
@@ -87,6 +88,8 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => inject(ClientLogService).captureGlobalErrors()),
     // After the above, so it sees everything captureGlobalErrors feeds into ClientLogService too.
     provideAppInitializer(() => inject(ClientErrorReportingService).init()),
+    // Keeps the event stream closed while nobody is fully logged in - see SseSessionService.
+    provideAppInitializer(() => inject(SseSessionService).init()),
     provideServiceWorker('ngsw-worker.js', {
       // An active service worker serves navigations from its own cache, bypassing Cypress's
       // network layer - this made cy.visit() unreliable (e.g. a fresh navigation's onBeforeLoad

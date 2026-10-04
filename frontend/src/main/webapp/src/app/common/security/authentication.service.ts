@@ -3,7 +3,7 @@ import {inject, Service, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
-import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../http/suppress-error-toast.token';
+import {expectedErrorContext, SUPPRESS_CLIENT_LOG_RECORD} from '../http/suppress-client-log-record.token';
 import {GlobalStateService} from '../state/global-state.service';
 import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../api/problem-detail';
@@ -72,6 +72,16 @@ export class AuthenticationService {
    */
   public isMfaPending(): boolean {
     return this.userInfo()?.mfaPending === true;
+  }
+
+  /**
+   * Logged in with nothing left to hand in - the only state in which the server answers anything
+   * beyond the login, code and setup calls. A session that owes its code or still has to set up a
+   * second factor is refused everything else (`MfaPendingFilter`), so whatever runs in the
+   * background (the event stream, the client-error reports) waits for this.
+   */
+  public hasCompletedLogin(): boolean {
+    return this.isAuthenticated() && !this.isMfaPending() && !this.isMfaSetupRequired();
   }
 
   public redirectToMfaSetup(): Promise<boolean> {
@@ -154,7 +164,8 @@ export class AuthenticationService {
    * this surfaces one itself for the "unknown, might still be logged in" case.
    */
   public loadUserInfo(): Promise<UserInfo | null> {
-    return firstValueFrom(this.http.get<UserInfo>('/users/info', {context: SUPPRESS_ERROR_TOAST_CONTEXT})
+    // a 401 is the answer every visitor who is not logged in gets, not a failure
+    return firstValueFrom(this.http.get<UserInfo>('/users/info', {context: expectedErrorContext(401)})
       .pipe(tap(userInfo => {
           this.userInfo.set(userInfo);
           return of(userInfo);
@@ -177,6 +188,24 @@ export class AuthenticationService {
    * i.e. encodes Latin-1, which turns a password with an umlaut into bytes that aren't valid UTF-8
    * and made every such login fail (see #3100).
    */
+  /**
+   * Asks the server whether the session still exists, for a caller that has reason to doubt it and
+   * no response of its own to tell by (the event stream being refused). A `401` ends the session
+   * here as well - the error interceptor sends the tab to the login page - and anything else, a
+   * backend that is restarting included, proves nothing and changes nothing.
+   */
+  public checkSessionStillValid(): void {
+    this.http.get<UserInfo>('/users/info', {context: expectedErrorContext(401).set(SUPPRESS_CLIENT_LOG_RECORD, true)})
+      .subscribe({
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 401) {
+            this.userInfo.set(null);
+            this.globalStateService.reset();
+          }
+        }
+      });
+  }
+
   private encodeCredentials(username: string, password: string): string {
     const bytes = new TextEncoder().encode(username + ':' + password);
     return btoa(String.fromCharCode(...bytes));
@@ -186,7 +215,8 @@ export class AuthenticationService {
     const encodedCredentials = this.encodeCredentials(username, password);
     const options = {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials),
-      context: SUPPRESS_ERROR_TOAST_CONTEXT
+      // wrong credentials or a lockout (403) and the rate limit (429) are answers the form presents
+      context: expectedErrorContext(403, 429)
     };
     return this.http.post<LoginResponse>('/login', undefined, options);
   }

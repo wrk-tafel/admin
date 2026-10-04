@@ -6,7 +6,7 @@ import {AuthenticationService} from '../security/authentication.service';
 import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../api/problem-detail';
 import {SUPPRESS_ERROR_TOAST} from './suppress-error-toast.token';
-import {SUPPRESS_CLIENT_LOG_RECORD} from './suppress-client-log-record.token';
+import {EXPECTED_ERROR_STATUSES, SUPPRESS_CLIENT_LOG_RECORD} from './suppress-client-log-record.token';
 import {ClientLogService} from '../support/client-log.service';
 
 /**
@@ -25,10 +25,13 @@ import {ClientLogService} from '../support/client-log.service';
  *    support request can carry it, and shows a toast with the backend's error message by default,
  *    unless the request opted out via the {@link SUPPRESS_ERROR_TOAST} context (callers that
  *    fully own presenting the error themselves). The recording happens either way: a request that
- *    presents its own error is no less interesting to whoever reads the support mail - the one
- *    exception is a request that opted out via {@link SUPPRESS_CLIENT_LOG_RECORD}, which is only
- *    ever the client-error-reporting request itself (see `ClientErrorApiService`), so that a
- *    rate-limited or failed report cannot record itself and be reported all over again.
+ *    presents its own error is no less interesting to whoever reads the support mail. Two things
+ *    are not recorded: a request that opted out via {@link SUPPRESS_CLIENT_LOG_RECORD}, which is
+ *    only ever a background request about the session itself (the client-error report, see
+ *    `ClientErrorApiService`, so that a rate-limited or failed report cannot record itself and be
+ *    reported all over again) - and a status the caller declared via
+ *    {@link EXPECTED_ERROR_STATUSES} as one of the request's ordinary answers (a customer number
+ *    nobody has, a wrong code), which is no error at all.
  */
 export const errorHandlerInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
@@ -71,7 +74,8 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
   };
 
   const handleErrorMessage = (error: HttpErrorResponse): Observable<any> => {
-    if (!request.context.get(SUPPRESS_CLIENT_LOG_RECORD)) {
+    const expected = request.context.get(EXPECTED_ERROR_STATUSES).includes(error.status);
+    if (!expected && !request.context.get(SUPPRESS_CLIENT_LOG_RECORD)) {
       clientLogService.record(`HTTP ${error.status} - ${request.method} ${request.url}: ${extractErrorMessage(error)}`);
     }
 

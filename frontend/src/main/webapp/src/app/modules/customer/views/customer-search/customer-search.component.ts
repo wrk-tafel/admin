@@ -30,6 +30,7 @@ import progressActivityIcon from '@material-symbols/svg-400/outlined/progress_ac
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
+import {expectedErrorContext} from '../../../../common/http/suppress-client-log-record.token';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
@@ -234,7 +235,7 @@ export class CustomerSearchComponent {
 
     if (request.tryExactMatch && /^\d+$/.test(query)) {
       const customerId = Number(query);
-      return this.customerApiService.getCustomer(customerId, SUPPRESS_ERROR_TOAST_CONTEXT).pipe(
+      return this.customerApiService.getCustomer(customerId, expectedErrorContext(404)).pipe(
         map(customer => ({type: 'navigate' as const, customerId: customer.id ?? customerId})),
         catchError((error: HttpErrorResponse) => {
           if (error.status === 404) {

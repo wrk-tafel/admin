@@ -7,6 +7,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthenticationService } from './authentication.service';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { SUPPRESS_ERROR_TOAST } from '../http/suppress-error-toast.token';
+import { EXPECTED_ERROR_STATUSES, SUPPRESS_CLIENT_LOG_RECORD } from '../http/suppress-client-log-record.token';
 import { GlobalStateService } from '../state/global-state.service';
 import { TafelToastrService } from '../components/tafel-toastr/tafel-toastr.service';
 
@@ -276,6 +277,68 @@ describe('AuthenticationService', () => {
         expect(mockReq.request.context.get(SUPPRESS_ERROR_TOAST)).toBe(true);
         mockReq.flush(null, { status: 401, statusText: 'Unauthorized' });
 
+        httpMock.verify();
+    });
+
+    it('loadUserInfo expects the 401 of a visitor who is not logged in', () => {
+        service.loadUserInfo();
+
+        const mockReq = httpMock.expectOne('/users/info');
+        expect(mockReq.request.context.get(EXPECTED_ERROR_STATUSES)).toEqual([401]);
+        mockReq.flush(null, { status: 401, statusText: 'Unauthorized' });
+
+        httpMock.verify();
+    });
+
+    it('login request expects wrong credentials and the rate limit', () => {
+        service.login('USER', 'PWD');
+
+        const mockLoginReq = httpMock.expectOne('/login');
+        expect(mockLoginReq.request.context.get(EXPECTED_ERROR_STATUSES)).toEqual([403, 429]);
+        mockLoginReq.flush(null, { status: 403, statusText: 'Forbidden' });
+
+        httpMock.verify();
+    });
+
+    it('hasCompletedLogin is false without a session and while a second factor is owed or has to be set up', () => {
+        const userInfo = { username: 'USER', permissions: [] };
+
+        expect(service.hasCompletedLogin()).toBe(false);
+
+        service.userInfo.set({ ...userInfo, mfaPending: true });
+        expect(service.hasCompletedLogin()).toBe(false);
+
+        service.userInfo.set({ ...userInfo, mfaSetupRequired: true });
+        expect(service.hasCompletedLogin()).toBe(false);
+
+        service.userInfo.set(userInfo);
+        expect(service.hasCompletedLogin()).toBe(true);
+    });
+
+    it('checkSessionStillValid ends the session in the tab on a 401, silently', () => {
+        service.userInfo.set({ username: 'USER', permissions: [] });
+
+        service.checkSessionStillValid();
+
+        const mockReq = httpMock.expectOne('/users/info');
+        expect(mockReq.request.context.get(SUPPRESS_ERROR_TOAST)).toBe(true);
+        expect(mockReq.request.context.get(SUPPRESS_CLIENT_LOG_RECORD)).toBe(true);
+        mockReq.flush(null, { status: 401, statusText: 'Unauthorized' });
+
+        expect(service.isAuthenticated()).toBe(false);
+        expect(globalStateService.reset).toHaveBeenCalled();
+        httpMock.verify();
+    });
+
+    it('checkSessionStillValid keeps the session when the server is merely unreachable', () => {
+        service.userInfo.set({ username: 'USER', permissions: [] });
+
+        service.checkSessionStillValid();
+        httpMock.expectOne('/users/info').flush(null, { status: 502, statusText: 'Bad Gateway' });
+
+        expect(service.isAuthenticated()).toBe(true);
+        expect(globalStateService.reset).not.toHaveBeenCalled();
+        expect(toastr.error).not.toHaveBeenCalled();
         httpMock.verify();
     });
 

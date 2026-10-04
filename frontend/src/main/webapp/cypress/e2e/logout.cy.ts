@@ -95,6 +95,13 @@ describe('Logout', () => {
     cy.byTestId('usermenu-logout').click();
     cy.url().should('include', '/login');
 
+    // Nothing may keep asking for a stream once the session is gone: the server can only refuse it,
+    // and a tab left on the login page would go on asking at the backoff cap for as long as it is
+    // open. Subscribers that outlive the logout (the config stream) are what used to cause that.
+    cy.wrap(null).should(() => expect(openDistributionStreams()).to.have.length(0));
+    cy.wait(RECONNECT_SETTLE_MILLIS);
+    cy.then(() => expect(openDistributionStreams()).to.have.length(0));
+
     cy.byTestId('username').type('e2etest');
     cy.byTestId('password').type('e2etest');
     cy.byTestId('loginButton').click();
