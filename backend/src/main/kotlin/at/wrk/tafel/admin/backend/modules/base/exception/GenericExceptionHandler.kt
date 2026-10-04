@@ -230,7 +230,7 @@ class GenericExceptionHandler(
         if (originalException is IOException) {
             log.info(
                 "{} {} ended because the client went away ({})",
-                sanitizeForLog(servletRequest?.method ?: "?"),
+                sanitizeForLog(servletRequest.method),
                 sanitizeForLog(request.getDescription(false)),
                 sanitizeForLog(originalException.toString()),
             )
