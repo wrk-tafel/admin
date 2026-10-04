@@ -36,6 +36,11 @@ management:
   server:
     port: 8081
   endpoints.web.exposure.include: prometheus,health
+  # /actuator/health is what the image's HEALTHCHECK asks every 30 seconds (see _build/Dockerfile).
+  # The mail indicator answers by opening a connection to the SMTP server each time, which makes the
+  # container's health depend on a server the application does not need in order to work: a mail
+  # that cannot be sent waits in mail_outbox and is retried (ADR-0041).
+  health.mail.enabled: false
 
 server:
   port: 8080
@@ -68,7 +73,14 @@ server:
       # customer's name, so that default would put a name into the one log file rotate: false below
       # keeps forever. %m %U %H spells out the same "%r" minus the query string (method, path,
       # protocol) - see GDPR gap G25, issue #3506.
-      pattern: '%h %l %u %t "%m %U %H" %s %b'
+      #
+      # After the size come the request's duration in milliseconds and %X, how the connection ended:
+      # "+" kept alive, "-" closed, "X" aborted before the response was complete. The last one is
+      # what tells a real server error from a client that went away: Tomcat sets the status of every
+      # asynchronous request that ended on a failed write to 500 on its own (CoyoteAdapter.asyncDispatch),
+      # whatever the application answered with, so every SSE stream a browser closes is a
+      # "500 ... X" line here. A 500 without the X is the application's.
+      pattern: '%h %l %u %t "%m %U %H" %s %b (%{ms}T ms) %X'
       # Tomcat itself never rotates access.log - rotation/retention for it is handled host-side
       # (e.g. logrotate on the deployment host), outside this application's configuration.
       rotate: false

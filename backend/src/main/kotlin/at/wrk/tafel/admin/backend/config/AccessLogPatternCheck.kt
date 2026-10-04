@@ -34,7 +34,7 @@ class AccessLogPatternCheck(
         private val logger = LoggerFactory.getLogger(AccessLogPatternCheck::class.java)
 
         // Mirrors application.yml's server.tomcat.accesslog.pattern.
-        const val EXPECTED_PATTERN = "%h %l %u %t \"%m %U %H\" %s %b"
+        const val EXPECTED_PATTERN = "%h %l %u %t \"%m %U %H\" %s %b (%{ms}T ms) %X"
     }
 
     override fun run(args: ApplicationArguments) {

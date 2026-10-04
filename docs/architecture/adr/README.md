@@ -24,7 +24,8 @@ instead, so a number's position in a group says nothing about its age.
 | [0002](0002-single-deployable-image-with-independent-builds.md) | One deployable image, two independent builds | accepted |
 | [0003](0003-postgresql-as-the-only-infrastructure-dependency.md) | PostgreSQL is the only infrastructure dependency | accepted |
 | [0010](0010-zoneless-standalone-angular-with-signals.md) | Zoneless, standalone Angular with signal-based state | accepted |
-| [0029](0029-installable-pwa-with-an-explicit-update-prompt.md) | Installable PWA with an explicit update prompt | accepted |
+| [0029](0029-installable-pwa-with-an-explicit-update-prompt.md) | Installable PWA with an explicit update prompt | accepted (prompt on the ticket monitor narrowed by [0065](0065-open-tabs-ask-for-a-new-version-and-the-ticket-monitor-applies-it.md)) |
+| [0065](0065-open-tabs-ask-for-a-new-version-and-the-ticket-monitor-applies-it.md) | Open tabs ask for a new version, and the ticket monitor applies it by itself | accepted |
 | [0027](0027-single-locale-and-timezone.md) | One locale and one timezone, fixed at the image level | accepted (storage superseded by [0054](0054-event-timestamps-stored-as-utc-instants.md)) |
 
 ### Data and persistence
