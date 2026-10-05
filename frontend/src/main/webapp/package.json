@@ -68,11 +68,11 @@
     "@types/node": "26.6.3",
     "@typescript-eslint/eslint-plugin": "8.71.0",
     "@typescript-eslint/parser": "8.71.0",
-    "@vitest/browser-playwright": "5.0.2",
-    "@vitest/coverage-v8": "5.0.2",
+    "@vitest/browser-playwright": "5.0.3",
+    "@vitest/coverage-v8": "5.0.3",
     "angular-eslint": "22.5.0",
     "axe-core": "4.13.0",
-    "cypress": "16.1.0",
+    "cypress": "16.1.1",
     "cypress-axe": "1.7.0",
     "cypress-recurse": "1.37.2",
     "eslint": "10.7.0",
@@ -82,8 +82,8 @@
     "ts-node": "10.9.2",
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.0",
-    "vitest": "5.0.2",
-    "wait-on": "9.4.0"
+    "vitest": "5.0.3",
+    "wait-on": "9.5.1"
   },
   "engines": {
     "node": "^22.22.3 || ^24.15.0 || ^26.0.0",
