@@ -146,7 +146,14 @@ class WalletPassService(
         }
     }
 
-    private fun sha1Hex(content: ByteArray): String = MessageDigest.getInstance("SHA-1").digest(content).joinToString("") { "%02x".format(it) }
+    /**
+     * SHA-1 is not a choice made here: the pass format defines `manifest.json` as the SHA-1 of each
+     * file, and a wallet app rejects a manifest hashed with anything else. What protects a pass
+     * against tampering is the signature over the manifest, which is SHA-256 (see [sign]).
+     */
+    private fun sha1Hex(content: ByteArray): String = MessageDigest.getInstance("SHA-1") // NOSONAR - kotlin:S4790, mandated by the pass format
+        .digest(content)
+        .joinToString("") { "%02x".format(it) }
 
     private fun sign(manifest: ByteArray, properties: TafelAdminWalletProperties): ByteArray {
         val password = properties.certificatePassword!!.toCharArray()
