@@ -1,0 +1,40 @@
+<tafel-dialog testId="digital-id-card-dialog" type="info" title="Digitaler Ausweis">
+  <div tafel-dialog-content>
+    <fieldset class="m-0 border-0 p-0">
+      <legend class="mb-2 p-0">In welcher Form soll der Ausweis ausgegeben werden?</legend>
+      @for (option of formatOptions(); track option.format) {
+        <div>
+          <mat-checkbox [attr.testid]="'idcard-format-' + option.format"
+                        [checked]="isSelected(option.format)" [disabled]="!!busy()"
+                        (change)="toggle(option.format, $event.checked)">
+            <strong>{{ option.label }}</strong> – {{ option.hint }}
+          </mat-checkbox>
+        </div>
+      }
+    </fieldset>
+
+    @if (mailEnabled()) {
+      @if (hasEmail()) {
+        <div class="mt-4" testid="idcard-mail-recipient">
+          Der Versand erfolgt an die hinterlegte Adresse <strong>{{ data.email }}</strong>.
+        </div>
+      } @else {
+        <div class="mt-4" testid="idcard-mail-missing">
+          Für diesen Kunden ist keine E-Mail-Adresse hinterlegt – der Ausweis kann nur heruntergeladen werden.
+        </div>
+      }
+    }
+  </div>
+  <div tafel-dialog-actions>
+    @if (mailEnabled()) {
+      <button testid="sendIdCardButton" matButton="filled" (click)="send()" [disabled]="!canSend()">
+        {{ busy() === 'mail' ? 'Wird gesendet...' : 'Per E-Mail senden' }}
+      </button>
+    }
+    <button testid="downloadIdCardButton" [matButton]="mailEnabled() ? 'outlined' : 'filled'" (click)="download()"
+            [disabled]="!canDownload()">
+      {{ busy() === 'download' ? 'Wird erstellt...' : 'Herunterladen' }}
+    </button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Schließen</button>
+  </div>
+</tafel-dialog>

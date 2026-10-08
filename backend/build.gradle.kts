@@ -114,6 +114,7 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.jjwt.api)
     implementation(libs.bouncycastle)
+    implementation(libs.bouncycastle.pkix)
     implementation(libs.apache.fop)
     implementation(libs.qrcode.kotlin.jvm)
     implementation(libs.passay)

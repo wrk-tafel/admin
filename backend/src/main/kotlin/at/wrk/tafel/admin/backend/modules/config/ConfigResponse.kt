@@ -13,6 +13,8 @@ fun TafelAdminProperties.toConfigResponse(): ConfigResponse = ConfigResponse(
     version = version,
     buildDate = buildDate,
     scannerFolderEnabled = scannerFolderAvailable,
+    walletPassEnabled = walletPassAvailable,
+    idCardMailEnabled = idCardMailAvailable,
     environmentLabel = environmentLabel.trim(),
 )
 
@@ -27,6 +29,16 @@ data class ConfigResponse(
      * anything, indistinguishable from "nobody has scanned yet".
      */
     val scannerFolderEnabled: Boolean,
+    /**
+     * Whether an ID card can be issued as a wallet pass (see
+     * `TafelAdminProperties.walletPassAvailable`). The frontend offers the format only when true.
+     */
+    val walletPassEnabled: Boolean,
+    /**
+     * Whether an ID card can be mailed to the household (see
+     * `TafelAdminProperties.idCardMailAvailable`). When false the frontend only offers the download.
+     */
+    val idCardMailEnabled: Boolean,
     /**
      * Which environment this deployment is ("DEV", "TEST"), empty on production. The shell renders
      * it as a banner so an already-logged-in session stays visibly distinguishable from production,

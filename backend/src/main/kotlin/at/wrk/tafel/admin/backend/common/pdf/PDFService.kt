@@ -74,6 +74,13 @@ class PDFService {
             TransformerFactory.newInstance().apply { uriResolver = ClasspathResourceURIResolver() }
         }
 
+        /**
+         * What a document rendered as an image is rasterized at. A card-sized page comes out around
+         * a thousand pixels wide, which keeps a QR code on it crisp on a phone screen and the file a
+         * small mail attachment.
+         */
+        private const val IMAGE_RESOLUTION_DPI = 300f
+
         private val compiledStylesheets = ConcurrentHashMap<String, Templates>()
 
         /**
@@ -109,6 +116,26 @@ class PDFService {
         stylesheetPath: String,
         subject: String? = null,
         eventListener: EventListener? = null,
+    ): ByteArray = render(data, stylesheetPath, subject, eventListener, MimeConstants.MIME_PDF)
+
+    /**
+     * The same rendering as [generatePdf], rasterized to a PNG instead - for a document that is
+     * looked at on a screen rather than printed. Only the first page is written, so this is for
+     * single-page stylesheets.
+     */
+    fun generatePng(
+        data: Any,
+        stylesheetPath: String,
+        subject: String? = null,
+        eventListener: EventListener? = null,
+    ): ByteArray = render(data, stylesheetPath, subject, eventListener, MimeConstants.MIME_PNG)
+
+    private fun render(
+        data: Any,
+        stylesheetPath: String,
+        subject: String?,
+        eventListener: EventListener?,
+        outputFormat: String,
     ): ByteArray {
         val label = documentLabel(stylesheetPath, subject)
         val startedAt = System.nanoTime()
@@ -135,7 +162,10 @@ class PDFService {
                     // messages carry no hint of which document they belong to.
                     userAgent.eventBroadcaster.addEventListener(LabelledLoggingEventListener(label))
                     eventListener?.let { userAgent.eventBroadcaster.addEventListener(it) }
-                    fopFactory.newFop(MimeConstants.MIME_PDF, userAgent, out)
+                    if (outputFormat == MimeConstants.MIME_PNG) {
+                        userAgent.targetResolution = IMAGE_RESOLUTION_DPI
+                    }
+                    fopFactory.newFop(outputFormat, userAgent, out)
                 }
 
                 val transformer = compiledStylesheet(stylesheetPath).newTransformer()
@@ -144,14 +174,15 @@ class PDFService {
                 transformer.transform(xmlSource, res)
             }
 
-            val pdfBytes = outStream.toByteArray()
+            val documentBytes = outStream.toByteArray()
             log.info(
-                "Generated PDF {} in {} ms ({} bytes)",
+                "Generated {} {} in {} ms ({} bytes)",
+                if (outputFormat == MimeConstants.MIME_PNG) "PNG" else "PDF",
                 label,
                 (System.nanoTime() - startedAt) / 1_000_000,
-                pdfBytes.size,
+                documentBytes.size,
             )
-            return pdfBytes
+            return documentBytes
         }
     }
 

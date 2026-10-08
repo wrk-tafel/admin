@@ -45,7 +45,8 @@ function configureModule(mobile: boolean) {
     const configApiServiceSpy = {
         observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
             .mockReturnValue(of({
-                version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true, environmentLabel: ''
+                version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true,
+                  walletPassEnabled: false, idCardMailEnabled: false, environmentLabel: ''
             }))
     };
 
@@ -113,7 +114,8 @@ describe('DefaultLayoutComponent', () => {
         fixture.detectChanges();
 
         expect(component.appConfig()).toEqual({
-            version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true, environmentLabel: ''
+            version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true,
+              walletPassEnabled: false, idCardMailEnabled: false, environmentLabel: ''
         });
     });
 

@@ -39,6 +39,77 @@ describe('Customer Detail', () => {
     generateAndDownloadPdf('datenschutzerklaerung-101-musterfrau-eva.pdf', 'printPrivacyNoticeButton');
   });
 
+  it('downloads the digital id card as a pdf and as an image', () => {
+    cy.visit('/kunden/detail/101');
+    openDigitalIdCardDialog();
+    cy.checkDialogAccessibility();
+
+    // the e2e backend has no certificate to sign a wallet pass with, so the format is not offered
+    cy.byTestId('idcard-format-WALLET').should('not.exist');
+    cy.byTestId('idcard-format-IMAGE').find('input[type="checkbox"]').check({force: true});
+    cy.byTestId('downloadIdCardButton').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    cy.readFile(path.join(downloadsFolder, 'ausweis-101-musterfrau-eva.pdf'), 'binary', {timeout: 15000})
+      .should((content: string) => expect(content.startsWith('%PDF')).to.eq(true));
+    cy.readFile(path.join(downloadsFolder, 'ausweis-101-musterfrau-eva.png'), 'binary', {timeout: 15000})
+      .should((content: string) => expect(content.substring(1, 4)).to.eq('PNG'));
+
+    // the dialog stays open after a download - mailing the same selection is the likely next step
+    cy.byTestId('digital-id-card-dialog').should('be.visible');
+  });
+
+  it('mails the digital id card to the stored address and records it in the audit trail', () => {
+    cy.createDummyCustomer().then((response) => {
+      cy.visit('/kunden/detail/' + response.body.data.id);
+      openDigitalIdCardDialog();
+
+      cy.byTestId('idcard-mail-recipient').should('contain.text', 'firstname.lastname@test.com');
+      cy.byTestId('idcard-format-IMAGE').find('input[type="checkbox"]').check({force: true});
+      cy.byTestId('sendIdCardButton').click();
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'firstname.lastname@test.com');
+      cy.byTestId('digital-id-card-dialog').should('not.exist');
+
+      cy.byTestId('history-tab-label').click();
+      cy.byTestId('audit-entry-0-operation').should('contain.text', 'Abgerufen');
+      cy.byTestId('audit-entry-0-change-0-field').should('contain.text', 'Ausweis per E-Mail gesendet');
+      cy.byTestId('audit-entry-0-change-0-newValue').should('contain.text', 'PDF, Bild');
+    });
+  });
+
+  it('cannot mail the digital id card without a selected format', () => {
+    cy.visit('/kunden/detail/101');
+    openDigitalIdCardDialog();
+
+    cy.byTestId('idcard-format-PDF').find('input[type="checkbox"]').uncheck({force: true});
+
+    cy.byTestId('sendIdCardButton').should('be.disabled');
+    cy.byTestId('downloadIdCardButton').should('be.disabled');
+  });
+
+  /**
+   * Wallet passes and the mail are optional per deployment. The e2e backend has the mail and not
+   * the wallet, so the other half of each is driven by stubbing the config the frontend reads.
+   */
+  it('offers the wallet card and hides mailing as the deployment config says', () => {
+    cy.intercept('GET', '/api/config', (req) => {
+      req.continue((res) => {
+        res.body = {...res.body, walletPassEnabled: true, idCardMailEnabled: false};
+      });
+    }).as('config');
+
+    cy.visit('/kunden/detail/101');
+    cy.wait('@config');
+    openDigitalIdCardDialog();
+
+    cy.byTestId('idcard-format-WALLET').should('be.visible');
+    cy.byTestId('sendIdCardButton').should('not.exist');
+    cy.byTestId('idcard-mail-recipient').should('not.exist');
+    cy.byTestId('downloadIdCardButton').should('be.enabled');
+    cy.checkDialogAccessibility();
+  });
+
   it('export household (GDPR takeout) and downloads one ZIP with the data and the uploaded document', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id;
@@ -631,6 +702,12 @@ describe('Customer Detail', () => {
 
     cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
+  }
+
+  function openDigitalIdCardDialog() {
+    cy.byTestId('printMenuButton').click();
+    cy.byTestId('digitalIdCardButton').click();
+    cy.byTestId('digital-id-card-dialog').should('be.visible');
   }
 
   function openEditMenu() {

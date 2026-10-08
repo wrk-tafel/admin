@@ -27,6 +27,7 @@ class HouseholdPdfService(
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
+        private const val DIGITAL_IDCARD_STYLESHEET = "/pdf-templates/customer-pdf/idcard-digital-document.xsl"
     }
 
     fun generateMasterdataPdf(household: HouseholdEntity): ByteArray {
@@ -37,6 +38,41 @@ class HouseholdPdfService(
     fun generateIdCardPdf(household: HouseholdEntity): ByteArray {
         val data = createHouseholdPdfData(household)
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/idcard-document.xsl", "household ${household.householdId}")
+    }
+
+    /**
+     * The ID card for a screen rather than for the printer: one card-sized page with a QR code large
+     * enough to scan off a phone, as a PDF or - [generateDigitalIdCardImage] - as a PNG of the very
+     * same rendering.
+     */
+    fun generateDigitalIdCardPdf(household: HouseholdEntity): ByteArray = pdfService.generatePdf(
+        createHouseholdPdfData(household),
+        DIGITAL_IDCARD_STYLESHEET,
+        "household ${household.householdId}",
+    )
+
+    fun generateDigitalIdCardImage(household: HouseholdEntity): ByteArray = pdfService.generatePng(
+        createHouseholdPdfData(household),
+        DIGITAL_IDCARD_STYLESHEET,
+        "household ${household.householdId}",
+    )
+
+    /**
+     * What every form of the ID card states about a household, for the one that is not rendered
+     * from a stylesheet - the wallet pass. Kept here so the person counts on a pass can never differ
+     * from the ones printed on the card.
+     */
+    fun createIdCardSummary(household: HouseholdEntity): IdCardSummary {
+        val data = createHouseholdPdfData(household)
+        return IdCardSummary(
+            householdId = data.customer.id,
+            fullName = listOfNotNull(data.customer.firstname, data.customer.lastname)
+                .filter { it != "-" }
+                .joinToString(" ")
+                .ifBlank { "-" },
+            countPersons = data.countPersons,
+            countInfants = data.countInfants,
+        )
     }
 
     /**

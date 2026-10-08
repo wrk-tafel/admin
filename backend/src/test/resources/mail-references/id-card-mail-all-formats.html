@@ -95,15 +95,29 @@
                                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                     <tr>
                                         <td class="tafel-header-title" valign="middle">TÖ Tafel 1030</td>
-                                        <td align="right" valign="middle"><img th:src="|cid:logo|" alt="TÖ Tafel Logo" width="67" height="32"/></td>
+                                        <td align="right" valign="middle"><img src="cid:logo" alt="TÖ Tafel Logo" width="67" height="32"/></td>
                                     </tr>
                                 </table>
                             </td>
                         </tr>
                         <tr>
                             <td class="tafel-body">
-                                <p th:text="${greeting} ?: 'Liebe Kolleginnen und Kollegen,'">Liebe Kolleginnen und Kollegen,</p>
-                                <div th:replace="~{${subTemplate} :: content}"></div>
+                                <p>Guten Tag,</p>
+                                <div>
+    <p>im Anhang finden Sie Ihre Bezugskarte der Team Österreich Tafel mit der Kundennummer <strong>4101</strong>.</p>
+
+    <p>Zeigen Sie bei der Ausgabe den QR-Code der Karte auf Ihrem Handy vor - er wird direkt vom Bildschirm gescannt. Die ausgedruckte Karte bleibt weiterhin gültig.</p>
+
+    <ul>
+        <li><strong>PDF-Datei:</strong> lässt sich auf jedem Gerät öffnen und bei Bedarf ausdrucken.</li>
+        <li><strong>Bild:</strong> speichern Sie es in Ihren Fotos, damit Sie es auch ohne Internetverbindung zur Hand haben.</li>
+        <li><strong>Wallet-Karte (Datei mit der Endung .pkpass):</strong> tippen Sie die Datei am Handy an, um die Karte zu Apple Wallet oder Google Wallet hinzuzufügen.</li>
+    </ul>
+
+    <p>Die Bezugskarte ist Eigentum des Roten Kreuzes und gilt nur für Ihren Haushalt. Bitte leiten Sie diese E-Mail nicht weiter.</p>
+
+    <p>Haben Sie diese E-Mail nicht erwartet, können Sie sie einfach löschen.</p>
+</div>
                                 <p style="margin-top: 24px; margin-bottom: 0;">Liebe Grüße,<br/>TÖ Tafel 1030</p>
                             </td>
                         </tr>

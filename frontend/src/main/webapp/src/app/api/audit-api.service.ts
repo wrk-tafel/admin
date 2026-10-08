@@ -163,6 +163,7 @@ export const auditFieldLabel: Record<string, string> = {
   gender: 'Geschlecht',
   household: 'Kunde',
   householdId: 'Kundennummer',
+  idCardSentByMail: 'Ausweis per E-Mail gesendet',
   income: 'Einkommen',
   incomeDue: 'Einkommen nachgewiesen bis',
   isMainPerson: 'Hauptbezieher',

@@ -57,6 +57,17 @@ export interface AppConfig {
    */
   scannerFolderEnabled: boolean;
   /**
+   * Whether this environment can sign a wallet pass (`tafeladmin.wallet` /
+   * `tafeladmin.features.walletPassEnabled`). False means the "Wallet-Karte" format of the digital
+   * ID card must not be offered - the backend would refuse it.
+   */
+  walletPassEnabled: boolean;
+  /**
+   * Whether this environment mails ID cards to customers (`tafeladmin.mail` /
+   * `tafeladmin.features.idCardMailEnabled`). False leaves the digital ID card as a download only.
+   */
+  idCardMailEnabled: boolean;
+  /**
    * Which environment this deployment is ("DEV", "TEST"), empty on production. Shown as a banner in
    * the application shell so an already-logged-in session stays visibly distinguishable from
    * production too, not just the login page (see {@link PublicAppConfig.environmentLabel}).

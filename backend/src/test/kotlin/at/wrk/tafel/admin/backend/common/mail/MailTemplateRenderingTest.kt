@@ -212,6 +212,33 @@ class MailTemplateRenderingTest {
     }
 
     @Test
+    fun `id-card-mail addresses the customer and explains every attached format`() {
+        val rendered = render("mails/id-card-mail", idCardContext(hasPdf = true, hasImage = true, hasWallet = true))
+
+        assertThat(rendered).isEqualTo(loadReference("id-card-mail-all-formats.html"))
+    }
+
+    @Test
+    fun `id-card-mail only mentions the formats that are attached`() {
+        val rendered = render("mails/id-card-mail", idCardContext(hasPdf = false, hasImage = true, hasWallet = false))
+
+        assertThat(rendered)
+            .contains("Guten Tag,")
+            .doesNotContain("Liebe Kolleginnen und Kollegen")
+            .contains("<strong>Bild:</strong>")
+            .doesNotContain("PDF-Datei")
+            .doesNotContain("Wallet")
+    }
+
+    private fun idCardContext(hasPdf: Boolean, hasImage: Boolean, hasWallet: Boolean) = Context().apply {
+        setVariable("greeting", "Guten Tag,")
+        setVariable("householdId", 4101L)
+        setVariable("hasPdf", hasPdf)
+        setVariable("hasImage", hasImage)
+        setVariable("hasWallet", hasWallet)
+    }
+
+    @Test
     fun `account-security-mail renders the account and what changed`() {
         val context = Context()
         context.setVariable("username", "max.mustermann")

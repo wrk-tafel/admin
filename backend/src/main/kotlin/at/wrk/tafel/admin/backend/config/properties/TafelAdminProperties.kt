@@ -56,6 +56,7 @@ class TafelAdminProperties {
     var search: TafelAdminSearchProperties = TafelAdminSearchProperties()
     var setup: TafelAdminSetupProperties = TafelAdminSetupProperties()
     var testdata: TafelAdminTestdataProperties = TafelAdminTestdataProperties()
+    var wallet: TafelAdminWalletProperties? = null
 
     /**
      * Whether the scanner folder is available at all - the single rule both the backend
@@ -72,6 +73,27 @@ class TafelAdminProperties {
      */
     val scannerFolderAvailable: Boolean
         get() = features.scannerFolderEnabled && !storage.scannerPath.isNullOrBlank()
+
+    /**
+     * Whether an ID card can be issued as a wallet pass - the same shape of rule as
+     * [scannerFolderAvailable] (ADR-0018): the switch ([TafelAdminFeaturesProperties.walletPassEnabled])
+     * says whether this deployment should offer it, [TafelAdminWalletProperties.isComplete] whether it
+     * *can*, since a pass nobody signed is a file no phone accepts.
+     *
+     * Answered from configuration alone: a certificate file that is missing or has expired surfaces
+     * as an error on the pass being generated, where the log names the cause, rather than as a
+     * feature that quietly disappeared.
+     */
+    val walletPassAvailable: Boolean
+        get() = features.walletPassEnabled && wallet?.isComplete == true
+
+    /**
+     * Whether an ID card can be mailed to the household. `tafeladmin.mail` is what names the sender,
+     * and without one no mail is composed at all (see `MailSenderService`) - offering the action
+     * anyway would report a mail as sent that never existed.
+     */
+    val idCardMailAvailable: Boolean
+        get() = features.idCardMailEnabled && mail != null
 }
 
 /**
@@ -90,6 +112,20 @@ class TafelAdminFeaturesProperties {
      * with no `scannerPath` the feature is off either way.
      */
     var scannerFolderEnabled: Boolean = true
+
+    /**
+     * Kill switch for issuing ID cards as wallet passes, independent of whether
+     * [TafelAdminProperties.wallet] is configured - e.g. while the signing certificate is being
+     * renewed. With no `wallet` section the feature is off either way.
+     */
+    var walletPassEnabled: Boolean = true
+
+    /**
+     * Kill switch for mailing an ID card to the household's own address, independent of whether
+     * mail is configured at all: this is the one mail that leaves the organisation, so a deployment
+     * may well send its reports by mail and still not want this.
+     */
+    var idCardMailEnabled: Boolean = true
 }
 
 /**
@@ -729,6 +765,44 @@ class TafelAdminStorageProperties {
      * every remaining file is always in the warning window.
      */
     var scannerFileRetentionWarning: Duration = Duration.ofDays(1)
+}
+
+/**
+ * What signs a wallet pass (`.pkpass`, see `WalletPassService`). A phone only accepts a pass signed
+ * with a Pass Type ID certificate issued by Apple to the organisation, so none of this has a
+ * default: the section is absent unless a deployment configures it, and the feature with it.
+ *
+ * Everything is read per pass, including the two files, so a renewed certificate takes effect on a
+ * running deployment once the file and - if it changed - its password are in place.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminWalletProperties {
+    /** The Pass Type ID the certificate was issued for, e.g. `pass.at.example.tafel`. */
+    var passTypeIdentifier: String? = null
+
+    /** The Apple Developer team the certificate belongs to (the certificate's "Organizational Unit"). */
+    var teamIdentifier: String? = null
+
+    /**
+     * The Pass Type ID certificate together with its private key, as a PKCS #12 file (`.p12`), and
+     * the password protecting it. Key material, so only ever mounted next to the config file.
+     */
+    var certificatePath: String? = null
+    var certificatePassword: String? = null
+
+    /**
+     * Apple's Worldwide Developer Relations intermediate certificate (G4) the Pass Type ID
+     * certificate was issued under, DER or PEM. It has to travel inside the signature, because a
+     * phone does not have it.
+     */
+    var wwdrCertificatePath: String? = null
+
+    /** Shown by the wallet app as the issuer of the pass. */
+    var organizationName: String = "Wiener Rotes Kreuz – Team Österreich Tafel"
+
+    val isComplete: Boolean
+        get() = listOf(passTypeIdentifier, teamIdentifier, certificatePath, certificatePassword, wwdrCertificatePath)
+            .none { it.isNullOrBlank() }
 }
 
 @ExcludeFromTestCoverage

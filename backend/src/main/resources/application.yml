@@ -314,8 +314,31 @@ tafeladmin:
       backoff: 2s
   # Switches for optional features. Each one is a plain on/off an operator flips; how the feature is
   # wired up once it's on lives in its own section (e.g. storage.scannerPath for the scanner folder).
+  #
+  # walletPassEnabled - whether an ID card can be handed out as a wallet pass (.pkpass). On only where
+  # tafeladmin.wallet below is configured as well, since a pass has to be signed.
+  # idCardMailEnabled - whether an ID card can be mailed to the address stored on the household. On
+  # only where tafeladmin.mail is configured as well. This is the one mail that goes to a customer
+  # rather than to staff, so it has a switch of its own.
   features:
     scannerFolderEnabled: true
+    walletPassEnabled: true
+    idCardMailEnabled: true
+  # What signs a wallet pass (WalletPassService). Apple Wallet - and Google Wallet, which imports the
+  # same file - only accepts a pass signed with a Pass Type ID certificate that Apple issues to a
+  # member of its developer program, so the section is absent by default and the format is not
+  # offered without it. To set it up: register a Pass Type ID in the Apple Developer account, create
+  # its certificate, export certificate and private key as a .p12 file, and download the "Worldwide
+  # Developer Relations - G4" intermediate certificate from https://www.apple.com/certificateauthority/.
+  # Both files are read for every pass, so a renewed certificate (they are valid for one year) takes
+  # effect without a restart. Key material - only ever mounted next to /app/config/config.yml.
+  # wallet:
+  #   passTypeIdentifier: pass.<reverse domain>.<name>
+  #   teamIdentifier: <10-character Apple team id>
+  #   certificatePath: /app/config/wallet-pass.p12
+  #   certificatePassword: <password of the .p12 file>
+  #   wwdrCertificatePath: /app/config/AppleWWDRCAG4.cer
+  #   organizationName: "Wiener Rotes Kreuz – Team Österreich Tafel"
   # GDPR gap G1 (docs/architecture/gdpr-compliance.md) - deletes a household, and everything attached
   # to it (persons, notes, documents on disk, attendance history), once its validUntil has been in the
   # past for longer than retentionTime. Runs through the same HouseholdService.deleteHouseholdByHouseholdId

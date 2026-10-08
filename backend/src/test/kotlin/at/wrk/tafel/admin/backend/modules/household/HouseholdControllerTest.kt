@@ -4,6 +4,8 @@ import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.*
+import at.wrk.tafel.admin.backend.modules.household.internal.idcard.HouseholdIdCardFile
+import at.wrk.tafel.admin.backend.modules.household.internal.idcard.HouseholdIdCardService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorDetails
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -48,6 +50,9 @@ class HouseholdControllerTest {
 
     @RelaxedMockK
     private lateinit var householdLockService: HouseholdLockService
+
+    @RelaxedMockK
+    private lateinit var householdIdCardService: HouseholdIdCardService
 
     @InjectMockKs
     private lateinit var controller: HouseholdController
@@ -604,6 +609,33 @@ class HouseholdControllerTest {
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
+    }
+
+    @Test
+    fun `get id card - served as a download with the content type of its format`() {
+        every { householdIdCardService.generateIdCard(123, HouseholdIdCardFormat.WALLET) } returns HouseholdIdCardFile(
+            filename = "ausweis-123-mustermann-max.pkpass",
+            contentType = "application/vnd.apple.pkpass",
+            bytes = "pass".toByteArray(),
+        )
+
+        val response = controller.getIdCard(123, HouseholdIdCardFormat.WALLET)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/vnd.apple.pkpass")
+        assertThat(response.headers.contentDisposition.isAttachment).isTrue()
+        assertThat(response.headers.contentDisposition.filename).isEqualTo("ausweis-123-mustermann-max.pkpass")
+        assertThat(String(response.body?.inputStream?.readAllBytes()!!)).isEqualTo("pass")
+    }
+
+    @Test
+    fun `send id card by mail - hands the selected formats on and answers without content`() {
+        val formats = setOf(HouseholdIdCardFormat.PDF, HouseholdIdCardFormat.IMAGE)
+
+        val response = controller.sendIdCardByMail(123, HouseholdIdCardMailRequest(formats = formats))
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        verify { householdIdCardService.sendIdCardByMail(123, formats) }
     }
 
     @Test

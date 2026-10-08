@@ -239,8 +239,74 @@ class HouseholdPdfServiceTest {
         recordingService.generateMasterdataPdf(testHousehold)
         recordingService.generatePrivacyNoticePdf(testHousehold)
         recordingService.generatePrivacyNoticeTemplatePdf()
+        recordingService.generateDigitalIdCardPdf(testHousehold)
 
         assertThat(fopEvents).isEmpty()
+    }
+
+    @Test
+    fun `generate digital idcard pdf - one card-sized page without address or birth date`() {
+        val pdfBytes = service.generateDigitalIdCardPdf(testHousehold)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "idcard-digital-result.pdf"), pdfBytes)
+
+        Loader.loadPDF(pdfBytes).use { document ->
+            assertThat(document.numberOfPages).isEqualTo(1)
+
+            val text = PDFTextStripper().getText(document)
+            assertThat(text)
+                .contains("Bezugskarte")
+                .contains("123")
+                .contains("Max Mustermann")
+                .contains("Personen im Haushalt")
+                // what the check-in does not need stays off a card that leaves by mail
+                .doesNotContain("Karl-Schäfer-Straße")
+                .doesNotContain("10.06.1980")
+        }
+    }
+
+    /**
+     * The image is the same stylesheet through FOP's bitmap renderer. What can go wrong there and
+     * not in the PDF is the font: the bitmap renderer has its own font configuration
+     * (`fop-config.xml`), and without it FOP reports the bundled "Helvetica" as missing.
+     */
+    @Test
+    fun `generate digital idcard image - a card-sized png drawn with the bundled font`() {
+        val fopEvents = mutableListOf<String>()
+        val recordingPdfService = object : PDFService() {
+            override fun generatePng(
+                data: Any,
+                stylesheetPath: String,
+                subject: String?,
+                eventListener: EventListener?,
+            ): ByteArray = super.generatePng(
+                data,
+                stylesheetPath,
+                subject,
+                EventListener { event: Event ->
+                    if (event.severity != EventSeverity.INFO) {
+                        fopEvents += "${event.eventID} ${event.params}"
+                    }
+                },
+            )
+        }
+
+        val imageBytes = HouseholdPdfService(recordingPdfService, clock, tafelAdminProperties).generateDigitalIdCardImage(testHousehold)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "idcard-digital-result.png"), imageBytes)
+
+        val image = ImageIO.read(imageBytes.inputStream())
+        // 9 cm x 16 cm at 300 dpi
+        assertThat(image.width).isBetween(1060, 1066)
+        assertThat(image.height).isBetween(1887, 1893)
+        assertThat(fopEvents).isEmpty()
+    }
+
+    @Test
+    fun `id card summary counts the same persons the card prints`() {
+        val summary = service.createIdCardSummary(testHousehold)
+
+        assertThat(summary).isEqualTo(
+            IdCardSummary(householdId = 123, fullName = "Max Mustermann", countPersons = 3, countInfants = 0),
+        )
     }
 
     /**
