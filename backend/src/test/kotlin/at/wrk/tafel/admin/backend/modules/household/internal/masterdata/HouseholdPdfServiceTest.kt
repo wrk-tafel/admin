@@ -265,39 +265,28 @@ class HouseholdPdfServiceTest {
     }
 
     /**
-     * The image is the same stylesheet through FOP's bitmap renderer. What can go wrong there and
-     * not in the PDF is the font: the bitmap renderer has its own font configuration
-     * (`fop-config.xml`), and without it FOP reports the bundled "Helvetica" as missing.
+     * The image is the PDF rasterized, so it has to be the card - its size and its content - and not
+     * a blank page of the right size.
      */
     @Test
-    fun `generate digital idcard image - a card-sized png drawn with the bundled font`() {
-        val fopEvents = mutableListOf<String>()
-        val recordingPdfService = object : PDFService() {
-            override fun generatePng(
-                data: Any,
-                stylesheetPath: String,
-                subject: String?,
-                eventListener: EventListener?,
-            ): ByteArray = super.generatePng(
-                data,
-                stylesheetPath,
-                subject,
-                EventListener { event: Event ->
-                    if (event.severity != EventSeverity.INFO) {
-                        fopEvents += "${event.eventID} ${event.params}"
-                    }
-                },
-            )
-        }
-
-        val imageBytes = HouseholdPdfService(recordingPdfService, clock, tafelAdminProperties).generateDigitalIdCardImage(testHousehold)
+    fun `generate digital idcard image - the card as a png`() {
+        val imageBytes = service.generateDigitalIdCardImage(testHousehold)
         FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "idcard-digital-result.png"), imageBytes)
 
         val image = ImageIO.read(imageBytes.inputStream())
         // 9 cm x 16 cm at 300 dpi
         assertThat(image.width).isBetween(1060, 1066)
         assertThat(image.height).isBetween(1887, 1893)
-        assertThat(fopEvents).isEmpty()
+
+        val expected = Loader.loadPDF(service.generateDigitalIdCardPdf(testHousehold)).use {
+            PDFRenderer(it).renderImageWithDPI(0, 300f, ImageType.RGB)
+        }
+        assertThat(ImageComparison(expected, image).compareImages().imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
+
+        val darkPixels = (0 until image.width step 4).sumOf { x ->
+            (0 until image.height step 4).count { y -> (image.getRGB(x, y) and 0xFF) < 64 }
+        }
+        assertThat(darkPixels).describedAs("the QR code and the text are drawn").isGreaterThan(5000)
     }
 
     @Test

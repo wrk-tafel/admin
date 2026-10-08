@@ -30,7 +30,7 @@ data class ConfigResponse(
      */
     val scannerFolderEnabled: Boolean,
     /**
-     * Whether an ID card can be issued as a wallet pass (see
+     * Whether an ID card can be issued as a wallet file (see
      * `TafelAdminProperties.walletPassAvailable`). The frontend offers the format only when true.
      */
     val walletPassEnabled: Boolean,

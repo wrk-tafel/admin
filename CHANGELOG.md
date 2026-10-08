@@ -5,7 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
-- Der Kundenausweis kann jetzt digital ausgegeben werden: über "Daten ausdrucken → Ausweis digital …" lässt er sich als PDF im Kartenformat, als Bild und – sofern für die Umgebung eingerichtet – als Wallet-Karte für Apple Wallet und Google Wallet herunterladen oder direkt an die beim Kunden hinterlegte E-Mail-Adresse senden; der Versand wird im Verlauf des Kunden festgehalten.
+- Der Kundenausweis kann jetzt digital ausgegeben werden: über "Daten ausdrucken → Ausweis digital …" lässt er sich als PDF im Kartenformat, als Bild und als Wallet-Karte für Wallet-Apps auf Android herunterladen oder direkt an die beim Kunden hinterlegte E-Mail-Adresse senden; der Versand wird im Verlauf des Kunden festgehalten.
 
 ## [1.28.5] - 2026-10-04
 - Die Live-Aktualisierung (Übersicht, Ticketmonitor, Glocke) soll in Firefox nicht mehr rund alle 30 Sekunden abreißen und neu aufgebaut werden: die Verbindung läuft nun am Service Worker der Anwendung vorbei.

@@ -666,7 +666,7 @@ term-less `GET` listing are unaffected.
   `GET`/`PUT /api/users/account` is the caller's own record for the "Meine Daten" tab — the `PUT` takes
   name and e-mail only, never username, personnel number, password or permissions
 - `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`. Search is `POST /api/households/search`; `POST /api/households/{id}/lock`, `/unlock`, `/prolong` and `/deactivate` are the detail screen's quick actions, none of which takes the household record in its body (so they work on a household whose stored data is incomplete), `GET /api/households/locked` lists every locked household for the "Gesperrte Kunden" screen and `POST /api/households/{id}/lock-review` confirms that an open-ended lock stays (restarting its review interval, issue #3763)
-- `/api/households/{householdId}/id-card`: the ID card for a phone - `GET ?format=PDF|IMAGE|WALLET` downloads it, `POST /send-mail` (`{formats}`) mails it to the address stored on the household, never to one named in the request
+- `/api/households/{householdId}/id-card`: the ID card for a phone - `GET ?format=PDF|IMAGE|WALLET` downloads it (`WALLET` is an unsigned `.pkpass` for Android), `POST /send-mail` (`{formats}`) mails it to the address stored on the household, never to one named in the request
 - `/api/households/{householdId}/notes`: Household notes
 - `/api/households/{householdId}/ticket`: Current ticket for a household in the active distribution
 - `/api/distributions`: Distribution management (live updates via the `distribution` topic, see `/api/sse/events`)
@@ -864,13 +864,14 @@ Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two
   `tafeladmin.storage.scannerFileRetention` (7 days by default, GDPR gap G18), and `push`'s
   `ScannerFileExpiryReminderService` warns `CUSTOMER_DOCUMENTS` holders before that happens.
 - **Digital ID Card**: besides the printable card, an ID card can be handed out as a card-sized
-  PDF, as an image (the same XSL-FO stylesheet through `PDFService.generatePng`) or as a wallet
-  pass, downloaded or mailed to the household's stored address (`HouseholdIdCardService`, the
-  customer detail screen's "Ausweis digital …" dialog). The wallet pass is a `.pkpass` signed
-  in-process and optional per deployment: it needs `tafeladmin.wallet` (an Apple Pass Type ID
-  certificate) plus the `tafeladmin.features.walletPassEnabled` kill switch, combined in
-  `TafelAdminProperties.walletPassAvailable` and reported as `/api/config`'s `walletPassEnabled`;
-  mailing likewise needs `tafeladmin.mail` plus `features.idCardMailEnabled`
+  PDF, as an image (that PDF rasterized, `PDFService.generatePng` - not FOP's own bitmap output,
+  which needs fonts installed on the host and fails in the production container) or as a wallet
+  file, downloaded or mailed to the household's stored address (`HouseholdIdCardService`, the
+  customer detail screen's "Ausweis digital …" dialog). The wallet file is a deliberately
+  **unsigned** `.pkpass` for wallet apps on Android - signing one needs a certificate from Apple's
+  paid developer program, which this project does not use, so iPhones are served by the image and
+  the PDF. `tafeladmin.features.walletPassEnabled` switches the format off (`/api/config`'s
+  `walletPassEnabled`); mailing needs `tafeladmin.mail` plus `features.idCardMailEnabled`
   (`idCardMailAvailable` / `idCardMailEnabled`). All of it is read per use. See ADR-0066 and the
   household module README - in particular why the mail request carries no recipient.
 - **Config Hot-Reload**: the **whole** configuration is re-read while the application runs — not just

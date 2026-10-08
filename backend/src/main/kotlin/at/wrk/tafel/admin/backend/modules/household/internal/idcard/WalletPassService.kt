@@ -1,91 +1,71 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.idcard
 
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminWalletProperties
 import at.wrk.tafel.admin.backend.modules.household.internal.masterdata.IdCardSummary
-import org.bouncycastle.cert.jcajce.JcaCertStore
-import org.bouncycastle.cms.CMSProcessableByteArray
-import org.bouncycastle.cms.CMSSignedDataGenerator
-import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
-import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder
 import org.springframework.stereotype.Service
 import tools.jackson.databind.json.JsonMapper
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
-import java.nio.file.Files
-import java.nio.file.Path
-import java.security.KeyStore
 import java.security.MessageDigest
-import java.security.PrivateKey
-import java.security.cert.CertificateFactory
-import java.security.cert.X509Certificate
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.imageio.ImageIO
 
 /**
- * Builds the ID card as a wallet pass - a `.pkpass` file, the format Apple Wallet defines and
- * Google Wallet imports as well. A pass is a ZIP of `pass.json`, its images, a `manifest.json`
- * listing the SHA-1 of each of those, and a detached PKCS #7 signature over that manifest made with
- * a Pass Type ID certificate. The signature is what a phone checks before it offers to add the
- * pass, which is why the feature exists only where a deployment configures one (see
- * `TafelAdminProperties.walletPassAvailable`).
+ * Builds the ID card as a wallet file - a `.pkpass`: a ZIP of `pass.json`, its images and a
+ * `manifest.json` listing the SHA-1 of each of those.
+ *
+ * **The file is deliberately unsigned.** The format is Apple's, and the signature it provides for
+ * can only be made with a Pass Type ID certificate from Apple's paid developer program, which this
+ * project does not use. Wallet apps on Android read the file without one; an iPhone refuses it, so
+ * the card is offered as an Android format and iPhone users get the image or the PDF. See ADR-0066.
  *
  * The pass carries what the check-in needs and nothing else: the household number as a QR code -
  * the same content the printed card's QR code has, so the scanner cannot tell them apart - the main
  * person's name and the person counts. It has no expiry date, like the printed card: a renewal does
  * not reissue either of them, and whether a household is currently eligible is answered at
  * check-in, not by the card.
- *
- * The certificate and key are read from disk for every pass. That is two small files per download,
- * and it is what lets an operator swap a renewed certificate in without a restart.
  */
 @Service
-class WalletPassService(
-    private val tafelAdminProperties: TafelAdminProperties,
-) {
+class WalletPassService {
 
     companion object {
         const val CONTENT_TYPE = "application/vnd.apple.pkpass"
 
+        // Both are mandatory fields of pass.json. They would name the certificate a signed pass was
+        // issued under; on an unsigned one they only have to be present and stable.
+        private const val PASS_TYPE_IDENTIFIER = "pass.at.wrk.tafel.bezugskarte"
+        private const val TEAM_IDENTIFIER = "TAFELADMIN"
+
+        private const val ORGANIZATION_NAME = "Wiener Rotes Kreuz – Team Österreich Tafel"
         private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
         private val jsonMapper = JsonMapper.builder().build()
     }
 
     fun generatePass(summary: IdCardSummary): ByteArray {
-        val properties = tafelAdminProperties.wallet
-        check(tafelAdminProperties.walletPassAvailable && properties != null) {
-            "Wallet passes are not configured (tafeladmin.wallet / tafeladmin.features.walletPassEnabled)"
-        }
-
         val logo = WalletPassService::class.java.getResourceAsStream(LOGO_RESOURCE_PATH)!!.use { ImageIO.read(it) }
         val files = linkedMapOf(
-            "pass.json" to jsonMapper.writeValueAsBytes(passDefinition(summary, properties)),
+            "pass.json" to jsonMapper.writeValueAsBytes(passDefinition(summary)),
             "icon.png" to fitInto(logo, 29, 29),
             "icon@2x.png" to fitInto(logo, 58, 58),
             "icon@3x.png" to fitInto(logo, 87, 87),
             "logo.png" to fitInto(logo, 160, 50),
             "logo@2x.png" to fitInto(logo, 320, 100),
         )
-
-        val manifest = jsonMapper.writeValueAsBytes(files.mapValues { (_, content) -> sha1Hex(content) })
-        files["manifest.json"] = manifest
-        files["signature"] = sign(manifest, properties)
+        files["manifest.json"] = jsonMapper.writeValueAsBytes(files.mapValues { (_, content) -> sha1Hex(content) })
 
         return zip(files)
     }
 
-    private fun passDefinition(summary: IdCardSummary, properties: TafelAdminWalletProperties): Map<String, Any> {
+    private fun passDefinition(summary: IdCardSummary): Map<String, Any> {
         val householdId = summary.householdId.toString()
         return mapOf(
             "formatVersion" to 1,
-            "passTypeIdentifier" to properties.passTypeIdentifier!!,
-            "teamIdentifier" to properties.teamIdentifier!!,
+            "passTypeIdentifier" to PASS_TYPE_IDENTIFIER,
+            "teamIdentifier" to TEAM_IDENTIFIER,
             // One pass per household: adding it again replaces the one already in the wallet.
             "serialNumber" to "household-$householdId",
-            "organizationName" to properties.organizationName,
+            "organizationName" to ORGANIZATION_NAME,
             "description" to "Bezugskarte Team Österreich Tafel",
             "logoText" to "Bezugskarte",
             "backgroundColor" to "rgb(255, 255, 255)",
@@ -116,7 +96,7 @@ class WalletPassService(
                         "Hinweis",
                         "Diese Bezugskarte ist Eigentum des Roten Kreuzes und ist auf Verlangen wieder zurückzugeben.",
                     ),
-                    field("issuer", "Ausgestellt von", "Wiener Rotes Kreuz – Team Österreich Tafel, Safargasse 4, 1030 Wien"),
+                    field("issuer", "Ausgestellt von", "$ORGANIZATION_NAME, Safargasse 4, 1030 Wien"),
                 ),
             ),
         )
@@ -148,42 +128,12 @@ class WalletPassService(
 
     /**
      * SHA-1 is not a choice made here: the pass format defines `manifest.json` as the SHA-1 of each
-     * file, and a wallet app rejects a manifest hashed with anything else. What protects a pass
-     * against tampering is the signature over the manifest, which is SHA-256 (see [sign]).
+     * file, and a wallet app expects exactly that. Nothing is protected by it - it is a checksum of
+     * files that travel in the same archive.
      */
     private fun sha1Hex(content: ByteArray): String = MessageDigest.getInstance("SHA-1") // NOSONAR - kotlin:S4790, mandated by the pass format
         .digest(content)
         .joinToString("") { "%02x".format(it) }
-
-    private fun sign(manifest: ByteArray, properties: TafelAdminWalletProperties): ByteArray {
-        val password = properties.certificatePassword!!.toCharArray()
-        val keyStore = KeyStore.getInstance("PKCS12")
-        Files.newInputStream(Path.of(properties.certificatePath!!)).use { keyStore.load(it, password) }
-
-        val alias = keyStore.aliases().asSequence().firstOrNull { keyStore.isKeyEntry(it) }
-            ?: error("No private key in the wallet pass certificate file ${properties.certificatePath}")
-        val privateKey = keyStore.getKey(alias, password) as PrivateKey
-        val certificate = keyStore.getCertificate(alias) as X509Certificate
-        // An expired certificate still signs, and the phone then refuses the pass without saying
-        // why - failing here puts the reason in the log instead.
-        certificate.checkValidity()
-
-        val intermediateCertificate = Files.newInputStream(Path.of(properties.wwdrCertificatePath!!)).use {
-            CertificateFactory.getInstance("X.509").generateCertificate(it) as X509Certificate
-        }
-
-        val signatureAlgorithm = if (privateKey.algorithm == "EC") "SHA256withECDSA" else "SHA256withRSA"
-        val generator = CMSSignedDataGenerator().apply {
-            addSignerInfoGenerator(
-                JcaSignerInfoGeneratorBuilder(JcaDigestCalculatorProviderBuilder().build())
-                    .build(JcaContentSignerBuilder(signatureAlgorithm).build(privateKey), certificate),
-            )
-            addCertificates(JcaCertStore(listOf(certificate, intermediateCertificate)))
-        }
-
-        // Detached: the signature file holds no copy of the manifest it signs.
-        return generator.generate(CMSProcessableByteArray(manifest), false).encoded
-    }
 
     private fun zip(files: Map<String, ByteArray>): ByteArray = ByteArrayOutputStream().use { out ->
         ZipOutputStream(out).use { zip ->

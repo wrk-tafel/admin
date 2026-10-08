@@ -58,7 +58,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0062](0062-mandatory-mfa-also-requires-an-email-address.md) | A mandatory second factor also requires an e-mail address on file | accepted |
 | [0063](0063-one-event-stream-per-tab-with-topics.md) | One event stream per browser tab, made of topics | accepted |
 | [0064](0064-client-error-reports-and-the-event-stream-need-a-completed-login.md) | Client-error reports and the event stream need a completed login | accepted |
-| [0066](0066-wallet-passes-are-pkpass-files-signed-in-process.md) | Wallet passes are .pkpass files signed in-process, offered only where a certificate is configured | accepted |
+| [0066](0066-the-wallet-card-is-an-unsigned-pkpass-for-android.md) | The wallet card is an unsigned .pkpass for Android, with no Apple certificate | accepted |
 | [0060](0060-users-and-employees-are-separate-records-with-no-link.md) | Users and employees are separate records with no link between them | accepted |
 | [0050](0050-customer-documents-split-into-its-own-permission.md) | The documents tab gets its own permission, separate from CUSTOMER | accepted |
 | [0051](0051-data-subject-requests-delegate-to-each-areas-own-export-and-delete.md) | Data-subject requests search across areas, then delegate to each area's own export/delete | accepted |

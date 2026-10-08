@@ -39,14 +39,13 @@ describe('Customer Detail', () => {
     generateAndDownloadPdf('datenschutzerklaerung-101-musterfrau-eva.pdf', 'printPrivacyNoticeButton');
   });
 
-  it('downloads the digital id card as a pdf and as an image', () => {
+  it('downloads the digital id card as a pdf, as an image and as a wallet file', () => {
     cy.visit('/kunden/detail/101');
     openDigitalIdCardDialog();
     cy.checkDialogAccessibility();
 
-    // the e2e backend has no certificate to sign a wallet pass with, so the format is not offered
-    cy.byTestId('idcard-format-WALLET').should('not.exist');
     cy.byTestId('idcard-format-IMAGE').find('input[type="checkbox"]').check({force: true});
+    cy.byTestId('idcard-format-WALLET').find('input[type="checkbox"]').check({force: true});
     cy.byTestId('downloadIdCardButton').click();
 
     const downloadsFolder = Cypress.config('downloadsFolder');
@@ -54,6 +53,9 @@ describe('Customer Detail', () => {
       .should((content: string) => expect(content.startsWith('%PDF')).to.eq(true));
     cy.readFile(path.join(downloadsFolder, 'ausweis-101-musterfrau-eva.png'), 'binary', {timeout: 15000})
       .should((content: string) => expect(content.substring(1, 4)).to.eq('PNG'));
+    // a .pkpass is a ZIP archive
+    cy.readFile(path.join(downloadsFolder, 'ausweis-101-musterfrau-eva.pkpass'), 'binary', {timeout: 15000})
+      .should((content: string) => expect(content.startsWith('PK')).to.eq(true));
 
     // the dialog stays open after a download - mailing the same selection is the likely next step
     cy.byTestId('digital-id-card-dialog').should('be.visible');
@@ -89,13 +91,13 @@ describe('Customer Detail', () => {
   });
 
   /**
-   * Wallet passes and the mail are optional per deployment. The e2e backend has the mail and not
-   * the wallet, so the other half of each is driven by stubbing the config the frontend reads.
+   * The wallet file and the mail can be switched off per deployment. The e2e backend has both on,
+   * so the "off" case is driven by stubbing the config the frontend reads.
    */
-  it('offers the wallet card and hides mailing as the deployment config says', () => {
+  it('hides the wallet card and mailing where the deployment config switches them off', () => {
     cy.intercept('GET', '/api/config', (req) => {
       req.continue((res) => {
-        res.body = {...res.body, walletPassEnabled: true, idCardMailEnabled: false};
+        res.body = {...res.body, walletPassEnabled: false, idCardMailEnabled: false};
       });
     }).as('config');
 
@@ -103,7 +105,8 @@ describe('Customer Detail', () => {
     cy.wait('@config');
     openDigitalIdCardDialog();
 
-    cy.byTestId('idcard-format-WALLET').should('be.visible');
+    cy.byTestId('idcard-format-PDF').should('be.visible');
+    cy.byTestId('idcard-format-WALLET').should('not.exist');
     cy.byTestId('sendIdCardButton').should('not.exist');
     cy.byTestId('idcard-mail-recipient').should('not.exist');
     cy.byTestId('downloadIdCardButton').should('be.enabled');

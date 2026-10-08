@@ -77,7 +77,7 @@ describe('DigitalIdCardDialogComponent', () => {
     ]));
   });
 
-  it('does not offer the wallet card where the deployment cannot sign one', () => {
+  it('does not offer the wallet card where the deployment has switched it off', () => {
     config$.next({...baseConfig, walletPassEnabled: false});
     const fixture = createComponent();
 
@@ -139,12 +139,13 @@ describe('DigitalIdCardDialogComponent', () => {
 
   it('reports a failed download and unlocks the dialog again', () => {
     customerApiService.getIdCard.mockReturnValue(
-      throwError(() => ({status: 400, error: {detail: 'Wallet-Karten sind nicht eingerichtet!'}})));
+      throwError(() => ({status: 400, error: {detail: 'Wallet-Karten sind in dieser Umgebung deaktiviert!'}})));
     const component = createComponent().componentInstance;
 
     component.download();
 
-    expect(toastr.error).toHaveBeenCalledWith('Wallet-Karten sind nicht eingerichtet!', 'Ausweis konnte nicht erstellt werden!');
+    expect(toastr.error).toHaveBeenCalledWith(
+      'Wallet-Karten sind in dieser Umgebung deaktiviert!', 'Ausweis konnte nicht erstellt werden!');
     expect(component.busy()).toBeNull();
   });
 

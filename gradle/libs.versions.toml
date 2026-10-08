@@ -108,9 +108,6 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 # Crypto - required by Spring Security's Argon2PasswordEncoder, which uses BouncyCastle's classes
 # directly rather than through a registered JCE provider (see config.WebSecurityConfig).
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
-# CMS (PKCS #7) signatures - what signs a wallet pass (see WalletPassService). The JDK has no public
-# API for a detached CMS signature.
-bouncycastle-pkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
 
 # PDF / QR
 apache-fop = { module = "org.apache.xmlgraphics:fop", version.ref = "apache-fop" }

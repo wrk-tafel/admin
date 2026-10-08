@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminMailProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminWalletProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -56,13 +55,6 @@ class HouseholdIdCardServiceTest {
     @BeforeEach
     fun beforeEach() {
         properties.mail = TafelAdminMailProperties().apply { from = "no-reply@example.org" }
-        properties.wallet = TafelAdminWalletProperties().apply {
-            passTypeIdentifier = "pass.at.example.tafel"
-            teamIdentifier = "ABCDE12345"
-            certificatePath = "/config/pass.p12"
-            certificatePassword = "secret"
-            wwdrCertificatePath = "/config/wwdr.cer"
-        }
 
         household = HouseholdEntity(householdId = 4101, validUntil = LocalDate.of(2030, 1, 1)).apply {
             id = 17
@@ -132,8 +124,8 @@ class HouseholdIdCardServiceTest {
     }
 
     @Test
-    fun `the wallet format is refused where no pass can be signed`() {
-        properties.wallet = null
+    fun `the wallet format is refused where it is switched off`() {
+        properties.features.walletPassEnabled = false
 
         assertThatThrownBy { service.generateIdCard(4101, HouseholdIdCardFormat.WALLET) }
             .isInstanceOf(BusinessRuleException::class.java)
@@ -213,7 +205,7 @@ class HouseholdIdCardServiceTest {
     }
 
     @Test
-    fun `a mail with a wallet pass that cannot be signed is not sent at all`() {
+    fun `a mail with a switched-off wallet file is not sent at all`() {
         properties.features.walletPassEnabled = false
 
         assertThatThrownBy { service.sendIdCardByMail(4101, setOf(HouseholdIdCardFormat.PDF, HouseholdIdCardFormat.WALLET)) }

@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.config
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminMailProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminWalletProperties
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -25,7 +24,7 @@ class ConfigControllerTest {
                 version = "1.2.3",
                 buildDate = "2026-07-28",
                 scannerFolderEnabled = true,
-                walletPassEnabled = false,
+                walletPassEnabled = true,
                 idCardMailEnabled = false,
                 environmentLabel = "",
             ),
@@ -45,24 +44,12 @@ class ConfigControllerTest {
     }
 
     @Test
-    fun `get config reports the wallet pass only when it is configured and switched on`() {
-        val properties = TafelAdminProperties().apply {
-            wallet = TafelAdminWalletProperties().apply {
-                passTypeIdentifier = "pass.at.example.tafel"
-                teamIdentifier = "ABCDE12345"
-                certificatePath = "/config/pass.p12"
-                certificatePassword = "secret"
-                wwdrCertificatePath = "/config/wwdr.cer"
-            }
-        }
+    fun `get config reports the wallet file unless it is switched off`() {
+        val properties = TafelAdminProperties()
         val controller = ConfigController(properties)
         assertThat(controller.getConfig().walletPassEnabled).isTrue()
 
         properties.features.walletPassEnabled = false
-        assertThat(controller.getConfig().walletPassEnabled).isFalse()
-
-        properties.features.walletPassEnabled = true
-        properties.wallet!!.certificatePassword = " "
         assertThat(controller.getConfig().walletPassEnabled).isFalse()
     }
 
@@ -104,7 +91,7 @@ class ConfigControllerTest {
                 version = "1.2.3",
                 buildDate = "unknown",
                 scannerFolderEnabled = true,
-                walletPassEnabled = false,
+                walletPassEnabled = true,
                 idCardMailEnabled = false,
                 environmentLabel = "",
             ),

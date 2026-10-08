@@ -218,7 +218,7 @@ Content-Type: application/json
 GET {{baseApiPath}}/households/100/generate-pdf?type=IDCARD
 Content-Type: application/json
 
-### Get digital idcard (format: PDF, IMAGE, or WALLET where a wallet certificate is configured)
+### Get digital idcard (format: PDF, IMAGE, or WALLET - an unsigned .pkpass for Android)
 GET {{baseApiPath}}/households/100/id-card?format=IMAGE
 
 ### Send digital idcard by mail to the address stored on the household

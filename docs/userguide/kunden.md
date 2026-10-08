@@ -88,7 +88,7 @@ Zur Auswahl stehen – auch mehrere gleichzeitig:
 
 - **PDF**: der Ausweis im Kartenformat auf einer Seite, auf jedem Gerät zu öffnen und bei Bedarf auszudrucken.
 - **Bild**: derselbe Ausweis als Bilddatei, zum Speichern in den Fotos am Handy.
-- **Wallet-Karte**: eine Datei für Apple Wallet und Google Wallet. Dieses Format wird nur angeboten, wenn es für die Umgebung eingerichtet wurde (dafür ist ein Zertifikat von Apple nötig).
+- **Wallet-Karte (Android)**: eine Datei (Endung `.pkpass`), die der Kunde am Android-Handy mit einer Wallet-App öffnet. iPhones nehmen diese Datei nicht an – dort das Bild oder die PDF-Datei verwenden. Das Format kann für eine Umgebung abgeschaltet sein und fehlt dann in der Auswahl.
 
 Der digitale Ausweis zeigt Kundennummer, QR-Code, den Namen des Hauptbeziehers und die Personenanzahl – bewusst ohne Adresse und Geburtsdatum.
 

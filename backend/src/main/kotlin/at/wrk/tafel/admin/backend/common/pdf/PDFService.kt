@@ -7,6 +7,9 @@ import org.apache.fop.events.Event
 import org.apache.fop.events.EventFormatter
 import org.apache.fop.events.EventListener
 import org.apache.fop.events.model.EventSeverity
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.rendering.ImageType
+import org.apache.pdfbox.rendering.PDFRenderer
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import tools.jackson.dataformat.xml.XmlMapper
@@ -15,6 +18,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
+import javax.imageio.ImageIO
 import javax.xml.transform.Templates
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
@@ -116,26 +120,6 @@ class PDFService {
         stylesheetPath: String,
         subject: String? = null,
         eventListener: EventListener? = null,
-    ): ByteArray = render(data, stylesheetPath, subject, eventListener, MimeConstants.MIME_PDF)
-
-    /**
-     * The same rendering as [generatePdf], rasterized to a PNG instead - for a document that is
-     * looked at on a screen rather than printed. Only the first page is written, so this is for
-     * single-page stylesheets.
-     */
-    fun generatePng(
-        data: Any,
-        stylesheetPath: String,
-        subject: String? = null,
-        eventListener: EventListener? = null,
-    ): ByteArray = render(data, stylesheetPath, subject, eventListener, MimeConstants.MIME_PNG)
-
-    private fun render(
-        data: Any,
-        stylesheetPath: String,
-        subject: String?,
-        eventListener: EventListener?,
-        outputFormat: String,
     ): ByteArray {
         val label = documentLabel(stylesheetPath, subject)
         val startedAt = System.nanoTime()
@@ -162,10 +146,7 @@ class PDFService {
                     // messages carry no hint of which document they belong to.
                     userAgent.eventBroadcaster.addEventListener(LabelledLoggingEventListener(label))
                     eventListener?.let { userAgent.eventBroadcaster.addEventListener(it) }
-                    if (outputFormat == MimeConstants.MIME_PNG) {
-                        userAgent.targetResolution = IMAGE_RESOLUTION_DPI
-                    }
-                    fopFactory.newFop(outputFormat, userAgent, out)
+                    fopFactory.newFop(MimeConstants.MIME_PDF, userAgent, out)
                 }
 
                 val transformer = compiledStylesheet(stylesheetPath).newTransformer()
@@ -174,15 +155,41 @@ class PDFService {
                 transformer.transform(xmlSource, res)
             }
 
-            val documentBytes = outStream.toByteArray()
+            val pdfBytes = outStream.toByteArray()
             log.info(
-                "Generated {} {} in {} ms ({} bytes)",
-                if (outputFormat == MimeConstants.MIME_PNG) "PNG" else "PDF",
+                "Generated PDF {} in {} ms ({} bytes)",
                 label,
                 (System.nanoTime() - startedAt) / 1_000_000,
-                documentBytes.size,
+                pdfBytes.size,
             )
-            return documentBytes
+            return pdfBytes
+        }
+    }
+
+    /**
+     * The first page of the document [generatePdf] renders, as a PNG - for a document that is looked
+     * at on a screen rather than printed.
+     *
+     * It is the finished PDF that is rasterized, not the stylesheet rendered a second time by FOP's
+     * own bitmap output: that renderer asks the JVM for the fonts installed on the host before it
+     * draws anything, which fails outright in a container that has no fontconfig (the production
+     * image has none). The PDF carries its font embedded, so drawing it needs nothing from the host
+     * and the image is the PDF pixel for pixel.
+     */
+    fun generatePng(
+        data: Any,
+        stylesheetPath: String,
+        subject: String? = null,
+        eventListener: EventListener? = null,
+    ): ByteArray {
+        val pdfBytes = generatePdf(data, stylesheetPath, subject, eventListener)
+
+        val image = Loader.loadPDF(pdfBytes).use { document ->
+            PDFRenderer(document).renderImageWithDPI(0, IMAGE_RESOLUTION_DPI, ImageType.RGB)
+        }
+        return ByteArrayOutputStream().use { out ->
+            ImageIO.write(image, "png", out)
+            out.toByteArray()
         }
     }
 

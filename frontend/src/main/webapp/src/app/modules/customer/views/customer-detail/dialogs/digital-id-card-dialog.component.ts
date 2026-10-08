@@ -29,7 +29,7 @@ interface FormatOption {
 const FORMAT_OPTIONS: FormatOption[] = [
   {format: 'PDF', label: 'PDF', hint: 'Lässt sich auf jedem Gerät öffnen und ausdrucken.'},
   {format: 'IMAGE', label: 'Bild', hint: 'Zum Speichern in den Fotos am Handy.'},
-  {format: 'WALLET', label: 'Wallet-Karte', hint: 'Für Apple Wallet und Google Wallet.'},
+  {format: 'WALLET', label: 'Wallet-Karte (Android)', hint: 'Datei für Wallet-Apps auf Android, nicht für iPhones.'},
 ];
 
 /**

@@ -22,7 +22,7 @@ import org.thymeleaf.context.Context
 
 /**
  * The ID card in the forms a customer keeps on a phone instead of in a pocket - a card-sized PDF, the
- * same card as an image, and a wallet pass - either downloaded by the operator or mailed to the
+ * same card as an image, and a wallet file for Android - either downloaded by the operator or mailed to the
  * address stored on the household.
  *
  * The mail only ever goes to that stored address. The request names formats, never a recipient: an
@@ -129,7 +129,7 @@ class HouseholdIdCardService(
 
         HouseholdIdCardFormat.WALLET -> {
             if (!tafelAdminProperties.walletPassAvailable) {
-                throw BusinessRuleException("Wallet-Karten sind nicht eingerichtet!")
+                throw BusinessRuleException("Wallet-Karten sind in dieser Umgebung deaktiviert!")
             }
             HouseholdIdCardFile(
                 filename = buildHouseholdFilename("ausweis", household, "pkpass"),

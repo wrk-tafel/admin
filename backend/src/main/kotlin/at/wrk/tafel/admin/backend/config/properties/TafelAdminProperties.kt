@@ -56,7 +56,6 @@ class TafelAdminProperties {
     var search: TafelAdminSearchProperties = TafelAdminSearchProperties()
     var setup: TafelAdminSetupProperties = TafelAdminSetupProperties()
     var testdata: TafelAdminTestdataProperties = TafelAdminTestdataProperties()
-    var wallet: TafelAdminWalletProperties? = null
 
     /**
      * Whether the scanner folder is available at all - the single rule both the backend
@@ -75,17 +74,12 @@ class TafelAdminProperties {
         get() = features.scannerFolderEnabled && !storage.scannerPath.isNullOrBlank()
 
     /**
-     * Whether an ID card can be issued as a wallet pass - the same shape of rule as
-     * [scannerFolderAvailable] (ADR-0018): the switch ([TafelAdminFeaturesProperties.walletPassEnabled])
-     * says whether this deployment should offer it, [TafelAdminWalletProperties.isComplete] whether it
-     * *can*, since a pass nobody signed is a file no phone accepts.
-     *
-     * Answered from configuration alone: a certificate file that is missing or has expired surfaces
-     * as an error on the pass being generated, where the log names the cause, rather than as a
-     * feature that quietly disappeared.
+     * Whether an ID card can be issued as a wallet file (`.pkpass`, see `WalletPassService`). The
+     * file is unsigned and needs nothing a deployment would have to provide, so this is the switch
+     * alone - kept as a property of its own so the backend and `/api/config` ask the same question.
      */
     val walletPassAvailable: Boolean
-        get() = features.walletPassEnabled && wallet?.isComplete == true
+        get() = features.walletPassEnabled
 
     /**
      * Whether an ID card can be mailed to the household. `tafeladmin.mail` is what names the sender,
@@ -114,9 +108,8 @@ class TafelAdminFeaturesProperties {
     var scannerFolderEnabled: Boolean = true
 
     /**
-     * Kill switch for issuing ID cards as wallet passes, independent of whether
-     * [TafelAdminProperties.wallet] is configured - e.g. while the signing certificate is being
-     * renewed. With no `wallet` section the feature is off either way.
+     * Kill switch for issuing ID cards as wallet files - for a deployment that wants to hand out
+     * the PDF and the image only.
      */
     var walletPassEnabled: Boolean = true
 
@@ -765,44 +758,6 @@ class TafelAdminStorageProperties {
      * every remaining file is always in the warning window.
      */
     var scannerFileRetentionWarning: Duration = Duration.ofDays(1)
-}
-
-/**
- * What signs a wallet pass (`.pkpass`, see `WalletPassService`). A phone only accepts a pass signed
- * with a Pass Type ID certificate issued by Apple to the organisation, so none of this has a
- * default: the section is absent unless a deployment configures it, and the feature with it.
- *
- * Everything is read per pass, including the two files, so a renewed certificate takes effect on a
- * running deployment once the file and - if it changed - its password are in place.
- */
-@ExcludeFromTestCoverage
-class TafelAdminWalletProperties {
-    /** The Pass Type ID the certificate was issued for, e.g. `pass.at.example.tafel`. */
-    var passTypeIdentifier: String? = null
-
-    /** The Apple Developer team the certificate belongs to (the certificate's "Organizational Unit"). */
-    var teamIdentifier: String? = null
-
-    /**
-     * The Pass Type ID certificate together with its private key, as a PKCS #12 file (`.p12`), and
-     * the password protecting it. Key material, so only ever mounted next to the config file.
-     */
-    var certificatePath: String? = null
-    var certificatePassword: String? = null
-
-    /**
-     * Apple's Worldwide Developer Relations intermediate certificate (G4) the Pass Type ID
-     * certificate was issued under, DER or PEM. It has to travel inside the signature, because a
-     * phone does not have it.
-     */
-    var wwdrCertificatePath: String? = null
-
-    /** Shown by the wallet app as the issuer of the pass. */
-    var organizationName: String = "Wiener Rotes Kreuz – Team Österreich Tafel"
-
-    val isComplete: Boolean
-        get() = listOf(passTypeIdentifier, teamIdentifier, certificatePath, certificatePassword, wwdrCertificatePath)
-            .none { it.isNullOrBlank() }
 }
 
 @ExcludeFromTestCoverage

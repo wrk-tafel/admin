@@ -240,8 +240,8 @@ enum class HouseholdPdfType {
 
 /**
  * The forms the ID card is handed out in for a phone rather than for the printer - see
- * `HouseholdIdCardService`. [WALLET] exists only where the deployment can sign a pass
- * (`ConfigResponse.walletPassEnabled`).
+ * `HouseholdIdCardService`. [WALLET] is an unsigned `.pkpass` for wallet apps on Android and can be
+ * switched off per deployment (`ConfigResponse.walletPassEnabled`).
  */
 @ExcludeFromTestCoverage
 enum class HouseholdIdCardFormat {

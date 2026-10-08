@@ -27,26 +27,5 @@
                 </font>
             </fonts>
         </renderer>
-        <!--
-            A document rendered as an image (PDFService.generatePng) is drawn with the same embedded
-            font - without it FOP falls back to whatever the JVM calls "Helvetica", which is a
-            different font per host and none at all in an image without fontconfig.
-        -->
-        <renderer mime="image/png">
-            <fonts>
-                <font kerning="yes" embed-url="LiberationSans-Regular.ttf">
-                    <font-triplet name="Helvetica" style="normal" weight="normal"/>
-                </font>
-                <font kerning="yes" embed-url="LiberationSans-Bold.ttf">
-                    <font-triplet name="Helvetica" style="normal" weight="bold"/>
-                </font>
-                <font kerning="yes" embed-url="LiberationSans-Italic.ttf">
-                    <font-triplet name="Helvetica" style="italic" weight="normal"/>
-                </font>
-                <font kerning="yes" embed-url="LiberationSans-BoldItalic.ttf">
-                    <font-triplet name="Helvetica" style="italic" weight="bold"/>
-                </font>
-            </fonts>
-        </renderer>
     </renderers>
 </fop>

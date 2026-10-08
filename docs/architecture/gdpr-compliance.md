@@ -89,8 +89,8 @@ what it may carry and where it may go are both fixed in code rather than left to
 - **Switch**: `tafeladmin.features.idCardMailEnabled: false` removes the action while leaving the
   download.
 
-A wallet pass is built and signed inside the application and involves neither Apple nor Google
-(ADR-0066). Once handed out it cannot be recalled, like the paper card.
+A wallet file is built inside the application and involves neither Apple nor Google (ADR-0066).
+Once handed out it cannot be recalled, like the paper card.
 
 ## 3. What the code already gets right
 
