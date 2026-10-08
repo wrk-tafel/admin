@@ -27,6 +27,7 @@ class HouseholdPdfService(
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
+        private const val DIGITAL_IDCARD_STYLESHEET = "/pdf-templates/customer-pdf/idcard-digital-document.xsl"
     }
 
     fun generateMasterdataPdf(household: HouseholdEntity): ByteArray {
@@ -38,6 +39,23 @@ class HouseholdPdfService(
         val data = createHouseholdPdfData(household)
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/idcard-document.xsl", "household ${household.householdId}")
     }
+
+    /**
+     * The ID card for a screen rather than for the printer: one card-sized page with a QR code large
+     * enough to scan off a phone, as a PDF or - [generateDigitalIdCardImage] - as a PNG of the very
+     * same rendering.
+     */
+    fun generateDigitalIdCardPdf(household: HouseholdEntity): ByteArray = pdfService.generatePdf(
+        createHouseholdPdfData(household),
+        DIGITAL_IDCARD_STYLESHEET,
+        "household ${household.householdId}",
+    )
+
+    fun generateDigitalIdCardImage(household: HouseholdEntity): ByteArray = pdfService.generatePng(
+        createHouseholdPdfData(household),
+        DIGITAL_IDCARD_STYLESHEET,
+        "household ${household.householdId}",
+    )
 
     /**
      * A printable sheet an operator hands the customer at intake to read and sign, filed outside the

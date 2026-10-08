@@ -160,7 +160,7 @@ The backend uses **Spring Modulith** architecture with 13 core feature modules (
   `push`'s `AnnouncementPushListener`, type `ANNOUNCEMENT`, per-user opt-out like any type), and `NotificationCleanupService` drops history after `tafeladmin.notification.retention` (30 days by default)
 - **config**: `GET /api/config` — the deployment-wide facts the frontend needs before it can render
   itself: the running release version, the image build time, and the flags for optional features
-  this environment has switched on (currently `scannerFolderEnabled`). Read only by the frontend.
+  this environment has switched on (`scannerFolderEnabled`, `idCardMailEnabled`). Read only by the frontend.
   Operator-managed configuration only — anything a *user* can change at runtime belongs in
   `settings`. `GET /api/config/public` serves the environment label on its own to anonymous callers,
   for the login page, and the `config` topic of `GET /api/sse/events` pushes the config again whenever an operator's edit
@@ -666,6 +666,7 @@ term-less `GET` listing are unaffected.
   `GET`/`PUT /api/users/account` is the caller's own record for the "Meine Daten" tab — the `PUT` takes
   name and e-mail only, never username, personnel number, password or permissions
 - `/api/households`: Household (customer) CRUD operations — the frontend's `customer-api.service.ts` calls this and translates to/from the old flat `CustomerData` shape; every other frontend file still just sees `CustomerData`. Search is `POST /api/households/search`; `POST /api/households/{id}/lock`, `/unlock`, `/prolong` and `/deactivate` are the detail screen's quick actions, none of which takes the household record in its body (so they work on a household whose stored data is incomplete), `GET /api/households/locked` lists every locked household for the "Gesperrte Kunden" screen and `POST /api/households/{id}/lock-review` confirms that an open-ended lock stays (restarting its review interval, issue #3763)
+- `/api/households/{householdId}/id-card`: the ID card for a phone - `GET ?format=PDF|IMAGE` downloads it, `POST /send-mail` (`{formats}`) mails it to the address stored on the household, never to one named in the request
 - `/api/households/{householdId}/notes`: Household notes
 - `/api/households/{householdId}/ticket`: Current ticket for a household in the active distribution
 - `/api/distributions`: Distribution management (live updates via the `distribution` topic, see `/api/sse/events`)
@@ -862,6 +863,15 @@ Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two
   imports or deletes doesn't stay there forever: `ScannerFileCleanupService` deletes it after
   `tafeladmin.storage.scannerFileRetention` (7 days by default, GDPR gap G18), and `push`'s
   `ScannerFileExpiryReminderService` warns `CUSTOMER_DOCUMENTS` holders before that happens.
+- **Digital ID Card**: besides the printable card, an ID card can be handed out as a card-sized
+  PDF or as an image, downloaded or mailed to the household's stored address
+  (`HouseholdIdCardService`, the customer detail screen's "Ausweis digital …" dialog). The image is
+  that PDF rasterized (`PDFService.generatePng`) - not FOP's own bitmap output, which needs fonts
+  installed on the host and fails in the production container. There is deliberately no wallet
+  card: every route into a phone's wallet app needs an account and signing key from Apple or
+  Google (ADR-0066). Mailing needs `tafeladmin.mail` plus the `features.idCardMailEnabled` kill
+  switch (`idCardMailAvailable`, reported as `/api/config`'s `idCardMailEnabled`), read per use.
+  See the household module README - in particular why the mail request carries no recipient.
 - **Config Hot-Reload**: the **whole** configuration is re-read while the application runs — not just
   `tafeladmin.*`. Production's settings come from an operator-managed `config.yml` bind-mounted into
   the container (`-Dspring.config.additional-location`, see `_build/Dockerfile`), and

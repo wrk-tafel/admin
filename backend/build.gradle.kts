@@ -115,6 +115,9 @@ dependencies {
     implementation(libs.jjwt.api)
     implementation(libs.bouncycastle)
     implementation(libs.apache.fop)
+    // Rasterizes a finished PDF for the one document that is also handed out as an image (see
+    // PDFService.generatePng).
+    implementation(libs.apache.pdfbox)
     implementation(libs.qrcode.kotlin.jvm)
     implementation(libs.passay)
     implementation(libs.bucket4j.core)
@@ -149,7 +152,6 @@ dependencies {
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation(libs.testcontainers.postgresql)
-    testImplementation(libs.apache.pdfbox)
     testImplementation(libs.image.comparison)
     testImplementation(libs.awaitility)
 }

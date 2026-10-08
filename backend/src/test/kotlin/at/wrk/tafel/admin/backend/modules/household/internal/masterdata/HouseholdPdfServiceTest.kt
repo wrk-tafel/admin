@@ -239,8 +239,54 @@ class HouseholdPdfServiceTest {
         recordingService.generateMasterdataPdf(testHousehold)
         recordingService.generatePrivacyNoticePdf(testHousehold)
         recordingService.generatePrivacyNoticeTemplatePdf()
+        recordingService.generateDigitalIdCardPdf(testHousehold)
 
         assertThat(fopEvents).isEmpty()
+    }
+
+    @Test
+    fun `generate digital idcard pdf - one card-sized page without address or birth date`() {
+        val pdfBytes = service.generateDigitalIdCardPdf(testHousehold)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "idcard-digital-result.pdf"), pdfBytes)
+
+        Loader.loadPDF(pdfBytes).use { document ->
+            assertThat(document.numberOfPages).isEqualTo(1)
+
+            val text = PDFTextStripper().getText(document)
+            assertThat(text)
+                .contains("Bezugskarte")
+                .contains("123")
+                .contains("Max Mustermann")
+                .contains("Personen im Haushalt")
+                // what the check-in does not need stays off a card that leaves by mail
+                .doesNotContain("Karl-Schäfer-Straße")
+                .doesNotContain("10.06.1980")
+        }
+    }
+
+    /**
+     * The image is the PDF rasterized, so it has to be the card - its size and its content - and not
+     * a blank page of the right size.
+     */
+    @Test
+    fun `generate digital idcard image - the card as a png`() {
+        val imageBytes = service.generateDigitalIdCardImage(testHousehold)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "idcard-digital-result.png"), imageBytes)
+
+        val image = ImageIO.read(imageBytes.inputStream())
+        // 9 cm x 16 cm at 300 dpi
+        assertThat(image.width).isBetween(1060, 1066)
+        assertThat(image.height).isBetween(1887, 1893)
+
+        val expected = Loader.loadPDF(service.generateDigitalIdCardPdf(testHousehold)).use {
+            PDFRenderer(it).renderImageWithDPI(0, 300f, ImageType.RGB)
+        }
+        assertThat(ImageComparison(expected, image).compareImages().imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
+
+        val darkPixels = (0 until image.width step 4).sumOf { x ->
+            (0 until image.height step 4).count { y -> (image.getRGB(x, y) and 0xFF) < 64 }
+        }
+        assertThat(darkPixels).describedAs("the QR code and the text are drawn").isGreaterThan(5000)
     }
 
     /**

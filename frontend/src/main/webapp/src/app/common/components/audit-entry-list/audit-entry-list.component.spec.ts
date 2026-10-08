@@ -161,6 +161,18 @@ describe('AuditEntryListComponent', () => {
 
   // A read never changed anything - "no field changes recorded" would misleadingly imply one was
   // expected, so a READ entry gets neither that message nor an (empty) diff table.
+  it('shows the detail of a read that carries one - an ID card mailed to the customer', () => {
+    const element: HTMLElement = createComponent([{
+      ...entry,
+      operation: 'READ',
+      entityType: 'Household',
+      changes: [{field: 'idCardSentByMail', newValue: 'PDF, Bild'}]
+    }]).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-change-0-field"]')?.textContent).toContain('Ausweis per E-Mail gesendet');
+    expect(element.querySelector('[testid="audit-entry-0-change-0-newValue"]')?.textContent).toContain('PDF, Bild');
+  });
+
   it('shows neither a diff table nor the "no changes" message for a read entry', () => {
     const element: HTMLElement = createComponent([{...entry, operation: 'READ', entityType: 'Document', changes: []}]).nativeElement;
 

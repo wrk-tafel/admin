@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import {of, Subject, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender, HouseholdLockReason} from '../../../../api/customer-api.service';
+import {DigitalIdCardDialogComponent} from './dialogs/digital-id-card-dialog.component';
 import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule, Location} from '@angular/common';
 import {signal} from '@angular/core';
@@ -688,6 +689,22 @@ describe('CustomerDetailComponent', () => {
 
     expect(toastr.error).toHaveBeenCalledWith('Kunde ist bereits gesperrt!', 'Sperren fehlgeschlagen!');
     expect(component.customerData()).toEqual(mockCustomer);
+  });
+
+  it('opens the digital id card dialog for the customer and the address stored on it', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    fixture.detectChanges();
+
+    fixture.componentInstance.openDigitalIdCardDialog();
+
+    expect(matDialog.open).toHaveBeenCalledWith(DigitalIdCardDialogComponent, {
+      data: {customerId: mockCustomer.id, email: mockCustomer.email}
+    });
   });
 
   it('lock customer dialog cancelled does nothing', () => {

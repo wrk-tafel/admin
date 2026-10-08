@@ -11,7 +11,8 @@ describe('UploadDocumentPanelComponent', () => {
 
   beforeEach(() => {
     config = new BehaviorSubject<AppConfig | null>({
-      version: '1.0.0', buildDate: 'unknown', scannerFolderEnabled: true, environmentLabel: ''
+      version: '1.0.0', buildDate: 'unknown', scannerFolderEnabled: true,
+        idCardMailEnabled: false, environmentLabel: ''
     });
     const configApiServiceSpy = {
       observeConfig: vi.fn().mockName('ConfigApiService.observeConfig').mockReturnValue(config.asObservable())
@@ -43,7 +44,8 @@ describe('UploadDocumentPanelComponent', () => {
 
   it('hides the scanner source when the deployment has no scanner folder', () => {
     configApiService.observeConfig.mockReturnValue(of({
-      version: '1.0.0', buildDate: 'unknown', scannerFolderEnabled: false, environmentLabel: ''
+      version: '1.0.0', buildDate: 'unknown', scannerFolderEnabled: false,
+        idCardMailEnabled: false, environmentLabel: ''
     }));
 
     const fixture = TestBed.createComponent(UploadDocumentPanelComponent);
@@ -75,7 +77,8 @@ describe('UploadDocumentPanelComponent', () => {
     fixture.componentInstance.selectSource('scanner');
     fixture.componentInstance.selectedScannerFileName.set('scan-1.pdf');
 
-    config.next({version: '1.0.0', buildDate: 'unknown', scannerFolderEnabled: false, environmentLabel: ''});
+    config.next({version: '1.0.0', buildDate: 'unknown', scannerFolderEnabled: false,
+      idCardMailEnabled: false, environmentLabel: ''});
     fixture.detectChanges();
 
     expect(fixture.componentInstance.scannerEnabled()).toBe(false);
@@ -90,9 +93,11 @@ describe('UploadDocumentPanelComponent', () => {
     const fixture = TestBed.createComponent(UploadDocumentPanelComponent);
     fixture.detectChanges();
 
-    config.next({version: '1.0.0', buildDate: 'unknown', scannerFolderEnabled: false, environmentLabel: ''});
+    config.next({version: '1.0.0', buildDate: 'unknown', scannerFolderEnabled: false,
+      idCardMailEnabled: false, environmentLabel: ''});
     fixture.detectChanges();
-    config.next({version: '1.0.0', buildDate: 'unknown', scannerFolderEnabled: true, environmentLabel: ''});
+    config.next({version: '1.0.0', buildDate: 'unknown', scannerFolderEnabled: true,
+      idCardMailEnabled: false, environmentLabel: ''});
     fixture.detectChanges();
 
     expect(fixture.componentInstance.scannerEnabled()).toBe(true);

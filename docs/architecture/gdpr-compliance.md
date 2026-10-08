@@ -69,6 +69,29 @@ code being wrong — see [G4](#g4-a-hint-now-keeps-special-category-data-out-of-
   household number, person/infant counts only, see §1); the Stammdatenblatt is a household's
   complete master data. Once printed, the application has no further say in either.
 
+### The digital ID card is the one place customer data is mailed to the customer
+
+An operator can mail a household its ID card (`HouseholdIdCardService`, customer detail →
+"Ausweis digital …"). It is the only mail that leaves for an address outside the organisation, so
+what it may carry and where it may go are both fixed in code rather than left to the operator:
+
+- **Recipient**: only the e-mail address stored on the household. The request has no recipient
+  field, so a card cannot be sent to an address that is not on the record.
+- **Content**: household number (also as the QR code), the main person's name and the number of
+  persons. No address, birth date, income or validity - less than the printed card holds.
+- **Trace**: every send is an audit entry on the household naming the formats sent.
+- **Copies**: the finished mail, attachments included, stays in `mail_outbox` until
+  `tafeladmin.mailOutbox.sentRetention` (14 days) removes it, and any address in
+  `tafeladmin.mail.defaultRecipientsBcc` receives a copy like of every other mail - a deployment
+  that archives its mails that way archives these cards too.
+- **Transport**: ordinary e-mail. It is encrypted to the organisation's mail server
+  (`starttls.required`), not end to end.
+- **Switch**: `tafeladmin.features.idCardMailEnabled: false` removes the action while leaving the
+  download.
+
+Once handed out, a digital card cannot be recalled - like the paper one. Neither format involves a
+third party; a card in the phone's wallet app would, which is one reason there is none (ADR-0066).
+
 ## 3. What the code already gets right
 
 Worth recording, because it is the part that does not need work:

@@ -26,6 +26,7 @@ import {
   documentTypeLabel
 } from '../../../../api/customer-document-api.service';
 import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.component';
+import {DigitalIdCardDialogComponent} from './dialogs/digital-id-card-dialog.component';
 import {EditNoteDialogComponent} from './dialogs/edit-note-dialog.component';
 import {DeleteNoteDialogComponent} from './dialogs/delete-note-dialog.component';
 import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
@@ -276,6 +277,13 @@ export class CustomerDetailComponent {
       next: (response) => this.processFileResponse(response),
       error: () => this.printing.set(null),
       complete: () => this.printing.set(null)
+    });
+  }
+
+  /** The ID card for a phone - downloaded or mailed to the customer, see {@link DigitalIdCardDialogComponent}. */
+  openDigitalIdCardDialog() {
+    this.dialog.open(DigitalIdCardDialogComponent, {
+      data: {customerId: this.customerData().id!, email: this.customerData().email}
     });
   }
 

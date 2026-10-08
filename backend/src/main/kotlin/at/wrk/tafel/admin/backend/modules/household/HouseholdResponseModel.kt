@@ -238,6 +238,26 @@ enum class HouseholdPdfType {
     PRIVACY_NOTICE,
 }
 
+/**
+ * The forms the ID card is handed out in for a phone rather than for the printer - see
+ * `HouseholdIdCardService`.
+ */
+@ExcludeFromTestCoverage
+enum class HouseholdIdCardFormat {
+    PDF,
+    IMAGE,
+}
+
+/**
+ * Input for `POST /{householdId}/id-card/send-mail`: which forms of the card to attach. There is no
+ * recipient in it on purpose - the mail goes to the address stored on the household.
+ */
+@ExcludeFromTestCoverage
+data class HouseholdIdCardMailRequest(
+    @field:NotEmpty(message = "Es muss mindestens ein Format ausgewählt werden!")
+    val formats: Set<HouseholdIdCardFormat>? = null,
+)
+
 @ExcludeFromTestCoverage
 enum class PersonGender {
     MALE,

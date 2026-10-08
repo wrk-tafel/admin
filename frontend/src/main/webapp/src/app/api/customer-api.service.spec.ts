@@ -296,6 +296,24 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
+  it('get id card in a digital format', () => {
+    apiService.getIdCard(1, 'IMAGE').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/1/id-card?format=IMAGE'});
+    expect(req.request.responseType).toEqual('blob');
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('send id card by mail names the formats and no recipient', () => {
+    apiService.sendIdCardByMail(1, ['PDF', 'IMAGE']).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/1/id-card/send-mail'});
+    expect(req.request.body).toEqual({formats: ['PDF', 'IMAGE']});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('generate privacy notice template pdf', () => {
     apiService.generatePrivacyNoticeTemplate().subscribe();
 

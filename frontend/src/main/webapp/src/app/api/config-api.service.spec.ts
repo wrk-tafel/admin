@@ -10,7 +10,8 @@ describe('ConfigApiService', () => {
   let apiService: ConfigApiService;
   let configChanges: Subject<AppConfig>;
 
-  const testConfig: AppConfig = {version: '1.2.3', buildDate: '2026-07-28', scannerFolderEnabled: true, environmentLabel: ''};
+  const testConfig: AppConfig = {version: '1.2.3', buildDate: '2026-07-28', scannerFolderEnabled: true,
+    idCardMailEnabled: false, environmentLabel: ''};
   const testPublicConfig: PublicAppConfig = {environmentLabel: 'DEV'};
 
   beforeEach(() => {

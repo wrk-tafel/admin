@@ -29,7 +29,7 @@ while this module is the read-only HTTP view of it for the frontend.
 - [`ConfigSseTopic`](ConfigSseTopic.kt): the `config` topic of `GET /api/sse/events`, which pushes the config
   again whenever it changes in the backend. It emits nothing on subscribe — `GET /api/config` is
   what a page load reads, this carries only the deltas after it.
-- [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildDate, scannerFolderEnabled)`
+- [`ConfigResponse.kt`](ConfigResponse.kt): `ConfigResponse(version, buildDate, scannerFolderEnabled, idCardMailEnabled, environmentLabel)`
   and `PublicConfigResponse(environmentLabel)`, plus the one `TafelAdminProperties.toConfigResponse()`
   mapping both the endpoint and the push side use, so the two can't report different things about the
   same deployment.

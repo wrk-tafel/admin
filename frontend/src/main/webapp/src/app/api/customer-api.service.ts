@@ -86,6 +86,27 @@ export class CustomerApiService {
   }
 
   /**
+   * The ID card for a phone rather than for the printer - a card-sized PDF or the same card as an
+   * image. The printable card stays {@link generatePdf}'s `IDCARD` type.
+   */
+  getIdCard(id: number, format: IdCardFormat, context?: HttpContext): Observable<HttpResponse<Blob>> {
+    return this.http.get(`/households/${id}/id-card`, {
+      params: new HttpParams().append('format', format),
+      responseType: 'blob',
+      observe: 'response',
+      context
+    });
+  }
+
+  /**
+   * Mails the ID card in the given formats to the address stored on the customer. The request
+   * deliberately names no recipient - the backend only ever sends to that stored address.
+   */
+  sendIdCardByMail(id: number, formats: IdCardFormat[], context?: HttpContext): Observable<void> {
+    return this.http.post<void>(`/households/${id}/id-card/send-mail`, {formats}, {context});
+  }
+
+  /**
    * The GDPR Art. 15/20 data takeout (issue #3179): one downloadable ZIP containing the household
    * record (persons, notes, distribution attendance history and the list of uploaded documents) as
    * a PDF, plus every uploaded document itself.
@@ -534,6 +555,8 @@ export const householdLockReasonLabel: { [key in HouseholdLockReason]: string } 
 };
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'PRIVACY_NOTICE';
+
+export type IdCardFormat = 'PDF' | 'IMAGE';
 
 export type CustomerDuplicatesResponse = PagedResponse<CustomerDuplicatesItem>;
 

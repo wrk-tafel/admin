@@ -72,6 +72,14 @@ class TafelAdminProperties {
      */
     val scannerFolderAvailable: Boolean
         get() = features.scannerFolderEnabled && !storage.scannerPath.isNullOrBlank()
+
+    /**
+     * Whether an ID card can be mailed to the household. `tafeladmin.mail` is what names the sender,
+     * and without one no mail is composed at all (see `MailSenderService`) - offering the action
+     * anyway would report a mail as sent that never existed.
+     */
+    val idCardMailAvailable: Boolean
+        get() = features.idCardMailEnabled && mail != null
 }
 
 /**
@@ -90,6 +98,13 @@ class TafelAdminFeaturesProperties {
      * with no `scannerPath` the feature is off either way.
      */
     var scannerFolderEnabled: Boolean = true
+
+    /**
+     * Kill switch for mailing an ID card to the household's own address, independent of whether
+     * mail is configured at all: this is the one mail that leaves the organisation, so a deployment
+     * may well send its reports by mail and still not want this.
+     */
+    var idCardMailEnabled: Boolean = true
 }
 
 /**
