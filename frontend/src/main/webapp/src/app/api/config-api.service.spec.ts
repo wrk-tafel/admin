@@ -11,7 +11,7 @@ describe('ConfigApiService', () => {
   let configChanges: Subject<AppConfig>;
 
   const testConfig: AppConfig = {version: '1.2.3', buildDate: '2026-07-28', scannerFolderEnabled: true,
-    walletPassEnabled: false, idCardMailEnabled: false, environmentLabel: ''};
+    idCardMailEnabled: false, environmentLabel: ''};
   const testPublicConfig: PublicAppConfig = {environmentLabel: 'DEV'};
 
   beforeEach(() => {

@@ -24,7 +24,6 @@ class ConfigControllerTest {
                 version = "1.2.3",
                 buildDate = "2026-07-28",
                 scannerFolderEnabled = true,
-                walletPassEnabled = true,
                 idCardMailEnabled = false,
                 environmentLabel = "",
             ),
@@ -41,16 +40,6 @@ class ConfigControllerTest {
         )
 
         assertThat(controller.getConfig().scannerFolderEnabled).isFalse()
-    }
-
-    @Test
-    fun `get config reports the wallet file unless it is switched off`() {
-        val properties = TafelAdminProperties()
-        val controller = ConfigController(properties)
-        assertThat(controller.getConfig().walletPassEnabled).isTrue()
-
-        properties.features.walletPassEnabled = false
-        assertThat(controller.getConfig().walletPassEnabled).isFalse()
     }
 
     @Test
@@ -91,7 +80,6 @@ class ConfigControllerTest {
                 version = "1.2.3",
                 buildDate = "unknown",
                 scannerFolderEnabled = true,
-                walletPassEnabled = true,
                 idCardMailEnabled = false,
                 environmentLabel = "",
             ),

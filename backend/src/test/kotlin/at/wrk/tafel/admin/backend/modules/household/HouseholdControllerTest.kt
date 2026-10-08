@@ -613,19 +613,19 @@ class HouseholdControllerTest {
 
     @Test
     fun `get id card - served as a download with the content type of its format`() {
-        every { householdIdCardService.generateIdCard(123, HouseholdIdCardFormat.WALLET) } returns HouseholdIdCardFile(
-            filename = "ausweis-123-mustermann-max.pkpass",
-            contentType = "application/vnd.apple.pkpass",
-            bytes = "pass".toByteArray(),
+        every { householdIdCardService.generateIdCard(123, HouseholdIdCardFormat.IMAGE) } returns HouseholdIdCardFile(
+            filename = "ausweis-123-mustermann-max.png",
+            contentType = "image/png",
+            bytes = "png".toByteArray(),
         )
 
-        val response = controller.getIdCard(123, HouseholdIdCardFormat.WALLET)
+        val response = controller.getIdCard(123, HouseholdIdCardFormat.IMAGE)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("application/vnd.apple.pkpass")
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo("image/png")
         assertThat(response.headers.contentDisposition.isAttachment).isTrue()
-        assertThat(response.headers.contentDisposition.filename).isEqualTo("ausweis-123-mustermann-max.pkpass")
-        assertThat(String(response.body?.inputStream?.readAllBytes()!!)).isEqualTo("pass")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo("ausweis-123-mustermann-max.png")
+        assertThat(String(response.body?.inputStream?.readAllBytes()!!)).isEqualTo("png")
     }
 
     @Test

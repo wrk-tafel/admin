@@ -46,7 +46,7 @@ function configureModule(mobile: boolean) {
         observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
             .mockReturnValue(of({
                 version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true,
-                  walletPassEnabled: false, idCardMailEnabled: false, environmentLabel: ''
+                  idCardMailEnabled: false, environmentLabel: ''
             }))
     };
 
@@ -115,7 +115,7 @@ describe('DefaultLayoutComponent', () => {
 
         expect(component.appConfig()).toEqual({
             version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true,
-              walletPassEnabled: false, idCardMailEnabled: false, environmentLabel: ''
+              idCardMailEnabled: false, environmentLabel: ''
         });
     });
 

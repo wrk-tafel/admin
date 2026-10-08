@@ -29,13 +29,12 @@ interface FormatOption {
 const FORMAT_OPTIONS: FormatOption[] = [
   {format: 'PDF', label: 'PDF', hint: 'Lässt sich auf jedem Gerät öffnen und ausdrucken.'},
   {format: 'IMAGE', label: 'Bild', hint: 'Zum Speichern in den Fotos am Handy.'},
-  {format: 'WALLET', label: 'Wallet-Karte (Android)', hint: 'Datei für Wallet-Apps auf Android, nicht für iPhones.'},
 ];
 
 /**
  * Hands out the ID card for a phone: the formats are picked once and then either downloaded or
- * mailed to the address stored on the customer. Which formats and whether mailing exist at all is
- * the deployment's configuration, followed live - see {@link ConfigApiService.observeConfig}.
+ * mailed to the address stored on the customer. Whether mailing exists at all is the deployment's
+ * configuration, followed live - see {@link ConfigApiService.observeConfig}.
  */
 @Component({
   selector: 'tafel-digital-id-card-dialog',
@@ -53,18 +52,13 @@ export class DigitalIdCardDialogComponent {
   private readonly config = toSignal(this.configApiService.observeConfig(), {initialValue: null});
 
   readonly mailEnabled = computed(() => this.config()?.idCardMailEnabled ?? false);
-  readonly formatOptions = computed(() =>
-    FORMAT_OPTIONS.filter(option => option.format !== 'WALLET' || (this.config()?.walletPassEnabled ?? false))
-  );
+  readonly formatOptions = FORMAT_OPTIONS;
 
   private readonly selection = signal<ReadonlySet<IdCardFormat>>(new Set<IdCardFormat>(['PDF']));
 
-  /**
-   * What is selected *and* still offered - a wallet card that was ticked stops counting the moment
-   * the deployment switches the format off underneath the open dialog.
-   */
+  /** The selection in the order the formats are offered in, so the same choice always sends the same request. */
   readonly selectedFormats = computed(() =>
-    this.formatOptions().map(option => option.format).filter(format => this.selection().has(format))
+    this.formatOptions.map(option => option.format).filter(format => this.selection().has(format))
   );
 
   /** Which of the two actions is running, so both stay locked until it is through. */

@@ -57,12 +57,6 @@ export interface AppConfig {
    */
   scannerFolderEnabled: boolean;
   /**
-   * Whether this environment hands out the digital ID card as a wallet file for Android
-   * (`tafeladmin.features.walletPassEnabled`). False means the "Wallet-Karte" format must not be
-   * offered - the backend would refuse it.
-   */
-  walletPassEnabled: boolean;
-  /**
    * Whether this environment mails ID cards to customers (`tafeladmin.mail` /
    * `tafeladmin.features.idCardMailEnabled`). False leaves the digital ID card as a download only.
    */

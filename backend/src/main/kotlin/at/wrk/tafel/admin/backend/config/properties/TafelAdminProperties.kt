@@ -74,14 +74,6 @@ class TafelAdminProperties {
         get() = features.scannerFolderEnabled && !storage.scannerPath.isNullOrBlank()
 
     /**
-     * Whether an ID card can be issued as a wallet file (`.pkpass`, see `WalletPassService`). The
-     * file is unsigned and needs nothing a deployment would have to provide, so this is the switch
-     * alone - kept as a property of its own so the backend and `/api/config` ask the same question.
-     */
-    val walletPassAvailable: Boolean
-        get() = features.walletPassEnabled
-
-    /**
      * Whether an ID card can be mailed to the household. `tafeladmin.mail` is what names the sender,
      * and without one no mail is composed at all (see `MailSenderService`) - offering the action
      * anyway would report a mail as sent that never existed.
@@ -106,12 +98,6 @@ class TafelAdminFeaturesProperties {
      * with no `scannerPath` the feature is off either way.
      */
     var scannerFolderEnabled: Boolean = true
-
-    /**
-     * Kill switch for issuing ID cards as wallet files - for a deployment that wants to hand out
-     * the PDF and the image only.
-     */
-    var walletPassEnabled: Boolean = true
 
     /**
      * Kill switch for mailing an ID card to the household's own address, independent of whether

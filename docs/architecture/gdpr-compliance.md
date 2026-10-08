@@ -89,8 +89,8 @@ what it may carry and where it may go are both fixed in code rather than left to
 - **Switch**: `tafeladmin.features.idCardMailEnabled: false` removes the action while leaving the
   download.
 
-A wallet file is built inside the application and involves neither Apple nor Google (ADR-0066).
-Once handed out it cannot be recalled, like the paper card.
+Once handed out, a digital card cannot be recalled - like the paper one. Neither format involves a
+third party; a card in the phone's wallet app would, which is one reason there is none (ADR-0066).
 
 ## 3. What the code already gets right
 

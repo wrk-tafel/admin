@@ -21,9 +21,9 @@ import org.springframework.transaction.annotation.Transactional
 import org.thymeleaf.context.Context
 
 /**
- * The ID card in the forms a customer keeps on a phone instead of in a pocket - a card-sized PDF, the
- * same card as an image, and a wallet file for Android - either downloaded by the operator or mailed to the
- * address stored on the household.
+ * The ID card in the forms a customer keeps on a phone instead of in a pocket - a card-sized PDF and
+ * the same card as an image - either downloaded by the operator or mailed to the address stored on
+ * the household.
  *
  * The mail only ever goes to that stored address. The request names formats, never a recipient: an
  * address typed into a dialog is one typo away from handing a card to a stranger, while the stored
@@ -37,7 +37,6 @@ import org.thymeleaf.context.Context
 class HouseholdIdCardService(
     private val householdRepository: HouseholdRepository,
     private val householdPdfService: HouseholdPdfService,
-    private val walletPassService: WalletPassService,
     private val mailSenderService: MailSenderService,
     private val auditLogWriter: AuditLogWriter,
     private val tafelAdminProperties: TafelAdminProperties,
@@ -85,7 +84,6 @@ class HouseholdIdCardService(
             setVariable("householdId", household.householdId)
             setVariable("hasPdf", HouseholdIdCardFormat.PDF in formats)
             setVariable("hasImage", HouseholdIdCardFormat.IMAGE in formats)
-            setVariable("hasWallet", HouseholdIdCardFormat.WALLET in formats)
         }
         mailSenderService.sendHtmlMailTo(
             mailType = "Digitaler Ausweis",
@@ -108,7 +106,6 @@ class HouseholdIdCardService(
         get() = when (this) {
             HouseholdIdCardFormat.PDF -> "PDF"
             HouseholdIdCardFormat.IMAGE -> "Bild"
-            HouseholdIdCardFormat.WALLET -> "Wallet-Karte"
         }
 
     private fun findHousehold(householdId: Long): HouseholdEntity = householdRepository.findByHouseholdId(householdId)
@@ -126,17 +123,6 @@ class HouseholdIdCardService(
             contentType = MediaType.IMAGE_PNG_VALUE,
             bytes = householdPdfService.generateDigitalIdCardImage(household),
         )
-
-        HouseholdIdCardFormat.WALLET -> {
-            if (!tafelAdminProperties.walletPassAvailable) {
-                throw BusinessRuleException("Wallet-Karten sind in dieser Umgebung deaktiviert!")
-            }
-            HouseholdIdCardFile(
-                filename = buildHouseholdFilename("ausweis", household, "pkpass"),
-                contentType = WalletPassService.CONTENT_TYPE,
-                bytes = walletPassService.generatePass(householdPdfService.createIdCardSummary(household)),
-            )
-        }
     }
 
     private fun recordRead(household: HouseholdEntity, changedFields: Map<String, List<Any?>>) {

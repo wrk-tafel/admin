@@ -297,9 +297,9 @@ describe('CustomerApiService', () => {
   });
 
   it('get id card in a digital format', () => {
-    apiService.getIdCard(1, 'WALLET').subscribe();
+    apiService.getIdCard(1, 'IMAGE').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/households/1/id-card?format=WALLET'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households/1/id-card?format=IMAGE'});
     expect(req.request.responseType).toEqual('blob');
     req.flush(null);
     httpMock.verify();

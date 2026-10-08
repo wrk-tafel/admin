@@ -84,11 +84,10 @@ Der Tab "Notizen" (die Beschriftung zeigt zusätzlich die Gesamtanzahl an Notize
 
 ![Digitaler Ausweis](images/kunden-ausweis-digital.jpg)
 
-Zur Auswahl stehen – auch mehrere gleichzeitig:
+Zur Auswahl stehen – auch beide gleichzeitig:
 
 - **PDF**: der Ausweis im Kartenformat auf einer Seite, auf jedem Gerät zu öffnen und bei Bedarf auszudrucken.
 - **Bild**: derselbe Ausweis als Bilddatei, zum Speichern in den Fotos am Handy.
-- **Wallet-Karte (Android)**: eine Datei (Endung `.pkpass`), die der Kunde am Android-Handy mit einer Wallet-App öffnet. iPhones nehmen diese Datei nicht an – dort das Bild oder die PDF-Datei verwenden. Das Format kann für eine Umgebung abgeschaltet sein und fehlt dann in der Auswahl.
 
 Der digitale Ausweis zeigt Kundennummer, QR-Code, den Namen des Hauptbeziehers und die Personenanzahl – bewusst ohne Adresse und Geburtsdatum.
 

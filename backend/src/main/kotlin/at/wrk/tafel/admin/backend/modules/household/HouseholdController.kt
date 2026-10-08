@@ -157,7 +157,7 @@ class HouseholdController(
     }
 
     /**
-     * The ID card for a phone - a card-sized PDF, the same card as an image, or a wallet pass. The
+     * The ID card for a phone - a card-sized PDF or the same card as an image. The
      * printable, foldable card stays `generate-pdf`'s `IDCARD` type.
      */
     @GetMapping("/{householdId}/id-card")

@@ -13,7 +13,6 @@ fun TafelAdminProperties.toConfigResponse(): ConfigResponse = ConfigResponse(
     version = version,
     buildDate = buildDate,
     scannerFolderEnabled = scannerFolderAvailable,
-    walletPassEnabled = walletPassAvailable,
     idCardMailEnabled = idCardMailAvailable,
     environmentLabel = environmentLabel.trim(),
 )
@@ -29,11 +28,6 @@ data class ConfigResponse(
      * anything, indistinguishable from "nobody has scanned yet".
      */
     val scannerFolderEnabled: Boolean,
-    /**
-     * Whether an ID card can be issued as a wallet file (see
-     * `TafelAdminProperties.walletPassAvailable`). The frontend offers the format only when true.
-     */
-    val walletPassEnabled: Boolean,
     /**
      * Whether an ID card can be mailed to the household (see
      * `TafelAdminProperties.idCardMailAvailable`). When false the frontend only offers the download.

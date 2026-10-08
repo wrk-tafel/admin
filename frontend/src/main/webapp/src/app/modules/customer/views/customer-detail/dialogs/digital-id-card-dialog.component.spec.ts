@@ -14,7 +14,6 @@ describe('DigitalIdCardDialogComponent', () => {
     version: '1.0.0',
     buildDate: '2026-07-28',
     scannerFolderEnabled: false,
-    walletPassEnabled: true,
     idCardMailEnabled: true,
     environmentLabel: ''
   };
@@ -70,30 +69,11 @@ describe('DigitalIdCardDialogComponent', () => {
     const fixture = createComponent();
     const component = fixture.componentInstance;
 
-    expect(component.formatOptions().map(option => option.format)).toEqual(['PDF', 'IMAGE', 'WALLET']);
+    expect(component.formatOptions.map(option => option.format)).toEqual(['PDF', 'IMAGE']);
     expect(component.selectedFormats()).toEqual(['PDF']);
     expect(testIds(fixture)).toEqual(expect.arrayContaining([
-      'idcard-format-PDF', 'idcard-format-IMAGE', 'idcard-format-WALLET', 'idcard-mail-recipient', 'sendIdCardButton'
+      'idcard-format-PDF', 'idcard-format-IMAGE', 'idcard-mail-recipient', 'sendIdCardButton'
     ]));
-  });
-
-  it('does not offer the wallet card where the deployment has switched it off', () => {
-    config$.next({...baseConfig, walletPassEnabled: false});
-    const fixture = createComponent();
-
-    expect(fixture.componentInstance.formatOptions().map(option => option.format)).toEqual(['PDF', 'IMAGE']);
-    expect(testIds(fixture)).not.toContain('idcard-format-WALLET');
-  });
-
-  it('drops an already selected wallet card when the deployment switches it off', () => {
-    const fixture = createComponent();
-    const component = fixture.componentInstance;
-    component.toggle('WALLET', true);
-    expect(component.selectedFormats()).toEqual(['PDF', 'WALLET']);
-
-    config$.next({...baseConfig, walletPassEnabled: false});
-
-    expect(component.selectedFormats()).toEqual(['PDF']);
   });
 
   it('is a download only where mailing is not available', () => {
@@ -139,24 +119,23 @@ describe('DigitalIdCardDialogComponent', () => {
 
   it('reports a failed download and unlocks the dialog again', () => {
     customerApiService.getIdCard.mockReturnValue(
-      throwError(() => ({status: 400, error: {detail: 'Wallet-Karten sind in dieser Umgebung deaktiviert!'}})));
+      throwError(() => ({status: 404, error: {detail: 'Kunde Nr. 101 nicht vorhanden!'}})));
     const component = createComponent().componentInstance;
 
     component.download();
 
-    expect(toastr.error).toHaveBeenCalledWith(
-      'Wallet-Karten sind in dieser Umgebung deaktiviert!', 'Ausweis konnte nicht erstellt werden!');
+    expect(toastr.error).toHaveBeenCalledWith('Kunde Nr. 101 nicht vorhanden!', 'Ausweis konnte nicht erstellt werden!');
     expect(component.busy()).toBeNull();
   });
 
   it('sends the selected formats and closes', () => {
     customerApiService.sendIdCardByMail.mockReturnValue(of(undefined));
     const component = createComponent().componentInstance;
-    component.toggle('WALLET', true);
+    component.toggle('IMAGE', true);
 
     component.send();
 
-    expect(customerApiService.sendIdCardByMail).toHaveBeenCalledWith(101, ['PDF', 'WALLET'], expect.anything());
+    expect(customerApiService.sendIdCardByMail).toHaveBeenCalledWith(101, ['PDF', 'IMAGE'], expect.anything());
     expect(toastr.success).toHaveBeenCalledWith('Ausweis wurde an eva@example.org gesendet!');
     expect(dialogRef.close).toHaveBeenCalled();
   });

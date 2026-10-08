@@ -86,8 +86,8 @@ export class CustomerApiService {
   }
 
   /**
-   * The ID card for a phone rather than for the printer - a card-sized PDF, the same card as an
-   * image, or a wallet file for Android. The printable card stays {@link generatePdf}'s `IDCARD` type.
+   * The ID card for a phone rather than for the printer - a card-sized PDF or the same card as an
+   * image. The printable card stays {@link generatePdf}'s `IDCARD` type.
    */
   getIdCard(id: number, format: IdCardFormat, context?: HttpContext): Observable<HttpResponse<Blob>> {
     return this.http.get(`/households/${id}/id-card`, {
@@ -556,8 +556,7 @@ export const householdLockReasonLabel: { [key in HouseholdLockReason]: string } 
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'PRIVACY_NOTICE';
 
-/** `WALLET` is refused where the deployment has switched it off - see `AppConfig.walletPassEnabled`. */
-export type IdCardFormat = 'PDF' | 'IMAGE' | 'WALLET';
+export type IdCardFormat = 'PDF' | 'IMAGE';
 
 export type CustomerDuplicatesResponse = PagedResponse<CustomerDuplicatesItem>;
 

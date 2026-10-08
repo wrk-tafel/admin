@@ -58,24 +58,6 @@ class HouseholdPdfService(
     )
 
     /**
-     * What every form of the ID card states about a household, for the one that is not rendered
-     * from a stylesheet - the wallet pass. Kept here so the person counts on a pass can never differ
-     * from the ones printed on the card.
-     */
-    fun createIdCardSummary(household: HouseholdEntity): IdCardSummary {
-        val data = createHouseholdPdfData(household)
-        return IdCardSummary(
-            householdId = data.customer.id,
-            fullName = listOfNotNull(data.customer.firstname, data.customer.lastname)
-                .filter { it != "-" }
-                .joinToString(" ")
-                .ifBlank { "-" },
-            countPersons = data.countPersons,
-            countInfants = data.countInfants,
-        )
-    }
-
-    /**
      * A printable sheet an operator hands the customer at intake to read and sign, filed outside the
      * application - there is no stored consent field, this document is the whole record (GDPR G2,
      * issue #3177). Unlike [createHouseholdPdfData], it carries only what the notice text needs - no

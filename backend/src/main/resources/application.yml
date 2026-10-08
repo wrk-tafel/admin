@@ -315,14 +315,11 @@ tafeladmin:
   # Switches for optional features. Each one is a plain on/off an operator flips; how the feature is
   # wired up once it's on lives in its own section (e.g. storage.scannerPath for the scanner folder).
   #
-  # walletPassEnabled - whether an ID card can be handed out as a wallet file (.pkpass) for wallet apps
-  # on Android. The file is unsigned on purpose - see ADR-0066 - so it needs no further setup.
   # idCardMailEnabled - whether an ID card can be mailed to the address stored on the household. On
   # only where tafeladmin.mail is configured as well. This is the one mail that goes to a customer
   # rather than to staff, so it has a switch of its own.
   features:
     scannerFolderEnabled: true
-    walletPassEnabled: true
     idCardMailEnabled: true
   # GDPR gap G1 (docs/architecture/gdpr-compliance.md) - deletes a household, and everything attached
   # to it (persons, notes, documents on disk, attendance history), once its validUntil has been in the

@@ -172,11 +172,3 @@ data class PrivacyNoticePdfData(
         return result
     }
 }
-
-@ExcludeFromTestCoverage
-data class IdCardSummary(
-    val householdId: Long,
-    val fullName: String,
-    val countPersons: Int,
-    val countInfants: Int,
-)

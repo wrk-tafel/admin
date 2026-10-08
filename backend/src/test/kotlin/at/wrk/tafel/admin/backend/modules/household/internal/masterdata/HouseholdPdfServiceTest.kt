@@ -289,15 +289,6 @@ class HouseholdPdfServiceTest {
         assertThat(darkPixels).describedAs("the QR code and the text are drawn").isGreaterThan(5000)
     }
 
-    @Test
-    fun `id card summary counts the same persons the card prints`() {
-        val summary = service.createIdCardSummary(testHousehold)
-
-        assertThat(summary).isEqualTo(
-            IdCardSummary(householdId = 123, fullName = "Max Mustermann", countPersons = 3, countInfants = 0),
-        )
-    }
-
     /**
      * `countInfants` must agree with everywhere else "unter 3 Jahren" is counted
      * (`DistributionStatisticService`, `DistributionService.mapHouseholdToPdfModel`): under 3, not
