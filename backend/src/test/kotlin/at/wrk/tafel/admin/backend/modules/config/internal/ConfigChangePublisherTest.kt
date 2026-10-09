@@ -39,7 +39,6 @@ internal class ConfigChangePublisherTest {
                     version = "1.2.3",
                     buildDate = "2026-07-28",
                     scannerFolderEnabled = false,
-                    idCardMailEnabled = false,
                     environmentLabel = "",
                 ),
             )
@@ -77,7 +76,6 @@ internal class ConfigChangePublisherTest {
                     version = "1.2.3",
                     buildDate = "2026-07-28",
                     scannerFolderEnabled = false,
-                    idCardMailEnabled = false,
                     environmentLabel = "",
                 ),
             )
@@ -87,7 +85,6 @@ internal class ConfigChangePublisherTest {
                     version = "1.2.3",
                     buildDate = "2026-07-28",
                     scannerFolderEnabled = true,
-                    idCardMailEnabled = false,
                     environmentLabel = "",
                 ),
             )

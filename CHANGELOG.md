@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Die digitale Ausgabe des Kundenausweises ("Daten ausdrucken → Ausweis digital …": Download als PDF oder Bild, Versand per E-Mail) wurde wieder entfernt; der Ausweis wird wie bisher ausgedruckt. Bereits erfasste Versand-Einträge im Verlauf eines Kunden bleiben sichtbar.
+
+## [1.29.0] - 2026-10-08
 - Der Kundenausweis kann jetzt digital ausgegeben werden: über "Daten ausdrucken → Ausweis digital …" lässt er sich als PDF im Kartenformat und als Bild herunterladen oder direkt an die beim Kunden hinterlegte E-Mail-Adresse senden; der Versand wird im Verlauf des Kunden festgehalten.
 
 ## [1.28.5] - 2026-10-04

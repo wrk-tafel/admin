@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.config
 
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminMailProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -24,7 +23,6 @@ class ConfigControllerTest {
                 version = "1.2.3",
                 buildDate = "2026-07-28",
                 scannerFolderEnabled = true,
-                idCardMailEnabled = false,
                 environmentLabel = "",
             ),
         )
@@ -40,19 +38,6 @@ class ConfigControllerTest {
         )
 
         assertThat(controller.getConfig().scannerFolderEnabled).isFalse()
-    }
-
-    @Test
-    fun `get config reports the id card mail only when mail is configured and switched on`() {
-        val properties = TafelAdminProperties()
-        val controller = ConfigController(properties)
-        assertThat(controller.getConfig().idCardMailEnabled).isFalse()
-
-        properties.mail = TafelAdminMailProperties().apply { from = "no-reply@example.org" }
-        assertThat(controller.getConfig().idCardMailEnabled).isTrue()
-
-        properties.features.idCardMailEnabled = false
-        assertThat(controller.getConfig().idCardMailEnabled).isFalse()
     }
 
     @Test
@@ -80,7 +65,6 @@ class ConfigControllerTest {
                 version = "1.2.3",
                 buildDate = "unknown",
                 scannerFolderEnabled = true,
-                idCardMailEnabled = false,
                 environmentLabel = "",
             ),
         )

@@ -1,6 +1,6 @@
 # ADR-0066: The digital ID card is a PDF and an image, not a wallet pass
 
-**Status:** accepted · **Recorded:** 2026-10-08
+**Status:** superseded by [ADR-0067](0067-the-id-card-is-handed-out-on-paper-only.md) · **Recorded:** 2026-10-08
 
 ## Context
 
