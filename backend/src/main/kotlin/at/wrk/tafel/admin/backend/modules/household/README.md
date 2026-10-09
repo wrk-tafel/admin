@@ -441,37 +441,6 @@ empty `fo:block` collapses to zero height in FOP, which visibly misaligns the ac
 "underline" next to fields that do have a value. `privacy-notice.xsl`'s subtitle ("Kundennummer …")
 is likewise omitted entirely, not shown blank, when `householdId` is empty.
 
-### Digital ID card: `HouseholdIdCardService` (`internal/idcard`)
-The ID card in the forms a customer keeps on a phone: `HouseholdIdCardFormat.PDF` (one card-sized
-page) and `IMAGE` (the same page as a PNG). The printable, foldable card stays `generatePdf`'s
-`IDCARD` type. There is no wallet card, see
-[ADR-0066](../../../../../../../../../../docs/architecture/adr/0066-the-digital-id-card-is-a-pdf-and-an-image-not-a-wallet-pass.md).
-
-- `GET /api/households/{id}/id-card?format=` downloads one format.
-- `POST /api/households/{id}/id-card/send-mail` (body `HouseholdIdCardMailRequest`: the formats)
-  mails them as attachments (`mails/id-card-mail`).
-
-**The mail goes to the address stored on the household and nowhere else.** The request carries no
-recipient on purpose: an address typed into a dialog is one typo away from handing a card to a
-stranger. A household without an address is refused. This is the one mail in the application that
-goes to a customer rather than to staff, which is why it has its own switch
-(`tafeladmin.features.idCardMailEnabled`, reported as `/api/config`'s `idCardMailEnabled`) next to
-the requirement that mail is configured at all, and why `mail-layout.html` takes a `greeting`.
-
-PDF and image are one stylesheet, `idcard-digital-document.xsl`: `PDFService.generatePdf` renders
-it, and `generatePng` rasterizes that finished PDF with PDFBox. The image is deliberately *not*
-FOP's own bitmap output - that renderer asks the JVM for the fonts installed on the host, which
-throws in a container without fontconfig (the production image), while the PDF carries its font
-embedded. The card carries less than the printed one - household number, QR code, main person's name
-and the person counts, no address and no birth date - since it leaves the organisation as a mail
-attachment. Its QR code holds the household number and nothing else, exactly like the printed
-card's, so the check-in scanner needs to know nothing about any of this.
-
-Both calls record an `AuditOperation.READ` on the household. The mail's entry carries
-`idCardSentByMail` with the formats that were sent - the one `READ` with a detail, which the audit
-list renders. A sent mail also sits in `mail_outbox` as the finished MIME message, attachments
-included, until `tafeladmin.mailOutbox.sentRetention` removes it.
-
 ### `HouseholdNoteController` / `HouseholdNoteService` (`internal/note`)
 Free-text notes attached to a household (`household_notes` table,
 [`HouseholdNoteEntity`](../../database/model/household/HouseholdNoteEntity.kt)), each stamped with

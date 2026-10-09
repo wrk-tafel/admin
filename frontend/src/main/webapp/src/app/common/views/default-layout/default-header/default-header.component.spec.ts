@@ -92,8 +92,7 @@ describe('DefaultHeaderComponent', () => {
                     useValue: {
                         observeConfig: vi.fn().mockName('ConfigApiService.observeConfig')
                           .mockReturnValue(of({
-                              version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true,
-                                idCardMailEnabled: false, environmentLabel: ''
+                              version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true, environmentLabel: ''
                           }))
                     }
                 },
@@ -580,8 +579,7 @@ describe('DefaultHeaderComponent', () => {
     it('shows an environment banner outside production', () => {
         const configApiService = TestBed.inject(ConfigApiService) as MockedObject<ConfigApiService>;
         configApiService.observeConfig.mockReturnValue(
-            of({version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true,
-              idCardMailEnabled: false, environmentLabel: 'DEV'})
+            of({version: '1.0.0', buildDate: '2026-07-28', scannerFolderEnabled: true, environmentLabel: 'DEV'})
         );
 
         const fixture = TestBed.createComponent(DefaultHeaderComponent);

@@ -218,17 +218,6 @@ Content-Type: application/json
 GET {{baseApiPath}}/households/100/generate-pdf?type=IDCARD
 Content-Type: application/json
 
-### Get digital idcard (format: PDF or IMAGE)
-GET {{baseApiPath}}/households/100/id-card?format=IMAGE
-
-### Send digital idcard by mail to the address stored on the household
-POST {{baseApiPath}}/households/100/id-card/send-mail
-Content-Type: application/json
-
-{
-  "formats": ["PDF", "IMAGE"]
-}
-
 ### Get privacy notice pdf
 GET {{baseApiPath}}/households/100/generate-pdf?type=PRIVACY_NOTICE
 Content-Type: application/json

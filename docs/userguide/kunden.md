@@ -40,7 +40,6 @@ Rechts oben im Kopfbereich stehen die Aktionen zur Verfügung, gereiht nach ihre
 
 - **Bezug verlängern**: Verlängert die Gültigkeit des Kunden um 1, 2, 3, 6 oder 12 Monate; jeder Menüpunkt zeigt bereits das resultierende Datum an (z. B. "3 Monate → 12.11.2026"). Fehlt bei einer Person des Haushalts das Geburtsdatum, ist eine Verlängerung nicht möglich, da es für die Einkommensprüfung benötigt wird; ein Hinweis fordert dann dazu auf, zuerst die Kundendaten zu vervollständigen. Andere fehlende Angaben (z. B. das Geschlecht) verhindern die Verlängerung nicht.
 - **Daten ausdrucken**: Druck der Stammdaten, nur des Kundenausweises oder einer Datenschutzerklärung zum Ausdrucken und Unterschreiben durch den Kunden bei der Aufnahme. Während die PDF-Datei erstellt wird, zeigt der Button eine Ladeanimation statt stumm zu warten.
-- **Daten ausdrucken → Ausweis digital …**: Gibt den Kundenausweis für das Handy statt für den Drucker aus (siehe [Digitaler Ausweis](#digitaler-ausweis)).
 - **Kunde bearbeiten**: Öffnet die Bearbeitung der Stammdaten (siehe unten).
 - **Unkostenbeitrag**: Ist noch ein Betrag offen, wird er als roter Hinweis direkt am Button angezeigt; im Menü stehen dann zusätzlich "Alles bezahlt" und "Betrag eintragen" zur Verfügung. Unabhängig davon kann über "Betrag bearbeiten" (unterhalb einer Trennlinie) der Betrag jederzeit manuell korrigiert werden.
 - **Weitere Aktionen**: Sammelt die selteneren bzw. sicherheitskritischen Aktionen **Kunde deaktivieren**, **Kunde sperren**/**entsperren**, **Daten exportieren (ZIP)** und **Kunde löschen** (jeweils mit Sicherheitsabfrage bzw. Download) in einem Menü. **Daten exportieren (ZIP)** liefert die vollständige Datenauskunft zu einem Kunden für eine DSGVO-Anfrage in einer einzigen ZIP-Datei: die Stammdaten, weiteren Personen, Notizen, Teilnahme-Historie an Ausgabetagen und die Liste der hochgeladenen Dokumente sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei, sowie alle hochgeladenen Dokumente selbst. Funktioniert unabhängig vom Sperrstatus, da ein gesperrter Kunde dieselben Auskunftsrechte behält. Ist die betroffene Person nicht anhand der Kundennummer bekannt, oder soll sie zugleich als Kunde und als Mitarbeiter:in gesucht werden, bietet sich stattdessen [Datenauskunft](datenauskunft.md) an.
@@ -77,24 +76,6 @@ Der Tab "Notizen" (die Beschriftung zeigt zusätzlich die Gesamtanzahl an Notize
 
 ### Dokumente
 
-<a id="digitaler-ausweis"></a>
-### Digitaler Ausweis
-
-Über **Daten ausdrucken → Ausweis digital …** kann der Kundenausweis in einer Form ausgegeben werden, die der Kunde am Handy mitführt. Der QR-Code wird bei der Ausgabe direkt vom Bildschirm gescannt; der ausgedruckte Ausweis bleibt daneben gültig.
-
-![Digitaler Ausweis](images/kunden-ausweis-digital.jpg)
-
-Zur Auswahl stehen – auch beide gleichzeitig:
-
-- **PDF**: der Ausweis im Kartenformat auf einer Seite, auf jedem Gerät zu öffnen und bei Bedarf auszudrucken.
-- **Bild**: derselbe Ausweis als Bilddatei, zum Speichern in den Fotos am Handy.
-
-Der digitale Ausweis zeigt Kundennummer, QR-Code, den Namen des Hauptbeziehers und die Personenanzahl – bewusst ohne Adresse und Geburtsdatum.
-
-Mit **Herunterladen** werden die gewählten Formate als Dateien gespeichert, etwa um sie dem Kunden vor Ort zu übergeben. Mit **Per E-Mail senden** gehen sie als Anhang an die beim Kunden hinterlegte E-Mail-Adresse; die Adresse wird im Dialog angezeigt und kann dort absichtlich nicht geändert werden – ist sie falsch, zuerst die Kundendaten korrigieren. Ist keine Adresse hinterlegt, steht nur das Herunterladen zur Verfügung. Ist der E-Mail-Versand von Ausweisen in der Umgebung nicht eingerichtet, fehlt der Button.
-
-Sowohl das Herunterladen als auch der Versand werden im Tab "Verlauf" festgehalten, der Versand samt den gesendeten Formaten.
-
 Der Tab "Dokumente" zeigt alle zum Kunden hochgeladenen Dokumente (z. B. Einkommensnachweise, Ausweiskopien, unterschriebene Datenschutzerklärungen) mit Dateiname, Dokumenttyp, Datum und Ersteller. Dokumente können heruntergeladen oder gelöscht werden (jeweils mit Sicherheitsabfrage).
 
 Der Tab wird nur angezeigt, wenn die Berechtigung **Kunden-Dokumente** vorhanden ist (siehe [Benutzer](benutzer.md)). Sie ist absichtlich von der Kundenverwaltung getrennt, da hochgeladene Ausweise und Einkommensnachweise zu den sensibelsten Daten im System gehören.
@@ -116,7 +97,7 @@ Vor dem Hochladen muss der **Dokumenttyp** ausgewählt werden. Ein Hinweis erinn
 
 ### Verlauf
 
-Der Tab "Verlauf" zeigt jede erfasste Änderung an diesem Kunden, seinen weiteren Personen, seinen Notizen und seinen Dokumenten sowie jeden Zugriff darauf (Öffnen der Detailseite, Dokument-Download, Stammdatenblatt, Ausweis – auch digital heruntergeladen oder per E-Mail gesendet) – jeweils mit Zeitpunkt, dem Benutzer, der sie vorgenommen hat, und den Werten davor und danach. Damit lässt sich nachvollziehen, wer z. B. die Adresse korrigiert, das Einkommen angepasst oder den Kunden gesperrt hat.
+Der Tab "Verlauf" zeigt jede erfasste Änderung an diesem Kunden, seinen weiteren Personen, seinen Notizen und seinen Dokumenten sowie jeden Zugriff darauf (Öffnen der Detailseite, Dokument-Download, Stammdatenblatt, Ausweis) – jeweils mit Zeitpunkt, dem Benutzer, der sie vorgenommen hat, und den Werten davor und danach. Damit lässt sich nachvollziehen, wer z. B. die Adresse korrigiert, das Einkommen angepasst oder den Kunden gesperrt hat.
 
 Der Tab wird nur angezeigt, wenn die Berechtigung **Zugriffsprotokoll** vorhanden ist. Dieselben Einträge – gemeinsam mit jenen zu Benutzern und Einstellungen – finden sich im [Zugriffsprotokoll](zugriffsprotokoll.md), dort zusätzlich filterbar.
 

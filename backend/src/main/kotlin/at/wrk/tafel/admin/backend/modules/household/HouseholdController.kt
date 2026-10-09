@@ -11,7 +11,6 @@ import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdLockReview
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdLockService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
-import at.wrk.tafel.admin.backend.modules.household.internal.idcard.HouseholdIdCardService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
@@ -32,7 +31,6 @@ class HouseholdController(
     private val householdExportService: HouseholdExportService,
     private val householdLockReviewService: HouseholdLockReviewService,
     private val householdLockService: HouseholdLockService,
-    private val householdIdCardService: HouseholdIdCardService,
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -154,39 +152,6 @@ class HouseholdController(
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
         } ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
-    }
-
-    /**
-     * The ID card for a phone - a card-sized PDF or the same card as an image. The
-     * printable, foldable card stays `generate-pdf`'s `IDCARD` type.
-     */
-    @GetMapping("/{householdId}/id-card")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun getIdCard(
-        @PathVariable householdId: Long,
-        @RequestParam("format") format: HouseholdIdCardFormat,
-    ): ResponseEntity<InputStreamResource> {
-        val file = householdIdCardService.generateIdCard(householdId, format)
-
-        return ResponseEntity
-            .ok()
-            .headers(ContentDispositionUtil.attachment(file.filename))
-            .contentType(MediaType.valueOf(file.contentType))
-            .body(InputStreamResource(ByteArrayInputStream(file.bytes)))
-    }
-
-    /**
-     * Mails the ID card, in the requested forms, to the address stored on the household - never to
-     * one named in the request, see [HouseholdIdCardService].
-     */
-    @PostMapping("/{householdId}/id-card/send-mail")
-    @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun sendIdCardByMail(
-        @PathVariable householdId: Long,
-        @Valid @RequestBody request: HouseholdIdCardMailRequest,
-    ): ResponseEntity<Unit> {
-        householdIdCardService.sendIdCardByMail(householdId, request.formats.orEmpty())
-        return ResponseEntity.noContent().build()
     }
 
     /**
