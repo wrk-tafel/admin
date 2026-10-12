@@ -24,7 +24,6 @@ import com.webauthn4j.data.attestation.statement.NoneAttestationStatement
 import com.webauthn4j.data.client.Origin
 import com.webauthn4j.data.client.challenge.DefaultChallenge
 import com.webauthn4j.server.ServerProperty
-
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -261,7 +260,11 @@ class PasskeyService(
         }
 
         val passkey = properties.mfa.passkey
-        return ServerProperty(passkey.origins.map { Origin(it) }.toSet(), passkey.rpId, DefaultChallenge(pending.challenge))
+        return ServerProperty.builder()
+            .origins(passkey.origins.map { Origin(it) }.toSet())
+            .rpId(passkey.rpId)
+            .challenge(DefaultChallenge(pending.challenge))
+            .build()
     }
 
     private fun descriptor(passkey: UserPasskeyEntity): Map<String, Any?> = mapOf(

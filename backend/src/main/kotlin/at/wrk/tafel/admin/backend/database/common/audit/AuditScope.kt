@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.database.common.audit
 
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
-import at.wrk.tafel.admin.backend.database.model.auth.UserPasskeyEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserPasskeyEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity

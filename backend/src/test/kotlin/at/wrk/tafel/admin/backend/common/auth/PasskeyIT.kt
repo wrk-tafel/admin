@@ -40,15 +40,14 @@ import java.util.Base64
  *
  * The user's code method is the e-mailed code, fixed to [emailCode] here: unlike an app code it can be asked
  * for as often as a test needs one.
+ *
+ * The annotation is deliberately the same as `MfaIT`'s, so both share one application context: every further
+ * context is another connection pool against the one test database, and that database has a connection limit.
+ * What only this test needs - the relying party - is set on the (mutable, read-per-use) properties instead.
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = [
-        "spring.thymeleaf.prefix=classpath:/mail-templates/",
-        "tafeladmin.mfa.emailCodeForTests=424242",
-        "tafeladmin.mfa.passkey.rpId=localhost",
-        "tafeladmin.mfa.passkey.origins=http://localhost:4200",
-    ],
+    properties = ["spring.thymeleaf.prefix=classpath:/mail-templates/", "tafeladmin.mfa.emailCodeForTests=424242"],
 )
 @ActiveProfiles("test")
 class PasskeyIT : TafelBaseIntegrationTest() {
@@ -98,6 +97,8 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         previousCooldown = tafelAdminProperties.mfa.emailCodeCooldown
         tafelAdminProperties.mail = TafelAdminMailProperties().apply { from = "noreply@example.org" }
         tafelAdminProperties.mfa.emailCodeCooldown = Duration.ZERO
+        tafelAdminProperties.mfa.passkey.rpId = "localhost"
+        tafelAdminProperties.mfa.passkey.origins = mutableListOf("http://localhost:4200")
 
         val encodedPassword = passwordEncoder.encode(password)!!
         user = transactionTemplate.execute {
@@ -116,6 +117,8 @@ class PasskeyIT : TafelBaseIntegrationTest() {
     fun afterEach() {
         tafelAdminProperties.mail = previousMail
         tafelAdminProperties.mfa.emailCodeCooldown = previousCooldown
+        tafelAdminProperties.mfa.passkey.rpId = ""
+        tafelAdminProperties.mfa.passkey.origins = mutableListOf()
         transactionTemplate.execute { userRepository.deleteById(user.id!!) }
     }
 
@@ -277,7 +280,6 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         assertThat(post("/api/mfa/passkey/enable", enableBody(credential, name, emailCode), session).statusCode())
             .isEqualTo(HttpStatus.NO_CONTENT.value())
     }
-
 
     private fun setupOptions(session: String): Map<String, Any?> = optionsOf(post("/api/mfa/passkey/setup", "", session))
 
