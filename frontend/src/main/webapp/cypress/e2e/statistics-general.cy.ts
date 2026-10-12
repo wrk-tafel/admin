@@ -156,8 +156,8 @@ describe('Statistics General', () => {
 
     cy.intercept('GET', '/api/statistics/data?fromDate=2024-01-01&toDate=2024-06-30').as('customRangeData');
 
-    cy.byTestId('dataRangeFromInput').clear().type('2024-01-01');
-    cy.byTestId('dataRangeToInput').clear().type('2024-06-30');
+    cy.byTestId('dataRangeFromInput').clear().type('01.01.2024').blur();
+    cy.byTestId('dataRangeToInput').clear().type('30.06.2024').blur();
 
     cy.wait('@customRangeData');
     cy.contains('Zeitraum: 01.01.2024 - 30.06.2024').should('be.visible');
@@ -168,11 +168,11 @@ describe('Statistics General', () => {
     cy.byTestId('dateRangeModeInput').contains('Benutzerdefiniert').click();
 
     cy.intercept('GET', '/api/statistics/data?fromDate=2024-06-30&toDate=2024-06-30').as('validRangeData');
-    cy.byTestId('dataRangeFromInput').clear().type('2024-06-30');
-    cy.byTestId('dataRangeToInput').clear().type('2024-06-30');
+    cy.byTestId('dataRangeFromInput').clear().type('30.06.2024').blur();
+    cy.byTestId('dataRangeToInput').clear().type('30.06.2024').blur();
     cy.wait('@validRangeData');
 
-    cy.byTestId('dataRangeToInput').clear().type('2024-01-01');
+    cy.byTestId('dataRangeToInput').clear().type('01.01.2024').blur();
 
     cy.byTestId('dateRangeError').should('be.visible');
     cy.byTestId('csvExportButton').should('be.disabled');
@@ -184,8 +184,8 @@ describe('Statistics General', () => {
     cy.byTestId('dateRangeModeInput').contains('Benutzerdefiniert').click();
 
     cy.intercept('GET', '/api/statistics/data?fromDate=2010-01-01&toDate=2010-12-31').as('emptyRangeData');
-    cy.byTestId('dataRangeFromInput').clear().type('2010-01-01');
-    cy.byTestId('dataRangeToInput').clear().type('2010-12-31');
+    cy.byTestId('dataRangeFromInput').clear().type('01.01.2010').blur();
+    cy.byTestId('dataRangeToInput').clear().type('31.12.2010').blur();
     cy.wait('@emptyRangeData');
 
     cy.byTestId('noDistributionsHint').should('be.visible');
@@ -247,8 +247,8 @@ describe('Statistics General', () => {
 
     cy.intercept('GET', '/api/statistics/data?fromDate=2024-01-01&toDate=2024-06-30').as('customRangeData');
 
-    cy.byTestId('dataRangeFromInput').should('be.visible').clear().type('2024-01-01');
-    cy.byTestId('dataRangeToInput').should('be.visible').clear().type('2024-06-30');
+    cy.byTestId('dataRangeFromInput').should('be.visible').clear().type('01.01.2024').blur();
+    cy.byTestId('dataRangeToInput').should('be.visible').clear().type('30.06.2024').blur();
 
     cy.wait('@customRangeData');
     cy.contains('Zeitraum: 01.01.2024 - 30.06.2024').should('be.visible');

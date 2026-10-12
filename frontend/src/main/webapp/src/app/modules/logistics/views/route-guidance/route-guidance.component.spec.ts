@@ -289,7 +289,7 @@ describe('RouteGuidanceComponent', () => {
     const component = fixture.componentInstance;
     component['onSelectedRouteChange'](testRoute);
 
-    expect(component['completeButtonLabel']()).toBe('Stopp 12:00 Lidl als erledigt markieren');
+    expect(component['completeButtonLabel']()).toBe('Stopp erledigt: 12:00 Lidl');
     // nothing behind the first stop
     expect(component['previousButtonLabel']()).toBeUndefined();
     expect(component['nextButtonLabel']()).toBe('Weiter zu Stopp 12:30 Stopp ohne Filiale');

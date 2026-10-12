@@ -104,7 +104,10 @@
               <div class="flex items-center gap-4">
                 <mat-form-field class="flex-1" subscriptSizing="dynamic">
                   <mat-label>Startzeit</mat-label>
-                  <input matInput type="time" testid="starttime-input" [formField]="startTimeForm.startTime">
+                  <input matInput testid="starttime-input" placeholder="HH:MM" [matTimepicker]="startTimePicker"
+                         [matTimepickerOpenOnClick]="false" [formField]="startTimeForm.startTime">
+                  <mat-timepicker-toggle matIconSuffix [for]="startTimePicker" aria-label="Uhrzeit auswählen"></mat-timepicker-toggle>
+                  <mat-timepicker #startTimePicker></mat-timepicker>
                 </mat-form-field>
                 <button testid="show-starttime-button" matButton="filled" type="submit" [disabled]="isShowingStartTime()">Anzeigen</button>
               </div>

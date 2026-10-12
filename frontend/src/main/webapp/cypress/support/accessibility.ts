@@ -146,3 +146,13 @@ Cypress.Commands.add('checkAutocompleteAccessibility', (options?: Options) => {
   cy.get('.mat-mdc-autocomplete-panel').should('be.visible').and(expectFadedIn);
   cy.checkAccessibility('.mat-mdc-autocomplete-panel', options);
 });
+
+Cypress.Commands.add('checkDatepickerAccessibility', (options?: Options) => {
+  cy.get('.mat-datepicker-content').should('be.visible').and(expectFadedIn).and(expectAnimationsSettled);
+  cy.checkAccessibility('.mat-datepicker-content', options);
+});
+
+Cypress.Commands.add('checkTimepickerAccessibility', (options?: Options) => {
+  cy.get('.mat-timepicker-panel').should('be.visible').and(expectFadedIn).and(expectAnimationsSettled);
+  cy.checkAccessibility('.mat-timepicker-panel', options);
+});

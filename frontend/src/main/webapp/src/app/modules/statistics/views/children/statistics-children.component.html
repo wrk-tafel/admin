@@ -33,7 +33,10 @@
       </mat-form-field>
       <mat-form-field subscriptSizing="dynamic" class="max-w-48">
         <mat-label>Stichtag</mat-label>
-        <input testid="childrenReferenceDateInput" matInput type="date" formControlName="referenceDate">
+        <input testid="childrenReferenceDateInput" matInput placeholder="TT.MM.JJJJ" formControlName="referenceDate"
+               [matDatepicker]="referenceDatePicker">
+        <mat-datepicker-toggle matIconSuffix [for]="referenceDatePicker"></mat-datepicker-toggle>
+        <mat-datepicker #referenceDatePicker></mat-datepicker>
         <mat-hint>Alter an diesem Tag</mat-hint>
       </mat-form-field>
       <button type="button" matButton="outlined" (click)="applySchoolAgePreset()"

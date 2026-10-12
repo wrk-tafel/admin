@@ -9,6 +9,7 @@ import {CountryApiService} from '../../../../api/country-api.service';
 import {CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
 import {ReactiveFormsModule} from '@angular/forms';
+import {provideTafelDateAdapter} from '../../../../common/date/tafel-date-adapter';
 
 describe('CustomerFormComponent', () => {
   let apiService: MockedObject<CountryApiService>;
@@ -79,6 +80,7 @@ describe('CustomerFormComponent', () => {
         ReactiveFormsModule
       ],
       providers: [
+        provideTafelDateAdapter(),
         {
           provide: CountryApiService,
           useValue: apiServiceSpy
@@ -393,4 +395,47 @@ describe('CustomerFormComponent', () => {
     });
   });
 
+});
+
+describe('CustomerFormComponent date fields', () => {
+  it('reports text that is not a date as such rather than as a missing value', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideTafelDateAdapter(),
+        {provide: CountryApiService, useValue: {getCountries: () => of({countries: [], frequentlyUsedCount: 0})}}
+      ]
+    });
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    fixture.detectChanges();
+
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('[testid="birthDateInput"]');
+    input.value = '31.02.1980';
+    input.dispatchEvent(new Event('input'));
+    input.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    const errors = Array.from(input.closest('mat-form-field')!.querySelectorAll('mat-error')).map(error => error.textContent?.trim());
+    expect(errors).toEqual(['Ungültiges Datum (TT.MM.JJJJ)']);
+    expect(fixture.componentInstance.valid()).toBe(false);
+  });
+
+  it('takes a date typed with dots into the form', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideTafelDateAdapter(),
+        {provide: CountryApiService, useValue: {getCountries: () => of({countries: [], frequentlyUsedCount: 0})}}
+      ]
+    });
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    fixture.detectChanges();
+
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('[testid="birthDateInput"]');
+    input.value = '24.12.1980';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.customerForm.birthDate().value()).toEqual(new Date(1980, 11, 24));
+    expect(input.closest('mat-form-field')!.querySelector('mat-datepicker-toggle button')!.getAttribute('aria-label'))
+      .toEqual('Kalender öffnen');
+  });
 });

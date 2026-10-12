@@ -267,12 +267,12 @@ export class RouteGuidanceComponent {
   // the current stop's state (see `@if (view.stop.completed)` there) - the other stays undefined.
   protected readonly completeButtonLabel = computed(() => {
     const view = this.currentStop();
-    return (view && !view.stop.completed) ? `Stopp ${view.timeLabel} ${view.title} als erledigt markieren` : undefined;
+    return (view && !view.stop.completed) ? `Stopp erledigt: ${view.timeLabel} ${view.title}` : undefined;
   });
 
   protected readonly undoButtonLabel = computed(() => {
     const view = this.currentStop();
-    return (view && view.stop.completed) ? `Erledigung von Stopp ${view.timeLabel} ${view.title} rückgängig machen` : undefined;
+    return (view && view.stop.completed) ? `Rückgängig machen: Erledigung von Stopp ${view.timeLabel} ${view.title}` : undefined;
   });
 
   protected readonly mutationDisabled = computed(() => this.pendingStopId() !== undefined);

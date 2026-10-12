@@ -1,4 +1,4 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {Component, computed, inject, signal, WritableSignal} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {FormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -7,6 +7,7 @@ import {catchError, debounceTime, distinctUntilChanged, EMPTY, Subject, switchMa
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
+import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from '@angular/material/datepicker';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatPaginatorModule} from '@angular/material/paginator';
@@ -23,6 +24,7 @@ import {
 import {PAGE_SIZE_OPTIONS} from '../../../../common/api/paged-response';
 import {AuditEntryListComponent} from '../../../../common/components/audit-entry-list/audit-entry-list.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {formatIsoDate, parseIsoDate} from '../../../../common/date/date-values';
 
 /**
  * The screen opens on the question it is almost always opened for: what changed on customers
@@ -56,7 +58,7 @@ const FILTER_QUERY_PARAMS = {
 /** Long enough not to search on every keystroke of a customer number, short enough to feel immediate. */
 const TEXT_FILTER_DEBOUNCE_MS = 400;
 
-/** `yyyy-MM-dd` as a native date input expects it, taken from the local calendar rather than UTC. */
+/** `yyyy-MM-dd` as the filter and its link carry a date, taken from the local calendar rather than UTC. */
 const isoDate = (date: dayjs.Dayjs): string => date.format('YYYY-MM-DD');
 
 /** The ranges the log is almost always narrowed to, as one click instead of two date pickers. */
@@ -86,6 +88,9 @@ const DATE_PRESETS = [
     MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
+    MatDatepicker,
+    MatDatepickerInput,
+    MatDatepickerToggle,
     MatFormFieldModule,
     MatInputModule,
     MatPaginatorModule,
@@ -110,6 +115,9 @@ export class AuditLogComponent {
   protected readonly businessKey = signal<string | null>(null);
   protected readonly from = signal<string | null>(isoDate(dayjs().subtract(DEFAULT_RANGE_MONTHS, 'month')));
   protected readonly to = signal<string | null>(isoDate(dayjs()));
+  /** The same two dates as the date fields hold them. */
+  protected readonly fromDate = computed(() => parseIsoDate(this.from()));
+  protected readonly toDate = computed(() => parseIsoDate(this.to()));
 
   /**
    * What is typed into the actor box, which is not the same as the actor being filtered on: the
@@ -236,6 +244,12 @@ export class AuditLogComponent {
   protected applyDatePreset(preset: typeof DATE_PRESETS[number]) {
     this.from.set(isoDate(preset.from()));
     this.to.set(isoDate(preset.to()));
+    this.applyFilter();
+  }
+
+  /** A date field reports once a date is complete - picked, or typed and left - not on every keystroke. */
+  protected onDateChange(target: WritableSignal<string | null>, date: Date | null) {
+    target.set(date ? formatIsoDate(date) : null);
     this.applyFilter();
   }
 

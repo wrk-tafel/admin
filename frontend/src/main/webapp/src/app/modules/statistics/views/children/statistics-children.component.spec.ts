@@ -12,6 +12,7 @@ import {
 } from '../../../../api/statistics-api.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
+import {provideTafelDateAdapter} from '../../../../common/date/tafel-date-adapter';
 
 describe('StatisticsChildrenComponent', () => {
   let statisticsApiService: MockedObject<StatisticsApiService>;
@@ -55,6 +56,7 @@ describe('StatisticsChildrenComponent', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideTafelDateAdapter(),
         provideRouter([]),
         provideCharts(withDefaultRegisterables()),
         {provide: StatisticsApiService, useValue: statisticsApiServiceSpy},
@@ -101,7 +103,7 @@ describe('StatisticsChildrenComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    component.filterForm.patchValue({referenceDate: '2026-09-01'});
+    component.filterForm.patchValue({referenceDate: dayjs('2026-09-01').toDate()});
 
     expect(statisticsApiService.getChildrenData).toHaveBeenCalledWith(
       {ageMin: 6, ageMax: 10, referenceDate: dayjs('2026-09-01').toDate()}, undefined, undefined, undefined, undefined

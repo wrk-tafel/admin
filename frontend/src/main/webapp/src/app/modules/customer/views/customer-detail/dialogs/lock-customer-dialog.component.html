@@ -17,13 +17,21 @@
 
     <mat-form-field class="w-full">
       <mat-label>Gesperrt bis (optional)</mat-label>
-      <input matInput type="date" testid="lockeduntil-input" [min]="minLockedUntil"
+      <input matInput testid="lockeduntil-input" placeholder="TT.MM.JJJJ" [matDatepicker]="lockedUntilPicker"
+             [min]="minLockedUntil" #lockedUntilModel="ngModel"
              [ngModel]="lockedUntil()" (ngModelChange)="lockedUntil.set($event)">
+      <mat-datepicker-toggle matIconSuffix [for]="lockedUntilPicker"></mat-datepicker-toggle>
+      <mat-datepicker #lockedUntilPicker></mat-datepicker>
+      @if (lockedUntilModel.hasError('matDatepickerParse')) {
+        <mat-error>Ungültiges Datum (TT.MM.JJJJ)</mat-error>
+      } @else if (lockedUntilModel.hasError('matDatepickerMin')) {
+        <mat-error>Datum muss in der Zukunft liegen</mat-error>
+      }
       <mat-hint>Leer lassen für eine dauerhafte Sperre.</mat-hint>
     </mat-form-field>
   </div>
   <div tafel-dialog-actions>
-    <button testid="okButton" matButton="filled" (click)="save()" [disabled]="!canSave()">Speichern</button>
+    <button testid="okButton" matButton="filled" (click)="save()" [disabled]="!canSave() || !!lockedUntilModel.invalid">Speichern</button>
     <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
   </div>
 </tafel-dialog>

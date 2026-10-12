@@ -80,7 +80,7 @@ describe('Customer Locked', () => {
       cy.byTestId('editCustomerToggleButton').click();
       cy.byTestId('lockCustomerButton').click();
       cy.byTestId('lockreason-input-text').type('temporary e2e lock reason');
-      cy.byTestId('lockeduntil-input').type(dayjs().add(14, 'day').format('YYYY-MM-DD'));
+      cy.byTestId('lockeduntil-input').type(dayjs().add(14, 'day').format('DD.MM.YYYY'));
       cy.byTestId('lock-customer-dialog').within(() => {
         cy.byTestId('okButton').click();
       });

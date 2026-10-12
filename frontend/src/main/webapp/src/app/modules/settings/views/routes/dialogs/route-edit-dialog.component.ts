@@ -6,6 +6,7 @@ import {FormArray, FormBuilder, FormsModule, ReactiveFormsModule, Validators} fr
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatTimepickerModule} from '@angular/material/timepicker';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatButton} from '@angular/material/button';
 import {MatTooltip} from '@angular/material/tooltip';
@@ -17,6 +18,8 @@ import {registerSvgIcons} from '../../../../../common/util/svg-icon.util';
 import addIcon from '@material-symbols/svg-400/outlined/add-fill.svg';
 import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
+import {provideTafelDateAdapter} from '../../../../../common/date/tafel-date-adapter';
+import {formatTimeOfDay, parseTimeOfDay} from '../../../../../common/date/date-values';
 
 export interface RouteEditDialogData {
   route?: RouteData;
@@ -25,7 +28,7 @@ export interface RouteEditDialogData {
 
 /** One stop's raw form value, before it is validated into a `RouteStopData`. */
 interface StopFormValue {
-  time?: string | null;
+  time?: Date | null;
   shopId?: number | null;
   description?: string | null;
 }
@@ -42,20 +45,15 @@ interface StopOrderPreviewItem {
 const SHORT_GAP_WARNING_MINUTES = 3;
 const LONG_GAP_WARNING_MINUTES = 180;
 
-// The backend sends a LocalTime ("14:00:00"); a freshly typed <input type="time"> value is
-// "14:00" already - both are safe to slice to "HH:mm".
-function timeLabel(time: string): string {
-  return time.substring(0, 5);
-}
-
-function timeToMinutes(time: string): number {
-  const [hours, minutes] = timeLabel(time).split(':').map(Number);
-  return hours * 60 + minutes;
+function timeToMinutes(time: Date): number {
+  return time.getHours() * 60 + time.getMinutes();
 }
 
 @Component({
   selector: 'tafel-route-edit-dialog',
   templateUrl: 'route-edit-dialog.component.html',
+  // A dialog is created under the root injector, where the shell route's date adapter is not visible.
+  providers: [provideTafelDateAdapter()],
   imports: [
     TafelDialogComponent,
     FormsModule,
@@ -63,6 +61,7 @@ function timeToMinutes(time: string): number {
     MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
+    MatTimepickerModule,
     MatSlideToggleModule,
     MatButton,
     MatTooltip,
@@ -101,7 +100,8 @@ export class RouteEditDialogComponent {
 
   private createStopGroup(stop?: RouteStopData) {
     return this.fb.group({
-      time: [stop?.time ?? '', [Validators.required]],
+      // The backend sends a LocalTime ("14:00:00"); the time field holds a Date.
+      time: [parseTimeOfDay(stop?.time), [Validators.required]],
       shopId: [stop?.shopId ?? null],
       description: [stop?.description ?? '']
     });
@@ -125,13 +125,13 @@ export class RouteEditDialogComponent {
     this.stopsValue()
       .map((stop, index): StopFormValue & {key: string} => ({...stop, key: `stop-${index}`}))
       .filter(stop => !!stop.time)
-      .sort((a, b) => timeLabel(a.time as string).localeCompare(timeLabel(b.time as string)))
+      .sort((a, b) => timeToMinutes(a.time as Date) - timeToMinutes(b.time as Date))
   );
 
   protected readonly orderedStopsPreview = computed<StopOrderPreviewItem[]>(() =>
     this.timeSortedStops().map(stop => ({
       key: stop.key,
-      timeLabel: timeLabel(stop.time as string),
+      timeLabel: formatTimeOfDay(stop.time as Date),
       label: this.stopLabel(stop)
     }))
   );
@@ -164,10 +164,10 @@ export class RouteEditDialogComponent {
 
     const timed = this.timeSortedStops();
     for (let i = 1; i < timed.length; i++) {
-      const gapMinutes = timeToMinutes(timed[i].time as string) - timeToMinutes(timed[i - 1].time as string);
+      const gapMinutes = timeToMinutes(timed[i].time as Date) - timeToMinutes(timed[i - 1].time as Date);
       if (gapMinutes <= SHORT_GAP_WARNING_MINUTES || gapMinutes >= LONG_GAP_WARNING_MINUTES) {
-        const from = `${timeLabel(timed[i - 1].time as string)} (${this.stopLabel(timed[i - 1])})`;
-        const to = `${timeLabel(timed[i].time as string)} (${this.stopLabel(timed[i])})`;
+        const from = `${formatTimeOfDay(timed[i - 1].time as Date)} (${this.stopLabel(timed[i - 1])})`;
+        const to = `${formatTimeOfDay(timed[i].time as Date)} (${this.stopLabel(timed[i])})`;
         warnings.push(`Zeitabstand zwischen ${from} und ${to} wirkt ungewöhnlich (${gapMinutes} Min.) — bitte prüfen.`);
       }
     }
@@ -288,7 +288,11 @@ export class RouteEditDialogComponent {
     if (!this.form.valid) {
       this.form.markAllAsTouched();
     } else {
-      this.dialogRef.close(this.form.value as RouteData);
+      const value = this.form.getRawValue();
+      this.dialogRef.close({
+        ...value,
+        stops: value.stops.map(stop => ({...stop, time: formatTimeOfDay(stop.time!)}))
+      } as RouteData);
     }
   }
 
