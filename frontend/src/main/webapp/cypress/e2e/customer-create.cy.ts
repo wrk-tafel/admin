@@ -1,5 +1,6 @@
 import {CustomerAddPersonData, Gender} from '../support/commands';
 import dayjs from 'dayjs';
+import {expectAnimationsSettled, MAIN_CONTENT} from '../support/accessibility';
 import {PHONE_VIEWPORT, TABLET_VIEWPORT} from '../support/viewports';
 
 describe('Customer Creation', () => {
@@ -143,7 +144,7 @@ describe('Customer Creation', () => {
 
         cy.byTestId('lastnameInput').type(lastname);
         cy.byTestId('firstnameInput').type(firstname);
-        cy.byTestId('birthDateInput').type(dayjs(birthDate).format('YYYY-MM-DD'));
+        cy.byTestId('birthDateInput').type(dayjs(birthDate).format('DD.MM.YYYY'));
 
         cy.byTestId('possible-duplicates-warning', {timeout: 8000}).should('be.visible');
         cy.byTestId('possible-duplicate-' + existingCustomerId)
@@ -193,7 +194,7 @@ describe('Customer Creation', () => {
         // the same name+birthdate+address as the customer just created above via the API
         cy.byTestId('lastnameInput').type(lastname);
         cy.byTestId('firstnameInput').type(firstname);
-        cy.byTestId('birthDateInput').type(dayjs(birthDate).format('YYYY-MM-DD'));
+        cy.byTestId('birthDateInput').type(dayjs(birthDate).format('DD.MM.YYYY'));
         cy.byTestId('genderInput').click();
         cy.byTestId('genderInput-option-MALE').click();
         cy.byTestId('countryInput').click();
@@ -204,7 +205,7 @@ describe('Customer Creation', () => {
         cy.byTestId('postalCodeInput').type('1010');
         cy.byTestId('cityInput').type('Wien');
         cy.byTestId('employerInput').type('Test Employer');
-        cy.byTestId('validUntilInput').type(dayjs().add(2, 'years').startOf('day').format('YYYY-MM-DD'));
+        cy.byTestId('validUntilInput').type(dayjs().add(2, 'years').startOf('day').format('DD.MM.YYYY'));
 
         cy.byTestId('save-button').should('be.enabled').click();
 
@@ -266,10 +267,47 @@ describe('Customer Creation', () => {
 
   it('"Gültig bis" quick-picks add the given number of months from today', () => {
     cy.byTestId('validUntilQuickPick-6m').click();
-    cy.byTestId('validUntilInput').should('have.value', dayjs().add(6, 'months').format('YYYY-MM-DD'));
+    cy.byTestId('validUntilInput').should('have.value', dayjs().add(6, 'months').format('DD.MM.YYYY'));
 
     cy.byTestId('validUntilQuickPick-12m').click();
-    cy.byTestId('validUntilInput').should('have.value', dayjs().add(6, 'months').add(12, 'months').format('YYYY-MM-DD'));
+    cy.byTestId('validUntilInput').should('have.value', dayjs().add(6, 'months').add(12, 'months').format('DD.MM.YYYY'));
+  });
+
+  it('reads a date typed the German way, with or without the dots', () => {
+    cy.byTestId('birthDateInput').should('have.attr', 'placeholder', 'TT.MM.JJJJ');
+
+    // digits only, the fast way to enter a birth date - written out once the field is left
+    cy.byTestId('birthDateInput').type('24121980').blur();
+    cy.byTestId('birthDateInput').should('have.value', '24.12.1980');
+
+    cy.byTestId('birthDateInput').clear().type('1.2.85').blur();
+    cy.byTestId('birthDateInput').should('have.value', '01.02.1985');
+  });
+
+  it('says so when what was typed is not a date, instead of calling the field empty', () => {
+    cy.byTestId('birthDateInput').type('31.02.1980').blur();
+
+    cy.byTestId('birthDateInput').parents('mat-form-field').within(() => {
+      cy.get('mat-error').should('contain.text', 'Ungültiges Datum').and('not.contain.text', 'Pflichtfeld');
+    });
+    // the message fades in, and a colour read halfway through is not the one it ends up with
+    cy.get(MAIN_CONTENT).should(expectAnimationsSettled);
+    cy.checkAccessibility(MAIN_CONTENT);
+  });
+
+  it('picks a date from the calendar', () => {
+    cy.byTestId('validUntilInput').parents('mat-form-field').find('mat-datepicker-toggle button')
+      .should('have.attr', 'aria-label', 'Kalender öffnen')
+      .click();
+
+    cy.checkDatepickerAccessibility();
+    // week starts on Monday, as the German calendar does
+    cy.get('.mat-datepicker-content .mat-calendar-table-header th').first().should('contain.text', 'M');
+    cy.get('.mat-datepicker-content .mat-calendar-next-button').click();
+    cy.get('.mat-datepicker-content .mat-calendar-body-cell').contains('15').click();
+
+    cy.get('.mat-datepicker-content').should('not.exist');
+    cy.byTestId('validUntilInput').should('have.value', dayjs().add(1, 'month').date(15).format('DD.MM.YYYY'));
   });
 
   it('nationality search-by-typing narrows the list, and reverts to the last selection if nothing is picked', () => {
@@ -478,7 +516,7 @@ describe('Customer Creation', () => {
     const uniqueSuffix = Math.floor(Math.random() * 1_000_000_000);
     cy.byTestId('lastnameInput').type('Mustermann' + uniqueSuffix);
     cy.byTestId('firstnameInput').type('Max' + uniqueSuffix);
-    cy.byTestId('birthDateInput').type(dayjs(getBirthDateForAge(age)).format('YYYY-MM-DD'));
+    cy.byTestId('birthDateInput').type(dayjs(getBirthDateForAge(age)).format('DD.MM.YYYY'));
     cy.byTestId('genderInput').click();
     cy.byTestId('genderInput-option-MALE').click();
     cy.byTestId('countryInput').click();
@@ -492,7 +530,7 @@ describe('Customer Creation', () => {
     cy.byTestId('postalCodeInput').type('1010');
     cy.byTestId('cityInput').type('Wien');
     cy.byTestId('employerInput').type('Test Employer');
-    cy.byTestId('validUntilInput').type(dayjs().add(2, 'years').startOf('day').format('YYYY-MM-DD'));
+    cy.byTestId('validUntilInput').type(dayjs().add(2, 'years').startOf('day').format('DD.MM.YYYY'));
   }
 
   function enterAdditionalPersonData(index: number, data: CustomerAddPersonData) {
@@ -501,7 +539,7 @@ describe('Customer Creation', () => {
     cy.byTestId('personform-' + index).within(() => {
       cy.byTestId('lastnameInput').type(data.lastname);
       cy.byTestId('firstnameInput').type(data.firstname);
-      cy.byTestId('birthDateInput').type(dayjs(data.birthDate).format('YYYY-MM-DD'));
+      cy.byTestId('birthDateInput').type(dayjs(data.birthDate).format('DD.MM.YYYY'));
       cy.byTestId('genderInput').click();
     });
     cy.byTestId('genderInput-option-' + data.gender).click();

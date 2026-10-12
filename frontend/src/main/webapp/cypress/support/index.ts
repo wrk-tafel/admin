@@ -160,6 +160,18 @@ declare global {
       checkAutocompleteAccessibility(options?: Options): void;
 
       /**
+       * Runs axe against the currently open calendar of a date field.
+       * @example cy.checkDatepickerAccessibility();
+       */
+      checkDatepickerAccessibility(options?: Options): void;
+
+      /**
+       * Runs axe against the currently open option list of a time field.
+       * @example cy.checkTimepickerAccessibility();
+       */
+      checkTimepickerAccessibility(options?: Options): void;
+
+      /**
        * Custom command to generate a random number in a given range.
        * @example cy.getRandomNumber(min, max);
        */

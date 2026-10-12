@@ -47,9 +47,12 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
                 <mat-form-field>
                   <mat-label>Geburtsdatum</mat-label>
-                  <input matInput [attr.testid]="'birthDateInput-' + i" type="date" [formField]="personField(i).birthDate"
-                         [attr.min]="birthDateMin" [attr.max]="today"
+                  <input matInput [attr.testid]="'birthDateInput-' + i" placeholder="TT.MM.JJJJ"
+                         [matDatepicker]="birthDatePicker" [formField]="personField(i).birthDate"
+                         [min]="birthDateMin" [max]="today"
                          tafelAutofocus [tafelAutofocusEnabled]="i === 0">
+                  <mat-datepicker-toggle matIconSuffix [for]="birthDatePicker"></mat-datepicker-toggle>
+                  <mat-datepicker #birthDatePicker startView="multi-year"></mat-datepicker>
                   @for (errorMessage of visibleErrorMessages(personField(i).birthDate()); track $index) {
                     <mat-error>{{ errorMessage }}</mat-error>
                   }

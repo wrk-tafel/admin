@@ -78,8 +78,13 @@
               <div class="flex flex-wrap items-start gap-x-4">
                 <mat-form-field class="w-36" subscriptSizing="dynamic">
                   <mat-label>Uhrzeit</mat-label>
-                  <input matInput type="time" formControlName="time" [attr.testid]="'route-stop-time-input-' + i"/>
-                  @if (stopCtrl.get('time')?.hasError('required')) {
+                  <input matInput placeholder="HH:MM" formControlName="time" [matTimepicker]="stopTimePicker"
+                         [matTimepickerOpenOnClick]="false" [attr.testid]="'route-stop-time-input-' + i"/>
+                  <mat-timepicker-toggle matIconSuffix [for]="stopTimePicker" aria-label="Uhrzeit auswählen"></mat-timepicker-toggle>
+                  <mat-timepicker #stopTimePicker></mat-timepicker>
+                  @if (stopCtrl.get('time')?.hasError('matTimepickerParse')) {
+                    <mat-error>Ungültige Uhrzeit</mat-error>
+                  } @else if (stopCtrl.get('time')?.hasError('required')) {
                     <mat-error>Pflichtfeld</mat-error>
                   }
                 </mat-form-field>

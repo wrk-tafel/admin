@@ -1,3 +1,6 @@
+import dayjs from 'dayjs';
+import {MAIN_CONTENT} from '../support/accessibility';
+
 describe('Settings - Announcements and the notification bell', () => {
 
   beforeEach(() => {
@@ -66,6 +69,44 @@ describe('Settings - Announcements and the notification bell', () => {
       cy.byTestId('announcements-list').contains('li', title).find('[testid^="announcement-delete-"]').click();
       cy.contains('li', title).should('not.exist');
     });
+  });
+
+  it('takes an expiry date and time as they are typed here and shows them again when editing', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const title = 'E2E Ablauf ' + randomId;
+      const expiry = dayjs().add(3, 'day');
+
+      cy.byTestId('announcement-title-input').type(title);
+      cy.byTestId('announcement-message-input').type('Text');
+      // digits only for the date, no colon for the time - both are written out once the field is left
+      cy.byTestId('announcement-expires-date-input').type(expiry.format('DDMMYYYY')).blur();
+      cy.byTestId('announcement-expires-date-input').should('have.value', expiry.format('DD.MM.YYYY'));
+      cy.byTestId('announcement-expires-time-input').type('1830').blur();
+      cy.byTestId('announcement-expires-time-input').should('have.value', '18:30');
+      cy.checkAccessibility(MAIN_CONTENT);
+      cy.byTestId('announcement-save-button').click();
+
+      cy.byTestId('announcements-list').contains('li', title)
+        .should('contain.text', `läuft ab am ${expiry.format('DD.MM.YYYY')} 18:30`);
+
+      cy.byTestId('announcements-list').contains('li', title).find('[testid^="announcement-edit-"]').click();
+      cy.byTestId('announcement-expires-date-input').should('have.value', expiry.format('DD.MM.YYYY'));
+      cy.byTestId('announcement-expires-time-input').should('have.value', '18:30');
+      cy.byTestId('announcement-cancel-button').click();
+
+      cy.byTestId('announcements-list').contains('li', title).find('[testid^="announcement-delete-"]').click();
+      cy.contains('li', title).should('not.exist');
+    });
+  });
+
+  it('does not save an expiry that is not a date', () => {
+    cy.byTestId('announcement-title-input').type('E2E ungültig');
+    cy.byTestId('announcement-message-input').type('Text');
+    cy.byTestId('announcement-expires-date-input').type('31.02.2026');
+    cy.byTestId('announcement-save-button').click();
+
+    cy.contains('mat-error', 'Ungültiges Datum').scrollIntoView().should('be.visible');
+    cy.byTestId('announcements-list').should('not.contain.text', 'E2E ungültig');
   });
 
   it('requires a title and a message', () => {

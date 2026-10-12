@@ -24,8 +24,10 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <mat-form-field>
             <mat-label>Geburtsdatum</mat-label>
-            <input matInput testid="birthDateInput" type="date" [formField]="customerForm.birthDate"
-                   [attr.min]="mainBirthDateMin" [attr.max]="today">
+            <input matInput testid="birthDateInput" placeholder="TT.MM.JJJJ" [matDatepicker]="birthDatePicker"
+                   [formField]="customerForm.birthDate" [min]="mainBirthDateMin" [max]="today">
+            <mat-datepicker-toggle matIconSuffix [for]="birthDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #birthDatePicker startView="multi-year"></mat-datepicker>
             @for (errorMessage of visibleErrorMessages(customerForm.birthDate()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
             }
@@ -150,7 +152,9 @@
             <mat-error>{{errorMessage}}</mat-error>
           }
         </mat-form-field>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
+        <!-- One column while the two cards sit side by side on a medium screen: income and "nachgewiesen bis"
+             each carry a suffix or two, and half of half a screen leaves no room for the value next to them. -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-6 mb-2">
           <mat-form-field>
             <mat-label>Einkommen (monatl.)</mat-label>
             <input matInput testid="incomeInput" type="number" inputmode="decimal" [formField]="customerForm.income">
@@ -163,9 +167,14 @@
           </mat-form-field>
           <mat-form-field>
             <mat-label>nachgewiesen bis</mat-label>
-            <input matInput testid="incomeDueInput" type="date" [formField]="customerForm.incomeDue">
-            <tafel-info-tooltip matSuffix [testId]="'income-due-info-tooltip'"
+            <input matInput testid="incomeDueInput" placeholder="TT.MM.JJJJ" [matDatepicker]="incomeDuePicker"
+                   [formField]="customerForm.incomeDue">
+            <div matIconSuffix class="flex items-center pr-2">
+              <mat-datepicker-toggle [for]="incomeDuePicker"></mat-datepicker-toggle>
+              <tafel-info-tooltip [testId]="'income-due-info-tooltip'"
                                 text="Datum, bis zu dem der vorgelegte Einkommensnachweis gültig ist. Danach ist ein neuer Nachweis nötig."></tafel-info-tooltip>
+            </div>
+            <mat-datepicker #incomeDuePicker></mat-datepicker>
             @for (errorMessage of visibleErrorMessages(customerForm.incomeDue()); track $index) {
               <mat-error>{{errorMessage}}</mat-error>
             }
@@ -180,9 +189,14 @@
         <hr/>
         <mat-form-field class="w-full mb-2">
           <mat-label>Gültig bis</mat-label>
-          <input matInput testid="validUntilInput" type="date" [formField]="customerForm.validUntil">
-          <tafel-info-tooltip matSuffix [testId]="'valid-until-info-tooltip'"
+          <input matInput testid="validUntilInput" placeholder="TT.MM.JJJJ" [matDatepicker]="validUntilPicker"
+                 [formField]="customerForm.validUntil">
+          <div matIconSuffix class="flex items-center pr-2">
+            <mat-datepicker-toggle [for]="validUntilPicker"></mat-datepicker-toggle>
+            <tafel-info-tooltip [testId]="'valid-until-info-tooltip'"
                               text="Ende der Bezugsberechtigung. Nach diesem Datum wird der Kunde beim Check-In als ungültig angezeigt - über 'Bezug verlängern' in der Kundenansicht kann das Datum verlängert werden."></tafel-info-tooltip>
+          </div>
+          <mat-datepicker #validUntilPicker></mat-datepicker>
           @for (errorMessage of visibleErrorMessages(customerForm.validUntil()); track $index) {
             <mat-error>{{errorMessage}}</mat-error>
           }
@@ -256,8 +270,11 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
                       <mat-form-field>
                         <mat-label>Geburtsdatum</mat-label>
-                        <input matInput testid="birthDateInput" type="date" [formField]="personField(i).birthDate"
-                               [attr.min]="personBirthDateMin" [attr.max]="today">
+                        <input matInput testid="birthDateInput" placeholder="TT.MM.JJJJ"
+                               [matDatepicker]="personBirthDatePicker" [formField]="personField(i).birthDate"
+                               [min]="personBirthDateMin" [max]="today">
+                        <mat-datepicker-toggle matIconSuffix [for]="personBirthDatePicker"></mat-datepicker-toggle>
+                        <mat-datepicker #personBirthDatePicker startView="multi-year"></mat-datepicker>
                         @for (errorMessage of visibleErrorMessages(personField(i).birthDate()); track $index) {
                           <mat-error>{{errorMessage}}</mat-error>
                         }
@@ -327,7 +344,10 @@
                     </div>
                     <mat-form-field class="w-full mt-2">
                       <mat-label>nachgewiesen bis</mat-label>
-                      <input matInput testid="incomeDueInput" type="date" [formField]="personField(i).incomeDue">
+                      <input matInput testid="incomeDueInput" placeholder="TT.MM.JJJJ"
+                             [matDatepicker]="personIncomeDuePicker" [formField]="personField(i).incomeDue">
+                      <mat-datepicker-toggle matIconSuffix [for]="personIncomeDuePicker"></mat-datepicker-toggle>
+                      <mat-datepicker #personIncomeDuePicker></mat-datepicker>
                       @for (errorMessage of visibleErrorMessages(personField(i).incomeDue()); track $index) {
                         <mat-error>{{errorMessage}}</mat-error>
                       }

@@ -167,7 +167,7 @@ describe('Customer Detail', () => {
       cy.byTestId('okButton').should('be.disabled');
     });
     cy.byTestId('lockreason-input-text').type('threw a chair');
-    cy.byTestId('lockeduntil-input').type(lockedUntil.format('YYYY-MM-DD'));
+    cy.byTestId('lockeduntil-input').type(lockedUntil.format('DD.MM.YYYY'));
     cy.byTestId('lock-customer-dialog').within(() => {
       cy.byTestId('okButton').click();
     });

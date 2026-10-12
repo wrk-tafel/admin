@@ -1,4 +1,5 @@
 import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
+import {ParseErrorRefreshDirective} from '../../../../common/date/parse-error-refresh.directive';
 import {applyEach, form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {CountryApiService, CountryData, CountryListResult} from '../../../../api/country-api.service';
 import {CustomerData, Gender, QuickCheckPersonData} from '../../../../api/customer-api.service';
@@ -9,6 +10,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
+import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from '@angular/material/datepicker';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatCheckboxModule} from '@angular/material/checkbox';
@@ -48,6 +50,10 @@ const MAIN_COUNTRY_KEY = 'main';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatDatepicker,
+    MatDatepickerInput,
+    MatDatepickerToggle,
+    ParseErrorRefreshDirective,
     MatAutocompleteModule,
     MatDividerModule,
     MatCheckboxModule,
@@ -184,11 +190,11 @@ export class CustomerFormComponent {
   /** Keys of the additional-person accordion panels that are currently open. */
   expandedPersonKeys = signal<Set<string | number>>(new Set());
 
-  // Open ranges for the native date pickers, so the widget itself only offers dates the
-  // validators above would accept anyway instead of silently rejecting a picked date afterwards.
-  protected readonly today = dayjs().format('YYYY-MM-DD');
-  protected readonly mainBirthDateMin = '1900-01-01';
-  protected readonly personBirthDateMin = '1920-01-01';
+  // Open ranges for the birth date calendars, so the calendar itself only offers dates the
+  // validators above would accept anyway instead of rejecting a picked date afterwards.
+  protected readonly today = new Date();
+  protected readonly mainBirthDateMin = new Date(1900, 0, 1);
+  protected readonly personBirthDateMin = new Date(1920, 0, 1);
   protected readonly validUntilQuickPicks = VALID_UNTIL_QUICK_PICKS;
 
   // Derived customer data from form model
