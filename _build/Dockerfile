@@ -44,14 +44,15 @@ RUN su postgres -c "pg_ctl -D '$PGDATA' -o \"-c listen_addresses=localhost\" -w 
     && su postgres -c "pg_ctl -D '$PGDATA' -w stop"
 
 FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c437a8c5a951512724297b7
-# The base image is pinned by digest so every build - local or CI, today or in a year - produces the
-# same image, rather than silently picking up whatever Alpine packages happen to be current that day.
-# The cost is that a fixed digest also fixes its bundled package versions, so a patched CVE (e.g.
-# libssl3/libcrypto3, see the Trivy code-scanning alerts this addresses) never arrives on its own -
-# pulling current versions here closes that gap. Deliberately not version-pinned like the base image:
-# Alpine's repo only carries the current build of each package, so pinning an exact version here
-# would eventually vanish from the index and break the build outright once Alpine ships the next fix.
-RUN apk add --no-cache --upgrade libssl3 libcrypto3
+# The base image is pinned by digest so every build - local or CI, today or in a year - starts from the
+# same JDK and the same Alpine release. The cost is that a fixed digest also fixes its bundled package
+# versions, so a patched CVE (see the Trivy code-scanning alerts this addresses) never arrives on its
+# own - upgrading every installed package here closes that gap, at the price of the image's Alpine
+# packages being whatever is current on the day of the build. Deliberately not version-pinned like the
+# base image: Alpine's repo only carries the current build of each package, so pinning an exact version
+# here would eventually vanish from the index and break the build outright once Alpine ships the next
+# fix.
+RUN apk upgrade --no-cache
 ARG VERSION=dev
 ARG BUILD_DATE=unknown
 ENV TAFELADMIN_VERSION=$VERSION
