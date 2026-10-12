@@ -36,6 +36,8 @@
             @if (hasApp() && hasEmail()) {
               Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein - oder lassen Sie sich einen Code per E-Mail senden -,
               um die Anmeldung abzuschließen.
+            } @else if (hasEmail() && hasPasskey()) {
+              Für einen Code wählen Sie "Code per E-Mail senden" und geben den 6-stelligen Code aus der E-Mail ein.
             } @else if (hasEmail()) {
               Geben Sie den 6-stelligen Code ein, der an Ihre E-Mail-Adresse gesendet wurde, um die Anmeldung abzuschließen.
             } @else {

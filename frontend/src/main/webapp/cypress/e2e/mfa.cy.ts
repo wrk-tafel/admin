@@ -677,7 +677,7 @@ describe('Two-factor authentication', () => {
   describe('passkeys', () => {
 
     function devTools(command: string, params: Record<string, unknown> = {}) {
-      return cy.wrap(Cypress.automation('remote:debugger:protocol', {command, params}), {log: false});
+      return cy.then(() => Cypress.automation('remote:debugger:protocol', {command, params}));
     }
 
     beforeEach(() => {

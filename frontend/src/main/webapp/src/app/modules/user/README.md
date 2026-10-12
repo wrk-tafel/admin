@@ -20,7 +20,7 @@ modules/user/
   ├── views/user-account/user-account.component.ts       # the frame: mat-tab-nav-bar + router-outlet
   ├── components/user-account-data/user-account-data.component.ts # "Meine Daten" tab: own name and e-mail, editable
   ├── components/user-passwordchange/user-passwordchange.component.ts # "Passwort" tab, wraps the shared password-change form
-  ├── components/user-mfa/user-mfa.component.ts          # "Zwei-Faktor-Authentifizierung" tab
+  ├── components/user-mfa/user-mfa.component.ts          # "Zwei-Faktor-Authentifizierung" tab: app, e-mail code, passkeys
   ├── components/push-notification-settings/push-notification-settings.component.ts # "Benachrichtigungen" tab
   ├── components/user-theme-settings/user-theme-settings.component.ts # "Design" tab
   └── components/user-privacy-settings/user-privacy-settings.component.ts # "Datenschutz" tab: own data export, staff privacy notice

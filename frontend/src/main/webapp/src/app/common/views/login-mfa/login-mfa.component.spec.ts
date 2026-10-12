@@ -258,6 +258,8 @@ describe('LoginMfaComponent', () => {
 
       expect(element(fixture, 'mfaPasskeyButton')).not.toBeNull();
       expect(text(fixture, 'mfaPasskeyHint')).toContain('Passkey');
+      // no code is on its way, so the page does not claim one was sent
+      expect(text(fixture, 'mfaHint')).toContain('Code per E-Mail senden');
       expect(element(fixture, 'mfaCode')).not.toBeNull();
       expect(mfaApiService.sendEmailCode).not.toHaveBeenCalled();
     });

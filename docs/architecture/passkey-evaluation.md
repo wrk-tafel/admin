@@ -2,16 +2,18 @@
 
 Analysis for [issue #3820](https://github.com/wrk-tafel/admin/issues/3820), which asks whether
 passkeys (WebAuthn credentials) make sense as a way to log in here. This is an evaluation, not a
-decision record — nothing here is decided, and acting on any of it needs its own ticket and an ADR
-next to [ADR-0058](adr/0058-two-factor-authentication-gates-the-session-not-the-page.md).
+decision record. The one decision that came out of it is
+[ADR-0070](adr/0070-passkeys-complete-a-login-next-to-a-code-method-never-instead-of-one.md): a
+passkey as an optional addition to a code method, for the people who do log in on a device of their
+own. Everything beyond that — a passkey as the only second factor, or instead of the password — is
+undecided, and this document is the case against doing it now.
 
-**Recommendation up front: don't build passkeys now.** A passkey lives on a person's own device,
-and most logins here happen on shared PCs and tablets at the distribution
+**Assessment up front: passkeys are no replacement for the existing methods here.** A passkey lives
+on a person's own device, and most logins happen on shared PCs and tablets at the distribution
 ([§3](#3-the-question-that-decides-the-value-which-devices-do-people-log-in-on)). There a passkey
-costs more steps than the authenticator app it would replace. Nothing in the application stands in
-the way of adding one later; [§6](#6-what-would-change-this-recommendation) lists what would make it
-worth doing, and [§2](#2-what-is-specific-to-this-application) and
-[§4](#4-framework-support-in-the-version-in-use) are what an implementation would start from.
+costs more steps than the authenticator app it would replace. That is why what was built is opt-in
+and sits on top of a code method rather than in place of one;
+[§6](#6-what-would-change-this-assessment) lists what would make more of it worth doing.
 
 ## 1. Where a passkey would plug in
 
@@ -34,7 +36,8 @@ A passkey can enter at either step, and those are two different features:
 | Size | medium | A plus the login page flow, discoverable credentials and the policy questions in [§5](#5-recovery-and-fallback) |
 
 B can be added on top of A: the credential storage, the registration and the "Mein Konto" tab are
-the same.
+the same. ADR-0070 is A with one restriction: a passkey only exists next to one of the two code
+methods, so it never is a user's only second factor.
 
 ## 2. What is specific to this application
 
@@ -110,9 +113,9 @@ That leaves three ways to build it rather than two:
 | `WebAuthnRelyingPartyOperations` behind endpoints in `MfaController` | well: registration and verification become two more methods next to TOTP and e-mail, and the lockout, ADR-0059 check and notification stay where they are | the options/response JSON handling the filters would have done |
 | `webauthn4j` directly | well | the same, plus the credential storage and the verification wiring Spring already provides |
 
-The second is the one to start from. None of this was built or run — it is a reading of the
-module's classes, and the request/response handling in particular needs a spike before an ADR
-commits to it.
+ADR-0070 took the third: with the ceremony behind the application's own endpoints, what Spring's
+module still adds is its credential repositories, and those would have been a second, unaudited
+persistence path next to the JPA entities everything else here uses.
 
 ## 5. Recovery and fallback
 
@@ -121,7 +124,7 @@ methods as a fallback and lets an administrator remove a user's passkeys. The co
 account is only as phishing-resistant as its weakest allowed login; closing that (passkey-only
 accounts) would be a later, optional step.
 
-## 6. What would change this recommendation
+## 6. What would change this assessment
 
 - Logins moving to people's own devices — e.g. volunteers using the application on their own phones
   rather than on the machines at the distribution.
@@ -129,9 +132,11 @@ accounts) would be a later, optional step.
   `ADMINISTRATOR` or `USER_MANAGEMENT`. Hardware keys for those few accounts work on shared machines
   without Bluetooth, and that would be feature A with a much smaller audience.
 
-If either happens, build **A** with the challenge stored in the database, and decide on **B** after
-A has been in use. What an implementation ticket has to settle first:
+If either happens, the next step is letting a passkey stand alone — lifting ADR-0070's restriction —
+and after that **B**. What that has to settle first:
 
 - Whether a passkey alone satisfies `tafeladmin.mfa.required`.
-- How many passkeys a user may have, and how they are named and listed in "Mein Konto".
-- The spike named in [§4](#4-framework-support-in-the-version-in-use).
+- What replaces "a code of a method the user has"
+  ([ADR-0059](adr/0059-second-factor-changes-need-an-existing-second-factor.md)) for a user who has
+  no code method.
+- Who recovers an account whose only passkey is gone.

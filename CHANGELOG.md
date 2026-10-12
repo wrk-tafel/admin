@@ -1,6 +1,9 @@
 # Changelog
 
-Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
+Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]
+- Mein Konto → Zwei-Faktor-Authentifizierung: Zusätzlich zur Authenticator-App oder zum Code per E-Mail lässt sich jetzt ein Passkey einrichten (Fingerabdruck, Gesichtserkennung, Geräte-PIN oder Sicherheitsschlüssel) - bei der Anmeldung genügt dann "Mit Passkey bestätigen" statt des Codes; der Code bleibt als Weg ins Konto bestehen, wenn das Gerät nicht zur Hand ist. Passkeys stehen zur Verfügung, sobald der Betreiber sie für die Installation eingerichtet hat.
+
+## [1.30.0] - 2026-10-12`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 

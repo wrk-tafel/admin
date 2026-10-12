@@ -47,5 +47,56 @@ Content-Type: application/json
   "code": "123456"
 }
 
-### Administrator: switch it off for a user who lost the phone
+### Passkeys: options for creating one (needs a code method to be on) - answer goes to navigator.credentials.create()
+POST {{baseApiPath}}/mfa/passkey/setup
+
+### Passkeys: add the one the browser created - credential is PublicKeyCredential.toJSON(), currentCode a code of a method the user has
+POST {{baseApiPath}}/mfa/passkey/enable
+Content-Type: application/json
+
+{
+  "credential": {
+    "id": "...",
+    "rawId": "...",
+    "type": "public-key",
+    "response": {
+      "clientDataJSON": "...",
+      "attestationObject": "..."
+    },
+    "clientExtensionResults": {}
+  },
+  "name": "Laptop",
+  "currentCode": "123456"
+}
+
+### Passkeys: remove one (needs a current code)
+POST {{baseApiPath}}/mfa/passkey/7/disable
+Content-Type: application/json
+
+{
+  "code": "123456"
+}
+
+### Passkeys: options for a login that still owes its second step - answer goes to navigator.credentials.get()
+POST {{baseApiPath}}/mfa/passkey/login-options
+
+### Passkeys: finish that login with the assertion instead of a code
+POST {{baseApiPath}}/mfa/passkey/verify
+Content-Type: application/json
+
+{
+  "credential": {
+    "id": "...",
+    "rawId": "...",
+    "type": "public-key",
+    "response": {
+      "clientDataJSON": "...",
+      "authenticatorData": "...",
+      "signature": "..."
+    },
+    "clientExtensionResults": {}
+  }
+}
+
+### Administrator: switch it off for a user who lost the phone (removes the passkeys too)
 DELETE {{baseApiPath}}/users/300/mfa

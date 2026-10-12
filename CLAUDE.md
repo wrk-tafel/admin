@@ -332,6 +332,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 
 **Key Tables:**
 - `users`, `user_authorities`: User authentication and permissions
+- `user_passkeys`, `passkey_challenges`: a user's passkeys (public key only) and the challenge of a passkey ceremony that was started and not answered yet (ADR-0070)
 - `employees`: drivers and co-drivers of food collections; a record of its own, with no link to `users` (a user carries its own personnel number and name, ADR-0060)
 - `households`: the case record (business number, address, contact, validity/lock/cost-contribution state); `main_person_id` points at its main person. Nullable at the DB level (not `NOT NULL`) because `households`/`persons` mutually reference each other — a brand-new household is always saved in two steps (household with `main_person_id = null` → its persons → set `main_person_id`), see `HouseholdService`
 - `persons`: every household member, including the main person, flagged via `is_main_person` (exactly one per household, enforced by a partial unique index)
@@ -666,7 +667,7 @@ URL at all (GDPR gap G25, issue #3506/#3703; see [ADR-0057](docs/architecture/ad
 This applies specifically to a *search* — `GET .../{id}` for a single resource and a plain,
 term-less `GET` listing are unaffected.
 
-- `/api/mfa`: the caller's own two-factor authentication, two methods usable side by side (authenticator app/TOTP, and a code by e-mail) — `GET` status, `POST /setup` + `/enable` (app), `POST /email/setup` + `/email/enable` (e-mail), `POST /disable` (`{method, code}`), and `POST /verify` plus `POST /email/send`, the calls a session that has passed the password but still owes its code may make. `MfaPendingFilter` refuses everything else to such a session — and, when `tafeladmin.mfa.required` is on and the user has none, everything except setting one up. `DELETE /api/users/{id}/mfa` is the administrator's reset (see [ADR-0058](docs/architecture/adr/0058-two-factor-authentication-gates-the-session-not-the-page.md)). A completed session that adds a second method (`/enable`, `/email/enable`) hands in `currentCode` of one it already has, and the same rule covers the account's e-mail address while the e-mail method is on - see [ADR-0059](docs/architecture/adr/0059-second-factor-changes-need-an-existing-second-factor.md)
+- `/api/mfa`: the caller's own two-factor authentication, two methods usable side by side (authenticator app/TOTP, and a code by e-mail) — `GET` status, `POST /setup` + `/enable` (app), `POST /email/setup` + `/email/enable` (e-mail), `POST /disable` (`{method, code}`), and `POST /verify` plus `POST /email/send`, the calls a session that has passed the password but still owes its code may make. `MfaPendingFilter` refuses everything else to such a session — and, when `tafeladmin.mfa.required` is on and the user has none, everything except setting one up. `DELETE /api/users/{id}/mfa` is the administrator's reset (see [ADR-0058](docs/architecture/adr/0058-two-factor-authentication-gates-the-session-not-the-page.md)). A completed session that adds a second method (`/enable`, `/email/enable`) hands in `currentCode` of one it already has, and the same rule covers the account's e-mail address while the e-mail method is on - see [ADR-0059](docs/architecture/adr/0059-second-factor-changes-need-an-existing-second-factor.md). On top of a method a user can have passkeys (`POST /passkey/setup` + `/passkey/enable`, `/passkey/{id}/disable`), each of which completes a login in place of a code (`POST /passkey/login-options` + `/passkey/verify`, the other two calls a session that owes its code may make). A passkey only exists next to a code method, and only where the operator set `tafeladmin.mfa.passkey.rpId`/`origins` - see [ADR-0070](docs/architecture/adr/0070-passkeys-complete-a-login-next-to-a-code-method-never-instead-of-one.md)
 - `/api/users`: User management. Search is `POST /api/users/search`; `POST /api/users/login-attempts/search`
   is the separate login-attempts (`anmelde-versuche`) search. `GET /api/users/info` also carries the
   caller's light/dark `theme`, which `PUT /api/users/theme` changes (stored in `user_preferences`).
@@ -910,7 +911,7 @@ Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two
     `/api/sse/config`, and `ConfigApiService.observeConfig()` is a shared stream of the HTTP response
     plus that SSE feed — components must subscribe to it rather than reading the config once.
 - **Audit Trail**: every change to a household, person, note, document, employee, user, user
-  authority, static value or mail recipient is recorded in `audit_log` — who, when, and the old/new
+  authority, passkey, static value or mail recipient is recorded in `audit_log` — who, when, and the old/new
   values as a `jsonb` diff. Written from a Hibernate flush-time listener (`database/common/audit/`) that buffers entries
   and writes them in `beforeCommit`, so a rolled-back transaction records nothing. Two things to keep
   in mind when touching this area:

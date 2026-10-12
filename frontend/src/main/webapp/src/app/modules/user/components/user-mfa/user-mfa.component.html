@@ -248,10 +248,11 @@
         </p>
       } @else {
         <form (submit)="addPasskey($event)" novalidate class="flex flex-col gap-2 max-w-xs">
-          <mat-form-field>
+          <!-- the hint sits below the field's own box, so the field keeps its distance to the next one itself -->
+          <mat-form-field class="mb-3">
             <mat-label>Name des Passkeys</mat-label>
             <input [formField]="codeForm.passkeyName" matInput testid="mfaPasskeyName" type="text" autocomplete="off">
-            <mat-hint>Zum Beispiel das Gerät: "Laptop" oder "Smartphone"</mat-hint>
+            <mat-hint>z. B. "Laptop" oder "Smartphone"</mat-hint>
             @for (message of visibleErrorMessages(codeForm.passkeyName()); track message) {
               <mat-error>{{ message }}</mat-error>
             }
