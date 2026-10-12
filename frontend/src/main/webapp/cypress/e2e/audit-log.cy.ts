@@ -3,8 +3,8 @@ import {PHONE_VIEWPORT} from '../support/viewports';
 import {MAIN_CONTENT} from '../support/accessibility';
 import {Gender} from '../support/commands';
 
-const isoToday = () => dayjs().format('YYYY-MM-DD');
-const isoLastMonth = () => dayjs().subtract(1, 'month').format('YYYY-MM-DD');
+const today = () => dayjs().format('DD.MM.YYYY');
+const lastMonth = () => dayjs().subtract(1, 'month').format('DD.MM.YYYY');
 
 /**
  * The testdata is loaded as plain SQL and therefore leaves no audit entries behind - every test
@@ -22,8 +22,8 @@ describe('Zugriffsprotokoll', () => {
       cy.visit('/zugriffsprotokoll');
 
       cy.byTestId('audit-filter-entityType').should('contain.text', 'Kunde');
-      cy.byTestId('audit-filter-to').should('have.value', isoToday());
-      cy.byTestId('audit-filter-from').should('have.value', isoLastMonth());
+      cy.byTestId('audit-filter-to').should('have.value', today());
+      cy.byTestId('audit-filter-from').should('have.value', lastMonth());
 
       cy.byTestId('audit-entry-list').should('exist');
       cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kunde');
@@ -137,7 +137,7 @@ describe('Zugriffsprotokoll', () => {
 
         cy.byTestId('audit-reset-button').click();
         cy.byTestId('audit-filter-entityType').should('contain.text', 'Kunde');
-        cy.byTestId('audit-filter-from').should('have.value', isoLastMonth());
+        cy.byTestId('audit-filter-from').should('have.value', lastMonth());
         cy.byTestId('audit-entry-0-entityType').should('contain.text', 'Kunde');
       });
     });
@@ -174,8 +174,8 @@ describe('Zugriffsprotokoll', () => {
 
         cy.byTestId('audit-filter-preset-heute').click();
 
-        cy.byTestId('audit-filter-from').should('have.value', isoToday());
-        cy.byTestId('audit-filter-to').should('have.value', isoToday());
+        cy.byTestId('audit-filter-from').should('have.value', today());
+        cy.byTestId('audit-filter-to').should('have.value', today());
         cy.byTestId('audit-filter-preset-heute').should('have.attr', 'aria-pressed', 'true');
         cy.byTestId('audit-entry-list').should('exist');
       });

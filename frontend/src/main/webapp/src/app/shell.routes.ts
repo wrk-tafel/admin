@@ -7,6 +7,7 @@ import {DefaultLayoutComponent} from './common/views/default-layout/default-layo
 import {DefaultLayoutResolver} from './common/views/default-layout/resolver/default-layout-resolver.component';
 import {AuthGuardService} from './common/security/authguard.service';
 import {getGermanPaginatorIntl} from './common/util/german-paginator-intl';
+import {provideTafelDateAdapter} from './common/date/tafel-date-adapter';
 
 const authGuardChild: CanActivateChildFn = (route: ActivatedRouteSnapshot) => inject(AuthGuardService).canActivate(route);
 
@@ -29,10 +30,11 @@ const DEFAULT_TOOLTIP_CONFIG: MatTooltipDefaultOptions = {
  * Everything behind the login: the application shell plus every feature area rendered inside it.
  *
  * Loaded lazily from `app.routes.ts` so that a first visit to `/login` does not pay for the shell.
- * Both providers below configure Angular Material components that only ever appear on a screen
+ * The providers below configure Angular Material components that only ever appear on a screen
  * within this shell, so they live here rather than in `appConfig` - a route-level provider shadows
  * the root one for everything created underneath it, and keeping them here keeps
- * `@angular/material/paginator` and `@angular/material/tooltip` out of the eager bundle.
+ * `@angular/material/paginator`, `@angular/material/tooltip` and the date adapter out of the eager
+ * bundle.
  * `MAT_DIALOG_DEFAULT_OPTIONS` cannot move along with them: `MatDialog` is `providedIn: 'root'`, so
  * it reads its defaults from the root injector no matter which route opened the dialog.
  */
@@ -52,7 +54,8 @@ export const routes: Routes = [
       {
         provide: MAT_TOOLTIP_DEFAULT_OPTIONS,
         useValue: DEFAULT_TOOLTIP_CONFIG
-      }
+      },
+      provideTafelDateAdapter()
     ],
     children: [
       {

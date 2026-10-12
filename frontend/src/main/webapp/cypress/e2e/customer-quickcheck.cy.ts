@@ -158,6 +158,6 @@ describe('Customer QuickCheck', () => {
   });
 
   function birthDateForAge(age: number): string {
-    return dayjs().subtract(age, 'years').subtract(1, 'day').format('YYYY-MM-DD');
+    return dayjs().subtract(age, 'years').subtract(1, 'day').format('DD.MM.YYYY');
   }
 });

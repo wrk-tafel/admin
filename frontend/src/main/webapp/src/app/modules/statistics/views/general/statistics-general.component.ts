@@ -4,6 +4,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from '@angular/material/datepicker';
 import {MatSelectModule} from '@angular/material/select';
 import {
   StatisticsApiService,
@@ -46,6 +47,9 @@ const DATE_FORMAT = 'DD.MM.YYYY';
     MatButtonToggleModule,
     MatFormFieldModule,
     MatInputModule,
+    MatDatepicker,
+    MatDatepickerInput,
+    MatDatepickerToggle,
     MatSelectModule,
     StatisticsPanelComponent,
     MatIcon
@@ -248,20 +252,16 @@ export class StatisticsGeneralComponent {
     }
   }
 
-  get dateRangeFrom(): string {
-    return dayjs(this._dateRangeFrom()).format('YYYY-MM-DD');
+  /** What the two date fields show - nothing, rather than the invalid date that stands for a field without one. */
+  dateRangeFromValue = computed(() => dayjs(this._dateRangeFrom()).isValid() ? this._dateRangeFrom() : null);
+  dateRangeToValue = computed(() => dayjs(this._dateRangeTo()).isValid() ? this._dateRangeTo() : null);
+
+  setDateRangeFrom(date: Date | null): void {
+    this._dateRangeFrom.set(date ?? new Date(NaN));
   }
 
-  set dateRangeFrom(value: string) {
-    this._dateRangeFrom.set(new Date(value));
-  }
-
-  get dateRangeTo(): string {
-    return dayjs(this._dateRangeTo()).format('YYYY-MM-DD');
-  }
-
-  set dateRangeTo(value: string) {
-    this._dateRangeTo.set(new Date(value));
+  setDateRangeTo(date: Date | null): void {
+    this._dateRangeTo.set(date ?? new Date(NaN));
   }
 
   protected generateCsv() {

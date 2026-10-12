@@ -29,8 +29,26 @@ export function getErrorMessages(fieldState: FieldState<any>): string[] {
   if (!errors || errors.length === 0) {
     return [];
   }
+
+  // Text a date or time field cannot read leaves the field's value empty, so `required` would
+  // report "Pflichtfeld" for a field somebody did fill in - the parse error is the whole story.
+  const parseMessages = errors.map((error: any) => PARSE_ERROR_MESSAGES[error.kind]).filter((message: string) => message);
+  if (parseMessages.length > 0) {
+    return parseMessages;
+  }
+
   return errors.map((error: any) => error.message).filter((message: string) => message);
 }
+
+/**
+ * The errors `matDatepicker` and `matTimepicker` report themselves when they cannot read what was
+ * typed. They reach a signal form without a message, since they come from the control rather than
+ * from the form's schema.
+ */
+const PARSE_ERROR_MESSAGES: Record<string, string> = {
+  matDatepickerParse: 'Ungültiges Datum (TT.MM.JJJJ)',
+  matTimepickerParse: 'Ungültige Uhrzeit (HH:MM)'
+};
 
 /**
  * Check if a field should show errors (has errors and is touched)

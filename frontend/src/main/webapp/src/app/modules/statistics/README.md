@@ -291,10 +291,12 @@ and route alongside `children/`, rather than growing this one into a multi-repor
 
 ## Gotchas
 
-- `dateRangeFrom`/`dateRangeTo` getters/setters on `StatisticsGeneralComponent` exist only to
-  bridge the `Date`-typed signals to the `<input type="date">` two-way `[(ngModel)]` binding
-  (which needs `'YYYY-MM-DD'` strings) — don't replace the signals themselves with strings, the
-  `dateRange` `computed()` and the API calls expect `Date` objects.
+- The custom range's two date fields bind `[value]`/`(dateChange)` to `dateRangeFromValue()` /
+  `setDateRangeFrom()` (and the `To` pair) rather than `[(ngModel)]`: the range applies once a date
+  is complete, not per keystroke, and a field without a date is stored as an invalid `Date` in
+  `_dateRangeFrom`/`_dateRangeTo` — which is what `dateRangeInvalid()` checks — while the field
+  itself is shown `null`. Don't replace the signals with strings, the `dateRange` `computed()` and
+  the API calls expect `Date` objects.
 - Switching to `'custom'` mode doesn't reset `_dateRangeFrom`/`_dateRangeTo` — it keeps whatever
   the previous mode left behind, so the date inputs start prefilled with the last active range.
 - `statisticsData()` is `undefined` until the first response arrives; the cards are rendered from

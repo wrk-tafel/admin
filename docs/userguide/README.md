@@ -259,6 +259,23 @@ An zwei Stellen blendet die Anwendung zusätzliche Erklärungen ein, ohne dass d
 
 Auf Touch-Geräten erscheinen die Kurzhinweise, wenn man das Symbol kurz gedrückt hält. Mit der Tastatur werden sie eingeblendet, sobald die jeweilige Schaltfläche den Fokus erhält.
 
+<a id="datum-und-uhrzeit-eingeben"></a>
+
+## Datum und Uhrzeit eingeben
+
+Ein Datum wird überall in der Anwendung als **TT.MM.JJJJ** angezeigt und eingegeben (z. B. `24.12.2026`), eine Uhrzeit im **24-Stunden-Format** als `HH:MM` (z. B. `14:30`) – unabhängig davon, in welcher Sprache der Browser oder das Gerät eingestellt ist.
+
+Ein Datum kann **getippt** oder aus dem **Kalender** gewählt werden:
+
+- Beim Tippen werden mehrere Schreibweisen verstanden: mit Punkten (`24.12.2026`, `1.2.2026`), nur die Ziffern (`24122026`) und mit zweistelligem Jahr (`1.2.26`). Sobald das Feld verlassen wird, steht das Datum ausgeschrieben als `01.02.2026` darin.
+- Ein zweistelliges Jahr wird als das naheliegende gelesen: `26` als 2026, `85` als 1985. Jahre, die mehr als zehn Jahre in der Zukunft lägen, gelten als Jahre des vorigen Jahrhunderts – bei weit zurückliegenden Geburtsjahren daher besser das Jahr vierstellig schreiben.
+- Das **Kalender-Symbol** rechts im Feld öffnet einen Kalender, in dem der Tag angeklickt wird. Ein Klick auf Monat und Jahr oben links wechselt zur Auswahl von Jahr und Monat; bei Geburtsdaten beginnt der Kalender gleich mit der Jahresauswahl.
+- Steht im Feld etwas, das kein Datum ist (z. B. `31.02.2026`), meldet das Feld **"Ungültiges Datum (TT.MM.JJJJ)"**, und das Formular lässt sich so nicht speichern.
+
+![Datumsfeld mit geöffnetem Kalender](images/datumsfeld-kalender.jpg)
+
+Eine Uhrzeit wird ebenso getippt – mit Doppelpunkt (`14:30`), nur als Ziffern (`1430`, `930`) oder als volle Stunde (`14`). Das **Uhr-Symbol** rechts im Feld öffnet eine Liste mit Uhrzeiten im Halbstundentakt zur Auswahl.
+
 <a id="übersicht-dashboard"></a>
 
 ## Übersicht (Dashboard)

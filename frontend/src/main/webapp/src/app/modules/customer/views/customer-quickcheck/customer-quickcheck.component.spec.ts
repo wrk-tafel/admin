@@ -8,6 +8,7 @@ import {CustomerApiService, ValidateCustomerResponse} from '../../../../api/cust
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {CustomerQuickCheckComponent} from './customer-quickcheck.component';
 import {ValidationResultDialogComponent} from '../customer-edit/dialogs/validation-result-dialog.component';
+import {provideTafelDateAdapter} from '../../../../common/date/tafel-date-adapter';
 
 describe('CustomerQuickCheckComponent', () => {
   let apiService: MockedObject<CustomerApiService>;
@@ -38,6 +39,7 @@ describe('CustomerQuickCheckComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideTafelDateAdapter(),
         {
           provide: MatDialog,
           useValue: {

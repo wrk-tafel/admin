@@ -19,6 +19,7 @@ import {MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import {MatSortModule, Sort, SortDirection} from '@angular/material/sort';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from '@angular/material/datepicker';
 import {AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators} from '@angular/forms';
 import {HttpResponse} from '@angular/common/http';
 import {DatePipe} from '@angular/common';
@@ -72,6 +73,9 @@ export function ageRangeValidator(group: AbstractControl): ValidationErrors | nu
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatDatepicker,
+    MatDatepickerInput,
+    MatDatepickerToggle,
     MatIcon,
     MatCell,
     MatCellDef,
@@ -101,7 +105,7 @@ export class StatisticsChildrenComponent {
   filterForm = this.formBuilder.group({
     ageMin: [6, [Validators.required, Validators.min(MIN_AGE), Validators.max(MAX_AGE)]],
     ageMax: [10, [Validators.required, Validators.min(MIN_AGE), Validators.max(MAX_AGE)]],
-    referenceDate: [dayjs().format('YYYY-MM-DD'), Validators.required]
+    referenceDate: [dayjs().startOf('day').toDate(), Validators.required]
   }, {validators: ageRangeValidator});
 
   childrenData = signal<ChildrenSearchResult | undefined>(undefined);
@@ -269,7 +273,7 @@ export class StatisticsChildrenComponent {
     return {
       ageMin: value.ageMin!,
       ageMax: value.ageMax!,
-      referenceDate: dayjs(value.referenceDate!).toDate()
+      referenceDate: value.referenceDate!
     };
   }
 

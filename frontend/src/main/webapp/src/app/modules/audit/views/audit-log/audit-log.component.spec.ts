@@ -13,6 +13,7 @@ import {
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import dayjs from 'dayjs';
+import {provideTafelDateAdapter} from '../../../../common/date/tafel-date-adapter';
 
 describe('AuditLogComponent', () => {
   const entry: AuditEntryItem = {
@@ -72,6 +73,7 @@ describe('AuditLogComponent', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideTafelDateAdapter(),
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {provide: AuditApiService, useValue: auditApiMock},
@@ -126,6 +128,7 @@ describe('AuditLogComponent', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
+        provideTafelDateAdapter(),
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {provide: AuditApiService, useValue: auditApiMock},

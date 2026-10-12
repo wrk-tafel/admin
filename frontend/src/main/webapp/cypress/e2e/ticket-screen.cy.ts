@@ -19,15 +19,33 @@ describe('TicketScreen', () => {
     cy.byTestId('text').should('have.text', '12:34');
   });
 
+  it('reads a start time typed without the colon and offers the times to pick from', () => {
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
+    cy.byTestId('show-starttime-toggle').click();
+
+    cy.byTestId('starttime-input').should('have.attr', 'placeholder', 'HH:MM');
+    cy.byTestId('starttime-input').type('1430').blur();
+    cy.byTestId('starttime-input').should('have.value', '14:30');
+
+    cy.byTestId('starttime-input').parents('mat-form-field').find('mat-timepicker-toggle button')
+      .should('have.attr', 'aria-label', 'Uhrzeit auswählen')
+      .click();
+    cy.checkTimepickerAccessibility();
+    // 24-hour times, whatever language the browser runs in
+    cy.get('.mat-timepicker-panel mat-option').contains('18:30').click();
+    cy.byTestId('starttime-input').should('have.value', '18:30');
+
+    cy.byTestId('show-starttime-button').click();
+    cy.byTestId('text').should('have.text', '18:30');
+  });
+
   it('a start time set before the monitor is opened is what a fresh monitor connection shows', () => {
     cy.visit('/anmeldung/ticketmonitor-steuerung');
 
     cy.byTestId('show-starttime-toggle').click();
-    // Enter in the field triggers the form's implicit submission (the same handler as the
-    // "Anzeigen" submit button) - Cypress cannot send extra keystrokes into an <input type="time">,
-    // so submit the form directly instead.
-    cy.byTestId('starttime-input').type('11:30');
-    cy.byTestId('starttime-input').parents('form').submit();
+    // Enter in the field triggers the form's implicit submission - the same handler as the
+    // "Anzeigen" submit button.
+    cy.byTestId('starttime-input').type('11:30{enter}');
     cy.byTestId('title').should('have.text', 'Startzeit');
 
     // A monitor opened only now - a brand-new SSE connection - must replay that start time as its

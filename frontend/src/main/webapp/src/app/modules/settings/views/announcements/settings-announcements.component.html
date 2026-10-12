@@ -33,12 +33,24 @@
         <div class="flex flex-wrap gap-4">
           <mat-form-field>
             <mat-label>Anzeigen bis (optional)</mat-label>
-            <input matInput type="date" formControlName="expiresDate" testid="announcement-expires-date-input"/>
+            <input matInput placeholder="TT.MM.JJJJ" formControlName="expiresDate" [matDatepicker]="expiresDatePicker"
+                   testid="announcement-expires-date-input"/>
+            <mat-datepicker-toggle matIconSuffix [for]="expiresDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #expiresDatePicker></mat-datepicker>
+            @if (form.controls.expiresDate.hasError('matDatepickerParse')) {
+              <mat-error>Ungültiges Datum (TT.MM.JJJJ)</mat-error>
+            }
           </mat-form-field>
           <mat-form-field>
             <mat-label>Uhrzeit (optional)</mat-label>
-            <input matInput type="time" formControlName="expiresTime" testid="announcement-expires-time-input"/>
+            <input matInput placeholder="HH:MM" formControlName="expiresTime" [matTimepicker]="expiresTimePicker"
+                   [matTimepickerOpenOnClick]="false" testid="announcement-expires-time-input"/>
+            <mat-timepicker-toggle matIconSuffix [for]="expiresTimePicker" aria-label="Uhrzeit auswählen"></mat-timepicker-toggle>
+            <mat-timepicker #expiresTimePicker></mat-timepicker>
             <mat-hint>Ohne Uhrzeit bis 23:59 Uhr.</mat-hint>
+            @if (form.controls.expiresTime.hasError('matTimepickerParse')) {
+              <mat-error>Ungültige Uhrzeit (HH:MM)</mat-error>
+            }
           </mat-form-field>
         </div>
         <p class="text-xs text-slate-500">Ohne Datum bleibt die Ankündigung, bis sie gelöscht wird.</p>
