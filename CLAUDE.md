@@ -928,6 +928,13 @@ Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two
   `updated_at` are *not* audit infrastructure and must not be repurposed — several user-visible
   features read them as domain data (see the KDoc on `BaseChangeTrackingEntity`).
 - **Real-time Updates**: Dashboard and ticket screen use SSE for live updates without polling.
+- **Graceful Shutdown**: a stop takes no new requests and answers the ones in progress, for at most
+  `spring.lifecycle.timeout-per-shutdown-phase` (`application.yml`; `application-local.yml` stops
+  immediately). An open event stream counts as a request in progress and would hold every stop for
+  that whole time, so `SseOutboxService.completeOpenStreams` ends all of them on
+  `ContextClosedEvent`; the browsers reconnect. `GracefulShutdownIT` covers both halves against a
+  real Tomcat. Anything else that keeps a request open for long needs the same treatment, and the
+  container's stop grace period has to stay above the timeout.
 
 ## Profiles and Configuration
 

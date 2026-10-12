@@ -177,6 +177,9 @@ services:
   admin:
     image: ikt01toet1030/wrk-tafel-admin:latest
     restart: unless-stopped
+    # On a stop the application finishes the requests in progress, for up to 30 seconds
+    # (spring.lifecycle.timeout-per-shutdown-phase). Docker kills a container after 10 by default.
+    stop_grace_period: 40s
     depends_on:
       - database
     ports:

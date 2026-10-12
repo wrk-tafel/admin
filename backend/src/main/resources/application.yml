@@ -44,6 +44,12 @@ management:
 
 server:
   port: 8080
+  # On a stop the web server takes no new requests and lets the ones in progress finish, for at most
+  # spring.lifecycle.timeout-per-shutdown-phase below. It is Spring Boot's default, spelled out
+  # because the production deploy relies on it: the old instance is stopped while the new one
+  # already serves, and whatever the old one is still answering must not be cut. Open event streams
+  # are not waited for - SseOutboxService completes them when the shutdown begins.
+  shutdown: graceful
   # Trust X-Forwarded-* headers from the reverse proxy, so request.isSecure/request.remoteAddr are
   # correct behind TLS termination - the JWT cookie needs the Secure flag, and RateLimitFilter/
   # LoginAttemptIpService/TafelLoginProvider all key off remoteAddr. `native` (Tomcat's own
@@ -86,6 +92,11 @@ server:
       rotate: false
 
 spring:
+  lifecycle:
+    # The longest a stop waits for requests in progress (see server.shutdown). Whatever stops the
+    # process has to wait longer than this before it kills it - docker's default is 10 seconds, so
+    # the container needs a stop_grace_period above this value.
+    timeout-per-shutdown-phase: 30s
   web:
     error:
       include-message: always
