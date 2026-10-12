@@ -296,6 +296,14 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
+  it('generate masterdata and idcard pdf', () => {
+    apiService.generatePdf(1, 'MASTERDATA_IDCARD').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/1/generate-pdf?type=MASTERDATA_IDCARD'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('generate privacy notice template pdf', () => {
     apiService.generatePrivacyNoticeTemplate().subscribe();
 

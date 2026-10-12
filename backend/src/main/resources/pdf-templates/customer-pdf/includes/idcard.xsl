@@ -1,7 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.1" exclude-result-prefixes="fo">
-    <xsl:include href="/pdf-templates/common/includes/branding.xsl"/>
+    <!--
+        Uses the building blocks of common/includes/branding.xsl without including it: the
+        document stylesheet does, once, since masterdata-idcard-document.xsl composes this file
+        with its sibling and a stylesheet included twice defines every template twice.
+    -->
+
+    <!--
+        The page geometry and the two pages of the card, for every document that carries the card -
+        on its own (idcard-document.xsl) or together with the master data sheet
+        (masterdata-idcard-document.xsl). The sequence always produces exactly two pages, outside
+        then inside, so a duplex print puts them on the two sides of one sheet.
+    -->
+    <xsl:template name="idcard-page-master">
+        <fo:simple-page-master master-name="idcardA4" page-height="29.7cm" page-width="21cm">
+            <fo:region-body/>
+        </fo:simple-page-master>
+    </xsl:template>
+    <xsl:template name="idcard-page-sequence">
+        <fo:page-sequence master-reference="idcardA4">
+            <fo:flow flow-name="xsl-region-body">
+                <fo:block-container border-bottom="0.35mm dashed #999999"
+                                    font-family="Helvetica"
+                                    width="21cm" height="8cm"
+                                    page-break-after="always">
+                    <xsl:call-template name="idcard-outside"/>
+                </fo:block-container>
+                <fo:block-container border-bottom="0.35mm dashed #999999" font-family="Helvetica"
+                                    width="21cm" height="8cm">
+                    <xsl:call-template name="idcard-inside"/>
+                </fo:block-container>
+            </fo:flow>
+        </fo:page-sequence>
+    </xsl:template>
 
     <!--
         Printed on A4, then cut along the dashed lines and folded into a business-card-sized

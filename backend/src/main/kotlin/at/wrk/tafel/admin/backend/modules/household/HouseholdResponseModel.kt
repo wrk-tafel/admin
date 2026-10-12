@@ -235,6 +235,7 @@ data class IncomeCalculationDetails(
 enum class HouseholdPdfType {
     MASTERDATA,
     IDCARD,
+    MASTERDATA_IDCARD,
     PRIVACY_NOTICE,
 }
 

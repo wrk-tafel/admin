@@ -34,6 +34,11 @@ describe('Customer Detail', () => {
     generateAndDownloadPdf('stammdaten-100-mustermann-max-single.pdf');
   });
 
+  it('generate masterdata and idcard as one pdf and opens for download', () => {
+    cy.visit('/kunden/detail/101');
+    generateAndDownloadPdf('stammdaten-ausweis-101-musterfrau-eva.pdf', 'printMasterdataIdCardButton');
+  });
+
   it('generate privacy notice pdf and opens for download', () => {
     cy.visit('/kunden/detail/101');
     generateAndDownloadPdf('datenschutzerklaerung-101-musterfrau-eva.pdf', 'printPrivacyNoticeButton');

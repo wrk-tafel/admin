@@ -122,9 +122,9 @@ overview and duplicate/merge endpoints additionally require `CUSTOMERS_ABOVE_LIM
 - `createHousehold`/`updateHousehold` take a `force: Boolean` query param and check
   `isSupervisor` (role `SUPERVISOR`) from the JWT - see "Income validation" below for what that
   gates.
-- `generatePdf` streams back a PDF (`HouseholdPdfType.MASTERDATA`, `IDCARD` or `PRIVACY_NOTICE` - the
-  latter a printable privacy-notice/consent sheet for the customer to sign at intake, GDPR G2/#3177;
-  see `docs/architecture/gdpr-compliance.md`).
+- `generatePdf` streams back a PDF (`HouseholdPdfType.MASTERDATA`, `IDCARD`, `MASTERDATA_IDCARD` -
+  the two in one file - or `PRIVACY_NOTICE`, a printable privacy-notice/consent sheet for the
+  customer to sign at intake, GDPR G2/#3177; see `docs/architecture/gdpr-compliance.md`).
 - `generatePrivacyNoticeTemplatePdf` (`GET /households/privacy-notice-template`, flat like
   `/above-limit`/`/overview` below rather than nested under `/{householdId}`) streams the same
   privacy-notice sheet with no household reference - reachable from the customer search screen, for
@@ -412,11 +412,16 @@ differently depending on the caller's role:
 - Supervisor with `force=true`: saved as-is (validity untouched), no error.
 
 ### `HouseholdPdfService` (`internal/masterdata`)
-Generates the household's PDFs (master data sheet, ID card or privacy-notice sheet) using
-`PDFService` (in `common/pdf`), which renders Apache FOP XSL-FO templates from
+Generates the household's PDFs (master data sheet, ID card, both in one file, or privacy-notice
+sheet) using `PDFService` (in `common/pdf`), which renders Apache FOP XSL-FO templates from
 `backend/src/main/resources/pdf-templates/customer-pdf/` (`masterdata-document.xsl`,
-`idcard-document.xsl`, `privacy-notice-document.xsl` - note: still under a `customer-pdf`
-directory, matching the "customer" legacy naming). `Model.kt` in the same package defines the
+`idcard-document.xsl`, `masterdata-idcard-document.xsl`, `privacy-notice-document.xsl` - note: still
+under a `customer-pdf` directory, matching the "customer" legacy naming). A `*-document.xsl` only
+lists which documents the file holds: the page geometry and content of the master data sheet and
+of the ID card each live once, in `includes/masterdata.xsl` and `includes/idcard.xsl`
+(`<name>-page-master`/`<name>-page-sequence`), so a layout change is made there and reaches the
+single download and the combined one alike. The combined file puts the card first - its two pages
+are the two sides of one sheet in a duplex print, which only holds while it starts on an odd page. `Model.kt` in the same package defines the
 XML-serializable `PdfData`/`PdfCustomerData`/`PdfAddressData`/`PdfAdditionalPersonData`/
 `PdfIdCardData`/`PrivacyNoticePdfData` tree that gets marshalled to XML and fed to the XSL-FO
 transform. The ID card also embeds a QR code (containing the household's `household_id`) generated

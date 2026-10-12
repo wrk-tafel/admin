@@ -815,6 +815,11 @@ class HouseholdService(
                     bytes = householdPdfService.generateIdCardPdf(household)
                 }
 
+                HouseholdPdfType.MASTERDATA_IDCARD -> {
+                    filenamePrefix = "stammdaten-ausweis"
+                    bytes = householdPdfService.generateMasterdataIdCardPdf(household)
+                }
+
                 HouseholdPdfType.PRIVACY_NOTICE -> {
                     filenamePrefix = "datenschutzerklaerung"
                     bytes = householdPdfService.generatePrivacyNoticePdf(household)
