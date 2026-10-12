@@ -147,9 +147,25 @@ Cypress.Commands.add('checkAutocompleteAccessibility', (options?: Options) => {
   cy.checkAccessibility('.mat-mdc-autocomplete-panel', options);
 });
 
+// The button in the calendar's header that switches between the month and the year view. Its
+// markup is Angular Material's own: the visible text ("OKT. 2026") is `aria-hidden`, the accessible
+// name says what the button does ("Monat und Jahr auswählen") and the period is announced as its
+// description. axe's `label-content-name-mismatch` wants the visible text inside the name, which
+// only a header component of our own could give it. Every other rule still applies to the button,
+// and this rule still applies to everything else in the calendar.
+const MATERIAL_CALENDAR_PERIOD_BUTTON = '.mat-datepicker-content .mat-calendar-period-button';
+
 Cypress.Commands.add('checkDatepickerAccessibility', (options?: Options) => {
   cy.get('.mat-datepicker-content').should('be.visible').and(expectFadedIn).and(expectAnimationsSettled);
-  cy.checkAccessibility('.mat-datepicker-content', options);
+  cy.checkAccessibility({include: ['.mat-datepicker-content'], exclude: [MATERIAL_CALENDAR_PERIOD_BUTTON]}, options);
+  cy.checkAccessibility(MATERIAL_CALENDAR_PERIOD_BUTTON, {
+    ...options,
+    rules: {
+      ...RULES_NOT_APPLICABLE_TO_FRAGMENTS,
+      ...options?.rules,
+      'label-content-name-mismatch': {enabled: false}
+    }
+  });
 });
 
 Cypress.Commands.add('checkTimepickerAccessibility', (options?: Options) => {
