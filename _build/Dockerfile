@@ -51,7 +51,7 @@ FROM amazoncorretto:26-alpine@sha256:1d79860472b4f7227dc0cb8d97672d0b51a417b62c4
 # pulling current versions here closes that gap. Deliberately not version-pinned like the base image:
 # Alpine's repo only carries the current build of each package, so pinning an exact version here
 # would eventually vanish from the index and break the build outright once Alpine ships the next fix.
-RUN apk add --no-cache --upgrade libssl3 libcrypto3
+RUN apk add --no-cache --upgrade libssl3 libcrypto3 zlib
 ARG VERSION=dev
 ARG BUILD_DATE=unknown
 ENV TAFELADMIN_VERSION=$VERSION
