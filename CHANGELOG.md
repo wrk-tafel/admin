@@ -5,6 +5,9 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Screenreader lesen bei "Stopp erledigt" und "Rückgängig machen" in der Routenführung sowie bei "Route in Karte öffnen" in den Routen-Einstellungen jetzt zuerst die sichtbare Beschriftung der Schaltfläche vor - wichtig auch für die Sprachsteuerung, die eine Schaltfläche über ihren sichtbaren Text anspricht.
+
+## [1.29.1] - 2026-10-09
 - Die digitale Ausgabe des Kundenausweises ("Daten ausdrucken → Ausweis digital …": Download als PDF oder Bild, Versand per E-Mail) wurde wieder entfernt; der Ausweis wird wie bisher ausgedruckt. Bereits erfasste Versand-Einträge im Verlauf eines Kunden bleiben sichtbar.
 
 ## [1.29.0] - 2026-10-08
