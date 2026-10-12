@@ -698,19 +698,18 @@ Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two
 
 ## Special Considerations
 
-- **Saturday Deploy Freeze**: `deploy-prod` in `.github/workflows/release.yml` refuses to run for the
-  entire day every Saturday (Europe/Vienna time). The app is live-used during Saturday distributions
-  (~12:00-24:00) and Flyway migrations run on application boot, so a deploy mid-event would restart
-  the app under load — see issue #2931. The `check-deploy-window` job **fails** the release run on a
-  Saturday rather than skipping quietly, so a blocked deploy is visible: everything up to and
-  including `deploy-test` still succeeds, and prod is deployed by re-running the failed jobs once it
-  is no longer Saturday. A red release run whose only failure is `check-deploy-window` means the
-  freeze, not a broken build. The one way past it on a Saturday is to start the workflow by hand
-  with its `overrideDeployFreeze` input
-  (`gh workflow run release.yml --ref release -f overrideDeployFreeze=true`) — for when the
-  distribution is over. A push never carries that input, and neither does re-running a
-  push-triggered run, so the override is a whole new run: it builds, tests and deploys test and dev
-  again before it reaches prod.
+- **Prod Deploys Without Downtime**: `deploy-prod` in `.github/workflows/release.yml` runs whenever
+  a release reaches it - there is no deploy window. The server keeps two slots for the prod
+  application: a deploy starts the new version in the free one, points nginx at it once
+  `/actuator/health` reports `UP`, then stops the old one, which answers what it still has in
+  progress (see Graceful Shutdown below). A version that never becomes healthy is removed and prod
+  keeps running the old one, so a failed `deploy-prod` means "not deployed", not "down". The
+  mechanics live in the infrastructure repository (`deploy_admin.sh`); dev and test are stopped and
+  started. What this asks of the application: **for about half a minute per deploy two versions run
+  against one database**, and the new one has already run its Flyway migrations (they run on boot).
+  A migration the previous release cannot work with - a dropped or renamed column it still reads, a
+  constraint it violates - breaks requests on the old version for that window. See
+  [ADR-0069](docs/architecture/adr/0069-prod-is-deployed-without-downtime-and-without-a-deploy-window.md).
 - **Deploys run in GitHub Environments**: `subflow_deploy.yml`'s job declares
   `environment: ${{ inputs.environment }}` — one name for both the folder on the server and the
   GitHub environment the deployment is recorded against. `dev`/`test`/`prod` are the only three, all

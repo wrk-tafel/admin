@@ -1,28 +1,25 @@
 package at.wrk.tafel.admin.backend.common.sse
 
-import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
+import at.wrk.tafel.admin.backend.AdminBackendApplication
+import at.wrk.tafel.admin.backend.TEST_POSTGRES_IMAGE
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
-import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.test.context.TestComponent
-import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.boot.web.server.context.WebServerApplicationContext
 import org.springframework.context.ConfigurableApplicationContext
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.TestContextManager
-import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.testcontainers.postgresql.PostgreSQLContainer
 import java.io.InputStream
 import java.net.Socket
 import java.net.URI
@@ -40,15 +37,20 @@ import kotlin.concurrent.thread
  * `spring.lifecycle.timeout-per-shutdown-phase`. Only a real Tomcat shows either - its graceful
  * shutdown is what counts a stream as a request in progress.
  *
- * The test closes the application context. [SlowController] gives it a context no other class
- * shares, and [forgetClosedContext] takes that one out of the test framework's cache, which would
- * otherwise try to restart it after the test.
+ * The test stops the application, so it starts one of its own instead of taking a context from the
+ * test framework: that one is cached and shared, and the framework expects to find it running
+ * after the test. Its own database container keeps this application's connections off the one the
+ * other integration tests share, which runs close to its connection limit.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(GracefulShutdownIT.SlowController::class)
-class GracefulShutdownIT : TafelBaseIntegrationTest() {
+class GracefulShutdownIT {
 
     companion object {
+        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer(TEST_POSTGRES_IMAGE)
+            .withDatabaseName("tafeladmin-gracefulshutdown")
+            .withUsername("admin")
+            .withPassword("admin")
+            .apply { start() }
+
         // Not fields of the controller: method security wraps it in a proxy, which would ask a
         // caller of their accessors for an authentication.
         private val slowRequestEntered = CountDownLatch(1)
@@ -68,31 +70,35 @@ class GracefulShutdownIT : TafelBaseIntegrationTest() {
         }
     }
 
-    @LocalServerPort
-    private var port: Int = 0
-
-    @Autowired
-    private lateinit var applicationContext: ConfigurableApplicationContext
-
-    @Autowired
-    private lateinit var userRepository: UserRepository
-
-    @Autowired
-    private lateinit var transactionTemplate: TransactionTemplate
-
-    @Autowired
-    private lateinit var passwordEncoder: PasswordEncoder
-
     private val httpClient = HttpClient.newHttpClient()
     private val password = "aNewSecretPassword1"
-    private lateinit var user: UserEntity
+    private lateinit var application: ConfigurableApplicationContext
+    private lateinit var username: String
+    private var port: Int = 0
 
     @BeforeEach
     fun beforeEach() {
-        val encodedPassword = passwordEncoder.encode(password)!!
-        user = transactionTemplate.execute {
-            userRepository.saveAndFlush(createUser().apply { this.password = encodedPassword })
+        application = SpringApplicationBuilder(AdminBackendApplication::class.java, SlowController::class.java)
+            .properties(
+                mapOf(
+                    "spring.datasource.url" to postgreSQLContainer.jdbcUrl,
+                    "spring.datasource.username" to postgreSQLContainer.username,
+                    "spring.datasource.password" to postgreSQLContainer.password,
+                ),
+            )
+            .run()
+        port = (application as WebServerApplicationContext).webServer!!.port
+
+        val user = createUser().apply {
+            this.password = application.getBean(PasswordEncoder::class.java).encode(this@GracefulShutdownIT.password)!!
         }
+        username = application.getBean(UserRepository::class.java).saveAndFlush(user).username!!
+    }
+
+    @AfterEach
+    fun afterEach() {
+        slowRequestRelease.countDown()
+        application.close()
     }
 
     @Test
@@ -123,10 +129,7 @@ class GracefulShutdownIT : TafelBaseIntegrationTest() {
             )
             assertThat(slowRequestEntered.await(10, TimeUnit.SECONDS)).isTrue()
 
-            val stop = thread {
-                applicationContext.close()
-                forgetClosedContext()
-            }
+            val stop = thread { application.close() }
 
             // The chunk of length zero is how a chunked response says it is complete.
             readUntil(streamInput, "0\r\n\r\n")
@@ -142,14 +145,6 @@ class GracefulShutdownIT : TafelBaseIntegrationTest() {
         }
     }
 
-    /**
-     * Has to happen before the test method returns: the framework's listeners look the context up
-     * right after it, ahead of any `@AfterEach`.
-     */
-    private fun forgetClosedContext() {
-        TestContextManager(javaClass).testContext.markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE)
-    }
-
     private fun readUntil(input: InputStream, terminator: String): String {
         val received = StringBuilder()
         while (!received.endsWith(terminator)) {
@@ -161,7 +156,7 @@ class GracefulShutdownIT : TafelBaseIntegrationTest() {
     }
 
     private fun login(): String {
-        val credentials = Base64.getEncoder().encodeToString("${user.username}:$password".toByteArray())
+        val credentials = Base64.getEncoder().encodeToString("$username:$password".toByteArray())
         val response = httpClient.send(
             HttpRequest.newBuilder(URI.create("http://localhost:$port/api/login"))
                 .header("Authorization", "Basic $credentials")

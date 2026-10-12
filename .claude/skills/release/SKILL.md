@@ -47,12 +47,6 @@ and `main` would not have it.
   Find the run whose `headSha` is `origin/main`'s. If it is still running, wait for it
   (`gh run watch --exit-status <id>`); if it failed, or there is none, stop and report which.
   A path-aware run whose jobs were *skipped* (docs-only change) is fine.
-- **It is not Saturday** in Europe/Vienna. `deploy-prod` refuses to run then (the app is live during
-  Saturday distributions and Flyway migrations run on boot), so the release would go out to test and
-  fail its `check-deploy-window` job. `TZ=Europe/Vienna date +%A` tells (in Git Bash on Windows `TZ` is
-  not applied reliably - compare against the local clock). If it is Saturday, say so and
-  stop - unless the user explicitly wants test/dev only, which this skill does not distinguish, or
-  explicitly asks to override the freeze because the distribution is over (see step 4).
 - **`CHANGELOG.md`'s `## [Unreleased]` is not stale** - it feeds the release notes only through the
   added `- ` lines since the previous tag, so nothing breaks, but mention it to the user if the
   heading still holds bullets of an earlier release (see CLAUDE.md's "Changelog" section).
@@ -81,20 +75,10 @@ gh run watch --exit-status <databaseId>
 
 Report the commits that shipped (step 1's list), the version that was tagged (`gh release list --limit 1`),
 the run URL and the final conclusion. If it fails, do not retry or re-push anything — surface the failing
-job/step and let the user decide, since this pipeline touches prod. A red run whose only failure is
-`check-deploy-window` is the Saturday freeze, not a broken build: everything up to `deploy-test` succeeded and prod
-is deployed by re-running the failed jobs once it is no longer Saturday.
-
-Only when the user explicitly asked to override the freeze: once that push-triggered run has ended with
-`check-deploy-window` as its only failure, start a second run that carries the override and watch it the
-same way. It is a full run (build, test, e2e, image, test and dev deploy) on the same commit.
-
-```bash
-gh workflow run release.yml --ref release -f overrideDeployFreeze=true
-```
+job/step and let the user decide, since this pipeline touches prod. A failed
+`deploy-prod` leaves prod on the previous version: the new one is only switched to once it is healthy.
 
 **Never:**
-- override the Saturday freeze unless the user asked for exactly that in this conversation
 - force-push `release`, or push anything to it but a merge of `main`
 - release a `main` commit whose pipeline is red or missing
 - retry a failed release deploy automatically

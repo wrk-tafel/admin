@@ -1,6 +1,6 @@
 # ADR-0013: Production deploys are blocked all day Saturday
 
-**Status:** accepted · **Recorded:** 2026-08-09
+**Status:** superseded by [ADR-0069](0069-prod-is-deployed-without-downtime-and-without-a-deploy-window.md) · **Recorded:** 2026-08-09
 
 ## Context
 
