@@ -11,7 +11,8 @@ import {
   CustomerApiService,
   CustomerData,
   CustomerUpdateResponse,
-  householdLockReasonLabel
+  householdLockReasonLabel,
+  PdfType
 } from '../../../../api/customer-api.service';
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {
@@ -200,7 +201,7 @@ export class CustomerDetailComponent {
   readonly hasDocumentsPermission = computed(() => this.authenticationService.hasPermission('CUSTOMER_DOCUMENTS'));
 
   /** Which PDF is currently being generated, so the triggering print action can show a busy state. */
-  readonly printing = signal<'MASTERDATA' | 'IDCARD' | 'PRIVACY_NOTICE' | null>(null);
+  readonly printing = signal<PdfType | null>(null);
 
   /** Whether the GDPR data-takeout download is currently running, so the triggering action can show a busy state. */
   readonly exporting = signal(false);
@@ -261,28 +262,27 @@ export class CustomerDetailComponent {
     });
   }
 
+  /** Downloads the master data sheet and the ID card as one PDF. */
+  printMasterdataIdCard() {
+    this.print('MASTERDATA_IDCARD');
+  }
+
   printMasterdata() {
-    this.printing.set('MASTERDATA');
-    this.customerApiService.generatePdf(this.customerData().id!, 'MASTERDATA').subscribe({
-      next: (response) => this.processFileResponse(response),
-      error: () => this.printing.set(null),
-      complete: () => this.printing.set(null)
-    });
+    this.print('MASTERDATA');
   }
 
   printIdCard() {
-    this.printing.set('IDCARD');
-    this.customerApiService.generatePdf(this.customerData().id!, 'IDCARD').subscribe({
-      next: (response) => this.processFileResponse(response),
-      error: () => this.printing.set(null),
-      complete: () => this.printing.set(null)
-    });
+    this.print('IDCARD');
   }
 
   /** Downloads the printable privacy-notice/consent sheet for the customer to sign at intake (GDPR G2). */
   printPrivacyNotice() {
-    this.printing.set('PRIVACY_NOTICE');
-    this.customerApiService.generatePdf(this.customerData().id!, 'PRIVACY_NOTICE').subscribe({
+    this.print('PRIVACY_NOTICE');
+  }
+
+  private print(type: PdfType) {
+    this.printing.set(type);
+    this.customerApiService.generatePdf(this.customerData().id!, type).subscribe({
       next: (response) => this.processFileResponse(response),
       error: () => this.printing.set(null),
       complete: () => this.printing.set(null)

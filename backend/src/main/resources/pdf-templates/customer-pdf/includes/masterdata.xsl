@@ -1,7 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.1" exclude-result-prefixes="fo">
-    <xsl:include href="/pdf-templates/common/includes/branding.xsl"/>
+    <!--
+        Uses the building blocks of common/includes/branding.xsl without including it: the
+        document stylesheet does, once, since masterdata-idcard-document.xsl composes this file
+        with its sibling and a stylesheet included twice defines every template twice.
+    -->
+
+    <!--
+        The page geometry and the sheet itself, for every document that carries it - on its own
+        (masterdata-document.xsl) or together with the ID card (masterdata-idcard-document.xsl).
+    -->
+    <xsl:template name="masterdata-page-master">
+        <fo:simple-page-master master-name="masterdataA4" page-height="29.7cm" page-width="21cm"
+                               margin-top="1cm" margin-bottom="1cm" margin-left="1cm" margin-right="1cm">
+            <fo:region-body/>
+        </fo:simple-page-master>
+    </xsl:template>
+    <xsl:template name="masterdata-page-sequence">
+        <fo:page-sequence master-reference="masterdataA4">
+            <fo:flow flow-name="xsl-region-body">
+                <xsl:call-template name="masterdata"/>
+            </fo:flow>
+        </fo:page-sequence>
+    </xsl:template>
 
     <xsl:template name="masterdata">
         <fo:block font-family="Helvetica" start-indent="0pt" end-indent="0pt">

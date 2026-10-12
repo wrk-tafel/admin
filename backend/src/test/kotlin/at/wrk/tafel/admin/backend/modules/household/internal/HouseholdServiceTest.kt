@@ -1728,6 +1728,22 @@ class HouseholdServiceTest {
     }
 
     @Test
+    fun `generate pdf household - MASTERDATA_IDCARD type`() {
+        val testHouseholdEntity = testHouseholdEntityWithMainPerson()
+
+        val pdfBytes = ByteArray(10)
+        every { householdRepository.findByHouseholdId(any()) } returns testHouseholdEntity
+        every { householdPdfService.generateMasterdataIdCardPdf(any()) } returns pdfBytes
+
+        val result = service.generatePdf(1, HouseholdPdfType.MASTERDATA_IDCARD)
+
+        assertThat(result).isNotNull
+        assertThat(result?.filename).isEqualTo("stammdaten-ausweis-100-mustermann-max.pdf")
+        assertThat(result?.bytes?.size).isEqualTo(pdfBytes.size.toLong())
+        verify(exactly = 1) { householdPdfService.generateMasterdataIdCardPdf(testHouseholdEntity) }
+    }
+
+    @Test
     fun `generate pdf household - PRIVACY_NOTICE type`() {
         val testHouseholdEntity = testHouseholdEntityWithMainPerson()
 

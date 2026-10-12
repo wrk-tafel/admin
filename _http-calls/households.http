@@ -218,6 +218,10 @@ Content-Type: application/json
 GET {{baseApiPath}}/households/100/generate-pdf?type=IDCARD
 Content-Type: application/json
 
+### Get masterdata and idcard in one pdf
+GET {{baseApiPath}}/households/100/generate-pdf?type=MASTERDATA_IDCARD
+Content-Type: application/json
+
 ### Get privacy notice pdf
 GET {{baseApiPath}}/households/100/generate-pdf?type=PRIVACY_NOTICE
 Content-Type: application/json

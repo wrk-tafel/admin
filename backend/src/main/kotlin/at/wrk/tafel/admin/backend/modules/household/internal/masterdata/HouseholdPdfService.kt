@@ -29,15 +29,24 @@ class HouseholdPdfService(
         private const val LOGO_RESOURCE_PATH = "/assets/logo.png"
     }
 
-    fun generateMasterdataPdf(household: HouseholdEntity): ByteArray {
-        val data = createHouseholdPdfData(household)
-        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/masterdata-document.xsl", "household ${household.householdId}")
-    }
+    fun generateMasterdataPdf(household: HouseholdEntity): ByteArray = generateHouseholdPdf(household, "masterdata-document.xsl")
 
-    fun generateIdCardPdf(household: HouseholdEntity): ByteArray {
-        val data = createHouseholdPdfData(household)
-        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/idcard-document.xsl", "household ${household.householdId}")
-    }
+    fun generateIdCardPdf(household: HouseholdEntity): ByteArray = generateHouseholdPdf(household, "idcard-document.xsl")
+
+    /** The ID card followed by the master data sheet, in one file - the two documents above, unchanged. */
+    fun generateMasterdataIdCardPdf(household: HouseholdEntity): ByteArray = generateHouseholdPdf(household, "masterdata-idcard-document.xsl")
+
+    /**
+     * The master data sheet, the ID card and the file holding both differ only in the stylesheet:
+     * each is rendered from the same [PdfData], and the stylesheets compose the same includes
+     * (`includes/masterdata.xsl`, `includes/idcard.xsl`), so a change to either document shows up
+     * in its own download and in the combined one.
+     */
+    private fun generateHouseholdPdf(household: HouseholdEntity, stylesheet: String): ByteArray = pdfService.generatePdf(
+        createHouseholdPdfData(household),
+        "/pdf-templates/customer-pdf/$stylesheet",
+        "household ${household.householdId}",
+    )
 
     /**
      * A printable sheet an operator hands the customer at intake to read and sign, filed outside the

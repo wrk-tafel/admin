@@ -533,7 +533,7 @@ export const householdLockReasonLabel: { [key in HouseholdLockReason]: string } 
   [HouseholdLockReason.OTHER]: 'Sonstiger Grund'
 };
 
-type PdfType = 'MASTERDATA' | 'IDCARD' | 'PRIVACY_NOTICE';
+export type PdfType = 'MASTERDATA' | 'IDCARD' | 'MASTERDATA_IDCARD' | 'PRIVACY_NOTICE';
 
 export type CustomerDuplicatesResponse = PagedResponse<CustomerDuplicatesItem>;
 

@@ -142,11 +142,14 @@
       }
     </button>
     <mat-menu #printMenu="matMenu">
+      <button mat-menu-item testid="printMasterdataIdCardButton" (click)="printMasterdataIdCard()">
+        Stammdaten und Ausweis
+      </button>
       <button mat-menu-item testid="printMasterdataButton" (click)="printMasterdata()">
-        Stammdaten
+        Nur Stammdaten
       </button>
       <button mat-menu-item testid="printIdCardButton" (click)="printIdCard()">
-        Ausweis
+        Nur Ausweis
       </button>
       <button mat-menu-item testid="printPrivacyNoticeButton" (click)="printPrivacyNotice()">
         Datenschutzerklärung

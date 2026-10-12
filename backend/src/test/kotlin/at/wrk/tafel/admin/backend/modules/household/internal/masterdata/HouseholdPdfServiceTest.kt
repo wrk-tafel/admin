@@ -193,6 +193,34 @@ class HouseholdPdfServiceTest {
     }
 
     /**
+     * The combined file has no reference images of its own on purpose: what it promises is that it
+     * holds the two documents exactly as their own downloads render them, so each of its pages is
+     * compared against the page the single download produces from the same household.
+     */
+    @Test
+    fun `generate masterdata and idcard pdf - holds the pages of both single documents`() {
+        val pdfBytes = service.generateMasterdataIdCardPdf(testHousehold)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "masterdata-idcard-result.pdf"), pdfBytes)
+
+        val expectedPages = renderPages(service.generateIdCardPdf(testHousehold)) +
+            renderPages(service.generateMasterdataPdf(testHousehold))
+        val actualPages = renderPages(pdfBytes)
+
+        assertThat(actualPages).hasSize(3)
+        actualPages.zip(expectedPages).forEachIndexed { index, (actual, expected) ->
+            val comparisonResult = ImageComparison(expected, actual).compareImages()
+            comparisonResult.writeResultTo(File(comparisonResultDirectory, "masterdata-idcard-page$index-diff.png"))
+
+            assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
+        }
+    }
+
+    private fun renderPages(pdfBytes: ByteArray): List<BufferedImage> = Loader.loadPDF(pdfBytes).use { document ->
+        val pdfRenderer = PDFRenderer(document)
+        (0 until document.numberOfPages).map { pdfRenderer.renderImageWithDPI(it, 300f, ImageType.RGB) }
+    }
+
+    /**
      * FOP only *logs* an overflow, so a card whose content is taller than its fixed 8 cm cut strip
      * still renders and every image comparison above still matches - the warning shows up in
      * `app.log` on every print instead (#3622, #3697). Runs every household PDF through the real
@@ -237,6 +265,7 @@ class HouseholdPdfServiceTest {
 
         recordingService.generateIdCardPdf(testHousehold)
         recordingService.generateMasterdataPdf(testHousehold)
+        recordingService.generateMasterdataIdCardPdf(testHousehold)
         recordingService.generatePrivacyNoticePdf(testHousehold)
         recordingService.generatePrivacyNoticeTemplatePdf()
 
