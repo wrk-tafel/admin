@@ -5,6 +5,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Neue Versionen werden jetzt ohne Unterbrechung eingespielt, auch während einer Ausgabe: Die Anwendung bleibt dabei erreichbar, und geöffnete Seiten verbinden sich von selbst mit der neuen Version.
 - In der Kundenansicht erstellt "Daten ausdrucken → Stammdaten und Ausweis" jetzt beide Dokumente in einer PDF-Datei (zuerst den Ausweis, danach das Stammdatenblatt); die Einzeldrucke bleiben als "Nur Stammdaten" und "Nur Ausweis" erhalten.
 - Screenreader lesen bei "Stopp erledigt" und "Rückgängig machen" in der Routenführung sowie bei "Route in Karte öffnen" in den Routen-Einstellungen jetzt zuerst die sichtbare Beschriftung der Schaltfläche vor - wichtig auch für die Sprachsteuerung, die eine Schaltfläche über ihren sichtbaren Text anspricht.
 - Datumsfelder zeigen das Datum jetzt überall als TT.MM.JJJJ und Uhrzeiten im 24-Stunden-Format - unabhängig davon, in welcher Sprache der Browser läuft (bisher erschien z. B. auf einem englisch eingestellten Browser MM/TT/JJJJ). Ein Datum kann wie bisher getippt werden, auch ohne Punkte ("24121980") oder mit zweistelligem Jahr ("1.2.85"), oder über das Kalender-Symbol im Feld ausgewählt werden; eine Eingabe, die kein Datum ist, wird als "Ungültiges Datum" gemeldet.

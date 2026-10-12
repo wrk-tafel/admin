@@ -89,7 +89,8 @@ instead, so a number's position in a group says nothing about its age.
 | [0043](0043-every-environment-deploys-automatically.md) | Every environment deploys automatically, dev from all three pipelines | accepted |
 | [0042](0042-deployments-through-github-environments.md) | Deploys run in GitHub environments, with an on-demand deploy beside the automatic one | superseded by [0043](0043-every-environment-deploys-automatically.md) |
 | [0026](0026-branch-based-promotion-through-environments.md) | Branch-based promotion through dev, test and prod | superseded by [0042](0042-deployments-through-github-environments.md) |
-| [0013](0013-saturday-production-deploy-freeze.md) | Production deploys blocked all day Saturday | accepted |
+| [0069](0069-prod-is-deployed-without-downtime-and-without-a-deploy-window.md) | Prod is deployed without downtime, and without a deploy window | accepted |
+| [0013](0013-saturday-production-deploy-freeze.md) | Production deploys blocked all day Saturday | superseded by [0069](0069-prod-is-deployed-without-downtime-and-without-a-deploy-window.md) |
 | [0019](0019-supply-chain-and-container-runtime-hardening.md) | Pinned supply chain and a container that fails loudly | accepted |
 | [0035](0035-first-run-bootstraps-an-administrator-account.md) | A first run against an empty database bootstraps one administrator | accepted |
 | [0014](0014-integration-tests-against-real-postgres.md) | Integration tests against real PostgreSQL via Testcontainers | accepted |

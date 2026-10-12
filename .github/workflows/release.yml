@@ -5,11 +5,6 @@ concurrency:
 
 on:
   workflow_dispatch:
-    inputs:
-      overrideDeployFreeze:
-        description: 'Deploy to prod even on a Saturday (only once the distribution is over)'
-        type: boolean
-        default: false
   push:
     branches: [ 'release' ]
 
@@ -219,45 +214,11 @@ jobs:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
-  check-deploy-window:
-    runs-on: ubuntu-latest
-    # Evaluated right before deploy-prod rather than in the first wave: build -> test/e2e -> image
-    # -> release easily takes 30+ minutes, and checking "is it Saturday" at run start instead of at
-    # deploy time lets a run started late Friday deploy into Saturday, or one started late Saturday
-    # fail even though the actual deploy would land on Sunday.
-    needs: github-release
-    steps:
-      - name: Check for the Saturday event window
-        env:
-          TZ: Europe/Vienna
-          # Only a manually started run carries the input - on a push it is empty, so the freeze
-          # cannot be lifted by accident. Passed through the environment rather than interpolated
-          # into the script.
-          OVERRIDE_DEPLOY_FREEZE: ${{ inputs.overrideDeployFreeze }}
-        # The app is used live Sat ~12:00-24:00 and must not restart (Flyway migrations run on
-        # boot) during that window - see issue #2931. Block the whole Saturday to be safe.
-        # This fails the run on purpose so a blocked prod deploy is visible instead of a silent skip.
-        run: |
-          day=$(date +%u) # ISO weekday, 6 = Saturday
-          if [ "$day" -eq 6 ] && [ "$OVERRIDE_DEPLOY_FREEZE" = "true" ]; then
-            {
-              echo "### :warning: Saturday deploy freeze overridden"
-              echo "Current day in Europe/Vienna is $(date '+%A %H:%M'). This run was started by @${GITHUB_ACTOR} with \`overrideDeployFreeze\`, so prod is deployed anyway."
-            } >> "$GITHUB_STEP_SUMMARY"
-            echo "::warning title=Deploy freeze overridden::Prod is deployed on a Saturday (Europe/Vienna) because this run was started with overrideDeployFreeze."
-          elif [ "$day" -eq 6 ]; then
-            {
-              echo "### :no_entry: Prod deploy blocked"
-              echo "Current day in Europe/Vienna is $(date '+%A %H:%M'). Prod deploys are blocked all day Saturday."
-              echo "Re-run this workflow's failed jobs once it is no longer Saturday to deploy to prod."
-              echo "If the distribution is already over, start this workflow manually on \`release\` with \`overrideDeployFreeze\` instead."
-            } >> "$GITHUB_STEP_SUMMARY"
-            echo "::error title=Prod deploy blocked::Prod deploys are blocked all day Saturday (Europe/Vienna) - see issue #2931."
-            exit 1
-          fi
+  # Not held back on any day or hour: the server starts the new version next to the running one and
+  # switches over once it is healthy, so a prod deploy does not interrupt anyone (ADR-0069).
   deploy-prod:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: [version, github-release, check-deploy-window]
+    needs: [version, github-release]
     with:
       environment: prod
       version: ${{ needs.version.outputs.version }}
