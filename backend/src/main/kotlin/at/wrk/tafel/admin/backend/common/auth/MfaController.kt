@@ -2,11 +2,16 @@ package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.MfaService
+import at.wrk.tafel.admin.backend.common.auth.components.PasskeyEnableResult
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.MfaCodeRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaDisableRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaEnableRequest
+import at.wrk.tafel.admin.backend.common.auth.model.MfaPasskeyEnableRequest
+import at.wrk.tafel.admin.backend.common.auth.model.MfaPasskeyItem
+import at.wrk.tafel.admin.backend.common.auth.model.MfaPasskeyOptionsResponse
+import at.wrk.tafel.admin.backend.common.auth.model.MfaPasskeyVerifyRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaSetupResponse
 import at.wrk.tafel.admin.backend.common.auth.model.MfaStatusResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
@@ -22,6 +27,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -33,7 +39,8 @@ import org.springframework.web.bind.annotation.RestController
  *
  * Two kinds of unfinished session may call parts of this, and `MfaPendingFilter` lets exactly those calls through
  * and refuses the rest:
- * - one that **owes its code** may [verify] it and have the e-mailed one sent ([sendLoginCode]);
+ * - one that **owes its code** may [verify] it, have the e-mailed one sent ([sendLoginCode]), or use a passkey
+ *   instead ([passkeyLoginOptions]/[verifyPasskey]);
  * - one that **has to set a method up** because the deployment requires it may read the [getStatus] and use the
  *   setup and enable calls.
  * Everything that changes what is already set up ([disable]) refuses a session that owes its code
@@ -61,6 +68,8 @@ class MfaController(
             required = status.required,
             emailAvailable = status.emailAvailable,
             emailAddress = status.emailAddress,
+            passkeyAvailable = status.passkeyAvailable,
+            passkeys = status.passkeys.map { MfaPasskeyItem(id = it.id, name = it.name, createdAt = it.createdAt, lastUsedAt = it.lastUsedAt) },
         )
     }
 
@@ -130,6 +139,59 @@ class MfaController(
         return ResponseEntity.accepted().build()
     }
 
+    // ---- passkeys
+
+    /** Hands out the options the browser creates a passkey from; nothing counts until [enablePasskey]. */
+    @PostMapping("/passkey/setup")
+    fun setupPasskey(): MfaPasskeyOptionsResponse {
+        val authentication = requireNoCodeOwed()
+        return MfaPasskeyOptionsResponse(options = mfaService.startPasskeySetup(authentication.username!!))
+    }
+
+    /** Adds the passkey the browser created. The session stays what it is - it has passed a second factor already. */
+    @PostMapping("/passkey/enable")
+    fun enablePasskey(@Valid @RequestBody request: MfaPasskeyEnableRequest): ResponseEntity<Unit> {
+        val authentication = requireNoCodeOwed()
+        when (mfaService.enablePasskey(authentication.username!!, request.credential.toString(), request.name, request.currentCode)) {
+            PasskeyEnableResult.ENABLED -> Unit
+            PasskeyEnableResult.CODE_REFUSED -> throw invalidCode()
+            PasskeyEnableResult.PASSKEY_REFUSED -> throw BusinessRuleException("Der Passkey konnte nicht eingerichtet werden - bitte erneut versuchen!")
+        }
+        return ResponseEntity.noContent().build()
+    }
+
+    /** Removes one passkey. A `POST` rather than a `DELETE` because it takes the code in its body, like [disable]. */
+    @PostMapping("/passkey/{passkeyId}/disable")
+    fun disablePasskey(@PathVariable passkeyId: Long, @Valid @RequestBody request: MfaCodeRequest): ResponseEntity<Unit> {
+        val authentication = requireNoCodeOwed()
+        if (!mfaService.removePasskey(authentication.username!!, passkeyId, request.code)) {
+            throw invalidCode()
+        }
+        return ResponseEntity.noContent().build()
+    }
+
+    /** Hands out the options a login that owes its second step asks one of the user's passkeys with. */
+    @PostMapping("/passkey/login-options")
+    fun passkeyLoginOptions(): MfaPasskeyOptionsResponse {
+        val authentication = requireCodeOwed()
+        return MfaPasskeyOptionsResponse(options = mfaService.startPasskeyLogin(authentication.username!!))
+    }
+
+    /** Finishes a login with a passkey instead of a code - otherwise exactly [verify]. */
+    @PostMapping("/passkey/verify")
+    fun verifyPasskey(
+        @Valid @RequestBody request: MfaPasskeyVerifyRequest,
+        httpRequest: HttpServletRequest,
+        httpResponse: HttpServletResponse,
+    ): ResponseEntity<Unit> {
+        val authentication = requireCodeOwed()
+        if (!mfaService.verifyLoginWithPasskey(authentication.username!!, request.credential.toString())) {
+            throw BusinessRuleException("Der Passkey wurde nicht akzeptiert, oder es gab zu viele Fehlversuche - bitte den Code verwenden!")
+        }
+        issueCompletedSession(authentication.username, httpRequest, httpResponse)
+        return ResponseEntity.noContent().build()
+    }
+
     // ---- switching off and logging in
 
     @PostMapping("/disable")
@@ -151,15 +213,20 @@ class MfaController(
         httpRequest: HttpServletRequest,
         httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
-        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-        if (!authentication.mfaPending) {
-            throw BusinessRuleException("Es ist keine Bestätigung mit einem Code erforderlich!")
-        }
+        val authentication = requireCodeOwed()
         if (!mfaService.verifyLogin(authentication.username!!, request.code)) {
             throw invalidCode()
         }
         issueCompletedSession(authentication.username, httpRequest, httpResponse)
         return ResponseEntity.noContent().build()
+    }
+
+    private fun requireCodeOwed(): TafelJwtAuthentication {
+        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        if (!authentication.mfaPending) {
+            throw BusinessRuleException("Es ist keine Bestätigung mit einem Code erforderlich!")
+        }
+        return authentication
     }
 
     private fun requireNoCodeOwed(): TafelJwtAuthentication {

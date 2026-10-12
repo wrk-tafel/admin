@@ -16,6 +16,7 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserPasskeyRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesRepository
@@ -63,6 +64,7 @@ class UserExportService(
     private val pushTypePreferenceRepository: PushTypePreferenceRepository,
     private val loginAttemptRepository: LoginAttemptRepository,
     private val auditLogRepository: AuditLogRepository,
+    private val userPasskeyRepository: UserPasskeyRepository,
     private val auditLogWriter: AuditLogWriter,
     private val pdfService: PDFService,
     private val jsonMapper: JsonMapper,
@@ -162,7 +164,7 @@ class UserExportService(
 
     private fun buildMasterData(userEntity: UserEntity): List<UserExportField> {
         val pushEnabled = pushPreferencesRepository.findByUserId(userEntity.id!!)?.enabled
-        return listOf(
+        return listOfNotNull(
             UserExportField("Benutzername", userEntity.username),
             UserExportField("Personalnummer", userEntity.personnelNumber),
             UserExportField("Name", "${userEntity.lastname} ${userEntity.firstname}"),
@@ -170,6 +172,7 @@ class UserExportService(
             UserExportField("Aktiv", userEntity.enabled.yesNo()),
             // Only whether - the secret never leaves the server, not even to its owner.
             UserExportField("Zwei-Faktor-Authentifizierung aktiv", mfaExportValue(userEntity)),
+            passkeyExportValue(userEntity)?.let { UserExportField("Passkeys", it) },
             UserExportField("Passwortänderung erforderlich", userEntity.passwordChangeRequired.yesNo()),
             UserExportField("Konto erstellt am", userEntity.createdAt?.format(DATE_TIME_FORMATTER) ?: "-"),
             UserExportField("Letzter Login", userEntity.lastLogin?.format(DATE_TIME_FORMATTER) ?: "-"),
@@ -255,9 +258,15 @@ class UserExportService(
         val methods = listOfNotNull(
             "Authenticator-App".takeIf { userEntity.mfaTotpEnabled },
             "Code per E-Mail".takeIf { userEntity.mfaEmailEnabled },
+            "Passkey".takeIf { userEntity.mfaPasskeyEnabled },
         )
         return if (methods.isEmpty()) "Nein" else "Ja (${methods.joinToString(", ")})"
     }
+
+    /** The names the user gave their passkeys and when each was added - `null` for a user without any. */
+    private fun passkeyExportValue(userEntity: UserEntity): String? = userPasskeyRepository.findAllByUserIdOrderByCreatedAtAsc(userEntity.id!!)
+        .takeIf { it.isNotEmpty() }
+        ?.joinToString(", ") { "${it.name} (eingerichtet am ${it.createdAt?.format(DATE_TIME_FORMATTER) ?: "-"})" }
 
     private fun Boolean.yesNo(): String = if (this) "Ja" else "Nein"
 

@@ -580,6 +580,28 @@ class TafelAdminMfaProperties {
     var emailCodeCooldown: Duration = Duration.ofSeconds(60)
 
     var emailCodeForTests: String? = null
+
+    var passkey: TafelAdminPasskeyProperties = TafelAdminPasskeyProperties()
+}
+
+/**
+ * Passkeys as a way to complete the second step of a login (ADR-0070). A passkey belongs to a site, so the
+ * deployment has to say which one: without an [rpId] and at least one of the [origins] passkeys are not offered.
+ * All read per use.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminPasskeyProperties {
+    /**
+     * The relying party id: the host name the application is reached under, without scheme, port or path (e.g.
+     * `tafel.wrk.at`). A passkey is bound to it for good - changing it leaves every registered passkey unusable.
+     */
+    var rpId: String = ""
+
+    /** The origins a passkey may be used from - scheme, host and, if not the default, port (e.g. `https://tafel.wrk.at`). */
+    var origins: MutableList<String> = mutableListOf()
+
+    /** How long the browser has to answer once a registration or a login with a passkey was started. */
+    var challengeValidity: Duration = Duration.ofMinutes(5)
 }
 
 @ExcludeFromTestCoverage

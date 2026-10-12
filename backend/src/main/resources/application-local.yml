@@ -34,6 +34,12 @@ security:
 
 tafeladmin:
   environmentLabel: "LOCAL"
+  mfa:
+    passkey:
+      rpId: localhost
+      origins:
+        - http://localhost:4200
+        - http://localhost:8080
   mail:
     from: "dummy@localhost"
     defaultRecipientsBcc:

@@ -3,8 +3,13 @@ package at.wrk.tafel.admin.backend.common.auth.model
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
+import tools.jackson.databind.JsonNode
+import java.time.LocalDateTime
 
-/** The two ways to complete a login with a second factor; a user can have either or both. */
+/**
+ * The two methods a user switches on and off as a whole; a user can have either or both. Passkeys are not one
+ * of them: a user has any number of those, added and removed one by one, and only next to one of these.
+ */
 enum class MfaMethod {
     /** A code from an authenticator app. */
     TOTP,
@@ -26,6 +31,49 @@ data class MfaStatusResponse(
      * record, which is when the page sends the user to the "Meine Daten" tab instead of offering the method.
      */
     val emailAddress: String? = null,
+    /** Whether passkeys can be offered at all - the deployment has to name the site they belong to. */
+    val passkeyAvailable: Boolean = false,
+    val passkeys: List<MfaPasskeyItem> = emptyList(),
+)
+
+/** One passkey as the "Mein Konto" page lists it. */
+@ExcludeFromTestCoverage
+data class MfaPasskeyItem(
+    val id: Long,
+    val name: String,
+    val createdAt: LocalDateTime?,
+    val lastUsedAt: LocalDateTime?,
+)
+
+/**
+ * What the browser needs for a passkey ceremony: the WebAuthn options in their JSON form, which the page hands
+ * to `PublicKeyCredential.parseCreationOptionsFromJSON()` / `parseRequestOptionsFromJSON()` unchanged.
+ */
+@ExcludeFromTestCoverage
+data class MfaPasskeyOptionsResponse(
+    val options: Map<String, Any?>,
+)
+
+/**
+ * Adds a passkey. [credential] is what the browser's `PublicKeyCredential.toJSON()` returned for the options of
+ * the setup call, [name] what the user calls it, and [currentCode] a code of a method the user has - always
+ * required, since a passkey is only ever added next to one (ADR-0070).
+ */
+@ExcludeFromTestCoverage
+data class MfaPasskeyEnableRequest(
+    val credential: JsonNode,
+    @field:NotBlank
+    @field:Size(max = 100)
+    val name: String,
+    @field:NotBlank
+    @field:Size(max = 16)
+    val currentCode: String,
+)
+
+/** Completes a login with a passkey: [credential] is the browser's `PublicKeyCredential.toJSON()` of the assertion. */
+@ExcludeFromTestCoverage
+data class MfaPasskeyVerifyRequest(
+    val credential: JsonNode,
 )
 
 /**

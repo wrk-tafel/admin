@@ -10,6 +10,12 @@ tafeladmin:
   mfa:
     emailCodeForTests: "424242"
     emailCodeCooldown: 1s
+    # The e2e run reaches the application on localhost, through the dev server (4200) or directly (8080).
+    passkey:
+      rpId: localhost
+      origins:
+        - http://localhost:4200
+        - http://localhost:8080
   # Only makes the e-mail method of two-factor authentication available (it needs a mail to compose): no mail
   # server is set up for the e2e run, so the mail is dropped by MailOutboxService and nothing is delivered anywhere.
   mail:

@@ -36,6 +36,9 @@ class MfaServiceTest {
     @MockK(relaxed = true)
     private lateinit var notificationService: AccountSecurityNotificationService
 
+    @MockK(relaxed = true)
+    private lateinit var passkeyService: PasskeyService
+
     private val properties = TafelAdminProperties()
 
     private lateinit var service: MfaService
@@ -45,7 +48,7 @@ class MfaServiceTest {
 
     @BeforeEach
     fun setup() {
-        service = MfaService(userRepository, totpService, mfaEmailCodeService, loginAttemptService, properties, notificationService)
+        service = MfaService(userRepository, totpService, mfaEmailCodeService, loginAttemptService, properties, notificationService, passkeyService)
         user = UserEntity(
             username = "max",
             password = "hash",

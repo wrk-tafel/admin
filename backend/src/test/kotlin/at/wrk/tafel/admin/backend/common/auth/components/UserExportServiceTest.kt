@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
+import at.wrk.tafel.admin.backend.database.model.auth.UserPasskeyRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushNotificationType
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesEntity
@@ -56,6 +57,9 @@ internal class UserExportServiceTest {
 
     @RelaxedMockK
     private lateinit var auditLogRepository: AuditLogRepository
+
+    @RelaxedMockK
+    private lateinit var userPasskeyRepository: UserPasskeyRepository
 
     @RelaxedMockK
     private lateinit var auditLogWriter: AuditLogWriter
