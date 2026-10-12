@@ -16,6 +16,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {HttpErrorResponse, provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {provideTafelDateAdapter} from '../../../../common/date/tafel-date-adapter';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
 
@@ -97,6 +98,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         ReactiveFormsModule
       ],
       providers: [
+        provideTafelDateAdapter(),
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {
@@ -170,7 +172,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
   it('prefills persons handed over from the quick-check screen via navigation state', () => {
     TestBed.resetTestingModule();
-    // birthdates arrive as 'YYYY-MM-DD' strings, exactly as the quick-check's native date inputs provide them
+    // birthdates arrive as 'YYYY-MM-DD' strings once the navigation state has been through a page reload
     configureTestBed({
       quickCheckPersons: [
         {birthDate: '1990-05-12', income: 1000, receivesFamilyAllowance: false},
@@ -182,7 +184,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css('[testid="birthDateInput"]')).nativeElement.value)
-      .toBe('1990-05-12');
+      .toBe('12.05.1990');
     expect(fixture.debugElement.query(By.css('[testid="incomeInput"]')).nativeElement.value).toBe('1000');
     // the handed-over child arrives as a collapsed additional person
     expect(fixture.debugElement.query(By.css('[testid="personform-header-0"]'))).toBeTruthy();

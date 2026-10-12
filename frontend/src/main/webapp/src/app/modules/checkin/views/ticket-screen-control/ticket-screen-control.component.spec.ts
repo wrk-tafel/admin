@@ -9,6 +9,7 @@ import {
   TicketScreenTicketResponse
 } from '../../../../api/distribution-ticket-screen-api.service';
 import {of, throwError} from 'rxjs';
+import {parseTimeOfDay} from '../../../../common/date/date-values';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -23,6 +24,7 @@ import {
 import {
   EditCostContributionDialogComponent
 } from '../../../../common/components/edit-cost-contribution-dialog/edit-cost-contribution-dialog.component';
+import {provideTafelDateAdapter} from '../../../../common/date/tafel-date-adapter';
 
 const emptyTicket: TicketScreenTicketResponse = {ticketNumber: null, householdId: null, pendingCostContribution: null};
 
@@ -45,6 +47,7 @@ describe('TicketScreenControlComponent', () => {
     TestBed.configureTestingModule({
       imports: [CommonModule, MatCardModule, MatButtonModule, MatFormFieldModule, MatInputModule, TicketScreenComponent],
       providers: [
+        provideTafelDateAdapter(),
         {
           provide: DistributionTicketScreenApiService,
           useValue: {
@@ -133,14 +136,14 @@ describe('TicketScreenControlComponent', () => {
     const component = fixture.componentInstance;
     distributionTicketScreenApiService.showText.mockReturnValue(of(undefined));
 
-    const startTime = '19:00';
+    const startTime = parseTimeOfDay('19:00')!;
     component.startTimeFormModel.set({
       startTime: startTime
     });
 
     component.showStartTime();
 
-    expect(distributionTicketScreenApiService.showText).toHaveBeenCalledWith('Startzeit', startTime);
+    expect(distributionTicketScreenApiService.showText).toHaveBeenCalledWith('Startzeit', '19:00');
   });
 
   it('showCurrentTicket', () => {
@@ -199,7 +202,7 @@ describe('TicketScreenControlComponent', () => {
     const component = fixture.componentInstance;
     distributionTicketScreenApiService.showText.mockReturnValue(throwError(() => new Error('API Error')));
 
-    const startTime = '19:00';
+    const startTime = parseTimeOfDay('19:00')!;
     component.startTimeFormModel.set({
       startTime: startTime
     });
@@ -234,7 +237,7 @@ describe('TicketScreenControlComponent', () => {
     const component = fixture.componentInstance;
     distributionTicketScreenApiService.showText.mockReturnValue(of(undefined));
 
-    const startTime = '19:00';
+    const startTime = parseTimeOfDay('19:00')!;
     component.startTimeFormModel.set({
       startTime: startTime
     });
@@ -398,7 +401,7 @@ describe('TicketScreenControlComponent', () => {
       const component = fixture.componentInstance;
       component.monitorMode.set('current');
       distributionTicketScreenApiService.showText.mockReturnValue(of(undefined));
-      component.startTimeFormModel.set({startTime: '19:00'});
+      component.startTimeFormModel.set({startTime: parseTimeOfDay('19:00')});
 
       component.showStartTime();
 

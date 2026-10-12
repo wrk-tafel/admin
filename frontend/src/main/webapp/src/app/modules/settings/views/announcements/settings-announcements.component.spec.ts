@@ -5,6 +5,8 @@ import {of, throwError} from 'rxjs';
 import {SettingsAnnouncementsComponent} from './settings-announcements.component';
 import {AnnouncementResponse, NotificationApiService} from '../../../../api/notification-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {provideTafelDateAdapter} from '../../../../common/date/tafel-date-adapter';
+import {parseTimeOfDay} from '../../../../common/date/date-values';
 
 describe('SettingsAnnouncementsComponent', () => {
   const announcement: AnnouncementResponse = {
@@ -30,6 +32,7 @@ describe('SettingsAnnouncementsComponent', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideTafelDateAdapter(),
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {provide: NotificationApiService, useValue: apiMock},
@@ -48,7 +51,7 @@ describe('SettingsAnnouncementsComponent', () => {
   interface Internals {
     controls: { title: { setValue(v: string): void }; message: { setValue(v: string): void } };
     setValue(v: unknown): void;
-    getRawValue(): { title: string; message: string; expiresDate: string; expiresTime: string };
+    getRawValue(): { title: string; message: string; expiresDate: Date | null; expiresTime: Date | null };
   }
 
   function form(component: SettingsAnnouncementsComponent) {
@@ -105,7 +108,7 @@ describe('SettingsAnnouncementsComponent', () => {
   it('sends the expiry as a local datetime', () => {
     const fixture = create();
     const component = form(fixture.componentInstance);
-    component.setValue({title: 'T', message: 'M', expiresDate: '2026-10-05', expiresTime: '18:30'});
+    component.setValue({title: 'T', message: 'M', expiresDate: new Date(2026, 9, 5), expiresTime: parseTimeOfDay('18:30')});
 
     component.save();
 
@@ -115,7 +118,7 @@ describe('SettingsAnnouncementsComponent', () => {
   it('a date without a time runs to the end of that day', () => {
     const fixture = create();
     const component = form(fixture.componentInstance);
-    component.setValue({title: 'T', message: 'M', expiresDate: '2026-10-05', expiresTime: ''});
+    component.setValue({title: 'T', message: 'M', expiresDate: new Date(2026, 9, 5), expiresTime: null});
 
     component.save();
 
@@ -130,7 +133,8 @@ describe('SettingsAnnouncementsComponent', () => {
 
     expect(component.editingId()).toBe(5);
     expect(component.getRawValue()).toEqual({
-      title: 'Hinweis', message: 'Am Freitag geschlossen', expiresDate: '2026-10-05', expiresTime: '18:30'
+      title: 'Hinweis', message: 'Am Freitag geschlossen',
+      expiresDate: new Date(2026, 9, 5), expiresTime: new Date(2026, 9, 5, 18, 30)
     });
 
     component.save();
@@ -155,7 +159,7 @@ describe('SettingsAnnouncementsComponent', () => {
     apiMock.createAnnouncement = vi.fn(() => throwError(() => ({error: {}, status: 500})));
     const fixture = create();
     const component = form(fixture.componentInstance);
-    component.setValue({title: 'T', message: 'M', expiresDate: '', expiresTime: ''});
+    component.setValue({title: 'T', message: 'M', expiresDate: null, expiresTime: null});
 
     component.save();
 

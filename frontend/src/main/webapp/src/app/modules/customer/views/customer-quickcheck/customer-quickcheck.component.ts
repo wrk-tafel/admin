@@ -1,5 +1,6 @@
 import {Component, computed, inject, signal} from '@angular/core';
 import {toObservable, toSignal} from '@angular/core/rxjs-interop';
+import {ParseErrorRefreshDirective} from '../../../../common/date/parse-error-refresh.directive';
 import {applyEach, form, FormField, required, validate} from '@angular/forms/signals';
 import {catchError, debounceTime, filter, map, switchMap} from 'rxjs/operators';
 import {of} from 'rxjs';
@@ -7,11 +8,11 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from '@angular/material/datepicker';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatDialog} from '@angular/material/dialog';
 import {RouterLink} from '@angular/router';
 import {CurrencyPipe, NgClass} from '@angular/common';
-import dayjs from 'dayjs';
 import {CustomerApiService, QuickCheckPersonData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
@@ -38,6 +39,10 @@ import {ValidationResultDialogComponent} from '../customer-edit/dialogs/validati
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatDatepicker,
+    MatDatepickerInput,
+    MatDatepickerToggle,
+    ParseErrorRefreshDirective,
     MatCheckboxModule,
     RouterLink,
     CurrencyPipe,
@@ -103,9 +108,9 @@ export class CustomerQuickCheckComponent {
    */
   readonly createCustomerState = computed(() => ({quickCheckPersons: this.mapToRequestPersons(this.formModel().persons)}));
 
-  // Open range for the native date pickers, mirroring the customer form's birthdate bounds.
-  protected readonly today = dayjs().format('YYYY-MM-DD');
-  protected readonly birthDateMin = '1900-01-01';
+  // Open range for the birth date calendars, mirroring the customer form's birthdate bounds.
+  protected readonly today = new Date();
+  protected readonly birthDateMin = new Date(1900, 0, 1);
 
   personField(index: number) {
     return this.quickCheckForm.persons[index]!;

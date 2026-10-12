@@ -553,6 +553,13 @@ describe a rename/move you just made as a transition in the docs you're updating
 - Use `HttpClient` for API calls, typed with interfaces
 - Reactive forms for all form handling
 - Custom validators in `common/validator/`
+- Date and time fields are `matDatepicker` / `matTimepicker` inputs, never `<input type="date">` or
+  `type="time"` — a native one is formatted by the language the browser runs in, not by the
+  application's locale. `common/date/` holds the adapter (`dd.MM.yyyy`, 24-hour `HH:mm`) and three
+  rules that fail silently when forgotten: import `MatDatepicker`/`MatDatepickerInput`/
+  `MatDatepickerToggle` rather than `MatDatepickerModule`, give a dialog `provideTafelDateAdapter()`
+  in its own `providers`, and list `ParseErrorRefreshDirective` next to a picker bound with
+  `[formField]`. See [ADR-0068](docs/architecture/adr/0068-date-and-time-fields-are-material-pickers-with-an-adapter-of-their-own.md)
 
 **Signal-Based Patterns:**
 - Use `input()` / `input.required()` for component inputs (not `@Input`)

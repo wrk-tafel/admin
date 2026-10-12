@@ -19,7 +19,7 @@ describe('Statistics Children', () => {
 
       cy.byTestId('childrenAgeMinInput').should('have.value', '6');
       cy.byTestId('childrenAgeMaxInput').should('have.value', '10');
-      cy.byTestId('childrenReferenceDateInput').should('have.value', dayjs().format('YYYY-MM-DD'));
+      cy.byTestId('childrenReferenceDateInput').should('have.value', dayjs().format('DD.MM.YYYY'));
 
       goToLastResultPage();
 
@@ -137,7 +137,7 @@ describe('Statistics Children', () => {
       cy.byTestId('childrenAgeMaxInput').clear().type('6');
       cy.byTestId('childrenReferenceDateInput')
         .clear()
-        .type(dayjs().add(3, 'month').format('YYYY-MM-DD'));
+        .type(dayjs().add(3, 'month').format('DD.MM.YYYY'));
 
       cy.byTestId('children-basis')
         .should('contain.text', `Stichtag ${dayjs().add(3, 'month').format('DD.MM.YYYY')}`);

@@ -23,7 +23,7 @@ describe('Customer Edit', () => {
       // read while the commands below are still being queued, before this `.then()` has run.
       let expectedValidUntil: string;
       cy.byTestId('validUntilInput').invoke('val').then((value) => {
-        expectedValidUntil = dayjs(value as string).format('DD.MM.YYYY');
+        expectedValidUntil = value as string;
       });
 
       const updatedLastname = 'UpdatedLastname';

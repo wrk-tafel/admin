@@ -4,10 +4,13 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
+import {MatDatepicker, MatDatepickerInput, MatDatepickerToggle} from '@angular/material/datepicker';
 import {FormsModule} from '@angular/forms';
 import dayjs from 'dayjs';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {HouseholdLockReason, householdLockReasonLabel} from '../../../../../api/customer-api.service';
+import {provideTafelDateAdapter} from '../../../../../common/date/tafel-date-adapter';
+import {formatIsoDate} from '../../../../../common/date/date-values';
 
 export interface LockCustomerDialogResult {
   reasonType: HouseholdLockReason;
@@ -17,7 +20,12 @@ export interface LockCustomerDialogResult {
 
 @Component({
   selector: 'tafel-lock-customer-dialog',
-  imports: [TafelDialogComponent, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, FormsModule],
+  imports: [
+    TafelDialogComponent, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatDatepicker, MatDatepickerInput,
+    MatDatepickerToggle, FormsModule
+  ],
+  // A dialog is created under the root injector, where the shell route's date adapter is not visible.
+  providers: [provideTafelDateAdapter()],
   templateUrl: 'lock-customer-dialog.component.html',
 })
 export class LockCustomerDialogComponent {
@@ -30,10 +38,10 @@ export class LockCustomerDialogComponent {
   // - "Sonstiger Grund" is the sensible default for a reason that doesn't fit one of the others.
   reasonType = signal<HouseholdLockReason>(HouseholdLockReason.OTHER);
   reasonText = signal<string | null>(null);
-  lockedUntil = signal<string | null>(null);
+  lockedUntil = signal<Date | null>(null);
 
   // Earliest date a temporary lock may expire on - today would lift it again the same night it was set.
-  protected readonly minLockedUntil = dayjs().add(1, 'day').format('YYYY-MM-DD');
+  protected readonly minLockedUntil = dayjs().add(1, 'day').startOf('day').toDate();
 
   canSave = computed(() => !!this.reasonText()?.trim());
 
@@ -41,7 +49,7 @@ export class LockCustomerDialogComponent {
     this.dialogRef.close({
       reasonType: this.reasonType(),
       reasonText: this.reasonText()!.trim(),
-      lockedUntil: this.lockedUntil()
+      lockedUntil: this.lockedUntil() ? formatIsoDate(this.lockedUntil()!) : null
     } as LockCustomerDialogResult);
   }
 }

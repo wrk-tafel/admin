@@ -86,15 +86,21 @@
               <div class="flex items-center gap-3">
                 <span id="dateRangeFromLabel">von</span>
                 <mat-form-field subscriptSizing="dynamic" class="flex-1 sm:flex-none sm:w-44">
-                  <input matInput testid="dataRangeFromInput" type="date" aria-labelledby="dateRangeFromLabel"
-                         [(ngModel)]="dateRangeFrom">
+                  <input matInput testid="dataRangeFromInput" placeholder="TT.MM.JJJJ" aria-labelledby="dateRangeFromLabel"
+                         [matDatepicker]="dateRangeFromPicker" [value]="dateRangeFromValue()"
+                         (dateChange)="setDateRangeFrom($event.value)">
+                  <mat-datepicker-toggle matIconSuffix [for]="dateRangeFromPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #dateRangeFromPicker></mat-datepicker>
                 </mat-form-field>
               </div>
               <div class="flex items-center gap-3">
                 <span id="dateRangeToLabel">bis</span>
                 <mat-form-field subscriptSizing="dynamic" class="flex-1 sm:flex-none sm:w-44">
-                  <input matInput testid="dataRangeToInput" type="date" aria-labelledby="dateRangeToLabel"
-                         [(ngModel)]="dateRangeTo">
+                  <input matInput testid="dataRangeToInput" placeholder="TT.MM.JJJJ" aria-labelledby="dateRangeToLabel"
+                         [matDatepicker]="dateRangeToPicker" [value]="dateRangeToValue()"
+                         (dateChange)="setDateRangeTo($event.value)">
+                  <mat-datepicker-toggle matIconSuffix [for]="dateRangeToPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #dateRangeToPicker></mat-datepicker>
                 </mat-form-field>
               </div>
             </div>

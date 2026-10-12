@@ -4,6 +4,7 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {RouteEditDialogComponent} from './route-edit-dialog.component';
 import {RouteData} from '../../../../../api/route-api.service';
 import {ShopItem} from '../../../../../api/shop-api.service';
+import {parseTimeOfDay} from '../../../../../common/date/date-values';
 
 describe('RouteEditDialogComponent', () => {
   let dialogRef: MockedObject<MatDialogRef<RouteEditDialogComponent>>;
@@ -54,7 +55,7 @@ describe('RouteEditDialogComponent', () => {
     expect(component.form.value.number).toBe(1.5);
     expect(component.stops.length).toBe(2);
     expect(component.stops.at(0).value).toEqual({
-      time: '14:00:00',
+      time: parseTimeOfDay('14:00'),
       shopId: testShop.id,
       description: 'Stopp 1'
     });
@@ -105,7 +106,14 @@ describe('RouteEditDialogComponent', () => {
     fixture.componentInstance.form.patchValue({name: 'Route 1 neu'});
     fixture.componentInstance.save();
 
-    expect(dialogRef.close).toHaveBeenCalledWith(expect.objectContaining({name: 'Route 1 neu'}));
+    // a stop's time leaves the dialog as the HH:mm the backend reads, not as the Date the field holds
+    expect(dialogRef.close).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'Route 1 neu',
+      stops: [
+        {time: '14:00', shopId: testShop.id, description: 'Stopp 1'},
+        {time: '14:30', shopId: null, description: 'Pause'}
+      ]
+    }));
   });
 
   it('cancel() closes without a value', async () => {
@@ -206,9 +214,9 @@ describe('RouteEditDialogComponent', () => {
       const component = fixture.componentInstance;
 
       component.addStop();
-      component.stops.at(0).patchValue({time: '15:00', shopId: testShop.id});
+      component.stops.at(0).patchValue({time: parseTimeOfDay('15:00'), shopId: testShop.id});
       component.addStop();
-      component.stops.at(1).patchValue({time: '09:00', description: 'Pause'});
+      component.stops.at(1).patchValue({time: parseTimeOfDay('09:00'), description: 'Pause'});
 
       expect(component['orderedStopsPreview']()).toEqual([
         {key: 'stop-1', timeLabel: '09:00', label: 'Pause'},
@@ -247,9 +255,9 @@ describe('RouteEditDialogComponent', () => {
       const component = fixture.componentInstance;
 
       component.addStop();
-      component.stops.at(0).patchValue({time: '09:00', shopId: testShop.id});
+      component.stops.at(0).patchValue({time: parseTimeOfDay('09:00'), shopId: testShop.id});
       component.addStop();
-      component.stops.at(1).patchValue({time: '10:00', shopId: testShop.id});
+      component.stops.at(1).patchValue({time: parseTimeOfDay('10:00'), shopId: testShop.id});
 
       expect(component['stopWarnings']()).toContain('Billa ist 2-mal als Stopp eingetragen.');
     });
@@ -261,9 +269,9 @@ describe('RouteEditDialogComponent', () => {
       const component = fixture.componentInstance;
 
       component.addStop();
-      component.stops.at(0).patchValue({time: '09:00', description: 'Erster Stopp'});
+      component.stops.at(0).patchValue({time: parseTimeOfDay('09:00'), description: 'Erster Stopp'});
       component.addStop();
-      component.stops.at(1).patchValue({time: '09:02', description: 'Zweiter Stopp'});
+      component.stops.at(1).patchValue({time: parseTimeOfDay('09:02'), description: 'Zweiter Stopp'});
 
       expect(component['stopWarnings']()).toContain(
         'Zeitabstand zwischen 09:00 (Erster Stopp) und 09:02 (Zweiter Stopp) wirkt ungewöhnlich (2 Min.) — bitte prüfen.'
@@ -277,9 +285,9 @@ describe('RouteEditDialogComponent', () => {
       const component = fixture.componentInstance;
 
       component.addStop();
-      component.stops.at(0).patchValue({time: '08:00', description: 'Erster Stopp'});
+      component.stops.at(0).patchValue({time: parseTimeOfDay('08:00'), description: 'Erster Stopp'});
       component.addStop();
-      component.stops.at(1).patchValue({time: '12:00', description: 'Zweiter Stopp'});
+      component.stops.at(1).patchValue({time: parseTimeOfDay('12:00'), description: 'Zweiter Stopp'});
 
       expect(component['stopWarnings']()).toContain(
         'Zeitabstand zwischen 08:00 (Erster Stopp) und 12:00 (Zweiter Stopp) wirkt ungewöhnlich (240 Min.) — bitte prüfen.'

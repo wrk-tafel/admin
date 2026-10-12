@@ -8,7 +8,10 @@ import {
   TicketScreenTicketResponse
 } from '../../../../api/distribution-ticket-screen-api.service';
 import {finalize} from 'rxjs';
+import {ParseErrorRefreshDirective} from '../../../../common/date/parse-error-refresh.directive';
 import {form, FormField, required} from '@angular/forms/signals';
+import {MatTimepickerModule} from '@angular/material/timepicker';
+import {formatTimeOfDay} from '../../../../common/date/date-values';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
@@ -49,6 +52,8 @@ type MonitorMode = 'startTime' | 'current';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatTimepickerModule,
+    ParseErrorRefreshDirective,
     ReactiveFormsModule,
     TicketScreenComponent,
     FormField,
@@ -77,8 +82,8 @@ export class TicketScreenControlComponent {
   private readonly customerApiService = inject(CustomerApiService);
   private readonly dialog = inject(MatDialog);
 
-  startTimeFormModel = signal({
-    startTime: '',
+  startTimeFormModel = signal<{startTime: Date | null}>({
+    startTime: null,
   });
   startTimeForm = form(this.startTimeFormModel, (schemaPath) => {
     required(schemaPath.startTime);
@@ -182,7 +187,7 @@ export class TicketScreenControlComponent {
     const time = this.startTimeForm.startTime().value();
     if (time && !this.isShowingStartTime()) {
       this.isShowingStartTime.set(true);
-      this.distributionTicketScreenApiService.showText('Startzeit', time)
+      this.distributionTicketScreenApiService.showText('Startzeit', formatTimeOfDay(time))
         .pipe(finalize(() => this.isShowingStartTime.set(false)))
         .subscribe({
           next: () => this.monitorMode.set('startTime'),

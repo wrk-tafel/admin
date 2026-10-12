@@ -11,6 +11,7 @@ import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {provideTafelDateAdapter} from '../../../../common/date/tafel-date-adapter';
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {
@@ -84,6 +85,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         ReactiveFormsModule
       ],
       providers: [
+        provideTafelDateAdapter(),
         provideNoopAnimations(),
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),

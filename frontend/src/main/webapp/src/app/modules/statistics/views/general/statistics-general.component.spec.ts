@@ -8,6 +8,7 @@ import {provideCharts, withDefaultRegisterables} from 'ng2-charts';
 import dayjs from 'dayjs';
 import {StatisticsData, StatisticsDetailData, StatisticsSettings} from '../../../../api/statistics-api.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {provideTafelDateAdapter} from '../../../../common/date/tafel-date-adapter';
 
 describe('StatisticsGeneralComponent', () => {
   let httpMock: HttpTestingController;
@@ -46,6 +47,7 @@ describe('StatisticsGeneralComponent', () => {
   beforeEach((() => {
     TestBed.configureTestingModule({
       providers: [
+        provideTafelDateAdapter(),
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         provideCharts(withDefaultRegisterables()),
@@ -237,8 +239,8 @@ describe('StatisticsGeneralComponent', () => {
     respond(fixture, 100, 80);
 
     fixture.componentInstance.onModeChange('custom');
-    fixture.componentInstance.dateRangeFrom = '2024-06-30';
-    fixture.componentInstance.dateRangeTo = '2024-01-01';
+    fixture.componentInstance.setDateRangeFrom(new Date(2024, 5, 30));
+    fixture.componentInstance.setDateRangeTo(new Date(2024, 0, 1));
     fixture.detectChanges();
 
     expect(fixture.componentInstance.dateRangeInvalid()).toBeTruthy();
@@ -254,7 +256,7 @@ describe('StatisticsGeneralComponent', () => {
     respond(fixture, 100, 80);
 
     fixture.componentInstance.onModeChange('custom');
-    fixture.componentInstance.dateRangeTo = '';
+    fixture.componentInstance.setDateRangeTo(null);
     fixture.detectChanges();
 
     expect(fixture.componentInstance.dateRangeInvalid()).toBeTruthy();
@@ -269,8 +271,8 @@ describe('StatisticsGeneralComponent', () => {
     respond(fixture, 100, 80);
 
     fixture.componentInstance.onModeChange('custom');
-    fixture.componentInstance.dateRangeFrom = '2026-08-01';
-    fixture.componentInstance.dateRangeTo = '2026-08-31';
+    fixture.componentInstance.setDateRangeFrom(new Date(2026, 7, 1));
+    fixture.componentInstance.setDateRangeTo(new Date(2026, 7, 31));
     fixture.detectChanges();
     httpMock.match(request => request.url === '/statistics/data')
       .forEach(request => request.flush(statisticsData(1)));
@@ -285,8 +287,8 @@ describe('StatisticsGeneralComponent', () => {
     respond(fixture, 100, 80);
 
     fixture.componentInstance.onModeChange('custom');
-    fixture.componentInstance.dateRangeFrom = '2020-01-01';
-    fixture.componentInstance.dateRangeTo = '2020-12-31';
+    fixture.componentInstance.setDateRangeFrom(new Date(2020, 0, 1));
+    fixture.componentInstance.setDateRangeTo(new Date(2020, 11, 31));
     fixture.detectChanges();
     httpMock.match(request => request.url === '/statistics/data')
       .forEach(request => request.flush(statisticsData(1)));
