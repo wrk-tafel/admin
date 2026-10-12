@@ -11,6 +11,27 @@
             <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">Bestätigungscode</h1>
           </div>
 
+          @if (hasPasskey()) {
+            <p class="text-sm text-slate-600 mb-4" testid="mfaPasskeyHint">
+              Bestätigen Sie die Anmeldung mit Ihrem Passkey - oder mit einem Code, wenn der Passkey gerade nicht zur
+              Hand ist.
+            </p>
+          }
+
+          @if (errorMessage()) {
+            <div testid="errorMessage" class="tafel-banner-error" role="alert">{{ errorMessage() }}</div>
+          }
+          @if (infoMessage()) {
+            <div testid="infoMessage" class="tafel-banner-success" role="status">{{ infoMessage() }}</div>
+          }
+
+          @if (hasPasskey()) {
+            <button testid="mfaPasskeyButton" matButton="filled" type="button" class="w-full mb-6" tafelAutofocus
+                    (click)="usePasskey()" [disabled]="submitting()">
+              Mit Passkey bestätigen
+            </button>
+          }
+
           <p class="text-sm text-slate-600 mb-4" testid="mfaHint">
             @if (hasApp() && hasEmail()) {
               Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein - oder lassen Sie sich einen Code per E-Mail senden -,
@@ -22,24 +43,17 @@
             }
           </p>
 
-          @if (errorMessage()) {
-            <div testid="errorMessage" class="tafel-banner-error" role="alert">{{ errorMessage() }}</div>
-          }
-          @if (infoMessage()) {
-            <div testid="infoMessage" class="tafel-banner-success" role="status">{{ infoMessage() }}</div>
-          }
-
           <form (submit)="onSubmit($event)" novalidate class="flex flex-col">
             <mat-form-field class="w-full">
               <mat-label>Code</mat-label>
               <input [formField]="codeForm.code" matInput testid="mfaCode" type="text" inputmode="numeric"
-                     autocomplete="one-time-code" tafelAutofocus>
+                     autocomplete="one-time-code" tafelAutofocus [tafelAutofocusEnabled]="!hasPasskey()">
               @for (message of visibleErrorMessages(codeForm.code()); track message) {
                 <mat-error class="block">{{ message }}</mat-error>
               }
             </mat-form-field>
 
-            <button testid="mfaSubmit" matButton="filled" type="submit" class="w-full mt-4" [disabled]="submitting()">
+            <button testid="mfaSubmit" [matButton]="hasPasskey() ? 'outlined' : 'filled'" type="submit" class="w-full mt-4" [disabled]="submitting()">
               {{ submitting() ? 'Wird geprüft…' : 'Bestätigen' }}
             </button>
           </form>

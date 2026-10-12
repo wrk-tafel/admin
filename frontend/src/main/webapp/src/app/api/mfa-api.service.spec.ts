@@ -82,4 +82,37 @@ describe('MfaApiService', () => {
     disable.flush(null, noContent);
     httpMock.verify();
   });
+
+  it('fetches the options for a new passkey and for a login with one', () => {
+    let setup: unknown;
+    let login: unknown;
+    apiService.setupPasskey().subscribe(response => setup = response);
+    apiService.passkeyLoginOptions().subscribe(response => login = response);
+
+    httpMock.expectOne({method: 'POST', url: '/mfa/passkey/setup'}).flush({options: {challenge: 'a'}});
+    httpMock.expectOne({method: 'POST', url: '/mfa/passkey/login-options'}).flush({options: {challenge: 'b'}});
+    expect(setup).toEqual({options: {challenge: 'a'}});
+    expect(login).toEqual({options: {challenge: 'b'}});
+    httpMock.verify();
+  });
+
+  it('hands the credential in to add a passkey and to complete a login, and a code to remove one', () => {
+    const credential = {id: 'abc', type: 'public-key'};
+    apiService.enablePasskey(credential, 'Laptop', '123456').subscribe();
+    apiService.verifyPasskey(credential).subscribe();
+    apiService.disablePasskey(7, '456789').subscribe();
+
+    const enable = httpMock.expectOne({method: 'POST', url: '/mfa/passkey/enable'});
+    expect(enable.request.body).toEqual({credential, name: 'Laptop', currentCode: '123456'});
+    enable.flush(null, noContent);
+
+    const verify = httpMock.expectOne({method: 'POST', url: '/mfa/passkey/verify'});
+    expect(verify.request.body).toEqual({credential});
+    verify.flush(null, noContent);
+
+    const disable = httpMock.expectOne({method: 'POST', url: '/mfa/passkey/7/disable'});
+    expect(disable.request.body).toEqual({code: '456789'});
+    disable.flush(null, noContent);
+    httpMock.verify();
+  });
 });

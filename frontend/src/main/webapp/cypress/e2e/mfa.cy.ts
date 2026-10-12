@@ -667,6 +667,125 @@ describe('Two-factor authentication', () => {
     });
   });
 
+  // ---- passkeys
+
+  /**
+   * The spec plays the device too: Chrome's virtual authenticator (DevTools protocol) answers the browser's
+   * passkey prompts with real keys and signatures, and without a dialog - the user is taken to be present and
+   * verified. It belongs to the browser tab, so it is switched off again after each test.
+   */
+  describe('passkeys', () => {
+
+    function devTools(command: string, params: Record<string, unknown> = {}) {
+      return cy.wrap(Cypress.automation('remote:debugger:protocol', {command, params}), {log: false});
+    }
+
+    beforeEach(() => {
+      devTools('WebAuthn.enable');
+      devTools('WebAuthn.addVirtualAuthenticator', {
+        options: {
+          protocol: 'ctap2',
+          transport: 'internal',
+          hasResidentKey: true,
+          hasUserVerification: true,
+          isUserVerified: true,
+          automaticPresenceSimulation: true
+        }
+      });
+    });
+
+    afterEach(() => {
+      devTools('WebAuthn.disable');
+    });
+
+    // A session that has passed its second step, for a user whose method is the e-mailed code
+    function userWithEmailMethod(): Cypress.Chainable<MfaUser> {
+      return createUser().then(user => {
+        cy.login(user.username, user.password);
+        enableEmailThroughTheApi();
+        return cy.wrap(user);
+      });
+    }
+
+    function addPasskeyThroughThePage(name: string) {
+      cy.byTestId('mfaPasskeyName').type(name);
+      cy.byTestId('mfaPasskeySendCurrentCodeButton').click();
+      cy.byTestId('infoMessage').should('be.visible').and('contain.text', 'gesendet');
+      cy.byTestId('mfaPasskeyCurrentCode').type(EMAIL_CODE);
+      cy.byTestId('mfaPasskeyAddButton').click();
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'Passkey hinzugefügt');
+    }
+
+    it('a passkey is added on the account page, completes the next login without a code, and can be removed again', () => {
+      userWithEmailMethod().then(user => {
+        cy.visit('/konto/zwei-faktor');
+        cy.byTestId('mfaPasskeyList').should('not.exist');
+
+        addPasskeyThroughThePage('Laptop');
+        cy.byTestId('mfaPasskeyItem').should('contain.text', 'Laptop').and('contain.text', 'noch nicht verwendet');
+        // the method the passkey stands next to cannot go while the passkey is there
+        cy.byTestId('mfaPasskeyKeepsMethodHint').should('be.visible');
+        cy.byTestId('mfaDisableEmailButton').should('be.disabled');
+        cy.checkAccessibility('main');
+
+        // the next login offers the passkey first, and sends no e-mail nobody asked for
+        logoutThroughTheMenu();
+        loginThroughThePage(user);
+        cy.url().should('contain', '/login/mfa');
+        cy.byTestId('mfaPasskeyButton').should('be.visible');
+        cy.byTestId('infoMessage').should('not.exist');
+        cy.checkAccessibility('main');
+        cy.byTestId('mfaPasskeyButton').click();
+        cy.url().should('contain', '/uebersicht');
+
+        // removing it takes a code, and frees the method again
+        cy.visit('/konto/zwei-faktor');
+        cy.byTestId('mfaPasskeyItem').should('contain.text', 'zuletzt verwendet');
+        cy.byTestId('mfaSendDisableCodeButton').click();
+        cy.byTestId('infoMessage').should('be.visible').and('contain.text', 'gesendet');
+        cy.byTestId('mfaDisableCode').type(EMAIL_CODE);
+        cy.get('[testid^="mfaRemovePasskeyButton-"]').click();
+        cy.get('.toast-message').should('be.visible').and('contain.text', 'Passkey entfernt');
+        cy.byTestId('mfaPasskeyList').should('not.exist');
+        cy.byTestId('mfaDisableEmailButton').should('be.enabled');
+      });
+    });
+
+    it('the code still completes the login of a user who has a passkey', () => {
+      userWithEmailMethod().then(user => {
+        cy.visit('/konto/zwei-faktor');
+        addPasskeyThroughThePage('Laptop');
+
+        logoutThroughTheMenu();
+        loginThroughThePage(user);
+        cy.url().should('contain', '/login/mfa');
+        cy.byTestId('mfaPasskeyButton').should('be.visible');
+
+        cy.byTestId('sendEmailCodeButton').click();
+        cy.byTestId('infoMessage').should('be.visible').and('contain.text', 'gesendet');
+        enterCode(EMAIL_CODE);
+        cy.url().should('contain', '/uebersicht');
+      });
+    });
+
+    it('adding a passkey is refused with a wrong code, and offered only once a method is on', () => {
+      createUser().then(user => {
+        cy.login(user.username, user.password);
+        cy.visit('/konto/zwei-faktor');
+        cy.byTestId('mfaPasskeyNeedsMethod').should('be.visible');
+        cy.byTestId('mfaPasskeyAddButton').should('not.exist');
+
+        enableEmailThroughTheApi();
+        cy.reload();
+        cy.byTestId('mfaPasskeyName').type('Laptop');
+        cy.byTestId('mfaPasskeyCurrentCode').type('000000');
+        cy.byTestId('mfaPasskeyAddButton').click();
+        cy.byTestId('errorMessage').should('be.visible').and('contain.text', 'Der Code ist ungültig');
+        cy.byTestId('mfaPasskeyList').should('not.exist');
+      });
+    });
+  });
+
   // ---- account page
 
   describe('account page', () => {

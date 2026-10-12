@@ -206,6 +206,78 @@
         </button>
       }
 
+      <mat-divider class="!my-6"></mat-divider>
+
+      <!-- ===== passkeys - on top of a method, in place of typing its code ===== -->
+      <h2 class="tafel-h5 mb-2">Passkey</h2>
+      <p class="text-sm text-slate-600 mb-4" testid="mfaPasskeyIntro">
+        Mit einem Passkey bestätigen Sie die Anmeldung per Fingerabdruck, Gesichtserkennung, Geräte-PIN oder
+        Sicherheitsschlüssel, statt einen Code einzutippen. Ein Passkey kommt zu einer der beiden Methoden oben dazu:
+        Der Code bleibt der Weg ins Konto, wenn das Gerät mit dem Passkey nicht zur Hand ist.
+      </p>
+
+      @if (passkeys().length > 0) {
+        <ul class="mb-4 divide-y divide-slate-200 border border-slate-200 rounded" testid="mfaPasskeyList">
+          @for (passkey of passkeys(); track passkey.id) {
+            <li class="px-3 py-2 text-sm" testid="mfaPasskeyItem">
+              <span class="font-medium">{{ passkey.name }}</span>
+              <span class="block text-slate-600">
+                Eingerichtet am {{ passkey.createdAt | date:'dd.MM.yyyy' }}
+                @if (passkey.lastUsedAt) {
+                  - zuletzt verwendet am {{ passkey.lastUsedAt | date:'dd.MM.yyyy' }}
+                } @else {
+                  - noch nicht verwendet
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (!status.passkeyAvailable) {
+        <p class="text-sm text-slate-600" testid="mfaPasskeyUnavailable">
+          Auf diesem System sind Passkeys nicht eingerichtet.
+        </p>
+      } @else if (!passkeySupported) {
+        <p class="text-sm text-slate-600" testid="mfaPasskeyUnsupported">
+          Dieser Browser unterstützt keine Passkeys.
+        </p>
+      } @else if (!anyMethodEnabled()) {
+        <p class="text-sm text-slate-600" testid="mfaPasskeyNeedsMethod">
+          Richten Sie zuerst die Authenticator-App oder den Code per E-Mail ein - danach lässt sich ein Passkey hinzufügen.
+        </p>
+      } @else {
+        <form (submit)="addPasskey($event)" novalidate class="flex flex-col gap-2 max-w-xs">
+          <mat-form-field>
+            <mat-label>Name des Passkeys</mat-label>
+            <input [formField]="codeForm.passkeyName" matInput testid="mfaPasskeyName" type="text" autocomplete="off">
+            <mat-hint>Zum Beispiel das Gerät: "Laptop" oder "Smartphone"</mat-hint>
+            @for (message of visibleErrorMessages(codeForm.passkeyName()); track message) {
+              <mat-error>{{ message }}</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Aktueller Code der bestehenden Methode</mat-label>
+            <input [formField]="codeForm.passkeyCurrentCode" matInput testid="mfaPasskeyCurrentCode" type="text"
+                   inputmode="numeric" autocomplete="one-time-code">
+            @for (message of visibleErrorMessages(codeForm.passkeyCurrentCode()); track message) {
+              <mat-error>{{ message }}</mat-error>
+            }
+          </mat-form-field>
+          <div class="flex flex-wrap gap-2">
+            @if (status.emailEnabled) {
+              <button testid="mfaPasskeySendCurrentCodeButton" matButton="outlined" type="button"
+                      (click)="sendExistingMethodCode()" [disabled]="working()">
+                Code per E-Mail senden
+              </button>
+            }
+            <button testid="mfaPasskeyAddButton" matButton="filled" type="submit" [disabled]="working()">
+              Passkey hinzufügen
+            </button>
+          </div>
+        </form>
+      }
+
       <!-- ===== switching off ===== -->
       @if (anyMethodEnabled()) {
         <mat-divider class="!my-6"></mat-divider>
@@ -217,6 +289,12 @@
         @if (lastMethodLocked()) {
           <p class="text-sm text-slate-600 mb-2" testid="mfaLastMethodHint">
             Die letzte Methode kann nicht ausgeschaltet werden, solange die Anwendung eine Zwei-Faktor-Authentifizierung verlangt.
+          </p>
+        }
+        @if (lastMethodKeptByPasskey()) {
+          <p class="text-sm text-slate-600 mb-2" testid="mfaPasskeyKeepsMethodHint">
+            Solange ein Passkey eingerichtet ist, muss eine der beiden Methoden eingeschaltet bleiben - entfernen Sie
+            zuerst die Passkeys, um die letzte Methode auszuschalten.
           </p>
         }
         <form (submit)="$event.preventDefault()" novalidate class="flex flex-col gap-2 max-w-xs">
@@ -236,14 +314,20 @@
             }
             @if (status.totpEnabled) {
               <button testid="mfaDisableTotpButton" matButton="filled" type="button" class="button-danger"
-                      (click)="disable('TOTP')" [disabled]="working() || lastMethodLocked()">
+                      (click)="disable('TOTP')" [disabled]="working() || lastMethodLocked() || lastMethodKeptByPasskey()">
                 Authenticator-App ausschalten
               </button>
             }
             @if (status.emailEnabled) {
               <button testid="mfaDisableEmailButton" matButton="filled" type="button" class="button-danger"
-                      (click)="disable('EMAIL')" [disabled]="working() || lastMethodLocked()">
+                      (click)="disable('EMAIL')" [disabled]="working() || lastMethodLocked() || lastMethodKeptByPasskey()">
                 Code per E-Mail ausschalten
+              </button>
+            }
+            @for (passkey of passkeys(); track passkey.id) {
+              <button [attr.testid]="'mfaRemovePasskeyButton-' + passkey.id" matButton="filled" type="button" class="button-danger"
+                      (click)="removePasskey(passkey)" [disabled]="working()">
+                Passkey "{{ passkey.name }}" entfernen
               </button>
             }
           </div>

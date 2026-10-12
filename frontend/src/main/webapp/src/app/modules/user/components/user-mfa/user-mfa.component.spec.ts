@@ -3,7 +3,9 @@ import {TestBed} from '@angular/core/testing';
 import {ActivatedRoute, Router} from '@angular/router';
 import {EMPTY, of, throwError} from 'rxjs';
 import {UserMfaComponent} from './user-mfa.component';
+import {HttpErrorResponse} from '@angular/common/http';
 import {MfaApiService, MfaStatus} from '../../../../api/mfa-api.service';
+import {PasskeyService} from '../../../../common/security/passkey.service';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
@@ -38,6 +40,8 @@ describe('UserMfaComponent', () => {
         {provide: Router, useValue: router},
         {provide: ActivatedRoute, useValue: {}},
         {provide: AuthenticationService, useValue: authenticationService},
+        // a browser without passkeys unless a test says otherwise
+        {provide: PasskeyService, useValue: {isSupported: vi.fn().mockReturnValue(false), create: vi.fn()}},
         {
           provide: MfaApiService,
           useValue: {
@@ -369,5 +373,121 @@ describe('UserMfaComponent', () => {
     expect(element(fixture, 'mfaLastMethodHint')).toBeNull();
     expect((element(fixture, 'mfaDisableTotpButton') as HTMLButtonElement).disabled).toBe(false);
     expect((element(fixture, 'mfaDisableEmailButton') as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  // ---- passkeys
+
+  describe('passkeys', () => {
+    let passkeyService: MockedObject<PasskeyService>;
+    const credential = {id: 'abc', type: 'public-key'};
+    const laptop = {id: 7, name: 'Laptop', createdAt: '2026-10-01T10:00:00', lastUsedAt: null};
+
+    beforeEach(() => {
+      passkeyService = TestBed.inject(PasskeyService) as MockedObject<PasskeyService>;
+      passkeyService.isSupported.mockReturnValue(true);
+      passkeyService.create.mockResolvedValue(credential);
+      mfaApiService.setupPasskey = vi.fn().mockReturnValue(of({options: {challenge: 'c'}}));
+      mfaApiService.enablePasskey = vi.fn().mockReturnValue(of(undefined));
+      mfaApiService.disablePasskey = vi.fn().mockReturnValue(of(undefined));
+    });
+
+    function fillPasskeyForm(fixture: Fixture, name: string, code: string) {
+      fixture.componentInstance.codeForm.passkeyName().value.set(name);
+      fixture.componentInstance.codeForm.passkeyCurrentCode().value.set(code);
+      fixture.detectChanges();
+    }
+
+    it('says so when the deployment has no passkeys set up', async () => {
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: false})));
+
+      const fixture = await create();
+
+      expect(text(fixture, 'mfaPasskeyUnavailable')).toContain('nicht eingerichtet');
+      expect(element(fixture, 'mfaPasskeyAddButton')).toBeNull();
+    });
+
+    it('asks for a method first while none is on', async () => {
+      mfaApiService.getStatus.mockReturnValue(of(status({passkeyAvailable: true})));
+
+      const fixture = await create();
+
+      expect(text(fixture, 'mfaPasskeyNeedsMethod')).toContain('Richten Sie zuerst');
+      expect(element(fixture, 'mfaPasskeyAddButton')).toBeNull();
+    });
+
+    it('does not offer to add one on a browser that cannot, but still lists what is there', async () => {
+      passkeyService.isSupported.mockReturnValue(false);
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: true, passkeys: [laptop]})));
+
+      const fixture = await create();
+
+      expect(text(fixture, 'mfaPasskeyUnsupported')).toContain('unterstützt keine Passkeys');
+      expect(text(fixture, 'mfaPasskeyItem')).toContain('Laptop');
+      expect(text(fixture, 'mfaPasskeyItem')).toContain('01.10.2026');
+      expect(text(fixture, 'mfaPasskeyItem')).toContain('noch nicht verwendet');
+      expect(element(fixture, 'mfaPasskeyAddButton')).toBeNull();
+    });
+
+    it('does not start without a name and a code of the existing method', async () => {
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: true})));
+      const fixture = await create();
+
+      await fixture.componentInstance.addPasskey(new Event('submit'));
+      fillPasskeyForm(fixture, 'Laptop', '12');
+      await fixture.componentInstance.addPasskey(new Event('submit'));
+
+      expect(mfaApiService.setupPasskey).not.toHaveBeenCalled();
+    });
+
+    it('creates the passkey in the browser and hands it in with its name and the code', async () => {
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: true})));
+      const fixture = await create();
+      fillPasskeyForm(fixture, ' Laptop ', '123 456');
+
+      await fixture.componentInstance.addPasskey(new Event('submit'));
+
+      expect(passkeyService.create).toHaveBeenCalledWith({challenge: 'c'});
+      expect(mfaApiService.enablePasskey).toHaveBeenCalledWith(credential, 'Laptop', '123456', expect.anything());
+      expect(toastr.success).toHaveBeenCalledWith('Passkey hinzugefügt!');
+      expect(fixture.componentInstance.codeForm.passkeyName().value()).toBe('');
+      expect(fixture.componentInstance.working()).toBe(false);
+    });
+
+    it('tells a dismissed prompt apart from a refusal by the backend', async () => {
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: true})));
+      const fixture = await create();
+
+      passkeyService.create.mockRejectedValue(new DOMException('cancelled', 'NotAllowedError'));
+      fillPasskeyForm(fixture, 'Laptop', '123456');
+      await fixture.componentInstance.addPasskey(new Event('submit'));
+      fixture.detectChanges();
+      expect(text(fixture, 'errorMessage')).toContain('nicht erstellt');
+      expect(mfaApiService.enablePasskey).not.toHaveBeenCalled();
+
+      passkeyService.create.mockResolvedValue(credential);
+      mfaApiService.enablePasskey = vi.fn().mockReturnValue(throwError(() => new HttpErrorResponse({
+        status: 400, error: {detail: 'Der Code ist ungültig'}
+      })));
+      fillPasskeyForm(fixture, 'Laptop', '123456');
+      await fixture.componentInstance.addPasskey(new Event('submit'));
+      fixture.detectChanges();
+      expect(text(fixture, 'errorMessage')).toBe('Der Code ist ungültig');
+      expect(fixture.componentInstance.working()).toBe(false);
+    });
+
+    it('removes a passkey with a code, and keeps the last method on while one is left', async () => {
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: true, passkeys: [laptop]})));
+      const fixture = await create();
+
+      expect(text(fixture, 'mfaPasskeyKeepsMethodHint')).toContain('zuerst die Passkeys');
+      expect((element(fixture, 'mfaDisableTotpButton') as HTMLButtonElement).disabled).toBe(true);
+
+      type(fixture, 'disableCode', '123456');
+      element(fixture, 'mfaRemovePasskeyButton-7')!.click();
+      await settle(fixture);
+
+      expect(mfaApiService.disablePasskey).toHaveBeenCalledWith(7, '123456', expect.anything());
+      expect(toastr.success).toHaveBeenCalledWith('Passkey entfernt!');
+    });
   });
 });

@@ -6,6 +6,8 @@ import {of, throwError} from 'rxjs';
 import {LoginMfaComponent} from './login-mfa.component';
 import {AuthenticationService} from '../../security/authentication.service';
 import {MfaApiService} from '../../../api/mfa-api.service';
+import {PasskeyService} from '../../security/passkey.service';
+import {HttpErrorResponse} from '@angular/common/http';
 
 describe('LoginMfaComponent', () => {
   let mfaApiService: MockedObject<MfaApiService>;
@@ -38,6 +40,8 @@ describe('LoginMfaComponent', () => {
       providers: [
         {provide: AuthenticationService, useValue: authService},
         {provide: Router, useValue: router},
+        // a browser without passkeys unless a test says otherwise
+        {provide: PasskeyService, useValue: {isSupported: vi.fn().mockReturnValue(false), get: vi.fn()}},
         {
           provide: MfaApiService,
           useValue: {
@@ -233,6 +237,75 @@ describe('LoginMfaComponent', () => {
       fixture.detectChanges();
       expect(text(fixture, 'errorMessage')).toBe('Kein Mailversand');
       expect(fixture.componentInstance.sendingCode()).toBe(false);
+    });
+  });
+
+  describe('with a passkey', () => {
+    let passkeyService: MockedObject<PasskeyService>;
+    const credential = {id: 'abc', type: 'public-key'};
+
+    beforeEach(() => {
+      passkeyService = TestBed.inject(PasskeyService) as MockedObject<PasskeyService>;
+      passkeyService.isSupported.mockReturnValue(true);
+      passkeyService.get.mockResolvedValue(credential);
+      mfaApiService.passkeyLoginOptions = vi.fn().mockReturnValue(of({options: {challenge: 'c'}}));
+      mfaApiService.verifyPasskey = vi.fn().mockReturnValue(of(undefined));
+      methods.set(['EMAIL', 'PASSKEY']);
+    });
+
+    it('offers the passkey first, keeps the code form, and does not send an e-mail nobody asked for', async () => {
+      const fixture = await create();
+
+      expect(element(fixture, 'mfaPasskeyButton')).not.toBeNull();
+      expect(text(fixture, 'mfaPasskeyHint')).toContain('Passkey');
+      expect(element(fixture, 'mfaCode')).not.toBeNull();
+      expect(mfaApiService.sendEmailCode).not.toHaveBeenCalled();
+    });
+
+    it('does not offer it on a browser that cannot use one', async () => {
+      passkeyService.isSupported.mockReturnValue(false);
+
+      const fixture = await create();
+
+      expect(element(fixture, 'mfaPasskeyButton')).toBeNull();
+      expect(mfaApiService.sendEmailCode).toHaveBeenCalled();
+    });
+
+    it('signs the challenge with the passkey and goes on to the overview', async () => {
+      const fixture = await create();
+
+      await fixture.componentInstance.usePasskey();
+
+      expect(passkeyService.get).toHaveBeenCalledWith({challenge: 'c'});
+      expect(mfaApiService.verifyPasskey).toHaveBeenCalledWith(credential, expect.anything());
+      expect(authService.loadUserInfo).toHaveBeenCalled();
+      expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
+    });
+
+    it('stays on the page with the code form when the prompt is dismissed', async () => {
+      passkeyService.get.mockRejectedValue(new DOMException('cancelled', 'NotAllowedError'));
+      const fixture = await create();
+
+      await fixture.componentInstance.usePasskey();
+      fixture.detectChanges();
+
+      expect(text(fixture, 'errorMessage')).toContain('abgebrochen');
+      expect(mfaApiService.verifyPasskey).not.toHaveBeenCalled();
+      expect(router.navigate).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.submitting()).toBe(false);
+    });
+
+    it('shows why the backend refused the passkey', async () => {
+      mfaApiService.verifyPasskey = vi.fn().mockReturnValue(throwError(() => new HttpErrorResponse({
+        status: 400, error: {detail: 'Der Passkey wurde nicht akzeptiert'}
+      })));
+      const fixture = await create();
+
+      await fixture.componentInstance.usePasskey();
+      fixture.detectChanges();
+
+      expect(text(fixture, 'errorMessage')).toBe('Der Passkey wurde nicht akzeptiert');
+      expect(router.navigate).not.toHaveBeenCalled();
     });
   });
 });
