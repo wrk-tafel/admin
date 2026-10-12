@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.database.common.sseoutbox
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.slf4j.LoggerFactory
+import org.springframework.context.event.ContextClosedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -46,6 +48,9 @@ class SseOutboxService(
      */
     private val openEmitters = CopyOnWriteArrayList<SseEmitter>()
 
+    @Volatile
+    private var shuttingDown = false
+
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     fun cleanupOutbox() {
         val date = LocalDateTime.now().minus(tafelAdminProperties.sse.outboxRetention)
@@ -72,6 +77,32 @@ class SseOutboxService(
     @Scheduled(fixedRate = 25, timeUnit = TimeUnit.SECONDS)
     fun sendHeartbeats() {
         openEmitters.forEach { trySend(it, SseEmitter.event().comment("heartbeat")) }
+    }
+
+    /**
+     * Ends every open stream as soon as the application starts shutting down. The web server's
+     * graceful shutdown (`server.shutdown` in `application.yml`) waits for the requests still in
+     * progress, and a stream is one that lasts for `tafeladmin.sse.timeout` - left open, each stop
+     * would sit out the whole `spring.lifecycle.timeout-per-shutdown-phase` and then cut the streams
+     * anyway. Completed here, the browser's `EventSource` reconnects after its `reconnectTime`, to
+     * whichever instance answers by then.
+     *
+     * `ContextClosedEvent` is published before the web server stops accepting requests, so
+     * [finalize] completes a stream that still arrives after this ran. The event of a child context
+     * (the management server's) reaches this listener too and says nothing about the application
+     * itself.
+     */
+    @EventListener
+    fun completeOpenStreams(event: ContextClosedEvent) {
+        if (event.applicationContext.parent != null) {
+            return
+        }
+        shuttingDown = true
+        val emitters = openEmitters.distinct()
+        if (emitters.isNotEmpty()) {
+            logger.info("Application is shutting down, completing {} open SSE stream(s)", emitters.size)
+        }
+        emitters.forEach(::tryComplete)
     }
 
     @Transactional
@@ -193,6 +224,18 @@ class SseOutboxService(
         sseEmitter.onError { error ->
             cleanup()
             logStreamError(stream, Duration.ofNanos(System.nanoTime() - openedAt), error)
+        }
+
+        if (shuttingDown) {
+            tryComplete(sseEmitter)
+        }
+    }
+
+    private fun tryComplete(sseEmitter: SseEmitter) {
+        try {
+            sseEmitter.complete()
+        } catch (e: Exception) {
+            logger.debug("Completing an SSE stream on shutdown failed: {}", e.message)
         }
     }
 

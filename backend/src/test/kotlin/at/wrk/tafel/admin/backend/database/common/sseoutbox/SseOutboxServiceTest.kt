@@ -22,6 +22,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationContext
+import org.springframework.context.event.ContextClosedEvent
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
@@ -369,6 +371,56 @@ class SseOutboxServiceTest {
         )
 
         assertThatCode { service.sendHeartbeats() }.doesNotThrowAnyException()
+    }
+
+    @Test
+    fun `shutdown completes every open stream once`() {
+        val otherEmitter = mockk<SseEmitter>(relaxed = true)
+        service.forwardNotificationEventsToSse(sseEmitter, notificationName, TestJsonPayload::class.java)
+        service.forwardNotificationEventsToSse(sseEmitter, "other_notification", TestJsonPayload::class.java)
+        service.forwardNotificationEventsToSse(otherEmitter, notificationName, TestJsonPayload::class.java)
+
+        service.completeOpenStreams(contextClosedEvent())
+
+        verify(exactly = 1) { sseEmitter.complete() }
+        verify(exactly = 1) { otherEmitter.complete() }
+    }
+
+    @Test
+    fun `shutdown completes a stream that is opened after it began`() {
+        service.completeOpenStreams(contextClosedEvent())
+
+        service.forwardNotificationEventsToSse(sseEmitter, notificationName, TestJsonPayload::class.java)
+
+        verify(exactly = 1) { sseEmitter.complete() }
+    }
+
+    @Test
+    fun `shutdown carries on when a stream cannot be completed`() {
+        val brokenEmitter = mockk<SseEmitter>(relaxed = true)
+        every { brokenEmitter.complete() } throws IllegalStateException("already completed")
+        service.forwardNotificationEventsToSse(brokenEmitter, notificationName, TestJsonPayload::class.java)
+        service.forwardNotificationEventsToSse(sseEmitter, notificationName, TestJsonPayload::class.java)
+
+        assertThatCode { service.completeOpenStreams(contextClosedEvent()) }.doesNotThrowAnyException()
+
+        verify(exactly = 1) { sseEmitter.complete() }
+    }
+
+    @Test
+    fun `closing of a child context leaves the streams open`() {
+        service.forwardNotificationEventsToSse(sseEmitter, notificationName, TestJsonPayload::class.java)
+
+        service.completeOpenStreams(contextClosedEvent(parent = mockk<ApplicationContext>()))
+        service.forwardNotificationEventsToSse(sseEmitter, "other_notification", TestJsonPayload::class.java)
+
+        verify(exactly = 0) { sseEmitter.complete() }
+    }
+
+    private fun contextClosedEvent(parent: ApplicationContext? = null): ContextClosedEvent {
+        val context = mockk<ApplicationContext>()
+        every { context.parent } returns parent
+        return ContextClosedEvent(context)
     }
 
     @Test
