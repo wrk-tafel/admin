@@ -43,7 +43,7 @@ import java.util.Base64
  *
  * The annotation is deliberately the same as `MfaIT`'s, so both share one application context: every further
  * context is another connection pool against the one test database, and that database has a connection limit.
- * What only this test needs - the relying party - is set on the (mutable, read-per-use) properties instead.
+ * The site the passkeys belong to is the one the requests go to - `localhost` on the test's own port.
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -88,7 +88,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
     private val emailCode = "424242"
 
     private lateinit var user: UserEntity
-    private val authenticator = TestPasskeyAuthenticator()
+    private val authenticator by lazy { TestPasskeyAuthenticator(origin = "http://localhost:$port") }
 
     @BeforeEach
     fun beforeEach() {
@@ -97,8 +97,6 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         previousCooldown = tafelAdminProperties.mfa.emailCodeCooldown
         tafelAdminProperties.mail = TafelAdminMailProperties().apply { from = "noreply@example.org" }
         tafelAdminProperties.mfa.emailCodeCooldown = Duration.ZERO
-        tafelAdminProperties.mfa.passkey.rpId = "localhost"
-        tafelAdminProperties.mfa.passkey.origins = mutableListOf("http://localhost:4200")
 
         val encodedPassword = passwordEncoder.encode(password)!!
         user = transactionTemplate.execute {
@@ -117,8 +115,6 @@ class PasskeyIT : TafelBaseIntegrationTest() {
     fun afterEach() {
         tafelAdminProperties.mail = previousMail
         tafelAdminProperties.mfa.emailCodeCooldown = previousCooldown
-        tafelAdminProperties.mfa.passkey.rpId = ""
-        tafelAdminProperties.mfa.passkey.origins = mutableListOf()
         transactionTemplate.execute { userRepository.deleteById(user.id!!) }
     }
 
@@ -129,7 +125,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         addPasskey(session, "Mein Laptop")
 
         val status = get("/api/mfa", session).body()
-        assertThat(status).contains(""""passkeyAvailable":true""").contains(""""name":"Mein Laptop"""")
+        assertThat(status).contains(""""name":"Mein Laptop"""")
 
         val login = login()
         assertThat(login.body).contains("PASSKEY")

@@ -99,8 +99,6 @@ export interface MfaStatus {
   emailAvailable: boolean;
   /** Where a code by e-mail goes - the address on the account; null when none is on record. */
   emailAddress?: string | null;
-  /** The deployment has passkeys set up, so they can be offered. */
-  passkeyAvailable?: boolean;
   passkeys?: MfaPasskeyItem[];
 }
 

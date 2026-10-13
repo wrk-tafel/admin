@@ -2,13 +2,13 @@
   "/config.json": {
     "target": "http://localhost:8080",
     "secure": false,
-    "changeOrigin": true,
+    "changeOrigin": false,
     "logLevel": "info"
   },
   "/api": {
     "target": "http://localhost:8080",
     "secure": false,
-    "changeOrigin": true,
+    "changeOrigin": false,
     "logLevel": "debug"
   }
 }

@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.common.auth
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.MfaService
 import at.wrk.tafel.admin.backend.common.auth.components.PasskeyEnableResult
+import at.wrk.tafel.admin.backend.common.auth.components.PasskeyRelyingParty
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.MfaCodeRequest
@@ -68,7 +69,6 @@ class MfaController(
             required = status.required,
             emailAvailable = status.emailAvailable,
             emailAddress = status.emailAddress,
-            passkeyAvailable = status.passkeyAvailable,
             passkeys = status.passkeys.map { MfaPasskeyItem(id = it.id, name = it.name, createdAt = it.createdAt, lastUsedAt = it.lastUsedAt) },
         )
     }
@@ -143,16 +143,23 @@ class MfaController(
 
     /** Hands out the options the browser creates a passkey from; nothing counts until [enablePasskey]. */
     @PostMapping("/passkey/setup")
-    fun setupPasskey(): MfaPasskeyOptionsResponse {
+    fun setupPasskey(httpRequest: HttpServletRequest): MfaPasskeyOptionsResponse {
         val authentication = requireNoCodeOwed()
-        return MfaPasskeyOptionsResponse(options = mfaService.startPasskeySetup(authentication.username!!))
+        return MfaPasskeyOptionsResponse(options = mfaService.startPasskeySetup(authentication.username!!, PasskeyRelyingParty.of(httpRequest)))
     }
 
     /** Adds the passkey the browser created. The session stays what it is - it has passed a second factor already. */
     @PostMapping("/passkey/enable")
-    fun enablePasskey(@Valid @RequestBody request: MfaPasskeyEnableRequest): ResponseEntity<Unit> {
+    fun enablePasskey(@Valid @RequestBody request: MfaPasskeyEnableRequest, httpRequest: HttpServletRequest): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
-        when (mfaService.enablePasskey(authentication.username!!, request.credential.toString(), request.name, request.currentCode)) {
+        val result = mfaService.enablePasskey(
+            authentication.username!!,
+            PasskeyRelyingParty.of(httpRequest),
+            request.credential.toString(),
+            request.name,
+            request.currentCode,
+        )
+        when (result) {
             PasskeyEnableResult.ENABLED -> Unit
             PasskeyEnableResult.CODE_REFUSED -> throw invalidCode()
             PasskeyEnableResult.PASSKEY_REFUSED -> throw BusinessRuleException("Der Passkey konnte nicht eingerichtet werden - bitte erneut versuchen!")
@@ -172,9 +179,9 @@ class MfaController(
 
     /** Hands out the options a login that owes its second step asks one of the user's passkeys with. */
     @PostMapping("/passkey/login-options")
-    fun passkeyLoginOptions(): MfaPasskeyOptionsResponse {
+    fun passkeyLoginOptions(httpRequest: HttpServletRequest): MfaPasskeyOptionsResponse {
         val authentication = requireCodeOwed()
-        return MfaPasskeyOptionsResponse(options = mfaService.startPasskeyLogin(authentication.username!!))
+        return MfaPasskeyOptionsResponse(options = mfaService.startPasskeyLogin(authentication.username!!, PasskeyRelyingParty.of(httpRequest)))
     }
 
     /** Finishes a login with a passkey instead of a code - otherwise exactly [verify]. */
@@ -185,7 +192,7 @@ class MfaController(
         httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireCodeOwed()
-        if (!mfaService.verifyLoginWithPasskey(authentication.username!!, request.credential.toString())) {
+        if (!mfaService.verifyLoginWithPasskey(authentication.username!!, PasskeyRelyingParty.of(httpRequest), request.credential.toString())) {
             throw BusinessRuleException("Der Passkey wurde nicht akzeptiert, oder es gab zu viele Fehlversuche - bitte den Code verwenden!")
         }
         issueCompletedSession(authentication.username, httpRequest, httpResponse)

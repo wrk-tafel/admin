@@ -25,7 +25,7 @@ import java.util.Base64
  * `navigator.credentials.create()`/`.get()` followed by `toJSON()` would, with real keys and real signatures.
  * [origin] is the page it claims to be on.
  */
-class TestPasskeyAuthenticator(origin: String = "http://localhost:4200") {
+class TestPasskeyAuthenticator(origin: String) {
 
     private val clientPlatform = ClientPlatform(Origin(origin), WebAuthnAuthenticatorAdaptor(NoneAttestationAuthenticator()))
     private val jsonMapper = JsonMapper()

@@ -46,10 +46,12 @@ exists only while the app or the e-mail code is on.**
   answers it and expired after `tafeladmin.mfa.passkey.challengeValidity`. The credentials are rows in
   `user_passkeys`, audited through `AuditScope` with the key material redacted; the signature counter and the
   last-used time are written by a bulk update, so a login leaves no audit entry.
-- **The relying party is configuration**: `tafeladmin.mfa.passkey.rpId` and `origins`, read per use. Unset,
-  passkeys are not offered. The user handle is derived from the environment label and the user id, and the
-  label is part of the name the authenticator shows, so registering on test neither replaces nor is mistaken
-  for the passkey for prod.
+- **The relying party is the site the request came in on** (`PasskeyRelyingParty`): the RP ID is the request's
+  host name, the expected origin its scheme, host and port - what the reverse proxy passes on as `Host`,
+  `X-Forwarded-Proto` and `X-Forwarded-Port`, which the session cookie's `Secure` flag already depends on. So
+  passkeys are on for every deployment, with nothing to configure and no switch. The user handle is derived
+  from the environment label and the user id, and the label is part of the name the authenticator shows, so
+  registering on test neither replaces nor is mistaken for the passkey for prod.
 - **Verification is `webauthn4j` behind `PasskeyService`**, with no attestation requested. Spring Security's
   WebAuthn module is not used: its filters keep the challenge in the `HttpSession` and end in a login of their
   own, where this needs the pending-session exchange `MfaController` already has. `webauthn4j` is the library
@@ -68,9 +70,17 @@ exists only while the app or the e-mail code is on.**
   still log in with it. The passkey buys convenience, and resistance only for the logins that use it. Closing
   that - an account that accepts nothing but its passkeys - is a separate decision, and it needs the recovery
   story this one avoids.
-- Nothing changes for a user who does not add one, and nothing changes on a deployment that sets no `rpId`.
-- Changing `rpId` leaves every registered passkey unusable. The users fall back to their code method and
-  register again; nothing detects or cleans up the stale rows.
+- Nothing changes for a user who does not add one.
+- The server's own check of RP ID and origin compares the answer with what the request says about itself, so
+  it is only as good as the proxy's headers. What still holds without it is the browser's half: a page can only
+  use the passkeys of its own domain, so a request arriving under another host name finds no passkey that
+  answers for it. A proxy that does not pass the public host on makes passkeys fail in the browser (the RP ID
+  is not the page's domain) rather than weakening anything; the code method still works.
+- Moving the installation to another host name leaves every registered passkey unusable. The users fall back
+  to their code method and register again; nothing detects or cleans up the stale rows.
+- The Angular dev server's proxy passes the browser's `Host` through (`changeOrigin: false` in
+  `proxy.conf.json`), like the reverse proxy does - otherwise the backend would take itself for `localhost:8080`
+  while the page is on `localhost:4200`.
 - `PasskeyService` catches `RuntimeException` around both verifications. The answer is input from the browser,
   and `webauthn4j` reports an answer that is not shaped like a credential as whatever the first missing field
   throws, not as its own exception type. `PasskeyIT` covers it, since a unit test with a well-formed credential
@@ -96,8 +106,10 @@ exists only while the app or the e-mail code is on.**
   successful login would have to be bent back into the pending-token exchange.
 - **The challenge in a signed, short-lived cookie.** No table, but a challenge has to be usable once, and a
   cookie cannot be taken back after it was answered without a server-side record of that.
-- **Deriving the relying party from the request's `Host`.** No configuration, but the value the verification
-  rests on would come from a header, and behind the reverse proxy from how that proxy is set up.
+- **The relying party as configuration** (`rpId` and the allowed origins per deployment). The verification
+  would rest on a value no request can influence, but passkeys would be off until an operator set it on every
+  environment, and the screens would need a state for "not set up here". For a second factor that only ever
+  comes on top of a code method, that was not worth a setting and a switch.
 
 ## References
 

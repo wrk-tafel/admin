@@ -397,17 +397,8 @@ describe('UserMfaComponent', () => {
       fixture.detectChanges();
     }
 
-    it('says so when the deployment has no passkeys set up', async () => {
-      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: false})));
-
-      const fixture = await create();
-
-      expect(text(fixture, 'mfaPasskeyUnavailable')).toContain('nicht eingerichtet');
-      expect(element(fixture, 'mfaPasskeyAddButton')).toBeNull();
-    });
-
     it('asks for a method first while none is on', async () => {
-      mfaApiService.getStatus.mockReturnValue(of(status({passkeyAvailable: true})));
+      mfaApiService.getStatus.mockReturnValue(of(status()));
 
       const fixture = await create();
 
@@ -417,7 +408,7 @@ describe('UserMfaComponent', () => {
 
     it('does not offer to add one on a browser that cannot, but still lists what is there', async () => {
       passkeyService.isSupported.mockReturnValue(false);
-      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: true, passkeys: [laptop]})));
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeys: [laptop]})));
 
       const fixture = await create();
 
@@ -429,7 +420,7 @@ describe('UserMfaComponent', () => {
     });
 
     it('does not start without a name and a code of the existing method', async () => {
-      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: true})));
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true})));
       const fixture = await create();
 
       await fixture.componentInstance.addPasskey(new Event('submit'));
@@ -440,7 +431,7 @@ describe('UserMfaComponent', () => {
     });
 
     it('creates the passkey in the browser and hands it in with its name and the code', async () => {
-      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: true})));
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true})));
       const fixture = await create();
       fillPasskeyForm(fixture, ' Laptop ', '123 456');
 
@@ -454,7 +445,7 @@ describe('UserMfaComponent', () => {
     });
 
     it('tells a dismissed prompt apart from a refusal by the backend', async () => {
-      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: true})));
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true})));
       const fixture = await create();
 
       passkeyService.create.mockRejectedValue(new DOMException('cancelled', 'NotAllowedError'));
@@ -476,7 +467,7 @@ describe('UserMfaComponent', () => {
     });
 
     it('removes a passkey with a code, and keeps the last method on while one is left', async () => {
-      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeyAvailable: true, passkeys: [laptop]})));
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeys: [laptop]})));
       const fixture = await create();
 
       expect(text(fixture, 'mfaPasskeyKeepsMethodHint')).toContain('zuerst die Passkeys');

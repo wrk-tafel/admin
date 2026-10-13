@@ -31,8 +31,6 @@ data class MfaStatusResponse(
      * record, which is when the page sends the user to the "Meine Daten" tab instead of offering the method.
      */
     val emailAddress: String? = null,
-    /** Whether passkeys can be offered at all - the deployment has to name the site they belong to. */
-    val passkeyAvailable: Boolean = false,
     val passkeys: List<MfaPasskeyItem> = emptyList(),
 )
 

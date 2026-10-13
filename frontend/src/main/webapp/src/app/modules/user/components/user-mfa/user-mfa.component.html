@@ -234,11 +234,7 @@
         </ul>
       }
 
-      @if (!status.passkeyAvailable) {
-        <p class="text-sm text-slate-600" testid="mfaPasskeyUnavailable">
-          Auf diesem System sind Passkeys nicht eingerichtet.
-        </p>
-      } @else if (!passkeySupported) {
+      @if (!passkeySupported) {
         <p class="text-sm text-slate-600" testid="mfaPasskeyUnsupported">
           Dieser Browser unterstützt keine Passkeys.
         </p>

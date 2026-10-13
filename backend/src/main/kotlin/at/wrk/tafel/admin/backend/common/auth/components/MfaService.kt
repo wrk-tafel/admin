@@ -79,7 +79,6 @@ class MfaService(
             required = properties.mfa.required,
             emailAvailable = mfaEmailCodeService.isAvailable(),
             emailAddress = user.email?.takeIf { it.isNotBlank() },
-            passkeyAvailable = passkeyService.isAvailable(),
             passkeys = passkeyService.list(user.id!!).map {
                 MfaPasskey(id = it.id!!, name = it.name, createdAt = it.createdAt, lastUsedAt = it.lastUsedAt)
             },
@@ -183,10 +182,10 @@ class MfaService(
      * nothing that counts and asks for no code - [enablePasskey] does.
      */
     @Transactional
-    fun startPasskeySetup(username: String): Map<String, Any?> {
+    fun startPasskeySetup(username: String, relyingParty: PasskeyRelyingParty): Map<String, Any?> {
         val user = findUser(username)
         requireCodeMethod(user)
-        return passkeyService.startRegistration(user)
+        return passkeyService.startRegistration(user, relyingParty)
     }
 
     /**
@@ -194,11 +193,17 @@ class MfaService(
      * at first and the code second, so a registration the browser got wrong does not use a one-time code up.
      */
     @Transactional
-    fun enablePasskey(username: String, credentialJson: String, name: String, currentCode: String): PasskeyEnableResult {
+    fun enablePasskey(
+        username: String,
+        relyingParty: PasskeyRelyingParty,
+        credentialJson: String,
+        name: String,
+        currentCode: String,
+    ): PasskeyEnableResult {
         val user = findUser(username)
         requireCodeMethod(user)
 
-        val verified = passkeyService.verifyRegistration(user, credentialJson) ?: return PasskeyEnableResult.PASSKEY_REFUSED
+        val verified = passkeyService.verifyRegistration(user, relyingParty, credentialJson) ?: return PasskeyEnableResult.PASSKEY_REFUSED
         if (!confirmExistingFactor(user, currentCode)) {
             return PasskeyEnableResult.CODE_REFUSED
         }
@@ -233,19 +238,21 @@ class MfaService(
 
     /** Hands out the options the browser asks one of the user's passkeys with, for a login that owes its second step. */
     @Transactional
-    fun startPasskeyLogin(username: String): Map<String, Any?> {
+    fun startPasskeyLogin(username: String, relyingParty: PasskeyRelyingParty): Map<String, Any?> {
         val user = findUser(username)
         if (!user.mfaPasskeyEnabled) {
             throw BusinessRuleException("Es ist kein Passkey eingerichtet!")
         }
-        return passkeyService.startAuthentication(user)
+        return passkeyService.startAuthentication(user, relyingParty)
     }
 
     /** The second step of a login with a passkey instead of a code. `false` if it is refused, or there is none to use. */
     @Transactional
-    fun verifyLoginWithPasskey(username: String, credentialJson: String): Boolean {
+    fun verifyLoginWithPasskey(username: String, relyingParty: PasskeyRelyingParty, credentialJson: String): Boolean {
         val user = findUser(username)
-        return user.hasMfa && user.mfaPasskeyEnabled && countingFailures(user) { passkeyService.verifyAuthentication(user, credentialJson) }
+        return user.hasMfa &&
+            user.mfaPasskeyEnabled &&
+            countingFailures(user) { passkeyService.verifyAuthentication(user, relyingParty, credentialJson) }
     }
 
     private fun requireCodeMethod(user: UserEntity) {
@@ -413,8 +420,6 @@ data class MfaStatus(
     val emailAvailable: Boolean,
     /** Where a code by e-mail goes - the address on the account; null when none is on record. */
     val emailAddress: String? = null,
-    /** Whether passkeys can be offered at all. */
-    val passkeyAvailable: Boolean = false,
     val passkeys: List<MfaPasskey> = emptyList(),
 )
 
