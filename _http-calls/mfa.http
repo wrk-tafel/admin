@@ -47,10 +47,11 @@ Content-Type: application/json
   "code": "123456"
 }
 
-### Passkeys: options for creating one (needs a code method to be on) - answer goes to navigator.credentials.create()
+### Passkeys: options for creating one - answer goes to navigator.credentials.create()
 POST {{baseApiPath}}/mfa/passkey/setup
 
-### Passkeys: add the one the browser created - credential is PublicKeyCredential.toJSON(), currentCode a code of a method the user has
+### Passkeys: add the one the browser created - credential is PublicKeyCredential.toJSON(). A user who already has a method
+### proves one: currentCode, or currentCredential (the answer of an existing passkey to /mfa/passkey/options)
 POST {{baseApiPath}}/mfa/passkey/enable
 Content-Type: application/json
 
@@ -69,7 +70,7 @@ Content-Type: application/json
   "currentCode": "123456"
 }
 
-### Passkeys: remove one (needs a current code)
+### Passkeys: remove one - with a current code, or with "credential" (the answer of a passkey to /mfa/passkey/options)
 POST {{baseApiPath}}/mfa/passkey/7/disable
 Content-Type: application/json
 
@@ -77,10 +78,11 @@ Content-Type: application/json
   "code": "123456"
 }
 
-### Passkeys: options for a login that still owes its second step - answer goes to navigator.credentials.get()
-POST {{baseApiPath}}/mfa/passkey/login-options
+### Passkeys: options for asking one of the user's passkeys - for a login that still owes its second step, or as proof of
+### an existing method before a change - answer goes to navigator.credentials.get()
+POST {{baseApiPath}}/mfa/passkey/options
 
-### Passkeys: finish that login with the assertion instead of a code
+### Passkeys: finish a login with the assertion
 POST {{baseApiPath}}/mfa/passkey/verify
 Content-Type: application/json
 

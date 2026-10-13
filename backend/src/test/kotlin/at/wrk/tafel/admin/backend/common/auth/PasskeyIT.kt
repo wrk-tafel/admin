@@ -133,7 +133,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
 
         // ... until the passkey answers the challenge
-        val verify = post("/api/mfa/passkey/verify", credentialBody(authenticator.get(loginOptions(login.jwt))), login.jwt)
+        val verify = post("/api/mfa/passkey/verify", credentialBody(authenticator.get(passkeyOptions(login.jwt))), login.jwt)
         assertThat(verify.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
         val fullJwt = jwtOf(verify)
 
@@ -154,10 +154,20 @@ class PasskeyIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `a passkey cannot be the only method`() {
+    fun `a passkey can be the first and only method, and then completes the login on its own`() {
         val session = login().jwt
 
-        assertThat(post("/api/mfa/passkey/setup", "", session).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        val credential = authenticator.create(setupOptions(session))
+        assertThat(post("/api/mfa/passkey/enable", enableBody(credential, "Mein Laptop"), session).statusCode())
+            .isEqualTo(HttpStatus.NO_CONTENT.value())
+
+        val login = login()
+        assertThat(login.body).contains(""""mfaRequired":true""").contains("PASSKEY")
+        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        // there is no code that would do
+        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", login.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+
+        assertThat(get("/api/users/export", passkeySession()).statusCode()).isEqualTo(HttpStatus.OK.value())
     }
 
     @Test
@@ -196,14 +206,14 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         addPasskey(completedSession(), "Mein Laptop")
 
         val first = login()
-        val assertion = credentialBody(authenticator.get(loginOptions(first.jwt)))
+        val assertion = credentialBody(authenticator.get(passkeyOptions(first.jwt)))
         assertThat(post("/api/mfa/passkey/verify", assertion, first.jwt).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
 
         // replayed on the same login: its challenge is gone ...
         assertThat(post("/api/mfa/passkey/verify", assertion, first.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
         // ... and on the next one it answers the wrong challenge
         val second = login()
-        loginOptions(second.jwt)
+        passkeyOptions(second.jwt)
         assertThat(post("/api/mfa/passkey/verify", assertion, second.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
         assertThat(get("/api/users/export", second.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
@@ -214,7 +224,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         addPasskey(completedSession(), "Mein Laptop")
 
         val login = login()
-        loginOptions(login.jwt)
+        passkeyOptions(login.jwt)
         val refused = post("/api/mfa/passkey/verify", credentialBody("""{"id":"AAAA","type":"public-key"}"""), login.jwt)
 
         assertThat(refused.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
@@ -223,7 +233,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
     }
 
     @Test
-    fun `the last code method stays on while a passkey is left, and removing the passkey takes a code`() {
+    fun `the code method can go while a passkey is left, and the passkey then proves every further change`() {
         switchOnEmail()
         val session = completedSession()
         addPasskey(session, "Mein Laptop")
@@ -231,20 +241,19 @@ class PasskeyIT : TafelBaseIntegrationTest() {
 
         post("/api/mfa/email/send", "", session)
         assertThat(post("/api/mfa/disable", """{"method":"EMAIL","code":"$emailCode"}""", session).statusCode())
-            .isEqualTo(HttpStatus.CONFLICT.value())
+            .isEqualTo(HttpStatus.NO_CONTENT.value())
+        assertThat(login().body).contains("PASSKEY").doesNotContain("EMAIL")
 
-        assertThat(post("/api/mfa/passkey/$passkeyId/disable", """{"code":"000000"}""", session).statusCode())
+        // removing the passkey: nothing and a code are no proof, an answer of the passkey is
+        val next = passkeySession()
+        assertThat(post("/api/mfa/passkey/$passkeyId/disable", "{}", next).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(post("/api/mfa/passkey/$passkeyId/disable", """{"code":"$emailCode"}""", next).statusCode())
             .isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(post("/api/mfa/passkey/$passkeyId/disable", """{"code":"$emailCode"}""", session).statusCode())
+        assertThat(post("/api/mfa/passkey/$passkeyId/disable", credentialBody(authenticator.get(passkeyOptions(next))), next).statusCode())
             .isEqualTo(HttpStatus.NO_CONTENT.value())
-        assertThat(userPasskeyRepository.findAllByUserIdOrderByCreatedAtAsc(user.id!!)).isEmpty()
-        assertThat(login().body).doesNotContain("PASSKEY")
 
-        // with the passkey gone the method can be switched off again
-        val next = completedSession()
-        post("/api/mfa/email/send", "", next)
-        assertThat(post("/api/mfa/disable", """{"method":"EMAIL","code":"$emailCode"}""", next).statusCode())
-            .isEqualTo(HttpStatus.NO_CONTENT.value())
+        assertThat(userPasskeyRepository.findAllByUserIdOrderByCreatedAtAsc(user.id!!)).isEmpty()
+        assertThat(login().body).contains(""""mfaRequired":false""")
     }
 
     @Test
@@ -279,7 +288,13 @@ class PasskeyIT : TafelBaseIntegrationTest() {
 
     private fun setupOptions(session: String): Map<String, Any?> = optionsOf(post("/api/mfa/passkey/setup", "", session))
 
-    private fun loginOptions(session: String): Map<String, Any?> = optionsOf(post("/api/mfa/passkey/login-options", "", session))
+    private fun passkeyOptions(session: String): Map<String, Any?> = optionsOf(post("/api/mfa/passkey/options", "", session))
+
+    /** A session that has passed its second step, by a passkey. */
+    private fun passkeySession(): String {
+        val login = login()
+        return jwtOf(post("/api/mfa/passkey/verify", credentialBody(authenticator.get(passkeyOptions(login.jwt))), login.jwt))
+    }
 
     @Suppress("UNCHECKED_CAST")
     private fun optionsOf(response: HttpResponse<String>): Map<String, Any?> {
@@ -289,7 +304,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
 
     private fun credentialBody(credentialJson: String) = """{"credential":$credentialJson}"""
 
-    private fun enableBody(credentialJson: String, name: String, code: String) = """{"credential":$credentialJson,"name":"$name","currentCode":"$code"}"""
+    private fun enableBody(credentialJson: String, name: String, code: String? = null) = """{"credential":$credentialJson,"name":"$name","currentCode":${code?.let { "\"$it\"" }}}"""
 
     private data class Login(val jwt: String, val body: String)
 

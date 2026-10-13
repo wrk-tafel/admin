@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 import at.wrk.tafel.admin.backend.common.auth.model.MfaMethod
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserPasskeyEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
@@ -430,14 +431,148 @@ class MfaServiceTest {
         assertThat(service.disable("max", MfaMethod.EMAIL, "123456")).isTrue()
     }
 
+    // ---- passkeys
+
+    private val relyingParty = PasskeyRelyingParty(id = "tafel.example.org", origin = "https://tafel.example.org")
+    private val goodAnswer = PasskeyAnswer(relyingParty, """{"id":"good"}""")
+    private val badAnswer = PasskeyAnswer(relyingParty, """{"id":"bad"}""")
+
+    private fun passkey(id: Long, name: String) = UserPasskeyEntity(user, "credential-$id", name, ByteArray(0), null, 0).also { it.id = id }
+
+    private fun passkeyOn(vararg ids: Long = longArrayOf(1)) {
+        user.mfaPasskeyEnabled = true
+        every { passkeyService.list(7) } returns ids.map { passkey(it, "Passkey $it") }
+        every { passkeyService.remove(user, any()) } answers { passkey(secondArg(), "Passkey") }
+        every { passkeyService.verifyAuthentication(user, relyingParty, goodAnswer.credentialJson) } returns true
+        every { passkeyService.verifyAuthentication(user, relyingParty, badAnswer.credentialJson) } returns false
+    }
+
+    private fun newPasskeyVerifies() {
+        every { passkeyService.verifyRegistration(user, relyingParty, "new") } returns VerifiedPasskey("id", ByteArray(0), null, 0)
+        every { passkeyService.save(user, any(), any()) } answers { passkey(9, thirdArg()) }
+    }
+
+    @Test
+    fun `a passkey is a method of its own - the first one needs no proof and makes a login need a second step`() {
+        newPasskeyVerifies()
+
+        assertThat(service.enablePasskey("max", relyingParty, "new", "Laptop")).isEqualTo(PasskeyEnableResult.ENABLED)
+
+        assertThat(user.mfaPasskeyEnabled).isTrue()
+        assertThat(user.hasMfa).isTrue()
+        verify(exactly = 1) { notificationService.notify("max", "max@example.org", match { it.contains("Laptop") }) }
+    }
+
+    @Test
+    fun `adding a passkey next to a method takes proof of one - a code or an existing passkey`() {
+        newPasskeyVerifies()
+        appOn()
+
+        assertThat(service.enablePasskey("max", relyingParty, "new", "Laptop")).isEqualTo(PasskeyEnableResult.PROOF_REFUSED)
+        assertThat(service.enablePasskey("max", relyingParty, "new", "Laptop", currentCode = "000000")).isEqualTo(PasskeyEnableResult.PROOF_REFUSED)
+        assertThat(service.enablePasskey("max", relyingParty, "new", "Laptop", currentCode = "123456")).isEqualTo(PasskeyEnableResult.ENABLED)
+
+        passkeyOn()
+        assertThat(service.enablePasskey("max", relyingParty, "new", "Handy", currentPasskey = badAnswer)).isEqualTo(PasskeyEnableResult.PROOF_REFUSED)
+        assertThat(service.enablePasskey("max", relyingParty, "new", "Handy", currentPasskey = goodAnswer)).isEqualTo(PasskeyEnableResult.ENABLED)
+    }
+
+    @Test
+    fun `a passkey that does not verify is refused before the proof is looked at`() {
+        appOn()
+        every { passkeyService.verifyRegistration(user, relyingParty, "new") } returns null
+
+        assertThat(service.enablePasskey("max", relyingParty, "new", "Laptop", currentCode = "123456")).isEqualTo(PasskeyEnableResult.PASSKEY_REFUSED)
+
+        verify(exactly = 0) { totpService.matchingStep(any(), any()) }
+    }
+
+    @Test
+    fun `a user whose only method is a passkey proves it with a passkey - to add a method and to complete a login`() {
+        passkeyOn()
+        user.mfaSecret = "SECRET"
+
+        assertThat(service.enable("max", "123456")).isFalse()
+        assertThat(service.enable("max", "123456", currentPasskey = badAnswer)).isFalse()
+        verify(exactly = 1) { loginAttemptService.recordFailure(attemptKey) }
+        assertThat(service.enable("max", "123456", currentPasskey = goodAnswer)).isTrue()
+
+        assertThat(service.verifyLoginWithPasskey("max", goodAnswer)).isTrue()
+        assertThat(service.verifyLoginWithPasskey("max", badAnswer)).isFalse()
+    }
+
+    @Test
+    fun `a passkey answer is nothing for a user without passkeys, and a locked-out user is refused without a look`() {
+        assertThat(service.verifyLoginWithPasskey("max", goodAnswer)).isFalse()
+
+        passkeyOn()
+        every { loginAttemptService.isLocked(attemptKey) } returns true
+        assertThat(service.verifyLoginWithPasskey("max", goodAnswer)).isFalse()
+
+        verify(exactly = 0) { passkeyService.verifyAuthentication(any(), any(), any()) }
+    }
+
+    @Test
+    fun `the last code method can be switched off while a passkey is left, even where a method is required`() {
+        properties.mfa.required = true
+        appOn()
+        passkeyOn()
+
+        assertThat(service.disable("max", MfaMethod.TOTP, null, goodAnswer)).isTrue()
+
+        assertThat(user.mfaTotpEnabled).isFalse()
+        assertThat(user.hasMfa).isTrue()
+    }
+
+    @Test
+    fun `removing a passkey takes proof, and the last one switches the method off`() {
+        passkeyOn(1, 2)
+
+        assertThat(service.removePasskey("max", 99, null, goodAnswer)).isFalse()
+        assertThat(service.removePasskey("max", 1, null)).isFalse()
+        assertThat(service.removePasskey("max", 1, null, badAnswer)).isFalse()
+        assertThat(service.removePasskey("max", 1, null, goodAnswer)).isTrue()
+        assertThat(user.mfaPasskeyEnabled).isTrue()
+
+        passkeyOn(2)
+        assertThat(service.removePasskey("max", 2, null, goodAnswer)).isTrue()
+        assertThat(user.mfaPasskeyEnabled).isFalse()
+        assertThat(user.hasMfa).isFalse()
+    }
+
+    @Test
+    fun `the last passkey cannot be removed while it is the only method and the deployment requires one`() {
+        properties.mfa.required = true
+        passkeyOn()
+
+        assertThrows<ConflictException> { service.removePasskey("max", 1, null, goodAnswer) }
+
+        appOn()
+        assertThat(service.removePasskey("max", 1, "123456")).isTrue()
+    }
+
+    @Test
+    fun `the options for a passkey answer need a passkey`() {
+        assertThrows<BusinessRuleException> { service.startPasskeyAssertion("max", relyingParty) }
+
+        passkeyOn()
+        every { passkeyService.startAuthentication(user, relyingParty) } returns mapOf("challenge" to "c")
+        assertThat(service.startPasskeyAssertion("max", relyingParty)).containsEntry("challenge", "c")
+    }
+
     // ---- administrator
 
     @Test
-    fun `an administrator's reset clears both methods without a code and lifts the lockout`() {
+    fun `an administrator's reset clears every method without a proof and lifts the lockout`() {
         appOn()
         emailOn()
+        user.mfaPasskeyEnabled = true
 
         service.reset(7)
+
+        assertThat(user.mfaPasskeyEnabled).isFalse()
+        assertThat(user.hasMfa).isFalse()
+        verify(exactly = 1) { passkeyService.removeAll(user) }
 
         assertThat(user.mfaTotpEnabled).isFalse()
         assertThat(user.mfaEmailEnabled).isFalse()

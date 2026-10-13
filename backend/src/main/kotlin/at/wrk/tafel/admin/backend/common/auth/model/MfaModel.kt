@@ -7,8 +7,8 @@ import tools.jackson.databind.JsonNode
 import java.time.LocalDateTime
 
 /**
- * The two methods a user switches on and off as a whole; a user can have either or both. Passkeys are not one
- * of them: a user has any number of those, added and removed one by one, and only next to one of these.
+ * The two methods a user switches on and off as a whole. Passkeys are the third method but not listed here: a
+ * user has any number of those, added and removed one by one.
  */
 enum class MfaMethod {
     /** A code from an authenticator app. */
@@ -54,8 +54,8 @@ data class MfaPasskeyOptionsResponse(
 
 /**
  * Adds a passkey. [credential] is what the browser's `PublicKeyCredential.toJSON()` returned for the options of
- * the setup call, [name] what the user calls it, and [currentCode] a code of a method the user has - always
- * required, since a passkey is only ever added next to one (ADR-0070).
+ * the setup call and [name] what the user calls it. A user who already has a method proves one with it, like in
+ * [MfaEnableRequest].
  */
 @ExcludeFromTestCoverage
 data class MfaPasskeyEnableRequest(
@@ -63,9 +63,20 @@ data class MfaPasskeyEnableRequest(
     @field:NotBlank
     @field:Size(max = 100)
     val name: String,
-    @field:NotBlank
     @field:Size(max = 16)
-    val currentCode: String,
+    val currentCode: String? = null,
+    val currentCredential: JsonNode? = null,
+)
+
+/**
+ * Proof of a method the user has, for removing a passkey: [code] of a code method, or [credential] - the answer
+ * of one of the user's passkeys to the options of `POST /api/mfa/passkey/options`.
+ */
+@ExcludeFromTestCoverage
+data class MfaProofRequest(
+    @field:Size(max = 16)
+    val code: String? = null,
+    val credential: JsonNode? = null,
 )
 
 /** Completes a login with a passkey: [credential] is the browser's `PublicKeyCredential.toJSON()` of the assertion. */
@@ -95,8 +106,9 @@ data class MfaCodeRequest(
 
 /**
  * Switches a method on. [code] is the one that proves the new method works (from the app for the secret that was
- * just handed out, or the one that was mailed); [currentCode] is one of a method the user already has, which is
- * required exactly when they have one - a session left open cannot add its own second factor.
+ * just handed out, or the one that was mailed). A user who already has a method also proves one - a session left
+ * open cannot add its own second factor: with [currentCode] of a code method, or with [currentCredential], the
+ * answer of one of their passkeys to the options of `POST /api/mfa/passkey/options`.
  */
 @ExcludeFromTestCoverage
 data class MfaEnableRequest(
@@ -105,13 +117,14 @@ data class MfaEnableRequest(
     val code: String,
     @field:Size(max = 16)
     val currentCode: String? = null,
+    val currentCredential: JsonNode? = null,
 )
 
-/** Switches [method] off; [code] may come from either method the user has. */
+/** Switches [method] off, with proof of any method the user has: [code], or [credential] as in [MfaProofRequest]. */
 @ExcludeFromTestCoverage
 data class MfaDisableRequest(
     val method: MfaMethod,
-    @field:NotBlank
     @field:Size(max = 16)
-    val code: String,
+    val code: String? = null,
+    val credential: JsonNode? = null,
 )

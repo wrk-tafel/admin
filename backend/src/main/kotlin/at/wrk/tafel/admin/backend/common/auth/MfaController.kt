@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.MfaService
+import at.wrk.tafel.admin.backend.common.auth.components.PasskeyAnswer
 import at.wrk.tafel.admin.backend.common.auth.components.PasskeyEnableResult
 import at.wrk.tafel.admin.backend.common.auth.components.PasskeyRelyingParty
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
@@ -13,6 +14,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.MfaPasskeyEnableRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaPasskeyItem
 import at.wrk.tafel.admin.backend.common.auth.model.MfaPasskeyOptionsResponse
 import at.wrk.tafel.admin.backend.common.auth.model.MfaPasskeyVerifyRequest
+import at.wrk.tafel.admin.backend.common.auth.model.MfaProofRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaSetupResponse
 import at.wrk.tafel.admin.backend.common.auth.model.MfaStatusResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import tools.jackson.databind.JsonNode
 
 /**
  * Two-factor authentication (see ADR-0058) - the caller's own account only. Everything is `isAuthenticated()` rather
@@ -40,11 +43,11 @@ import org.springframework.web.bind.annotation.RestController
  *
  * Two kinds of unfinished session may call parts of this, and `MfaPendingFilter` lets exactly those calls through
  * and refuses the rest:
- * - one that **owes its code** may [verify] it, have the e-mailed one sent ([sendLoginCode]), or use a passkey
- *   instead ([passkeyLoginOptions]/[verifyPasskey]);
+ * - one that **owes its second step** may [verify] a code, have the e-mailed one sent ([sendLoginCode]), or use a
+ *   passkey ([passkeyOptions]/[verifyPasskey]);
  * - one that **has to set a method up** because the deployment requires it may read the [getStatus] and use the
  *   setup and enable calls.
- * Everything that changes what is already set up ([disable]) refuses a session that owes its code
+ * Everything that changes what is already set up ([disable], [disablePasskey]) refuses a session that owes its code
  * ([requireNoCodeOwed]), otherwise someone who only knows the password could switch the second factor off, or
  * replace it with their own.
  */
@@ -96,7 +99,7 @@ class MfaController(
         httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
-        if (!mfaService.enable(authentication.username!!, request.code, request.currentCode)) {
+        if (!mfaService.enable(authentication.username!!, request.code, request.currentCode, passkeyAnswer(request.currentCredential, httpRequest))) {
             throw invalidCode()
         }
         issueCompletedSession(authentication.username, httpRequest, httpResponse)
@@ -121,7 +124,7 @@ class MfaController(
         httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
-        if (!mfaService.enableEmail(authentication.username!!, request.code, request.currentCode)) {
+        if (!mfaService.enableEmail(authentication.username!!, request.code, request.currentCode, passkeyAnswer(request.currentCredential, httpRequest))) {
             throw invalidCode()
         }
         issueCompletedSession(authentication.username, httpRequest, httpResponse)
@@ -148,9 +151,13 @@ class MfaController(
         return MfaPasskeyOptionsResponse(options = mfaService.startPasskeySetup(authentication.username!!, PasskeyRelyingParty.of(httpRequest)))
     }
 
-    /** Adds the passkey the browser created. The session stays what it is - it has passed a second factor already. */
+    /** Adds the passkey the browser created - answered with a completed session, like [enable]. */
     @PostMapping("/passkey/enable")
-    fun enablePasskey(@Valid @RequestBody request: MfaPasskeyEnableRequest, httpRequest: HttpServletRequest): ResponseEntity<Unit> {
+    fun enablePasskey(
+        @Valid @RequestBody request: MfaPasskeyEnableRequest,
+        httpRequest: HttpServletRequest,
+        httpResponse: HttpServletResponse,
+    ): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
         val result = mfaService.enablePasskey(
             authentication.username!!,
@@ -158,33 +165,42 @@ class MfaController(
             request.credential.toString(),
             request.name,
             request.currentCode,
+            passkeyAnswer(request.currentCredential, httpRequest),
         )
         when (result) {
             PasskeyEnableResult.ENABLED -> Unit
-            PasskeyEnableResult.CODE_REFUSED -> throw invalidCode()
+            PasskeyEnableResult.PROOF_REFUSED -> throw invalidCode()
             PasskeyEnableResult.PASSKEY_REFUSED -> throw BusinessRuleException("Der Passkey konnte nicht eingerichtet werden - bitte erneut versuchen!")
         }
+        issueCompletedSession(authentication.username, httpRequest, httpResponse)
         return ResponseEntity.noContent().build()
     }
 
-    /** Removes one passkey. A `POST` rather than a `DELETE` because it takes the code in its body, like [disable]. */
+    /** Removes one passkey. A `POST` rather than a `DELETE` because it takes the proof in its body, like [disable]. */
     @PostMapping("/passkey/{passkeyId}/disable")
-    fun disablePasskey(@PathVariable passkeyId: Long, @Valid @RequestBody request: MfaCodeRequest): ResponseEntity<Unit> {
+    fun disablePasskey(
+        @PathVariable passkeyId: Long,
+        @Valid @RequestBody request: MfaProofRequest,
+        httpRequest: HttpServletRequest,
+    ): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
-        if (!mfaService.removePasskey(authentication.username!!, passkeyId, request.code)) {
+        if (!mfaService.removePasskey(authentication.username!!, passkeyId, request.code, passkeyAnswer(request.credential, httpRequest))) {
             throw invalidCode()
         }
         return ResponseEntity.noContent().build()
     }
 
-    /** Hands out the options a login that owes its second step asks one of the user's passkeys with. */
-    @PostMapping("/passkey/login-options")
-    fun passkeyLoginOptions(httpRequest: HttpServletRequest): MfaPasskeyOptionsResponse {
-        val authentication = requireCodeOwed()
-        return MfaPasskeyOptionsResponse(options = mfaService.startPasskeyLogin(authentication.username!!, PasskeyRelyingParty.of(httpRequest)))
+    /**
+     * Hands out the options the browser asks one of the user's passkeys with - for a login that owes its second
+     * step ([verifyPasskey]), or for a completed session that proves a method before it changes one.
+     */
+    @PostMapping("/passkey/options")
+    fun passkeyOptions(httpRequest: HttpServletRequest): MfaPasskeyOptionsResponse {
+        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        return MfaPasskeyOptionsResponse(options = mfaService.startPasskeyAssertion(authentication.username!!, PasskeyRelyingParty.of(httpRequest)))
     }
 
-    /** Finishes a login with a passkey instead of a code - otherwise exactly [verify]. */
+    /** Finishes a login with a passkey - otherwise exactly [verify]. */
     @PostMapping("/passkey/verify")
     fun verifyPasskey(
         @Valid @RequestBody request: MfaPasskeyVerifyRequest,
@@ -192,8 +208,8 @@ class MfaController(
         httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireCodeOwed()
-        if (!mfaService.verifyLoginWithPasskey(authentication.username!!, PasskeyRelyingParty.of(httpRequest), request.credential.toString())) {
-            throw BusinessRuleException("Der Passkey wurde nicht akzeptiert, oder es gab zu viele Fehlversuche - bitte den Code verwenden!")
+        if (!mfaService.verifyLoginWithPasskey(authentication.username!!, PasskeyAnswer(PasskeyRelyingParty.of(httpRequest), request.credential.toString()))) {
+            throw BusinessRuleException("Der Passkey wurde nicht akzeptiert, oder es gab zu viele Fehlversuche - bitte später erneut versuchen!")
         }
         issueCompletedSession(authentication.username, httpRequest, httpResponse)
         return ResponseEntity.noContent().build()
@@ -202,9 +218,9 @@ class MfaController(
     // ---- switching off and logging in
 
     @PostMapping("/disable")
-    fun disable(@Valid @RequestBody request: MfaDisableRequest): ResponseEntity<Unit> {
+    fun disable(@Valid @RequestBody request: MfaDisableRequest, httpRequest: HttpServletRequest): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
-        if (!mfaService.disable(authentication.username!!, request.method, request.code)) {
+        if (!mfaService.disable(authentication.username!!, request.method, request.code, passkeyAnswer(request.credential, httpRequest))) {
             throw invalidCode()
         }
         return ResponseEntity.noContent().build()
@@ -245,6 +261,11 @@ class MfaController(
     }
 
     private fun invalidCode() = BusinessRuleException("Der Code ist ungültig, oder es gab zu viele Fehlversuche - bitte später erneut versuchen!")
+
+    /** The answer of a passkey a request carries as proof of an existing method - `null` when it carries none. */
+    private fun passkeyAnswer(credential: JsonNode?, request: HttpServletRequest): PasskeyAnswer? = credential
+        ?.takeUnless { it.isNull || it.isMissingNode }
+        ?.let { PasskeyAnswer(PasskeyRelyingParty.of(request), it.toString()) }
 
     private fun issueCompletedSession(username: String, request: HttpServletRequest, response: HttpServletResponse) {
         val jwtProperties = applicationProperties.security.jwtToken

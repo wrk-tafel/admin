@@ -248,7 +248,7 @@ describe('LoginMfaComponent', () => {
       passkeyService = TestBed.inject(PasskeyService) as MockedObject<PasskeyService>;
       passkeyService.isSupported.mockReturnValue(true);
       passkeyService.get.mockResolvedValue(credential);
-      mfaApiService.passkeyLoginOptions = vi.fn().mockReturnValue(of({options: {challenge: 'c'}}));
+      mfaApiService.passkeyOptions = vi.fn().mockReturnValue(of({options: {challenge: 'c'}}));
       mfaApiService.verifyPasskey = vi.fn().mockReturnValue(of(undefined));
       methods.set(['EMAIL', 'PASSKEY']);
     });
@@ -262,6 +262,28 @@ describe('LoginMfaComponent', () => {
       expect(text(fixture, 'mfaHint')).toContain('Code per E-Mail senden');
       expect(element(fixture, 'mfaCode')).not.toBeNull();
       expect(mfaApiService.sendEmailCode).not.toHaveBeenCalled();
+    });
+
+    it('offers nothing but the passkey to an account that has nothing else', async () => {
+      methods.set(['PASSKEY']);
+
+      const fixture = await create();
+
+      expect(text(fixture, 'mfaPasskeyHint')).toBe('Bestätigen Sie die Anmeldung mit Ihrem Passkey.');
+      expect(element(fixture, 'mfaPasskeyButton')).not.toBeNull();
+      expect(element(fixture, 'mfaCode')).toBeNull();
+      expect(element(fixture, 'mfaPasskeyUnsupported')).toBeNull();
+    });
+
+    it('says what to do when a passkey is all the account has and the browser cannot use one', async () => {
+      methods.set(['PASSKEY']);
+      passkeyService.isSupported.mockReturnValue(false);
+
+      const fixture = await create();
+
+      expect(text(fixture, 'mfaPasskeyUnsupported')).toContain('Administrator');
+      expect(element(fixture, 'mfaPasskeyButton')).toBeNull();
+      expect(element(fixture, 'mfaCode')).toBeNull();
     });
 
     it('does not offer it on a browser that cannot use one', async () => {

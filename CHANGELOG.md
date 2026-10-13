@@ -1,13 +1,13 @@
 # Changelog
 
-Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]
-- Mein Konto → Zwei-Faktor-Authentifizierung: Zusätzlich zur Authenticator-App oder zum Code per E-Mail lässt sich jetzt ein Passkey einrichten (Fingerabdruck, Gesichtserkennung, Geräte-PIN oder Sicherheitsschlüssel) - bei der Anmeldung genügt dann "Mit Passkey bestätigen" statt des Codes; der Code bleibt als Weg ins Konto bestehen, wenn das Gerät nicht zur Hand ist.
-
-## [1.30.0] - 2026-10-12`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
+Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Mein Konto → Zwei-Faktor-Authentifizierung: Neben der Authenticator-App und dem Code per E-Mail gibt es jetzt den Passkey als dritte Methode (Fingerabdruck, Gesichtserkennung, Geräte-PIN oder Sicherheitsschlüssel) - zusätzlich zu einer anderen Methode oder für sich allein; bei der Anmeldung genügt dann "Mit Passkey bestätigen" statt eines Codes. Geht das Gerät mit dem einzigen Passkey verloren, setzt ein Administrator die Zwei-Faktor-Authentifizierung in der Benutzerverwaltung zurück.
+
+## [1.30.0] - 2026-10-12
 - Neue Versionen werden jetzt ohne Unterbrechung eingespielt, auch während einer Ausgabe: Die Anwendung bleibt dabei erreichbar, und geöffnete Seiten verbinden sich von selbst mit der neuen Version.
 - In der Kundenansicht erstellt "Daten ausdrucken → Stammdaten und Ausweis" jetzt beide Dokumente in einer PDF-Datei (zuerst den Ausweis, danach das Stammdatenblatt); die Einzeldrucke bleiben als "Nur Stammdaten" und "Nur Ausweis" erhalten.
 - Screenreader lesen bei "Stopp erledigt" und "Rückgängig machen" in der Routenführung sowie bei "Route in Karte öffnen" in den Routen-Einstellungen jetzt zuerst die sichtbare Beschriftung der Schaltfläche vor - wichtig auch für die Sprachsteuerung, die eine Schaltfläche über ihren sichtbaren Text anspricht.

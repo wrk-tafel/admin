@@ -85,7 +85,8 @@ export class LoginMfaSetupComponent implements OnInit {
   readonly formattedSecret = computed(() => this.appSetup()?.secret.match(/.{1,4}/g)?.join(' ') ?? '');
 
   /** Whether a method (either one) is already set up - the address step no longer implies choosing the e-mail one. */
-  readonly anyMethodEnabled = computed(() => !!this.status()?.totpEnabled || !!this.status()?.emailEnabled);
+  readonly anyMethodEnabled = computed(() =>
+    !!this.status()?.totpEnabled || !!this.status()?.emailEnabled || (this.status()?.passkeys ?? []).length > 0);
   /** The one gap that can remain once a method is set up: an address is mandatory while the deployment requires MFA. */
   readonly needsEmailAddress = computed(() => {
     const status = this.status();

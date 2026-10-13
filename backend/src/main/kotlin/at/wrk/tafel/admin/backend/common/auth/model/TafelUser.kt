@@ -24,7 +24,7 @@ data class TafelUser(
     CredentialsContainer {
     /** Whether a login needs a second factor - either method is enough. */
     val mfaEnabled: Boolean
-        get() = mfaTotpEnabled || mfaEmailEnabled
+        get() = mfaTotpEnabled || mfaEmailEnabled || mfaPasskeyEnabled
 
     /** The methods that complete a login, as the API names them. */
     val mfaMethods: List<String>

@@ -67,8 +67,11 @@ export class LoginMfaComponent implements OnInit {
 
   readonly hasApp = computed(() => this.authenticationService.mfaMethods().includes('TOTP'));
   readonly hasEmail = computed(() => this.authenticationService.mfaMethods().includes('EMAIL'));
+  readonly hasCode = computed(() => this.hasApp() || this.hasEmail());
   /** A passkey is only offered where the browser can use one - elsewhere the page is what it is without. */
   readonly hasPasskey = computed(() => this.authenticationService.mfaMethods().includes('PASSKEY') && this.passkeyService.isSupported());
+  /** A passkey is all the account has and this browser cannot use one - nothing on this page completes the login. */
+  readonly noWayIn = computed(() => !this.hasCode() && !this.hasPasskey());
 
   async ngOnInit() {
     // Not logged in at all, or nothing owed (e.g. the page was opened by hand after the code was accepted).
@@ -132,16 +135,16 @@ export class LoginMfaComponent implements OnInit {
   }
 
   /**
-   * Completes the login with a passkey instead of a code: the backend hands out a challenge, the authenticator
-   * signs it, and the backend checks the signature. Whatever goes wrong leaves the page as it is - the code form
-   * is still there.
+   * Completes the login with a passkey: the backend hands out a challenge, the authenticator signs it, and the
+   * backend checks the signature. Whatever goes wrong leaves the page as it is, for another try or - if the
+   * account has one - a code.
    */
   async usePasskey() {
     this.submitting.set(true);
     this.errorMessage.set(null);
     this.infoMessage.set(null);
     try {
-      const {options} = await firstValueFrom(this.mfaApiService.passkeyLoginOptions(expectedErrorContext(400, 429)));
+      const {options} = await firstValueFrom(this.mfaApiService.passkeyOptions(expectedErrorContext(400, 429)));
       const credential = await this.passkeyService.get(options);
       await firstValueFrom(this.mfaApiService.verifyPasskey(credential, expectedErrorContext(400, 429)));
       await this.completeLogin();
@@ -150,7 +153,8 @@ export class LoginMfaComponent implements OnInit {
       // no passkey for this account is on the device.
       this.errorMessage.set(error instanceof HttpErrorResponse
         ? this.requestErrorMessage(error)
-        : 'Die Bestätigung mit dem Passkey wurde abgebrochen oder ist nicht möglich - bitte erneut versuchen oder den Code verwenden.');
+        : 'Die Bestätigung mit dem Passkey wurde abgebrochen oder ist nicht möglich - bitte erneut versuchen'
+          + (this.hasCode() ? ' oder den Code verwenden.' : '.'));
       this.submitting.set(false);
     }
   }

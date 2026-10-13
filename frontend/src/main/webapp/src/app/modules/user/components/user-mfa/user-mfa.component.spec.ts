@@ -41,7 +41,7 @@ describe('UserMfaComponent', () => {
         {provide: ActivatedRoute, useValue: {}},
         {provide: AuthenticationService, useValue: authenticationService},
         // a browser without passkeys unless a test says otherwise
-        {provide: PasskeyService, useValue: {isSupported: vi.fn().mockReturnValue(false), create: vi.fn()}},
+        {provide: PasskeyService, useValue: {isSupported: vi.fn().mockReturnValue(false), create: vi.fn(), get: vi.fn()}},
         {
           provide: MfaApiService,
           useValue: {
@@ -176,7 +176,7 @@ describe('UserMfaComponent', () => {
     mfaApiService.enable.mockReturnValue(throwError(() => ({status: 400, error: {detail: 'Der Code ist ungültig'}})));
     type(fixture, 'appCode', '123456');
 
-    fixture.componentInstance.enableApp(new Event('submit'));
+    await fixture.componentInstance.enableApp(new Event('submit'));
     fixture.detectChanges();
 
     expect(text(fixture, 'errorMessage')).toBe('Der Code ist ungültig');
@@ -202,7 +202,7 @@ describe('UserMfaComponent', () => {
     fixture.componentInstance.enableApp(new Event('submit'));
     await settle(fixture);
 
-    expect(mfaApiService.enable).toHaveBeenCalledWith('123456', '654321', expect.anything());
+    expect(mfaApiService.enable).toHaveBeenCalledWith('123456', {code: '654321'}, expect.anything());
   });
 
   it('lets the current code for adding the app be sent by e-mail, when that is the method the user has', async () => {
@@ -235,7 +235,7 @@ describe('UserMfaComponent', () => {
     fixture.componentInstance.enableEmail(new Event('submit'));
     await settle(fixture);
 
-    expect(mfaApiService.enableEmail).toHaveBeenCalledWith('654321', '123456', expect.anything());
+    expect(mfaApiService.enableEmail).toHaveBeenCalledWith('654321', {code: '123456'}, expect.anything());
   });
 
   // ---- e-mail
@@ -324,7 +324,7 @@ describe('UserMfaComponent', () => {
     fixture.componentInstance.disable('TOTP');
     await settle(fixture);
 
-    expect(mfaApiService.disable).toHaveBeenCalledWith('TOTP', '654321', expect.anything());
+    expect(mfaApiService.disable).toHaveBeenCalledWith('TOTP', {code: '654321'}, expect.anything());
     expect(text(fixture, 'mfaTotpStatus')).toBe('Nicht aktiv');
     expect(toastr.success).toHaveBeenCalledWith('Authenticator-App entfernt!');
   });
@@ -346,7 +346,7 @@ describe('UserMfaComponent', () => {
     const fixture = await create();
     type(fixture, 'disableCode', '654321');
 
-    fixture.componentInstance.disable('EMAIL');
+    await fixture.componentInstance.disable('EMAIL');
     fixture.detectChanges();
 
     expect(text(fixture, 'mfaEmailStatus')).toBe('Aktiv');
@@ -397,13 +397,59 @@ describe('UserMfaComponent', () => {
       fixture.detectChanges();
     }
 
-    it('asks for a method first while none is on', async () => {
+    it('adds a passkey as the first method with a name alone', async () => {
       mfaApiService.getStatus.mockReturnValue(of(status()));
+      const fixture = await create();
+
+      expect(element(fixture, 'mfaPasskeyCurrentCode')).toBeNull();
+      fixture.componentInstance.codeForm.passkeyName().value.set('Laptop');
+      await fixture.componentInstance.addPasskey(new Event('submit'));
+
+      expect(mfaApiService.enablePasskey).toHaveBeenCalledWith(credential, 'Laptop', null, expect.anything());
+      expect(passkeyService.get).not.toHaveBeenCalled();
+    });
+
+    it('proves an existing passkey instead of a code when passkeys are all the user has', async () => {
+      const assertion = {id: 'abc', type: 'public-key', response: {}};
+      passkeyService.get.mockResolvedValue(assertion);
+      mfaApiService.passkeyOptions = vi.fn().mockReturnValue(of({options: {challenge: 'p'}}));
+      mfaApiService.getStatus.mockReturnValue(of(status({passkeys: [laptop]})));
+      const fixture = await create();
+
+      expect(text(fixture, 'mfaPasskeyProofHint')).toContain('bestehenden');
+      expect(text(fixture, 'mfaDisableHint')).toContain('Passkeys');
+      expect(element(fixture, 'mfaDisableCode')).toBeNull();
+
+      fixture.componentInstance.codeForm.passkeyName().value.set('Smartphone');
+      await fixture.componentInstance.addPasskey(new Event('submit'));
+      expect(passkeyService.get).toHaveBeenCalledWith({challenge: 'p'});
+      expect(mfaApiService.enablePasskey).toHaveBeenCalledWith(credential, 'Smartphone', {credential: assertion}, expect.anything());
+
+      await fixture.componentInstance.removePasskey(laptop);
+      expect(mfaApiService.disablePasskey).toHaveBeenCalledWith(7, {credential: assertion}, expect.anything());
+    });
+
+    it('says so when the prompt for the proving passkey is dismissed', async () => {
+      passkeyService.get.mockRejectedValue(new DOMException('cancelled', 'NotAllowedError'));
+      mfaApiService.passkeyOptions = vi.fn().mockReturnValue(of({options: {challenge: 'p'}}));
+      mfaApiService.getStatus.mockReturnValue(of(status({passkeys: [laptop]})));
+      const fixture = await create();
+
+      await fixture.componentInstance.removePasskey(laptop);
+      fixture.detectChanges();
+
+      expect(text(fixture, 'errorMessage')).toContain('abgebrochen');
+      expect(mfaApiService.disablePasskey).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.working()).toBe(false);
+    });
+
+    it('keeps the last passkey while the deployment requires a method', async () => {
+      mfaApiService.getStatus.mockReturnValue(of(status({required: true, passkeys: [laptop]})));
 
       const fixture = await create();
 
-      expect(text(fixture, 'mfaPasskeyNeedsMethod')).toContain('Richten Sie zuerst');
-      expect(element(fixture, 'mfaPasskeyAddButton')).toBeNull();
+      expect(text(fixture, 'mfaLastMethodHint')).toContain('letzte Methode');
+      expect((element(fixture, 'mfaRemovePasskeyButton-7') as HTMLButtonElement).disabled).toBe(true);
     });
 
     it('does not offer to add one on a browser that cannot, but still lists what is there', async () => {
@@ -438,7 +484,7 @@ describe('UserMfaComponent', () => {
       await fixture.componentInstance.addPasskey(new Event('submit'));
 
       expect(passkeyService.create).toHaveBeenCalledWith({challenge: 'c'});
-      expect(mfaApiService.enablePasskey).toHaveBeenCalledWith(credential, 'Laptop', '123456', expect.anything());
+      expect(mfaApiService.enablePasskey).toHaveBeenCalledWith(credential, 'Laptop', {code: '123456'}, expect.anything());
       expect(toastr.success).toHaveBeenCalledWith('Passkey hinzugefügt!');
       expect(fixture.componentInstance.codeForm.passkeyName().value()).toBe('');
       expect(fixture.componentInstance.working()).toBe(false);
@@ -466,18 +512,17 @@ describe('UserMfaComponent', () => {
       expect(fixture.componentInstance.working()).toBe(false);
     });
 
-    it('removes a passkey with a code, and keeps the last method on while one is left', async () => {
-      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, passkeys: [laptop]})));
+    it('removes a passkey with a code, and lets the last code method go while a passkey is left', async () => {
+      mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true, required: true, passkeys: [laptop]})));
       const fixture = await create();
 
-      expect(text(fixture, 'mfaPasskeyKeepsMethodHint')).toContain('zuerst die Passkeys');
-      expect((element(fixture, 'mfaDisableTotpButton') as HTMLButtonElement).disabled).toBe(true);
+      expect((element(fixture, 'mfaDisableTotpButton') as HTMLButtonElement).disabled).toBe(false);
 
       type(fixture, 'disableCode', '123456');
       element(fixture, 'mfaRemovePasskeyButton-7')!.click();
       await settle(fixture);
 
-      expect(mfaApiService.disablePasskey).toHaveBeenCalledWith(7, '123456', expect.anything());
+      expect(mfaApiService.disablePasskey).toHaveBeenCalledWith(7, {code: '123456'}, expect.anything());
       expect(toastr.success).toHaveBeenCalledWith('Passkey entfernt!');
     });
   });

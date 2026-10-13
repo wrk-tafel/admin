@@ -8,13 +8,24 @@
             <div class="mb-4 rounded-lg bg-white px-4 py-3">
               <img ngSrc="assets/img/brand/logo.svg" width="200" height="54" priority alt="ÖRK Logo" class="h-[54px] w-[200px] object-contain"/>
             </div>
-            <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">Bestätigungscode</h1>
+            <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">{{ hasCode() ? 'Bestätigungscode' : 'Anmeldung bestätigen' }}</h1>
           </div>
 
           @if (hasPasskey()) {
             <p class="text-sm text-slate-600 mb-4" testid="mfaPasskeyHint">
-              Bestätigen Sie die Anmeldung mit Ihrem Passkey - oder mit einem Code, wenn der Passkey gerade nicht zur
-              Hand ist.
+              @if (hasCode()) {
+                Bestätigen Sie die Anmeldung mit Ihrem Passkey - oder mit einem Code, wenn der Passkey gerade nicht zur
+                Hand ist.
+              } @else {
+                Bestätigen Sie die Anmeldung mit Ihrem Passkey.
+              }
+            </p>
+          }
+          @if (noWayIn()) {
+            <p class="text-sm text-slate-600 mb-4" testid="mfaPasskeyUnsupported">
+              Für dieses Konto ist nur ein Passkey eingerichtet, und dieser Browser kann keinen Passkey verwenden. Bitte
+              melden Sie sich mit dem Gerät bzw. Browser an, auf dem der Passkey eingerichtet wurde - oder bitten Sie
+              einen Administrator, die Zwei-Faktor-Authentifizierung zurückzusetzen.
             </p>
           }
 
@@ -32,6 +43,7 @@
             </button>
           }
 
+          @if (hasCode()) {
           <p class="text-sm text-slate-600 mb-4" testid="mfaHint">
             @if (hasApp() && hasEmail()) {
               Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein - oder lassen Sie sich einen Code per E-Mail senden -,
@@ -59,6 +71,7 @@
               {{ submitting() ? 'Wird geprüft…' : 'Bestätigen' }}
             </button>
           </form>
+          }
 
           @if (hasEmail()) {
             <div class="mt-4 text-center">

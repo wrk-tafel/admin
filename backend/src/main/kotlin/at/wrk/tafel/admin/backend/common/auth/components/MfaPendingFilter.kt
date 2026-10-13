@@ -20,11 +20,11 @@ import org.springframework.web.filter.OncePerRequestFilter
  * around the second factor.
  *
  * Two situations, each with the few calls it needs:
- * - **A code is owed** (the user has a method): to hand the code in, to have the e-mailed one sent, to complete
- *   the login with a passkey instead, to ask who the session is (which is how the frontend learns a code is
+ * - **The second step is owed** (the user has a method): to hand a code in, to have the e-mailed one sent, to
+ *   complete the login with a passkey, to ask who the session is (which is how the frontend learns a step is
  *   owed), and to log out.
  * - **A method has to be set up** (the deployment requires one and the user has none): to read the status, to set
- *   either method up, to read and change the caller's own account (the e-mail method needs an address on record,
+ *   a method up, to read and change the caller's own account (the e-mail method needs an address on record,
  *   which is what sends such a session to the "Meine Daten" tab first - see `AuthGuardService`), and again to ask
  *   who the session is and to log out.
  */
@@ -33,7 +33,7 @@ class MfaPendingFilter : OncePerRequestFilter() {
     private val allowedWhileACodeIsOwed = OrRequestMatcher(
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/verify"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/email/send"),
-        PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/passkey/login-options"),
+        PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/passkey/options"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/passkey/verify"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/api/users/info"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/users/logout"),
@@ -45,6 +45,8 @@ class MfaPendingFilter : OncePerRequestFilter() {
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/enable"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/email/setup"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/email/enable"),
+        PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/passkey/setup"),
+        PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/passkey/enable"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/api/users/account"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.PUT, "/api/users/account"),
         PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/api/users/info"),
