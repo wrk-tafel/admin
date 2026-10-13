@@ -17,7 +17,7 @@ jackson = "3.2.3"
 # rather than relying on the spring-boot-bom's managed 2.21.5 being a floor.
 jackson-legacy = "2.22.3"
 jjwt = "0.13.0"
-postgresql = "42.7.13"
+postgresql = "42.7.14"
 bouncycastle = "1.86"
 apache-fop = "2.11"
 qrcode-kotlin = "4.5.0"
