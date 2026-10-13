@@ -338,6 +338,16 @@ class SseOutboxServiceTest {
     }
 
     @Test
+    fun `heartbeat is sent once to a stream that carries several topics`() {
+        service.forwardNotificationEventsToSse(sseEmitter, notificationName, TestJsonPayload::class.java)
+        service.forwardNotificationEventsToSse(sseEmitter, "other_notification", TestJsonPayload::class.java)
+
+        service.sendHeartbeats()
+
+        verify(exactly = 1) { sseEmitter.send(any<SseEventBuilder>()) }
+    }
+
+    @Test
     fun `heartbeat stops once the stream has completed`() {
         val onCompletionSlot = slot<Runnable>()
         every { sseEmitter.onTimeout(any()) } returns Unit
@@ -551,6 +561,24 @@ class SseOutboxServiceTest {
         assertThat(event.level).isEqualTo(Level.WARN)
         assertThat(event.formattedMessage).contains("GET /api/sse/distributions")
         assertThat(event.throwableProxy.message).isEqualTo("pool exhausted")
+    }
+
+    @Test
+    fun `emitter error of a stream that carries several topics is logged once`() {
+        val onErrorCallbacks = mutableListOf<Consumer<Throwable>>()
+        every { sseEmitter.onTimeout(any()) } returns Unit
+        every { sseEmitter.onCompletion(any()) } returns Unit
+        every { sseEmitter.onError(capture(onErrorCallbacks)) } returns Unit
+        val topics = listOf("config", "dashboard", "distribution", "notifications")
+        topics.forEach { service.forwardNotificationEventsToSse(sseEmitter, it, TestJsonPayload::class.java) }
+        logAppender.list.clear()
+
+        val error = IOException("Broken pipe")
+        onErrorCallbacks.forEach { it.accept(error) }
+
+        assertThat(onErrorCallbacks).hasSize(topics.size)
+        assertThat(logAppender.list).hasSize(1)
+        topics.forEach { verify { sseOutboxListenerService.unregisterCallback(it, any()) } }
     }
 
     @Test

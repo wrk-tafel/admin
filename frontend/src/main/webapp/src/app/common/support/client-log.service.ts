@@ -20,6 +20,7 @@ export interface ClientLogEntry {
  */
 const MAX_ENTRIES = 20;
 const MAX_MESSAGE_LENGTH = 1000;
+const MAX_STACK_FRAMES = 5;
 
 @Service()
 export class ClientLogService {
@@ -59,7 +60,7 @@ export class ClientLogService {
     // not bubble, so a listener on the window only sees it on the way down.
     window.addEventListener('error', event => this.recordErrorEvent(event), true);
     window.addEventListener('unhandledrejection', event =>
-      this.record(`Unbehandelter Promise-Fehler: ${describeError(event.reason)}`));
+      this.record(`Unbehandelter Promise-Fehler: ${describeError(event.reason)}${describeOrigin(event.reason)}`));
     this.captureConsoleMessages();
   }
 
@@ -84,7 +85,7 @@ export class ClientLogService {
       this.record(`Ressource nicht geladen: ${element.tagName?.toLowerCase()} ${element.src ?? element.href ?? ''}`.trim());
       return;
     }
-    this.record(event.error ? describeError(event.error) : event.message);
+    this.record(event.error ? describeError(event.error) + describeOrigin(event.error) : event.message);
   }
 
   /**
@@ -140,6 +141,25 @@ export function describeError(error: unknown): string {
     return `Fehler: HTTP ${error.status} - ${error.url ?? 'unbekannte URL'}`;
   }
   return `Fehler: ${stringify(error)}`;
+}
+
+/**
+ * Where an error nobody caught was thrown, as the innermost frames of its stack. The production
+ * build strips Angular's own messages down to their code (`NG05601`), which names the failure but
+ * not the caller - and for an error that reached the window, the caller is the whole question.
+ * Script and position only: a frame's function name is minified anyway, and the origin is the same
+ * on every line.
+ */
+function describeOrigin(error: unknown): string {
+  if (!(error instanceof Error) || !error.stack) {
+    return '';
+  }
+  // `at fn (https://host/chunk.js:1:23)` in Chromium, `fn@https://host/chunk.js:1:23` in Firefox
+  const frames = error.stack.split('\n')
+    .map(line => /([^/\s(@]+:\d+:\d+)\)?$/.exec(line.trim())?.[1])
+    .filter((frame): frame is string => !!frame)
+    .slice(0, MAX_STACK_FRAMES);
+  return frames.length > 0 ? ` [${frames.join(' < ')}]` : '';
 }
 
 /** One `console.warn`/`console.error` argument as a line of text, whatever type it happens to be. */

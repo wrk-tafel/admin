@@ -30,6 +30,12 @@ import org.springframework.security.web.csrf.CsrfException
  * which is exactly what left the production 403s in issue #2989 unexplained: they looked like a
  * session that had "lost" its LOGISTICS authority. The exception type plus the CSRF header/cookie
  * state tell the two apart at a glance.
+ *
+ * **Why a CSRF denial carries [CSRF_REJECTED_HEADER]:** it is the one `403` that says nothing about
+ * the request itself - it was turned away before anything looked at it, so the frontend may send it
+ * again with the token the cookie holds by then. Every other `403` is an answer (wrong credentials,
+ * a missing permission, a session that still owes its second factor), and repeating the request
+ * would have it processed twice - see the frontend's `xsrfInterceptor`.
  */
 class TafelAccessDeniedHandler : AccessDeniedHandler {
 
@@ -37,6 +43,7 @@ class TafelAccessDeniedHandler : AccessDeniedHandler {
         private val logger = LoggerFactory.getLogger(TafelAccessDeniedHandler::class.java)
         private const val CSRF_HEADER_NAME = "X-XSRF-TOKEN"
         private const val CSRF_COOKIE_NAME = "XSRF-TOKEN"
+        const val CSRF_REJECTED_HEADER = "X-Csrf-Rejected"
     }
 
     private val delegate = AccessDeniedHandlerImpl()
@@ -72,6 +79,9 @@ class TafelAccessDeniedHandler : AccessDeniedHandler {
             sanitizeForLog(authorities),
             sanitizeForLog(cause),
         )
+        if (accessDeniedException is CsrfException) {
+            response.setHeader(CSRF_REJECTED_HEADER, "true")
+        }
         delegate.handle(request, response, accessDeniedException)
     }
 

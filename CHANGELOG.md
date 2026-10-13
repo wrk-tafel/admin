@@ -5,6 +5,11 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 
 ## [Unreleased]
+- Ein falsch eingegebenes Passwort zählt wieder als ein Fehlversuch: bisher wurde die abgelehnte Anmeldung im Hintergrund ein zweites Mal gesendet, sodass die Sperre nach der Hälfte der eingestellten Versuche griff, jeder Tippfehler zweimal unter "Anmeldeversuche" stand und die Fehlermeldung doppelt so lange auf sich warten ließ. Dasselbe gilt für jede andere Aktion, die mangels Berechtigung abgelehnt wird - auch sie wird nicht mehr wiederholt.
+- Das Anwendungsprotokoll meldet eine abgerissene Live-Verbindung nur noch einmal statt einmal pro abonniertem Thema (bisher vier bis fünf gleichlautende Zeilen), und jede offene Live-Verbindung erhält nur noch ein Lebenszeichen pro Intervall.
+- Nach der Eingabe des Codes der Zwei-Faktor-Authentifizierung erscheint im Anwendungsprotokoll kein Client-Fehler "NG05601" mehr, wenn im Browser kein Service Worker registriert ist, und die Push-Registrierung des Geräts wird erst nach dem Code abgefragt statt davor (bisher eine abgelehnte Anfrage pro Anmeldung). Ein Client-Fehler, den niemand abgefangen hat, nennt im Protokoll nun auch die Stelle im Programm, an der er entstand.
+
+## [1.30.0] - 2026-10-12
 - Neue Versionen werden jetzt ohne Unterbrechung eingespielt, auch während einer Ausgabe: Die Anwendung bleibt dabei erreichbar, und geöffnete Seiten verbinden sich von selbst mit der neuen Version.
 - In der Kundenansicht erstellt "Daten ausdrucken → Stammdaten und Ausweis" jetzt beide Dokumente in einer PDF-Datei (zuerst den Ausweis, danach das Stammdatenblatt); die Einzeldrucke bleiben als "Nur Stammdaten" und "Nur Ausweis" erhalten.
 - Screenreader lesen bei "Stopp erledigt" und "Rückgängig machen" in der Routenführung sowie bei "Route in Karte öffnen" in den Routen-Einstellungen jetzt zuerst die sichtbare Beschriftung der Schaltfläche vor - wichtig auch für die Sprachsteuerung, die eine Schaltfläche über ihren sichtbaren Text anspricht.
