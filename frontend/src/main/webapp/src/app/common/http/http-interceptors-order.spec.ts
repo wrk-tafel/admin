@@ -3,7 +3,7 @@ import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angul
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { errorHandlerInterceptor } from './errorhandler-interceptor.service';
-import { xsrfInterceptor } from './xsrf-interceptor.service';
+import { CSRF_REJECTED_HEADER, xsrfInterceptor } from './xsrf-interceptor.service';
 import { AuthenticationService } from '../security/authentication.service';
 import { TafelToastrService } from '../components/tafel-toastr/tafel-toastr.service';
 import { CookieService } from 'ngx-cookie-service';
@@ -11,8 +11,8 @@ import { CookieService } from 'ngx-cookie-service';
 // Registration order matters: a response flows back through `withInterceptors([...])` in reverse,
 // so whichever interceptor is registered last (closest to the backend) sees it first. This locks
 // down that `errorHandlerInterceptor` is registered before `xsrfInterceptor` (see app.config.ts) -
-// otherwise a 403 caused only by the XSRF-token race would toast/log even though the retry the
-// xsrf interceptor performs succeeds. See #3530.
+// otherwise a 403 caused only by the XSRF-token race (the one the backend marks as a CSRF
+// rejection) would toast/log even though the retry the xsrf interceptor performs succeeds. See #3530.
 describe('HTTP interceptor order (errorHandlerInterceptor before xsrfInterceptor)', () => {
     let httpTestingController: HttpTestingController;
     let httpClient: HttpClient;
@@ -65,7 +65,7 @@ describe('HTTP interceptor order (errorHandlerInterceptor before xsrfInterceptor
         httpClient.post('/test', {}).subscribe({ next: (res) => result = res });
 
         const firstRequest = httpTestingController.expectOne('/test');
-        firstRequest.flush(null, { status: 403, statusText: 'Forbidden' });
+        firstRequest.flush(null, { status: 403, statusText: 'Forbidden', headers: { [CSRF_REJECTED_HEADER]: 'true' } });
 
         const retriedRequest = httpTestingController.expectOne('/test');
         retriedRequest.flush({ ok: true });
