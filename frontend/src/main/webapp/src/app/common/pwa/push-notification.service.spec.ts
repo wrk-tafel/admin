@@ -99,6 +99,15 @@ describe('PushNotificationService', () => {
     await expect(service.syncSubscription()).resolves.toBe(false);
   });
 
+  // What `SwPush.subscription` does when the browser has the API but no worker is registered for the
+  // page: it errors instead of emitting, and that used to escape as an unhandled rejection (#3831).
+  it('syncSubscription is false instead of rejecting when no service worker is registered', async () => {
+    mockSwPush.subscription = throwError(() => new Error('NG05601'));
+
+    await expect(service.syncSubscription()).resolves.toBe(false);
+    expect(mockPushApiService.getSubscriptions).not.toHaveBeenCalled();
+  });
+
   it('syncSubscription is true without re-registering when the backend already knows the subscription', async () => {
     mockSwPush.subscription = of({endpoint: 'https://push.example.com/x'});
     mockPushApiService.getSubscriptions.mockReturnValue(of({
@@ -210,6 +219,15 @@ describe('PushNotificationService', () => {
     expect(mockSwPush.unsubscribe).not.toHaveBeenCalled();
   });
 
+  it('disable does nothing when no service worker is registered', async () => {
+    mockSwPush.subscription = throwError(() => new Error('NG05601'));
+
+    await service.disable();
+
+    expect(mockPushApiService.deleteSubscription).not.toHaveBeenCalled();
+    expect(mockSwPush.unsubscribe).not.toHaveBeenCalled();
+  });
+
   describe('getDevices', () => {
     it('maps backend items to devices and marks the current one', async () => {
       mockSwPush.subscription = of({endpoint: 'https://push.example.com/current'});
@@ -226,6 +244,17 @@ describe('PushNotificationService', () => {
         {id: 2, userAgent: 'Chrome', label: 'My PC', createdAt: '2026-01-02T00:00:00', isCurrentDevice: true},
         {id: 1, userAgent: 'Firefox', label: null, createdAt: '2026-01-01T00:00:00', isCurrentDevice: false}
       ]);
+    });
+
+    it('still lists the devices when no service worker is registered', async () => {
+      mockSwPush.subscription = throwError(() => new Error('NG05601'));
+      mockPushApiService.getSubscriptions.mockReturnValue(of({
+        items: [{id: 1, endpoint: 'https://push.example.com/x', userAgent: 'Chrome', label: null, createdAt: '2026-01-01T00:00:00'}]
+      }));
+
+      const result = await service.getDevices();
+
+      expect(result.map(device => device.isCurrentDevice)).toEqual([false]);
     });
 
     it('marks no device as current when push is unsupported', async () => {

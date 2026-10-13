@@ -88,8 +88,10 @@ export class AppComponent {
     // bootstrap so it covers both a fresh login and a reload into an existing session, and re-runs
     // when a different user logs in on the same device (which re-attributes the subscription).
     // Costs nothing for devices without a subscription: the sync returns before any request.
+    // Waits for the login to be complete: a session that still owes its second factor is refused
+    // the subscription lookup, so asking then only buys a 403.
     effect(() => {
-      if (this.authenticationService.userInfo()) {
+      if (this.authenticationService.hasCompletedLogin()) {
         this.pushNotificationService.syncSubscription();
       }
     });

@@ -60,7 +60,7 @@ export class PushNotificationService {
    * why), this re-registers the still-valid browser subscription with the backend whenever the two
    * disagree, so a `true` result always actually means "this device will receive pushes."
    *
-   * Runs once per session from `AppComponent` as well as on the settings screen, so a device that
+   * Runs once per completed login from `AppComponent` as well as on the settings screen, so a device that
    * lost its backend row re-registers itself without anyone having to visit that screen at all.
    *
    * Both requests opt out of the generic error toast and a failure resolves to `false` rather than
@@ -81,11 +81,26 @@ export class PushNotificationService {
 
   private inFlightSync?: Promise<boolean>;
 
-  private async runSync(): Promise<boolean> {
+  /**
+   * The subscription this browser holds, or `null` when there is none to ask for. `isEnabled` only
+   * says the browser has the service worker API: where no worker is registered for the page (it
+   * was unregistered, or its registration failed), `SwPush.subscription` errors with `NG05601`
+   * instead of emitting. For everything here that is the same as "no subscription", and must not
+   * surface as a rejected promise - `syncSubscription` runs unprompted after every login.
+   */
+  private async currentSubscription(): Promise<PushSubscription | null> {
     if (!this.swPush.isEnabled) {
-      return false;
+      return null;
     }
-    const subscription = await firstValueFrom(this.swPush.subscription);
+    try {
+      return await firstValueFrom(this.swPush.subscription);
+    } catch {
+      return null;
+    }
+  }
+
+  private async runSync(): Promise<boolean> {
+    const subscription = await this.currentSubscription();
     if (!subscription) {
       return false;
     }
@@ -110,7 +125,7 @@ export class PushNotificationService {
   }
 
   async disable(): Promise<void> {
-    const subscription = await firstValueFrom(this.swPush.subscription);
+    const subscription = await this.currentSubscription();
     if (subscription) {
       const {items} = await firstValueFrom(this.pushApiService.getSubscriptions());
       const match = items.find(item => item.endpoint === subscription.endpoint);
@@ -128,9 +143,7 @@ export class PushNotificationService {
    * not necessarily every device physically receiving pushes right now.
    */
   async getDevices(): Promise<PushDeviceItem[]> {
-    const currentEndpoint = this.swPush.isEnabled
-      ? (await firstValueFrom(this.swPush.subscription))?.endpoint
-      : undefined;
+    const currentEndpoint = (await this.currentSubscription())?.endpoint;
 
     const {items} = await firstValueFrom(this.pushApiService.getSubscriptions());
     return items

@@ -2,22 +2,30 @@ import {TestBed} from '@angular/core/testing';
 import {AppComponent} from './app.component';
 import {NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router} from '@angular/router';
 import {Subject} from 'rxjs';
-import {signal} from '@angular/core';
+import {signal, WritableSignal} from '@angular/core';
 import {AuthenticationService} from './common/security/authentication.service';
 import {PushNotificationService} from './common/pwa/push-notification.service';
 import {ThemeService} from './common/theme/theme.service';
 import {ThemePreference} from './api/user-api.service';
 
+interface TestUserInfo {
+  username: string;
+  permissions: string[];
+  theme: ThemePreference;
+  mfaPending?: boolean;
+  mfaSetupRequired?: boolean;
+}
+
 describe('AppComponent', () => {
   let routerEventsSubject: Subject<any>;
-  let userInfo: ReturnType<typeof signal<{ username: string; permissions: string[]; theme: ThemePreference } | null>>;
+  let userInfo: WritableSignal<TestUserInfo | null>;
   let pushNotificationService: { syncSubscription: ReturnType<typeof vi.fn> };
   let themeService: { adopt: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     vi.useFakeTimers();
     routerEventsSubject = new Subject();
-    userInfo = signal<{ username: string; permissions: string[]; theme: ThemePreference } | null>(null);
+    userInfo = signal<TestUserInfo | null>(null);
     themeService = {adopt: vi.fn()};
     pushNotificationService = {syncSubscription: vi.fn().mockResolvedValue(false)};
 
@@ -29,7 +37,13 @@ describe('AppComponent', () => {
             events: routerEventsSubject.asObservable()
           }
         },
-        {provide: AuthenticationService, useValue: {userInfo}},
+        {
+          provide: AuthenticationService,
+          useValue: {
+            userInfo,
+            hasCompletedLogin: () => userInfo() !== null && !userInfo()?.mfaPending && !userInfo()?.mfaSetupRequired
+          }
+        },
         {provide: PushNotificationService, useValue: pushNotificationService},
         {provide: ThemeService, useValue: themeService}
       ]
@@ -235,6 +249,33 @@ describe('AppComponent', () => {
       fixture.detectChanges();
 
       expect(pushNotificationService.syncSubscription).toHaveBeenCalledOnce();
+    });
+
+    // A session that still owes its code is refused the subscription lookup (`MfaPendingFilter`),
+    // so the sync waits for the code instead of collecting a 403 on every login (#3831).
+    it('waits for the second factor before it syncs', () => {
+      const fixture = TestBed.createComponent(AppComponent);
+      fixture.detectChanges();
+
+      userInfo.set({username: 'test-user', permissions: [], theme: 'SYSTEM', mfaPending: true});
+      fixture.detectChanges();
+
+      expect(pushNotificationService.syncSubscription).not.toHaveBeenCalled();
+
+      userInfo.set({username: 'test-user', permissions: [], theme: 'SYSTEM', mfaPending: false});
+      fixture.detectChanges();
+
+      expect(pushNotificationService.syncSubscription).toHaveBeenCalledOnce();
+    });
+
+    it('does not sync on a session that has to set up a second factor first', () => {
+      const fixture = TestBed.createComponent(AppComponent);
+      fixture.detectChanges();
+
+      userInfo.set({username: 'test-user', permissions: [], theme: 'SYSTEM', mfaSetupRequired: true});
+      fixture.detectChanges();
+
+      expect(pushNotificationService.syncSubscription).not.toHaveBeenCalled();
     });
 
     it('syncs again when a different user logs in on the same device', () => {

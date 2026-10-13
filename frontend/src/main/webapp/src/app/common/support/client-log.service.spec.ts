@@ -61,13 +61,18 @@ describe('ClientLogService', () => {
     expect(service.getEntries()[0].message).toHaveLength(1000);
   });
 
+  function errorWithStack<T extends Error>(error: T, stack: string | undefined): T {
+    error.stack = stack;
+    return error;
+  }
+
   it('records an uncaught error that never reaches angular', () => {
     service.captureGlobalErrors();
 
     listeners['error']({
       target: window,
       message: 'Uncaught TypeError',
-      error: new TypeError('x is not a function')
+      error: errorWithStack(new TypeError('x is not a function'), undefined)
     } as unknown as Event);
 
     expect(service.getEntries().map(entry => entry.message))
@@ -85,10 +90,58 @@ describe('ClientLogService', () => {
   it('records an unhandled promise rejection', () => {
     service.captureGlobalErrors();
 
-    listeners['unhandledrejection']({reason: new Error('backend nicht erreichbar')} as unknown as Event);
+    listeners['unhandledrejection']({
+      reason: errorWithStack(new Error('backend nicht erreichbar'), undefined)
+    } as unknown as Event);
 
     expect(service.getEntries().map(entry => entry.message))
       .toEqual(['Unbehandelter Promise-Fehler: Error: backend nicht erreichbar']);
+  });
+
+  // The production build leaves nothing of an Angular error but its code, so the frames are what
+  // names the caller (#3831). Chromium and Firefox write them differently.
+  it('adds where an unhandled promise rejection was thrown, as Chromium reports it', () => {
+    service.captureGlobalErrors();
+
+    listeners['unhandledrejection']({
+      reason: errorWithStack(new Error('NG05601'), [
+        'Error: NG05601',
+        '    at https://tafel.example.org/chunk-ABC123.js:7:4211',
+        '    at e.runSync (https://tafel.example.org/main-XYZ789.js:1:932)'
+      ].join('\n'))
+    } as unknown as Event);
+
+    expect(service.getEntries().map(entry => entry.message))
+      .toEqual(['Unbehandelter Promise-Fehler: Error: NG05601 [chunk-ABC123.js:7:4211 < main-XYZ789.js:1:932]']);
+  });
+
+  it('adds where an uncaught error was thrown, as Firefox reports it', () => {
+    service.captureGlobalErrors();
+
+    listeners['error']({
+      target: window,
+      message: 'Uncaught Error',
+      error: errorWithStack(new Error('NG05601'), [
+        'registration/<@https://tafel.example.org/chunk-ABC123.js:7:4211',
+        'runSync@https://tafel.example.org/main-XYZ789.js:1:932',
+        ''
+      ].join('\n'))
+    } as unknown as Event);
+
+    expect(service.getEntries().map(entry => entry.message))
+      .toEqual(['Error: NG05601 [chunk-ABC123.js:7:4211 < main-XYZ789.js:1:932]']);
+  });
+
+  it('names at most the five innermost frames', () => {
+    service.captureGlobalErrors();
+    const frames = Array.from({length: 8}, (_, i) => `    at https://tafel.example.org/main.js:${i + 1}:1`);
+
+    listeners['unhandledrejection']({
+      reason: errorWithStack(new Error('boom'), ['Error: boom', ...frames].join('\n'))
+    } as unknown as Event);
+
+    expect(service.getEntries()[0].message)
+      .toBe('Unbehandelter Promise-Fehler: Error: boom [main.js:1:1 < main.js:2:1 < main.js:3:1 < main.js:4:1 < main.js:5:1]');
   });
 
   it('records a resource that failed to load', () => {
