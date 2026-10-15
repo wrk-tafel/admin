@@ -17,8 +17,8 @@ Unter dem Zeitraum steht, wie viele Ausgaben er umfasst und mit welchem Zeitraum
 Für den gewählten Zeitraum werden Kennzahlen in drei Gruppen angezeigt, jeweils als Kachel mit aktuellem Wert und einem interaktiven Liniendiagramm des Verlaufs. Die einzelnen Zeitabschnitte des Verlaufs sind als dünne Linien mit ihrer Bezeichnung darunter eingezeichnet — je nach Länge des Zeitraums Wochen, Monate oder Jahre; beim Überfahren mit der Maus wird der Wert des jeweiligen Abschnitts angezeigt:
 
 - **Kunden und Personen**: Bezugsberechtigte Haushalte, Bezugsberechtigte Personen, Bezugsberechtigte Haushalte mit Kindern (Alter ≤ 15), Alleinerzieher (Haushalte).
-- **Notschlafstellen**: Notschlafstellen (Anzahl), Notschlafstellen (Durchschnitt pro Ausgabe), Versorgte Personen (Anzahl).
 - **Transport- / Logistik**: Spender (Anzahl), Warenmenge (Gesamt), Warenmenge (Durchschnitt pro Spender).
+- **Notschlafstellen**: Notschlafstellen (Anzahl), Notschlafstellen (Durchschnitt pro Ausgabe), Versorgte Personen (Anzahl).
 
 Jede Kachel zeigt zusätzlich:
 

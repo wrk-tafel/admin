@@ -24,11 +24,13 @@ Das Suchergebnis zeigt eine Tabelle mit Kundennummer, Name, Geburtsdatum, Adress
 
 ![Suchergebnis](images/kunden-suchen-ergebnis.jpg)
 
-Auf schmalen Bildschirmen wird das Suchergebnis statt als Tabelle als Kartenliste dargestellt – eine Karte je Kunde mit denselben Angaben und derselben Aktion (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
+Auf schmalen Bildschirmen wird das Suchergebnis statt als Tabelle als Kartenliste dargestellt – eine Karte je Kunde mit den wichtigsten Angaben und denselben Aktionen (siehe [Darstellung auf schmalen Bildschirmen](README.md#darstellung-auf-schmalen-bildschirmen)):
 
 ![Suchergebnis auf schmalen Bildschirmen](images/kunden-suchen-ergebnis-mobil.jpg)
 
-Findet die Suche keinen Kunden, erscheint statt des Ergebnisses der Hinweis "Keine Kunden gefunden" mit einem Button **Kunden anlegen** - dieser öffnet das Formular für einen neuen Kunden und übernimmt dabei den eingegebenen Suchbegriff bereits als Vor- und Nachname, sofern dieser wie ein Name aussieht (keine reine Zahl).
+Findet die Suche keinen Kunden, erscheint statt des Ergebnisses der Hinweis "Keine Kunden gefunden" mit einem Button **Kunden anlegen** - dieser öffnet das Formular für einen neuen Kunden und übernimmt dabei den eingegebenen Suchbegriff bereits als Name, sofern dieser wie ein Name aussieht (keine reine Zahl): ein einzelnes Wort als Nachname, bei mehreren Wörtern das erste als Vorname und den Rest als Nachname.
+
+<a id="kunden-detail"></a>
 
 ## Kunden-Detail
 
@@ -43,7 +45,7 @@ Rechts oben im Kopfbereich stehen die Aktionen zur Verfügung, gereiht nach ihre
 - **Kunde bearbeiten**: Öffnet die Bearbeitung der Stammdaten (siehe unten).
 - **Unkostenbeitrag**: Ist noch ein Betrag offen, wird er als roter Hinweis direkt am Button angezeigt; im Menü stehen dann zusätzlich "Alles bezahlt" und "Betrag eintragen" zur Verfügung. Unabhängig davon kann über "Betrag bearbeiten" (unterhalb einer Trennlinie) der Betrag jederzeit manuell korrigiert werden.
 - **Weitere Aktionen**: Sammelt die selteneren bzw. sicherheitskritischen Aktionen **Kunde deaktivieren**, **Kunde sperren**/**entsperren**, **Daten exportieren (ZIP)** und **Kunde löschen** (jeweils mit Sicherheitsabfrage bzw. Download) in einem Menü. **Daten exportieren (ZIP)** liefert die vollständige Datenauskunft zu einem Kunden für eine DSGVO-Anfrage in einer einzigen ZIP-Datei: die Stammdaten, weiteren Personen, Notizen, Teilnahme-Historie an Ausgabetagen und die Liste der hochgeladenen Dokumente sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei, sowie alle hochgeladenen Dokumente selbst. Funktioniert unabhängig vom Sperrstatus, da ein gesperrter Kunde dieselben Auskunftsrechte behält. Ist die betroffene Person nicht anhand der Kundennummer bekannt, oder soll sie zugleich als Kunde und als Mitarbeiter:in gesucht werden, bietet sich stattdessen [Datenauskunft](datenauskunft.md) an.
-- Ist gerade ein Ausgabetag aktiv, kann dem Kunden in derselben Zeile wie die Status-Chips (rechtsbündig) eine **Ticketnummer** zugewiesen werden; ist bereits ein Ticket zugewiesen, wird es stattdessen angezeigt und kann über den Papierkorb-Button wieder entfernt werden. Ist der Kunde gesperrt, ist die Zuweisung deaktiviert; ein Tooltip erklärt warum.
+- Ist gerade ein Ausgabetag aktiv, kann dem Kunden in derselben Zeile wie die Status-Chips (rechtsbündig) eine **Ticketnummer** zugewiesen werden; ist bereits ein Ticket zugewiesen, wird es stattdessen angezeigt und kann über **Ticket löschen** wieder entfernt werden. Ist der Kunde gesperrt, ist die Zuweisung deaktiviert; ein Tooltip erklärt warum.
 - Über den grünen **+**-Button bei "Aktuellste Notiz" (die Kartenüberschrift zeigt zusätzlich die Gesamtanzahl an Notizen) kann eine neue Notiz erfasst werden. Die neueste Notiz zeigt zusätzlich eine relative Zeitangabe ("vor 3 Tagen") mit dem genauen Zeitpunkt als Tooltip. Ist sie selbst verfasst, lässt sie sich direkt hier über den Stift-Button korrigieren oder über den Papierkorb-Button endgültig löschen (siehe auch [Notizen](#notizen)); bei Notizen anderer Mitarbeiter:innen fehlen diese beiden Buttons. **Alle Notizen anzeigen** springt zum Tab "[Notizen](#notizen)" mit der vollständigen Liste.
 
 ![Ticketnummer-Zuweisung im Kopfbereich](images/kunden-detail-ticket.jpg)
@@ -76,7 +78,7 @@ Der Tab "Notizen" (die Beschriftung zeigt zusätzlich die Gesamtanzahl an Notize
 
 ### Dokumente
 
-Der Tab "Dokumente" zeigt alle zum Kunden hochgeladenen Dokumente (z. B. Einkommensnachweise, Ausweiskopien, unterschriebene Datenschutzerklärungen) mit Dateiname, Dokumenttyp, Datum und Ersteller. Dokumente können heruntergeladen oder gelöscht werden (jeweils mit Sicherheitsabfrage).
+Der Tab "Dokumente" zeigt alle zum Kunden hochgeladenen Dokumente (z. B. Einkommensnachweise, Ausweiskopien, unterschriebene Datenschutzerklärungen) mit Dateiname, Dokumenttyp, Datum und Ersteller. Dokumente können heruntergeladen oder gelöscht werden; vor dem Löschen kommt eine Sicherheitsabfrage.
 
 Der Tab wird nur angezeigt, wenn die Berechtigung **Kunden-Dokumente** vorhanden ist (siehe [Benutzer](benutzer.md)). Sie ist absichtlich von der Kundenverwaltung getrennt, da hochgeladene Ausweise und Einkommensnachweise zu den sensibelsten Daten im System gehören.
 
@@ -115,7 +117,7 @@ Die Buttons sitzen wie beim Kundenformular in einer Leiste am unteren Bildschirm
 
 ## Kunden anlegen / bearbeiten
 
-Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Telefonnummer, Adresse und Arbeitgeber sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein (das Feld weist mit "4-stellig" darauf hin), die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor. Neben dem Datumsfeld "Gültig bis" stehen Schnellauswahl-Buttons (+1/+2/+3/+6/+12 Monate) zur Verfügung, die ausgehend vom aktuell eingetragenen Datum (oder, falls noch keines gesetzt ist, ab heute) weiterrechnen – dieselbe Schnellauswahl wie beim "Bezug verlängern" in der Kunden-Detailansicht.
+Beim Anlegen eines neuen Kunden werden die Daten des Hauptbeziehers (Name, Geburtsdatum, Geschlecht, Nationalität, Kontakt, Adresse, Arbeitgeber, Einkommen) sowie optional weitere Personen im Haushalt erfasst. Nachname, Vorname, Geburtsdatum, Geschlecht, Nationalität, Telefonnummer, Adresse (Straße, Hausnummer, PLZ, Ort), Arbeitgeber und "Gültig bis" sind Pflichtfelder; die PLZ muss eine 4-stellige Zahl sein (das Feld weist mit "4-stellig" darauf hin), die Telefonnummer darf nur Ziffern enthalten. Wird beim Einkommen ein Datum "nachgewiesen bis" eingetragen, schlägt das Formular "Gültig bis" automatisch mit diesem Datum zzgl. 2 Monaten vor. Neben dem Datumsfeld "Gültig bis" stehen Schnellauswahl-Buttons (+1/+2/+3/+6/+12 Monate) zur Verfügung, die ausgehend vom aktuell eingetragenen Datum (oder, falls noch keines gesetzt ist, ab heute) weiterrechnen – dieselbe Schnellauswahl wie beim "Bezug verlängern" in der Kunden-Detailansicht.
 
 Das Feld **Nationalität** lässt sich durch Eintippen aus der Länderliste durchsuchen. Ohne Eingabe zeigt die Liste zuerst die am häufigsten erfassten Länder, durch einen Trennstrich abgesetzt von den restlichen, alphabetisch sortierten Ländern; sobald ein Suchbegriff eingetippt wird, erscheint stattdessen eine flache, nach dem Suchbegriff gefilterte Liste. Wird das Feld verlassen, ohne einen Eintrag aus der Liste auszuwählen, bleibt die zuletzt gültige Auswahl bestehen.
 
@@ -157,7 +159,7 @@ Die Buttons **Anspruch prüfen** und **Speichern** sitzen in einer Leiste am unt
 
 ## Kunden-Duplikate
 
-Unter **Kunden → Kunden-Duplikate** erkennt das System potenzielle doppelt angelegte Kunden (z. B. durch ähnliche Adressen oder Namen) und stellt sie als direkten Vergleich gegenüber: Geburtsdatum, Adresse, Personenanzahl und Gültigkeit stehen zeilenweise nebeneinander, abweichende Werte sind hervorgehoben, übereinstimmende Werte blass dargestellt – auf einen Blick ist so erkennbar, worin sich die beiden Kunden unterscheiden. Die Gesamtzahl der noch zu prüfenden Duplikat-Gruppen steht rechts über der Liste (z. B. "6 mögliche Duplikate").
+Unter **Kunden → Auswertungen → Duplikate** erkennt das System potenzielle doppelt angelegte Kunden (z. B. durch ähnliche Adressen oder Namen) und stellt sie als direkten Vergleich gegenüber: Geburtsdatum, Adresse, Personenanzahl und Gültigkeit stehen zeilenweise nebeneinander, abweichende Werte sind hervorgehoben, übereinstimmende Werte blass dargestellt – auf einen Blick ist so erkennbar, worin sich die beiden Kunden unterscheiden. Die Gesamtzahl der noch zu prüfenden Duplikat-Gruppen steht rechts über der Liste (z. B. "6 mögliche Duplikate").
 
 ![Kunden-Duplikate](images/kunden-duplikate.jpg)
 
@@ -191,7 +193,7 @@ Beim Zusammenführen bleibt der als Ziel gewählte Kunde bestehen, die übrigen 
 
 ## Gesperrte Kunden
 
-Unter **Kunden → Auswertungen → Gesperrte Kunden** werden alle gesperrten Kunden aufgelistet - mit Nummer, Name, Sperrgrund (Kategorie und Freitext), dem Zeitpunkt und der Person der Sperrung, dem Enddatum und dem Stand der Überprüfung. Die Seite steht allen Benutzern mit der Berechtigung "Kunden" zur Verfügung. Die Liste ist so sortiert, dass die Sperren, die am längsten nicht angesehen wurden, ganz oben stehen.
+Unter **Kunden → Auswertungen → Gesperrt** (Seite "Gesperrte Kunden") werden alle gesperrten Kunden aufgelistet - mit Nummer, Name, Sperrgrund (Kategorie und Freitext), dem Zeitpunkt und der Person der Sperrung, dem Enddatum und dem Stand der Überprüfung. Die Seite steht allen Benutzern mit der Berechtigung "Kunden" zur Verfügung. Die Liste ist so sortiert, dass die Sperren, die am längsten nicht angesehen wurden, ganz oben stehen.
 
 Eine Sperre mit Enddatum hebt sich zu diesem Datum von selbst auf (Hinweis "Hebt sich selbst auf"). Eine Sperre **ohne Enddatum** bleibt dagegen bestehen, bis jemand sie aufhebt - und ein Kunde, der mit der Kategorie Hausverbot gesperrt ist, bleibt dadurch auch über die reguläre Aufbewahrungsfrist hinaus gespeichert. Damit regelmäßig jemand entscheidet, ob die Sperre noch nötig ist, gilt eine Sperre ohne Enddatum als **überprüfungsfällig**, wenn ihre Sperrung bzw. letzte Überprüfung länger als die konfigurierte Frist zurückliegt (standardmäßig 6 Monate). Solche Sperren sind mit **Überprüfung fällig** markiert.
 
@@ -212,7 +214,7 @@ Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Dar
 
 ## Kunden über Limit
 
-Unter **Kunden → Kunden über Limit** werden alle Kunden aufgelistet, deren Gesamteinkommen aktuell über dem für ihre Haushaltsgröße gültigen Limit liegt (siehe [Grenzwerte](einstellungen.md#statische-werte-grenzwerte)). Diese Liste ist als Arbeitsliste gedacht: Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht, wo die Gültigkeit verkürzt, der Kunde gesperrt oder der Zustand akzeptiert werden kann. Der Link öffnet ein echtes `href`, ein Klick mit der mittleren Maustaste öffnet die Detailansicht daher in einem neuen Tab, ohne die Liste zu verlassen.
+Unter **Kunden → Auswertungen → Über Limit** werden alle Kunden aufgelistet, deren Gesamteinkommen aktuell über dem für ihre Haushaltsgröße gültigen Limit liegt (siehe [Grenzwerte](einstellungen.md#statische-werte-grenzwerte)). Diese Liste ist als Arbeitsliste gedacht: Über die Lupe in der Aktionen-Spalte gelangt man direkt zur Detailansicht, wo die Gültigkeit verkürzt, der Kunde gesperrt oder der Zustand akzeptiert werden kann. Der Link öffnet ein echtes `href`, ein Klick mit der mittleren Maustaste öffnet die Detailansicht daher in einem neuen Tab, ohne die Liste zu verlassen.
 
 Oberhalb der Tabelle steht, gegen welche Grenzwerte aktuell geprüft wird ("Stand: heute") sowie – mit der entsprechenden Berechtigung – ein Link **Grenzwerte ansehen** zu [Einstellungen → Grenzwerte](einstellungen.md#statische-werte-grenzwerte). Sind aktuell keine Kunden über dem Limit, erscheint die Meldung "Aktuell liegt kein Kunde über dem Limit" statt einer leeren Tabelle.
 
@@ -228,7 +230,7 @@ Auf schmalen Bildschirmen wird die Liste als Kartenliste dargestellt (siehe [Dar
 
 ## Neu & Verlängert
 
-Unter **Kunden → Auswertungen → Neu & Verlängert** werden die neu angelegten und die verlängerten Kunden eines Ausgabetags aufgelistet. Ein Kunde gilt als "verlängert", sobald sein Gültigkeitsdatum ("Bezug verlängern", siehe [Kunden-Detail](#kapitel-kunden)) während des Ausgabetags erweitert wurde. Ein Kunde, der im selben Ausgabetag sowohl neu angelegt als auch verlängert wurde, erscheint in beiden Zählungen.
+Unter **Kunden → Auswertungen → Neu & Verlängert** werden die neu angelegten und die verlängerten Kunden eines Ausgabetags aufgelistet. Ein Kunde gilt als "verlängert", sobald sein Gültigkeitsdatum ("Bezug verlängern", siehe [Kunden-Detail](#kunden-detail)) während des Ausgabetags erweitert wurde. Ein Kunde, der im selben Ausgabetag sowohl neu angelegt als auch verlängert wurde, erscheint in beiden Zählungen.
 
 Ganz oben zeigen zwei Kacheln die Anzahl der neuen und der verlängerten Kunden des ausgewählten Ausgabetags auf einen Blick. Über die Auswahlliste **Ausgabe** kann zwischen den bereits abgeschlossenen Ausgabetagen gewechselt werden; vorausgewählt ist der zuletzt abgeschlossene Ausgabetag. Die Pfeile links und rechts der Liste blättern schrittweise zum vorherigen bzw. nächsten Ausgabetag, ohne die Liste jedes Mal neu öffnen zu müssen.
 

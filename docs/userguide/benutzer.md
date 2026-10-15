@@ -6,7 +6,7 @@ Im Bereich "Benutzer" werden die Zugänge und Berechtigungen der Mitarbeiterinne
 
 ## Benutzer suchen
 
-Unter **Benutzer → Suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Personalnummer entspricht, springt nach **Enter** oder einem Klick auf **Suchen** direkt zur Detailansicht (wie früher das Feld "Personalnummer" mit dem Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die normale Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen) und findet dabei auch die Personalnummer; der direkte Sprung selbst wartet dagegen immer auf **Enter** oder **Suchen**, damit eine noch unvollständig eingetippte Nummer nicht zu einem falschen Benutzer springt.
+Unter **Benutzer → Benutzer suchen** gibt es ein einziges Suchfeld für beides: Eine reine Zahl, die genau einer Personalnummer entspricht, springt nach **Enter** oder einem Klick auf **Suchen** direkt zur Detailansicht (wie früher das Feld "Personalnummer" mit dem Button **Anzeigen**). Alles andere - auch eine Zahl, zu der es keinen Treffer gibt - löst die normale Suche aus. Die normale Suche startet automatisch schon während der Eingabe (nach kurzer Pause, ab zwei Zeichen) und findet dabei auch die Personalnummer; der direkte Sprung selbst wartet dagegen immer auf **Enter** oder **Suchen**, damit eine noch unvollständig eingetippte Nummer nicht zu einem falschen Benutzer springt.
 
 Das Suchfeld durchsucht Benutzername, Personalnummer, Nachname und Vorname in einem. Es genügt ein Teil davon, und Tippfehler werden toleriert – genaue Treffer stehen im Ergebnis oben, ähnliche darunter. Das Info-Symbol (ⓘ) neben dem Suchfeld erklärt dasselbe direkt in der Anwendung.
 
@@ -102,7 +102,7 @@ Für die Aktion gibt es je nach Zustand zwei Varianten:
 * **Entsperren** bei einem aktuell gesperrten Konto: hebt die Sperre sofort auf und setzt die Fehlversuche zurück – ohne Sicherheitsabfrage, weil in diesem Fall genau das die Absicht ist.
 * **Zurücksetzen** bei einem nicht gesperrten Eintrag: löscht die gezählten Fehlversuche, mit Sicherheitsabfrage. An der Anmeldung ändert sich dadurch nichts.
 
-In beiden Fällen wird der Eintrag aus der Liste entfernt – die gezählten Fehlversuche *sind* der Eintrag. Sind keine Fehlversuche vorhanden, bleibt die Liste leer. Ein Klick auf eine der Spaltenüberschriften Benutzername, Fehlversuche, Letzter Fehlversuch oder Status sortiert die Tabelle danach statt gesperrte Konten zuerst; ein erneuter Klick auf dieselbe Spalte kehrt die Richtung um.
+In beiden Fällen wird der Eintrag aus der Liste entfernt – die gezählten Fehlversuche *sind* der Eintrag. Sind keine Fehlversuche vorhanden, steht dort "Keine Anmelde-Versuche vorhanden." (mit dem Filter auf gesperrte Konten: "Aktuell ist kein Konto gesperrt."). Ein Klick auf eine der Spaltenüberschriften Benutzername, Fehlversuche, Letzter Fehlversuch oder Status sortiert die Tabelle danach statt gesperrte Konten zuerst; ein erneuter Klick auf dieselbe Spalte kehrt die Richtung um.
 
 ![Anmelde-Versuche](images/benutzer-anmeldeversuche.jpg)
 

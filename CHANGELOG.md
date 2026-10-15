@@ -1,11 +1,11 @@
 # Changelog
 
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
-
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
-
 ## [Unreleased]
 - Die Seitenleiste zeigt jetzt in "Mein Konto" und in den Einstellungen statt des Hauptmenüs die Themen bzw. Bereiche dieses Teils, nach Gruppen geordnet und mit "Zurück zur Anwendung" ganz oben; die Reiter in "Mein Konto" entfallen dafür, und die Themen von "Mein Konto" lassen sich auch über die Schnellsuche (Strg+K) öffnen.
+- Im Zugriffsprotokoll heißen die protokollierten Abrufe der Kunden-Auswertungen (Über Limit, Gesperrt, Neu & Verlängert, Duplikate, Vorschau beim Zusammenführen) und der Protokoll-Abfragen jetzt auf Deutsch statt mit ihrem technischen Namen, und ihre Filterangaben stehen ohne irreführendes "Nr." davor.
+- Die 500-Fehlerseite verweist für eine Support-Anfrage jetzt richtig auf die Kopfzeile statt auf das Hauptmenü, und beim Löschen eines Benutzers steht zwischen Benutzername und Name wieder ein Leerzeichen.
 
 ## [1.30.2] - 2026-10-13
 - Ein falsch eingegebenes Passwort zählt wieder als ein Fehlversuch: bisher wurde die abgelehnte Anmeldung im Hintergrund ein zweites Mal gesendet, sodass die Sperre nach der Hälfte der eingestellten Versuche griff, jeder Tippfehler zweimal unter "Anmeldeversuche" stand und die Fehlermeldung doppelt so lange auf sich warten ließ. Dasselbe gilt für jede andere Aktion, die mangels Berechtigung abgelehnt wird - auch sie wird nicht mehr wiederholt.

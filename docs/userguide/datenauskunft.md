@@ -11,7 +11,7 @@ Eine Datenschutz-Anfrage ("welche Daten sind über mich gespeichert?") kommt nic
 
 ## Suchen und auswählen
 
-Die Suche beginnt ab zwei eingegebenen Zeichen und wirkt sofort, ohne eigenen Suchen-Button. Gesucht wird nach Name, Kundennummer, Benutzername und Personalnummer, ebenso wie Adresse, Telefonnummer und E-Mail bei einem Kunden – auch bei Tippfehlern werden ähnlich geschriebene Treffer gefunden.
+Die Suche beginnt ab zwei eingegebenen Zeichen und wirkt sofort, ohne eigenen Suchen-Button. Gesucht wird nach Name, Kundennummer, Benutzername und Personalnummer, ebenso wie Adresse, Telefonnummer und E-Mail bei einem Kunden. Kunden und Benutzerkonten werden auch bei Tippfehlern gefunden; Mitarbeiter dagegen nur, wenn der Suchbegriff genau in Personalnummer, Vor- oder Nachname vorkommt (ein Suchbegriff aus Vor- und Nachname zusammen findet einen Mitarbeiter daher nicht).
 
 Die Treffer sind nach Bereich gruppiert – **Kunde**, **Benutzerkonto** und **Mitarbeiter** – damit eine Namensgleichheit zwischen einem Kunden und einer davon unabhängigen Mitarbeiterin nicht verwechselt werden kann. Benutzerkonten und Mitarbeiter sind getrennte Datensätze ohne Verbindung (siehe [Mitarbeiter](einstellungen.md#mitarbeiter)): Ist dieselbe Person sowohl Benutzer als auch Fahrer, erscheint sie unter beiden Gruppen, und beide Treffer lassen sich gemeinsam auswählen. Über die Kästchen lassen sich beliebig viele Treffer aus einer oder mehreren Gruppen gleichzeitig auswählen.
 

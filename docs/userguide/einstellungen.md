@@ -55,9 +55,9 @@ Im Bearbeiten-Dialog werden neben Name und Adresse (inkl. optional Stiege/Tür) 
 
 <a id="statische-werte-grenzwerte"></a>
 
-## Statische Werte (Grenzwerte)
+## Grenzwerte
 
-Unter **Einstellungen → Statische Werte** werden die Beträge gepflegt, die darüber entscheiden, wer bezugsberechtigt ist. Es handelt sich um eine fest vorgegebene Liste von Werten (kein Hinzufügen/Entfernen einzelner Zeilen möglich) – bearbeitbar ist ausschließlich der jeweilige Betrag über Stift-/Häkchen-Symbol.
+Unter **Einstellungen → Grenzwerte** werden die Beträge gepflegt, die darüber entscheiden, wer bezugsberechtigt ist. Es handelt sich um eine fest vorgegebene Liste von Werten (kein Hinzufügen/Entfernen einzelner Zeilen möglich) – bearbeitbar ist ausschließlich der jeweilige Betrag über Stift-/Häkchen-Symbol.
 
 Die Werte sind in zwei Bereiche gegliedert, und zu jedem Wert steht direkt darüber, wofür er verwendet wird:
 
@@ -66,7 +66,7 @@ Die Werte sind in zwei Bereiche gegliedert, und zu jedem Wert steht direkt darü
 
 Bei der Familienbeihilfe ist das angegebene Alter jeweils die Altersuntergrenze: Der Satz gilt ab dem angegebenen Alter bis zum nächsthöheren Eintrag – für ein Kind wird also immer der Satz herangezogen, dessen Alter es bereits erreicht hat (z. B. der Satz "ab 10 Jahren" für ein zwölfjähriges Kind).
 
-![Statische Werte](images/einstellungen-statische-werte.jpg)
+![Grenzwerte](images/einstellungen-statische-werte.jpg)
 
 Beim Speichern wird die Änderung zunächst mit altem und neuem Betrag zur Bestätigung angezeigt. Das ist bewusst so: Die Änderung gilt sofort – jede weitere Anspruchsprüfung rechnet ab dem Speichern mit dem neuen Betrag.
 
@@ -76,9 +76,11 @@ Beim Speichern wird die Änderung zunächst mit altem und neuem Betrag zur Best�
 
 <a id="lebensmittelkategorien"></a>
 
-## Lebensmittelkategorien
+<a id="lebensmittelkategorien"></a>
 
-Unter **Einstellungen → Lebensmittelkategorien** werden die Warenkategorien für die [Warenerfassung](logistik.md) gepflegt. Die Reihenfolge in dieser Liste ist die Reihenfolge, in der die Kategorien dort erscheinen; eine deaktivierte Kategorie verschwindet sofort aus der Warenerfassung, bleibt aber in bereits erfassten Ausgabetagen erhalten (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
+## Waren-Kategorien
+
+Unter **Einstellungen → Waren-Kategorien** werden die Warenkategorien für die [Warenerfassung](logistik.md) gepflegt. Die Reihenfolge in dieser Liste ist die Reihenfolge, in der die Kategorien dort erscheinen; eine deaktivierte Kategorie verschwindet sofort aus der Warenerfassung, bleibt aber in bereits erfassten Ausgabetagen erhalten (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
 
 Das **Gewicht pro Einheit** rechnet die erfassten Einheiten (z. B. Kisten) in Kilogramm um und bestimmt damit die Warenmenge in allen Statistiken. Es steht in der Liste immer mit seiner Einheit ("9 kg"), und bei der Eingabe hängt "kg" am Eingabefeld — eine Kategorie ohne Gewicht wird eigens als "kein Gewicht - zählt mit 0 kg" ausgewiesen. Das **i**-Symbol neben der Spaltenüberschrift erklärt, was der Wert bewirkt: Eine Änderung wirkt ab der nächsten Erfassung, bereits erfasste Mengen behalten das Gewicht, mit dem sie erfasst wurden — abgeschlossene Ausgabetage und deren Statistiken bleiben also unverändert.
 
@@ -86,13 +88,13 @@ Ein Hinweis über der Tabelle grenzt den Bildschirm gegen die [Retour-Kategorien
 
 Beim Bearbeiten weist ein Hinweis unter dem Namensfeld darauf hin, dass **Enter** speichert und **Esc** abbricht; dasselbe steht in den Tooltips der beiden Buttons.
 
-![Lebensmittelkategorien](images/einstellungen-lebensmittelkategorien.jpg)
+![Waren-Kategorien](images/einstellungen-lebensmittelkategorien.jpg)
 
 <a id="retourkategorien"></a>
 
 ## Retour-Kategorien
 
-Unter **Einstellungen → Retour-Kategorien** werden die geläufigen Kistenarten gepflegt, die im Abschnitt [Retourware](logistik.md#retourware) der Warenerfassung als Zähler vorgegeben werden. Sie haben — anders als Lebensmittelkategorien — kein Gewicht: Retourkisten werden nur gezählt, nie gewogen, und fließen daher auch nicht in die Warenmengen-Statistik ein. Kategorien können bearbeitet und sortiert werden (zum Deaktivieren siehe [Aktiv und inaktiv](#aktiv-inaktiv)); die Reihenfolge bestimmt sowohl die Reihenfolge der Zähler in der Warenerfassung als auch die Reihenfolge in der Retourkisten-E-Mail.
+Unter **Einstellungen → Retour-Kategorien** werden die geläufigen Kistenarten gepflegt, die im Abschnitt [Retourware](logistik.md#retourware) der Warenerfassung als Zähler vorgegeben werden. Sie haben — anders als Waren-Kategorien — kein Gewicht: Retourkisten werden nur gezählt, nie gewogen, und fließen daher auch nicht in die Warenmengen-Statistik ein. Kategorien können bearbeitet und sortiert werden (zum Deaktivieren siehe [Aktiv und inaktiv](#aktiv-inaktiv)); die Reihenfolge bestimmt sowohl die Reihenfolge der Zähler in der Warenerfassung als auch die Reihenfolge in der Retourkisten-E-Mail.
 
 Die Kategorien wirken auf zwei Bildschirme: Sie bestimmen die Zähler im Abschnitt [Retourware](logistik.md#retourware) der Warenerfassung, und ihre Namen erscheinen im [Routen-Navi](logistik.md#routen-navi) in den Hinweisen "Retourware mitnehmen" bzw. "Retourware abgeben". Eine Änderung hier ist also an beiden Stellen zu sehen. Ein Hinweis über der Tabelle grenzt den Bildschirm außerdem gegen die [Lebensmittelkategorien](#lebensmittelkategorien) ab und verlinkt dorthin.
 
@@ -130,9 +132,9 @@ Deaktivierte Fahrzeuge stehen in der Warenerfassung nicht mehr zur Auswahl. Ein 
 
 Unter **Einstellungen → Filialen** werden die Geschäfte gepflegt, bei denen Ware abgeholt wird. Neben Nummer, Name und Adresse werden Telefonnummer, Ansprechperson und ein freier **Hinweis**-Text erfasst.
 
-Jede Filiale ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Nummer, Name, Adresse und Einheit, aufgeklappt die vollständigen Angaben inklusive Adresse mit **Kartenlink**, Telefonnummer (als Link direkt wählbar), Ansprechperson, Hinweis und die Liste der **Stopps** — jede Route, die hier hält, samt Uhrzeit (z. B. "Route 3 (08:15), Route 7 (09:40)"), verlinkt auf [Routen](#routen). Hält keine Route an der Filiale, steht dort "Wird derzeit von keiner Route angefahren". Über der Liste steht neben dem Filter **Alle / Aktiv / Inaktiv** ein **Suchfeld**, das Nummer, Name, Adresse, Ansprechperson und Hinweis durchsucht; sortiert ist die Liste stets nach Filialnummer. Ist die Liste durch Suche oder Filter eingeschränkt, zeigt eine Zeile darüber die Trefferzahl (z. B. "14 von 62 Filialen"); passt nichts zur Suche, benennt die Meldung den aktiven Filter (z. B. "Keine inaktiven Filialen gefunden").
+Jede Filiale ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Nummer, Name, Adresse und Einheit, aufgeklappt die vollständigen Angaben inklusive Adresse mit **Kartenlink**, Telefonnummer (als Link direkt wählbar), Ansprechperson, Hinweis und die Liste der **Stopps** — jede Route, die hier hält, samt Uhrzeit (z. B. "Route 3 (08:15), Route 7 (09:40)"), verlinkt auf [Routen](#routen). Hält keine Route an der Filiale, steht dort "Wird derzeit von keiner Route angefahren". Über der Liste steht neben dem Filter **Alle / Aktiv / Inaktiv** ein **Suchfeld**, das Nummer, Name, Adresse, Ansprechperson, Telefonnummer und Hinweis durchsucht; sortiert ist die Liste stets nach Filialnummer. Ist die Liste durch Suche oder Filter eingeschränkt, zeigt eine Zeile darüber die Trefferzahl (z. B. "14 von 62 Filialen"); passt nichts zur Suche, benennt die Meldung den aktiven Filter (z. B. "Keine inaktiven Filialen gefunden").
 
-Die **Einheit** legt fest, wie die Menge dieser Filiale in der [Warenerfassung](logistik.md) gezählt wird: bei "Kisten" wird die eingegebene Anzahl mit dem Gewicht pro Einheit der jeweiligen [Lebensmittelkategorie](#lebensmittelkategorien) multipliziert, bei "Kilogramm" ist die Eingabe bereits das Gewicht. Eine falsche Einheit verfälscht daher alle Warenmengen-Statistiken dieser Filiale. Filialen, die in Kilogramm zählen, sind in der Liste farbig hervorgehoben.
+Die **Einheit** legt fest, wie die Menge dieser Filiale in der [Warenerfassung](logistik.md) gezählt wird: bei "Kisten" wird die eingegebene Anzahl mit dem Gewicht pro Einheit der jeweiligen [Waren-Kategorie](#lebensmittelkategorien) multipliziert, bei "Kilogramm" ist die Eingabe bereits das Gewicht. Eine falsche Einheit verfälscht daher alle Warenmengen-Statistiken dieser Filiale. Filialen, die in Kilogramm zählen, sind in der Liste farbig hervorgehoben.
 
 Die **Nummer** muss eindeutig sein; ist sie bereits vergeben, erscheint beim Speichern die Meldung "Filialnummer ... ist bereits vergeben!".
 
@@ -170,7 +172,7 @@ Der Link **Route in Karte öffnen** setzt dieselbe Kartenroute wie das Routen-Na
 
 Rechts in jeder Zeile stehen — wie bei den [Filialen](#filialen) — der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet; dafür muss die Route nicht aufgeklappt werden. Im Bearbeiten-Dialog wird über **Stopp hinzufügen** je Stopp eine **Uhrzeit**, eine **Filiale** und eine **Beschreibung** erfasst; das Papierkorb-Symbol entfernt einen Stopp wieder. Die Uhrzeit bestimmt die Reihenfolge der Stopps — sowohl in der Routenliste als auch in der [Warenerfassung](logistik.md); eine eigene Sortierung per Drag & Drop gibt es hier daher nicht. Das **Filiale**-Feld ist durchsuchbar und bietet zur Auswahl alle aktiven [Filialen](#filialen); mit "Keine Filiale" lässt sich auch ein Stopp ohne Warenabholung (z. B. eine Pause) eintragen — bei einem solchen Stopp steht in der Liste die Beschreibung anstelle der Filiale.
 
-Da Stopps in beliebiger Reihenfolge eingegeben und erst beim Speichern nach Uhrzeit sortiert werden, zeigt der Dialog unterhalb der Stopp-Liste live die **gefahrene Reihenfolge** — so, wie sie das Fahrer-Team später sieht, auch bevor gespeichert wird. Direkt darüber weist ein gelber Hinweis auf auffällige Eingaben hin: eine Filiale, die mehrfach als Stopp eingetragen ist, ein Stopp ohne Uhrzeit oder ein ungewöhnlich kurzer (wenige Minuten) oder ungewöhnlich langer (mehrere Stunden) Zeitabstand zwischen zwei benachbarten Stopps — typische Tippfehler. Dieser Hinweis blockiert das Speichern nicht, sondern macht nur vorab auf eine mögliche Ursache aufmerksam.
+Da Stopps in beliebiger Reihenfolge eingegeben und erst beim Speichern nach Uhrzeit sortiert werden, zeigt der Dialog oberhalb der Stopp-Liste live die **gefahrene Reihenfolge** — so, wie sie das Fahrer-Team später sieht, auch bevor gespeichert wird. Direkt darüber weist ein gelber Hinweis auf auffällige Eingaben hin: eine Filiale, die mehrfach als Stopp eingetragen ist, ein Stopp ohne Uhrzeit oder ein ungewöhnlich kurzer (wenige Minuten) oder ungewöhnlich langer (mehrere Stunden) Zeitabstand zwischen zwei benachbarten Stopps — typische Tippfehler. Dieser Hinweis blockiert das Speichern nicht, sondern macht nur vorab auf eine mögliche Ursache aufmerksam.
 
 ![Routen-Stopps](images/einstellungen-routen-stopps.jpg)
 
@@ -180,11 +182,11 @@ Pro Route darf jede Filiale nur einmal vorkommen und jede Uhrzeit nur einmal ver
 
 ## Mitarbeiter
 
-Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Personalnummer, Vorname, Nachname) verwaltet, auf denen die Fahrer/Beifahrer-Zuordnung in der [Warenerfassung](logistik.md) basiert. Mitarbeiter sind vom [Benutzerkonto](benutzer.md) völlig getrennt: Ein Benutzerkonto trägt seine Personalnummer und seinen Namen selbst, und es gibt keine Verbindung zwischen beiden. Ist jemand sowohl Benutzer als auch Fahrer, gibt es zwei Datensätze, die bei Bedarf beide gepflegt werden. Die Liste filtert sich beim Tippen im Suchfeld — es gibt keinen eigenen Such-Button —, gesucht wird nach Personalnummer, Vor- und Nachname. Anders als bei Notschlafstellen, Fahrzeugen und Lebensmittelkategorien gibt es hier keine Aktiv/Inaktiv-Kennzeichnung, dafür können Mitarbeiter jederzeit endgültig gelöscht werden. Dieser Hinweis steht auch über der Liste.
+Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Personalnummer, Vorname, Nachname) verwaltet, auf denen die Fahrer/Beifahrer-Zuordnung in der [Warenerfassung](logistik.md) basiert. Mitarbeiter sind vom [Benutzerkonto](benutzer.md) völlig getrennt: Ein Benutzerkonto trägt seine Personalnummer und seinen Namen selbst, und es gibt keine Verbindung zwischen beiden. Ist jemand sowohl Benutzer als auch Fahrer, gibt es zwei Datensätze, die bei Bedarf beide gepflegt werden. Die Liste filtert sich beim Tippen im Suchfeld — es gibt keinen eigenen Such-Button —, gesucht wird nach Personalnummer, Vor- und Nachname. Anders als bei Notschlafstellen, Fahrzeugen und Waren-Kategorien gibt es hier keine Aktiv/Inaktiv-Kennzeichnung, dafür können Mitarbeiter jederzeit endgültig gelöscht werden; ein Hinweis über der Liste weist darauf hin.
 
 Ein Klick auf eine der Spaltenüberschriften Personalnummer, Vorname oder Nachname sortiert die Tabelle danach statt nach der Anlagereihenfolge; ein erneuter Klick auf dieselbe Spalte kehrt die Richtung um.
 
-Über den Button **Datenschutzerklärung (Mitarbeiter)** neben "Neuen Mitarbeiter anlegen" lässt sich eine allgemeine, personenunabhängige Datenschutzerklärung für Mitarbeiter:innen und Freiwillige als PDF herunterladen und ausdrucken — gedacht für Mitarbeiter:innen ohne eigenes Benutzerkonto, die sich sonst nicht selbst über das Benutzermenü informieren können. Sie erklärt, welche Daten über Mitarbeiter:innen verarbeitet werden, auf welcher Grundlage, wie lange und mit welchen Rechten — dasselbe Dokument ist auch im Benutzermenü unter "Datenschutzerklärung (Mitarbeiter)" für die eigene Ansicht verlinkt.
+Über den Button **Datenschutzerklärung (Mitarbeiter)** neben "Neuen Mitarbeiter anlegen" lässt sich eine allgemeine, personenunabhängige Datenschutzerklärung für Mitarbeiter:innen und Freiwillige als PDF herunterladen und ausdrucken — gedacht für Mitarbeiter:innen ohne eigenes Benutzerkonto, die sich sonst nicht selbst über **Mein Konto** informieren können. Sie erklärt, welche Daten über Mitarbeiter:innen verarbeitet werden, auf welcher Grundlage, wie lange und mit welchen Rechten — dasselbe Dokument ist auch unter **Mein Konto** → **Datenschutz** (Benutzer-Icon oben rechts) als "Datenschutzerklärung (Mitarbeiter)" für die eigene Ansicht verlinkt.
 
 ![Mitarbeiter](images/einstellungen-mitarbeiter.jpg)
 

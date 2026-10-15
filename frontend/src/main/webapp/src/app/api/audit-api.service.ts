@@ -122,7 +122,13 @@ export const auditEntityTypeLabel: Record<string, string> = {
   UserLogin: 'Login',
   ScannerFile: 'Scanner-Datei',
   DistributionHouseholdList: 'Kundenliste (Ausgabe)',
-  Employee: 'Mitarbeiter'
+  Employee: 'Mitarbeiter',
+  AuditLogQuery: 'Zugriffsprotokoll-Abfrage',
+  HouseholdsAboveLimit: 'Kunden über Limit',
+  LockedHouseholds: 'Gesperrte Kunden',
+  HouseholdsOverview: 'Neu & Verlängert',
+  HouseholdDuplicates: 'Duplikate',
+  HouseholdMergePreview: 'Zusammenführen (Vorschau)'
 };
 
 export const auditOperationLabel: Record<AuditOperation, string> = {

@@ -34,6 +34,8 @@ describe('UserDeleteConfirmDialogComponent', () => {
     expect(element.querySelector('[testid="deleteuser-name"]')?.textContent).toBe('mmustermann');
     expect(element.querySelector('[testid="deleteuser-fullname"]')?.textContent).toBe('(Max Mustermann)');
     expect(element.querySelector('[testid="deleteuser-message"]')?.textContent).toContain('endgültig gelöscht');
+    // the template's whitespace is collapsed, so the space between username and name is kept explicitly
+    expect(element.querySelector('[testid="deleteuser-message"]')?.textContent).toMatch(/\S+ \(Max Mustermann\)/);
   });
 
   it('leaves the full name out when the user has none', () => {
