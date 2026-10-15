@@ -76,8 +76,8 @@ enum class UserPermissions(val key: String, val title: String, val category: Per
 
     /**
      * Whoever keeps the application itself running, as opposed to running the distribution. Grants
-     * every other permission implicitly - `JwtTokenService` expands it to the full list when a
-     * session's token is minted, so it reaches `@PreAuthorize`, the frontend's route guards and
+     * every other permission implicitly - `TafelSessionAuthProvider` expands it to the full list on
+     * every request, so it reaches `@PreAuthorize`, the frontend's route guards and
      * `tafelIfPermission` alike. It is also what the technical push notifications (a report mail
      * that never went out, an account locking itself) are addressed to, since those are of no use to
      * anyone who wouldn't act on them.

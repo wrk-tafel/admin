@@ -33,6 +33,11 @@ export const routes: Routes = [
     loadComponent: () => import('./components/user-mfa/user-mfa.component').then(m => m.UserMfaComponent)
   },
   {
+    path: 'sitzungen',
+    title: 'Mein Konto - Sitzungen',
+    loadComponent: () => import('./components/user-sessions/user-sessions.component').then(m => m.UserSessionsComponent)
+  },
+  {
     path: 'benachrichtigungen',
     title: 'Mein Konto - Benachrichtigungen',
     component: PushNotificationSettingsComponent

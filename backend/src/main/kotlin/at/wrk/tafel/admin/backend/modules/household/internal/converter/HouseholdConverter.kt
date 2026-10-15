@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.converter
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -38,7 +38,7 @@ class HouseholdConverter(
      * `HouseholdMergeService` re-parents persons via dedicated bulk repository updates instead.
      */
     fun mapHouseholdToEntity(householdUpdate: HouseholdRequest, storedEntity: HouseholdEntity? = null): HouseholdEntity {
-        val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val user = SecurityContextHolder.getContext().authentication as TafelAuthentication
         val userEntity = userRepository.findByUsername(user.username!!)
         // A household's business number is immutable once assigned and always drawn from
         // household_id_sequence - a create request's own `id` is ignored (the same "no id to

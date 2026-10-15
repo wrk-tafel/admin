@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -143,5 +143,5 @@ class ReturnBoxesService(
 
     private fun isReturnedToday(item: FoodCollectionReturnItemEntity) = item.returnedAt?.let { it >= LocalDate.now().atStartOfDay() } == true
 
-    private fun currentUsername() = (SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication)?.username
+    private fun currentUsername() = (SecurityContextHolder.getContext().authentication as? TafelAuthentication)?.username
 }

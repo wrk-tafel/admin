@@ -1,7 +1,12 @@
 package at.wrk.tafel.admin.backend.common.sse
 
+import at.wrk.tafel.admin.backend.common.auth.components.UserSessionService
+import at.wrk.tafel.admin.backend.common.auth.model.SessionsEndedEvent
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -22,7 +27,8 @@ internal class SseEventsControllerTest {
 
     private val open = topic("distribution")
     private val restricted = topic("scanner-files", setOf("CUSTOMER_DOCUMENTS"))
-    private val controller = SseEventsController(listOf(open, restricted), sseEmitterFactory)
+    private val sseOutboxService = mockk<SseOutboxService>(relaxed = true)
+    private val controller = SseEventsController(listOf(open, restricted), sseEmitterFactory, sseOutboxService)
 
     private fun topic(topicName: String, authorities: Set<String> = emptySet()) = mockk<SseTopic>(relaxed = true) {
         every { name } returns topicName
@@ -83,7 +89,36 @@ internal class SseEventsControllerTest {
 
     @Test
     fun `two topics with the same name are refused at startup`() {
-        assertThatThrownBy { SseEventsController(listOf(open, topic("distribution")), sseEmitterFactory) }
+        assertThatThrownBy { SseEventsController(listOf(open, topic("distribution")), sseEmitterFactory, sseOutboxService) }
             .isInstanceOf(IllegalStateException::class.java)
+    }
+
+    @Test
+    fun `the stream of a login session ends when that session is ended, and only then`() {
+        SecurityContextHolder.getContext().authentication = TafelAuthentication(sessionKey = "KEY", username = "user", authenticated = true)
+        val onSessionsEnded = slot<(SessionsEndedEvent?) -> Unit>()
+        every {
+            sseOutboxService.listenForNotificationEvents(
+                emitter,
+                UserSessionService.SESSIONS_ENDED_NOTIFICATION,
+                SessionsEndedEvent::class.java,
+                capture(onSessionsEnded),
+            )
+        } returns Unit
+
+        controller.listen(listOf("distribution"))
+
+        onSessionsEnded.captured(SessionsEndedEvent(listOf("OTHER")))
+        verify(exactly = 0) { emitter.complete() }
+
+        onSessionsEnded.captured(SessionsEndedEvent(listOf("OTHER", "KEY")))
+        verify(exactly = 1) { emitter.complete() }
+    }
+
+    @Test
+    fun `a stream without a login session listens for no session ending`() {
+        controller.listen(listOf("distribution"))
+
+        verify(exactly = 0) { sseOutboxService.listenForNotificationEvents<SessionsEndedEvent>(any(), any(), any(), any()) }
     }
 }

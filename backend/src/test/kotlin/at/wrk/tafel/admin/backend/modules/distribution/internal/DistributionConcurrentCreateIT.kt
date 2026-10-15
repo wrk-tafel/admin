@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -40,7 +40,7 @@ class DistributionConcurrentCreateIT : TafelBaseIntegrationTest() {
     @Test
     fun `only one of many concurrent createNewDistribution calls succeeds`() {
         val testUser = userRepository.save(createUser())
-        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN", username = testUser.username)
+        val authentication = TafelAuthentication(sessionKey = "TOKEN", username = testUser.username)
 
         val barrier = CyclicBarrier(PARALLEL_REQUESTS)
         val executor = Executors.newFixedThreadPool(PARALLEL_REQUESTS)

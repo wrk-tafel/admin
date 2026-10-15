@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
@@ -81,7 +81,7 @@ internal class TafelLoginProviderTest {
 
     @Test
     fun `doesnt support other authentication classes`() {
-        assertThat(provider.supports(TafelJwtAuthentication::class.java)).isFalse
+        assertThat(provider.supports(TafelAuthentication::class.java)).isFalse
     }
 
     @Test

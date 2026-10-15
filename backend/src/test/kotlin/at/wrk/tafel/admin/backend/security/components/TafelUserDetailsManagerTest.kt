@@ -4,7 +4,7 @@ import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.WebSecurityConfig
@@ -99,7 +99,7 @@ class TafelUserDetailsManagerTest {
     @BeforeEach
     fun beforeEach() {
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication(tokenValue = "TOKEN", testUser.username)
+            TafelAuthentication(sessionKey = "TOKEN", testUser.username)
         every { userRepository.findByUsername(testUser.username) } returns testUserEntity
         testUserEntityPassword = testUserEntity.password
     }
@@ -230,7 +230,6 @@ class TafelUserDetailsManagerTest {
                 withArg {
                     assertThat(it.password).isEqualTo(newPasswordEncoded)
                     assertThat(it.passwordChangeRequired).isFalse()
-                    assertThat(it.tokenInvalidatedAt).isNotNull()
                 },
             )
         }
@@ -271,27 +270,6 @@ class TafelUserDetailsManagerTest {
 
         verify(exactly = 1) { loginAttemptService.recordSuccess(testUser.username) }
         verify(exactly = 0) { loginAttemptService.recordFailure(any()) }
-    }
-
-    @Test
-    fun `invalidateTokens sets tokenInvalidatedAt and saves`() {
-        every { userRepository.findByUsername(testUserEntity.username) } returns testUserEntity
-        every { userRepository.save(any()) } returns testUserEntity
-
-        manager.invalidateTokens(testUserEntity.username)
-
-        verify(exactly = 1) {
-            userRepository.save(withArg { assertThat(it.tokenInvalidatedAt).isNotNull() })
-        }
-    }
-
-    @Test
-    fun `invalidateTokens for an unknown user does nothing`() {
-        every { userRepository.findByUsername("unknown") } returns null
-
-        manager.invalidateTokens("unknown")
-
-        verify(exactly = 0) { userRepository.save(any()) }
     }
 
     @Test
@@ -705,8 +683,6 @@ class TafelUserDetailsManagerTest {
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
         assertThat(updatedUser.authorities).hasSize(1)
         assertThat(updatedUser.authorities.first().name).isEqualTo(UserPermissions.CHECKIN.key)
-        // No password field on this update - no reason to invalidate the user's existing sessions.
-        assertThat(updatedUser.tokenInvalidatedAt).isNull()
     }
 
     @Test
@@ -738,7 +714,6 @@ class TafelUserDetailsManagerTest {
         assertThat(savedUser.password).isEqualTo("{argon2}hash")
         assertThat(savedUser.enabled).isTrue()
         assertThat(savedUser.authorities).extracting("name").containsExactly(UserPermissions.CHECKIN.key)
-        assertThat(savedUser.tokenInvalidatedAt).isNull()
 
         assertThat(updated.firstname).isEqualTo("new-firstname")
         assertThat(updated.lastname).isEqualTo("new-lastname")
@@ -804,7 +779,6 @@ class TafelUserDetailsManagerTest {
         val updatedUser = updatedUserSlot.captured
         assertThat(updatedUser.password).isEqualTo(encodedPassword)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
-        assertThat(updatedUser.tokenInvalidatedAt).isNotNull()
     }
 
     @Test

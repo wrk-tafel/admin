@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.database.common.audit
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
@@ -24,8 +24,8 @@ import org.springframework.stereotype.Component
  * up by username - `AuditingEntityListener` calls it from inside Hibernate's persist cascade for the
  * entity being audited, and a query issued there can trigger an auto-flush of an only half-built
  * object graph (e.g. a household whose persons aren't attached yet), which fails loudly. Every
- * authenticated request already carries [TafelJwtAuthentication.userId], loaded once per request by
- * [at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthProvider] for its own permission
+ * authenticated request already carries [TafelAuthentication.userId], loaded once per request by
+ * [at.wrk.tafel.admin.backend.common.auth.components.TafelSessionAuthProvider] for its own permission
  * check - reusing it here costs nothing extra.
  */
 @Component
@@ -49,7 +49,7 @@ class AuditActorProvider {
             return null
         }
         return when (authentication) {
-            is TafelJwtAuthentication -> authentication.userId
+            is TafelAuthentication -> authentication.userId
             else -> (authentication.principal as? TafelUser)?.id
         }
     }

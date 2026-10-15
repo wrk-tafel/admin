@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissionItem
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.common.auth.model.UserRequest
@@ -162,8 +162,8 @@ class UserControllerEscalationIT : TafelBaseIntegrationTest() {
     }
 
     private fun authenticateAs(user: UserEntity, vararg permissions: UserPermissions) {
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
-            tokenValue = "token",
+        SecurityContextHolder.getContext().authentication = TafelAuthentication(
+            sessionKey = "token",
             username = user.username,
             authenticated = true,
             authorities = permissions.map { SimpleGrantedAuthority(it.key) },

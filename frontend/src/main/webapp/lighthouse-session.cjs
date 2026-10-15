@@ -11,7 +11,7 @@
 //
 // The cookie has to survive Lighthouse's own storage reset as well, hence `disableStorageReset` in
 // lighthouserc.pages.cjs - see the note there for why that does not warm the cache.
-const JWT_COOKIE_NAME = 'tafel-admin-jwt';
+const SESSION_COOKIE_NAME = 'tafel-admin-session';
 
 // lhci reuses one browser instance for a whole shard's collect run, but that instance still pays a
 // one-off cost - GPU/network-service process spin-up, JIT warm-up - the first time a page actually
@@ -29,17 +29,17 @@ let hasWarmedUpBrowser = false;
  * @param {{url: string}} context
  */
 module.exports = async (browser, context) => {
-  const jwt = process.env.LHCI_JWT;
-  if (!jwt) {
-    throw new Error('LHCI_JWT is empty - every authenticated route would redirect to the login page.');
+  const session = process.env.LHCI_SESSION;
+  if (!session) {
+    throw new Error('LHCI_SESSION is empty - every authenticated route would redirect to the login page.');
   }
 
   const {hostname} = new URL(context.url);
 
   // Set on the browser's default context, which is the one Lighthouse audits in.
   await browser.setCookie({
-    name: JWT_COOKIE_NAME,
-    value: jwt,
+    name: SESSION_COOKIE_NAME,
+    value: session,
     domain: hostname,
     path: '/',
     httpOnly: true,

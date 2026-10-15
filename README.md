@@ -124,8 +124,8 @@ afterwards.
 ### 1. Provide a configuration file
 
 The image reads `/app/config/config.yml` (bind-mounted, see [Configuration](#configuration)). The
-minimum a deployment has to supply is the database connection and the JWT settings — the application
-refuses to start without them:
+minimum a deployment has to supply is the database connection — the application refuses to start
+without it:
 
 ```yaml
 spring:
@@ -139,15 +139,6 @@ spring:
     port: 587
     username: <smtp-user>
     password: <smtp-password>
-
-security:
-  jwtToken:
-    issuer: https://tafel-admin.example.com
-    audience: wrk-tafel
-    secret:
-      # Any sufficiently long random string, e.g. `openssl rand -hex 64`. Keep it stable - changing
-      # it invalidates every session.
-      value: <random-secret>
 
 tafeladmin:
   environmentLabel: ""          # e.g. "TEST"; shown in the UI and the PWA title
@@ -411,7 +402,7 @@ tafeladmin:
     relativeBaseUrl: /tafel-admin/   # "/" for a subdomain / root deployment
 ```
 
-This must match whatever prefix the reverse proxy exposes to the browser. It drives both the JWT cookie path and the frontend's `<base href>` (rewritten server-side by `IndexHtmlController` - see #2972/#2978), so relative asset and API URLs keep resolving correctly once the proxy has stripped its prefix.
+This must match whatever prefix the reverse proxy exposes to the browser. It drives both the session cookie path and the frontend's `<base href>` (rewritten server-side by `IndexHtmlController` - see #2972/#2978), so relative asset and API URLs keep resolving correctly once the proxy has stripped its prefix.
 
 Both examples below reference `$sse_cache_control` for the SSE-specific `Cache-Control` header. Declare this `map` once at the `http {}` level of your nginx config (outside any `server {}` block) - it's not repeated per example, but both need it:
 

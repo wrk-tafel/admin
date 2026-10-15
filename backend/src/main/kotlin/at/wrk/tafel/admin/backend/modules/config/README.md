@@ -53,7 +53,7 @@ which during a distribution may be hours away.
 The login page has to show which environment is being logged into before anyone has a session, so
 the environment label is served from a second, unauthenticated endpoint listed in
 `WebSecurityConfig.publicEndpoints`. It is a separate endpoint rather than `/api/config` answering
-with less to an anonymous caller because `TafelJwtAuthConverter` rejects a cookie-less API request
+with less to an anonymous caller because `TafelSessionAuthConverter` rejects a session-less API request
 before any controller runs; serving both audiences from one path would mean reworking the
 authentication filter chain. Which release is running and which optional features exist stay
 behind authentication.

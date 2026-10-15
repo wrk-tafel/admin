@@ -17,6 +17,8 @@
       @if (!currentUserData().enabled) {
         <button mat-menu-item testid="enableUserButton" (click)="enableUser()">Benutzer aktivieren</button>
       }
+      <!-- A login left open on a shared PC, a lost phone: logs the account out everywhere (the caller's own current session excepted). -->
+      <button mat-menu-item testid="endUserSessionsButton" (click)="endSessions()">Alle Sitzungen beenden</button>
       <mat-divider></mat-divider>
       <button mat-menu-item testid="deleteUserButton" (click)="deleteUser()">Benutzer löschen</button>
     </mat-menu>

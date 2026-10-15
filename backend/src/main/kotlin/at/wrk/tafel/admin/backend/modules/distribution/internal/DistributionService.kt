@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
@@ -79,7 +79,7 @@ class DistributionService(
                 throw ConflictException("Ausgabe bereits gestartet!")
             }
 
-            val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+            val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
 
             // REQUIRES_NEW to ensure the new distribution is committed before DistributionStartedEvent
             // listeners react to it - same reasoning as closeDistribution's use of REQUIRES_NEW below.
@@ -453,7 +453,7 @@ class DistributionService(
         var result: DistributionEntity? = null
 
         val acquired = advisoryLockService.tryWithLock(AdvisoryLockKey.CLOSE_DISTRIBUTION) {
-            val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
+            val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelAuthentication
 
             // Use REQUIRES_NEW to ensure endedAt is committed before async post-processor runs
             val requiresNewTemplate = TransactionTemplate(transactionTemplate.transactionManager!!).apply {

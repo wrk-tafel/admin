@@ -32,6 +32,26 @@ export class UserApiService {
     return this.http.put<UserAccountData>('/users/account', request, {context});
   }
 
+  /** The caller's own login sessions - "Mein Konto" > "Sitzungen". */
+  getSessions(): Observable<UserSessionListResponse> {
+    return this.http.get<UserSessionListResponse>('/users/sessions');
+  }
+
+  /** Ends one of the caller's other sessions; the current one is ended by logging out. */
+  endSession(sessionId: string): Observable<void> {
+    return this.http.delete<void>(`/users/sessions/${encodeURIComponent(sessionId)}`);
+  }
+
+  /** Ends every session of the caller's but the current one. */
+  endOtherSessions(): Observable<void> {
+    return this.http.delete<void>('/users/sessions');
+  }
+
+  /** Ends every session of an account (the caller's own current one excepted) - behind `USER_MANAGEMENT`. */
+  endUserSessions(userId: number): Observable<void> {
+    return this.http.delete<void>(`/users/${userId}/sessions`);
+  }
+
   getUserForId(userId: number): Observable<UserData> {
     return this.http.get<UserData>('/users/' + userId);
   }
@@ -139,6 +159,19 @@ export class UserApiService {
     return this.http.delete<void>(`/users/login-attempts/${loginAttemptId}`);
   }
 
+}
+
+export interface UserSessionListResponse {
+  items: UserSessionItem[];
+}
+
+/** One login of the caller's. `id` is the session's key, never what the session cookie carries. */
+export interface UserSessionItem {
+  id: string;
+  userAgent?: string | null;
+  signedInAt: string;
+  lastUsedAt: string;
+  current: boolean;
 }
 
 export interface ChangePasswordRequest {

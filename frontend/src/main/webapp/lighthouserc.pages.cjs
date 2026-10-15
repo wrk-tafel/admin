@@ -9,7 +9,7 @@
 // workflow's matrix is the single place the page list is maintained:
 //   LHCI_URLS         comma-separated application paths, e.g. "/uebersicht,/kunden/suchen"
 //   LHCI_FORM_FACTOR  "desktop" or "mobile"
-//   LHCI_JWT          value of the tafel-admin-jwt cookie from POST /api/login
+//   LHCI_SESSION      value of the tafel-admin-session cookie from POST /api/login
 //   LHCI_BASE_URL     origin the backend serves the application on (default http://localhost:8080)
 //   CHROME_PATH       the Chrome executable puppeteer drives (it ships no browser of its own)
 const BASE_URL = process.env.LHCI_BASE_URL || 'http://localhost:8080';
@@ -25,8 +25,8 @@ const paths = (process.env.LHCI_URLS || '')
 if (paths.length === 0) {
   throw new Error('LHCI_URLS is empty - no page to audit.');
 }
-if (!process.env.LHCI_JWT) {
-  throw new Error('LHCI_JWT is empty - every authenticated route would redirect to the login page.');
+if (!process.env.LHCI_SESSION) {
+  throw new Error('LHCI_SESSION is empty - every authenticated route would redirect to the login page.');
 }
 if (FORM_FACTOR !== 'desktop' && FORM_FACTOR !== 'mobile') {
   throw new Error(`LHCI_FORM_FACTOR must be "desktop" or "mobile", was "${FORM_FACTOR}".`);

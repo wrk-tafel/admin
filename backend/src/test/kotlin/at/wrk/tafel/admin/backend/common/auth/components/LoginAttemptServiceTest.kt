@@ -2,8 +2,6 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.UserLockedOutEvent
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
-import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenProperties
-import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenSecretProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityLoginAttemptsProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
@@ -112,13 +110,6 @@ internal class LoginAttemptServiceTest {
 
         val applicationProperties = ApplicationProperties(
             security = SecurityProperties(
-                jwtToken = SecurityJwtTokenProperties(
-                    issuer = "test",
-                    audience = "test",
-                    secret = SecurityJwtTokenSecretProperties(value = "secret", algorithm = "HMACSHA256"),
-                    expirationTimeInSeconds = 3600,
-                    expirationTimePwdChangeInSeconds = 300,
-                ),
                 loginAttempts = SecurityLoginAttemptsProperties(
                     maxFailures = MAX_FAILURES,
                     lockoutDurationInSeconds = LOCKOUT_DURATION_SECONDS,

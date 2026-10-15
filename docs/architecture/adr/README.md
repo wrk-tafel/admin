@@ -52,7 +52,8 @@ instead, so a number's position in a group says nothing about its age.
 | [0046](0046-a-mail-given-up-on-is-kept-for-a-window-not-forever.md) | A mail given up on is kept for a window, not forever | accepted |
 | [0047](0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md) | Scheduled jobs coordinate on their own rows first, ShedLock second | accepted |
 | [0017](0017-web-push-as-a-second-notification-channel.md) | Web Push (VAPID) as a second, out-of-app channel | accepted |
-| [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
+| [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted; session half superseded by [ADR-0070](0070-login-sessions-are-rows-in-the-database.md) |
+| [0070](0070-login-sessions-are-rows-in-the-database.md) | Login sessions are rows in the database (Spring Session JDBC), not signed cookies | accepted |
 | [0058](0058-two-factor-authentication-gates-the-session-not-the-page.md) | Two-factor authentication (authenticator app or e-mail code) gates the session, not the page | accepted |
 | [0059](0059-second-factor-changes-need-an-existing-second-factor.md) | A completed session proves an existing second factor before it changes the second factor | accepted |
 | [0061](0061-mandatory-two-factor-setup-happens-in-the-login-flow.md) | A mandatory two-factor setup happens in the login flow, not inside the application | accepted |

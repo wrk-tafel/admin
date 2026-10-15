@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createDistribution
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
@@ -102,7 +102,7 @@ class DistributionConcurrentAssignHouseholdIT : TafelBaseIntegrationTest() {
     }!!.also { householdIds.add(it.id!!) }
 
     private fun <T> runWithAuthentication(barrier: CyclicBarrier, block: () -> T): T {
-        SecurityContextHolder.setContext(SecurityContextImpl(TafelJwtAuthentication(tokenValue = "TOKEN", username = testUser.username)))
+        SecurityContextHolder.setContext(SecurityContextImpl(TafelAuthentication(sessionKey = "TOKEN", username = testUser.username)))
         return try {
             barrier.await(10, TimeUnit.SECONDS)
             block()

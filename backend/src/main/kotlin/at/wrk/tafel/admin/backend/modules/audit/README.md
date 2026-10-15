@@ -81,9 +81,9 @@ database triggers, and the reason it was still the better trade is in ADR-0039.
 ## The actor is not always the `SecurityContext`
 
 The actor stamped on a batch of entries is normally resolved once per transaction from
-`SecurityContextHolder` (see above). A login is the one write where that resolves to nothing: this
-app is stateless, so nothing populates the `SecurityContext` until the JWT a login is about to issue
-is actually presented on a *later* request — at login time itself there is no authenticated user to
+`SecurityContextHolder` (see above). A login is the one write where that resolves to nothing: nothing
+populates the `SecurityContext` until the session a login is about to open is actually presented on a
+*later* request — at login time itself there is no authenticated user to
 read. `AuditLogWriter.PendingEntry.actorOverride` is the escape hatch: `LoginAuditService` passes the
 just-authenticated user explicitly, and that value wins over the (empty) `SecurityContext` one for
 that entry. Every other caller leaves it unset.

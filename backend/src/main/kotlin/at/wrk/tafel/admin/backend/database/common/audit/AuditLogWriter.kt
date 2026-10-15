@@ -55,8 +55,8 @@ class AuditLogWriter(
      * or, for a delete, be gone.
      *
      * [actorOverride] is for the one case where the actor is known but [AuditActorProvider] cannot
-     * see it: a login, written before `SecurityContextHolder` holds anything for the request (this
-     * app is stateless, and the JWT that would populate it does not exist yet). Every other caller
+     * see it: a login, written before `SecurityContextHolder` holds anything for the request (the
+     * session that would populate it does not exist yet). Every other caller
      * leaves it `null` and gets the transaction's `SecurityContext`-resolved actor, as before.
      */
     data class PendingEntry(

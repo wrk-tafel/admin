@@ -3,10 +3,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
-import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import jakarta.servlet.FilterChain
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.apache.commons.io.IOUtils
@@ -23,26 +20,13 @@ import java.nio.charset.Charset
 
 class TafelLoginFilter(
     authenticationManager: AuthenticationManager,
-    private val jwtTokenService: JwtTokenService,
-    private val applicationProperties: ApplicationProperties,
-    private val tafelAdminProperties: TafelAdminProperties,
+    private val userSessionService: UserSessionService,
     private val jsonMapper: JsonMapper,
     private val mfaEmailCodeService: MfaEmailCodeService,
 ) : UsernamePasswordAuthenticationFilter(authenticationManager) {
 
     companion object {
         private val basicAuthConverter = BasicAuthenticationConverter()
-        const val jwtCookieName = "tafel-admin-jwt"
-
-        fun createTokenCookie(token: String?, maxAge: Int, path: String, request: HttpServletRequest): Cookie {
-            val cookie = Cookie(jwtCookieName, token)
-            cookie.isHttpOnly = true
-            cookie.secure = request.isSecure
-            cookie.maxAge = maxAge
-            cookie.path = path
-            cookie.setAttribute("SameSite", "strict")
-            return cookie
-        }
     }
 
     init {
@@ -56,10 +40,10 @@ class TafelLoginFilter(
         ?: throw BadCredentialsException("Missing or invalid 'Authorization: Basic' header")
 
     /**
-     * When [TafelUser.passwordChangeRequired] is true, the issued JWT gets a shorter
-     * `expirationTimePwdChangeInSeconds` expiration instead of the normal one. The token itself
-     * carries no permissions - [TafelJwtAuthProvider] grants none while the flag is still set in
-     * the DB, which is what actually gates access before the change-password flow completes.
+     * Opens the login session (see [UserSessionService.startSession]). When [TafelUser.passwordChangeRequired]
+     * is true, or a second factor is still owed, it is a short-lived one. The session itself carries no
+     * permissions - [TafelSessionAuthProvider] grants none while either is outstanding, which is what
+     * actually gates access before the change-password or code flow completes.
      */
     public override fun successfulAuthentication(
         request: HttpServletRequest,
@@ -70,14 +54,6 @@ class TafelLoginFilter(
         val principal = authResult.principal
         if (principal is TafelUser) {
             val user = authResult.principal as TafelUser
-            // A login that still owes its second factor is as limited as one owing a password change: no
-            // permissions (TafelJwtAuthProvider) and a short life, until the code is accepted.
-            val expirationTimeInSeconds =
-                if (user.passwordChangeRequired || user.mfaEnabled) {
-                    applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds
-                } else {
-                    applicationProperties.security.jwtToken.expirationTimeInSeconds
-                }
 
             // An e-mailed code belongs to the login it was sent for: one left over from an earlier login that
             // was never finished must not complete this one. The login page asks for a fresh one.
@@ -85,18 +61,12 @@ class TafelLoginFilter(
                 mfaEmailCodeService.discard(user.id!!)
             }
 
-            val token: String = jwtTokenService.generateToken(
-                username = user.username,
-                expirationSeconds = expirationTimeInSeconds,
-            )
+            userSessionService.startSession(request, user.username, pending = user.passwordChangeRequired || user.mfaEnabled)
 
             logger.info(
                 "Login successful via user '${sanitizeForLog(user.username)}' on '${request.requestURL}' " +
                     "(password-change required: ${user.passwordChangeRequired}, second factor required: ${user.mfaEnabled})",
             )
-
-            val cookie = createTokenCookie(token, expirationTimeInSeconds, tafelAdminProperties.server.relativeBaseUrl, request)
-            response.addCookie(cookie)
 
             val responseBody = LoginResponse(passwordChangeRequired = user.passwordChangeRequired, mfaRequired = user.mfaEnabled, mfaMethods = user.mfaMethods)
 

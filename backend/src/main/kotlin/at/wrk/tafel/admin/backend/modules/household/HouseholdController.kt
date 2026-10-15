@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
@@ -67,7 +67,7 @@ class HouseholdController(
         @RequestParam force: Boolean = false,
         @Valid @RequestBody household: HouseholdRequest,
     ): ResponseEntity<HouseholdCreationResponse> {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 
         val response = householdService.createHousehold(household, force, isSupervisor)
@@ -88,7 +88,7 @@ class HouseholdController(
             throw BusinessRuleException("Die ID im Request stimmt nicht mit der ID im Pfad überein!")
         }
 
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 
         if (!householdService.existsByHouseholdId(householdId)) {
@@ -254,7 +254,7 @@ class HouseholdController(
     @PostMapping("/{householdId}/lock-review")
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun confirmLockReview(@PathVariable householdId: Long): LockedHouseholdItem {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         return householdLockReviewService.confirmLockReview(householdId, authenticatedUser.username!!)
     }
 
@@ -268,7 +268,7 @@ class HouseholdController(
         @PathVariable householdId: Long,
         @Valid @RequestBody request: HouseholdLockRequest,
     ): HouseholdResponse {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         return householdLockService.lockHousehold(householdId, request, authenticatedUser.username!!)
     }
 
@@ -287,7 +287,7 @@ class HouseholdController(
         @RequestParam force: Boolean = false,
         @Valid @RequestBody request: HouseholdProlongRequest,
     ): HouseholdUpdateResponse {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 
         return householdService.prolongHousehold(householdId, request.months!!, force, isSupervisor)

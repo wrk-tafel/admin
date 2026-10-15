@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.common.sse
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelSessionAttributes
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
@@ -102,7 +102,7 @@ class SseStreamEndAccessLogIT : TafelBaseIntegrationTest() {
                         "GET /api/sse/events?topics=config HTTP/1.1\r\n" +
                             "Host: localhost:$port\r\n" +
                             "Accept: text/event-stream\r\n" +
-                            "Cookie: ${TafelLoginFilter.jwtCookieName}=$jwt\r\n\r\n"
+                            "Cookie: ${TafelSessionAttributes.COOKIE_NAME}=$jwt\r\n\r\n"
                         ).toByteArray(),
                 )
                 flush()
@@ -144,7 +144,7 @@ class SseStreamEndAccessLogIT : TafelBaseIntegrationTest() {
         )
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
         return response.headers().allValues("set-cookie")
-            .first { it.startsWith("${TafelLoginFilter.jwtCookieName}=") }
+            .first { it.startsWith("${TafelSessionAttributes.COOKIE_NAME}=") }
             .substringAfter("=").substringBefore(";")
     }
 }

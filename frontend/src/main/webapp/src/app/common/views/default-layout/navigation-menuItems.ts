@@ -34,6 +34,7 @@ import arrowBackIcon from '@material-symbols/svg-400/outlined/arrow_back-fill.sv
 import privacyTipIcon from '@material-symbols/svg-400/outlined/privacy_tip-fill.svg';
 import passwordIcon from '@material-symbols/svg-400/outlined/password-fill.svg';
 import shieldLockIcon from '@material-symbols/svg-400/outlined/shield_lock-fill.svg';
+import devicesIcon from '@material-symbols/svg-400/outlined/devices-fill.svg';
 import notificationsIcon from '@material-symbols/svg-400/outlined/notifications-fill.svg';
 import paletteIcon from '@material-symbols/svg-400/outlined/palette-fill.svg';
 
@@ -78,6 +79,7 @@ export function registerNavigationIcons(): void {
     privacy_tip: privacyTipIcon,
     password: passwordIcon,
     shield_lock: shieldLockIcon,
+    devices: devicesIcon,
     notifications: notificationsIcon,
     palette: paletteIcon
   });
@@ -123,6 +125,7 @@ export const accountMenuItems: ITafelNavData[] = [
   {name: 'Sicherheit', title: true},
   {name: 'Passwort', url: '/konto/passwort', icon: 'password', testId: 'account-nav-password'},
   {name: 'Zwei-Faktor-Authentifizierung', url: '/konto/zwei-faktor', icon: 'shield_lock', testId: 'account-nav-mfa'},
+  {name: 'Sitzungen', url: '/konto/sitzungen', icon: 'devices', testId: 'account-nav-sessions'},
   {name: 'Einstellungen', title: true},
   {name: 'Benachrichtigungen', url: '/konto/benachrichtigungen', icon: 'notifications', testId: 'account-nav-notifications'},
   {name: 'Design', url: '/konto/design', icon: 'palette', testId: 'account-nav-theme'}

@@ -116,7 +116,7 @@ class GenericExceptionHandler(
      * `TafelAccessDeniedHandler` instead. That split matters when reading logs: a 403 that appears
      * *without* the WARN this handler logs did not come from `@PreAuthorize`. See issue #2989.
      *
-     * A request that isn't authenticated at all never gets this far - `TafelJwtAuthenticationFilter`
+     * A request that isn't authenticated at all never gets this far - `TafelSessionAuthenticationFilter`
      * already answers it with a 401 - so a denial here always means an authenticated user lacking an
      * authority, and 403 (rather than deferring to an authentication entry point) is the right answer.
      */

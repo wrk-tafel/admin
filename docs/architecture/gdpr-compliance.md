@@ -27,8 +27,9 @@ Two things to be clear about before reading on:
 | `distributions_households` | customers | which household collected food on which date, ticket number, whether the cost contribution was paid | same as `households` (cascades on delete) |
 | `household_duplicate_dismissals` | customers | pairs of household numbers a reviewer judged not to be duplicates, plus the reviewer's account (`created_by`, a user-id FK cleared when that account is deleted) | same as `households` (cascades on delete, via a foreign key on the business `household_id` rather than the surrogate `id` the other rows here use) |
 | `audit_log` | customers and staff | before/after values of every audited change, including names, addresses and income, plus who made it | `tafeladmin.audit.retentionDays`, 30 by default (`AuditRetentionService`) |
-| `users`, `user_authorities` | staff | username, personnel number, first and last name, Argon2 password hash, permissions, `last_login`, `token_invalidated_at` (the logout/password-change cut-off for issued JWTs, `R__00109`) | until deleted by hand, or not logged into for longer than `tafeladmin.userDeletion.retentionTime` (`UserRetentionService`, 1 year by default) - never for an `ADMINISTRATOR` account, see G13 |
+| `users`, `user_authorities` | staff | username, personnel number, first and last name, Argon2 password hash, permissions, `last_login` | until deleted by hand, or not logged into for longer than `tafeladmin.userDeletion.retentionTime` (`UserRetentionService`, 1 year by default) - never for an `ADMINISTRATOR` account, see G13 |
 | `employees` | staff | personnel number, name - a driver or co-driver, a separate record from a `users` account ([ADR-0060](adr/0060-users-and-employees-are-separate-records-with-no-link.md)) | until deleted by hand, or not used as driver or co-driver on any food collection for longer than `tafeladmin.employeeDeletion.retentionTime` (`EmployeeRetentionService`, 2 years by default) - see G13 |
+| `spring_session`, `spring_session_attributes` | staff | one row per login: username, when it began and was last used, whether the second factor was passed, the browser's User-Agent ([ADR-0070](adr/0070-login-sessions-are-rows-in-the-database.md)) - no IP address | until the session ends: logout, ended under "Mein Konto" > "Sitzungen" or by an administrator, a new password, the account disabled, renamed or deleted - and at the latest `security.session.lifetimeInSeconds` (10 hours) after the login; Spring Session's own cleanup deletes the row within a minute of its expiry |
 | `login_attempts` | staff (anyone who typed a username) | username, failure count, lockout window | cleaned hourly (`LoginAttemptService`) |
 | `login_attempts_ip` (`R__00112`) | anyone who reached the login endpoint | client IP address, failure count, lockout window — an IP address is personal data on its own | cleaned hourly (`LoginAttemptIpService.cleanupStaleEntries`); the per-IP request-rate buckets of `RateLimiterIpService` (G23) are the in-memory counterpart, keyed by IP too and swept hourly, never persisted |
 | `push_subscriptions` | staff | push endpoint URL, keys, user agent, device label | until the device is removed, or the push service reports it gone |
@@ -73,21 +74,23 @@ code being wrong — see [G4](#g4-a-hint-now-keeps-special-category-data-out-of-
 
 Worth recording, because it is the part that does not need work:
 
-- **Authentication and session handling.** Argon2 password hashing, JWT in an `HttpOnly` cookie with
-  `Secure` derived from the request (`TafelLoginFilter.createTokenCookie`), stateless sessions,
-  CSRF with a session-bound token and `SameSite=Strict`, lockout after repeated failures — per
-  username and, since G23, per client IP.
+- **Authentication and session handling.** Argon2 password hashing, a session id in an `HttpOnly`
+  cookie with `Secure` derived from the request (`SessionCookieConfig`), the session itself in the
+  database ([ADR-0070](adr/0070-login-sessions-are-rows-in-the-database.md)), CSRF with a
+  session-bound token and `SameSite=Strict`, lockout after repeated failures — per username and,
+  since G23, per client IP.
 - **A tight public surface.** Exactly two API endpoints are reachable without a session:
   `/api/login` and `/api/config/public` (`WebSecurityConfig.publicEndpoints`); everything else under
   `/api/**` — `/api/logout` included — is `authenticated()`. Paths outside `/api/**` are
   `permitAll()`, which is the static frontend and `/error`; the actuator (`health`, `prometheus`) is
   on the separate management port 8081, which the container never publishes — only the image's own
   healthcheck reaches it.
-- **A session ends when it is ended.** The JWT is stateless, but `users.token_invalidated_at`
-  (`R__00109`) is bumped on logout and on every password change, and `TafelJwtAuthProvider` rejects
-  a token issued before it — so a cookie copied out of a browser does not outlive the logout.
+- **A session ends when it is ended.** A login is a row in `spring_session`; logging out, ending it
+  under "Mein Konto" > "Sitzungen", an administrator ending an account's sessions, a new password,
+  and disabling, renaming or deleting the account delete it (`UserSessionService`) — so a cookie
+  copied out of a browser is worthless from the next request on, on every instance.
 - **No third parties loaded by the application.** The CSP is `'self'` throughout, with no analytics,
-  no fonts and no CDN. The only cookies are the JWT and the CSRF token — both strictly necessary, so
+  no fonts and no CDN. The only cookies are the session cookie and the CSRF token — both strictly necessary, so
   no consent banner is owed and none is present. A staff member can still *click through* to Google
   Maps for a shop's or route stop's address (`maps-url.util.ts`) — a user-initiated navigation away
   from the application, not a resource it loads, and `Referrer-Policy`/`rel="noreferrer"` on those
@@ -1035,7 +1038,7 @@ Recorded so the next reader does not re-investigate them:
 - **Push payloads** carry no customer data and are encrypted for the recipient device.
 - **The public ticket screen** shows a caption and a number, nothing identifying.
 - **The QR code** on the ID card is the household number only.
-- **Cookies** are limited to the session JWT and the CSRF token, both strictly necessary, so no
+- **Cookies** are limited to the session cookie and the CSRF token, both strictly necessary, so no
   consent mechanism is owed.
 - **Art. 22 (automated decisions)** is not engaged: `IncomeValidatorService` computes a limit and
   shows the result; a member of staff makes the decision, and saving a household above the limit is

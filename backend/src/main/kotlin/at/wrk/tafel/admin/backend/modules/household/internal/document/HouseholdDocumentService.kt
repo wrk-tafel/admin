@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.document
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
@@ -273,7 +273,7 @@ class HouseholdDocumentService(
 
     private fun ByteArray.startsWithBytes(prefix: ByteArray): Boolean = this.size >= prefix.size && prefix.indices.all { this[it] == prefix[it] }
 
-    private fun currentUser() = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username
+    private fun currentUser() = (SecurityContextHolder.getContext().authentication as TafelAuthentication).username
         ?.let { userRepository.findByUsername(it) }
 
     /**

@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
@@ -130,7 +130,7 @@ class HouseholdServiceTest {
     fun beforeEach() {
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
+            TafelAuthentication("TOKEN", testUserEntity.username, true)
         every { auditActorProvider.currentUsername() } returns null
 
         every { countryRepository.findById(testCountry1.id!!) } returns Optional.of(testCountry1)

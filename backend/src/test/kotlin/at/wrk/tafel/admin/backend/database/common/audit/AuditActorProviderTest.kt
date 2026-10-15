@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.database.common.audit
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.security.testUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -22,7 +22,7 @@ class AuditActorProviderTest {
     @Test
     fun `returns the username of the authenticated user`() {
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication(tokenValue = "token", username = "test-user", authenticated = true)
+            TafelAuthentication(sessionKey = "token", username = "test-user", authenticated = true)
 
         assertThat(provider.currentUsername()).isEqualTo("test-user")
     }
@@ -36,7 +36,7 @@ class AuditActorProviderTest {
     @Test
     fun `returns null while the authentication is not yet authenticated`() {
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication(tokenValue = "token", username = "test-user", authenticated = false)
+            TafelAuthentication(sessionKey = "token", username = "test-user", authenticated = false)
 
         assertThat(provider.currentUsername()).isNull()
         assertThat(provider.currentUserId()).isNull()
@@ -56,7 +56,7 @@ class AuditActorProviderTest {
     @Test
     fun `reads the user id off a JWT authentication, resolved once per request rather than looked up here`() {
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication(tokenValue = "token", username = testUser.username, authenticated = true, userId = testUser.id)
+            TafelAuthentication(sessionKey = "token", username = testUser.username, authenticated = true, userId = testUser.id)
 
         assertThat(provider.currentUserId()).isEqualTo(testUser.id)
     }

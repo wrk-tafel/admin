@@ -1,5 +1,9 @@
 package at.wrk.tafel.admin.backend.common.sse
 
+import at.wrk.tafel.admin.backend.common.auth.components.UserSessionService
+import at.wrk.tafel.admin.backend.common.auth.model.SessionsEndedEvent
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.access.prepost.PreAuthorize
@@ -19,6 +23,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
  *
  * Authorization is per topic ([SseTopic.requiredAuthorities]); asking for a topic the caller may not
  * have is a 403 for the whole stream rather than a silently thinner one.
+ *
+ * A stream ends when the login session it was opened on is ended (`UserSessionService`), on whatever
+ * instance it is open: the browser reconnects, is refused, and the frontend shows the login page.
+ * Without that an ended session would keep receiving events until the stream timed out.
  */
 @RestController
 @RequestMapping("/api/sse/events")
@@ -26,6 +34,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 class SseEventsController(
     topics: List<SseTopic>,
     private val sseEmitterFactory: SseEmitterFactory,
+    private val sseOutboxService: SseOutboxService,
 ) {
     private val topicsByName: Map<String, SseTopic> = topics.associateBy { it.name }.also {
         check(it.size == topics.size) { "Two SSE topics share a name: ${topics.map { topic -> topic.name }}" }
@@ -43,7 +52,8 @@ class SseEventsController(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Kein Thema angegeben")
         }
 
-        val authorities = SecurityContextHolder.getContext().authentication!!.authorities.map { it.authority }.toSet()
+        val authentication = SecurityContextHolder.getContext().authentication!!
+        val authorities = authentication.authorities.map { it.authority }.toSet()
         requested.forEach { (topic, _) ->
             if (topic.requiredAuthorities.isNotEmpty() && topic.requiredAuthorities.none { it in authorities }) {
                 throw AccessDeniedException("Thema ${topic.name} nicht erlaubt")
@@ -52,6 +62,15 @@ class SseEventsController(
 
         val sseEmitter = sseEmitterFactory.createSseEmitter()
         requested.forEach { (topic, argument) -> topic.subscribe(sseEmitter, argument) }
+        (authentication as? TafelAuthentication)?.sessionKey?.let { endWithSession(sseEmitter, it) }
         return sseEmitter
+    }
+
+    private fun endWithSession(sseEmitter: SseEmitter, sessionKey: String) {
+        sseOutboxService.listenForNotificationEvents(sseEmitter, UserSessionService.SESSIONS_ENDED_NOTIFICATION, SessionsEndedEvent::class.java) {
+            if (it?.sessionKeys?.contains(sessionKey) == true) {
+                sseEmitter.complete()
+            }
+        }
     }
 }

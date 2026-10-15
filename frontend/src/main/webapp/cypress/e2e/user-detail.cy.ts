@@ -105,6 +105,43 @@ describe('User Detail', () => {
     cy.byTestId('enabledText').should('have.text', 'Ja');
   });
 
+  it('ends all sessions of a user, who is logged out at once', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const password = testUserPassword(randomNumber);
+      const userData: UserData = {
+        username: 'sessions-' + randomNumber,
+        personnelNumber: 'sessions-' + randomNumber,
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        enabled: true,
+        password: password,
+        passwordRepeat: password,
+        passwordChangeRequired: false,
+        permissions: [{key: 'CHECKIN', title: 'Anmeldung'}]
+      };
+
+      cy.createUser(userData).then(response => {
+        // the user logs in somewhere - and the administrator logs back in here
+        cy.login(userData.username, password);
+        cy.getCookie('tafel-admin-session').then(usersSession => {
+          cy.loginDefault();
+          cy.visit('/benutzer/detail/' + response.body.id);
+
+          cy.byTestId('changeUserStateButton').click();
+          cy.checkMenuAccessibility();
+          cy.byTestId('endUserSessionsButton').click();
+
+          cy.contains('Alle Sitzungen des Benutzers wurden beendet!').should('be.visible');
+          cy.getCookie('tafel-admin-session').then(ownSession => {
+            cy.setCookie('tafel-admin-session', usersSession!.value, {httpOnly: true});
+            cy.request({url: '/api/users/info', failOnStatusCode: false}).its('status').should('eq', 401);
+            cy.setCookie('tafel-admin-session', ownSession!.value, {httpOnly: true});
+          });
+        });
+      });
+    });
+  });
+
   it('edit user', () => {
     cy.visit('/benutzer/detail/100');
 

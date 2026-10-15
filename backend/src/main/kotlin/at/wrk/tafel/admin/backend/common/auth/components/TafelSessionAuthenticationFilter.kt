@@ -11,7 +11,13 @@ import org.springframework.security.web.authentication.AuthenticationConverter
 import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.filter.OncePerRequestFilter
 
-class TafelJwtAuthenticationFilter(
+/**
+ * Authenticates every `/api` request but the public ones from its login session (see
+ * [TafelSessionAuthConverter]). A session that is no longer good - expired, its user disabled or
+ * deleted - is ended on the spot, so its row and its cookie go away instead of being refused again
+ * on every following request.
+ */
+class TafelSessionAuthenticationFilter(
     private val authenticationManager: AuthenticationManager,
     private val authenticationConverter: AuthenticationConverter,
     private val requestMatcher: RequestMatcher,
@@ -28,10 +34,12 @@ class TafelJwtAuthenticationFilter(
                 ?: throw AuthenticationCredentialsNotFoundException("Missing authentication credentials")
             val authResult = authenticationManager.authenticate(authRequest)
             SecurityContextHolder.getContext().authentication = authResult
-            filterChain.doFilter(request, response)
-        } catch (failed: AuthenticationException) {
+        } catch (_: AuthenticationException) {
             SecurityContextHolder.clearContext()
+            request.getSession(false)?.invalidate()
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+            return
         }
+        filterChain.doFilter(request, response)
     }
 }

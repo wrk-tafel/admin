@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.note
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
@@ -54,7 +54,7 @@ internal class HouseholdNoteServiceTest {
     fun beforeEach() {
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
+            TafelAuthentication("TOKEN", testUserEntity.username, true)
 
         testHouseholdEntity1 = HouseholdEntity(householdId = 100, validUntil = LocalDate.now(), locked = false).apply {
             id = 1

@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.document
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
@@ -86,7 +86,7 @@ internal class HouseholdDocumentServiceTest {
 
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
+            TafelAuthentication("TOKEN", testUserEntity.username, true)
 
         testHousehold = HouseholdEntity(householdId = 100, validUntil = LocalDate.now()).apply {
             id = 1

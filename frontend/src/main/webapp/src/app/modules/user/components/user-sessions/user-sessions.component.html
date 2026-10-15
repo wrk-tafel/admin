@@ -1,0 +1,61 @@
+<mat-card class="shadow-sm">
+  <mat-card-header>
+    <mat-card-title>Sitzungen</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="pt-6">
+    <p class="text-sm text-slate-600 mb-4">
+      Auf diesen Geräten sind Sie angemeldet. Eine Sitzung, die Sie nicht mehr brauchen - etwa an einem gemeinsam
+      genutzten PC bei der Ausgabe - können Sie hier beenden; das Gerät ist danach abgemeldet. Die Sitzung auf diesem
+      Gerät beenden Sie mit „Abmelden“.
+    </p>
+
+    @if (!loading()) {
+      <div testid="user-sessions-list">
+        @for (session of sessions(); track session.id) {
+          <div testid="user-session" [attr.data-session-id]="session.id" [attr.data-current]="session.current"class="flex items-center justify-between gap-2 py-2 border-t border-gray-200">
+            <div class="flex min-w-0 items-center gap-3">
+              <mat-icon [svgIcon]="deviceIcon(session)" class="text-gray-500" aria-hidden="true"></mat-icon>
+              <div class="min-w-0">
+                <div testid="user-session-label" class="truncate">
+                  <!-- The icon is decorative, so the device type is spelled out for screen readers here. -->
+                  <span class="sr-only">{{ deviceTypeLabel(session) }}: </span>
+                  {{ deviceLabel(session) }}
+                  @if (session.current) {
+                    <span testid="user-session-current-badge" class="text-xs text-gray-500">(diese Sitzung)</span>
+                  }
+                </div>
+                <div testid="user-session-times" class="text-sm text-gray-500">
+                  Angemeldet am {{ session.signedInAt | date:'dd.MM.yyyy HH:mm' }}, zuletzt aktiv {{ lastUsedAgo(session) }}
+                </div>
+              </div>
+            </div>
+            @if (!session.current) {
+              <button
+                type="button"
+                testid="user-session-end"
+                matButton="filled"
+                class="button-danger shrink-0"
+                (click)="endSession(session)"
+                [attr.aria-label]="'Sitzung beenden: ' + deviceLabel(session)"
+                matTooltip="Sitzung beenden - das Gerät ist danach abgemeldet"
+              >
+                <mat-icon svgIcon="logout"></mat-icon> Beenden
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="mt-6">
+        @if (otherSessions().length > 0) {
+          <button type="button" matButton="outlined" testid="user-sessions-end-others" (click)="endOtherSessions()">
+            <mat-icon svgIcon="logout"></mat-icon> Alle anderen Sitzungen beenden
+          </button>
+        } @else {
+          <p testid="user-sessions-no-others" class="text-sm text-slate-600">Sie sind auf keinem anderen Gerät angemeldet.</p>
+        }
+      </div>
+    }
+  </mat-card-content>
+</mat-card>
