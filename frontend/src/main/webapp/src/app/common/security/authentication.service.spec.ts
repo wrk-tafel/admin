@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
-import { AuthenticationService } from './authentication.service';
+import { AuthenticationService, FIRST_NAVIGATION_ID } from './authentication.service';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { SUPPRESS_ERROR_TOAST } from '../http/suppress-error-toast.token';
 import { EXPECTED_ERROR_STATUSES, SUPPRESS_CLIENT_LOG_RECORD } from '../http/suppress-client-log-record.token';
@@ -21,7 +21,8 @@ describe('AuthenticationService', () => {
 
     beforeEach(() => {
         const routerSpy = {
-            navigate: vi.fn().mockName('Router.navigate').mockResolvedValue(true)
+            navigate: vi.fn().mockName('Router.navigate').mockResolvedValue(true),
+            currentNavigation: vi.fn().mockName('Router.currentNavigation').mockReturnValue(null)
         };
         const globalStateServiceSpy = {
             reset: vi.fn().mockName('GlobalStateService.reset')
@@ -487,6 +488,75 @@ describe('AuthenticationService', () => {
         expect(service.userInfo()).toEqual({ username: 'test-user', permissions: ['PERM1'] });
         expect(toastr.error).toHaveBeenCalledWith('Server nicht verfügbar!', 'Sitzungsprüfung fehlgeschlagen!');
         httpMock.verify();
+    });
+
+    describe('revalidateForCurrentNavigation', () => {
+        const navigation = (id: number) => router.currentNavigation.mockReturnValue({id} as any);
+        const userInfo = {username: 'test-user', permissions: ['PERM1']};
+
+        it('asks the server once for all guarded levels of one navigation, even while the request is in flight', async () => {
+            navigation(5);
+
+            const first = service.revalidateForCurrentNavigation();
+            const second = service.revalidateForCurrentNavigation();
+            httpMock.expectOne('/users/info').flush(userInfo);
+
+            expect(await first).toEqual(userInfo);
+            expect(await second).toEqual(userInfo);
+            httpMock.verify();
+        });
+
+        it('asks again for the next navigation', async () => {
+            navigation(5);
+            const first = service.revalidateForCurrentNavigation();
+            httpMock.expectOne('/users/info').flush(userInfo);
+            await first;
+
+            navigation(6);
+            const next = service.revalidateForCurrentNavigation();
+            httpMock.expectOne('/users/info').flush(userInfo);
+
+            expect(await next).toEqual(userInfo);
+            httpMock.verify();
+        });
+
+        it('lets a 401 on the revalidation stop every level of the navigation', async () => {
+            service.userInfo.set(userInfo);
+            navigation(7);
+
+            const first = service.revalidateForCurrentNavigation();
+            httpMock.expectOne('/users/info').flush(null, {status: 401, statusText: 'Unauthorized'});
+
+            expect(await first).toBeNull();
+            expect(await service.revalidateForCurrentNavigation()).toBeNull();
+            httpMock.verify();
+        });
+
+        it('lets the page load\'s first navigation reuse what the app initializer loaded', async () => {
+            const initial = service.loadUserInfoForInitialNavigation();
+            httpMock.expectOne('/users/info').flush(userInfo);
+            await initial;
+
+            navigation(FIRST_NAVIGATION_ID);
+            expect(await service.revalidateForCurrentNavigation()).toEqual(userInfo);
+            httpMock.expectNone('/users/info');
+
+            navigation(FIRST_NAVIGATION_ID + 1);
+            const next = service.revalidateForCurrentNavigation();
+            httpMock.expectOne('/users/info').flush(userInfo);
+            await next;
+            httpMock.verify();
+        });
+
+        it('asks every time outside of a navigation', async () => {
+            const first = service.revalidateForCurrentNavigation();
+            httpMock.expectOne('/users/info').flush(userInfo);
+            await first;
+            const second = service.revalidateForCurrentNavigation();
+            httpMock.expectOne('/users/info').flush(userInfo);
+            await second;
+            httpMock.verify();
+        });
     });
 
     it('isAuthenticated true', () => {

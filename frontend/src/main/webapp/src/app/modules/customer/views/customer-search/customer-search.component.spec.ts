@@ -1,6 +1,6 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {ActivatedRoute, convertToParamMap, Router} from '@angular/router';
+import {ActivatedRoute, convertToParamMap, DefaultUrlSerializer, Router} from '@angular/router';
 import {HttpErrorResponse, HttpHeaders, HttpResponse} from '@angular/common/http';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -82,6 +82,8 @@ describe('CustomerSearchComponent', () => {
           provide: Router,
           useValue: {
             navigate: vi.fn().mockName('Router.navigate').mockResolvedValue(true),
+            currentNavigation: vi.fn().mockName('Router.currentNavigation').mockReturnValue(null),
+            url: '/kunden/suchen',
             // the result table's name column is a real link now, and RouterLink builds
             // its href from these two
             createUrlTree: vi.fn().mockName('Router.createUrlTree').mockReturnValue({}),
@@ -502,6 +504,33 @@ describe('CustomerSearchComponent', () => {
         seite: 2,
         anzahl: 25
       })
+    }));
+  });
+
+  it('does not write the URL when a search answers while a navigation to another page runs', () => {
+    apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+    const {component} = createComponent();
+    router.navigate.mockClear();
+    // a result was clicked - writing the search state now would cancel that navigation
+    router.currentNavigation.mockReturnValue({extractedUrl: new DefaultUrlSerializer().parse('/kunden/detail/1')} as any);
+
+    component.query.set('muster');
+    component.search();
+
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('still writes the URL while only a navigation to other query parameters of this page runs', () => {
+    apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+    const {component} = createComponent();
+    router.navigate.mockClear();
+    router.currentNavigation.mockReturnValue({extractedUrl: new DefaultUrlSerializer().parse('/kunden/suchen?suche=alt')} as any);
+
+    component.query.set('muster');
+    component.search();
+
+    expect(router.navigate).toHaveBeenCalledWith([], expect.objectContaining({
+      queryParams: expect.objectContaining({suche: 'muster'})
     }));
   });
 

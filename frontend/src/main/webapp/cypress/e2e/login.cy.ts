@@ -292,6 +292,23 @@ describe('Login', () => {
     cy.byTestId('errorMessage').should('exist').and('contain.text', 'Sitzung abgelaufen');
   });
 
+  it('asks for the user info once when a nested route is opened directly', () => {
+    cy.loginDefault();
+    cy.intercept('GET', '/api/users/info').as('userInfo');
+
+    // two guarded levels (the shell and the settings area) below the app initializer's own request
+    cy.visit('/einstellungen/fahrzeuge');
+    cy.byTestId('cars-table').should('be.visible');
+
+    cy.get('@userInfo.all').should('have.length', 1);
+
+    // the next navigation asks again - that is how an expired session is still noticed
+    cy.byTestId('quickOpenButton').click();
+    cy.byTestId('quickOpenInput').type('Filialen{enter}');
+    cy.url().should('include', '/einstellungen/filialen');
+    cy.get('@userInfo.all').should('have.length', 2);
+  });
+
   it('accessing a module without the required permission shows access denied', () => {
     createTestUser([{key: 'CHECKIN', title: 'Anmeldung'}]).then(({user, testUser}) => {
       cy.visit('/login');
