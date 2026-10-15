@@ -32,9 +32,12 @@ import java.util.Base64
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    // Every test logs in several times from the same address, more often than the login's rate limit allows in a
-    // minute - which is RateLimitFilter's to test, not this. A context of its own, so MfaIT's keeps the limit.
-    properties = ["spring.thymeleaf.prefix=classpath:/mail-templates/", "security.rateLimit.enabled=false"],
+    // The same properties as MfaIT, so both share one application context - see there.
+    properties = [
+        "spring.thymeleaf.prefix=classpath:/mail-templates/",
+        "tafeladmin.mfa.emailCodeForTests=424242",
+        "security.rateLimit.enabled=false",
+    ],
 )
 @ActiveProfiles("test")
 class UserSessionIT : TafelBaseIntegrationTest() {

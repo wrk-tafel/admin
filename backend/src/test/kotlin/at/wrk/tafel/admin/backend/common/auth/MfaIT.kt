@@ -43,8 +43,14 @@ import java.util.Base64
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     // the test configuration replaces application.yml, which is where the real template location is set; the
-    // fixed code stands in for the mail the e-mail method sends, which nothing here can read
-    properties = ["spring.thymeleaf.prefix=classpath:/mail-templates/", "tafeladmin.mfa.emailCodeForTests=424242"],
+    // fixed code stands in for the mail the e-mail method sends, which nothing here can read. The login's rate limit
+    // per address is RateLimitFilter's to test, not this: these tests, and UserSessionIT's in the same context
+    // (the same properties on purpose - every context holds connections of its own), log in far more often a minute.
+    properties = [
+        "spring.thymeleaf.prefix=classpath:/mail-templates/",
+        "tafeladmin.mfa.emailCodeForTests=424242",
+        "security.rateLimit.enabled=false",
+    ],
 )
 @ActiveProfiles("test")
 class MfaIT : TafelBaseIntegrationTest() {
