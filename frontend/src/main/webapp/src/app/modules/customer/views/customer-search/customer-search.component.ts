@@ -2,6 +2,7 @@ import {Component, computed, inject, signal, WritableSignal} from '@angular/core
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {catchError, debounceTime, distinctUntilChanged, EMPTY, filter, map, Observable, Subject, switchMap} from 'rxjs';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
+import {isNavigatingToAnotherPage} from '../../../../common/util/navigation-in-progress.util';
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {MatDialog} from '@angular/material/dialog';
 import {FormsModule} from '@angular/forms';
@@ -299,7 +300,9 @@ export class CustomerSearchComponent {
             : `${outcome.response.totalCount} Kunden gefunden`
       );
     }
-    if (outcome.writeParams) {
+    // An answer arriving after a click on one of the results must not write the URL: its navigation
+    // would replace (and so cancel) the one to the clicked record.
+    if (outcome.writeParams && !isNavigatingToAnotherPage(this.router)) {
       this.writeStateToQueryParams(outcome.response);
     }
   }
