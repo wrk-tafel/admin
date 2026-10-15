@@ -28,8 +28,26 @@ describe('SupportDialogComponent', () => {
 
     expect(dialogRef.close).toHaveBeenCalledWith({
       title: 'Login geht nicht',
-      text: 'Seite bleibt leer'
+      text: 'Seite bleibt leer',
+      includeScreenshot: true
     });
+  });
+
+  it('closes without the screenshot once the checkbox is unticked', () => {
+    const fixture = TestBed.createComponent(SupportDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    const checkbox: HTMLInputElement = fixture.nativeElement.querySelector('[testid="includeScreenshot"] input');
+    expect(checkbox.checked).toBe(true);
+    checkbox.click();
+    fixture.detectChanges();
+
+    component.supportTitle.set('Login geht nicht');
+    component.supportText.set('Seite bleibt leer');
+    component.save();
+
+    expect(dialogRef.close).toHaveBeenCalledWith(expect.objectContaining({includeScreenshot: false}));
   });
 
   it('says what is attached', () => {

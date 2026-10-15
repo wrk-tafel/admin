@@ -248,7 +248,8 @@ export class DefaultHeaderComponent {
 
   /**
    * The screenshot is taken before the dialog opens - the reporter's screen is the page they are
-   * describing, not the dialog they are describing it in.
+   * describing, not the dialog they are describing it in. It is sent only when the reporter left
+   * "Screenshot der aktuellen Seite mitsenden" ticked.
    */
   public async openSupportDialog() {
     const screenshot = await this.screenshotService.capture();
@@ -256,7 +257,7 @@ export class DefaultHeaderComponent {
     this.dialog.open(SupportDialogComponent).afterClosed()
       .subscribe((result: SupportDialogResult) => {
         if (result) {
-          const clientContext = this.supportContextService.collect(screenshot);
+          const clientContext = this.supportContextService.collect(result.includeScreenshot ? screenshot : null);
           this.supportApiService.createSupportRequest(result.title, result.text, clientContext).subscribe(() => {
             this.toastr.success('Support-Anfrage wurde übermittelt!');
           });

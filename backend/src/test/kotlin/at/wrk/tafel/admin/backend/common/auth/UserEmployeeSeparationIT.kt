@@ -216,7 +216,7 @@ class UserEmployeeSeparationIT : TafelBaseIntegrationTest() {
         id: Long? = null,
     ) = TafelUser(
         username = username,
-        password = "Passwort-1234!",
+        password = "Passwort-1357!",
         enabled = true,
         id = id,
         personnelNumber = personnelNumber,

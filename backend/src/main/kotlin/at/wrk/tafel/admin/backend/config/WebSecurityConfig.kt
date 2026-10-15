@@ -11,8 +11,11 @@ import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import jakarta.servlet.DispatcherType
 import org.passay.DefaultPasswordValidator
+import org.passay.PasswordData
 import org.passay.data.EnglishCharacterData
+import org.passay.data.EnglishSequenceData
 import org.passay.data.GermanCharacterData
+import org.passay.data.GermanSequenceData
 import org.passay.dictionary.ArrayWordList
 import org.passay.dictionary.WordListDictionary
 import org.passay.dictionary.sort.ArraysSort
@@ -71,6 +74,9 @@ class WebSecurityConfig(
 
         val passwordLengthRule = LengthRule(8, 50)
 
+        /** The shortest sequence ("1234", "abcd", "qwer") or run of one character ("aaaa") refused. */
+        private const val ILLEGAL_RUN_LENGTH = 4
+
         // Same three character classes a generated password is already built from (see
         // tafelPasswordGenerator below) - required here too via CharacterCharacteristicsRule so a
         // user-chosen password can't fall below what a generated one always guarantees.
@@ -94,12 +100,32 @@ class WebSecurityConfig(
                     ),
                 ),
                 CharacterCharacteristicsRule(generatedPasswordCharactersRules.size, generatedPasswordCharactersRules),
+                // A run of 4, not Passay's default of 5: "1234", "abcd" and "qwer" are exactly what
+                // people type first, and a run of 5 would still let them through.
+                IllegalSequenceRule(GermanSequenceData.Alphabetical, ILLEGAL_RUN_LENGTH, false),
+                IllegalSequenceRule(GermanSequenceData.DEQwertz, ILLEGAL_RUN_LENGTH, false),
+                IllegalSequenceRule(EnglishSequenceData.Numerical, ILLEGAL_RUN_LENGTH, false),
+                RepeatCharactersRule(ILLEGAL_RUN_LENGTH, 1),
+                CommonPasswordRule(CommonPasswordRule.bundledBlocklist),
             ),
+        )
+
+        /** Whether [password] passes [passwordValidator] on its own, i.e. without a username to compare it with. */
+        fun isAcceptablePassword(password: String): Boolean = passwordValidator.validate(PasswordData(password)).isValid
+
+        /**
+         * Generated passwords are built from the same character classes a chosen one needs, and only one
+         * the rules for a chosen password accept is handed out.
+         */
+        fun passwordGenerator(): TafelPasswordGenerator = TafelPasswordGenerator(
+            passwordLengthRule.minimumLength + 2,
+            generatedPasswordCharactersRules,
+            isAcceptable = ::isAcceptablePassword,
         )
     }
 
     @Bean
-    fun tafelPasswordGenerator(): TafelPasswordGenerator = TafelPasswordGenerator(passwordLengthRule.minimumLength + 2, generatedPasswordCharactersRules)
+    fun tafelPasswordGenerator(): TafelPasswordGenerator = passwordGenerator()
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {

@@ -522,13 +522,17 @@ export interface CustomerAddPersonData {
  * of here is always accepted. The prefix is only worth overriding for a spec that needs a specific
  * kind of password (e.g. one with an umlaut in it, see login.cy.ts).
  *
+ * The letters are separated by dots: the validator also refuses a sequence of four ("1234",
+ * "abcd") and four equal characters in a row, which the number spells often enough ("…1234…",
+ * "…0000…") - and both are only ever checked on neighbouring characters.
+ *
  * The fixed 'X9' suffix is what satisfies the validator's character-class rule (needs an uppercase
  * letter, a lowercase letter and a digit) - the randomised part above stays letters-only for the
  * banned-substring reason above, so it alone never has an uppercase letter or a digit. Fixed rather
  * than derived from the random number so it never needs the same digit-avoidance treatment.
  */
 export const testUserPassword = (randomNumber: number, prefix = 'dummy-'): string =>
-  prefix + randomNumber.toString().replace(/\d/g, digit => 'abcdefghij'[Number(digit)]) + 'X9';
+  prefix + [...randomNumber.toString()].map(digit => 'abcdefghij'[Number(digit)]).join('.') + 'X9';
 
 export interface UserData {
   id?: number;

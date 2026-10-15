@@ -149,7 +149,7 @@ Ist beim Login eine Passwortänderung erforderlich (z. B. beim erstmaligen Login
 
 ![Passwort ändern nach erzwungenem Login](images/login-passwort-aendern.jpg)
 
-In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben, bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten und sowohl Klein- als auch Großbuchstaben sowie eine Ziffer enthalten. Eine Checkliste unterhalb der Eingabefelder zeigt für jede dieser Regeln direkt beim Tippen an, ob sie bereits erfüllt ist, sodass Fehler auffallen, bevor "Speichern" überhaupt versucht wird. Ein Balken unter dem Feld "Neues Passwort" zeigt zusätzlich dessen Stärke (Schwach/Mittel/Stark) an, sobald mit dem Tippen begonnen wurde – farblich passend in Rot, Orange bzw. Grün. Nach dem Speichern meldet die Seite kurz "Passwort geändert – Anmeldung läuft…", bevor automatisch zur Übersicht weitergeleitet wird.
+In beiden Fällen gelten dieselben Regeln: Das neue Passwort muss mindestens 8 und maximal 50 Zeichen lang sein, darf den Benutzernamen nicht enthalten, keine Leerzeichen haben, bestimmte Wörter (z. B. "wrk", "tafel", "roteskreuz") nicht enthalten und sowohl Klein- als auch Großbuchstaben sowie eine Ziffer enthalten. Außerdem darf es keine Zeichenfolgen wie "1234", "abcd" oder "qwer" (auch rückwärts) und nicht mehr als drei gleiche Zeichen hintereinander enthalten, und häufig verwendete Passwörter wie "Passwort2024" oder "Willkommen1" werden abgelehnt. Bereits gesetzte Passwörter bleiben gültig; die Regeln gelten nur beim Festlegen eines neuen Passworts. Eine Checkliste unterhalb der Eingabefelder zeigt für jede dieser Regeln direkt beim Tippen an, ob sie bereits erfüllt ist, sodass Fehler auffallen, bevor "Speichern" überhaupt versucht wird. Ein Balken unter dem Feld "Neues Passwort" zeigt zusätzlich dessen Stärke (Schwach/Mittel/Stark) an, sobald mit dem Tippen begonnen wurde – farblich passend in Rot, Orange bzw. Grün. Nach dem Speichern meldet die Seite kurz "Passwort geändert – Anmeldung läuft…", bevor automatisch zur Übersicht weitergeleitet wird.
 
 ### Anmeldung mit Bestätigungscode
 
@@ -309,10 +309,10 @@ Vor dem Beenden des Ausgabetags sollten Statistik und Anmerkungen vollständig a
 
 Damit ein Fehler nachvollzogen werden kann, werden automatisch technische Infos mitgeschickt: Benutzername, Zeitpunkt, aktuelle Seite, Version, Browser sowie die letzten Fehlermeldungen dieser Sitzung. Diese Angaben müssen nicht selbst eingetippt werden – im Text genügt eine Beschreibung dessen, was passiert ist.
 
-Zusätzlich wird immer ein **Screenshot der Seite** angehängt, die beim Öffnen der Support-Anfrage zu sehen war (das Dialogfenster selbst ist darauf nicht zu sehen). Der Dialog weist darauf hin, was alles mitgeschickt wird.
+Zusätzlich wird ein **Screenshot der Seite** angehängt, die beim Öffnen der Support-Anfrage zu sehen war (das Dialogfenster selbst ist darauf nicht zu sehen) - sofern das Häkchen **Screenshot der aktuellen Seite mitsenden** gesetzt bleibt. Es ist vorausgewählt und kann abgewählt werden, dann geht die Anfrage ohne Screenshot hinaus. Der Dialog listet auf, was alles mitgeschickt wird und wer die Anfrage lesen kann.
 
 > [!TIP]
-> Sind auf dem Bildschirm gerade Kundendaten zu sehen, die nicht mitgeschickt werden sollen: zuerst die Seite verlassen (z. B. zurück auf die Übersicht) und die Support-Anfrage erst dort öffnen.
+> Sind auf dem Bildschirm gerade Kundendaten zu sehen, die nicht mitgeschickt werden sollen: das Häkchen **Screenshot der aktuellen Seite mitsenden** abwählen.
 
 > [!IMPORTANT]
 > Auch wenn die Anfrage nur intern per E-Mail verschickt wird: Titel und Beschreibung sollten keine personenbezogenen Daten enthalten – also keine Namen, Adressen, Geburtsdaten oder Einkommensangaben von Kundinnen und Kunden. Statt „Kunde Max Mustermann kann sich nicht anmelden“ besser die Kundennummer oder nur den Ablauf beschreiben.
