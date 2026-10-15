@@ -41,10 +41,12 @@
               <span class="badge ms-2"
                     [ngClass]="{'badge-success': status === 'complete', 'badge-warning': status === 'unsaved', 'badge-danger': status === 'invalid'}"
                     [attr.testid]="'route-tab-status-' + status">
+                <!-- symbol only on a phone, where two stretched tabs leave no room for the word;
+                     the word stays in the accessibility tree either way -->
                 @switch (status) {
-                  @case ('complete') { ✓ Vollständig }
-                  @case ('unsaved') { ● Nicht gespeichert }
-                  @case ('invalid') { ! Ungültig }
+                  @case ('complete') { ✓ <span class="sr-only sm:not-sr-only">Vollständig</span> }
+                  @case ('unsaved') { ● <span class="sr-only sm:not-sr-only">Nicht gespeichert</span> }
+                  @case ('invalid') { ! <span class="sr-only sm:not-sr-only">Ungültig</span> }
                 }
               </span>
             }
@@ -62,10 +64,12 @@
               <span class="badge ms-2"
                     [ngClass]="{'badge-success': status === 'complete', 'badge-warning': status === 'unsaved', 'badge-danger': status === 'invalid'}"
                     [attr.testid]="'waren-tab-status-' + status">
+                <!-- symbol only on a phone, where two stretched tabs leave no room for the word;
+                     the word stays in the accessibility tree either way -->
                 @switch (status) {
-                  @case ('complete') { ✓ Vollständig }
-                  @case ('unsaved') { ● Nicht gespeichert }
-                  @case ('invalid') { ! Ungültig }
+                  @case ('complete') { ✓ <span class="sr-only sm:not-sr-only">Vollständig</span> }
+                  @case ('unsaved') { ● <span class="sr-only sm:not-sr-only">Nicht gespeichert</span> }
+                  @case ('invalid') { ! <span class="sr-only sm:not-sr-only">Ungültig</span> }
                 }
               </span>
             }

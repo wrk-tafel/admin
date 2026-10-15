@@ -525,6 +525,26 @@ describe('Food Collection Recording', () => {
     });
   });
 
+  it('phone: fits each tab\'s status badge into its tab, with the word kept for screen readers', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible').click();
+    cy.get('mat-option').contains('Route 2').click();
+    cy.byTestId('carInput').click();
+    cy.get('mat-option').contains('W-NC-123 (Lieferwagen 123)').click();
+    cy.byTestId('select-items-tab').click();
+    cy.byTestId('category-1-input').type('1');
+
+    cy.byTestId('route-tab-status-invalid').should('contain.text', 'Ungültig');
+    cy.byTestId('waren-tab-status-unsaved').should('contain.text', 'Nicht gespeichert');
+    cy.get('.mat-mdc-tab').each(tab => {
+      const label = tab[0].querySelector<HTMLElement>('.mdc-tab__content')!;
+      expect(label.getBoundingClientRect().right, 'tab label stays inside its tab')
+        .to.be.at.most(tab[0].getBoundingClientRect().right);
+    });
+
+    completeRouteViaApi();
+  });
+
   it('marks the route tab complete when driver/co-driver are picked via the search icon without typing first', () => {
     // Regression test for #3343: clicking the search icon with an empty input used to leave the
     // underlying text control empty forever, permanently failing its required validator even
