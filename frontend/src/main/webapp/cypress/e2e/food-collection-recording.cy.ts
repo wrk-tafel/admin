@@ -114,7 +114,9 @@ describe('Food Collection Recording', () => {
     // The employee screen's search tolerates typos, the driver picker deliberately does not: it
     // selects a single hit on its own, so a near miss would be picked for someone else.
     cy.getAnyRandomNumber().then((randomNumber) => {
-      cy.request('POST', '/api/employees', {personnelNumber: 'nm' + randomNumber, firstname: 'Near', lastname: 'Zuckerbaecker' + randomNumber});
+      cy.request('POST', '/api/employees', {
+        personnelNumber: 'nm' + randomNumber, firstname: 'Near', lastname: 'Zuckerbaecker' + randomNumber
+      });
 
       enterRouteData();
       cy.byTestId('driverSearchInput').type('Zuckerbaeker' + randomNumber);
