@@ -37,6 +37,8 @@ import {DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS} from '../../../../common/api/paged
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {DeleteCustomerDialogComponent} from '../customer-detail/dialogs/delete-customer-dialog.component';
+import {TafelIfPermissionDirective} from '../../../../common/security/tafel-if-permission.directive';
+import {EmergencyListDialogComponent} from './dialogs/emergency-list-dialog.component';
 
 /** Long enough not to search on every keystroke, short enough to still feel immediate. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -94,6 +96,7 @@ const QUERY_PARAMS = {
     FormatCustomerAddressPipe,
     MatTooltipModule,
     TafelInfoTooltipComponent,
+    TafelIfPermissionDirective,
     RouterLink
   ]
 })
@@ -115,6 +118,9 @@ export class CustomerSearchComponent {
 
   /** Whether the reference-less privacy notice template is currently being generated/downloaded. */
   downloadingPrivacyNoticeTemplate = signal(false);
+
+  /** Whether the "Notfallliste" is currently being generated/downloaded. */
+  downloadingEmergencyList = signal(false);
 
   /** The one search box. A pure number is tried as an exact customer-id jump first - see [resolveSearch$]. */
   query = signal('');
@@ -371,6 +377,24 @@ export class CustomerSearchComponent {
       next: (response) => this.processPdfResponse(response),
       error: () => this.downloadingPrivacyNoticeTemplate.set(false),
       complete: () => this.downloadingPrivacyNoticeTemplate.set(false)
+    });
+  }
+
+  /**
+   * The "Notfallliste" - every customer entitled today on paper. The dialog first says how the
+   * printout is to be handled; only confirming it downloads the list (and records the read).
+   */
+  openEmergencyListDialog() {
+    this.dialog.open(EmergencyListDialogComponent).afterClosed().subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+      this.downloadingEmergencyList.set(true);
+      this.customerApiService.generateEmergencyList().subscribe({
+        next: (response) => this.processPdfResponse(response),
+        error: () => this.downloadingEmergencyList.set(false),
+        complete: () => this.downloadingEmergencyList.set(false)
+      });
     });
   }
 

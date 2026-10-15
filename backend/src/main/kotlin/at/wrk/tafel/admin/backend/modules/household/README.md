@@ -129,6 +129,9 @@ overview and duplicate/merge endpoints additionally require `CUSTOMERS_ABOVE_LIM
   `/above-limit`/`/overview` below rather than nested under `/{householdId}`) streams the same
   privacy-notice sheet with no household reference - reachable from the customer search screen, for
   a walk-in before a case record exists.
+- `generateEmergencyListPdf` (`GET /households/emergency-list`, also flat) streams the "Notfallliste"
+  from `HouseholdEmergencyListService` - see below. Needs `CUSTOMER_EMERGENCY_LIST` on top of
+  `CUSTOMER`, like the reports above.
 
 ### `HouseholdService` (`internal`)
 The core service: `createHousehold`, `updateHousehold`, `findByHouseholdId`, `getHouseholds`
@@ -586,6 +589,19 @@ through `HouseholdLockExpiryService`, clears both review columns with the rest o
 weekly notification is `push`'s `HouseholdLockReviewReminderService`, which counts with
 `HouseholdRepository.countLockReviewsDue` - the same rule as `HouseholdEntity.Specs.lockReviewDue`,
 kept in two places because `push` may not depend on this module, so change them together.
+
+### `HouseholdEmergencyListService` (`internal/emergencylist`)
+The "Notfallliste": every household `HouseholdEntity.Specs.validHousehold()` returns today, sorted by
+number, as one PDF (`pdf-templates/household-emergency-list/emergency-list.xsl`) - the paper fallback
+for a distribution day on which the application cannot be reached. The distribution's Kundenliste is
+not one, since it only lists the households already checked in. Each line holds the number, the main
+person's name, the person count the Kundenliste uses (`1 +` the additional persons not excluded from
+the household), `validUntil` and the lock ("gesperrt" / "gesperrt bis dd.MM.yyyy"): locked households
+stay on the list, marked, since who is turned away at the desk has to be known on paper too. Every
+generation records one bulk-report `READ` (`AuditScope.HOUSEHOLD_EMERGENCY_LIST_ENTITY_TYPE`, business
+key "N Haushalte"), so the method is `@Transactional` but not read-only. The footer on every page says
+how the printout is to be handled; the customer search screen's dialog says the same before the
+download.
 
 ## Gotchas / best practices
 

@@ -8,7 +8,18 @@
           über die Filter darunter.
         </p>
       </div>
-      <div class="flex items-center gap-1">
+      <div class="flex flex-wrap items-center gap-1">
+        <button *tafelIfPermission="'CUSTOMER_EMERGENCY_LIST'" type="button" matButton="outlined" testid="emergencyListButton"
+                [disabled]="downloadingEmergencyList()" (click)="openEmergencyListDialog()">
+          @if (downloadingEmergencyList()) {
+            <span class="inline-flex items-center gap-1.5 align-middle">
+              <mat-icon svgIcon="progress_activity" class="animate-spin"></mat-icon>
+              <span>Wird erstellt...</span>
+            </span>
+          } @else {
+            Notfallliste
+          }
+        </button>
         <button type="button" matButton="outlined" testid="downloadPrivacyNoticeTemplateButton"
                 [disabled]="downloadingPrivacyNoticeTemplate()" (click)="downloadPrivacyNoticeTemplate()">
           @if (downloadingPrivacyNoticeTemplate()) {
