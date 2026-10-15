@@ -101,6 +101,32 @@ describe('Customer Search', () => {
     });
   });
 
+  it('search ignores accents in the name, in either direction', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+      const suffix = customer.lastname.replace('lastname-', '');
+      cy.updateCustomer({...customer, lastname: 'Öztürk-' + suffix}).then(() => {
+        cy.byTestId('searchInputText').type('ozturk-' + suffix);
+        clickSearchAndOpenExpectedResult(customer.id!);
+      });
+    });
+  });
+
+  it('search finds a customer by birth date and by employer', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+      const suffix = customer.lastname.replace('lastname-', '');
+      cy.updateCustomer({...customer, employer: 'Bäckerei ' + suffix}).then(() => {
+        cy.byTestId('searchInputText').type('backerei ' + suffix);
+        clickSearchAndOpenExpectedResult(customer.id!);
+
+        cy.visit('/kunden/suchen');
+        cy.byTestId('searchInputText').type(dayjs(customer.birthDate).format('DD.MM.YYYY') + ' ' + customer.lastname);
+        clickSearchAndOpenExpectedResult(customer.id!);
+      });
+    });
+  });
+
   it('search finds the customer despite a typo in the name', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;

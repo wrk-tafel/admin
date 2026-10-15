@@ -11,7 +11,7 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
-import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
@@ -53,6 +53,7 @@ class TafelUserDetailsManager(
     private val auditActorProvider: AuditActorProvider,
     private val clock: Clock,
     private val advisoryLockService: AdvisoryLockService,
+    private val searchTermNormalizer: SearchTermNormalizer,
 ) : UserDetailsManager {
 
     fun loadUserById(userId: Long): TafelUser? = userRepository.findById(userId)
@@ -149,7 +150,7 @@ class TafelUserDetailsManager(
         sortDirection: String? = null,
     ): UserSearchResult {
         val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
-        val searchTerm = SearchTextSpecs.normalize(searchInput)
+        val searchTerm = searchTermNormalizer.normalize(searchInput)
 
         val spec = orderBySearchRelevance(
             searchTerm,
