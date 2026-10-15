@@ -60,6 +60,7 @@ describe('Password reset', () => {
       cy.byTestId('forgotPasswordLink').click();
 
       cy.url().should('include', '/passwort-vergessen');
+      cy.byTestId('identifier').should('be.visible');
       cy.checkAccessibility();
       cy.byTestId('identifier').type(username);
       cy.byTestId('requestResetButton').click();
@@ -67,6 +68,7 @@ describe('Password reset', () => {
 
       tokenFromMail(email).then((token) => {
         cy.visit('/passwort-zuruecksetzen#token=' + token);
+        cy.byTestId('newPassword').should('be.visible');
         cy.checkAccessibility();
         cy.byTestId('newPassword').type('aNewResetPassword-9');
         cy.byTestId('newRepeatedPassword').type('aNewResetPassword-9');
