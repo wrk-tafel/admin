@@ -312,6 +312,14 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
+  it('generate emergency list pdf', () => {
+    apiService.generateEmergencyList().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/emergency-list'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('search customer with a search input and a filter', () => {
     apiService.searchCustomer('mustermann', null, null, true).subscribe();
 
