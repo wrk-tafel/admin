@@ -9,6 +9,9 @@ import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.servic
 import {extractErrorMessage} from '../api/problem-detail';
 import {ThemePreference} from '../../api/user-api.service';
 
+/** The router numbers its navigations from 1 - the one a page load starts with. */
+export const FIRST_NAVIGATION_ID = 1;
+
 @Service()
 export class AuthenticationService {
   userInfo = signal<UserInfo | null>(null);
@@ -24,6 +27,12 @@ export class AuthenticationService {
   private readonly router = inject(Router);
   private readonly globalStateService = inject(GlobalStateService);
   private readonly toastr = inject(TafelToastrService);
+
+  /**
+   * The user info request of one navigation, kept as the promise so a guarded level that asks while
+   * the request is still in flight waits for the same one - see {@link revalidateForCurrentNavigation}.
+   */
+  private navigationRevalidation: { navigationId: number, userInfo: Promise<UserInfo | null> } | null = null;
 
   /**
    * Logs in and, on success, also loads the user's permissions before resolving - callers can
@@ -163,6 +172,34 @@ export class AuthenticationService {
    * suppresses the generic error toast (a logged-out visitor loading the app must not see one), so
    * this surfaces one itself for the "unknown, might still be logged in" case.
    */
+  /**
+   * What the app initializer loads before anything renders - and what the page load's own first
+   * navigation (the router numbers its navigations from {@link FIRST_NAVIGATION_ID}) reuses instead
+   * of asking again right away.
+   */
+  public loadUserInfoForInitialNavigation(): Promise<UserInfo | null> {
+    const userInfo = this.loadUserInfo();
+    this.navigationRevalidation = {navigationId: FIRST_NAVIGATION_ID, userInfo};
+    return userInfo;
+  }
+
+  /**
+   * The route guard's revalidation, asked once per navigation rather than once per guarded level:
+   * the first level of a navigation asks the server, the further levels of the same navigation
+   * reuse that answer. Every later navigation has a new id and asks again, so an expired session, a
+   * changed permission or a pending second factor is still noticed at the next navigation - which
+   * is the reason the guard revalidates at all.
+   */
+  public revalidateForCurrentNavigation(): Promise<UserInfo | null> {
+    const navigationId = this.router.currentNavigation()?.id;
+    if (navigationId !== undefined && this.navigationRevalidation?.navigationId === navigationId) {
+      return this.navigationRevalidation.userInfo;
+    }
+    const userInfo = this.loadUserInfo();
+    this.navigationRevalidation = navigationId === undefined ? null : {navigationId, userInfo};
+    return userInfo;
+  }
+
   public loadUserInfo(): Promise<UserInfo | null> {
     // a 401 is the answer every visitor who is not logged in gets, not a failure
     return firstValueFrom(this.http.get<UserInfo>('/users/info', {context: expectedErrorContext(401)})
