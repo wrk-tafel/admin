@@ -110,11 +110,11 @@ Beim Bearbeiten eines Namens weist ein Hinweis unter dem Eingabefeld darauf hin,
 
 Unter **Einstellungen → Fahrzeuge** werden die für die [Warenerfassung](logistik.md) verfügbaren Fahrzeuge (Kennzeichen, Name) verwaltet. Fahrzeuge können bearbeitet und sortiert werden; die Reihenfolge dieser Liste ist die Reihenfolge der Fahrzeug-Auswahl in der Warenerfassung. Der **Name** ist die Bezeichnung, die dem Routen-Team dort hinter dem Kennzeichen angezeigt wird (z. B. "W-NC-123 (Kleinbus)").
 
-Das **Kennzeichen** wird immer in Großbuchstaben gespeichert, damit dasselbe Fahrzeug nicht in mehreren Schreibweisen in der Auswahl landet.
+Das **Kennzeichen** wird immer in Großbuchstaben gespeichert, damit dasselbe Fahrzeug nicht in mehreren Schreibweisen in der Auswahl landet. Ein Kennzeichen kann nur einmal vergeben werden, auch ein deaktiviertes Fahrzeug zählt dabei mit: Wird beim Anlegen oder Bearbeiten das Kennzeichen eines anderen Fahrzeugs eingegeben, lehnt die Anwendung das Speichern mit einer Meldung ab.
 
 ![Fahrzeuge](images/einstellungen-fahrzeuge.jpg)
 
-Wird beim Anlegen ein bereits vorhandenes Kennzeichen eingegeben, weist das Fenster darauf hin und lässt sich nicht speichern — ist das vorhandene Fahrzeug deaktiviert, kann es direkt über **Stattdessen wieder aktivieren** reaktiviert werden, statt es ein zweites Mal anzulegen.
+Wird beim Anlegen ein bereits vorhandenes Kennzeichen eingegeben, weist das Fenster darauf hin und lässt sich nicht speichern (auch dann, wenn es geöffnet wurde, bevor die Fahrzeugliste fertig geladen war) — ist das vorhandene Fahrzeug deaktiviert, kann es direkt über **Stattdessen wieder aktivieren** reaktiviert werden, statt es ein zweites Mal anzulegen.
 
 ![Bereits vorhandenes Kennzeichen](images/einstellungen-fahrzeuge-duplikat.jpg)
 

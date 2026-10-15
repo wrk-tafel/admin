@@ -30,6 +30,18 @@ Auf schmalen Bildschirmen wird das Suchergebnis statt als Tabelle als Kartenlist
 
 Findet die Suche keinen Kunden, erscheint statt des Ergebnisses der Hinweis "Keine Kunden gefunden" mit einem Button **Kunden anlegen** - dieser öffnet das Formular für einen neuen Kunden und übernimmt dabei den eingegebenen Suchbegriff bereits als Name, sofern dieser wie ein Name aussieht (keine reine Zahl): ein einzelnes Wort als Nachname, bei mehreren Wörtern das erste als Vorname und den Rest als Nachname.
 
+<a id="notfallliste"></a>
+
+### Notfallliste
+
+Die Anwendung braucht eine Internetverbindung - ohne Verbindung zum Server lässt sich weder ein Kunde suchen noch anmelden. Fällt das WLAN am Ausgabeort aus, genügt meist schon ein Handy-Hotspot. Für den Fall, dass die Anwendung trotzdem nicht erreichbar ist (etwa bei einer Störung des Servers), gibt es die **Notfallliste**: ein PDF zum Ausdrucken mit allen Kunden, die am Tag des Abrufs bezugsberechtigt sind - Kundennummer, Name der Hauptperson, Anzahl der Personen im Haushalt, Gültigkeitsdatum und eine allfällige Sperre ("gesperrt" bzw. "gesperrt bis TT.MM.JJJJ"). Gesperrte Kunden stehen bewusst mit auf der Liste und sind farbig hinterlegt, damit auch auf Papier erkennbar ist, wer an diesem Tag nichts bekommt; Kunden mit abgelaufener Gültigkeit fehlen. Die Liste ist nach Kundennummer sortiert. Anders als die "Kundenliste" einer Ausgabe (siehe [Anmeldung](anmeldung.md)), die nur die bereits angemeldeten Kunden enthält, ist sie damit schon vor Beginn einer Ausgabe brauchbar - sie sollte daher vor jedem Ausgabetag neu ausgedruckt werden.
+
+Der Button **Notfallliste** rechts oben auf der Kunden-Suche ist nur mit der Berechtigung **Kunden-Notfallliste** sichtbar (zusätzlich zu "Kundenverwaltung", siehe [Benutzer](benutzer.md)). Vor dem Herunterladen erklärt ein Dialog, wie mit dem Ausdruck umzugehen ist: Die Liste enthält personenbezogene Daten aller Kunden, sie ist bis zur Verwendung versperrt aufzubewahren, darf nicht mit nach Hause genommen werden und ist nach dem Ausgabetag zu vernichten. Derselbe Hinweis steht in der Fußzeile jeder Seite. Erst **Notfallliste herunterladen** erstellt das PDF; jeder Abruf wird im [Zugriffsprotokoll](zugriffsprotokoll.md) als "Notfallliste" mit der Anzahl der enthaltenen Haushalte festgehalten.
+
+![Notfallliste - Hinweis vor dem Herunterladen](images/kunden-notfallliste-dialog.jpg)
+
+![Notfallliste (PDF)](images/kunden-notfallliste-pdf.jpg)
+
 <a id="kunden-detail"></a>
 
 ## Kunden-Detail
@@ -45,7 +57,7 @@ Rechts oben im Kopfbereich stehen die Aktionen zur Verfügung, gereiht nach ihre
 - **Kunde bearbeiten**: Öffnet die Bearbeitung der Stammdaten (siehe unten).
 - **Unkostenbeitrag**: Ist noch ein Betrag offen, wird er als roter Hinweis direkt am Button angezeigt; im Menü stehen dann zusätzlich "Alles bezahlt" und "Betrag eintragen" zur Verfügung. Unabhängig davon kann über "Betrag bearbeiten" (unterhalb einer Trennlinie) der Betrag jederzeit manuell korrigiert werden.
 - **Weitere Aktionen**: Sammelt die selteneren bzw. sicherheitskritischen Aktionen **Kunde deaktivieren**, **Kunde sperren**/**entsperren**, **Daten exportieren (ZIP)** und **Kunde löschen** (jeweils mit Sicherheitsabfrage bzw. Download) in einem Menü. **Daten exportieren (ZIP)** liefert die vollständige Datenauskunft zu einem Kunden für eine DSGVO-Anfrage in einer einzigen ZIP-Datei: die Stammdaten, weiteren Personen, Notizen, Teilnahme-Historie an Ausgabetagen und die Liste der hochgeladenen Dokumente sowohl als PDF-Datei als auch als maschinenlesbare JSON-Datei, sowie alle hochgeladenen Dokumente selbst. Funktioniert unabhängig vom Sperrstatus, da ein gesperrter Kunde dieselben Auskunftsrechte behält. Ist die betroffene Person nicht anhand der Kundennummer bekannt, oder soll sie zugleich als Kunde und als Mitarbeiter:in gesucht werden, bietet sich stattdessen [Datenauskunft](datenauskunft.md) an.
-- Ist gerade ein Ausgabetag aktiv, kann dem Kunden in derselben Zeile wie die Status-Chips (rechtsbündig) eine **Ticketnummer** zugewiesen werden; ist bereits ein Ticket zugewiesen, wird es stattdessen angezeigt und kann über **Ticket löschen** wieder entfernt werden. Ist der Kunde gesperrt, ist die Zuweisung deaktiviert; ein Tooltip erklärt warum.
+- Ist gerade ein Ausgabetag aktiv, kann dem Kunden in derselben Zeile wie die Status-Chips (rechtsbündig) eine **Ticketnummer** zugewiesen werden; ist bereits ein Ticket zugewiesen, wird es stattdessen angezeigt und kann über **Ticket löschen** wieder entfernt werden. Ist der Kunde gesperrt, ist die Zuweisung deaktiviert; ein Tooltip erklärt warum. Wurde der Kunde erst gesperrt, nachdem die Seite geöffnet wurde, lehnt die Anwendung die Zuweisung mit einer Meldung ab und zeigt die Seite danach mit dem Sperr-Hinweis neu an - ein gesperrter Kunde erhält auf keinem Weg ein Ticket.
 - Über den grünen **+**-Button bei "Aktuellste Notiz" (die Kartenüberschrift zeigt zusätzlich die Gesamtanzahl an Notizen) kann eine neue Notiz erfasst werden. Die neueste Notiz zeigt zusätzlich eine relative Zeitangabe ("vor 3 Tagen") mit dem genauen Zeitpunkt als Tooltip. Ist sie selbst verfasst, lässt sie sich direkt hier über den Stift-Button korrigieren oder über den Papierkorb-Button endgültig löschen (siehe auch [Notizen](#notizen)); bei Notizen anderer Mitarbeiter:innen fehlen diese beiden Buttons. **Alle Notizen anzeigen** springt zum Tab "[Notizen](#notizen)" mit der vollständigen Liste.
 
 ![Ticketnummer-Zuweisung im Kopfbereich](images/kunden-detail-ticket.jpg)

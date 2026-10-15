@@ -620,6 +620,11 @@ export class CustomerDetailComponent {
       },
       error: (error: HttpErrorResponse) => {
         this.toastr.error(extractErrorMessage(error), 'Ticket-Zuweisung fehlgeschlagen!');
+        // A 400 is the backend refusing this household - e.g. locked by a colleague after this
+        // page was loaded - so the page shows the state the refusal is about instead of the stale one.
+        if (error.status === 400) {
+          this.reloadCustomer(customerId);
+        }
       }
     });
   }
@@ -633,6 +638,15 @@ export class CustomerDetailComponent {
       },
       error: (error: HttpErrorResponse) => {
         this.toastr.error(extractErrorMessage(error), 'Ticket-Löschung fehlgeschlagen!');
+      }
+    });
+  }
+
+  private reloadCustomer(customerId: number) {
+    this.customerApiService.getCustomer(customerId).subscribe({
+      next: (customerData: CustomerData) => this.customerData.set(customerData),
+      // the interceptor already toasted the failure
+      error: () => {
       }
     });
   }

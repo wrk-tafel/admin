@@ -34,6 +34,41 @@ describe('Customer Search', () => {
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
   });
 
+  it('explains how to handle the Notfallliste before downloading it', () => {
+    cy.intercept('GET', '/api/households/emergency-list').as('emergencyList');
+
+    cy.byTestId('emergencyListButton').click();
+    cy.byTestId('emergencylist-dialog').should('be.visible');
+    cy.byTestId('emergencylist-rules').should('contain.text', 'nach dem Ausgabetag vernichten');
+    cy.checkDialogAccessibility();
+
+    cy.byTestId('okButton').click();
+    cy.wait('@emergencyList').its('response.statusCode').should('eq', 200);
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const filename = `notfallliste-${dayjs().format('YYYY-MM-DD')}.pdf`;
+    cy.readFile(path.join(downloadsFolder, filename), 'binary', {timeout: 15000})
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
+  });
+
+  it('downloads no Notfallliste when its dialog is cancelled', () => {
+    cy.intercept('GET', '/api/households/emergency-list', cy.spy().as('emergencyListRequest'));
+
+    cy.byTestId('emergencyListButton').click();
+    cy.byTestId('cancelButton').click();
+
+    cy.byTestId('emergencylist-dialog').should('not.exist');
+    cy.get('@emergencyListRequest').should('not.have.been.called');
+  });
+
+  it('hides the Notfallliste from a user without its permission', () => {
+    cy.loginE2ETest2();
+    cy.visit('/kunden/suchen');
+
+    cy.byTestId('downloadPrivacyNoticeTemplateButton').should('be.visible');
+    cy.byTestId('emergencyListButton').should('not.exist');
+  });
+
   it('jumps straight to a customer by its exact number', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id!;
