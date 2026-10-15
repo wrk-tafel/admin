@@ -2,7 +2,7 @@ import {Component, computed, inject} from '@angular/core';
 import {MatIcon} from '@angular/material/icon';
 import {RouterLink} from '@angular/router';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
-import {ITafelNavData, navigationMenuItems, registerNavigationIcons} from '../../../../common/views/default-layout/navigation-menuItems';
+import {ITafelNavData, registerNavigationIcons, settingsMenuItems} from '../../../../common/views/default-layout/navigation-menuItems';
 
 interface SettingsGroup {
   title: string;
@@ -11,9 +11,10 @@ interface SettingsGroup {
 
 /**
  * Landing page of `/einstellungen`: every settings screen the user may open, as a card under its
- * topic. The sidebar carries only the one "Einstellungen" link; the entries and their grouping come
- * from that item's children in `navigation-menuItems.ts`, so this page and the quick-open palette
- * cannot disagree about which screens exist.
+ * topic. The main menu carries only the one "Einstellungen" link, and the sidebar lists the screens
+ * once a settings page is open; the entries and their grouping come from `settingsMenuItems` in
+ * `navigation-menuItems.ts`, so this page, the sidebar and the quick-open palette cannot disagree
+ * about which screens exist.
  */
 @Component({
   selector: 'tafel-settings-overview',
@@ -25,10 +26,9 @@ export class SettingsOverviewComponent {
   private readonly registerIcons = registerNavigationIcons();
 
   readonly groups = computed<SettingsGroup[]>(() => {
-    const settings = navigationMenuItems.find(item => item.url === '/einstellungen');
     const groups: SettingsGroup[] = [];
 
-    settings?.children?.forEach(child => {
+    settingsMenuItems.forEach(child => {
       if (child.title) {
         groups.push({title: child.name, entries: []});
         return;

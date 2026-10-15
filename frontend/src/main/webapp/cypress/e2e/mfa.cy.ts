@@ -691,7 +691,7 @@ describe('Two-factor authentication', () => {
 
         cy.byTestId('usermenu').click();
         cy.byTestId('usermenu-account').click();
-        cy.byTestId('account-tab-mfa').click();
+        cy.byTestId('account-nav-mfa').click();
 
         cy.url().should('contain', '/konto/zwei-faktor');
         cy.byTestId('mfaTotpStatus').should('be.visible');

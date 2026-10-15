@@ -19,7 +19,7 @@ describe('PushNotifications', () => {
   it('is reachable from the user menu and shows the unsupported hint', () => {
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-account').click();
-    cy.byTestId('account-tab-notifications').click();
+    cy.byTestId('account-nav-notifications').click();
 
     cy.url().should('contain', '/konto/benachrichtigungen');
     cy.contains('Push-Benachrichtigungen').should('be.visible');
