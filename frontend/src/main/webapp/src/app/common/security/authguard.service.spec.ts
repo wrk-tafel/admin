@@ -13,7 +13,7 @@ describe('AuthGuardService', () => {
     function setup() {
         const authServiceSpy = {
             isAuthenticated: vi.fn().mockName('AuthenticationService.isAuthenticated'),
-            loadUserInfo: vi.fn().mockName('AuthenticationService.loadUserInfo'),
+            revalidateForCurrentNavigation: vi.fn().mockName('AuthenticationService.revalidateForCurrentNavigation'),
             hasAnyPermission: vi.fn().mockName('AuthenticationService.hasAnyPermission'),
             hasAnyPermissionOf: vi.fn().mockName('AuthenticationService.hasAnyPermissionOf'),
             redirectToLogin: vi.fn().mockName('AuthenticationService.redirectToLogin'),
@@ -37,7 +37,7 @@ describe('AuthGuardService', () => {
     it('canActivate when the second factor is still owed redirects to the code page, whatever the route needs', async () => {
         const { service, authServiceSpy } = setup();
         authServiceSpy.isAuthenticated.mockReturnValue(true);
-        authServiceSpy.loadUserInfo.mockResolvedValue({ username: 'u', permissions: [], mfaPending: true });
+        authServiceSpy.revalidateForCurrentNavigation.mockResolvedValue({ username: 'u', permissions: [], mfaPending: true });
         authServiceSpy.isMfaPending.mockReturnValue(true);
 
         const activatedRoute = <ActivatedRouteSnapshot><AuthGuardData>{ data: { anyPermission: true } };
@@ -53,7 +53,7 @@ describe('AuthGuardService', () => {
     it('canActivate when a second factor has to be set up leads every route to the login flow\'s setup page', async () => {
         const { service, authServiceSpy } = setup();
         authServiceSpy.isAuthenticated.mockReturnValue(true);
-        authServiceSpy.loadUserInfo.mockResolvedValue({ username: 'u', permissions: [], mfaSetupRequired: true });
+        authServiceSpy.revalidateForCurrentNavigation.mockResolvedValue({ username: 'u', permissions: [], mfaSetupRequired: true });
         authServiceSpy.isMfaSetupRequired.mockReturnValue(true);
 
         for (const path of ['uebersicht', 'konto', 'zwei-faktor']) {
@@ -78,7 +78,7 @@ describe('AuthGuardService', () => {
     it('canActivate when authenticated', async () => {
         const { service, authServiceSpy } = setup();
         authServiceSpy.isAuthenticated.mockReturnValue(true);
-        authServiceSpy.loadUserInfo.mockResolvedValue({ username: 'user', permissions: ['PERM1'] });
+        authServiceSpy.revalidateForCurrentNavigation.mockResolvedValue({ username: 'user', permissions: ['PERM1'] });
         authServiceSpy.hasAnyPermission.mockReturnValue(true);
 
         const activatedRoute = <ActivatedRouteSnapshot>{ data: {} };
@@ -90,7 +90,7 @@ describe('AuthGuardService', () => {
     it('canActivate when authenticated without permissions', async () => {
         const { service, authServiceSpy } = setup();
         authServiceSpy.isAuthenticated.mockReturnValue(true);
-        authServiceSpy.loadUserInfo.mockResolvedValue({ username: 'user', permissions: [] });
+        authServiceSpy.revalidateForCurrentNavigation.mockResolvedValue({ username: 'user', permissions: [] });
 
         const activatedRoute = <ActivatedRouteSnapshot><AuthGuardData>{ data: {} };
         const canActivate = await service.canActivate(activatedRoute);
@@ -102,7 +102,7 @@ describe('AuthGuardService', () => {
     it('canActivate when authenticated without permissions but anyPermission is necessary', async () => {
         const { service, authServiceSpy } = setup();
         authServiceSpy.isAuthenticated.mockReturnValue(true);
-        authServiceSpy.loadUserInfo.mockResolvedValue({ username: 'user', permissions: [] });
+        authServiceSpy.revalidateForCurrentNavigation.mockResolvedValue({ username: 'user', permissions: [] });
         authServiceSpy.hasAnyPermission.mockReturnValue(false);
 
         const activatedRoute = <ActivatedRouteSnapshot><AuthGuardData>{ data: { anyPermission: true } };
@@ -115,7 +115,7 @@ describe('AuthGuardService', () => {
     it('canActivate when authenticated with wrong permission', async () => {
         const { service, authServiceSpy } = setup();
         authServiceSpy.isAuthenticated.mockReturnValue(true);
-        authServiceSpy.loadUserInfo.mockResolvedValue({ username: 'user', permissions: ['PERM2'] });
+        authServiceSpy.revalidateForCurrentNavigation.mockResolvedValue({ username: 'user', permissions: ['PERM2'] });
         authServiceSpy.hasAnyPermission.mockReturnValue(true);
         authServiceSpy.hasAnyPermissionOf.mockReturnValue(false);
 
@@ -129,7 +129,7 @@ describe('AuthGuardService', () => {
     it('canActivate when authenticated with correct permission', async () => {
         const { service, authServiceSpy } = setup();
         authServiceSpy.isAuthenticated.mockReturnValue(true);
-        authServiceSpy.loadUserInfo.mockResolvedValue({ username: 'user', permissions: ['PERM1'] });
+        authServiceSpy.revalidateForCurrentNavigation.mockResolvedValue({ username: 'user', permissions: ['PERM1'] });
         authServiceSpy.hasAnyPermission.mockReturnValue(true);
         authServiceSpy.hasAnyPermissionOf.mockReturnValue(true);
 
@@ -143,14 +143,14 @@ describe('AuthGuardService', () => {
     it('canActivate when the cached session looks valid but the server says it has expired revalidates and blocks navigation', async () => {
         const { service, authServiceSpy } = setup();
         authServiceSpy.isAuthenticated.mockReturnValue(true);
-        authServiceSpy.loadUserInfo.mockResolvedValue(null);
+        authServiceSpy.revalidateForCurrentNavigation.mockResolvedValue(null);
 
         const activatedRoute = <ActivatedRouteSnapshot><AuthGuardData>{ data: {} };
         const canActivate = await service.canActivate(activatedRoute);
 
         expect(canActivate).toBe(false);
         // errorHandlerInterceptor already redirects with 'abgelaufen' as a side effect of the
-        // loadUserInfo() request's 401 - the guard must not also redirect (would double-navigate).
+        // revalidateForCurrentNavigation() request's 401 - the guard must not also redirect (would double-navigate).
         expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
     });
 
@@ -184,7 +184,7 @@ describe('AuthGuardService with real router navigation (route data inheritance)'
     function mockAuthService(hasAnyPermissionOf: boolean) {
         return {
             isAuthenticated: vi.fn().mockReturnValue(true),
-            loadUserInfo: vi.fn().mockResolvedValue({ username: 'user', permissions: ['CUSTOMER'] }),
+            revalidateForCurrentNavigation: vi.fn().mockResolvedValue({ username: 'user', permissions: ['CUSTOMER'] }),
             hasAnyPermission: vi.fn().mockReturnValue(true),
             hasAnyPermissionOf: vi.fn().mockReturnValue(hasAnyPermissionOf),
             isMfaPending: vi.fn().mockReturnValue(false),

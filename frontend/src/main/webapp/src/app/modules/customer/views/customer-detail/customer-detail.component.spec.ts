@@ -1,5 +1,5 @@
 import type {MockedObject} from 'vitest';
-import {HttpHeaders, HttpResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpHeaders, HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
 import dayjs from 'dayjs';
@@ -161,7 +161,8 @@ describe('CustomerDetailComponent', () => {
       lockCustomer: vi.fn().mockName('CustomerApiService.lockCustomer'),
       unlockCustomer: vi.fn().mockName('CustomerApiService.unlockCustomer'),
       payCostContribution: vi.fn().mockName('CustomerApiService.payCostContribution'),
-      editCostContribution: vi.fn().mockName('CustomerApiService.editCostContribution')
+      editCostContribution: vi.fn().mockName('CustomerApiService.editCostContribution'),
+      getCustomer: vi.fn().mockName('CustomerApiService.getCustomer')
     };
     const customerNoteApiServiceSpy = {
       createNewNote: vi.fn().mockName('CustomerNoteApiService.createNewNote'),
@@ -1102,6 +1103,48 @@ describe('CustomerDetailComponent', () => {
     expect(component.ticketNumber()).toBe(55);
     expect(component.ticketNumberInput()).toBeNull();
     expect(toastr.success).toHaveBeenCalledWith('Ticket wurde zugewiesen!');
+  });
+
+  it('assign ticket reloads the customer when the backend refuses it, so a lock set meanwhile shows', async () => {
+    currentDistributionSignal.set({id: 1, startedAt: new Date()});
+    distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(throwError(() => ({status: 404})));
+    distributionApiService.assignCustomer.mockReturnValue(throwError(() => new HttpErrorResponse({status: 400})));
+    customerApiService.getCustomer.mockReturnValue(of({...mockCustomer, locked: true}));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    component.ticketNumberInput.set(55);
+    component.assignTicket();
+
+    expect(toastr.error).toHaveBeenCalled();
+    expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+    expect(component.customerData().locked).toBe(true);
+    expect(component.ticketNumber()).not.toBe(55);
+  });
+
+  it('assign ticket does not reload the customer on a conflict', async () => {
+    currentDistributionSignal.set({id: 1, startedAt: new Date()});
+    distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(throwError(() => ({status: 404})));
+    distributionApiService.assignCustomer.mockReturnValue(throwError(() => new HttpErrorResponse({status: 409})));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    component.ticketNumberInput.set(55);
+    component.assignTicket();
+
+    expect(customerApiService.getCustomer).not.toHaveBeenCalled();
   });
 
   it('delete ticket calls API correctly and clears ticket number', async () => {

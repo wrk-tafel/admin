@@ -64,7 +64,7 @@ Im unteren Bereich werden die **Berechtigungen** einzeln oder je Kategorie ("All
 
 | Kategorie | Berechtigungen |
 |---|---|
-| Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kunden-Dokumente, Kundenverwaltung, Scanner |
+| Ausgabe & Betrieb | Anmeldung, Ausgabe-Ablauf, Kunden-Dokumente, Kunden-Notfallliste, Kundenverwaltung, Scanner |
 | Logistik | Transport/Logistik |
 | Leitung | Benutzerverwaltung, Einstellungen, Supervisor |
 | Verwaltung | Zugriffsprotokoll, Datenauskunft, Kunden über dem Limit, Kunden-Duplikate, Neu & Verlängert, Statistiken, Administrator |
@@ -74,6 +74,8 @@ Die Berechtigung **Zugriffsprotokoll** gibt Einsicht in den Verlauf aller Änder
 Die Berechtigung **Datenauskunft** gibt Zugriff auf die gleichnamige Seite (siehe [Datenauskunft](datenauskunft.md)), auf der sich Kunden, Benutzerkonten und Mitarbeiter mit einem einzigen Suchfeld finden lassen. Sie kommt **zusätzlich** zur jeweiligen Fachbereichs-Berechtigung hinzu, ersetzt diese aber nicht: Wer dort einen Kunden-Treffer exportieren oder löschen möchte, braucht weiterhin "Kundenverwaltung", bei einem Benutzerkonto "Benutzerverwaltung" und bei einem Mitarbeiter "Einstellungen" – genau wie beim direkten Aufruf über die jeweilige Seite.
 
 Die Berechtigung **Kunden-Dokumente** gibt Zugriff auf den Reiter "Dokumente" der Kunden-Detailseite (hochgeladene Ausweise, Einkommensnachweise und der Import aus dem Scanner-Ordner, siehe [Kunden](kunden.md)). Auch sie ist bewusst von "Kundenverwaltung" getrennt, da diese Dokumente zu den sensibelsten Daten im System gehören und nicht jede Person, die Kundendaten bearbeiten darf, sie auch einsehen muss. Ohne diese Berechtigung ist der Reiter auf der Kunden-Detailseite nicht sichtbar.
+
+Die Berechtigung **Kunden-Notfallliste** erlaubt das Herunterladen der Notfallliste auf der Kunden-Suche - eines ausdruckbaren PDFs mit allen derzeit bezugsberechtigten Kunden für den Fall, dass die Anwendung während einer Ausgabe nicht erreichbar ist (siehe [Kunden](kunden.md#notfallliste)). Sie gilt nur zusammen mit "Kundenverwaltung" und ist bewusst getrennt davon, da mit der Liste das gesamte Kundenverzeichnis auf Papier die Anwendung verlässt - sie ist für jene Personen gedacht, die einen Ausgabetag vorbereiten, nicht für alle an der Annahme.
 
 Die Berechtigung **Administrator** ist eine Sonderrolle für jene Personen, die die Anwendung technisch betreuen: sie schließt automatisch **alle anderen Berechtigungen** mit ein, unabhängig davon, was sonst noch angehakt ist. In der Berechtigungsliste des Benutzers bleibt trotzdem nur "Administrator" markiert – die übrigen Berechtigungen ergeben sich erst bei der Anmeldung.
 

@@ -582,6 +582,39 @@ describe('Customer Detail', () => {
       cy.byTestId('ticket-number-display').should('not.exist');
     });
 
+    it('refuses a ticket for a customer locked after the page was loaded, and then shows the lock', () => {
+      cy.getAnyRandomNumber().then(randomNumber => {
+        cy.createCustomer({
+          firstname: 'Max' + randomNumber,
+          lastname: 'Gesperrt' + randomNumber,
+          birthDate: dayjs().subtract(30, 'year').toDate(),
+          gender: Gender.MALE,
+          country: {id: 165, name: 'Österreich'},
+          address: {street: 'Sperrstraße', houseNumber: '1', city: 'Wien', postalCode: 1010},
+          validUntil: dayjs().add(1, 'year').toDate()
+        }).then((response) => {
+          const customerId = response.body.data.id;
+          cy.intercept('GET', `/api/households/${customerId}/ticket`).as('ticket');
+          cy.visit('/kunden/detail/' + customerId);
+          // the page has to be fully loaded before the lock - otherwise it simply loads the locked state
+          cy.wait('@ticket');
+          cy.byTestId('ticket-number-input').should('be.visible');
+          cy.byTestId('assign-ticket-button').should('be.visible');
+          cy.byTestId('lock-info-banner').should('not.exist');
+
+          // a colleague locks the customer while this page still shows it unlocked
+          cy.request('POST', `/api/households/${customerId}/lock`, {lockReason: 'Gesperrt im Hintergrund'});
+
+          cy.byTestId('ticket-number-input').type('16');
+          cy.byTestId('assign-ticket-button').click();
+
+          cy.get('.toast-message').should('be.visible').and('contain.text', 'ist gesperrt und kann kein Ticket erhalten');
+          cy.byTestId('lock-info-banner').should('exist').and('contain.text', 'Gesperrt im Hintergrund');
+          cy.byTestId('ticket-number-display').should('not.exist');
+        });
+      });
+    });
+
     it('assign ticket button disabled when input is empty', () => {
       cy.visit('/kunden/detail/100');
 
