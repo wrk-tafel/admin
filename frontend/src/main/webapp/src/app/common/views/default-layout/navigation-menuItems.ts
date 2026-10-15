@@ -30,8 +30,14 @@ import bedIcon from '@material-symbols/svg-400/outlined/bed-fill.svg';
 import campaignIcon from '@material-symbols/svg-400/outlined/campaign-fill.svg';
 import deleteHistoryIcon from '@material-symbols/svg-400/outlined/delete_history-fill.svg';
 import mailIcon from '@material-symbols/svg-400/outlined/mail-fill.svg';
+import arrowBackIcon from '@material-symbols/svg-400/outlined/arrow_back-fill.svg';
+import privacyTipIcon from '@material-symbols/svg-400/outlined/privacy_tip-fill.svg';
+import passwordIcon from '@material-symbols/svg-400/outlined/password-fill.svg';
+import shieldLockIcon from '@material-symbols/svg-400/outlined/shield_lock-fill.svg';
+import notificationsIcon from '@material-symbols/svg-400/outlined/notifications-fill.svg';
+import paletteIcon from '@material-symbols/svg-400/outlined/palette-fill.svg';
 
-// Every icon name used anywhere in navigationMenuItems below, registered once from here rather than
+// Every icon name used anywhere in the menus below, registered once from here rather than
 // by each consumer (DefaultLayoutComponent's sidebar, QuickOpenDialogComponent's flattened search
 // results) - two independent lists silently drifting out of sync is exactly how an icon ends up
 // registered for one consumer but not the other.
@@ -67,7 +73,13 @@ export function registerNavigationIcons(): void {
     bed: bedIcon,
     campaign: campaignIcon,
     delete_history: deleteHistoryIcon,
-    mail: mailIcon
+    mail: mailIcon,
+    arrow_back: arrowBackIcon,
+    privacy_tip: privacyTipIcon,
+    password: passwordIcon,
+    shield_lock: shieldLockIcon,
+    notifications: notificationsIcon,
+    palette: paletteIcon
   });
 }
 
@@ -88,7 +100,128 @@ export interface ITafelNavData {
   badge?: { text: string; color: string };
   attributes?: { disabled?: boolean };
   children?: ITafelNavData[];
+  /** The entry's `testid` in the sidebar. */
+  testId?: string;
+  /** The entry is shown as the open page only on its own address, not on the pages below it (an area's overview). */
+  exact?: boolean;
 }
+
+/** "Mein Konto" and its topics. */
+export const ACCOUNT_PATH = '/konto';
+
+/** The settings: their overview page and every settings screen below it. */
+export const SETTINGS_PATH = '/einstellungen';
+
+/**
+ * The account's topics in three groups. Every entry is the address of a child route of `account.routes.ts`. None needs a
+ * permission: every user has an account.
+ */
+export const accountMenuItems: ITafelNavData[] = [
+  {name: 'Profil', title: true},
+  {name: 'Meine Daten', url: '/konto/daten', icon: 'person', testId: 'account-nav-data'},
+  {name: 'Datenschutz', url: '/konto/datenschutz', icon: 'privacy_tip', testId: 'account-nav-privacy'},
+  {name: 'Sicherheit', title: true},
+  {name: 'Passwort', url: '/konto/passwort', icon: 'password', testId: 'account-nav-password'},
+  {name: 'Zwei-Faktor-Authentifizierung', url: '/konto/zwei-faktor', icon: 'shield_lock', testId: 'account-nav-mfa'},
+  {name: 'Einstellungen', title: true},
+  {name: 'Benachrichtigungen', url: '/konto/benachrichtigungen', icon: 'notifications', testId: 'account-nav-notifications'},
+  {name: 'Design', url: '/konto/design', icon: 'palette', testId: 'account-nav-theme'}
+];
+
+/**
+ * Every settings screen, under the topic it belongs to: the children of the main menu's single "Einstellungen" link, the
+ * cards of the overview page (`SettingsOverviewComponent`), the palette's "Einstellungen › ..." entries and the settings
+ * area's sidebar (`sidebarAreas`) all read this one list. Each entry needs the main menu's `SETTINGS` on top of its own
+ * permissions.
+ */
+export const settingsMenuItems: ITafelNavData[] = [
+  {
+    name: 'Logistik',
+    title: true
+  },
+  {
+    name: 'Fahrzeuge',
+    url: '/einstellungen/fahrzeuge',
+    icon: 'local_shipping',
+    description: 'Fahrzeuge für Warenabholungen verwalten'
+  },
+  {
+    name: 'Filialen',
+    url: '/einstellungen/filialen',
+    icon: 'store',
+    description: 'Filialen und Ansprechpersonen der Warenspender'
+  },
+  {
+    name: 'Mitarbeiter',
+    url: '/einstellungen/mitarbeiter',
+    icon: 'badge',
+    description: 'Fahrer und Beifahrer der Warenabholungen'
+  },
+  {
+    name: 'Routen',
+    url: '/einstellungen/routen',
+    icon: 'route',
+    description: 'Abholrouten mit ihren Filialen'
+  },
+  {
+    name: 'Waren-Kategorien',
+    url: '/einstellungen/lebensmittelkategorien',
+    icon: 'category',
+    description: 'Kategorien der erfassten Waren'
+  },
+  {
+    name: 'Retour-Kategorien',
+    url: '/einstellungen/retourkategorien',
+    icon: 'assignment_return',
+    description: 'Kategorien der retournierten Waren'
+  },
+  {
+    name: 'Kunden & Betreuung',
+    title: true
+  },
+  {
+    name: 'Grenzwerte',
+    url: '/einstellungen/statische-werte',
+    icon: 'straighten',
+    description: 'Einkommensgrenzen und weitere statische Werte'
+  },
+  {
+    name: 'Länder',
+    url: '/einstellungen/laender',
+    icon: 'public',
+    description: 'Länder zur Auswahl der Staatsangehörigkeit'
+  },
+  {
+    name: 'Notschlafstellen',
+    url: '/einstellungen/notschlafstellen',
+    icon: 'bed',
+    description: 'Notschlafstellen und ihre Personenzahl'
+  },
+  {
+    name: 'System',
+    title: true
+  },
+  {
+    name: 'Ankündigungen',
+    url: '/einstellungen/ankuendigungen',
+    icon: 'campaign',
+    description: 'Nachrichten an alle Benutzer veröffentlichen',
+    permissions: ['ADMINISTRATOR']
+  },
+  {
+    name: 'Anstehende Löschungen',
+    url: '/einstellungen/anstehende-loeschungen',
+    icon: 'delete_history',
+    description: 'Was die automatische Datenlöschung bald entfernt',
+    permissions: ['ADMINISTRATOR']
+  },
+  {
+    name: 'E-Mail',
+    url: '/einstellungen/email',
+    icon: 'mail',
+    description: 'Empfänger automatischer E-Mails und erneuter Versand'
+  }
+];
 
 export const navigationMenuItems: ITafelNavData[] = [
   {
@@ -254,93 +387,69 @@ export const navigationMenuItems: ITafelNavData[] = [
     url: '/einstellungen',
     permissions: ['SETTINGS'],
     linkOnly: true,
-    children: [
-      {
-        name: 'Logistik',
-        title: true
-      },
-      {
-        name: 'Fahrzeuge',
-        url: '/einstellungen/fahrzeuge',
-        icon: 'local_shipping',
-        description: 'Fahrzeuge für Warenabholungen verwalten'
-      },
-      {
-        name: 'Filialen',
-        url: '/einstellungen/filialen',
-        icon: 'store',
-        description: 'Filialen und Ansprechpersonen der Warenspender'
-      },
-      {
-        name: 'Mitarbeiter',
-        url: '/einstellungen/mitarbeiter',
-        icon: 'badge',
-        description: 'Fahrer und Beifahrer der Warenabholungen'
-      },
-      {
-        name: 'Routen',
-        url: '/einstellungen/routen',
-        icon: 'route',
-        description: 'Abholrouten mit ihren Filialen'
-      },
-      {
-        name: 'Waren-Kategorien',
-        url: '/einstellungen/lebensmittelkategorien',
-        icon: 'category',
-        description: 'Kategorien der erfassten Waren'
-      },
-      {
-        name: 'Retour-Kategorien',
-        url: '/einstellungen/retourkategorien',
-        icon: 'assignment_return',
-        description: 'Kategorien der retournierten Waren'
-      },
-      {
-        name: 'Kunden & Betreuung',
-        title: true
-      },
-      {
-        name: 'Grenzwerte',
-        url: '/einstellungen/statische-werte',
-        icon: 'straighten',
-        description: 'Einkommensgrenzen und weitere statische Werte'
-      },
-      {
-        name: 'Länder',
-        url: '/einstellungen/laender',
-        icon: 'public',
-        description: 'Länder zur Auswahl der Staatsangehörigkeit'
-      },
-      {
-        name: 'Notschlafstellen',
-        url: '/einstellungen/notschlafstellen',
-        icon: 'bed',
-        description: 'Notschlafstellen und ihre Personenzahl'
-      },
-      {
-        name: 'System',
-        title: true
-      },
-      {
-        name: 'Ankündigungen',
-        url: '/einstellungen/ankuendigungen',
-        icon: 'campaign',
-        description: 'Nachrichten an alle Benutzer veröffentlichen',
-        permissions: ['ADMINISTRATOR']
-      },
-      {
-        name: 'Anstehende Löschungen',
-        url: '/einstellungen/anstehende-loeschungen',
-        icon: 'delete_history',
-        description: 'Was die automatische Datenlöschung bald entfernt',
-        permissions: ['ADMINISTRATOR']
-      },
-      {
-        name: 'E-Mail',
-        url: '/einstellungen/email',
-        icon: 'mail',
-        description: 'Empfänger automatischer E-Mails und erneuter Versand'
-      }
-    ],
-  },
+    children: settingsMenuItems
+  }
 ];
+
+/**
+ * A part of the application whose pages the sidebar lists in place of the main menu while one of them is open: the
+ * area's pages in their groups, with the way back to the application at the top, so the area has one navigation and its
+ * page the full width. Every page keeps its own address; the area only decides what the sidebar shows.
+ */
+export interface SidebarArea {
+  /** The area's own address; it is open on this address and every one below it. */
+  path: string;
+  /** The navigation landmark's name for a screen reader. */
+  label: string;
+  /** The `nav`'s `testid`; each entry's is this plus a suffix. */
+  testId: string;
+  /** What the sidebar shows, filtered by permission like the main menu. */
+  items: ITafelNavData[];
+}
+
+function backToApplication(testId: string): ITafelNavData {
+  return {name: 'Zurück zur Anwendung', url: '/uebersicht', icon: 'arrow_back', testId};
+}
+
+/** A settings screen's `testid` in the area's sidebar: the last segment of its address, e.g. `settings-nav-fahrzeuge`. */
+function withSettingsTestId(item: ITafelNavData): ITafelNavData {
+  return item.url ? {...item, testId: `settings-nav-${item.url.split('/').pop()}`} : item;
+}
+
+const settingsMenu = navigationMenuItems.find(item => item.url === SETTINGS_PATH)!;
+
+export const sidebarAreas: SidebarArea[] = [
+  {
+    path: ACCOUNT_PATH,
+    label: 'Mein Konto',
+    testId: 'account-nav',
+    items: [backToApplication('account-nav-back'), ...accountMenuItems]
+  },
+  {
+    path: SETTINGS_PATH,
+    label: 'Einstellungen',
+    testId: 'settings-nav',
+    // The main menu's permission goes on every entry here, as it does for the entries below it there.
+    items: [
+      backToApplication('settings-nav-back'),
+      {
+        name: 'Übersicht',
+        url: SETTINGS_PATH,
+        icon: 'settings',
+        exact: true,
+        testId: 'settings-nav-overview',
+        permissions: settingsMenu.permissions
+      },
+      ...settingsMenuItems.map(item => item.title ? item : withSettingsTestId({
+        ...item,
+        permissions: [...(settingsMenu.permissions ?? []), ...(item.permissions ?? [])]
+      }))
+    ]
+  }
+];
+
+/** The area the address belongs to, or `undefined` for one the main menu serves. Query and fragment do not count. */
+export function sidebarAreaOf(url: string): SidebarArea | undefined {
+  const path = url.split(/[?#]/)[0];
+  return sidebarAreas.find(area => path === area.path || path.startsWith(area.path + '/'));
+}

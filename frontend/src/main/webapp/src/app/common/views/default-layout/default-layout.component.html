@@ -31,7 +31,8 @@
       </a>
     </div>
 
-    <nav class="py-2 overflow-y-auto grow" aria-label="Hauptnavigation">
+    <nav #sidebarNav class="py-2 overflow-y-auto grow" [attr.aria-label]="sidebarArea()?.label ?? 'Hauptnavigation'"
+         [attr.testid]="sidebarArea()?.testId ?? 'main-nav'">
       @for (item of navItems(); track item.name + '-' + $index) {
         @if (item.title) {
           @if (!effectiveCollapsed()) {
@@ -75,6 +76,8 @@
                 disabled.
               -->
               <a [routerLink]="item.attributes?.disabled ? null : item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
+                 [routerLinkActiveOptions]="{exact: !!item.exact}" ariaCurrentWhenActive="page"
+                 [attr.testid]="item.testId ?? null"
                  (click)="!item.attributes?.disabled && isMobile() && sidenav.close()"
                  class="flex items-center gap-3 px-4 py-3"
                  [ngClass]="item.attributes?.disabled ? 'cursor-default' : 'tafel-sidenav-hoverable cursor-pointer'"

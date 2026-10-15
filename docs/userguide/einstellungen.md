@@ -2,7 +2,7 @@
 
 # Einstellungen
 
-Der Bereich "Einstellungen" bündelt die zentrale Konfiguration der Anwendung. Der Menüpunkt ist nur für Benutzer mit der Berechtigung "Einstellungen" sichtbar. Er öffnet eine Übersichtsseite mit allen Bereichen als Karten, gruppiert nach **Logistik**, **Kunden & Betreuung** und **System**; ein Klick auf eine Karte öffnet den Bereich.
+Der Bereich "Einstellungen" bündelt die zentrale Konfiguration der Anwendung. Der Menüpunkt ist nur für Benutzer mit der Berechtigung "Einstellungen" sichtbar. Er öffnet eine Übersichtsseite mit allen Bereichen als Karten, gruppiert nach **Logistik**, **Kunden & Betreuung** und **System**; ein Klick auf eine Karte öffnet den Bereich. Solange eine Seite der Einstellungen geöffnet ist, zeigt die Seitenleiste statt des Hauptmenüs die **Übersicht** und dieselben Bereiche in denselben Gruppen, sodass man direkt von einem Bereich zum nächsten wechselt; **Zurück zur Anwendung** ganz oben führt wieder zur Übersicht der Anwendung und zum Hauptmenü.
 
 ![Einstellungen – Übersicht](images/einstellungen-uebersicht.jpg)
 

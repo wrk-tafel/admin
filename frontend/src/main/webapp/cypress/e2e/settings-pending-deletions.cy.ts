@@ -464,7 +464,10 @@ describe('Settings - Pending deletions', () => {
       cy.visit('/einstellungen/mitarbeiter');
       cy.get('h1').should('contain.text', 'Mitarbeiter');
 
-      cy.get('nav[aria-label="Hauptnavigation"]').contains('a', 'Einstellungen').should('be.visible').click();
+      // a settings page shows the settings in the sidebar, without the entry as well
+      cy.byTestId('settings-nav-mitarbeiter').should('be.visible');
+      cy.byTestId('settings-nav-anstehende-loeschungen').should('not.exist');
+      cy.byTestId('settings-nav-overview').click();
       cy.byTestId('settings-overview-/einstellungen/mitarbeiter').should('be.visible');
       cy.byTestId(`settings-overview-${SCREEN_URL}`).should('not.exist');
     });

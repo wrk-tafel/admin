@@ -123,8 +123,6 @@ export const routes: Routes = [
       },
       {
         path: 'konto',
-        loadComponent: () => import('./modules/user/views/user-account/user-account.component')
-          .then(m => m.UserAccountComponent),
         loadChildren: () => import('./modules/user/account.routes').then(m => m.routes)
       }
     ]

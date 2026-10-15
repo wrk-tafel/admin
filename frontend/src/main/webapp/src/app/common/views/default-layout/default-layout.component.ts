@@ -1,14 +1,14 @@
-import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
+import {afterNextRender, Component, computed, effect, ElementRef, inject, Injector, signal, untracked, viewChild} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
-import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
+import {NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {MatSidenavContainer, MatSidenavModule} from '@angular/material/sidenav';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {BreakpointObserver} from '@angular/cdk/layout';
-import {map} from 'rxjs';
+import {filter, map} from 'rxjs';
 import {MatIcon} from '@angular/material/icon';
 import {DatePipe, NgClass, NgOptimizedImage} from '@angular/common';
 import {DefaultHeaderComponent} from './default-header/default-header.component';
-import {ITafelNavData, navigationMenuItems, registerNavigationIcons} from './navigation-menuItems';
+import {ITafelNavData, navigationMenuItems, registerNavigationIcons, sidebarAreaOf} from './navigation-menuItems';
 import {AuthenticationService} from '../../security/authentication.service';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
@@ -52,6 +52,8 @@ export class DefaultLayoutComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly configApiService = inject(ConfigApiService);
   private readonly window = inject(Window);
+  private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
 
   readonly distribution = this.globalStateService.getCurrentDistribution();
   readonly appConfig = toSignal(this.configApiService.observeConfig(), {initialValue: null});
@@ -64,6 +66,19 @@ export class DefaultLayoutComponent {
     // way the signals can change, not just the two toggle methods.
     effect(() => this.persistToStorage(COLLAPSED_STORAGE_KEY, String(this.collapsed())));
     effect(() => this.persistToStorage(EXPANDED_GROUPS_STORAGE_KEY, JSON.stringify([...this.expandedItems()])));
+
+    // Another menu in the sidebar - an area opened or left - starts at its top. The nav keeps its scroll position
+    // otherwise, and a menu opened from an entry far down the main one would show its end. Moving within an area keeps
+    // the position, so the entry just clicked stays where it was.
+    let shownArea = untracked(this.sidebarArea);
+    effect(() => {
+      const area = this.sidebarArea();
+      if (area === shownArea) {
+        return;
+      }
+      shownArea = area;
+      afterNextRender(() => this.sidebarNav().nativeElement.scrollTop = 0, {injector: this.injector});
+    });
 
     registerSvgIcons({
       keyboard_arrow_down: keyboardArrowDownIcon,
@@ -82,6 +97,8 @@ export class DefaultLayoutComponent {
   readonly sidenavContainer = viewChild.required(MatSidenavContainer);
 
   readonly mainContent = viewChild.required<ElementRef<HTMLElement>>('mainContent');
+
+  private readonly sidebarNav = viewChild.required<ElementRef<HTMLElement>>('sidebarNav');
 
   /** The page's `h1`; see `TafelTitleStrategy.routeTitle`. */
   readonly pageTitle = inject(TafelTitleStrategy).routeTitle;
@@ -112,7 +129,22 @@ export class DefaultLayoutComponent {
   // what's rendered.
   readonly effectiveCollapsed = computed(() => this.collapsed() && !this.isMobile());
 
+  private readonly url = toSignal(
+    this.router.events.pipe(filter(event => event instanceof NavigationEnd), map(() => this.router.url)),
+    {initialValue: this.router.url}
+  );
+
+  /**
+   * The area whose pages the sidebar lists instead of the main menu - "Mein Konto" or the settings - or `undefined` on a
+   * page of the main menu.
+   */
+  readonly sidebarArea = computed(() => sidebarAreaOf(this.url()));
+
   readonly navItems = computed(() => {
+    const area = this.sidebarArea();
+    if (area) {
+      return this.filterEmptyTitleItems(this.filterNavItemsByPermissions(area.items));
+    }
     const distribution = this.distribution();
     let items = this.filterNavItemsByPermissions(navigationMenuItems);
     items = items.map(item => item.linkOnly ? {...item, children: undefined} : item);

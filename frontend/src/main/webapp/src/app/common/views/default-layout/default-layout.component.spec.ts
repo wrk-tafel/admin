@@ -7,9 +7,9 @@ import { GlobalStateService } from '../../state/global-state.service';
 import { DistributionItem } from '../../../api/distribution-api.service';
 import { ConfigApiService } from '../../../api/config-api.service';
 import { provideLocationMocks } from '@angular/common/testing';
-import { provideRouter, Router, TitleStrategy } from '@angular/router';
+import { NavigationEnd, provideRouter, Router, TitleStrategy } from '@angular/router';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { TafelTitleStrategy } from '../../util/tafel-title-strategy';
 import { By } from '@angular/platform-browser';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -573,6 +573,100 @@ return true;
         const link = Array.from<HTMLAnchorElement>(fixture.nativeElement.querySelectorAll('nav a'))
             .find(a => a.textContent!.includes('Einstellungen'))!;
         expect(link.getAttribute('href')).toBe('/einstellungen');
+    });
+
+    // "Mein Konto" takes the sidebar over: its topics in three groups, with the way back at the top.
+    it('shows the account menu instead of the main menu while a page of "Mein Konto" is open', () => {
+        const url = vi.spyOn(TestBed.inject(Router), 'url', 'get').mockReturnValue('/konto/zwei-faktor');
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        fixture.detectChanges();
+        const nav: HTMLElement = fixture.nativeElement.querySelector('nav[testid="account-nav"]');
+
+        expect(fixture.componentInstance.sidebarArea()?.label).toBe('Mein Konto');
+        expect(nav.getAttribute('aria-label')).toBe('Mein Konto');
+        expect(fixture.componentInstance.navItems().filter(item => item.title).map(item => item.name))
+            .toEqual(['Profil', 'Sicherheit', 'Einstellungen']);
+        expect(nav.querySelector('[testid="account-nav-back"]')?.getAttribute('href')).toBe('/uebersicht');
+        expect(nav.querySelector('[testid="account-nav-mfa"]')?.getAttribute('href')).toBe('/konto/zwei-faktor');
+
+        url.mockReturnValue('/kontoauszug');
+        expect(TestBed.createComponent(DefaultLayoutComponent).componentInstance.sidebarArea()).toBeUndefined();
+    });
+
+    it('shows the main menu everywhere else', () => {
+        authService.hasAnyPermission.mockReturnValue(true);
+        vi.spyOn(TestBed.inject(Router), 'url', 'get').mockReturnValue('/uebersicht');
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        fixture.detectChanges();
+
+        expect(fixture.componentInstance.sidebarArea()).toBeUndefined();
+        expect(fixture.nativeElement.querySelector('nav[testid="main-nav"]').getAttribute('aria-label')).toBe('Hauptnavigation');
+        expect(fixture.componentInstance.navItems().some(item => item.name === 'Übersicht')).toBe(true);
+    });
+
+    // The settings take the sidebar over as well: the overview and every screen in its group.
+    describe('on a settings page', () => {
+        function settingsNav(url: string) {
+            vi.spyOn(TestBed.inject(Router), 'url', 'get').mockReturnValue(url);
+            const fixture = TestBed.createComponent(DefaultLayoutComponent);
+            fixture.detectChanges();
+            return {fixture, nav: fixture.nativeElement.querySelector('nav[testid="settings-nav"]') as HTMLElement};
+        }
+
+        it('shows the settings menu with its groups, the overview and the way back', () => {
+            authService.hasPermission.mockReturnValue(true);
+            const {fixture, nav} = settingsNav('/einstellungen/fahrzeuge?x=1');
+
+            expect(nav.getAttribute('aria-label')).toBe('Einstellungen');
+            expect(fixture.componentInstance.navItems().filter(item => item.title).map(item => item.name))
+                .toEqual(['Logistik', 'Kunden & Betreuung', 'System']);
+            expect(nav.querySelector('[testid="settings-nav-back"]')?.getAttribute('href')).toBe('/uebersicht');
+            expect(nav.querySelector('[testid="settings-nav-overview"]')?.getAttribute('href')).toBe('/einstellungen');
+            expect(nav.querySelector('[testid="settings-nav-fahrzeuge"]')?.getAttribute('href')).toBe('/einstellungen/fahrzeuge');
+            expect(nav.querySelector('[testid="settings-nav-ankuendigungen"]')).not.toBeNull();
+        });
+
+        it('opens on the overview page itself', () => {
+            authService.hasPermission.mockReturnValue(true);
+
+            expect(settingsNav('/einstellungen').nav).not.toBeNull();
+        });
+
+        it('leaves out the screens the user may not open', () => {
+            authService.hasPermission.mockImplementation(permission => permission === 'SETTINGS');
+            const {nav} = settingsNav('/einstellungen/fahrzeuge');
+
+            expect(nav.querySelector('[testid="settings-nav-fahrzeuge"]')).not.toBeNull();
+            expect(nav.querySelector('[testid="settings-nav-ankuendigungen"]')).toBeNull();
+            expect(nav.querySelector('[testid="settings-nav-anstehende-loeschungen"]')).toBeNull();
+        });
+    });
+
+    // A menu opened from an entry far down the main one would otherwise show its end.
+    it('starts another menu at its top, and keeps the position within an area', async () => {
+        authService.hasPermission.mockReturnValue(true);
+        const router = TestBed.inject(Router);
+        const url = vi.spyOn(router, 'url', 'get').mockReturnValue('/uebersicht');
+        const fixture = TestBed.createComponent(DefaultLayoutComponent);
+        fixture.detectChanges();
+        const nav = (): HTMLElement => fixture.nativeElement.querySelector('nav');
+        const navigateTo = async (path: string) => {
+            url.mockReturnValue(path);
+            (router.events as Subject<unknown>).next(new NavigationEnd(1, path, path));
+            fixture.detectChanges();
+            await fixture.whenStable();
+        };
+
+        nav().scrollTop = 300;
+        expect(nav().scrollTop).toBeGreaterThan(0);
+        await navigateTo('/einstellungen');
+        expect(nav().getAttribute('testid')).toBe('settings-nav');
+        expect(nav().scrollTop).toBe(0);
+
+        nav().scrollTop = 20;
+        expect(nav().scrollTop).toBe(20);
+        await navigateTo('/einstellungen/fahrzeuge');
+        expect(nav().scrollTop).toBe(20);
     });
 
     // The pending-deletions screen is for administrators only, so a user holding SETTINGS alone

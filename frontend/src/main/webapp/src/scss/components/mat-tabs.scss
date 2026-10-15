@@ -21,20 +21,6 @@
   overflow: hidden;
 }
 
-// The link-based tab bar (`mat-tab-nav-bar` + `mat-tab-nav-panel`, "Mein Konto") is not a
-// `.mat-mdc-tab-group`: its header and panel are siblings, so a wrapper carries the same border,
-// radius and surface. It does not clip, so the header rounds its own top corners instead.
-.tafel-tab-nav-group {
-  border: var(--tafel-border-color) solid 1px;
-  border-radius: var(--mat-sys-corner-medium);
-  background-color: var(--tafel-surface);
-
-  > .mat-mdc-tab-header {
-    border-top-left-radius: var(--mat-sys-corner-medium);
-    border-top-right-radius: var(--mat-sys-corner-medium);
-  }
-}
-
 // Material renders each tab's projected content inside this wrapper with no padding of its own,
 // so it sits flush against the tab body's edges. Give every tab some breathing room instead of
 // relying on each tab's own template to add it ad hoc.
@@ -56,10 +42,7 @@
   display: none !important;
 }
 
-// The link-based tab bar (`mat-tab-nav-bar`, e.g. "Mein Konto") has its own scroll viewport,
-// `.mat-mdc-tab-link-container`, and gets the same treatment.
-.mat-mdc-tab-label-container,
-.mat-mdc-tab-link-container {
+.mat-mdc-tab-label-container {
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;

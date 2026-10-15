@@ -12,7 +12,7 @@ import {MatIcon} from '@angular/material/icon';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {TafelInfoTooltipComponent} from '../../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {TafelAutofocusDirective} from '../../../../../common/directive/tafel-autofocus.directive';
-import {ITafelNavData, navigationMenuItems, registerNavigationIcons} from '../../navigation-menuItems';
+import {accountMenuItems, ITafelNavData, navigationMenuItems, registerNavigationIcons} from '../../navigation-menuItems';
 import {AuthenticationService} from '../../../../../common/security/authentication.service';
 import {GlobalStateService} from '../../../../../common/state/global-state.service';
 import {CustomerApiService, CustomerData} from '../../../../../api/customer-api.service';
@@ -76,6 +76,12 @@ export function flattenNavigationItems(
   return result;
 }
 
+/**
+ * The topics of "Mein Konto", which the main menu does not list (the user menu opens them, and the sidebar shows them
+ * once a page of the account is open) - found from anywhere, like a settings screen.
+ */
+const ACCOUNT_GROUP: ITafelNavData = {name: 'Mein Konto', icon: 'person', children: accountMenuItems};
+
 const SEARCH_DEBOUNCE_MS = 250;
 const MIN_CUSTOMER_SEARCH_CHARS = 2;
 const CUSTOMER_RESULT_LIMIT = 5;
@@ -118,7 +124,7 @@ export class QuickOpenDialogComponent {
 
   private readonly navEntries = computed(() =>
     flattenNavigationItems(
-      navigationMenuItems,
+      [...navigationMenuItems, ACCOUNT_GROUP],
       permission => this.authenticationService.hasPermission(permission),
       this.distribution() !== null
     )

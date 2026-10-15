@@ -198,6 +198,20 @@ describe('QuickOpenDialogComponent', () => {
     expect(component.navResults()).toEqual([]);
   });
 
+  // The main menu does not list them, but the palette finds them from anywhere.
+  it('finds the topics of "Mein Konto" without any permission', () => {
+    authenticationService.hasPermission.mockReturnValue(false);
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.query.set('zwei-faktor');
+    fixture.detectChanges();
+
+    expect(component.navResults())
+      .toEqual([{label: 'Mein Konto › Zwei-Faktor-Authentifizierung', url: '/konto/zwei-faktor', icon: 'shield_lock'}]);
+  });
+
   it('opening a navigation entry navigates and closes the dialog', () => {
     const navigateByUrl = vi.spyOn(router, 'navigateByUrl');
     const fixture = TestBed.createComponent(QuickOpenDialogComponent);
