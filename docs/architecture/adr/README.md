@@ -57,6 +57,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0059](0059-second-factor-changes-need-an-existing-second-factor.md) | A completed session proves an existing second factor before it changes the second factor | accepted |
 | [0061](0061-mandatory-two-factor-setup-happens-in-the-login-flow.md) | A mandatory two-factor setup happens in the login flow, not inside the application | accepted |
 | [0062](0062-mandatory-mfa-also-requires-an-email-address.md) | A mandatory second factor also requires an e-mail address on file | accepted |
+| [0072](0072-mailed-links-carry-a-hashed-single-use-token-in-the-fragment.md) | Mailed links carry a hashed, single-use token in the URL fragment | accepted |
 | [0063](0063-one-event-stream-per-tab-with-topics.md) | One event stream per browser tab, made of topics | accepted |
 | [0064](0064-client-error-reports-and-the-event-stream-need-a-completed-login.md) | Client-error reports and the event stream need a completed login | accepted |
 | [0066](0066-the-digital-id-card-is-a-pdf-and-an-image-not-a-wallet-pass.md) | The digital ID card is a PDF and an image, not a wallet pass | superseded by [0067](0067-the-id-card-is-handed-out-on-paper-only.md) |

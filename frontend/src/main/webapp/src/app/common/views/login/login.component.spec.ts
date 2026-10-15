@@ -274,6 +274,22 @@ describe('LoginComponent', () => {
         });
     });
 
+    describe('passwordResetAvailable', () => {
+        it('offers "Passwort vergessen?" only when the deployment says so', () => {
+            configApiService.getPublicConfig.mockReturnValue(of({environmentLabel: '', passwordResetAvailable: true}));
+            expect(TestBed.createComponent(LoginComponent).componentInstance.passwordResetAvailable()).toBe(true);
+        });
+
+        it('hides the link without mail or when the public config cannot be read', () => {
+            configApiService.getPublicConfig.mockReturnValue(of(null));
+            const fixture = TestBed.createComponent(LoginComponent);
+            fixture.detectChanges();
+
+            expect(fixture.componentInstance.passwordResetAvailable()).toBe(false);
+            expect(fixture.nativeElement.querySelector('[testid="forgotPasswordLink"]')).toBeNull();
+        });
+    });
+
     describe('capsLockActive', () => {
         it('is set when Caps Lock is on and cleared again once it is turned off', () => {
             const fixture = TestBed.createComponent(LoginComponent);

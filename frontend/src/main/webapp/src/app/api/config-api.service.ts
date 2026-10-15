@@ -70,4 +70,6 @@ export interface PublicAppConfig {
    * page so it's obvious which one is being logged into.
    */
   environmentLabel: string;
+  /** Whether the login page offers "Passwort vergessen?" - only where mails can be sent and linked back. */
+  passwordResetAvailable?: boolean;
 }
