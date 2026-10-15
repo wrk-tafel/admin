@@ -11,6 +11,7 @@ import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdLockReview
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdLockService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdMergeService
 import at.wrk.tafel.admin.backend.modules.household.internal.HouseholdService
+import at.wrk.tafel.admin.backend.modules.household.internal.emergencylist.HouseholdEmergencyListService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
@@ -31,6 +32,7 @@ class HouseholdController(
     private val householdExportService: HouseholdExportService,
     private val householdLockReviewService: HouseholdLockReviewService,
     private val householdLockService: HouseholdLockService,
+    private val householdEmergencyListService: HouseholdEmergencyListService,
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -184,6 +186,24 @@ class HouseholdController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun generatePrivacyNoticeTemplatePdf(): ResponseEntity<InputStreamResource> {
         val pdfResult = householdService.generatePrivacyNoticeTemplatePdf()
+        val headers = ContentDispositionUtil.inline(pdfResult.filename)
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
+    }
+
+    /**
+     * The "Notfallliste" - every household entitled today as a PDF, to print before a distribution
+     * day in case the application cannot be reached. A flat path like `/privacy-notice-template`,
+     * since it spans the register rather than one household.
+     */
+    @GetMapping("/emergency-list", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_EMERGENCY_LIST')")
+    fun generateEmergencyListPdf(): ResponseEntity<InputStreamResource> {
+        val pdfResult = householdEmergencyListService.generateEmergencyListPdf()
         val headers = ContentDispositionUtil.inline(pdfResult.filename)
 
         return ResponseEntity

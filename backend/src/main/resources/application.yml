@@ -172,7 +172,7 @@ spring:
       writetimeout: 10000
   jpa:
     open-in-view: false
-  # Login sessions (ADR-0070). The tables come from Flyway (R__00132_spring_session.sql) like every
+  # Login sessions (ADR-0070). The tables come from Flyway (R__00133_spring_session.sql) like every
   # other one, so Spring Session never creates them itself. Its own cleanup deletes expired rows
   # every minute, on every instance - a plain `delete ... where expiry_time < now` that two instances
   # can run at once without harm (see docs/scheduled-jobs.md).

@@ -124,6 +124,7 @@ export class SettingsCarsComponent {
   protected readonly visibleCars = computed(() =>
     (this.cars()?.cars ?? []).filter(car => matchesEnabledFilter(car.enabled, this.enabledFilter()))
   );
+  private readonly allCars = computed(() => this.cars()?.cars ?? []);
   protected readonly enabledCount = computed(() => (this.cars()?.cars ?? []).filter(car => car.enabled).length);
   protected readonly totalCount = computed(() => (this.cars()?.cars ?? []).length);
 
@@ -190,7 +191,7 @@ export class SettingsCarsComponent {
         this.editingId.set(null);
         this.loadCars();
       },
-      error: () => this.toastr.error('Speichern fehlgeschlagen', 'Fehler')
+      error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Speichern fehlgeschlagen')
     });
   }
 
@@ -213,7 +214,7 @@ export class SettingsCarsComponent {
   }
 
   protected addCar() {
-    const data: CarCreateDialogData = {existingCars: this.cars()?.cars ?? []};
+    const data: CarCreateDialogData = {existingCars: this.allCars};
     const dialogRef = this.dialog.open(CarCreateDialogComponent, {
       width: '600px',
       data
@@ -228,7 +229,7 @@ export class SettingsCarsComponent {
             this.toastr.success('Fahrzeug erstellt', 'Erfolgreich');
             this.loadCars();
           },
-          error: () => this.toastr.error('Erstellen fehlgeschlagen', 'Fehler')
+          error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Erstellen fehlgeschlagen')
         });
       }
     });

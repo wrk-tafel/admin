@@ -16,6 +16,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.distribution.events.AllTicketsProcessedEvent
@@ -792,6 +793,74 @@ internal class DistributionServiceTest {
                 },
             )
         }
+    }
+
+    @Test
+    fun `assign a locked household is refused`() {
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        testHouseholdEntity1.locked = true
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { householdRepository.findByHouseholdId(100) } returns testHouseholdEntity1
+
+        val exception = assertThrows<BusinessRuleException> {
+            service.assignHouseholdToDistribution(householdId = 100, ticketNumber = 200)
+        }
+
+        assertThat(exception.statusCode.value()).isEqualTo(400)
+        assertThat(exception.body.detail).isEqualTo("Kunde Nr. 100 ist gesperrt und kann kein Ticket erhalten!")
+        verify(exactly = 0) { distributionHouseholdRepository.save(any()) }
+        verify(exactly = 0) { distributionRepository.markCheckinStarted(any(), any()) }
+    }
+
+    @Test
+    fun `a locked household cannot swap its existing ticket for another one`() {
+        testHouseholdEntity1.locked = true
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+            households = listOf(
+                DistributionHouseholdEntity(distribution = this, household = testHouseholdEntity1, ticketNumber = 50).apply { id = 999 },
+            )
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { householdRepository.findByHouseholdId(100) } returns testHouseholdEntity1
+
+        assertThrows<BusinessRuleException> {
+            service.assignHouseholdToDistribution(householdId = 100, ticketNumber = 51)
+        }
+        verify(exactly = 0) { distributionHouseholdRepository.save(any()) }
+    }
+
+    @Test
+    fun `a locked household may re-submit the ticket it already holds`() {
+        testHouseholdEntity1.locked = true
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+            households = listOf(
+                DistributionHouseholdEntity(distribution = this, household = testHouseholdEntity1, ticketNumber = 50).apply { id = 999 },
+            )
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { householdRepository.findByHouseholdId(100) } returns testHouseholdEntity1
+        every { distributionHouseholdRepository.save(any()) } returns mockk()
+
+        service.assignHouseholdToDistribution(householdId = 100, ticketNumber = 50)
+
+        verify { distributionHouseholdRepository.save(withArg { assertThat(it.ticketNumber).isEqualTo(50) }) }
+    }
+
+    @Test
+    fun `assign an expired household is still accepted`() {
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        testHouseholdEntity1.validUntil = LocalDate.now().minusMonths(2)
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { householdRepository.findByHouseholdId(100) } returns testHouseholdEntity1
+        every { distributionHouseholdRepository.save(any()) } returns mockk()
+
+        service.assignHouseholdToDistribution(householdId = 100, ticketNumber = 200)
+
+        verify { distributionHouseholdRepository.save(withArg { assertThat(it.ticketNumber).isEqualTo(200) }) }
     }
 
     @Test

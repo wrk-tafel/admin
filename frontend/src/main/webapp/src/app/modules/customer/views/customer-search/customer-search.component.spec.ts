@@ -1,6 +1,6 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {ActivatedRoute, convertToParamMap, Router} from '@angular/router';
+import {ActivatedRoute, convertToParamMap, DefaultUrlSerializer, Router} from '@angular/router';
 import {HttpErrorResponse, HttpHeaders, HttpResponse} from '@angular/common/http';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -13,6 +13,8 @@ import {By} from '@angular/platform-browser';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {MatDialog} from '@angular/material/dialog';
 import {DeleteCustomerDialogComponent} from '../customer-detail/dialogs/delete-customer-dialog.component';
+import {EmergencyListDialogComponent} from './dialogs/emergency-list-dialog.component';
+import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 
@@ -22,6 +24,7 @@ describe('CustomerSearchComponent', () => {
   let toastr: MockedObject<TafelToastrService>;
   let fileHelperService: MockedObject<FileHelperService>;
   let dialog: { open: ReturnType<typeof vi.fn> };
+  let authenticationService: { hasPermission: ReturnType<typeof vi.fn> };
   let queryParams: Record<string, string>;
 
   const testCustomer = {
@@ -63,7 +66,14 @@ describe('CustomerSearchComponent', () => {
             getCustomer: vi.fn().mockName('CustomerApiService.getCustomer'),
             searchCustomer: vi.fn().mockName('CustomerApiService.searchCustomer'),
             deleteCustomer: vi.fn().mockName('CustomerApiService.deleteCustomer'),
-            generatePrivacyNoticeTemplate: vi.fn().mockName('CustomerApiService.generatePrivacyNoticeTemplate')
+            generatePrivacyNoticeTemplate: vi.fn().mockName('CustomerApiService.generatePrivacyNoticeTemplate'),
+            generateEmergencyList: vi.fn().mockName('CustomerApiService.generateEmergencyList')
+          }
+        },
+        {
+          provide: AuthenticationService,
+          useValue: {
+            hasPermission: vi.fn().mockName('AuthenticationService.hasPermission').mockReturnValue(false)
           }
         },
         {
@@ -82,6 +92,8 @@ describe('CustomerSearchComponent', () => {
           provide: Router,
           useValue: {
             navigate: vi.fn().mockName('Router.navigate').mockResolvedValue(true),
+            currentNavigation: vi.fn().mockName('Router.currentNavigation').mockReturnValue(null),
+            url: '/kunden/suchen',
             // the result table's name column is a real link now, and RouterLink builds
             // its href from these two
             createUrlTree: vi.fn().mockName('Router.createUrlTree').mockReturnValue({}),
@@ -109,6 +121,7 @@ describe('CustomerSearchComponent', () => {
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
     dialog = TestBed.inject(MatDialog) as unknown as { open: ReturnType<typeof vi.fn> };
+    authenticationService = TestBed.inject(AuthenticationService) as unknown as { hasPermission: ReturnType<typeof vi.fn> };
 
     // The component searches once as it is constructed, before any test can arrange a response -
     // without a default here every test would fail on the constructor rather than on its subject.
@@ -505,6 +518,33 @@ describe('CustomerSearchComponent', () => {
     }));
   });
 
+  it('does not write the URL when a search answers while a navigation to another page runs', () => {
+    apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+    const {component} = createComponent();
+    router.navigate.mockClear();
+    // a result was clicked - writing the search state now would cancel that navigation
+    router.currentNavigation.mockReturnValue({extractedUrl: new DefaultUrlSerializer().parse('/kunden/detail/1')} as any);
+
+    component.query.set('muster');
+    component.search();
+
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('still writes the URL while only a navigation to other query parameters of this page runs', () => {
+    apiService.searchCustomer.mockReturnValue(of(searchCustomerMockResponse));
+    const {component} = createComponent();
+    router.navigate.mockClear();
+    router.currentNavigation.mockReturnValue({extractedUrl: new DefaultUrlSerializer().parse('/kunden/suchen?suche=alt')} as any);
+
+    component.query.set('muster');
+    component.search();
+
+    expect(router.navigate).toHaveBeenCalledWith([], expect.objectContaining({
+      queryParams: expect.objectContaining({suche: 'muster'})
+    }));
+  });
+
   describe('the "Kunden anlegen" empty-state CTA', () => {
 
     it('prefills first and last name from a two-word query', () => {
@@ -625,6 +665,53 @@ describe('CustomerSearchComponent', () => {
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-vorlage.pdf', response.body);
     expect(component.downloadingPrivacyNoticeTemplate()).toBe(false);
+  });
+
+  describe('emergency list', () => {
+
+    const emergencyListResponse = () => new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=notfallliste-2026-10-15.pdf'}),
+      body: new Blob()
+    });
+
+    it('hides the button without CUSTOMER_EMERGENCY_LIST', () => {
+      const {fixture} = createComponent();
+      fixture.detectChanges();
+
+      expect(authenticationService.hasPermission).toHaveBeenCalledWith('CUSTOMER_EMERGENCY_LIST');
+      expect(fixture.debugElement.query(By.css('[testid="emergencyListButton"]'))).toBeNull();
+    });
+
+    it('shows the button with CUSTOMER_EMERGENCY_LIST', () => {
+      authenticationService.hasPermission.mockImplementation((permission: string) => permission === 'CUSTOMER_EMERGENCY_LIST');
+      const {fixture} = createComponent();
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('[testid="emergencyListButton"]'))).not.toBeNull();
+    });
+
+    it('downloads the list once the dialog is confirmed', () => {
+      apiService.generateEmergencyList.mockReturnValue(of(emergencyListResponse()));
+      dialog.open.mockReturnValueOnce({afterClosed: () => of(true)});
+
+      const {component} = createComponent();
+      component.openEmergencyListDialog();
+
+      expect(dialog.open).toHaveBeenCalledWith(EmergencyListDialogComponent);
+      expect(fileHelperService.downloadFile).toHaveBeenCalledWith('notfallliste-2026-10-15.pdf', expect.any(Blob));
+      expect(component.downloadingEmergencyList()).toBe(false);
+    });
+
+    it('downloads nothing when the dialog is cancelled', () => {
+      dialog.open.mockReturnValueOnce({afterClosed: () => of(undefined)});
+
+      const {component} = createComponent();
+      component.openEmergencyListDialog();
+
+      expect(apiService.generateEmergencyList).not.toHaveBeenCalled();
+      expect(fileHelperService.downloadFile).not.toHaveBeenCalled();
+    });
   });
 
   describe('delete', () => {

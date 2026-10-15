@@ -34,7 +34,7 @@ Postgres is already shared by every instance and is where everything else the ap
 **A login is a row in `spring_session` (Spring Session JDBC); the cookie `tafel-admin-session`
 carries nothing but its random id. The JWT is gone, and so is `users.token_invalidated_at`.**
 
-- **The schema comes from Flyway** (`R__00132_spring_session.sql`, Spring Session's own Postgres
+- **The schema comes from Flyway** (`R__00133_spring_session.sql`, Spring Session's own Postgres
   schema); `spring.session.jdbc.initialize-schema: never`.
 - **A session holds strings only** (`TafelSessionAttributes`): the username, whether the second factor
   was passed, a random *session key*, the browser's User-Agent. No Java-serialized `SecurityContext`:
@@ -140,6 +140,6 @@ rows find nothing to fight over; there is no work to share out.
   `TafelSessionAuthenticationFilter.kt`, `SessionBoundCsrfTokenRepository.kt`
 - `backend/src/main/kotlin/at/wrk/tafel/admin/backend/common/auth/UserSessionController.kt`
 - `backend/src/main/kotlin/at/wrk/tafel/admin/backend/config/WebSecurityConfig.kt`, `SessionCookieConfig.kt`
-- `backend/src/main/resources/db-migration/R__00132_spring_session.sql`,
-  `R__00133_drop_users_token_invalidated_at.sql`
+- `backend/src/main/resources/db-migration/R__00133_spring_session.sql`,
+  `R__00134_drop_users_token_invalidated_at.sql`
 - `frontend/src/main/webapp/src/app/modules/user/components/user-sessions/`

@@ -101,7 +101,7 @@ class UserControllerEscalationIT : TafelBaseIntegrationTest() {
     @Test
     fun `an administrator caller can reset another administrator's password`() {
         // A real login expands the ADMINISTRATOR authority into every permission (see
-        // TafelJwtAuthProvider.effectivePermissions) - USER_MANAGEMENT is what the endpoint's
+        // TafelSessionAuthProvider.effectivePermissions) - USER_MANAGEMENT is what the endpoint's
         // @PreAuthorize actually checks, so it has to be present here too. The caller is another account than the
         // one being reset - resetting one's own password here is refused, see below.
         authenticateAs(userManager, UserPermissions.ADMINISTRATOR, UserPermissions.USER_MANAGEMENT)

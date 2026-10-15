@@ -334,8 +334,13 @@ export class CheckinComponent {
           this.cancel();
         },
         // the interceptor's error toast is the whole presentation a failed check-in needs - without
-        // this callback the rethrown HttpErrorResponse would escape as an uncaught application error
-        error: () => {
+        // this callback the rethrown HttpErrorResponse would escape as an uncaught application error.
+        // A 400 is the backend refusing this household (e.g. locked by a colleague after it was
+        // loaded here), so it is loaded again to show the state the refusal is about.
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 400) {
+            this.customerSearchTrigger.next(customerId);
+          }
         }
       };
       this.distributionApiService.assignCustomer(customerId, ticketNumber).subscribe(observer);

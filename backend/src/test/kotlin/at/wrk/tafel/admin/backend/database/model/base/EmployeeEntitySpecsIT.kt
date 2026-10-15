@@ -40,6 +40,38 @@ class EmployeeEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     @Test
+    fun `searchInputMatches treats percent and underscore as ordinary characters`() {
+        val tag = generateRandomLong()
+        val withPercent = persist(personnelNumber = "p$tag", firstname = "a", lastname = "Rabatt%$tag")
+        val withUnderscore = persist(personnelNumber = "u_$tag", firstname = "a", lastname = "a")
+        val plain = persist(personnelNumber = "x$tag", firstname = "a", lastname = "a")
+        testEntityManager.flush()
+
+        val percentResult = employeeRepository.findAll(EmployeeEntity.Specs.searchInputMatches("%")!!).map { it.id }
+        val underscoreResult = employeeRepository.findAll(EmployeeEntity.Specs.searchInputMatches("_")!!).map { it.id }
+
+        assertThat(percentResult).contains(withPercent.id).doesNotContain(withUnderscore.id, plain.id)
+        assertThat(underscoreResult).contains(withUnderscore.id).doesNotContain(withPercent.id, plain.id)
+    }
+
+    @Test
+    fun `searchInputMatches copes with a backslash in the term`() {
+        val tag = generateRandomLong()
+        val withBackslash = persist(personnelNumber = "b$tag", firstname = "a\\b", lastname = "a")
+        val plain = persist(personnelNumber = "x$tag", firstname = "a", lastname = "a")
+        testEntityManager.flush()
+
+        val result = employeeRepository.findAll(EmployeeEntity.Specs.searchInputMatches("\\")!!).map { it.id }
+
+        assertThat(result).contains(withBackslash.id).doesNotContain(plain.id)
+    }
+
+    @Test
+    fun `searchInputMatches returns null spec for a blank search input`() {
+        assertThat(EmployeeEntity.Specs.searchInputMatches("   ")).isNull()
+    }
+
+    @Test
     fun `orderById sorts ascending by id by default`() {
         val tag = generateRandomLong()
         val first = persist(personnelNumber = "1$tag", firstname = "a", lastname = "a")

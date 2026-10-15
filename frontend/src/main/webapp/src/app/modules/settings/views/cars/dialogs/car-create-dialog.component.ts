@@ -1,4 +1,4 @@
-import {Component, computed, inject} from '@angular/core';
+import {Component, computed, inject, Signal} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -11,8 +11,12 @@ import {CarData} from '../../../../../api/car-api.service';
 import {normalizeLicensePlate} from '../license-plate';
 
 export interface CarCreateDialogData {
-  /** Every car there is, disabled ones included - that is what the duplicate check needs to see. */
-  existingCars: CarData[];
+  /**
+   * Every car there is, disabled ones included - that is what the duplicate check needs to see. A
+   * signal rather than a snapshot: the dialog can be opened before the list has arrived, and a car
+   * loaded after that still has to count.
+   */
+  existingCars: Signal<CarData[]>;
 }
 
 /** Either a car to create, or the existing car the admin decided to re-enable instead. */
@@ -60,7 +64,7 @@ export class CarCreateDialogComponent {
     if (!plate) {
       return undefined;
     }
-    return this.data.existingCars.find(car => normalizeLicensePlate(car.licensePlate) === plate);
+    return this.data.existingCars().find(car => normalizeLicensePlate(car.licensePlate) === plate);
   });
 
   /** Uppercases while typing rather than on save, so what is stored is what the admin saw. */

@@ -190,6 +190,15 @@ class DistributionService(
                 throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")
             }
 
+            // The lock is enforced here rather than only by the screens: a screen that loaded the
+            // household before a colleague locked it still offers the ticket. Re-submitting the
+            // ticket the household already holds stays possible - it changes nothing about who
+            // gets food today. An expired validity is deliberately no refusal, only the lock is.
+            val resubmitsOwnTicket = existingHousehold?.ticketNumber == ticketNumber
+            if (household.locked && !resubmitsOwnTicket) {
+                throw BusinessRuleException("Kunde Nr. $householdId ist gesperrt und kann kein Ticket erhalten!")
+            }
+
             val entry = existingHousehold ?: DistributionHouseholdEntity(
                 distribution = distribution,
                 household = household,
