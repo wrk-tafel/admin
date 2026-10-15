@@ -61,6 +61,15 @@ describe('Global quick-open', () => {
     cy.byTestId('quick-open-dialog').should('not.exist');
   });
 
+  it('Enter right after typing opens the first result of what was just typed', () => {
+    openPaletteViaShortcut();
+    // typed and confirmed in one go - no waiting for the result list to catch up with the query
+    cy.byTestId('quickOpenInput').type('Fahrzeuge{enter}');
+
+    cy.url().should('include', '/einstellungen/fahrzeuge');
+    cy.byTestId('quick-open-dialog').should('not.exist');
+  });
+
   it('arrow keys move the focus through the results', () => {
     openPaletteViaShortcut();
     cy.byTestId('quickOpenInput').type('Notschlafstellen');

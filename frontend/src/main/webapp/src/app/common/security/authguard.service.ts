@@ -24,12 +24,14 @@ export class AuthGuardService {
    * revalidates against the server first. If that revalidation itself 401s, the
    * errorHandlerInterceptor's auth-error handling already redirects with the `abgelaufen`
    * message as a side effect of the failed request, so this only needs to stop the navigation.
+   * The revalidation happens once per navigation, not once per guarded level of the route - see
+   * `AuthenticationService.revalidateForCurrentNavigation`.
    */
   async canActivate(childRoute: ActivatedRouteSnapshot): Promise<boolean> {
     const routeData: AuthGuardData = childRoute.data;
 
     const wasAuthenticated = this.authenticationService.isAuthenticated();
-    const userInfo = wasAuthenticated ? await this.authenticationService.loadUserInfo() : null;
+    const userInfo = wasAuthenticated ? await this.authenticationService.revalidateForCurrentNavigation() : null;
     if (userInfo === null) {
       if (!wasAuthenticated) {
         this.authenticationService.redirectToLogin();

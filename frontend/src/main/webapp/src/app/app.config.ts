@@ -81,7 +81,7 @@ export const appConfig: ApplicationConfig = {
       provide: TitleStrategy,
       useExisting: TafelTitleStrategy
     },
-    provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
+    provideAppInitializer(() => inject(AuthenticationService).loadUserInfoForInitialNavigation()),
     provideAppInitializer(() => inject(SwUpdateService).init()),
     // As early as possible: what a support request is worth is decided by whether the error it is
     // about was still around to be attached.
