@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 
 @ExtendWith(MockKExtension::class)
@@ -101,6 +102,62 @@ class CarServiceTest {
                 sortOrder = updated.sortOrder,
             ),
         )
+    }
+
+    @Test
+    fun `create car refuses a license plate another car already has, ignoring case and blanks`() {
+        every { carRepository.existsOtherWithLicensePlate("W-NC-456", null) } returns true
+
+        val exception = assertThrows<ConflictException> {
+            service.createCar(CarRequest(id = null, licensePlate = "  w-nc-456 ", name = "Bus", enabled = true, sortOrder = 0))
+        }
+
+        assertThat(exception.body.detail).isEqualTo("Ein Fahrzeug mit dem Kennzeichen W-NC-456 ist bereits vorhanden!")
+        verify(exactly = 0) { carRepository.save(any()) }
+    }
+
+    @Test
+    fun `update car refuses the license plate of another car`() {
+        val existingEntity = CarEntity(licensePlate = "W-OLD-1", sortOrder = 1, enabled = true).apply {
+            id = 99
+            name = "Old Car"
+        }
+        every { carRepository.findByIdOrNull(99L) } returns existingEntity
+        every { carRepository.existsOtherWithLicensePlate("W-NC-456", 99L) } returns true
+
+        assertThrows<ConflictException> {
+            service.updateCar(99L, CarRequest(id = 99L, licensePlate = "w-nc-456", name = "Old Car", enabled = true, sortOrder = 1))
+        }
+        verify(exactly = 0) { carRepository.save(any()) }
+        assertThat(existingEntity.licensePlate).isEqualTo("W-OLD-1")
+    }
+
+    @Test
+    fun `update car keeping its own license plate is no conflict`() {
+        val existingEntity = CarEntity(licensePlate = "W-OWN-1", sortOrder = 1, enabled = true).apply {
+            id = 99
+            name = "Old Car"
+        }
+        every { carRepository.findByIdOrNull(99L) } returns existingEntity
+        every { carRepository.save(any()) } answers { firstArg() as CarEntity }
+
+        service.updateCar(99L, CarRequest(id = 99L, licensePlate = "W-OWN-1", name = "Renamed", enabled = true, sortOrder = 1))
+
+        // the car itself is excluded from the lookup, so its own plate never counts as taken
+        verify { carRepository.existsOtherWithLicensePlate("W-OWN-1", 99L) }
+        verify { carRepository.save(existingEntity) }
+    }
+
+    @Test
+    fun `create car answers a conflict when the unique index catches a concurrent duplicate`() {
+        every { carRepository.findAll() } returns emptyList()
+        every { carRepository.save(any()) } throws DataIntegrityViolationException("cars_license_plate_unique_idx")
+
+        val exception = assertThrows<ConflictException> {
+            service.createCar(CarRequest(id = null, licensePlate = "W-RACE-1", name = "Bus", enabled = true, sortOrder = 0))
+        }
+
+        assertThat(exception.body.detail).isEqualTo("Ein Fahrzeug mit dem Kennzeichen W-RACE-1 ist bereits vorhanden!")
     }
 
     @Test

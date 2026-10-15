@@ -37,6 +37,36 @@ describe('Settings - Cars', () => {
     cy.byTestId('saveNewCarButton').should('be.disabled');
   });
 
+  it('warns about an existing license plate even when the dialog was opened before the list arrived', () => {
+    let releaseCars: () => void = () => undefined;
+    const carsHeldBack = new Promise<void>(resolve => releaseCars = resolve);
+    cy.intercept('GET', '/api/cars', (request) => {
+      request.continue(response => carsHeldBack.then(() => response.send()));
+    }).as('cars');
+    cy.reload();
+
+    cy.byTestId('addCarButton').click();
+    cy.get('input[formControlName="licensePlate"]').should('be.visible').type('w-nc-456');
+    cy.byTestId('carDuplicateHint').should('not.exist');
+
+    cy.then(() => releaseCars());
+    cy.wait('@cars');
+
+    cy.byTestId('carDuplicateHint').should('be.visible').and('contain.text', 'W-NC-456');
+    cy.byTestId('saveNewCarButton').should('be.disabled');
+  });
+
+  it('refuses a license plate another car already has when it is entered in an inline edit', () => {
+    cy.byTestId('cars-table').contains('tr', 'W-NC-123').within(() => {
+      cy.get('[testid^="editCarButton-"]').click();
+    });
+    // the edited row renders its inputs in place of the plate text, so it is found by its input
+    cy.get('[testid="cars-table"] [testid^="carLicensePlateInput-"]').clear().type('W-NC-456{enter}');
+
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'Kennzeichen W-NC-456 ist bereits vorhanden');
+    cy.byTestId('cars-table').find('tr').filter(':contains("W-NC-456")').should('have.length', 1);
+  });
+
   it('offers to re-activate a deactivated car instead of creating it again', () => {
     cy.byTestId('addCarButton').click();
     cy.get('input[formControlName="licensePlate"]').should('be.visible').type('w-nc-111');

@@ -1,4 +1,5 @@
 import type {MockedObject} from 'vitest';
+import {signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {CarCreateDialogComponent, CarCreateDialogData} from './car-create-dialog.component';
@@ -8,6 +9,7 @@ describe('CarCreateDialogComponent', () => {
   const activeCar: CarData = {id: 1, licensePlate: 'W-11111A', name: 'Bus 1', enabled: true, sortOrder: 1};
   const disabledCar: CarData = {id: 2, licensePlate: 'W-22222B', name: 'Bus 2', enabled: false, sortOrder: 2};
 
+  const existingCars = signal<CarData[]>([]);
   let dialogRef: MockedObject<MatDialogRef<CarCreateDialogComponent>>;
 
   const configureWith = async (data: CarCreateDialogData) => {
@@ -24,7 +26,8 @@ describe('CarCreateDialogComponent', () => {
   };
 
   beforeEach(async () => {
-    await configureWith({existingCars: [activeCar, disabledCar]});
+    existingCars.set([activeCar, disabledCar]);
+    await configureWith({existingCars});
   });
 
   it('component can be created', () => {
@@ -87,6 +90,20 @@ describe('CarCreateDialogComponent', () => {
     fixture.detectChanges();
 
     component.form.controls.licensePlate.setValue(' w-11111a ');
+
+    expect(component.duplicate()).toBe(activeCar);
+  });
+
+  it('recognizes an existing plate once the car list arrives after the dialog was opened', () => {
+    existingCars.set([]);
+    const fixture = TestBed.createComponent(CarCreateDialogComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.controls.licensePlate.setValue('W-11111A');
+    expect(component.duplicate()).toBeUndefined();
+
+    existingCars.set([activeCar, disabledCar]);
 
     expect(component.duplicate()).toBe(activeCar);
   });

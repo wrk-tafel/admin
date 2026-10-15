@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.database.model.base
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
@@ -24,13 +25,18 @@ class EmployeeEntity(
 
     interface Specs {
         companion object {
-            fun searchInputMatches(searchInput: String?): Specification<EmployeeEntity>? = searchInput?.let {
+            /**
+             * `%` and `_` in the term are matched as the characters they are, not as `LIKE`
+             * wildcards - same escaping as the `search_text` searches (see [SearchTextSpecs]).
+             */
+            fun searchInputMatches(searchInput: String?): Specification<EmployeeEntity>? = SearchTextSpecs.normalize(searchInput)?.let {
                 Specification { root: Root<EmployeeEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    val pattern = "%${it.lowercase()}%"
+                    val pattern = "%${SearchTextSpecs.escapeLikeWildcards(it)}%"
+                    val escape = SearchTextSpecs.LIKE_ESCAPE_CHARACTER
                     cb.or(
-                        cb.like(cb.lower(root["personnelNumber"]), pattern),
-                        cb.like(cb.lower(root["firstname"]), pattern),
-                        cb.like(cb.lower(root["lastname"]), pattern),
+                        cb.like(cb.lower(root["personnelNumber"]), pattern, escape),
+                        cb.like(cb.lower(root["firstname"]), pattern, escape),
+                        cb.like(cb.lower(root["lastname"]), pattern, escape),
                     )
                 }
             }

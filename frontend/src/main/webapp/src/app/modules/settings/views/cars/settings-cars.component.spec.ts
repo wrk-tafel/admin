@@ -5,7 +5,7 @@ import {CdkDragDrop} from '@angular/cdk/drag-drop';
 import {SettingsCarsComponent} from './settings-cars.component';
 import {CarApiService, CarData, CarList} from '../../../../api/car-api.service';
 import {MatDialog} from '@angular/material/dialog';
-import {of, throwError} from 'rxjs';
+import {of, Subject, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {LiveAnnouncer} from '@angular/cdk/a11y';
 
@@ -276,9 +276,25 @@ describe('SettingsCarsComponent', () => {
 
     component['addCar']();
 
-    expect(matDialogMock.open).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      data: {existingCars: [testCar1, disabledCar]}
-    }));
+    const data = (matDialogMock.open as any).mock.calls[0][1].data;
+    expect(data.existingCars()).toEqual([testCar1, disabledCar]);
+  });
+
+  it('addCar() hands the dialog the cars that arrive after it was opened', () => {
+    const cars$ = new Subject<CarList>();
+    carApiMock.getAllCars = vi.fn(() => cars$.asObservable());
+
+    const fixture = TestBed.createComponent(SettingsCarsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component['addCar']();
+    const data = (matDialogMock.open as any).mock.calls[0][1].data;
+    expect(data.existingCars()).toEqual([]);
+
+    cars$.next({cars: [testCar1, disabledCar]});
+
+    expect(data.existingCars()).toEqual([testCar1, disabledCar]);
   });
 
   it('drop() reverts and shows an error toast when persisting fails', () => {
