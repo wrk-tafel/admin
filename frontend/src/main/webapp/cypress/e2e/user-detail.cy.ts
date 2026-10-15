@@ -124,6 +124,8 @@ describe('User Detail', () => {
         // the user logs in somewhere - and the administrator logs back in here
         cy.login(userData.username, password);
         cy.getCookie('tafel-admin-session').then(usersSession => {
+          // a login ends the session the browser already had - so the user's is put aside first
+          cy.clearCookie('tafel-admin-session');
           cy.loginDefault();
           cy.visit('/benutzer/detail/' + response.body.id);
 

@@ -1,8 +1,15 @@
 import {MAIN_CONTENT} from '../support/accessibility';
 
-// "Mein Konto" > "Sitzungen": the own logins, and ending them. Each `cy.loginDefault()` opens a session of its own
-// for `e2etest` - the ones opened before the last stand for other devices; the last one is this browser's.
+// "Mein Konto" > "Sitzungen": the own logins, and ending them. A login ends the session the browser already had, so
+// another device is played by logging in, putting that session's cookie aside and dropping it from the browser before
+// the next login - which is then this browser's.
 const SESSION_COOKIE = 'tafel-admin-session';
+
+/** Logs `e2etest` in on "another device" and yields that session's cookie; the browser itself holds none afterwards. */
+function loginOnAnotherDevice(): Cypress.Chainable<string> {
+  cy.loginDefault();
+  return cy.getCookie(SESSION_COOKIE).then(cookie => cy.clearCookie(SESSION_COOKIE).then(() => cookie!.value));
+}
 
 /** The key the API knows the session behind the browser's current cookie by. */
 function currentSessionKey(): Cypress.Chainable<string> {
@@ -28,7 +35,7 @@ describe('Sessions', () => {
   });
 
   it('lists the own sessions with this one marked, reachable from the account menu', () => {
-    cy.loginDefault();
+    loginOnAnotherDevice();
     cy.loginDefault();
     cy.visit('/konto/daten');
 
@@ -46,9 +53,10 @@ describe('Sessions', () => {
   });
 
   it('ends another session, which is logged out at once', () => {
-    cy.loginDefault();
-    cy.getCookie(SESSION_COOKIE).then(otherDevice => {
+    loginOnAnotherDevice().then(otherDevice => {
+      cy.setCookie(SESSION_COOKIE, otherDevice, {httpOnly: true});
       currentSessionKey().then(otherKey => {
+        cy.clearCookie(SESSION_COOKIE);
         cy.loginDefault();
         cy.visit('/konto/sitzungen');
 
@@ -59,14 +67,13 @@ describe('Sessions', () => {
         cy.contains('Sitzung wurde beendet.').should('be.visible');
         cy.get(`[testid="user-session"][data-session-id="${otherKey}"]`).should('not.exist');
         cy.byTestId('user-session-current-badge').should('be.visible');
-        expectSessionEnded(otherDevice!.value);
+        expectSessionEnded(otherDevice);
       });
     });
   });
 
   it('ends all other sessions and keeps this one', () => {
-    cy.loginDefault();
-    cy.getCookie(SESSION_COOKIE).then(otherDevice => {
+    loginOnAnotherDevice().then(otherDevice => {
       cy.loginDefault();
       cy.visit('/konto/sitzungen');
 
@@ -76,7 +83,7 @@ describe('Sessions', () => {
       cy.byTestId('user-session').should('have.length', 1);
       cy.byTestId('user-sessions-no-others').should('be.visible');
       cy.checkAccessibility(MAIN_CONTENT);
-      expectSessionEnded(otherDevice!.value);
+      expectSessionEnded(otherDevice);
 
       // and this browser is still logged in
       cy.reload();
@@ -86,8 +93,7 @@ describe('Sessions', () => {
   });
 
   it('logging out ends only this session', () => {
-    cy.loginDefault();
-    cy.getCookie(SESSION_COOKIE).then(otherDevice => {
+    loginOnAnotherDevice().then(otherDevice => {
       cy.loginDefault();
       cy.visit('/uebersicht');
 
@@ -95,7 +101,7 @@ describe('Sessions', () => {
       cy.byTestId('usermenu-logout').click();
       cy.url().should('include', '/login');
 
-      cy.setCookie(SESSION_COOKIE, otherDevice!.value, {httpOnly: true});
+      cy.setCookie(SESSION_COOKIE, otherDevice, {httpOnly: true});
       cy.request('/api/users/info').its('status').should('eq', 200);
     });
   });
