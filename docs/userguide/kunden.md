@@ -30,6 +30,18 @@ Auf schmalen Bildschirmen wird das Suchergebnis statt als Tabelle als Kartenlist
 
 Findet die Suche keinen Kunden, erscheint statt des Ergebnisses der Hinweis "Keine Kunden gefunden" mit einem Button **Kunden anlegen** - dieser öffnet das Formular für einen neuen Kunden und übernimmt dabei den eingegebenen Suchbegriff bereits als Name, sofern dieser wie ein Name aussieht (keine reine Zahl): ein einzelnes Wort als Nachname, bei mehreren Wörtern das erste als Vorname und den Rest als Nachname.
 
+<a id="notfallliste"></a>
+
+### Notfallliste
+
+Die Anwendung braucht eine Internetverbindung - ohne Verbindung zum Server lässt sich weder ein Kunde suchen noch anmelden. Fällt das WLAN am Ausgabeort aus, genügt meist schon ein Handy-Hotspot. Für den Fall, dass die Anwendung trotzdem nicht erreichbar ist (etwa bei einer Störung des Servers), gibt es die **Notfallliste**: ein PDF zum Ausdrucken mit allen Kunden, die am Tag des Abrufs bezugsberechtigt sind - Kundennummer, Name der Hauptperson, Anzahl der Personen im Haushalt, Gültigkeitsdatum und eine allfällige Sperre ("gesperrt" bzw. "gesperrt bis TT.MM.JJJJ"). Gesperrte Kunden stehen bewusst mit auf der Liste und sind farbig hinterlegt, damit auch auf Papier erkennbar ist, wer an diesem Tag nichts bekommt; Kunden mit abgelaufener Gültigkeit fehlen. Die Liste ist nach Kundennummer sortiert. Anders als die "Kundenliste" einer Ausgabe (siehe [Anmeldung](anmeldung.md)), die nur die bereits angemeldeten Kunden enthält, ist sie damit schon vor Beginn einer Ausgabe brauchbar - sie sollte daher vor jedem Ausgabetag neu ausgedruckt werden.
+
+Der Button **Notfallliste** rechts oben auf der Kunden-Suche ist nur mit der Berechtigung **Kunden-Notfallliste** sichtbar (zusätzlich zu "Kundenverwaltung", siehe [Benutzer](benutzer.md)). Vor dem Herunterladen erklärt ein Dialog, wie mit dem Ausdruck umzugehen ist: Die Liste enthält personenbezogene Daten aller Kunden, sie ist bis zur Verwendung versperrt aufzubewahren, darf nicht mit nach Hause genommen werden und ist nach dem Ausgabetag zu vernichten. Derselbe Hinweis steht in der Fußzeile jeder Seite. Erst **Notfallliste herunterladen** erstellt das PDF; jeder Abruf wird im [Zugriffsprotokoll](zugriffsprotokoll.md) als "Notfallliste" mit der Anzahl der enthaltenen Haushalte festgehalten.
+
+![Notfallliste - Hinweis vor dem Herunterladen](images/kunden-notfallliste-dialog.jpg)
+
+![Notfallliste (PDF)](images/kunden-notfallliste-pdf.jpg)
+
 <a id="kunden-detail"></a>
 
 ## Kunden-Detail

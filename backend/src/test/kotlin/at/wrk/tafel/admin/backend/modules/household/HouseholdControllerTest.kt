@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.CountryItem
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.household.internal.*
+import at.wrk.tafel.admin.backend.modules.household.internal.emergencylist.HouseholdEmergencyListService
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorDetails
 import at.wrk.tafel.admin.backend.modules.household.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -48,6 +49,9 @@ class HouseholdControllerTest {
 
     @RelaxedMockK
     private lateinit var householdLockService: HouseholdLockService
+
+    @RelaxedMockK
+    private lateinit var householdEmergencyListService: HouseholdEmergencyListService
 
     @InjectMockKs
     private lateinit var controller: HouseholdController
@@ -622,6 +626,23 @@ class HouseholdControllerTest {
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
+    }
+
+    @Test
+    fun `generate emergency list pdf`() {
+        val testFilename = "notfallliste-2026-10-15.pdf"
+        every { householdEmergencyListService.generateEmergencyListPdf() } returns HouseholdPdfResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray(),
+        )
+
+        val response = controller.generateEmergencyListPdf()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+        assertThat(response.headers.contentDisposition.type).isEqualTo("inline")
+        assertThat(response.headers.contentDisposition.filename).isEqualTo(testFilename)
+        assertThat(String(response.body?.inputStream?.readAllBytes()!!)).isEqualTo(testFilename)
     }
 
     @Test

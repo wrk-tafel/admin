@@ -128,7 +128,8 @@ export const auditEntityTypeLabel: Record<string, string> = {
   LockedHouseholds: 'Gesperrte Kunden',
   HouseholdsOverview: 'Neu & Verlängert',
   HouseholdDuplicates: 'Duplikate',
-  HouseholdMergePreview: 'Zusammenführen (Vorschau)'
+  HouseholdMergePreview: 'Zusammenführen (Vorschau)',
+  HouseholdEmergencyList: 'Notfallliste'
 };
 
 export const auditOperationLabel: Record<AuditOperation, string> = {
@@ -272,6 +273,7 @@ export const auditValueLabel: Record<string, Record<string, string>> = {
     CUSTOMER: 'Kundenverwaltung',
     CUSTOMER_DOCUMENTS: 'Kunden-Dokumente',
     CUSTOMER_DUPLICATES: 'Kunden-Duplikate',
+    CUSTOMER_EMERGENCY_LIST: 'Kunden-Notfallliste',
     CUSTOMERS_ABOVE_LIMIT: 'Kunden über dem Limit',
     CUSTOMERS_OVERVIEW: 'Neu & Verlängert',
     DATA_SUBJECT_REQUESTS: 'Datenauskunft',

@@ -25,7 +25,8 @@ const HOUSEHOLD_SCOPED_ENTITY_TYPES = ['Household', 'Person', 'HouseholdNote', '
  */
 const PLAIN_BUSINESS_KEY_ENTITY_TYPES = [
   'User', 'UserAuthority', 'UserLogin', 'ScannerFile', 'DistributionHouseholdList', 'Employee',
-  'AuditLogQuery', 'HouseholdsAboveLimit', 'LockedHouseholds', 'HouseholdsOverview', 'HouseholdDuplicates', 'HouseholdMergePreview'
+  'AuditLogQuery', 'HouseholdsAboveLimit', 'LockedHouseholds', 'HouseholdsOverview', 'HouseholdDuplicates', 'HouseholdMergePreview',
+  'HouseholdEmergencyList'
 ];
 
 /** One day's entries, as the list renders them under a single heading. */
