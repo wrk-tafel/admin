@@ -316,8 +316,7 @@ class TafelUserDetailsManagerTest {
         verify(exactly = 0) { userRepository.save(any()) }
     }
 
-    private fun rejectionOf(newPassword: String): List<String> =
-        assertThrows<PasswordChangeException> { manager.changePassword("12345", newPassword) }.validationDetails.orEmpty()
+    private fun rejectionOf(newPassword: String): List<String> = assertThrows<PasswordChangeException> { manager.changePassword("12345", newPassword) }.validationDetails.orEmpty()
 
     @Test
     fun `changePassword - a sequence of four characters is refused`() {
