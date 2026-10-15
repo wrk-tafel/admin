@@ -86,6 +86,14 @@ export class CustomerApiService {
   }
 
   /**
+   * The "Notfallliste": every customer entitled today as a PDF, to print before a distribution day
+   * in case the application cannot be reached. Needs `CUSTOMER_EMERGENCY_LIST` on top of `CUSTOMER`.
+   */
+  generateEmergencyList(): Observable<HttpResponse<Blob>> {
+    return this.http.get('/households/emergency-list', {responseType: 'blob', observe: 'response'});
+  }
+
+  /**
    * The GDPR Art. 15/20 data takeout (issue #3179): one downloadable ZIP containing the household
    * record (persons, notes, distribution attendance history and the list of uploaded documents) as
    * a PDF, plus every uploaded document itself.

@@ -872,7 +872,7 @@ exists to catch.
 `HouseholdMergeService.preview` now each record one `AuditOperation.READ` per call — no single
 `entityId` (the read spans every household the report returned, not one), a report-specific
 `entityType` (`AuditScope.HOUSEHOLDS_ABOVE_LIMIT_ENTITY_TYPE` and three siblings; the "Gesperrte Kunden" list,
-`HouseholdLockReviewService.getLockedHouseholds`, records under `LOCKED_HOUSEHOLDS_ENTITY_TYPE` the same way) and a `businessKey`
+`HouseholdLockReviewService.getLockedHouseholds`, records under `LOCKED_HOUSEHOLDS_ENTITY_TYPE` the same way, and so does the printable "Notfallliste", `HouseholdEmergencyListService`, under `HOUSEHOLD_EMERGENCY_LIST_ENTITY_TYPE` with the number of households as its key) and a `businessKey`
 rendering the filter that was applied, the same shape `AuditService.search` already used for its own
 Zugriffsprotokoll-query reads. `ExcessiveReadAccessDetectionService`'s hourly threshold query now
 weighs one of those bulk-report entity types (`AuditScope.bulkReportEntityTypes`) as
