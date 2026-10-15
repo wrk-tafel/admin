@@ -3,6 +3,9 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Ein gesperrter Kunde erhält kein Ticket mehr, auch nicht über eine Seite, die vor dem Sperren geöffnet wurde; die Anmeldung zeigt dann die Sperre an.
+- Die Mitarbeitersuche behandelt "%" und "_" jetzt als normale Zeichen, statt dabei alle Mitarbeiter zu finden.
+- Ein Kennzeichen kann nur noch einmal vergeben werden: Der Dialog "Fahrzeug anlegen" erkennt ein bestehendes Fahrzeug jetzt auch, wenn er geöffnet wurde, bevor die Fahrzeugliste geladen war, und der Server lehnt ein doppeltes Kennzeichen ab.
 - Die Seitenleiste zeigt jetzt in "Mein Konto" und in den Einstellungen statt des Hauptmenüs die Themen bzw. Bereiche dieses Teils, nach Gruppen geordnet und mit "Zurück zur Anwendung" ganz oben; die Reiter in "Mein Konto" entfallen dafür, und die Themen von "Mein Konto" lassen sich auch über die Schnellsuche (Strg+K) öffnen.
 - Im Zugriffsprotokoll heißen die protokollierten Abrufe der Kunden-Auswertungen (Über Limit, Gesperrt, Neu & Verlängert, Duplikate, Vorschau beim Zusammenführen) und der Protokoll-Abfragen jetzt auf Deutsch statt mit ihrem technischen Namen, und ihre Filterangaben stehen ohne irreführendes "Nr." davor.
 - Die 500-Fehlerseite verweist für eine Support-Anfrage jetzt richtig auf die Kopfzeile statt auf das Hauptmenü, und beim Löschen eines Benutzers steht zwischen Benutzername und Name wieder ein Leerzeichen.

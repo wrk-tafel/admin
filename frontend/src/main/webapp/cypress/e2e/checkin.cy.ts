@@ -220,6 +220,39 @@ describe('CheckIn', () => {
     });
   });
 
+  it('refuses a ticket for a customer locked after the screen loaded it, and then shows the lock', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      cy.createCustomer({
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        birthDate: dayjs().subtract(25, 'year').toDate(),
+        gender: Gender.MALE,
+        country: AUSTRIA,
+        validUntil: dayjs().add(1, 'year').toDate(),
+        address: {
+          street: 'street-' + randomNumber,
+          houseNumber: '1A',
+          city: 'city-' + randomNumber,
+          postalCode: 1234
+        }
+      }).then((response) => {
+        const customerId = response.body.data.id!;
+        searchCustomer(customerId);
+        cy.byTestId('verdictBanner').should('contain.text', 'GÜLTIG');
+
+        // a colleague locks the customer while this screen still shows it as valid
+        cy.request('POST', `/api/households/${customerId}/lock`, {lockReason: 'Gesperrt im Hintergrund'});
+
+        assignTicket(31);
+
+        cy.get('.toast-message').should('be.visible').and('contain.text', 'ist gesperrt und kann kein Ticket erhalten');
+        cy.byTestId('verdictBanner').should('contain.text', 'GESPERRT');
+        cy.byTestId('verdictLockReason').should('contain.text', 'Gesperrt im Hintergrund');
+        cy.request('GET', `/api/households/${customerId}/ticket`).then(ticket => expect(ticket.body.ticketNumber).to.not.exist);
+      });
+    });
+  });
+
   it('shows household size and infants under 3 as big stat chips', () => {
     cy.getAnyRandomNumber().then(randomNumber => {
       cy.createCustomer({
