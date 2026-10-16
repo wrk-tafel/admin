@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 
 /**
  * Two-factor authentication (see ADR-0058). Three methods, which a user can have side by side - a code from an
- * authenticator app (TOTP), a code sent by e-mail, and passkeys (ADR-0070) - and any one completes a login. A
+ * authenticator app (TOTP), a code sent by e-mail, and passkeys (ADR-0073) - and any one completes a login. A
  * user opts in by setting a method up and proving it works ([startSetup]/[enable], [startEmailSetup]/
  * [enableEmail], [startPasskeySetup]/[enablePasskey]), and can switch it off again ([disable], [removePasskey]);
  * an administrator can clear all of them for someone who lost the phone ([reset]). Once a user has a method, a

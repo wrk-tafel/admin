@@ -33,7 +33,7 @@ import java.time.Duration
 import java.util.Base64
 
 /**
- * Passkeys end to end (ADR-0070) - a real database, the real security filter chain, real cookies, and a
+ * Passkeys end to end (ADR-0073) - a real database, the real security filter chain, real cookies, and a
  * software authenticator ([TestPasskeyAuthenticator]) producing real keys and signatures. Only this shows that
  * what the backend hands out as options is something an authenticator can answer, and that what comes back
  * passes the verification.

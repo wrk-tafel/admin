@@ -585,7 +585,7 @@ class TafelAdminMfaProperties {
 }
 
 /**
- * Passkeys as a way to complete the second step of a login (ADR-0070). Which site a passkey belongs to is not
+ * Passkeys as a way to complete the second step of a login (ADR-0073). Which site a passkey belongs to is not
  * configured - it is the one the request came in on, see `PasskeyRelyingParty`. Read per use.
  */
 @ExcludeFromTestCoverage
