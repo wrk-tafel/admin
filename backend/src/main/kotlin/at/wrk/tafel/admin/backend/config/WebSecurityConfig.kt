@@ -69,7 +69,8 @@ class WebSecurityConfig(
         // which matters because TafelJwtAuthConverter rejects a cookie-less request outright
         // instead of letting it through unauthenticated.
         private const val LOGIN_ENDPOINT = "/api/login"
-        private val publicEndpoints = listOf(LOGIN_ENDPOINT, "/api/config/public")
+        private const val PASSWORD_RESET_ENDPOINTS = "/api/password-reset/*"
+        private val publicEndpoints = listOf(LOGIN_ENDPOINT, "/api/config/public", PASSWORD_RESET_ENDPOINTS)
 
         val passwordLengthRule = LengthRule(8, 50)
 
@@ -145,6 +146,15 @@ class WebSecurityConfig(
             )
             .addFilterBefore(
                 RateLimitFilter(
+                    // anonymous and mails something - the cooldown per account is in PasswordResetService
+                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, PASSWORD_RESET_ENDPOINTS),
+                    scope = "passwordReset",
+                    rateLimiterService = rateLimiterIpService,
+                ),
+                TafelLoginFilter::class.java,
+            )
+            .addFilterBefore(
+                RateLimitFilter(
                     requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/support"),
                     scope = "support",
                     rateLimiterService = rateLimiterIpService,
@@ -204,6 +214,10 @@ class WebSecurityConfig(
                 // login authenticates via the Authorization header, which cross-site requests
                 // cannot set - and the client has no token yet at that point
                 csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(LOGIN_ENDPOINT))
+                // reached without a session, so there is no session a forged request could ride on:
+                // asking for a link only mails the account's own address, and setting a password takes
+                // the token from that mail, which a cross-site page cannot know (ADR-0072)
+                csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(PASSWORD_RESET_ENDPOINTS))
             }
             .headers { headers ->
                 headers.contentSecurityPolicy {

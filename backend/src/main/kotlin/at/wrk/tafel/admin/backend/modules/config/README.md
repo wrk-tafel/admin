@@ -58,6 +58,10 @@ before any controller runs; serving both audiences from one path would mean rewo
 authentication filter chain. Which release is running and which optional features exist stay
 behind authentication.
 
+The one feature flag it does carry is `passwordResetAvailable`: the login page needs it to decide
+whether to offer "Passwort vergessen?", which only works where mails can be sent and
+`tafeladmin.server.publicUrl` is set (`PasswordResetService.isAvailable`, ADR-0072).
+
 ## Where the values come from
 
 `version`/`buildDate` default to `"dev"`/`"unknown"` and are overridden by the

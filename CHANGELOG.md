@@ -3,6 +3,7 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Neu: "Passwort vergessen?" auf der Anmeldeseite - wer eine E-Mail-Adresse hinterlegt hat, erhält einen einmal gültigen Link (eine Stunde gültig) und vergibt damit selbst ein neues Passwort.
 - Die Suche nach Kunden, Benutzern und Mitarbeitern ignoriert jetzt Akzente und Sonderzeichen (z. B. findet "Ozturk" auch "Öztürk"), findet Kunden auch über Geburtsdatum und Arbeitgeber und Benutzer über die E-Mail-Adresse; die Mitarbeitersuche ist tippfehlertolerant wie die Kundensuche.
 - In der Schnellsuche (Strg+K) öffnet die Eingabetaste jetzt zuverlässig den ersten Treffer zur gerade eingetippten Eingabe statt eines Treffers der vorherigen Eingabe; in der Kunden- und Benutzersuche bricht ein spät eintreffendes Suchergebnis das Öffnen eines angeklickten Treffers nicht mehr ab.
 - Seiten hinter der Anmeldung laden schneller, weil die Anwendung die Benutzerdaten pro Seitenwechsel nur noch einmal statt mehrmals abfragt.

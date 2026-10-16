@@ -454,6 +454,15 @@ tafeladmin:
   # Baked into the security filter chain at startup - changing it needs a restart.
   server:
     relativeBaseUrl: /
+    # The address the application is reached at from outside, base path included (e.g.
+    # https://example.org/verwaltung) - what links in mails are built from, never the request's Host
+    # header. Per deployment; unset here, which switches "Passwort vergessen?" off.
+    # publicUrl: https://example.org/verwaltung
+  # "Passwort vergessen?" (ADR-0072): how long a mailed link stays usable, and how long a further
+  # request for the same account is ignored. Offered only with tafeladmin.mail and server.publicUrl.
+  passwordReset:
+    tokenValidity: 1h
+    requestCooldown: 60s
   # Two-factor authentication. required makes it mandatory for every user (someone without a method can then
   # do nothing but set one up) and, independently, requires an e-mail address on every account (ADR-0062) -
   # even one whose method is the app, not the e-mail code; the code settings belong to that method, which

@@ -40,7 +40,7 @@ class ConfigControllerIT : TafelBaseIntegrationTest() {
         val response = get("/api/config/public")
 
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
-        assertThat(response.body()).isEqualTo("""{"environmentLabel":"DEV"}""")
+        assertThat(response.body()).isEqualTo("""{"environmentLabel":"DEV","passwordResetAvailable":false}""")
     }
 
     @Test
