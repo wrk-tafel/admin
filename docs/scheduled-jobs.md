@@ -51,7 +51,7 @@ checked at a glance.
 | Hourly, on the hour (`tafeladmin.audit.breachDetectionCron`) | `ExcessiveReadAccessDetectionService.detectExcessiveReadAccess` | `@SchedulerLock` | Push warning when a user reads more sensitive records in the trailing hour than `tafeladmin.audit.breachDetection.readThreshold` — GDPR gap G11 |
 | Every 1h | `LoginAttemptService.cleanupStaleEntries` | Row-claim | Deletes `login_attempts` rows past the lockout window |
 | Every 1h | `LoginAttemptIpService.cleanupStaleEntries` | Row-claim | Deletes `login_attempts_ip` rows past the lockout window |
-| Every 1h | `MailedTokenCleanupService.cleanup` | Row-claim | Deletes `password_reset_tokens` rows that expired or were used ("Passwort vergessen?", ADR-0072) |
+| Every 1h | `MailedTokenCleanupService.cleanup` | Row-claim | Deletes `password_reset_tokens` rows that expired or were used ("Passwort vergessen?") and expired `email_change_tokens` (unconfirmed e-mail changes) - ADR-0072 |
 | Every 1h | `NotificationCleanupService.cleanup` | Row-claim | Deletes `notifications` older than `tafeladmin.notification.retention` (30d default) and `announcements` that expired more than that long ago (bell history) |
 | Every 1h | `RateLimiterIpService.cleanupStaleEntries` | None — local in-memory state per instance | Evicts token buckets that are back at full capacity, so an IP that stopped sending requests doesn't sit in memory forever |
 | Every 1h | `ScannerService.cleanupScannerRegistrations` | Row-claim | Deletes `scanner_registrations` older than `tafeladmin.checkin.scannerRegistrationRetention` (2d default) |

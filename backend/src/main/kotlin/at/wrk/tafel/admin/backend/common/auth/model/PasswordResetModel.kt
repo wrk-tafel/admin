@@ -27,3 +27,16 @@ data class PasswordResetConfirmResponse(
     val message: String,
     val details: List<String>? = emptyList(),
 )
+
+@ExcludeFromTestCoverage
+data class EmailChangeConfirmRequest(
+    @field:NotBlank
+    @field:Size(max = 100)
+    val token: String,
+)
+
+/** Why a link to confirm a new e-mail address did not work. */
+@ExcludeFromTestCoverage
+data class EmailChangeConfirmResponse(
+    val message: String,
+)

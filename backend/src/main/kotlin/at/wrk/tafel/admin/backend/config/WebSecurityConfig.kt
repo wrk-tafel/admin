@@ -70,7 +70,11 @@ class WebSecurityConfig(
         // instead of letting it through unauthenticated.
         private const val LOGIN_ENDPOINT = "/api/login"
         private const val PASSWORD_RESET_ENDPOINTS = "/api/password-reset/*"
-        private val publicEndpoints = listOf(LOGIN_ENDPOINT, "/api/config/public", PASSWORD_RESET_ENDPOINTS)
+        private const val EMAIL_CHANGE_CONFIRM_ENDPOINT = "/api/email-change/confirm"
+
+        /** The endpoints a link from a mail leads to - reached without a session (ADR-0072). */
+        private val mailedLinkEndpoints = listOf(PASSWORD_RESET_ENDPOINTS, EMAIL_CHANGE_CONFIRM_ENDPOINT)
+        private val publicEndpoints = listOf(LOGIN_ENDPOINT, "/api/config/public") + mailedLinkEndpoints
 
         val passwordLengthRule = LengthRule(8, 50)
 
@@ -146,8 +150,9 @@ class WebSecurityConfig(
             )
             .addFilterBefore(
                 RateLimitFilter(
-                    // anonymous and mails something - the cooldown per account is in PasswordResetService
-                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, PASSWORD_RESET_ENDPOINTS),
+                    // anonymous, and the password reset mails something - its cooldown per account is in
+                    // PasswordResetService
+                    requestMatcher = OrRequestMatcher(mailedLinkEndpoints.map { PathPatternRequestMatcher.pathPattern(HttpMethod.POST, it) }),
                     scope = "passwordReset",
                     rateLimiterService = rateLimiterIpService,
                 ),
@@ -215,9 +220,9 @@ class WebSecurityConfig(
                 // cannot set - and the client has no token yet at that point
                 csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(LOGIN_ENDPOINT))
                 // reached without a session, so there is no session a forged request could ride on:
-                // asking for a link only mails the account's own address, and setting a password takes
-                // the token from that mail, which a cross-site page cannot know (ADR-0072)
-                csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(PASSWORD_RESET_ENDPOINTS))
+                // asking for a link only mails the account's own address, and acting on a link takes the
+                // token from that mail, which a cross-site page cannot know (ADR-0072)
+                mailedLinkEndpoints.forEach { csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(it)) }
             }
             .headers { headers ->
                 headers.contentSecurityPolicy {

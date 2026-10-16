@@ -48,11 +48,21 @@
         <mat-form-field class="sm:max-w-md">
           <mat-label>E-Mail</mat-label>
           <input matInput testid="account-email" type="email" autocomplete="email" [formField]="accountForm.email">
-          <mat-hint>Optional - für Systembenachrichtigungen und den Code der Zwei-Faktor-Authentifizierung per E-Mail</mat-hint>
+          <mat-hint>Optional - für Benachrichtigungen, Codes per E-Mail und "Passwort vergessen?"</mat-hint>
           @for (message of visibleErrorMessages(accountForm.email()); track message) {
             <mat-error>{{ message }}</mat-error>
           }
         </mat-form-field>
+
+        @if (account.pendingEmail) {
+          <div class="tafel-banner-info mt-4" testid="account-pending-email" role="status">
+            <div>
+              Neue Adresse <strong>{{ account.pendingEmail }}</strong> wartet auf die Bestätigung über den Link, der an
+              {{ account.email }} gesendet wurde. Bis dahin bleibt {{ account.email }} gültig. Speichern Sie eine andere
+              Adresse, ersetzt sie diese Anfrage.
+            </div>
+          </div>
+        }
 
         @if (codeRequired()) {
           <p class="text-sm text-slate-600 mb-2" testid="account-code-hint">

@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.database.model.auth.EmailChangeTokenRepository
 import at.wrk.tafel.admin.backend.database.model.auth.PasswordResetTokenRepository
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeUnit
 @Service
 class MailedTokenCleanupService(
     private val passwordResetTokenRepository: PasswordResetTokenRepository,
+    private val emailChangeTokenRepository: EmailChangeTokenRepository,
     private val clock: Clock,
 ) {
     companion object {
@@ -25,9 +27,11 @@ class MailedTokenCleanupService(
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
     @Transactional
     fun cleanup() {
-        val removed = passwordResetTokenRepository.deleteAllExpiredOrUsedSkipLocked(LocalDateTime.now(clock))
-        if (removed > 0) {
-            logger.info("Removed {} expired or used password reset tokens", removed)
+        val now = LocalDateTime.now(clock)
+        val passwordResets = passwordResetTokenRepository.deleteAllExpiredOrUsedSkipLocked(now)
+        val emailChanges = emailChangeTokenRepository.deleteAllExpiredSkipLocked(now)
+        if (passwordResets > 0 || emailChanges > 0) {
+            logger.info("Removed {} expired or used password reset tokens and {} expired e-mail changes", passwordResets, emailChanges)
         }
     }
 }

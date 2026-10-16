@@ -1,8 +1,11 @@
 package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
+import at.wrk.tafel.admin.backend.common.auth.model.EmailChangeConfirmRequest
 import at.wrk.tafel.admin.backend.common.auth.model.PasswordResetConfirmRequest
 import at.wrk.tafel.admin.backend.common.auth.model.PasswordResetRequest
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.UserAccountRequest
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxRepository
 import at.wrk.tafel.admin.backend.database.model.auth.PasswordResetTokenRepository
@@ -17,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -29,18 +33,19 @@ import java.time.Duration
 private const val MAILPIT_SMTP_PORT = 1025
 private const val MAILPIT_HTTP_PORT = 8025
 
-private class PasswordResetMailpitContainer(image: DockerImageName) : GenericContainer<PasswordResetMailpitContainer>(image)
+private class MailedLinksMailpitContainer(image: DockerImageName) : GenericContainer<MailedLinksMailpitContainer>(image)
 
 /**
- * "Passwort vergessen?" from the request to the new password, through the real `mail_outbox` and a
- * real mail server: the token only ever exists in the mail, so reading it from there is the only way
- * to prove the link works. Not `@Transactional`, for the reason `DistributionSendMailsIT` gives: the
- * queued mail has to be committed for the poller to see it.
+ * The two mailed links - "Passwort vergessen?" and the confirmation of a changed e-mail address - from
+ * the request to the result, through the real `mail_outbox` and a real mail server: the token only
+ * ever exists in the mail, so reading it from there is the only way to prove the link works. Not
+ * `@Transactional`, for the reason `DistributionSendMailsIT` gives: the queued mail has to be
+ * committed for the poller to see it.
  */
-class PasswordResetIT : TafelBaseIntegrationTest() {
+class MailedLinksIT : TafelBaseIntegrationTest() {
 
     companion object {
-        private val mailpitContainer = PasswordResetMailpitContainer(DockerImageName.parse("axllent/mailpit:latest"))
+        private val mailpitContainer = MailedLinksMailpitContainer(DockerImageName.parse("axllent/mailpit:latest"))
             .withExposedPorts(MAILPIT_SMTP_PORT, MAILPIT_HTTP_PORT)
             .apply { start() }
 
@@ -58,6 +63,12 @@ class PasswordResetIT : TafelBaseIntegrationTest() {
 
     @Autowired
     private lateinit var passwordResetController: PasswordResetController
+
+    @Autowired
+    private lateinit var emailChangeController: EmailChangeController
+
+    @Autowired
+    private lateinit var userController: UserController
 
     @Autowired
     private lateinit var userRepository: UserRepository
@@ -91,6 +102,7 @@ class PasswordResetIT : TafelBaseIntegrationTest() {
 
     @AfterEach
     fun afterEach() {
+        SecurityContextHolder.clearContext()
         transactionTemplate.executeWithoutResult {
             userRepository.deleteById(user.id!!)
             mailOutboxRepository.deleteAllInBatch()
@@ -137,17 +149,38 @@ class PasswordResetIT : TafelBaseIntegrationTest() {
         assertThat(passwordResetTokenRepository.findFirstByUserIdOrderByCreatedAtDesc(user.id!!)).isNull()
     }
 
-    private fun awaitTokenFromMail(): String {
+    @Test
+    fun `a changed e-mail address takes effect only once the link mailed to the old one is confirmed`() {
+        val oldEmail = user.email!!
+        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
+            tokenValue = "token",
+            username = user.username,
+            authenticated = true,
+            userId = user.id,
+        )
+
+        val pending = userController.updateAccount(UserAccountRequest(user.firstname, user.lastname, email = "new-${user.username}@example.org"))
+        assertThat(pending.email).isEqualTo(oldEmail)
+        assertThat(pending.pendingEmail).isEqualTo("new-${user.username}@example.org")
+
+        val token = awaitTokenFromMail("/e-mail-bestaetigen#token=")
+        assertThat(emailChangeController.confirm(EmailChangeConfirmRequest(token)).statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        assertThat(userRepository.findById(user.id!!).get().email).isEqualTo("new-${user.username}@example.org")
+
+        assertThat(emailChangeController.confirm(EmailChangeConfirmRequest(token)).statusCode).isEqualTo(HttpStatus.GONE)
+    }
+
+    private fun awaitTokenFromMail(linkPath: String = "/passwort-zuruecksetzen#token="): String {
         var token: String? = null
         await().atMost(Duration.ofSeconds(30)).untilAsserted {
             val messages = mailpitClient.get().uri("/api/v1/messages").retrieve()
-                .body(PasswordResetMailpitMessages::class.java)!!.messages.orEmpty()
+                .body(MailedLinksMailpitMessages::class.java)!!.messages.orEmpty()
             val message = messages.firstOrNull { summary -> summary.to.orEmpty().any { it.address == user.email } }
             assertThat(message).describedAs("mail to %s", user.email).isNotNull()
 
             val html = mailpitClient.get().uri("/api/v1/message/{id}", message!!.id).retrieve()
-                .body(PasswordResetMailpitMessage::class.java)!!.html.orEmpty()
-            assertThat(html).contains("https://tafel.example.org/verwaltung/passwort-zuruecksetzen#token=")
+                .body(MailedLinksMailpitMessage::class.java)!!.html.orEmpty()
+            assertThat(html).contains("https://tafel.example.org/verwaltung$linkPath")
             token = Regex("#token=([A-Za-z0-9_-]+)").find(html)!!.groupValues[1]
         }
         return token!!
@@ -155,26 +188,26 @@ class PasswordResetIT : TafelBaseIntegrationTest() {
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-private data class PasswordResetMailpitMessages(
-    val messages: List<PasswordResetMailpitSummary>? = null,
+private data class MailedLinksMailpitMessages(
+    val messages: List<MailedLinksMailpitSummary>? = null,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-private data class PasswordResetMailpitSummary(
+private data class MailedLinksMailpitSummary(
     @param:JsonProperty("ID")
     val id: String? = null,
     @param:JsonProperty("To")
-    val to: List<PasswordResetMailpitAddress>? = null,
+    val to: List<MailedLinksMailpitAddress>? = null,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-private data class PasswordResetMailpitAddress(
+private data class MailedLinksMailpitAddress(
     @param:JsonProperty("Address")
     val address: String? = null,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-private data class PasswordResetMailpitMessage(
+private data class MailedLinksMailpitMessage(
     @param:JsonProperty("HTML")
     val html: String? = null,
 )

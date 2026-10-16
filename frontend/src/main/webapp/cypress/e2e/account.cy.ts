@@ -149,6 +149,24 @@ describe('Account page', () => {
       cy.checkAccessibility(MAIN_CONTENT);
     });
 
+    it('keeps the old address until a change to another one is confirmed, and says so', () => {
+      // a first address takes effect at once - there is no old one to confirm through
+      cy.request({method: 'PUT', url: '/api/users/account', body: {firstname: 'E2E', lastname: 'Test', email: 'e2e-old@e2e-test.example'}});
+      cy.visit('/konto/daten');
+      cy.byTestId('account-email').should('have.value', 'e2e-old@e2e-test.example');
+
+      cy.byTestId('account-email').clear().type('e2e-new@e2e-test.example');
+      cy.byTestId('account-save-button').click();
+
+      cy.byTestId('account-email').should('have.value', 'e2e-old@e2e-test.example');
+      cy.byTestId('account-info-message').should('contain.text', 'e2e-old@e2e-test.example');
+      cy.byTestId('account-pending-email').should('contain.text', 'e2e-new@e2e-test.example');
+      cy.checkAccessibility(MAIN_CONTENT);
+
+      cy.reload();
+      cy.byTestId('account-pending-email').should('contain.text', 'e2e-new@e2e-test.example');
+    });
+
     it('refuses an empty name and a malformed address, and discards changes on request', () => {
       cy.visit('/konto/daten');
 

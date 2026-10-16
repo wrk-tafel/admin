@@ -3,6 +3,7 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Eine geänderte eigene E-Mail-Adresse wird erst übernommen, nachdem sie über einen Link an die bisherige Adresse bestätigt wurde.
 - Neu: "Passwort vergessen?" auf der Anmeldeseite - wer eine E-Mail-Adresse hinterlegt hat, erhält einen einmal gültigen Link (eine Stunde gültig) und vergibt damit selbst ein neues Passwort.
 - Die Suche nach Kunden, Benutzern und Mitarbeitern ignoriert jetzt Akzente und Sonderzeichen (z. B. findet "Ozturk" auch "Öztürk"), findet Kunden auch über Geburtsdatum und Arbeitgeber und Benutzer über die E-Mail-Adresse; die Mitarbeitersuche ist tippfehlertolerant wie die Kundensuche.
 - Lehnt die Anwendung ein neues Fahrzeug ab (etwa weil ein anderes Fahrzeug das Kennzeichen inzwischen erhalten hat), steht der Grund jetzt direkt im Fenster "Fahrzeug anlegen", das offen bleibt, statt erst nach dem Schließen als Meldung zu erscheinen.
