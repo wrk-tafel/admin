@@ -53,4 +53,6 @@ data class EmployeeSearchRequest(
     val pageSize: Int? = null,
     val sortBy: String? = null,
     val sortDirection: String? = null,
+    /** Verbatim matches only, no typo tolerance - see `EmployeeService.findEmployees`. */
+    val verbatimOnly: Boolean = false,
 )

@@ -5,7 +5,7 @@ import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.generateRandomLong
-import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
@@ -32,6 +32,9 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     @Autowired
     private lateinit var householdRepository: HouseholdRepository
 
+    @Autowired
+    private lateinit var searchTermNormalizer: SearchTermNormalizer
+
     private lateinit var testUser: UserEntity
     private lateinit var testCountry: CountryEntity
 
@@ -57,6 +60,54 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val result = householdRepository.findAll(searchSpec(tag.uppercase()))
+
+        assertThat(result.map { it.id }).contains(matching.id).doesNotContain(notMatching.id)
+    }
+
+    @Test
+    fun `searchTextMatches ignores accents in either direction`() {
+        val tag = distinctiveNumber()
+        val accented = persistHousehold(customizeMainPerson = { lastname = "Öztürk$tag" })
+        val plain = persistHousehold(customizeMainPerson = { lastname = "Yilmaz$tag" })
+        testEntityManager.flush()
+
+        assertThat(householdRepository.findAll(searchSpec("Ozturk$tag")).map { it.id }).containsExactly(accented.id)
+        assertThat(householdRepository.findAll(searchSpec("yılmaz$tag")).map { it.id }).containsExactly(plain.id)
+    }
+
+    @Test
+    fun `searchTextMatches matches ß and ss both ways`() {
+        val tag = distinctiveNumber()
+        val withSharpS = persistHousehold(customizeMainPerson = { lastname = "Weiß$tag" })
+        val withDoubleS = persistHousehold(customizeMainPerson = { lastname = "Strasser$tag" })
+        testEntityManager.flush()
+
+        assertThat(householdRepository.findAll(searchSpec("Weiss$tag")).map { it.id }).containsExactly(withSharpS.id)
+        assertThat(householdRepository.findAll(searchSpec("Straßer$tag")).map { it.id }).containsExactly(withDoubleS.id)
+    }
+
+    @Test
+    fun `searchTextMatches matches a person's birth date as typed`() {
+        val tag = distinctiveNumber()
+        val matching = persistHousehold(customizeMainPerson = {
+            lastname = "Birthdate$tag"
+            birthDate = LocalDate.of(1903, 2, 17)
+        })
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(searchSpec("17.02.1903"))
+
+        assertThat(result.map { it.id }).contains(matching.id)
+    }
+
+    @Test
+    fun `searchTextMatches matches a person's employer`() {
+        val tag = distinctiveNumber()
+        val matching = persistHousehold(customizeMainPerson = { employer = "Bäckerei Findme$tag" })
+        val notMatching = persistHousehold()
+        testEntityManager.flush()
+
+        val result = householdRepository.findAll(searchSpec("Backerei Findme$tag"))
 
         assertThat(result.map { it.id }).contains(matching.id).doesNotContain(notMatching.id)
     }
@@ -466,7 +517,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
         val verbatimHit = persistHousehold(customizeMainPerson = { lastname = "Findme$tag" })
         testEntityManager.flush()
 
-        val searchTerm = SearchTextSpecs.normalize("Findme$tag")
+        val searchTerm = searchTermNormalizer.normalize("Findme$tag")
         val spec = HouseholdEntity.Specs.orderBySearchRelevance(searchTerm, searchSpec("Findme$tag"))
         val result = householdRepository.findAll(spec)
 
@@ -601,7 +652,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
     private fun distinctiveNumber(): Long = 1_000_000_000_000L + generateRandomLong()
 
     private fun searchSpec(searchInput: String) = HouseholdEntity.Specs.searchTextMatches(
-        SearchTextSpecs.normalize(searchInput),
+        searchTermNormalizer.normalize(searchInput),
         SIMILARITY_THRESHOLD,
     )!!
 

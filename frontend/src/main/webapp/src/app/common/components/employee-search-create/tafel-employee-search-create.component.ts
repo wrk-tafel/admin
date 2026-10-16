@@ -27,7 +27,9 @@ export class TafelEmployeeSearchCreateComponent {
   private readonly dialog = inject(MatDialog);
 
   triggerSearch(page?: number) {
-    this.employeeApiService.findEmployees(this.searchInput(), page)
+    // verbatim only: a single hit is selected without asking, and none offers "create" - a fuzzy
+    // near miss would pick someone else or hide the "create" option for a new employee
+    this.employeeApiService.findEmployees(this.searchInput(), page, undefined, undefined, undefined, true)
       .subscribe((response) => {
         const employees = response.items;
         if (employees.length === 1) {

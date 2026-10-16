@@ -36,6 +36,7 @@ class EmployeeController(
         request.pageSize,
         request.sortBy,
         request.sortDirection,
+        request.verbatimOnly,
     )
 
     @GetMapping("/personnel-number-availability")

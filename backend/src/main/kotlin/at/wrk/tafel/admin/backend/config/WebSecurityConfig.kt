@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import jakarta.servlet.DispatcherType
@@ -62,6 +63,7 @@ class WebSecurityConfig(
     private val clock: Clock,
     private val advisoryLockService: AdvisoryLockService,
     private val mfaEmailCodeService: MfaEmailCodeService,
+    private val searchTermNormalizer: SearchTermNormalizer,
 ) {
 
     companion object {
@@ -297,6 +299,7 @@ class WebSecurityConfig(
         auditActorProvider,
         clock,
         advisoryLockService,
+        searchTermNormalizer,
     )
 
     @Bean
