@@ -21,6 +21,10 @@ class TafelBaseIntegrationTest {
             .withDatabaseName("tafeladmin")
             .withUsername("admin")
             .withPassword("admin")
+            // Spring keeps every distinct test context alive, each with its own Hikari pool (10) plus
+            // the SSE outbox's LISTEN connection - a dozen of them already exhaust Postgres's default of
+            // 100, and the next context then fails to boot with a connection error.
+            .withCommand("postgres", "-c", "max_connections=300")
             .apply { start() }
 
         @DynamicPropertySource
