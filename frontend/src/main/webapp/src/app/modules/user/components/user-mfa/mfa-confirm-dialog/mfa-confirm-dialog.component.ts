@@ -27,7 +27,15 @@ export interface MfaConfirmDialogData {
   change: (proof: MfaProof) => Promise<void>;
   /** What is shown when the browser's passkey prompt fails or is dismissed during the change. */
   promptError?: string;
+  /**
+   * The change also carries a code typed on the page, which the backend refuses with the same answer as a wrong
+   * proof. Another try in here could never fix that one, so a refusal closes the dialog and hands it to the page.
+   */
+  closeOnRefusal?: boolean;
 }
+
+/** `true` once the change went through, the backend's refusal for `closeOnRefusal`, nothing when backed out of. */
+export type MfaConfirmDialogResult = true | HttpErrorResponse | undefined;
 
 const DEFAULT_PROMPT_ERROR = 'Die Bestätigung mit dem Passkey wurde abgebrochen oder ist nicht möglich - bitte erneut versuchen.';
 
@@ -38,8 +46,9 @@ const DEFAULT_PROMPT_ERROR = 'Die Bestätigung mit dem Passkey wurde abgebrochen
  * which the browser asks for.
  *
  * The dialog runs the change itself (`change`) rather than handing the proof back, so a wrong code is answered
- * where it was typed, and the dialog stays open for another try. It closes with `true` once the change went
- * through and without a result when the user backs out.
+ * where it was typed, and the dialog stays open for another try - unless `closeOnRefusal` says the refusal may be
+ * about a code on the page. It closes with `true` once the change went through and without a result when the user
+ * backs out.
  */
 @Component({
   selector: 'tafel-mfa-confirm-dialog',
@@ -99,6 +108,8 @@ export class MfaConfirmDialogComponent {
       if (error instanceof Error) {
         this.errorMessage.set(this.data.promptError ?? DEFAULT_PROMPT_ERROR);
         this.working.set(false);
+      } else if (this.data.closeOnRefusal) {
+        this.dialogRef.close(error as HttpErrorResponse);
       } else {
         this.fail(error as HttpErrorResponse);
       }

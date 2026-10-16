@@ -18,7 +18,7 @@ import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {MfaApiService, MfaMethod, MfaPasskeyItem, MfaPasskeyKind, MfaProof, MfaSetup, MfaStatus} from '../../../../api/mfa-api.service';
 import {PasskeyService} from '../../../../common/security/passkey.service';
-import {MfaConfirmDialogComponent, MfaConfirmDialogData} from './mfa-confirm-dialog/mfa-confirm-dialog.component';
+import {MfaConfirmDialogComponent, MfaConfirmDialogData, MfaConfirmDialogResult} from './mfa-confirm-dialog/mfa-confirm-dialog.component';
 import {mfaCodeError} from './mfa-code';
 import checkCircleIcon from '@material-symbols/svg-400/outlined/check_circle-fill.svg';
 import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
@@ -257,7 +257,7 @@ export class UserMfaComponent {
       await firstValueFrom(this.mfaApiService.enable(code, proof, SUPPRESS_ERROR_TOAST_CONTEXT));
       this.appSetup.set(null);
       this.toastr.success('Authenticator-App eingerichtet!');
-    });
+    }, {closeOnRefusal: true});
   }
 
   // ---- e-mail
@@ -291,7 +291,7 @@ export class UserMfaComponent {
       await firstValueFrom(this.mfaApiService.enableEmail(code, proof, SUPPRESS_ERROR_TOAST_CONTEXT));
       this.emailSetupStarted.set(false);
       this.toastr.success('Code per E-Mail eingerichtet!');
-    });
+    }, {closeOnRefusal: true});
   }
 
   // ---- passkeys
@@ -349,13 +349,15 @@ export class UserMfaComponent {
   /**
    * Runs one change. The very first method needs no proof and runs at once, with any refusal shown at the top of
    * the page; every other change goes through the confirmation dialog, which asks for the proof, runs the change
-   * and answers a refusal itself. Either way the page reads its state again once the change went through.
+   * and answers a refusal itself. Switching a code method on is the exception: its refusal may be about the code on
+   * the page, which only the page can take again (`closeOnRefusal`), so the dialog hands it back. Either way the
+   * page reads its state again once the change went through.
    */
   private async change(
     title: string,
     confirmLabel: string,
     run: (proof: MfaProof | null) => Promise<void>,
-    options: {danger?: boolean; promptError?: string} = {}
+    options: {danger?: boolean; promptError?: string; closeOnRefusal?: boolean} = {}
   ) {
     const status = this.status();
     if (!status) {
@@ -383,12 +385,20 @@ export class UserMfaComponent {
         confirmLabel,
         danger: options.danger,
         promptError: options.promptError,
+        closeOnRefusal: options.closeOnRefusal,
         totpEnabled: status.totpEnabled,
         emailEnabled: status.emailEnabled,
         change: proof => run(proof)
       };
-      const confirmed = await firstValueFrom(this.dialog.open(MfaConfirmDialogComponent, {data}).afterClosed());
-      if (!confirmed) {
+      const dialogRef = this.dialog.open<MfaConfirmDialogComponent, MfaConfirmDialogData, MfaConfirmDialogResult>(
+        MfaConfirmDialogComponent, {data}
+      );
+      const result = await firstValueFrom(dialogRef.afterClosed());
+      if (result instanceof HttpErrorResponse) {
+        this.fail(result);
+        return;
+      }
+      if (!result) {
         return;
       }
       this.working.set(true);

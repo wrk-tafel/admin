@@ -105,6 +105,18 @@ describe('MfaConfirmDialogComponent', () => {
     expect(fixture.componentInstance.working()).toBe(false);
   });
 
+  // The refusal may be about the code typed on the page, which another try in here could never fix.
+  it('hands a refusal back to the page when the change carries a code of the page', async () => {
+    const fixture = create({closeOnRefusal: true});
+    const refusal = new HttpErrorResponse({status: 400, error: {detail: 'Der Code ist ungültig'}});
+    change.mockRejectedValue(refusal);
+    typeCode(fixture, '123456');
+
+    await fixture.componentInstance.confirm(new Event('submit'));
+
+    expect(dialogRef.close).toHaveBeenCalledWith(refusal);
+  });
+
   it('offers to send a code by e-mail while that method is on', () => {
     const fixture = create({totpEnabled: false, emailEnabled: true});
     expect(text(fixture, 'mfaConfirmCodeHint')).toContain('per E-Mail gesendet');

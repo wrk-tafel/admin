@@ -283,6 +283,28 @@ describe('UserMfaComponent', () => {
     expect(toastr.success).toHaveBeenCalledWith('Authenticator-App eingerichtet!');
   });
 
+  // A refused enable may be about the app code on the page (gone stale while an e-mail code was fetched), which only
+  // the page can take again - so the dialog hands the refusal back instead of asking for its own code forever.
+  it('shows a refused second method on the page, with the setup still open for a fresh code', async () => {
+    mfaApiService.getStatus.mockReturnValue(of(status({emailEnabled: true})));
+    mfaApiService.enable.mockReturnValue(throwError(() => new HttpErrorResponse({status: 400, error: {detail: 'Der Code ist ungültig'}})));
+    const fixture = await create();
+    fixture.componentInstance.startAppSetup();
+    type(fixture, 'appCode', '123456');
+    dialog.open.mockImplementation((_component: unknown, config: {data: MfaConfirmDialogData}) => ({
+      afterClosed: () => from(config.data.change({code: '654321'}).then(() => true, error => error))
+    }));
+
+    await fixture.componentInstance.enableApp(new Event('submit'));
+    await settle(fixture);
+
+    expect(dialogData().closeOnRefusal).toBe(true);
+    expect(text(fixture, 'errorMessage')).toBe('Der Code ist ungültig');
+    expect(text(fixture, 'mfaTotpStatus')).toBe('Wird eingerichtet');
+    expect(fixture.componentInstance.setupForm.appCode().value()).toBe('');
+    expect(fixture.componentInstance.working()).toBe(false);
+  });
+
   it('changes nothing when the dialog is backed out of', async () => {
     mfaApiService.getStatus.mockReturnValue(of(status({totpEnabled: true})));
     const fixture = await create();

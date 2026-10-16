@@ -195,7 +195,9 @@ being changed voluntarily. That topic is a summary (protected or not, how many m
 fragile) over one collapsed row per method, which holds both the setup and the removal of that method. Every change
 that needs proof of an existing method (ADR-0059) goes through `MfaConfirmDialogComponent`, which asks for a code or a
 passkey and runs the change itself, so a wrong code is answered inside the dialog; only the very first method is set up
-without it. The user menu has a single entry for all of it; the light/dark choice (`ThemeService`)
+without it. Switching the app or the e-mail method on is the exception (`closeOnRefusal`): the backend refuses a wrong
+code of the new method with the same answer as a wrong proof, and only the page can take that code again, so the
+dialog closes and the page shows the refusal. The user menu has a single entry for all of it; the light/dark choice (`ThemeService`)
 lives on the Design topic and applies at once, without a save button.
 
 ### UserAccountDataComponent — "Meine Daten"

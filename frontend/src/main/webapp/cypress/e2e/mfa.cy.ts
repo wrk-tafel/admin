@@ -309,10 +309,14 @@ describe('Two-factor authentication', () => {
         cy.contains('mat-error', 'Bitte den Code eingeben').should('be.visible');
         cy.checkDialogAccessibility();
 
-        // a wrong one is refused, and the dialog stays open for another try
+        // a wrong one is refused - and since the refusal may just as well be about the code from the mail, the
+        // dialog hands it back to the page, which takes both codes again
         confirmWithCode('000000');
-        cy.byTestId('mfaConfirmError').should('be.visible').and('contain.text', 'Der Code ist ungültig');
+        cy.byTestId('mfaConfirmDialog').should('not.exist');
+        cy.byTestId('errorMessage').should('be.visible').and('contain.text', 'Der Code ist ungültig');
         cy.byTestId('mfaEmailStatus').should('have.text', 'Wird eingerichtet');
+        cy.byTestId('mfaEmailCode').should('have.value', '').type(EMAIL_CODE);
+        cy.byTestId('mfaEmailEnableButton').click();
 
         cy.task('totpCode', {secret, stepOffset: 0}).then(code => confirmWithCode(code as string));
         cy.byTestId('mfaConfirmDialog').should('not.exist');
