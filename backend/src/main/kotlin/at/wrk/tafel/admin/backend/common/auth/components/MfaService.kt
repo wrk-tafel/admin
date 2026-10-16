@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.MfaMethod
+import at.wrk.tafel.admin.backend.common.auth.model.PasskeyKind
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -75,7 +76,7 @@ class MfaService(
             emailAvailable = mfaEmailCodeService.isAvailable(),
             emailAddress = user.email?.takeIf { it.isNotBlank() },
             passkeys = passkeyService.list(user.id!!).map {
-                MfaPasskey(id = it.id!!, name = it.name, createdAt = it.createdAt, lastUsedAt = it.lastUsedAt)
+                MfaPasskey(id = it.id!!, name = it.name, kind = PasskeyKind.of(it.transports), createdAt = it.createdAt, lastUsedAt = it.lastUsedAt)
             },
         )
     }
@@ -217,9 +218,7 @@ class MfaService(
     fun removePasskey(username: String, passkeyId: Long, code: String?, passkey: PasskeyAnswer? = null): Boolean {
         val user = findUser(username)
         val passkeys = passkeyService.list(user.id!!)
-        if (passkeys.none { it.id == passkeyId }) {
-            return false
-        }
+        val passkeyToRemove = passkeys.find { it.id == passkeyId } ?: return false
         if (passkeys.size == 1 && !user.mfaTotpEnabled && !user.mfaEmailEnabled && properties.mfa.required) {
             throw lastMethodRequired()
         }
@@ -227,10 +226,10 @@ class MfaService(
             return false
         }
 
-        val removed = passkeyService.remove(user, passkeyId) ?: return false
+        passkeyService.remove(passkeyToRemove)
         user.mfaPasskeyEnabled = passkeys.size > 1
         userRepository.save(user)
-        notificationService.notify(user.username, user.email, "Der Passkey \"${removed.name}\" wurde entfernt.")
+        notificationService.notify(user.username, user.email, "Der Passkey \"${passkeyToRemove.name}\" wurde entfernt.")
         log.info("Passkey removed by user {}", user.username)
         return true
     }
@@ -418,11 +417,12 @@ data class MfaStatus(
     val passkeys: List<MfaPasskey> = emptyList(),
 )
 
-/** One passkey as its owner sees it: what they called it, and when it was added and last used. */
+/** One passkey as its owner sees it: what they called it, what holds it, and when it was added and last used. */
 @ExcludeFromTestCoverage
 data class MfaPasskey(
     val id: Long,
     val name: String,
+    val kind: PasskeyKind,
     val createdAt: LocalDateTime?,
     val lastUsedAt: LocalDateTime?,
 )

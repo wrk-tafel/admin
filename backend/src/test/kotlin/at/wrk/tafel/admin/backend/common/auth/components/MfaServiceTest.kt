@@ -11,6 +11,8 @@ import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
+import io.mockk.runs
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -442,7 +444,7 @@ class MfaServiceTest {
     private fun passkeyOn(vararg ids: Long = longArrayOf(1)) {
         user.mfaPasskeyEnabled = true
         every { passkeyService.list(7) } returns ids.map { passkey(it, "Passkey $it") }
-        every { passkeyService.remove(user, any()) } answers { passkey(secondArg(), "Passkey") }
+        every { passkeyService.remove(any()) } just runs
         every { passkeyService.verifyAuthentication(user, relyingParty, goodAnswer.credentialJson) } returns true
         every { passkeyService.verifyAuthentication(user, relyingParty, badAnswer.credentialJson) } returns false
     }

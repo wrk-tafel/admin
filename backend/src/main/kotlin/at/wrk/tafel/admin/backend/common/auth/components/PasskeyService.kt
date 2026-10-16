@@ -207,12 +207,10 @@ class PasskeyService(
         }
     }
 
-    /** Removes the passkey [passkeyId] of [user]; `null` when the user has no such passkey. */
+    /** Removes [passkey], one of those [list] returned. */
     @Transactional
-    fun remove(user: UserEntity, passkeyId: Long): UserPasskeyEntity? {
-        val passkey = userPasskeyRepository.findByIdAndUserId(passkeyId, user.id!!) ?: return null
+    fun remove(passkey: UserPasskeyEntity) {
         userPasskeyRepository.delete(passkey)
-        return passkey
     }
 
     /** Removes every passkey of [user], one entity at a time so each removal is in the audit trail. */

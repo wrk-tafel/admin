@@ -120,6 +120,7 @@ describe('Account page', () => {
 
       // no address on record: the two-factor topic points here instead of offering a code by e-mail
       cy.byTestId('account-nav-mfa').click();
+      cy.byTestId('mfaRowToggle-email').click();
       cy.byTestId('mfaEmailNoAddress').should('be.visible').and('contain.text', 'keine E-Mail-Adresse hinterlegt');
       cy.byTestId('mfaEmailSetupButton').should('not.exist');
       cy.checkAccessibility(MAIN_CONTENT);
@@ -143,6 +144,7 @@ describe('Account page', () => {
       cy.byTestId('account-personnel-number').should('have.text', '00000');
 
       cy.byTestId('account-nav-mfa').click();
+      cy.byTestId('mfaRowToggle-email').click();
       cy.byTestId('mfaEmailNoAddress').should('not.exist');
       cy.byTestId('mfaEmailAddress').should('contain.text', 'erika.muster@example.org');
       cy.byTestId('mfaEmailSetupButton').should('be.visible');

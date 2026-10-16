@@ -124,7 +124,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         val session = addPasskey(completedSession(), "Mein Laptop")
 
         val status = get("/api/mfa", session).body()
-        assertThat(status).contains(""""name":"Mein Laptop"""")
+        assertThat(status).contains(""""name":"Mein Laptop"""").contains(""""kind":"DEVICE"""")
 
         val login = login()
         assertThat(login.body).contains("PASSKEY")

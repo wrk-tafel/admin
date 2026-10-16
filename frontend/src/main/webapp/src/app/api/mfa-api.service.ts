@@ -128,9 +128,13 @@ export interface MfaPasskeyItem {
   id: number;
   /** What the user called it. */
   name: string;
+  /** What holds it, as far as the authenticator said when it was added. */
+  kind?: MfaPasskeyKind;
   createdAt?: string | null;
   lastUsedAt?: string | null;
 }
+
+export type MfaPasskeyKind = 'DEVICE' | 'SECURITY_KEY' | 'UNKNOWN';
 
 export interface MfaPasskeyOptions {
   options: PasskeyOptions;
