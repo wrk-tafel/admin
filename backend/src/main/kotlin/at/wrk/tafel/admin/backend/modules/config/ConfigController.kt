@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.config
 
 import at.wrk.tafel.admin.backend.common.api.TafelPublicEndpoint
+import at.wrk.tafel.admin.backend.common.auth.components.PasswordResetService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/config")
 class ConfigController(
     private val tafelAdminProperties: TafelAdminProperties,
+    private val passwordResetService: PasswordResetService,
 ) {
 
     @GetMapping
@@ -42,5 +44,6 @@ class ConfigController(
     @TafelPublicEndpoint
     fun getPublicConfig(): PublicConfigResponse = PublicConfigResponse(
         environmentLabel = tafelAdminProperties.environmentLabel.trim(),
+        passwordResetAvailable = passwordResetService.isAvailable(),
     )
 }

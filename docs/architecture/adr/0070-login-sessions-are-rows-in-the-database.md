@@ -141,5 +141,5 @@ rows find nothing to fight over; there is no work to share out.
 - `backend/src/main/kotlin/at/wrk/tafel/admin/backend/common/auth/UserSessionController.kt`
 - `backend/src/main/kotlin/at/wrk/tafel/admin/backend/config/WebSecurityConfig.kt`, `SessionCookieConfig.kt`
 - `backend/src/main/resources/db-migration/R__00133_spring_session.sql`,
-  `R__00135_drop_users_token_invalidated_at.sql`
+  `R__00136_drop_users_token_invalidated_at.sql`
 - `frontend/src/main/webapp/src/app/modules/user/components/user-sessions/`

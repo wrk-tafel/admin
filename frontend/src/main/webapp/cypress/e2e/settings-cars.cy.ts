@@ -56,6 +56,34 @@ describe('Settings - Cars', () => {
     cy.byTestId('saveNewCarButton').should('be.disabled');
   });
 
+  it('shows a plate the backend refuses inside the dialog, which stays open for correcting it', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const plate = 'W-RACE-' + randomId;
+      cy.byTestId('addCarButton').click();
+      cy.get('input[formControlName="licensePlate"]').should('be.visible');
+
+      // another admin takes the plate while this dialog is open - its list cannot know that car
+      cy.request('POST', '/api/cars', {licensePlate: plate, name: 'Other ' + randomId, enabled: true, sortOrder: 0});
+
+      cy.get('input[formControlName="licensePlate"]').type(plate);
+      cy.get('input[formControlName="name"]').type('Mine ' + randomId);
+      cy.byTestId('carDuplicateHint').should('not.exist');
+      cy.byTestId('saveNewCarButton').click();
+
+      cy.byTestId('car-create-dialog').should('be.visible');
+      cy.byTestId('carSaveError').should('be.visible')
+        .and('contain.text', `Kennzeichen ${plate} ist bereits vorhanden`);
+      cy.checkDialogAccessibility();
+
+      cy.get('input[formControlName="licensePlate"]').type('X');
+      cy.byTestId('carSaveError').should('not.exist');
+      cy.byTestId('saveNewCarButton').click();
+
+      cy.byTestId('car-create-dialog').should('not.exist');
+      cy.byTestId('cars-table').should('contain.text', plate + 'X');
+    });
+  });
+
   it('refuses a license plate another car already has when it is entered in an inline edit', () => {
     cy.byTestId('cars-table').contains('tr', 'W-NC-123').within(() => {
       cy.get('[testid^="editCarButton-"]').click();

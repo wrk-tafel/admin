@@ -240,18 +240,21 @@ describe('SettingsCarsComponent', () => {
     });
   });
 
-  it('addCar() creates the car the dialog returned', () => {
-    const newCar: CarData = {id: 0, licensePlate: 'W-999', name: 'New Car', enabled: true, sortOrder: 0};
-    matDialogMock.open = vi.fn(() => ({afterClosed: () => of({create: newCar})})) as any;
+  it('addCar() confirms and reloads the list once the dialog created a car', () => {
+    const newCar: CarData = {id: 7, licensePlate: 'W-999', name: 'New Car', enabled: true, sortOrder: 3};
+    matDialogMock.open = vi.fn(() => ({afterClosed: () => of({created: newCar})})) as any;
 
     const fixture = TestBed.createComponent(SettingsCarsComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
+    const loadsBefore = vi.mocked(carApiMock.getAllCars!).mock.calls.length;
 
     component['addCar']();
 
-    expect(carApiMock.createCar).toHaveBeenCalledWith(newCar);
+    // the dialog sends the create request itself, so a refusal can be shown while it is still open
+    expect(carApiMock.createCar).not.toHaveBeenCalled();
     expect(toastrMock.success).toHaveBeenCalled();
+    expect(vi.mocked(carApiMock.getAllCars!).mock.calls.length).toBe(loadsBefore + 1);
   });
 
   it('addCar() re-enables the existing car instead of creating a duplicate', () => {

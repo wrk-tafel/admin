@@ -3,7 +3,9 @@ import {signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {CarCreateDialogComponent, CarCreateDialogData} from './car-create-dialog.component';
-import {CarData} from '../../../../../api/car-api.service';
+import {HttpErrorResponse} from '@angular/common/http';
+import {of, throwError} from 'rxjs';
+import {CarApiService, CarData} from '../../../../../api/car-api.service';
 
 describe('CarCreateDialogComponent', () => {
   const activeCar: CarData = {id: 1, licensePlate: 'W-11111A', name: 'Bus 1', enabled: true, sortOrder: 1};
@@ -11,16 +13,21 @@ describe('CarCreateDialogComponent', () => {
 
   const existingCars = signal<CarData[]>([]);
   let dialogRef: MockedObject<MatDialogRef<CarCreateDialogComponent>>;
+  let carApi: MockedObject<CarApiService>;
 
   const configureWith = async (data: CarCreateDialogData) => {
     dialogRef = {
       close: vi.fn().mockName('MatDialogRef.close')
     } as any;
+    carApi = {
+      createCar: vi.fn((car: CarData) => of({...car, id: 42}))
+    } as any;
 
     await TestBed.configureTestingModule({
       providers: [
         {provide: MatDialogRef, useValue: dialogRef},
-        {provide: MAT_DIALOG_DATA, useValue: data}
+        {provide: MAT_DIALOG_DATA, useValue: data},
+        {provide: CarApiService, useValue: carApi}
       ]
     }).compileComponents();
   };
@@ -50,7 +57,7 @@ describe('CarCreateDialogComponent', () => {
     });
   });
 
-  it('save() closes dialog with the normalized form value when valid', () => {
+  it('save() creates the car with the normalized form value and closes with it', () => {
     const fixture = TestBed.createComponent(CarCreateDialogComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
@@ -58,9 +65,32 @@ describe('CarCreateDialogComponent', () => {
     component.form.patchValue({licensePlate: ' w-33333c ', name: ' New Car '});
     component.save();
 
-    expect(dialogRef.close).toHaveBeenCalledWith({
-      create: {licensePlate: 'W-33333C', name: 'New Car', sortOrder: 0, enabled: true}
-    });
+    const sent = {licensePlate: 'W-33333C', name: 'New Car', sortOrder: 0, enabled: true};
+    expect(carApi.createCar).toHaveBeenCalledWith(sent);
+    expect(dialogRef.close).toHaveBeenCalledWith({created: {...sent, id: 42}});
+  });
+
+  it('save() keeps the dialog open and shows the refusal in it when the backend rejects the car', () => {
+    carApi.createCar.mockReturnValue(throwError(() => new HttpErrorResponse({
+      status: 409,
+      error: {status: 409, detail: 'Ein Fahrzeug mit dem Kennzeichen W-33333C ist bereits vorhanden!'}
+    })));
+    const fixture = TestBed.createComponent(CarCreateDialogComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({licensePlate: 'W-33333C', name: 'New Car'});
+    component.save();
+    fixture.detectChanges();
+
+    expect(dialogRef.close).not.toHaveBeenCalled();
+    const error: HTMLElement = fixture.nativeElement.querySelector('[testid="carSaveError"]');
+    expect(error.textContent).toContain('Ein Fahrzeug mit dem Kennzeichen W-33333C ist bereits vorhanden!');
+
+    // correcting the plate clears the refusal, so it never describes a value no longer entered
+    component.form.controls.licensePlate.setValue('W-33333D');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[testid="carSaveError"]')).toBeNull();
   });
 
   it('save() does not close dialog when invalid', () => {
@@ -70,6 +100,7 @@ describe('CarCreateDialogComponent', () => {
 
     component.save();
 
+    expect(carApi.createCar).not.toHaveBeenCalled();
     expect(dialogRef.close).not.toHaveBeenCalled();
   });
 
@@ -126,6 +157,7 @@ describe('CarCreateDialogComponent', () => {
     component.form.patchValue({licensePlate: 'W-11111A', name: 'Bus 1 again'});
     component.save();
 
+    expect(carApi.createCar).not.toHaveBeenCalled();
     expect(dialogRef.close).not.toHaveBeenCalled();
   });
 

@@ -263,6 +263,21 @@ class TafelUserDetailsManager(
         }
     }
 
+    /**
+     * Sets a new password without asking for the old one - for "Passwort vergessen?"
+     * (`PasswordResetService`), where the mailed link is the proof. Same rules as [changePassword]:
+     * the password policy and `passwordChangeRequired` cleared. Ending the account's sessions is the
+     * caller's part (`UserSessionService.endAllSessions`), as it is for every other password change.
+     * Throws [PasswordChangeException] for a password the policy refuses.
+     */
+    fun resetPassword(userEntity: UserEntity, newPassword: String) {
+        if (isPasswordValid(userEntity.username, newPassword)) {
+            userEntity.password = passwordEncoder.encode(newPassword)!!
+            userEntity.passwordChangeRequired = false
+            userRepository.save(userEntity)
+        }
+    }
+
     private fun isPasswordValid(username: String, newPassword: String): Boolean {
         val data = PasswordData(username, newPassword)
         val result = passwordValidator.validate(data)

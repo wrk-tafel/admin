@@ -212,6 +212,30 @@ class MailTemplateRenderingTest {
     }
 
     @Test
+    fun `password-reset-mail renders the account, the link and its validity`() {
+        val context = Context()
+        context.setVariable("username", "max.mustermann")
+        context.setVariable("link", "https://example.org/verwaltung/passwort-zuruecksetzen#token=abc123")
+        context.setVariable("validityMinutes", 60L)
+
+        val rendered = render("mails/password-reset-mail", context)
+
+        assertThat(rendered).isEqualTo(loadReference("password-reset-mail.html"))
+    }
+
+    @Test
+    fun `password-reset-mail escapes the username`() {
+        val context = Context()
+        context.setVariable("username", "<script>alert(1)</script>")
+        context.setVariable("link", "https://example.org/verwaltung/passwort-zuruecksetzen#token=abc123")
+        context.setVariable("validityMinutes", 60L)
+
+        val rendered = render("mails/password-reset-mail", context)
+
+        assertThat(rendered).doesNotContain("<script>alert(1)</script>").contains("&lt;script&gt;")
+    }
+
+    @Test
     fun `account-security-mail renders the account and what changed`() {
         val context = Context()
         context.setVariable("username", "max.mustermann")
