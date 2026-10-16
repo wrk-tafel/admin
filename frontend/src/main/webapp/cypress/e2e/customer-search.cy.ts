@@ -607,8 +607,12 @@ describe('Customer Search', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
-      cy.byTestId('searchInputText').type(customer.lastname);
-      clickSearchAndWaitForResult();
+      // Every dummy customer of this spec is a typo-tolerant match for another's "lastname-<n>", so the
+      // result can hold more than one default page - the large page keeps this one on it whichever way
+      // the list is sorted.
+      cy.intercept('POST', '/api/households/search').as('initialSearch');
+      cy.visit(`/kunden/suchen?suche=${encodeURIComponent(customer.lastname)}&anzahl=100`);
+      cy.wait('@initialSearch');
       cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
 
       cy.intercept('POST', '/api/households/search').as('sortedSearch');
