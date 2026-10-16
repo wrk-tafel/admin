@@ -27,6 +27,27 @@ import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 50;
 const BANNED_PASSWORD_WORDS = ['wrk', 'örk', 'oerk', 'tafel', 'roteskreuz', 'toet', 'töt', '1030'];
+/** The shortest sequence ("1234", "abcd", "qwer") or run of one character ("aaaa") the server refuses. */
+const ILLEGAL_RUN_LENGTH = 4;
+/** The rows `IllegalSequenceRule` checks: alphabet, digits and the rows of a German keyboard. */
+const ILLEGAL_SEQUENCE_ROWS = ['abcdefghijklmnopqrstuvwxyz', '0123456789', 'qwertzuiopü', 'asdfghjklöä', 'yxcvbnm'];
+
+/** Whether [password] holds [ILLEGAL_RUN_LENGTH] neighbours of one of the rows, forwards or backwards. */
+export function containsIllegalSequence(password: string): boolean {
+  const lower = password.toLowerCase();
+  for (let start = 0; start + ILLEGAL_RUN_LENGTH <= lower.length; start++) {
+    const window = lower.substring(start, start + ILLEGAL_RUN_LENGTH);
+    const reversed = [...window].reverse().join('');
+    if (ILLEGAL_SEQUENCE_ROWS.some(row => row.includes(window) || row.includes(reversed))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function containsRepeatedCharacters(password: string): boolean {
+  return new RegExp(`(.)\\1{${ILLEGAL_RUN_LENGTH - 1}}`).test(password);
+}
 
 interface PasswordRuleCheck {
   label: string;
@@ -150,6 +171,14 @@ export class PasswordChangeFormComponent {
       {
         label: 'Enthält Klein- und Großbuchstaben sowie eine Ziffer',
         met: hasValue && hasCharacterVariety
+      },
+      {
+        label: 'Keine Zeichenfolgen wie "1234", "abcd" oder "qwer"',
+        met: hasValue && !containsIllegalSequence(newPassword)
+      },
+      {
+        label: 'Nicht mehr als drei gleiche Zeichen hintereinander',
+        met: hasValue && !containsRepeatedCharacters(newPassword)
       }
     ];
   });
