@@ -12,8 +12,6 @@ interface UserPasskeyRepository : JpaRepository<UserPasskeyEntity, Long> {
 
     fun findByUserIdAndCredentialId(userId: Long, credentialId: String): UserPasskeyEntity?
 
-    fun findByIdAndUserId(id: Long, userId: Long): UserPasskeyEntity?
-
     fun existsByCredentialId(credentialId: String): Boolean
 
     /**

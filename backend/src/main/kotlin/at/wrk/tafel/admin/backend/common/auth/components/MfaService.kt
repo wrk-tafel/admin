@@ -218,9 +218,7 @@ class MfaService(
     fun removePasskey(username: String, passkeyId: Long, code: String?, passkey: PasskeyAnswer? = null): Boolean {
         val user = findUser(username)
         val passkeys = passkeyService.list(user.id!!)
-        if (passkeys.none { it.id == passkeyId }) {
-            return false
-        }
+        val passkeyToRemove = passkeys.find { it.id == passkeyId } ?: return false
         if (passkeys.size == 1 && !user.mfaTotpEnabled && !user.mfaEmailEnabled && properties.mfa.required) {
             throw lastMethodRequired()
         }
@@ -228,10 +226,10 @@ class MfaService(
             return false
         }
 
-        val removed = passkeyService.remove(user, passkeyId) ?: return false
+        passkeyService.remove(passkeyToRemove)
         user.mfaPasskeyEnabled = passkeys.size > 1
         userRepository.save(user)
-        notificationService.notify(user.username, user.email, "Der Passkey \"${removed.name}\" wurde entfernt.")
+        notificationService.notify(user.username, user.email, "Der Passkey \"${passkeyToRemove.name}\" wurde entfernt.")
         log.info("Passkey removed by user {}", user.username)
         return true
     }
