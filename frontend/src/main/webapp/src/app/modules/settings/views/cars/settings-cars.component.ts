@@ -223,14 +223,9 @@ export class SettingsCarsComponent {
     dialogRef.afterClosed().subscribe((result: CarCreateDialogResult | undefined) => {
       if (result?.reactivate) {
         this.toggleCarVisibility(result.reactivate, true);
-      } else if (result?.create) {
-        this.carApiService.createCar(result.create).subscribe({
-          next: () => {
-            this.toastr.success('Fahrzeug erstellt', 'Erfolgreich');
-            this.loadCars();
-          },
-          error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Erstellen fehlgeschlagen')
-        });
+      } else if (result?.created) {
+        this.toastr.success('Fahrzeug erstellt', 'Erfolgreich');
+        this.loadCars();
       }
     });
   }
