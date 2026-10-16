@@ -1,10 +1,11 @@
 package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
+import at.wrk.tafel.admin.backend.common.auth.components.TafelSessionAttributes
 import at.wrk.tafel.admin.backend.common.auth.model.EmailChangeConfirmRequest
 import at.wrk.tafel.admin.backend.common.auth.model.PasswordResetConfirmRequest
 import at.wrk.tafel.admin.backend.common.auth.model.PasswordResetRequest
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.UserAccountRequest
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.common.mailoutbox.MailOutboxRepository
@@ -22,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.session.FindByIndexNameSessionRepository
+import org.springframework.session.Session
+import org.springframework.session.jdbc.JdbcIndexedSessionRepository
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.transaction.support.TransactionTemplate
@@ -85,6 +89,9 @@ class MailedLinksIT : TafelBaseIntegrationTest() {
     @Autowired
     private lateinit var transactionTemplate: TransactionTemplate
 
+    @Autowired
+    private lateinit var sessionRepository: JdbcIndexedSessionRepository
+
     private lateinit var user: UserEntity
 
     private val mailpitClient = RestClient.builder()
@@ -116,12 +123,21 @@ class MailedLinksIT : TafelBaseIntegrationTest() {
 
         val token = awaitTokenFromMail()
 
+        // JdbcIndexedSessionRepository's session type is package-private, hence the interface view
+        @Suppress("UNCHECKED_CAST")
+        val sessions = sessionRepository as FindByIndexNameSessionRepository<Session>
+        val openSession = sessions.createSession()
+        openSession.setAttribute(TafelSessionAttributes.USERNAME, user.username)
+        openSession.setAttribute(TafelSessionAttributes.SESSION_KEY, TafelSessionAttributes.newSessionKey())
+        sessions.save(openSession)
+        assertThat(sessionRepository.findByPrincipalName(user.username)).isNotEmpty()
+
         val confirmResponse = passwordResetController.confirmReset(PasswordResetConfirmRequest(token, "aNewSecretPassword-123"))
         assertThat(confirmResponse.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
 
         val updated = userRepository.findById(user.id!!).get()
         assertThat(passwordEncoder.matches("aNewSecretPassword-123", updated.password)).isTrue()
-        assertThat(updated.tokenInvalidatedAt).isNotNull()
+        assertThat(sessionRepository.findByPrincipalName(user.username)).isEmpty()
 
         val secondAttempt = passwordResetController.confirmReset(PasswordResetConfirmRequest(token, "anotherSecretPassword-456"))
         assertThat(secondAttempt.statusCode).isEqualTo(HttpStatus.GONE)
@@ -152,8 +168,8 @@ class MailedLinksIT : TafelBaseIntegrationTest() {
     @Test
     fun `a changed e-mail address takes effect only once the link mailed to the old one is confirmed`() {
         val oldEmail = user.email!!
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
-            tokenValue = "token",
+        SecurityContextHolder.getContext().authentication = TafelAuthentication(
+            sessionKey = "KEY",
             username = user.username,
             authenticated = true,
             userId = user.id,

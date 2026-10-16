@@ -1,6 +1,6 @@
 # ADR-0058: Two-factor authentication (authenticator app or e-mail code) gates the session, not the page
 
-**Status:** accepted · **Recorded:** 2026-09-24
+**Status:** accepted; where a session records the passed second factor (a session attribute, no longer a JWT claim) changed by [ADR-0070](0070-login-sessions-are-rows-in-the-database.md) · **Recorded:** 2026-09-24
 
 ## Context
 

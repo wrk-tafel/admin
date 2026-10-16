@@ -4,21 +4,19 @@ import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.AccountSecurityNotificationService
 import at.wrk.tafel.admin.backend.common.auth.components.EmailChangeService
-import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.MfaService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.StaffPrivacyNoticeService
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportFileResult
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
 import at.wrk.tafel.admin.backend.common.auth.components.UserPreferencesService
+import at.wrk.tafel.admin.backend.common.auth.components.UserSessionService
 import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.common.http.ContentDispositionUtil
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
-import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
@@ -27,7 +25,6 @@ import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
@@ -51,15 +48,14 @@ class UserController(
     private val userDetailsManager: TafelUserDetailsManager,
     private val tafelPasswordGenerator: TafelPasswordGenerator,
     private val tafelAdminProperties: TafelAdminProperties,
-    private val applicationProperties: ApplicationProperties,
     private val loginAttemptService: LoginAttemptService,
     private val userExportService: UserExportService,
     private val staffPrivacyNoticeService: StaffPrivacyNoticeService,
-    private val jwtTokenService: JwtTokenService,
     private val advisoryLockService: AdvisoryLockService,
     private val userPreferencesService: UserPreferencesService,
     private val mfaService: MfaService,
     private val notificationService: AccountSecurityNotificationService,
+    private val userSessionService: UserSessionService,
     private val emailChangeService: EmailChangeService,
 ) {
 
@@ -69,7 +65,7 @@ class UserController(
 
     @GetMapping("/info")
     fun getUserInfo(): ResponseEntity<UserInfoResponse> {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         val user = userDetailsManager.loadUserByUsername(authenticatedUser.username!!)
 
         val userInfo = UserInfoResponse(
@@ -94,7 +90,7 @@ class UserController(
      */
     @GetMapping("/account")
     fun getAccount(): UserAccountResponse {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         return mapToAccountResponse(userDetailsManager.loadUserByUsername(authenticatedUser.username!!))
     }
 
@@ -119,7 +115,7 @@ class UserController(
     @PutMapping("/account")
     @Transactional(noRollbackFor = [BusinessRuleException::class])
     fun updateAccount(@Valid @RequestBody request: UserAccountRequest): UserAccountResponse {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         val username = authenticatedUser.username!!
         val newEmail = normalizeEmail(request.email)
         validateEmailPresentIfMandatory(newEmail)
@@ -165,7 +161,7 @@ class UserController(
     /** The caller's own display preference - self-service, so `isAuthenticated()` is all it needs. */
     @PutMapping("/theme")
     fun updateTheme(@RequestBody request: UserThemeRequest): UserThemeResponse {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         return userPreferencesService.updateTheme(authenticatedUser.username!!, request.theme)
     }
 
@@ -178,7 +174,7 @@ class UserController(
      */
     @GetMapping("/export", produces = ["application/zip"])
     fun exportUser(): ResponseEntity<InputStreamResource> {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         val result = userExportService.exportUserByUsername(authenticatedUser.username!!)
             ?: throw NotFoundException("Benutzer nicht gefunden!")
         return exportResponse(result)
@@ -234,12 +230,17 @@ class UserController(
         return ResponseEntity.ok(response)
     }
 
+    /**
+     * Changes the caller's own password. Every *other* session of the account ends with it - whoever might
+     * have known the old password is logged out everywhere - while the session the change was made on stays
+     * ("Sie bleiben mit dem neuen Passwort angemeldet"), and a login that was only waiting for this change is
+     * now a finished one.
+     */
     @PostMapping("/change-password")
     @Transactional
     fun changePassword(
         @Valid @RequestBody changePasswordRequest: ChangePasswordRequest,
         request: HttpServletRequest,
-        response: HttpServletResponse,
     ): ResponseEntity<ChangePasswordResponse> {
         try {
             userDetailsManager.changePassword(changePasswordRequest.passwordCurrent, changePasswordRequest.passwordNew)
@@ -248,45 +249,18 @@ class UserController(
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationResult)
         }
 
-        // Changing one's own password just invalidated every JWT issued for this account up to now
-        // (see TafelUserDetailsManager.changePassword) - including the one this very request came in
-        // on. The frontend explicitly keeps the user on this session afterwards ("Sie bleiben mit dem
-        // neuen Passwort angemeldet"), so a fresh cookie has to replace it here, the same way
-        // TafelLoginFilter mints one after a real login.
-        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-        issueReplacementCookie(authentication.username!!, request, response, authentication.mfaVerified)
+        val authentication = SecurityContextHolder.getContext().authentication as TafelAuthentication
+        userSessionService.endOtherSessions(authentication.username!!, authentication.sessionKey)
+        userSessionService.completePasswordChange(request)
 
         return ResponseEntity.ok().build()
     }
 
-    /**
-     * Mints a fresh session cookie for [username], replacing the one the current request came in on.
-     * Needed wherever a caller's own password is changed - [TafelUserDetailsManager.changePassword]/
-     * `mapToUserEntity` invalidate every JWT issued for the account up to now (see
-     * [TafelUserDetailsManager.markTokensInvalidated]), including the one carrying the request itself,
-     * so without this the very next request would be an unexplained 401/logout despite the change
-     * having succeeded (issue #3572).
-     */
-    private fun issueReplacementCookie(username: String, request: HttpServletRequest, response: HttpServletResponse, mfaVerified: Boolean) {
-        val expirationTimeInSeconds = applicationProperties.security.jwtToken.expirationTimeInSeconds
-        // The replacement keeps what the session it replaces had passed: a completed second factor is not
-        // asked for again just because the password changed, and a session that never passed it does not
-        // get to look as if it had.
-        val token = jwtTokenService.generateToken(username = username, expirationSeconds = expirationTimeInSeconds, mfaVerified = mfaVerified)
-        val cookie = TafelLoginFilter.createTokenCookie(token, expirationTimeInSeconds, tafelAdminProperties.server.relativeBaseUrl, request)
-        response.addCookie(cookie)
-    }
-
+    /** Ends the session the request came in on - and only that one; the user's other devices stay logged in. */
     @PostMapping("/logout")
-    fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Unit> {
-        val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-
-        // Clearing the cookie alone only removes it client-side - the JWT itself would otherwise
-        // keep authenticating for the rest of its lifetime if it were captured beforehand.
-        userDetailsManager.invalidateTokens(user.username!!)
-
-        val cookie = TafelLoginFilter.createTokenCookie(null, 0, tafelAdminProperties.server.relativeBaseUrl, request)
-        response.addCookie(cookie)
+    fun logout(request: HttpServletRequest): ResponseEntity<Unit> {
+        val user = SecurityContextHolder.getContext().authentication as TafelAuthentication
+        userSessionService.endCurrentSession(request)
 
         logger.info("User ${sanitizeForLog(user.username)} logged out!")
         return ResponseEntity.ok().build()
@@ -422,6 +396,7 @@ class UserController(
         try {
             val updatedTafelUser = mapToTafelUser(user, id = userId)
             userDetailsManager.updateUser(updatedTafelUser)
+            endSessionsIfAccessChanged(existingUser, user)
 
             val userResponse = mapToResponse(userDetailsManager.loadUserById(userId)!!)
             return ResponseEntity.ok(userResponse)
@@ -454,7 +429,23 @@ class UserController(
         validateNotLastAdministrator(userId, tafelUser)
 
         userDetailsManager.deleteUser(tafelUser.username)
+        userSessionService.endAllSessions(tafelUser.username)
         return ResponseEntity.noContent().build()
+    }
+
+    /**
+     * A disabled account, a renamed one and one given a new password are logged out everywhere at once:
+     * whoever was using it may no longer, under the old name, or with the old password. Every session
+     * would be refused on its next request anyway (disabled, or no user by that name), but ending them
+     * here also ends their open event streams and takes them off the list.
+     */
+    private fun endSessionsIfAccessChanged(existingUser: TafelUser, requested: UserRequest) {
+        val disabled = existingUser.enabled && !requested.enabled
+        val renamed = existingUser.username != requested.username
+        val passwordSet = !requested.password.isNullOrBlank()
+        if (disabled || renamed || passwordSet) {
+            userSessionService.endAllSessions(existingUser.username)
+        }
     }
 
     /**
@@ -472,7 +463,7 @@ class UserController(
 
         val isTargetAdministrator = existingUser.authorities.any { it.authority == UserPermissions.ADMINISTRATOR.key }
         if (isTargetAdministrator) {
-            val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+            val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
             if (authenticatedUser.authorities.none { it.authority == UserPermissions.ADMINISTRATOR.key }) {
                 throw TafelApiException(
                     HttpStatus.FORBIDDEN,
@@ -588,7 +579,7 @@ class UserController(
             return
         }
 
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         if (authenticatedUser.authorities.none { it.authority == administratorKey }) {
             throw TafelApiException(
                 HttpStatus.FORBIDDEN,
@@ -616,7 +607,7 @@ class UserController(
             return
         }
 
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         if (authenticatedUser.authorities.any { it.authority == UserPermissions.ADMINISTRATOR.key }) {
             return
         }
@@ -644,7 +635,7 @@ class UserController(
      *   it takes a code of a method the user has (see [updateAccount]).
      */
     private fun validateOwnCredentialsUnchanged(existingUser: TafelUser, requested: UserRequest) {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelAuthentication
         if (authenticatedUser?.userId != existingUser.id) {
             return
         }

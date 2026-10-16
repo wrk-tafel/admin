@@ -53,7 +53,8 @@ describe('UserDetailComponent', () => {
                         updateUser: vi.fn().mockName('UserApiService.updateUser'),
                         deleteUser: vi.fn().mockName('UserApiService.deleteUser'),
                         exportUserById: vi.fn().mockName('UserApiService.exportUserById'),
-                        resetMfa: vi.fn().mockName('UserApiService.resetMfa')
+                        resetMfa: vi.fn().mockName('UserApiService.resetMfa'),
+                        endUserSessions: vi.fn().mockName('UserApiService.endUserSessions')
                     }
                 },
                 {
@@ -178,6 +179,25 @@ describe('UserDetailComponent', () => {
 
         expect(component.currentUserData().mfaEnabled).toBe(true);
         expect(toastr.error).toHaveBeenCalledWith('Zurücksetzen fehlgeschlagen!');
+    });
+
+    it('ends all sessions of the user and says so', () => {
+        const component = createFixture(mockUser).componentInstance;
+        userApiService.endUserSessions.mockReturnValue(of(undefined));
+
+        component.endSessions();
+
+        expect(userApiService.endUserSessions).toHaveBeenCalledWith(mockUser.id);
+        expect(toastr.success).toHaveBeenCalledWith('Alle Sitzungen des Benutzers wurden beendet!');
+    });
+
+    it('says so when ending the sessions fails', () => {
+        const component = createFixture(mockUser).componentInstance;
+        userApiService.endUserSessions.mockReturnValue(throwError(() => new Error('403')));
+
+        component.endSessions();
+
+        expect(toastr.error).toHaveBeenCalledWith('Sitzungen konnten nicht beendet werden!');
     });
 
     it('enable user', () => {

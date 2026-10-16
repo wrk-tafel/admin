@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.notification.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.notification.AnnouncementEntity
@@ -38,7 +38,7 @@ internal class NotificationServiceTest {
     @BeforeEach
     fun beforeEach() {
         service = NotificationService(notificationRepository, announcementRepository, userRepository)
-        val authentication = mockk<TafelJwtAuthentication>()
+        val authentication = mockk<TafelAuthentication>()
         every { authentication.username } returns "user"
         SecurityContextHolder.getContext().authentication = authentication
         every { userRepository.findByUsername("user") } returns UserEntity(

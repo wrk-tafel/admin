@@ -28,6 +28,7 @@ class PasswordResetServiceTest {
     private val userRepository = mockk<UserRepository>(relaxed = true)
     private val tokenRepository = mockk<PasswordResetTokenRepository>(relaxed = true)
     private val userDetailsManager = mockk<TafelUserDetailsManager>(relaxed = true)
+    private val userSessionService = mockk<UserSessionService>(relaxed = true)
     private val mailSenderService = mockk<MailSenderService>(relaxed = true)
     private val notificationService = mockk<AccountSecurityNotificationService>(relaxed = true)
     private val clock: Clock = Clock.fixed(Instant.parse("2026-10-15T10:00:00Z"), ZoneId.of("UTC"))
@@ -47,6 +48,7 @@ class PasswordResetServiceTest {
             userRepository,
             tokenRepository,
             userDetailsManager,
+            userSessionService,
             mailSenderService,
             notificationService,
             properties,
@@ -175,6 +177,7 @@ class PasswordResetServiceTest {
         service.confirm("the-token", "aNewSecretPassword-123")
 
         verify { userDetailsManager.resetPassword(user, "aNewSecretPassword-123") }
+        verify { userSessionService.endAllSessions(user.username) }
         assertThat(stored.usedAt).isEqualTo(now)
         verify { notificationService.notify(user.username, "max@example.org", any()) }
     }
@@ -211,5 +214,6 @@ class PasswordResetServiceTest {
         assertThrows<PasswordChangeException> { service.confirm("the-token", "short") }
 
         assertThat(stored.usedAt).isNull()
+        verify(exactly = 0) { userSessionService.endAllSessions(any()) }
     }
 }

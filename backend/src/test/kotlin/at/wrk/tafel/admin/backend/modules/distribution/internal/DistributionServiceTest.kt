@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
@@ -124,8 +124,8 @@ internal class DistributionServiceTest {
     @InjectMockKs
     private lateinit var service: DistributionService
 
-    private val authentication = TafelJwtAuthentication(
-        tokenValue = "TOKEN",
+    private val authentication = TafelAuthentication(
+        sessionKey = "TOKEN",
         username = testUser.username,
         authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
     )

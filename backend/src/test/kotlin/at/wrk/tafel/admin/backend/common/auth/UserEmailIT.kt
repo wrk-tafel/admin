@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissionItem
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.common.auth.model.UserRequest
@@ -37,8 +37,8 @@ class UserEmailIT : TafelBaseIntegrationTest() {
     @BeforeEach
     fun beforeEach() {
         user = transactionTemplate.execute { userRepository.saveAndFlush(createUser()) }!!
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
-            tokenValue = "token",
+        SecurityContextHolder.getContext().authentication = TafelAuthentication(
+            sessionKey = "token",
             username = user.username,
             authenticated = true,
             authorities = listOf(SimpleGrantedAuthority(UserPermissions.USER_MANAGEMENT.key)),

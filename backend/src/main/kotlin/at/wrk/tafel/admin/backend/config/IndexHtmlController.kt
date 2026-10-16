@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 /**
  * The frontend is built once and deployed unchanged behind reverse proxies mounting it at
  * different path prefixes (e.g. "/verwaltung-dev/", stripped by nginx before the request reaches
- * this app - see tafeladmin.server.relativeBaseUrl, also used for the JWT cookie path). index.html
+ * this app - see tafeladmin.server.relativeBaseUrl, also used for the session cookie path). index.html
  * ships with `<base href="/">` for local `ng serve` use; this controller rewrites that to the
  * configured prefix so relative asset/API URLs still resolve correctly once nginx has stripped it
  * (see #2972 for what breaks otherwise).

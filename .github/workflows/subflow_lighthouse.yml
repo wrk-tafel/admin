@@ -141,6 +141,7 @@ jobs:
               /konto/daten,
               /konto/passwort,
               /konto/zwei-faktor,
+              /konto/sitzungen,
               /konto/benachrichtigungen,
               /konto/design,
               /konto/datenschutz,
@@ -253,14 +254,14 @@ jobs:
           tail -n 100 "${RUNNER_TEMP}/backend.log"
           exit 1
       - name: Open a session
-        # A JWT cookie for `e2etest` (every permission), handed to Lighthouse as a request header -
-        # see lighthouserc.pages.cjs for why a header is enough and no UI login is scripted.
+        # A session cookie for `e2etest` (every permission), put into Lighthouse's browser by
+        # lighthouse-session.cjs - see there for why no UI login is scripted.
         #
         # An active distribution is started as well: without one, the dashboard and the whole
         # check-in area render their "no distribution" placeholder, and a sweep that only ever sees
-        # the empty state is not auditing those screens. The CSRF token is derived from the JWT
-        # (SessionBoundCsrfTokenRepository), so it only appears once a request has carried the JWT -
-        # hence the /api/users/info call in between.
+        # the empty state is not auditing those screens. The CSRF token is derived from the session
+        # cookie (SessionBoundCsrfTokenRepository), so it only appears once a request has carried the
+        # session - hence the /api/users/info call in between.
         run: |
           jar="${RUNNER_TEMP}/cookies.txt"
 
@@ -269,14 +270,14 @@ jobs:
           curl -sSf -b "$jar" --cookie-jar "$jar" -o /dev/null \
             http://localhost:8080/api/users/info
 
-          jwt=$(awk '$6 == "tafel-admin-jwt" {print $7}' "$jar")
+          session=$(awk '$6 == "tafel-admin-session" {print $7}' "$jar")
           xsrf=$(awk '$6 == "XSRF-TOKEN" {print $7}' "$jar")
-          if [ -z "$jwt" ]; then
-            echo "::error title=No session::POST /api/login returned no tafel-admin-jwt cookie."
+          if [ -z "$session" ]; then
+            echo "::error title=No session::POST /api/login returned no tafel-admin-session cookie."
             exit 1
           fi
-          echo "::add-mask::$jwt"
-          echo "LHCI_JWT=$jwt" >> "$GITHUB_ENV"
+          echo "::add-mask::$session"
+          echo "LHCI_SESSION=$session" >> "$GITHUB_ENV"
 
           curl -sSf -X POST -b "$jar" -H "X-XSRF-TOKEN: $xsrf" -o /dev/null \
             http://localhost:8080/api/distributions/new

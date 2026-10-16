@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -90,7 +90,7 @@ class RouteGuidanceConcurrentCompletionIT : TafelBaseIntegrationTest() {
             val futures = (1..PARALLEL_REQUESTS).map {
                 executor.submit<Result<Unit>> {
                     SecurityContextHolder.setContext(
-                        SecurityContextImpl(TafelJwtAuthentication(tokenValue = "TOKEN", username = testUser.username)),
+                        SecurityContextImpl(TafelAuthentication(sessionKey = "TOKEN", username = testUser.username)),
                     )
                     try {
                         barrier.await(10, TimeUnit.SECONDS)

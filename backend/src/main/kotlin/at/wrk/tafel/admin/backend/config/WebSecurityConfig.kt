@@ -48,7 +48,7 @@ import java.time.Clock
 @EnableMethodSecurity
 @ExcludeFromTestCoverage
 class WebSecurityConfig(
-    private val jwtTokenService: JwtTokenService,
+    private val userSessionService: UserSessionService,
     private val userRepository: UserRepository,
     private val applicationProperties: ApplicationProperties,
     private val tafelAdminProperties: TafelAdminProperties,
@@ -67,10 +67,11 @@ class WebSecurityConfig(
 ) {
 
     companion object {
-        // Reachable without a JWT cookie. Listing an endpoint here does two things at once: it
-        // permits the request, and it excludes the path from TafelJwtAuthenticationFilter below -
-        // which matters because TafelJwtAuthConverter rejects a cookie-less request outright
-        // instead of letting it through unauthenticated.
+        // Reachable without a session. Listing an endpoint here does two things at once: it permits
+        // the request, and it excludes the path from TafelSessionAuthenticationFilter below - which
+        // matters because TafelSessionAuthConverter rejects a session-less request outright instead
+        // of letting it through unauthenticated, and because it keeps these requests from loading a
+        // session at all.
         private const val LOGIN_ENDPOINT = "/api/login"
         private const val PASSWORD_RESET_ENDPOINTS = "/api/password-reset/*"
         private const val EMAIL_CHANGE_CONFIRM_ENDPOINT = "/api/email-change/confirm"
@@ -136,9 +137,9 @@ class WebSecurityConfig(
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        val authFilter = TafelJwtAuthenticationFilter(
+        val authFilter = TafelSessionAuthenticationFilter(
             authenticationManager = authenticationManager(),
-            authenticationConverter = tafelJwtAuthConverter(),
+            authenticationConverter = TafelSessionAuthConverter(),
             requestMatcher = AndRequestMatcher(
                 PathPatternRequestMatcher.pathPattern("/api/**"),
                 NegatedRequestMatcher(
@@ -203,19 +204,17 @@ class WebSecurityConfig(
             .addFilter(
                 TafelLoginFilter(
                     authenticationManager = authenticationManager(),
-                    jwtTokenService = jwtTokenService,
-                    applicationProperties = applicationProperties,
-                    tafelAdminProperties = tafelAdminProperties,
+                    userSessionService = userSessionService,
                     jsonMapper = jsonMapper,
                     mfaEmailCodeService = mfaEmailCodeService,
                 ),
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
-            .addFilterAfter(MfaPendingFilter(), TafelJwtAuthenticationFilter::class.java)
+            .addFilterAfter(MfaPendingFilter(), TafelSessionAuthenticationFilter::class.java)
             .authorizeHttpRequests { auth ->
                 // SSE endpoints (SseEmitter) keep the request open via request.startAsync(); when
                 // the emitter completes/times out/errors, the container re-enters the filter chain
-                // on an ASYNC dispatch to finish the request. TafelJwtAuthenticationFilter (a
+                // on an ASYNC dispatch to finish the request. TafelSessionAuthenticationFilter (a
                 // OncePerRequestFilter) skips re-authenticating on that dispatch by default, so
                 // without this, AuthorizationFilter - which runs on every dispatch type, unlike
                 // OncePerRequestFilter - sees no authentication and denies it, even though the
@@ -226,8 +225,17 @@ class WebSecurityConfig(
                 auth.requestMatchers("/api/**").authenticated()
                 auth.anyRequest().permitAll()
             }
+            // Spring Security itself keeps nothing in the session - no serialized SecurityContext, no saved
+            // request. The login session (Spring Session JDBC, ADR-0070) is opened by TafelLoginFilter, holds
+            // strings only (TafelSessionAttributes), and the Authentication is rebuilt from it per request.
+            //
+            // Spring Security's own session fixation protection is off: it would see the Authentication that
+            // TafelSessionAuthenticationFilter sets as a login happening on this very request and change the session
+            // id on every one of them. UserSessionService does it where it belongs instead - a new session at the
+            // login, a new id once the second factor was passed.
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                it.sessionFixation { fixation -> fixation.none() }
             }
             .exceptionHandling { exceptionHandling ->
                 exceptionHandling.accessDeniedHandler(TafelAccessDeniedHandler())
@@ -237,7 +245,7 @@ class WebSecurityConfig(
                 cookieTokenRepository.setCookieCustomizer { it.sameSite("Strict") }
                 val tokenRepository = SessionBoundCsrfTokenRepository(
                     delegate = cookieTokenRepository,
-                    secret = applicationProperties.security.jwtToken.secret.value,
+                    sessionCookieName = TafelSessionAttributes.COOKIE_NAME,
                 )
 
                 csrf.csrfTokenRepository(tokenRepository)
@@ -322,7 +330,7 @@ class WebSecurityConfig(
     )
 
     @Bean
-    fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
+    fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelSessionAuthProvider())
 
     @Bean
     fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(
@@ -335,8 +343,5 @@ class WebSecurityConfig(
     )
 
     @Bean
-    fun tafelJwtAuthProvider(): TafelJwtAuthProvider = TafelJwtAuthProvider(jwtTokenService, userRepository, tafelAdminProperties)
-
-    @Bean
-    fun tafelJwtAuthConverter(): TafelJwtAuthConverter = TafelJwtAuthConverter()
+    fun tafelSessionAuthProvider(): TafelSessionAuthProvider = TafelSessionAuthProvider(userRepository, tafelAdminProperties, applicationProperties, clock)
 }

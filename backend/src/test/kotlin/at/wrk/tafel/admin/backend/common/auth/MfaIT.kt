@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import at.wrk.tafel.admin.backend.common.auth.components.MfaService
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelSessionAttributes
 import at.wrk.tafel.admin.backend.common.auth.components.TotpService
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
@@ -33,7 +33,7 @@ import java.util.Base64
 
 /**
  * Two-factor authentication end to end - a real database, the real security filter chain and real
- * cookies. What a login that still owes its code may do is decided by `TafelJwtAuthProvider` and
+ * cookies. What a login that still owes its code may do is decided by `TafelSessionAuthProvider` and
  * `MfaPendingFilter` together, and only this shows that a password-only session really is stuck.
  *
  * Each test has its own user: a code is good once, and only the steps around the current one are
@@ -43,8 +43,14 @@ import java.util.Base64
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     // the test configuration replaces application.yml, which is where the real template location is set; the
-    // fixed code stands in for the mail the e-mail method sends, which nothing here can read
-    properties = ["spring.thymeleaf.prefix=classpath:/mail-templates/", "tafeladmin.mfa.emailCodeForTests=424242"],
+    // fixed code stands in for the mail the e-mail method sends, which nothing here can read. The login's rate limit
+    // per address is RateLimitFilter's to test, not this: these tests, and UserSessionIT's in the same context
+    // (the same properties on purpose - every context holds connections of its own), log in far more often a minute.
+    properties = [
+        "spring.thymeleaf.prefix=classpath:/mail-templates/",
+        "tafeladmin.mfa.emailCodeForTests=424242",
+        "security.rateLimit.enabled=false",
+    ],
 )
 @ActiveProfiles("test")
 class MfaIT : TafelBaseIntegrationTest() {
@@ -141,8 +147,8 @@ class MfaIT : TafelBaseIntegrationTest() {
         val login = login()
 
         assertThat(login.body).contains(""""mfaRequired":false""")
-        assertThat(get("/api/users/info", login.jwt).body()).contains(""""mfaPending":false""").contains("CHECKIN")
-        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(get("/api/users/info", login.cookie).body()).contains(""""mfaPending":false""").contains("CHECKIN")
+        assertThat(get("/api/users/export", login.cookie).statusCode()).isEqualTo(HttpStatus.OK.value())
     }
 
     @Test
@@ -153,21 +159,22 @@ class MfaIT : TafelBaseIntegrationTest() {
         assertThat(login.body).contains(""""mfaRequired":true""")
 
         // the password-only session may say who it is - that is how the frontend learns a code is owed ...
-        val info = get("/api/users/info", login.jwt).body()
+        val info = get("/api/users/info", login.cookie).body()
         assertThat(info).contains(""""mfaPending":true""").contains(""""permissions":[]""")
         // ... and nothing else: not what needs a permission, and not what asks only to be signed in
-        assertThat(get("/api/households", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
-        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
-        assertThat(get("/api/mfa", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/households", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/users/export", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/mfa", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
 
-        val verify = post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step)}"}""", login.jwt)
+        val verify = post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step)}"}""", login.cookie)
         assertThat(verify.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
-        val fullJwt = jwtOf(verify)
+        val full = cookieOf(verify)
 
-        assertThat(get("/api/users/info", fullJwt).body()).contains(""""mfaPending":false""").contains("CHECKIN")
-        assertThat(get("/api/users/export", fullJwt).statusCode()).isEqualTo(HttpStatus.OK.value())
-        // handing in the code did not upgrade the session it was handed in on
-        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/users/info", full).body()).contains(""""mfaPending":false""").contains("CHECKIN")
+        assertThat(get("/api/users/export", full).statusCode()).isEqualTo(HttpStatus.OK.value())
+        // the session got a new id with it: the one it had while only the password was known is worth nothing now
+        assertThat(full).isNotEqualTo(login.cookie)
+        assertThat(get("/api/users/export", login.cookie).statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value())
     }
 
     @Test
@@ -175,11 +182,11 @@ class MfaIT : TafelBaseIntegrationTest() {
         switchOn()
         val login = login()
 
-        val verify = post("/api/mfa/verify", """{"code":"000000"}""", login.jwt)
+        val verify = post("/api/mfa/verify", """{"code":"000000"}""", login.cookie)
 
         assertThat(verify.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(verify.headers().allValues("set-cookie")).noneMatch { it.startsWith(TafelLoginFilter.jwtCookieName) }
-        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(verify.headers().allValues("set-cookie")).noneMatch { it.startsWith(TafelSessionAttributes.COOKIE_NAME) }
+        assertThat(get("/api/users/export", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
     @Test
@@ -188,11 +195,11 @@ class MfaIT : TafelBaseIntegrationTest() {
         val code = totpService.codeAt(secret, step)
 
         val first = login()
-        assertThat(post("/api/mfa/verify", """{"code":"$code"}""", first.jwt).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
+        assertThat(post("/api/mfa/verify", """{"code":"$code"}""", first.cookie).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
 
         val second = login()
-        assertThat(post("/api/mfa/verify", """{"code":"$code"}""", second.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(get("/api/users/export", second.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(post("/api/mfa/verify", """{"code":"$code"}""", second.cookie).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(get("/api/users/export", second.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
     @Test
@@ -201,37 +208,38 @@ class MfaIT : TafelBaseIntegrationTest() {
         val login = login()
 
         repeat(applicationProperties.security.loginAttempts.maxFailures) {
-            assertThat(post("/api/mfa/verify", """{"code":"000000"}""", login.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+            assertThat(post("/api/mfa/verify", """{"code":"000000"}""", login.cookie).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
         }
 
-        val verify = post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step)}"}""", login.jwt)
+        val verify = post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step)}"}""", login.cookie)
         assertThat(verify.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/users/export", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
     @Test
     fun `switching it on takes effect for the sessions that were open, and the setup's own session goes on`() {
         val before = login()
-        assertThat(get("/api/users/export", before.jwt).statusCode()).isEqualTo(HttpStatus.OK.value())
+        val elsewhere = login()
+        assertThat(get("/api/users/export", before.cookie).statusCode()).isEqualTo(HttpStatus.OK.value())
 
-        val setup = post("/api/mfa/setup", "", before.jwt)
+        val setup = post("/api/mfa/setup", "", before.cookie)
         assertThat(setup.statusCode()).isEqualTo(HttpStatus.OK.value())
         secret = Regex(""""secret":"([A-Z2-7]+)"""").find(setup.body())!!.groupValues[1]
         assertThat(setup.body()).contains("otpauth://totp/")
 
-        val enable = post("/api/mfa/enable", """{"code":"${totpService.codeAt(secret, step)}"}""", before.jwt)
+        val enable = post("/api/mfa/enable", """{"code":"${totpService.codeAt(secret, step)}"}""", before.cookie)
         assertThat(enable.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
-        val after = jwtOf(enable)
+        val after = cookieOf(enable)
 
         assertThat(get("/api/users/export", after).statusCode()).isEqualTo(HttpStatus.OK.value())
-        assertThat(get("/api/users/export", before.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/users/export", elsewhere.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
     @Test
     fun `it can be switched off with a code, after which a password is enough again`() {
         switchOn()
         val login = login()
-        val full = jwtOf(post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step)}"}""", login.jwt))
+        val full = cookieOf(post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step)}"}""", login.cookie))
 
         val disable = post("/api/mfa/disable", """{"method":"TOTP","code":"${totpService.codeAt(secret, step + 1)}"}""", full)
         assertThat(disable.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
@@ -258,13 +266,13 @@ class MfaIT : TafelBaseIntegrationTest() {
 
         val login = login()
         assertThat(login.body).contains(""""mfaRequired":true""").contains(""""mfaMethods":["EMAIL"]""")
-        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/users/export", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
 
-        assertThat(post("/api/mfa/email/send", "", login.jwt).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
-        val verify = post("/api/mfa/verify", """{"code":"$emailCode"}""", login.jwt)
+        assertThat(post("/api/mfa/email/send", "", login.cookie).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
+        val verify = post("/api/mfa/verify", """{"code":"$emailCode"}""", login.cookie)
 
         assertThat(verify.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
-        assertThat(get("/api/users/export", jwtOf(verify)).statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(get("/api/users/export", cookieOf(verify)).statusCode()).isEqualTo(HttpStatus.OK.value())
     }
 
     @Test
@@ -272,13 +280,13 @@ class MfaIT : TafelBaseIntegrationTest() {
         switchOnEmail()
 
         val first = login()
-        post("/api/mfa/email/send", "", first.jwt)
-        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", first.jwt).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
+        post("/api/mfa/email/send", "", first.cookie)
+        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", first.cookie).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
 
         // the code was used up: a second login cannot use it without asking for a new one
         val second = login()
-        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", second.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(get("/api/users/export", second.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", second.cookie).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(get("/api/users/export", second.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
     @Test
@@ -286,14 +294,14 @@ class MfaIT : TafelBaseIntegrationTest() {
         switchOnEmail()
 
         val abandoned = login()
-        assertThat(post("/api/mfa/email/send", "", abandoned.jwt).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
+        assertThat(post("/api/mfa/email/send", "", abandoned.cookie).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
 
         // the next login starts over: the code sent for the earlier one is gone, a new one has to be asked for
         val next = login()
-        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", next.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", next.cookie).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
 
-        assertThat(post("/api/mfa/email/send", "", next.jwt).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
-        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", next.jwt).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
+        assertThat(post("/api/mfa/email/send", "", next.cookie).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
+        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", next.cookie).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
     }
 
     @Test
@@ -303,11 +311,11 @@ class MfaIT : TafelBaseIntegrationTest() {
 
         val byEmail = login()
         assertThat(byEmail.body).contains(""""mfaMethods":["TOTP","EMAIL"]""")
-        post("/api/mfa/email/send", "", byEmail.jwt)
-        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", byEmail.jwt).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
+        post("/api/mfa/email/send", "", byEmail.cookie)
+        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", byEmail.cookie).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
 
         val byApp = login()
-        assertThat(post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step + 1)}"}""", byApp.jwt).statusCode())
+        assertThat(post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step + 1)}"}""", byApp.cookie).statusCode())
             .isEqualTo(HttpStatus.NO_CONTENT.value())
     }
 
@@ -316,7 +324,7 @@ class MfaIT : TafelBaseIntegrationTest() {
         switchOn()
         val login = login()
 
-        val send = post("/api/mfa/email/send", "", login.jwt)
+        val send = post("/api/mfa/email/send", "", login.cookie)
 
         assertThat(send.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
     }
@@ -327,10 +335,10 @@ class MfaIT : TafelBaseIntegrationTest() {
     private fun completedSession(byEmail: Boolean): String {
         val login = login()
         if (byEmail) {
-            post("/api/mfa/email/send", "", login.jwt)
+            post("/api/mfa/email/send", "", login.cookie)
         }
         val code = if (byEmail) emailCode else totpService.codeAt(secret, step)
-        return jwtOf(post("/api/mfa/verify", """{"code":"$code"}""", login.jwt))
+        return cookieOf(post("/api/mfa/verify", """{"code":"$code"}""", login.cookie))
     }
 
     @Test
@@ -389,20 +397,20 @@ class MfaIT : TafelBaseIntegrationTest() {
 
         val login = login()
         assertThat(login.body).contains(""""mfaRequired":false""")
-        val info = get("/api/users/info", login.jwt).body()
+        val info = get("/api/users/info", login.cookie).body()
         assertThat(info).contains(""""mfaSetupRequired":true""").contains(""""permissions":[]""")
-        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
-        assertThat(get("/api/households", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/users/export", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/households", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
         // and the setup calls are open
-        assertThat(get("/api/mfa", login.jwt).body()).contains(""""required":true""")
+        assertThat(get("/api/mfa", login.cookie).body()).contains(""""required":true""")
 
-        val setup = post("/api/mfa/setup", "", login.jwt)
+        val setup = post("/api/mfa/setup", "", login.cookie)
         assertThat(setup.statusCode()).isEqualTo(HttpStatus.OK.value())
         secret = Regex(""""secret":"([A-Z2-7]+)"""").find(setup.body())!!.groupValues[1]
-        val enable = post("/api/mfa/enable", """{"code":"${totpService.codeAt(secret, step)}"}""", login.jwt)
+        val enable = post("/api/mfa/enable", """{"code":"${totpService.codeAt(secret, step)}"}""", login.cookie)
 
         assertThat(enable.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
-        assertThat(get("/api/users/export", jwtOf(enable)).statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(get("/api/users/export", cookieOf(enable)).statusCode()).isEqualTo(HttpStatus.OK.value())
     }
 
     @Test
@@ -410,24 +418,24 @@ class MfaIT : TafelBaseIntegrationTest() {
         setRequired(true)
         val login = login()
 
-        assertThat(post("/api/mfa/email/setup", "", login.jwt).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
-        val enable = post("/api/mfa/email/enable", """{"code":"$emailCode"}""", login.jwt)
+        assertThat(post("/api/mfa/email/setup", "", login.cookie).statusCode()).isEqualTo(HttpStatus.ACCEPTED.value())
+        val enable = post("/api/mfa/email/enable", """{"code":"$emailCode"}""", login.cookie)
 
         assertThat(enable.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
-        assertThat(get("/api/users/export", jwtOf(enable)).statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(get("/api/users/export", cookieOf(enable)).statusCode()).isEqualTo(HttpStatus.OK.value())
     }
 
     @Test
     fun `switching the requirement on reaches a session that was open already`() {
         val session = login()
-        assertThat(get("/api/users/export", session.jwt).statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(get("/api/users/export", session.cookie).statusCode()).isEqualTo(HttpStatus.OK.value())
 
         setRequired(true)
 
-        assertThat(get("/api/users/export", session.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/users/export", session.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
 
         setRequired(false)
-        assertThat(get("/api/users/export", session.jwt).statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(get("/api/users/export", session.cookie).statusCode()).isEqualTo(HttpStatus.OK.value())
     }
 
     @Test
@@ -435,7 +443,7 @@ class MfaIT : TafelBaseIntegrationTest() {
         switchOn()
         setRequired(true)
         val login = login()
-        val full = jwtOf(post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step)}"}""", login.jwt))
+        val full = cookieOf(post("/api/mfa/verify", """{"code":"${totpService.codeAt(secret, step)}"}""", login.cookie))
 
         val refused = post("/api/mfa/disable", """{"method":"TOTP","code":"${totpService.codeAt(secret, step + 1)}"}""", full)
         assertThat(refused.statusCode()).isEqualTo(HttpStatus.CONFLICT.value())
@@ -455,12 +463,12 @@ class MfaIT : TafelBaseIntegrationTest() {
 
         val login = login()
         assertThat(login.body).contains(""""mfaRequired":false""")
-        assertThat(get("/api/users/info", login.jwt).body()).contains(""""mfaSetupRequired":true""")
+        assertThat(get("/api/users/info", login.cookie).body()).contains(""""mfaSetupRequired":true""")
     }
 
     // ---- HTTP helpers
 
-    private class Login(val jwt: String, val body: String)
+    private class Login(val cookie: String, val body: String)
 
     private fun login(): Login {
         val credentials = Base64.getEncoder().encodeToString("${user.username}:$password".toByteArray())
@@ -472,16 +480,16 @@ class MfaIT : TafelBaseIntegrationTest() {
             HttpResponse.BodyHandlers.ofString(),
         )
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
-        return Login(jwtOf(response), response.body())
+        return Login(cookieOf(response), response.body())
     }
 
-    private fun jwtOf(response: HttpResponse<*>): String = response.headers().allValues("set-cookie")
-        .first { it.startsWith("${TafelLoginFilter.jwtCookieName}=") }
+    private fun cookieOf(response: HttpResponse<*>): String = response.headers().allValues("set-cookie")
+        .first { it.startsWith("${TafelSessionAttributes.COOKIE_NAME}=") }
         .substringAfter("=").substringBefore(";")
 
-    private fun get(path: String, jwt: String): HttpResponse<String> = httpClient.send(
+    private fun get(path: String, cookie: String): HttpResponse<String> = httpClient.send(
         HttpRequest.newBuilder(URI.create("http://localhost:$port$path"))
-            .header("Cookie", "${TafelLoginFilter.jwtCookieName}=$jwt")
+            .header("Cookie", "${TafelSessionAttributes.COOKIE_NAME}=$cookie")
             .GET()
             .build(),
         HttpResponse.BodyHandlers.ofString(),
@@ -491,17 +499,17 @@ class MfaIT : TafelBaseIntegrationTest() {
      * A state-changing request needs the CSRF token the server hands out on the first response of a
      * session: it is a cookie, and has to come back as the `X-XSRF-TOKEN` header too.
      */
-    private fun post(path: String, json: String, jwt: String): HttpResponse<String> = send("POST", path, json, jwt)
+    private fun post(path: String, json: String, cookie: String): HttpResponse<String> = send("POST", path, json, cookie)
 
-    private fun put(path: String, json: String, jwt: String): HttpResponse<String> = send("PUT", path, json, jwt)
+    private fun put(path: String, json: String, cookie: String): HttpResponse<String> = send("PUT", path, json, cookie)
 
-    private fun send(method: String, path: String, json: String, jwt: String): HttpResponse<String> {
-        val csrf = get("/api/users/info", jwt).headers().allValues("set-cookie")
+    private fun send(method: String, path: String, json: String, cookie: String): HttpResponse<String> {
+        val csrf = get("/api/users/info", cookie).headers().allValues("set-cookie")
             .first { it.startsWith("XSRF-TOKEN=") }
             .substringAfter("=").substringBefore(";")
         return httpClient.send(
             HttpRequest.newBuilder(URI.create("http://localhost:$port$path"))
-                .header("Cookie", "${TafelLoginFilter.jwtCookieName}=$jwt; XSRF-TOKEN=$csrf")
+                .header("Cookie", "${TafelSessionAttributes.COOKIE_NAME}=$cookie; XSRF-TOKEN=$csrf")
                 .header("X-XSRF-TOKEN", csrf)
                 .header("Content-Type", "application/json")
                 .method(method, HttpRequest.BodyPublishers.ofString(json))

@@ -234,4 +234,38 @@ describe('UserApiService', () => {
     httpMock.verify();
   });
 
+  it('reads the own sessions', () => {
+    const sessions = {
+      items: [{id: 'key', userAgent: 'Firefox', signedInAt: '2026-10-17T08:00:00', lastUsedAt: '2026-10-17T09:00:00', current: true}]
+    };
+
+    apiService.getSessions().subscribe(response => {
+      expect(response).toEqual(sessions);
+    });
+
+    httpMock.expectOne({method: 'GET', url: '/users/sessions'}).flush(sessions);
+    httpMock.verify();
+  });
+
+  it('ends one own session by its key, encoded for the path', () => {
+    apiService.endSession('a/b').subscribe();
+
+    httpMock.expectOne({method: 'DELETE', url: '/users/sessions/a%2Fb'}).flush(null);
+    httpMock.verify();
+  });
+
+  it('ends the other own sessions', () => {
+    apiService.endOtherSessions().subscribe();
+
+    httpMock.expectOne({method: 'DELETE', url: '/users/sessions'}).flush(null);
+    httpMock.verify();
+  });
+
+  it('ends the sessions of a user', () => {
+    apiService.endUserSessions(7).subscribe();
+
+    httpMock.expectOne({method: 'DELETE', url: '/users/7/sessions'}).flush(null);
+    httpMock.verify();
+  });
+
 });

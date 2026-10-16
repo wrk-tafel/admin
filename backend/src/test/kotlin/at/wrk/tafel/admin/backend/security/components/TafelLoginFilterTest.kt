@@ -1,12 +1,9 @@
 package at.wrk.tafel.admin.backend.security.components
 
-import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.MfaEmailCodeService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.UserSessionService
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
-import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
 import at.wrk.tafel.admin.backend.security.testUser
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -47,13 +44,7 @@ class TafelLoginFilterTest {
     private lateinit var authResult: Authentication
 
     @RelaxedMockK
-    private lateinit var jwtTokenService: JwtTokenService
-
-    @RelaxedMockK
-    private lateinit var applicationProperties: ApplicationProperties
-
-    @RelaxedMockK
-    private lateinit var tafelAdminProperties: TafelAdminProperties
+    private lateinit var userSessionService: UserSessionService
 
     @RelaxedMockK
     private lateinit var jsonMapper: JsonMapper
@@ -109,55 +100,29 @@ class TafelLoginFilterTest {
     }
 
     @Test
-    fun `successfulAuthentication when login is successful`() {
-        val token = "TOKEN"
-        val expirationTime = 10000
-        val relativeBaseUrl = "/test-base/"
-
+    fun `successfulAuthentication when login is successful opens a full session`() {
         every { authResult.principal } returns testUser
-        every { jwtTokenService.generateToken(any(), any()) } returns token
-        every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns expirationTime
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
-        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, expirationTime) }
-
+        verify(exactly = 1) { userSessionService.startSession(request, testUser.username, false) }
         verify {
             jsonMapper.writeValueAsString(
                 withArg<LoginResponse> { response ->
                     assertThat(response.passwordChangeRequired).isFalse()
-                },
-            )
-        }
-
-        verify {
-            response.addCookie(
-                withArg {
-                    assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
-                    assertThat(it.value).isEqualTo(token)
-                    assertThat(it.maxAge).isEqualTo(expirationTime)
-                    assertThat(it.path).isEqualTo(relativeBaseUrl)
-                    assertThat(it.attributes["SameSite"]).isEqualTo("strict")
+                    assertThat(response.mfaRequired).isFalse()
                 },
             )
         }
     }
 
     @Test
-    fun `successfulAuthentication when passwordChange is required`() {
-        val token = "TOKEN"
-        val expirationTime = 5000
-        val relativeBaseUrl = "/test-base/"
-
+    fun `successfulAuthentication when passwordChange is required opens a pending session`() {
         every { authResult.principal } returns testUser.copy(passwordChangeRequired = true)
-        every { jwtTokenService.generateToken(any(), any()) } returns token
-        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns expirationTime
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
-        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, expirationTime) }
+        verify(exactly = 1) { userSessionService.startSession(request, testUser.username, true) }
         verify {
             jsonMapper.writeValueAsString(
                 withArg<LoginResponse> { response ->
@@ -165,33 +130,15 @@ class TafelLoginFilterTest {
                 },
             )
         }
-
-        verify {
-            response.addCookie(
-                withArg {
-                    assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
-                    assertThat(it.value).isEqualTo(token)
-                    assertThat(it.maxAge).isEqualTo(expirationTime)
-                    assertThat(it.path).isEqualTo(relativeBaseUrl)
-                    assertThat(it.attributes["SameSite"]).isEqualTo("strict")
-                },
-            )
-        }
     }
 
     @Test
-    fun `successfulAuthentication when a second factor is required issues the short-lived token and says so`() {
-        val expirationTime = 5000
-
+    fun `successfulAuthentication when a second factor is required opens a pending session and says so`() {
         every { authResult.principal } returns testUser.copy(mfaTotpEnabled = true, mfaEmailEnabled = true)
-        every { jwtTokenService.generateToken(any(), any(), any()) } returns "TOKEN"
-        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns expirationTime
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties()
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
-        // the token must not claim the second factor was checked - that is what the code page issues
-        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, expirationTime, false) }
+        verify(exactly = 1) { userSessionService.startSession(request, testUser.username, true) }
         verify {
             jsonMapper.writeValueAsString(
                 withArg<LoginResponse> { body ->
@@ -201,15 +148,11 @@ class TafelLoginFilterTest {
                 },
             )
         }
-        verify { response.addCookie(withArg { assertThat(it.maxAge).isEqualTo(expirationTime) }) }
     }
 
     @Test
     fun `successfulAuthentication discards an e-mailed code left over from an earlier login`() {
         every { authResult.principal } returns testUser.copy(mfaEmailEnabled = true)
-        every { jwtTokenService.generateToken(any(), any()) } returns "TOKEN"
-        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns 5000
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties()
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
@@ -219,27 +162,10 @@ class TafelLoginFilterTest {
     @Test
     fun `successfulAuthentication leaves the e-mailed codes alone for a user without the e-mail method`() {
         every { authResult.principal } returns testUser.copy(mfaTotpEnabled = true)
-        every { jwtTokenService.generateToken(any(), any()) } returns "TOKEN"
-        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns 5000
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties()
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
         verify(exactly = 0) { mfaEmailCodeService.discard(any()) }
-    }
-
-    @Test
-    fun `successfulAuthentication without a second factor does not ask for one`() {
-        every { authResult.principal } returns testUser
-        every { jwtTokenService.generateToken(any(), any(), any()) } returns "TOKEN"
-        every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns 10000
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties()
-
-        tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
-
-        verify {
-            jsonMapper.writeValueAsString(withArg<LoginResponse> { body -> assertThat(body.mfaRequired).isFalse() })
-        }
     }
 
     @Test

@@ -95,7 +95,7 @@ npm run typecheck
 npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.cjs
 
 # Sweep application routes the way the pipeline does (needs a running backend and a session)
-LHCI_URLS=/uebersicht,/kunden/suchen LHCI_FORM_FACTOR=mobile LHCI_JWT=<tafel-admin-jwt cookie> \
+LHCI_URLS=/uebersicht,/kunden/suchen LHCI_FORM_FACTOR=mobile LHCI_SESSION=<tafel-admin-session cookie> \
   CHROME_PATH=$(command -v google-chrome) \
   npx --yes --package @lhci/cli@0.15.1 --package puppeteer-core@25.5.0 \
   lhci autorun --config=lighthouserc.pages.cjs
@@ -210,7 +210,7 @@ choice on its own merits).
   `gradle/libs.versions.toml` for exact versions
 - Spring Boot with Spring Modulith for modular monolith architecture
 - PostgreSQL with Flyway for database migrations (60+ R__ repeatable scripts)
-- JWT authentication with Argon2 password hashing
+- Server-side login sessions in PostgreSQL (Spring Session JDBC) with Argon2 password hashing
 - Server-Sent Events (SSE) via outbox pattern for real-time notifications
 - Apache FOP for PDF generation from XSL templates
 - Spring Security with role-based access control
@@ -276,7 +276,7 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **customer**: Search, create, edit, detail views with duplicate detection. Deliberately *not* renamed to match the backend's `household`/`person` model — routes, components, and `CustomerData`/`CustomerAddPersonData` DTOs are unchanged; only `customer-api.service.ts` translates to/from the backend's household+persons wire shape (main person flattened onto the customer object, other persons as `additionalPersons`)
 - **checkin**: Scanner registration, QR code reading, ticket screen for customer calls
 - **logistics**: Food collection recording only (desktop/responsive layouts), one screen (`warenerfassung`). Shelter/car/food-category as well as route/shop admin CRUD screens actually live under the **settings** module below, not here — this module only ever reads routes and shops, from within the food-collection-recording flow.
-- **user**: User search, create, edit (with an optional e-mail address), plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking. Also "Mein Konto" (`account.routes.ts`, at `/konto`): one child route per topic, rendered straight into the shell's outlet — own data (name and e-mail editable, username and personnel number read-only), password, two-factor authentication, notifications, design, privacy — reachable by every logged-in user. While a `/konto` page is open the sidebar lists the topics instead of the main menu (`accountMenuItems` in `navigation-menuItems.ts`, a sidebar area — see the settings module below), so a new topic is a child route plus an entry with an icon in that list. `AuthGuardService` recognises the routes a session that must set up a second factor may open by their path, so renaming `konto`/`zwei-faktor` means changing it there too
+- **user**: User search, create, edit (with an optional e-mail address), plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking. Also "Mein Konto" (`account.routes.ts`, at `/konto`): one child route per topic, rendered straight into the shell's outlet — own data (name and e-mail editable, username and personnel number read-only), password, two-factor authentication, sessions (the own logins, one or all others can be ended), notifications, design, privacy — reachable by every logged-in user. While a `/konto` page is open the sidebar lists the topics instead of the main menu (`accountMenuItems` in `navigation-menuItems.ts`, a sidebar area — see the settings module below), so a new topic is a child route plus an entry with an icon in that list. `AuthGuardService` recognises the routes a session that must set up a second factor may open by their path, so renaming `konto`/`zwei-faktor` means changing it there too
 - **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a list of expandable cards with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded body instead of a separate details dialog — see the settings module README before restyling them back into a table Every settings screen is an entry of `settingsMenuItems` in `navigation-menuItems.ts`, which the overview page's cards, the quick-open palette and the sidebar all read: while a `/einstellungen` page is open the sidebar shows them instead of the main menu. That is a *sidebar area* (`sidebarAreas`, `DefaultLayoutComponent.sidebarArea`) — an area with many pages of its own gets one there rather than a menu inside its pages; a new settings screen is a route plus an entry with an icon and a description in that list
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
 - **audit**: the `zugriffsprotokoll` screen — the whole audit trail, filterable. The per-household
@@ -332,6 +332,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 
 **Key Tables:**
 - `users`, `user_authorities`: User authentication and permissions
+- `spring_session`, `spring_session_attributes`: login sessions (Spring Session JDBC, ADR-0070) - one row per login, its attributes strings only. Schema from Flyway, not from Spring Session; expired rows are deleted by Spring Session's own per-minute cleanup on every instance
 - `employees`: drivers and co-drivers of food collections; a record of its own, with no link to `users` (a user carries its own personnel number and name, ADR-0060)
 - `households`: the case record (business number, address, contact, validity/lock/cost-contribution state); `main_person_id` points at its main person. Nullable at the DB level (not `NOT NULL`) because `households`/`persons` mutually reference each other — a brand-new household is always saved in two steps (household with `main_person_id = null` → its persons → set `main_person_id`), see `HouseholdService`
 - `persons`: every household member, including the main person, flagged via `is_main_person` (exactly one per household, enforced by a partial unique index)
@@ -698,7 +699,7 @@ term-less `GET` listing are unaffected.
 - `/api/config`: Deployment-wide frontend config — running version, build time, optional-feature flags (live via the `config` topic). `/api/config/public` serves the environment label alone and is the one config endpoint reachable without a session (the login page needs it)
 - `/api/data-subject-requests`: the central "Datenauskunft" screen — `POST /search` across households, user accounts and employees; `/export` for the combined GDPR takeout ZIP and `/delete` for the erasure of one or more selected matches. Behind `DATA_SUBJECT_REQUESTS`, additive to `CUSTOMER`/`USER_MANAGEMENT`/`SETTINGS`
 
-Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two-factor authentication switched on gets a session that grants nothing until the code was handed in (`TafelJwtAuthProvider`/`MfaPendingFilter`, ADR-0058); `tafeladmin.mfa.required` (operator config, hot-reloaded) makes it mandatory for everyone.
+Authentication: Basic HTTP auth at `POST /api/login` opens a login session - a row in `spring_session` (Spring Session JDBC), its id in the `tafel-admin-session` cookie (ADR-0070). Session attributes are strings only (`TafelSessionAttributes`; never a serialized object of our own classes, which a later version might fail to read), and the `Authentication` is rebuilt from them per request (`TafelSessionAuthConverter`/`TafelSessionAuthProvider`). `UserSessionService` is what opens, changes and ends sessions: logout ends the current one, "Mein Konto" > "Sitzungen" (`GET`/`DELETE /api/users/sessions`) one or all others, `DELETE /api/users/{id}/sessions` (`USER_MANAGEMENT`) all of an account's; a new password, disabling, renaming or deleting an account end them too. A user with two-factor authentication switched on gets a session that grants nothing until the code was handed in (`TafelSessionAuthProvider`/`MfaPendingFilter`, ADR-0058); `tafeladmin.mfa.required` (operator config, hot-reloaded) makes it mandatory for everyone.
 
 ## Special Considerations
 
@@ -902,8 +903,9 @@ Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two
     concern and correct as it is, but don't reach for `@Value` for anything meant to be reloadable;
     use `@ConfigurationProperties`.
   - `ApplicationProperties` (`security.*`) is intentionally *not* reloadable — it stays a
-    constructor-bound data class so a missing JWT secret still fails startup. `LoginAttemptService`
-    and `TafelLoginFilter` read it per call, which looks live but isn't; see its KDoc.
+    constructor-bound data class, so a session lifetime or lockout policy never changes under logins
+    already in flight. `LoginAttemptService` and `UserSessionService` read it per call, which looks
+    live but isn't; see its KDoc.
   - Nothing is `@RefreshScope`d and `spring.cloud.refresh.extra-refreshable` is unset, so a refresh
     destroys no beans: the Hikari pool and `SseOutboxListenerService`'s dedicated `LISTEN sse_outbox`
     connection survive it untouched. `ConfigRefreshSideEffectsIT` locks that down — re-creating that

@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.datasubjectrequest.internal
 
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.export.ExportFileResult
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
@@ -267,7 +267,7 @@ class DataSubjectRequestService(
 
     private fun hasAreaPermission(type: DataSubjectMatchType): Boolean {
         val requiredAuthority = PERMISSION_BY_TYPE.getValue(type)
-        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authentication = SecurityContextHolder.getContext().authentication as TafelAuthentication
         return authentication.authorities.any { it.authority == requiredAuthority }
     }
 

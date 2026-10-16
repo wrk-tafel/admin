@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.notification.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.notification.AnnouncementRepository
 import at.wrk.tafel.admin.backend.database.model.notification.NotificationRepository
@@ -90,7 +90,7 @@ class NotificationService(
     }
 
     private fun currentUserId(): Long {
-        val username = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username
+        val username = (SecurityContextHolder.getContext().authentication as TafelAuthentication).username
         return username?.let { userRepository.findByUsername(it)?.id } ?: throw NotFoundException("Benutzer nicht gefunden")
     }
 }

@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.audit.internal
 
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
@@ -178,7 +178,7 @@ class AuditService(
         if (entity.entityType !in AuditScope.householdScopedEntityTypes) {
             return false
         }
-        val authentication = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
+        val authentication = SecurityContextHolder.getContext().authentication as? TafelAuthentication
         return authentication?.hasRole("CUSTOMER") != true
     }
 

@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.push.PushPreferencesEntity
@@ -114,7 +114,7 @@ class PushPreferencesService(
         return PushPreferencesResponse(masterEnabled = masterEnabled, types = types)
     }
 
-    private fun requireCurrentUser() = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username
+    private fun requireCurrentUser() = (SecurityContextHolder.getContext().authentication as TafelAuthentication).username
         ?.let { userRepository.findByUsername(it) }
         ?: throw TafelApiException(HttpStatus.UNAUTHORIZED, "Nicht angemeldet")
 }

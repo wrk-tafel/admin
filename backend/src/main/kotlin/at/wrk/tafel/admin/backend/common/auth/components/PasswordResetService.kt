@@ -27,7 +27,7 @@ import java.time.LocalDateTime
  *   server, so it does not end up in `access.log`. It is built from `tafeladmin.server.publicUrl`,
  *   never from the request.
  * - **Setting the password does not skip the second factor**, and does not touch the login lockout:
- *   it ends every session ([TafelUserDetailsManager.resetPassword]) and the next login works exactly as
+ *   it ends every session ([UserSessionService.endAllSessions]) and the next login works exactly as
  *   any other.
  */
 @Service
@@ -35,6 +35,7 @@ class PasswordResetService(
     private val userRepository: UserRepository,
     private val passwordResetTokenRepository: PasswordResetTokenRepository,
     private val userDetailsManager: TafelUserDetailsManager,
+    private val userSessionService: UserSessionService,
     private val mailSenderService: MailSenderService,
     private val notificationService: AccountSecurityNotificationService,
     private val tafelAdminProperties: TafelAdminProperties,
@@ -119,6 +120,7 @@ class PasswordResetService(
         }
 
         userDetailsManager.resetPassword(user, newPassword)
+        userSessionService.endAllSessions(user.username)
         stored.usedAt = now
         passwordResetTokenRepository.save(stored)
 

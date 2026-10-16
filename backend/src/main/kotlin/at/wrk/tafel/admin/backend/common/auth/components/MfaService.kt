@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
  * setting a method up and proving it works ([startSetup]/[enable], [startEmailSetup]/[enableEmail]), and can
  * switch a method off again with a code ([disable]); an administrator can clear both for someone who lost the
  * phone ([reset]). Once a user has a method, a login is only complete after [verifyLogin] - see
- * `TafelJwtAuthProvider` for how an unfinished login is kept from doing anything. The deployment can also
+ * `TafelSessionAuthProvider` for how an unfinished login is kept from doing anything. The deployment can also
  * require every user to have one (`tafeladmin.mfa.required`); the last method of such a user cannot be
  * switched off.
  *

@@ -264,7 +264,7 @@ describe('Login', () => {
     // Simulates a session expiring server-side mid-use: the client still thinks it's
     // authenticated (in-memory state survives, since only a real page reload would clear it),
     // but the next authenticated request the app makes gets a 401 from the server.
-    cy.clearCookie('tafel-admin-jwt');
+    cy.clearCookie('tafel-admin-session');
 
     // Route resolvers (e.g. the above-limit list's data fetch) fire an authenticated request
     // before the target component even mounts - that's what's used here to trigger the 401.
@@ -280,7 +280,7 @@ describe('Login', () => {
     enterLoginData('e2etest', 'e2etest');
     cy.url().should('contain', '/uebersicht');
 
-    cy.clearCookie('tafel-admin-jwt');
+    cy.clearCookie('tafel-admin-session');
 
     // "Mein Konto" has no resolver and its component fires no HTTP request on mount - before
     // this fix, AuthGuardService only ever checked a stale in-memory flag, so a click like this

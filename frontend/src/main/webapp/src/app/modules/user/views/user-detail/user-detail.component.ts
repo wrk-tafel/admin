@@ -123,6 +123,17 @@ export class UserDetailComponent {
     });
   }
 
+  /**
+   * Logs the account out on every device - a login left open on a shared PC, a lost phone. Disabling the account,
+   * renaming it or setting a new password does the same by itself; this is for when nothing else about it changes.
+   */
+  endSessions() {
+    this.userApiService.endUserSessions(this.currentUserData().id!).subscribe({
+      next: () => this.toastr.success('Alle Sitzungen des Benutzers wurden beendet!'),
+      error: () => this.toastr.error('Sitzungen konnten nicht beendet werden!')
+    });
+  }
+
   editUser() {
     this.router.navigate(['/benutzer/bearbeiten', this.currentUserData().id]);
   }

@@ -16,7 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter
  * mail) and `/api/client-errors` (authenticated, but sent automatically rather than by a deliberate
  * user action, so a broken frontend looping on the same error must not be free to call it without
  * limit). [requestMatcher] scopes which requests this instance applies to, the same pattern
- * [TafelJwtAuthenticationFilter] uses, so one filter class is registered once per protected endpoint
+ * [TafelSessionAuthenticationFilter] uses, so one filter class is registered once per protected endpoint
  * rather than branching on the path internally.
  */
 class RateLimitFilter(

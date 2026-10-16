@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -13,7 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 /**
  * Keeps a session whose second factor is outstanding (see ADR-0058) from doing anything but sort that out.
- * [TafelJwtAuthProvider] already gives such a session no permissions, which stops everything behind
+ * [TafelSessionAuthProvider] already gives such a session no permissions, which stops everything behind
  * `hasAuthority(...)` - but plenty of endpoints ask only `isAuthenticated()` (a user's own data export, changing
  * the password, ...), and knowing a password must not be enough to use those. Denying by default here, rather than
  * adding a check to each of them, is what keeps a new `isAuthenticated()` endpoint from quietly becoming a way
@@ -50,7 +50,7 @@ class MfaPendingFilter : OncePerRequestFilter() {
 
     public override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
         val authentication = SecurityContextHolder.getContext().authentication
-        if (authentication is TafelJwtAuthentication && !isAllowed(authentication, request)) {
+        if (authentication is TafelAuthentication && !isAllowed(authentication, request)) {
             logger.info("Refused ${request.method} on a session that still owes its second factor (user '${authentication.username}')")
             response.status = HttpStatus.FORBIDDEN.value()
             return
@@ -58,7 +58,7 @@ class MfaPendingFilter : OncePerRequestFilter() {
         filterChain.doFilter(request, response)
     }
 
-    private fun isAllowed(authentication: TafelJwtAuthentication, request: HttpServletRequest): Boolean = when {
+    private fun isAllowed(authentication: TafelAuthentication, request: HttpServletRequest): Boolean = when {
         authentication.mfaPending -> allowedWhileACodeIsOwed.matches(request)
         authentication.mfaSetupRequired -> allowedWhileASetupIsRequired.matches(request)
         else -> true

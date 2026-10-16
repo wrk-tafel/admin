@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.database.common.audit
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
@@ -66,8 +66,8 @@ class AuditTrailIT : TafelBaseIntegrationTest() {
             countryRepository.findAll().firstOrNull() ?: countryRepository.saveAndFlush(createCountry())
         }
 
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
-            tokenValue = "token",
+        SecurityContextHolder.getContext().authentication = TafelAuthentication(
+            sessionKey = "token",
             username = testUser.username,
             authenticated = true,
             userId = testUser.id,

@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.common.sse
 
 import at.wrk.tafel.admin.backend.AdminBackendApplication
 import at.wrk.tafel.admin.backend.TEST_POSTGRES_IMAGE
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelSessionAttributes
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -113,7 +113,7 @@ class GracefulShutdownIT {
                         "GET /api/sse/events?topics=config HTTP/1.1\r\n" +
                             "Host: localhost:$port\r\n" +
                             "Accept: text/event-stream\r\n" +
-                            "Cookie: ${TafelLoginFilter.jwtCookieName}=$jwt\r\n\r\n"
+                            "Cookie: ${TafelSessionAttributes.COOKIE_NAME}=$jwt\r\n\r\n"
                         ).toByteArray(),
                 )
                 flush()
@@ -123,7 +123,7 @@ class GracefulShutdownIT {
 
             val slowResponse = httpClient.sendAsync(
                 HttpRequest.newBuilder(URI.create("http://localhost:$port/api/graceful-shutdown-test/slow"))
-                    .header("Cookie", "${TafelLoginFilter.jwtCookieName}=$jwt")
+                    .header("Cookie", "${TafelSessionAttributes.COOKIE_NAME}=$jwt")
                     .build(),
                 HttpResponse.BodyHandlers.ofString(),
             )
@@ -166,7 +166,7 @@ class GracefulShutdownIT {
         )
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
         return response.headers().allValues("set-cookie")
-            .first { it.startsWith("${TafelLoginFilter.jwtCookieName}=") }
+            .first { it.startsWith("${TafelSessionAttributes.COOKIE_NAME}=") }
             .substringAfter("=").substringBefore(";")
     }
 }

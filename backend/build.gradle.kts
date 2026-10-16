@@ -82,6 +82,9 @@ dependencies {
     implementation(libs.spring.boot.starter.flyway)
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.security)
+    // Login sessions live in the application's own database (spring_session, ADR-0070), so every
+    // instance sees every session and a single one can be listed and ended.
+    implementation(libs.spring.boot.starter.session.jdbc)
     implementation(libs.spring.boot.starter.mail)
     implementation(libs.spring.boot.starter.jackson)
     implementation(libs.spring.boot.starter.thymeleaf)

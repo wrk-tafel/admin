@@ -33,7 +33,7 @@ class ConfigController(
      * optional features exist are details an anonymous caller has no business reading.
      *
      * A separate endpoint rather than [getConfig] answering with less to an anonymous caller,
-     * because `TafelJwtAuthConverter` rejects any request under `/api` that carries no JWT cookie
+     * because `TafelSessionAuthConverter` rejects any request under `/api` that carries no session
      * before a controller is reached - one endpoint serving both audiences would mean changing the
      * authentication filter chain itself, which is a far bigger change than a login-page badge
      * warrants. Its path is therefore listed in `WebSecurityConfig.publicEndpoints`, and it carries

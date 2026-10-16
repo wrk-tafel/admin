@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.household.internal.converter
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.Gender
@@ -222,8 +222,8 @@ internal class HouseholdConverterTest {
 
     @BeforeEach
     fun beforeEach() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )

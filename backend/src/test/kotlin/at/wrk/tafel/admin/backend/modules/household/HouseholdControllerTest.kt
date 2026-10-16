@@ -63,7 +63,7 @@ class HouseholdControllerTest {
     @BeforeEach
     fun beforeEach() {
         SecurityContextHolder.getContext().authentication =
-            at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication(
+            at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication(
                 "TOKEN",
                 testUserEntity.username,
                 true,
@@ -288,7 +288,7 @@ class HouseholdControllerTest {
 
     @Test
     fun `create household - supervisor with invalid income and force=true`() {
-        val supervisorAuth = at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication(
+        val supervisorAuth = at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication(
             "TOKEN",
             testUserEntity.username,
             true,
