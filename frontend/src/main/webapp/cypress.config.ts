@@ -26,6 +26,10 @@ const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
  * the current step moved by [stepOffset] - a spec plays the authenticator app with this. The backend
  * accepts the step before and the one after the current one, and each code only once, so a spec that
  * needs several uses them in the order -1, 0, +1.
+ *
+ * A code for the previous step has no margin left: once the current step ends, it is two steps old and
+ * refused. [totpCodeWithMargin] therefore waits for a fresh step when the current one is about to end, so
+ * that the spec has time to type and send it.
  */
 function totpCode(secret: string, stepOffset: number): string {
   let buffer = 0;
@@ -47,6 +51,17 @@ function totpCode(secret: string, stepOffset: number): string {
   const offset = hash[hash.length - 1] & 0x0f;
   const binary = ((hash[offset] & 0x7f) << 24) | (hash[offset + 1] << 16) | (hash[offset + 2] << 8) | hash[offset + 3];
   return (binary % 1000000).toString().padStart(6, '0');
+}
+
+const TOTP_STEP_MS = 30000;
+const TOTP_MIN_REMAINING_MS = 10000;
+
+async function totpCodeWithMargin(secret: string, stepOffset: number): Promise<string> {
+  const remaining = TOTP_STEP_MS - (Date.now() % TOTP_STEP_MS);
+  if (stepOffset < 0 && remaining < TOTP_MIN_REMAINING_MS) {
+    await new Promise(resolve => setTimeout(resolve, remaining + 100));
+  }
+  return totpCode(secret, stepOffset);
 }
 
 export default defineConfig({
@@ -102,7 +117,7 @@ export default defineConfig({
           return null;
         },
         totpCode({secret, stepOffset = 0}: { secret: string; stepOffset?: number }) {
-          return totpCode(secret, stepOffset);
+          return totpCodeWithMargin(secret, stepOffset);
         }
       });
     },
