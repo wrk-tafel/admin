@@ -1,4 +1,4 @@
-import {Component, computed, inject, Signal} from '@angular/core';
+import {Component, computed, inject, Signal, signal} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -7,7 +7,9 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
 import {toSignal} from '@angular/core/rxjs-interop';
-import {CarData} from '../../../../../api/car-api.service';
+import {HttpErrorResponse} from '@angular/common/http';
+import {CarApiService, CarData} from '../../../../../api/car-api.service';
+import {extractErrorMessage} from '../../../../../common/api/problem-detail';
 import {normalizeLicensePlate} from '../license-plate';
 
 export interface CarCreateDialogData {
@@ -19,10 +21,10 @@ export interface CarCreateDialogData {
   existingCars: Signal<CarData[]>;
 }
 
-/** Either a car to create, or the existing car the admin decided to re-enable instead. */
+/** Either the car the dialog created, or the existing car the admin decided to re-enable instead. */
 export type CarCreateDialogResult =
-  { create: CarData; reactivate?: undefined } |
-  { create?: undefined; reactivate: CarData };
+  { created: CarData; reactivate?: undefined } |
+  { created?: undefined; reactivate: CarData };
 
 @Component({
   selector: 'tafel-car-create-dialog',
@@ -40,6 +42,7 @@ export class CarCreateDialogComponent {
   readonly dialogRef = inject(MatDialogRef<CarCreateDialogComponent, CarCreateDialogResult>);
   private readonly data = inject<CarCreateDialogData>(MAT_DIALOG_DATA);
   private readonly fb = inject(FormBuilder);
+  private readonly carApiService = inject(CarApiService);
 
   form = this.fb.group({
     // The lengths are the `cars` table's own (varchar(20)/varchar(50)) - without them an
@@ -53,6 +56,18 @@ export class CarCreateDialogComponent {
   });
 
   private licensePlate = toSignal(this.form.controls.licensePlate.valueChanges, {initialValue: ''});
+
+  protected readonly saving = signal(false);
+  /**
+   * Why the backend refused the car - above all a plate another car got after this dialog's list was
+   * loaded, which `duplicate` cannot see. Shown in the dialog, which stays open, so the admin can
+   * correct the plate right there instead of reading a toast after the dialog is gone.
+   */
+  protected readonly saveError = signal<string | null>(null);
+
+  constructor() {
+    this.form.valueChanges.subscribe(() => this.saveError.set(null));
+  }
 
   /**
    * The car this plate already belongs to, if any. A disabled one is the case worth catching: it
@@ -77,22 +92,30 @@ export class CarCreateDialogComponent {
   }
 
   save() {
-    if (this.duplicate()) {
+    if (this.duplicate() || this.saving()) {
       return;
     }
 
     if (!this.form.valid) {
       this.form.markAllAsTouched();
-    } else {
-      const value = this.form.value;
-      this.dialogRef.close({
-        create: {
-          ...value,
-          licensePlate: normalizeLicensePlate(value.licensePlate ?? ''),
-          name: (value.name ?? '').trim()
-        } as CarData
-      });
+      return;
     }
+
+    const value = this.form.value;
+    const car = {
+      ...value,
+      licensePlate: normalizeLicensePlate(value.licensePlate ?? ''),
+      name: (value.name ?? '').trim()
+    } as CarData;
+
+    this.saving.set(true);
+    this.carApiService.createCar(car).subscribe({
+      next: created => this.dialogRef.close({created}),
+      error: (error: HttpErrorResponse) => {
+        this.saving.set(false);
+        this.saveError.set(extractErrorMessage(error));
+      }
+    });
   }
 
   reactivate() {
