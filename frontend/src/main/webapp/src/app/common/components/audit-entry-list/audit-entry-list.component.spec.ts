@@ -125,6 +125,16 @@ describe('AuditEntryListComponent', () => {
     expect(element.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('02000');
   });
 
+  // A list read records the list's filter and sort, which is no record number either.
+  it('shows the bare business key and a German name for a list read, without a "Nr." prefix', () => {
+    const element: HTMLElement = createComponent([
+      {...entry, entityType: 'HouseholdsAboveLimit', operation: 'READ', businessKey: 'sortBy=income', changes: []}
+    ], true).nativeElement;
+
+    expect(element.querySelector('[testid="audit-entry-0-businessKey"]')?.textContent?.trim()).toBe('sortBy=income');
+    expect(element.textContent).toContain('Kunden über Limit');
+  });
+
   it('attributes an entry without an acting user to the system', () => {
     const element: HTMLElement = createComponent([{...entry, actorUsername: undefined}]).nativeElement;
 

@@ -7,6 +7,7 @@ import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import jakarta.servlet.DispatcherType
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -123,6 +124,20 @@ class TafelAccessDeniedHandlerTest {
             .contains("LOGISTICS")
             .contains("AccessDeniedException: Access Denied")
             .doesNotContain("not an authorization failure")
+    }
+
+    @Test
+    fun `marks a CSRF denial so the frontend may repeat the request`() {
+        handler.handle(request, response, MissingCsrfTokenException("actual"))
+
+        verify { response.setHeader("X-Csrf-Rejected", "true") }
+    }
+
+    @Test
+    fun `leaves any other denial unmarked`() {
+        handler.handle(request, response, AccessDeniedException("Access Denied"))
+
+        verify(exactly = 0) { response.setHeader("X-Csrf-Rejected", any()) }
     }
 
     @Test

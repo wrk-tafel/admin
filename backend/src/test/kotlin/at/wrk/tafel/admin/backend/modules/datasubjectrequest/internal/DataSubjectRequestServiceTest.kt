@@ -5,7 +5,9 @@ import at.wrk.tafel.admin.backend.common.auth.components.UserExportFileResult
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.export.ExportFileResult
+import at.wrk.tafel.admin.backend.common.test.stubFolding
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
@@ -31,6 +33,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -72,8 +75,14 @@ internal class DataSubjectRequestServiceTest {
 
     private var tafelAdminProperties: TafelAdminProperties = TafelAdminProperties()
 
+    @RelaxedMockK
+    private lateinit var searchTermNormalizer: SearchTermNormalizer
+
     @InjectMockKs
     private lateinit var service: DataSubjectRequestService
+
+    @BeforeEach
+    fun stubSearchTermNormalizer() = stubFolding(searchTermNormalizer)
 
     @AfterEach
     fun afterEach() {

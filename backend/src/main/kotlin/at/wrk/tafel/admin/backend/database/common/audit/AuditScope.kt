@@ -116,6 +116,15 @@ object AuditScope {
     const val HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE = "HouseholdMergePreview"
 
     /**
+     * The "Notfallliste" PDF - see
+     * [at.wrk.tafel.admin.backend.modules.household.internal.emergencylist.HouseholdEmergencyListService].
+     * Lists every household entitled today, so - like [LOCKED_HOUSEHOLDS_ENTITY_TYPE] - it spans the
+     * register rather than one household and has no [auditedEntities] map entry. Its business key is
+     * the number of households the list held.
+     */
+    const val HOUSEHOLD_EMERGENCY_LIST_ENTITY_TYPE = "HouseholdEmergencyList"
+
+    /**
      * @param entityType the label stored in `audit_log.entity_type`. Kept as a stable string rather
      * than the class name so renaming a Kotlin class doesn't split one entity's history in two.
      * @param householdScoped whether [businessKey] yields a household number, i.e. whether entries
@@ -216,6 +225,7 @@ object AuditScope {
         HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
         HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
         LOCKED_HOUSEHOLDS_ENTITY_TYPE,
+        HOUSEHOLD_EMERGENCY_LIST_ENTITY_TYPE,
     )
 
     val allEntityTypes: List<String> = (
@@ -231,6 +241,7 @@ object AuditScope {
                 HOUSEHOLD_DUPLICATES_ENTITY_TYPE,
                 HOUSEHOLD_MERGE_PREVIEW_ENTITY_TYPE,
                 LOCKED_HOUSEHOLDS_ENTITY_TYPE,
+                HOUSEHOLD_EMERGENCY_LIST_ENTITY_TYPE,
             )
         ).distinct().sorted()
 

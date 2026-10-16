@@ -6,7 +6,9 @@ import jakarta.persistence.criteria.Predicate
 
 /**
  * The matching and ranking rules behind the single search box, shared by every entity that carries a
- * trigger-maintained, lower-cased `search_text` column (see `R__00088_fulltext_search.sql`).
+ * trigger-maintained, folded (lower-cased, diacritics stripped) `search_text` column - see
+ * `R__00088_fulltext_search.sql` and `R__00134_fold_search_text_and_employee_search_text.sql`. The
+ * term has to be folded the same way before it gets here, which is [SearchTermNormalizer]'s job.
  *
  * A row matches when the term appears in its search text verbatim, or - so a typo still finds the
  * customer standing at the desk - when the term is trigram-similar enough to some run of words
@@ -37,6 +39,13 @@ object SearchTextSpecs {
         cb.greaterThanOrEqualTo(wordSimilarity(cb, searchText, searchTerm), similarityThreshold),
     )
 
+    /** The verbatim half of [matches] alone - for a caller that must not act on a near miss. */
+    fun contains(
+        cb: CriteriaBuilder,
+        searchText: Expression<String>,
+        searchTerm: String,
+    ): Predicate = containsPredicate(cb, searchText, searchTerm)
+
     fun score(
         cb: CriteriaBuilder,
         searchText: Expression<String>,
@@ -44,12 +53,6 @@ object SearchTextSpecs {
     ): Expression<Float> = cb.selectCase<Float>()
         .`when`(containsPredicate(cb, searchText, searchTerm), cb.literal(EXACT_MATCH_SCORE))
         .otherwise(wordSimilarity(cb, searchText, searchTerm))
-
-    /**
-     * The term is matched against a stored value that is already lower-cased, so it only has to be
-     * lower-cased itself - no `lower()` on the column, which would make the trigram index unusable.
-     */
-    fun normalize(searchInput: String?): String? = searchInput?.trim()?.lowercase()?.ifEmpty { null }
 
     private fun containsPredicate(
         cb: CriteriaBuilder,

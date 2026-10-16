@@ -12,7 +12,7 @@ describe('PasswordChange', () => {
   it('password mismatch validation', () => {
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-account').click();
-    cy.byTestId('account-tab-password').click();
+    cy.byTestId('account-nav-password').click();
 
     // Enter current password
     cy.byTestId('currentPasswordText').type('e2etest');
@@ -48,7 +48,7 @@ describe('PasswordChange', () => {
   it('shows a live password-rule checklist and strength meter while typing', () => {
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-account').click();
-    cy.byTestId('account-tab-password').click();
+    cy.byTestId('account-nav-password').click();
 
     // No password typed yet - nothing is met, and the strength meter doesn't render at all.
     cy.byTestId('passwordStrength').should('not.exist');
@@ -104,7 +104,9 @@ describe('PasswordChange', () => {
 
       cy.byTestId('usermenu').click();
       cy.byTestId('usermenu-account').click();
-      cy.byTestId('account-tab-password').click();
+      // below the desktop breakpoint the account's topics are in the drawer, like the main menu
+      cy.get('button[aria-label="Menü ein-/ausklappen"]').filter(':visible').first().click();
+      cy.byTestId('account-nav-password').click();
 
       cy.byTestId('currentPasswordText').should('be.visible');
       cy.byTestId('newPasswordText').should('be.visible');
@@ -139,7 +141,7 @@ describe('PasswordChange', () => {
 
         cy.byTestId('usermenu').click();
         cy.byTestId('usermenu-account').click();
-        cy.byTestId('account-tab-password').click();
+        cy.byTestId('account-nav-password').click();
 
         const currentPassword = testUser.password!;
         recurse(

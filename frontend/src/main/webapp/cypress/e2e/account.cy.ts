@@ -1,7 +1,7 @@
 import * as path from 'path';
-import {MAIN_CONTENT} from '../support/accessibility';
+import {expectAnimationsSettled, MAIN_CONTENT} from '../support/accessibility';
 
-// "Mein Konto": one page, a tab per topic. What each tab does is covered by its own spec
+// "Mein Konto": a page per topic, listed in the sidebar. What each topic does is covered by its own spec
 // (passwordchange.cy.ts, mfa.cy.ts, push-notifications.cy.ts); this one is about the page around them.
 // A radio button is picked through its input: the host element spans the whole width, and a click at its centre
 // misses the label.
@@ -19,20 +19,18 @@ function errorsShown(...messages: string[]) {
 describe('Account page', () => {
 
   beforeEach(() => {
-    // Wide enough for all six tabs: where they do not fit, the bar scrolls sideways and re-centres the tab that was
-    // opened, which moves the next one while a click is on its way.
     cy.viewport(1280, 800);
     cy.loginDefault();
   });
 
-  it('opens from the user menu on the "Meine Daten" tab', () => {
+  it('opens from the user menu on the own data', () => {
     cy.visit('/uebersicht');
 
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-account').click();
 
     cy.url().should('contain', '/konto/daten');
-    cy.byTestId('account-tab-data').should('have.attr', 'aria-selected', 'true');
+    cy.byTestId('account-nav-data').should('have.attr', 'aria-current', 'page');
     cy.byTestId('account-username').should('have.text', 'e2etest');
     cy.byTestId('account-personnel-number').should('have.text', '00000');
     cy.byTestId('account-firstname').should('have.value', 'E2E');
@@ -40,42 +38,71 @@ describe('Account page', () => {
     cy.checkAccessibility(MAIN_CONTENT);
   });
 
-  it('has a tab for every topic, each with an address of its own', () => {
+  it('shows the topics in the sidebar in three groups, each topic with an address of its own', () => {
     cy.visit('/konto');
     cy.url().should('contain', '/konto/daten');
+    // the sidebar shows the account's menu instead of the main one
+    cy.byTestId('main-nav').should('not.exist');
+    cy.byTestId('account-nav').within(() => {
+      cy.contains('Profil').should('be.visible');
+      cy.contains('Sicherheit').should('be.visible');
+      cy.contains('Einstellungen').should('be.visible');
+    });
+    cy.checkAccessibility('nav[testid="account-nav"]');
 
-    cy.byTestId('account-tab-password').click();
+    cy.byTestId('account-nav-password').click();
     cy.url().should('contain', '/konto/passwort');
-    cy.byTestId('account-tab-password').should('have.attr', 'aria-selected', 'true');
+    cy.byTestId('account-nav-password').should('have.attr', 'aria-current', 'page');
     cy.byTestId('currentPasswordText').should('be.visible');
     cy.checkAccessibility(MAIN_CONTENT);
 
-    cy.byTestId('account-tab-mfa').click();
+    cy.byTestId('account-nav-mfa').click();
     cy.url().should('contain', '/konto/zwei-faktor');
-    cy.byTestId('account-tab-mfa').should('have.attr', 'aria-selected', 'true');
+    cy.byTestId('account-nav-mfa').should('have.attr', 'aria-current', 'page');
     cy.byTestId('mfaIntro').should('be.visible');
     cy.checkAccessibility(MAIN_CONTENT);
 
-    cy.byTestId('account-tab-notifications').click();
+    cy.byTestId('account-nav-notifications').click();
     cy.url().should('contain', '/konto/benachrichtigungen');
     cy.byTestId('push-notifications-unsupported').should('be.visible');
     cy.checkAccessibility(MAIN_CONTENT);
 
-    cy.byTestId('account-tab-theme').click();
+    cy.byTestId('account-nav-theme').click();
     cy.url().should('contain', '/konto/design');
     cy.byTestId('theme-option-system').should('be.visible');
     cy.checkAccessibility(MAIN_CONTENT);
 
-    cy.byTestId('account-tab-privacy').click();
+    cy.byTestId('account-nav-privacy').click();
     cy.url().should('contain', '/konto/datenschutz');
     cy.byTestId('privacy-export-button').should('be.visible');
     cy.checkAccessibility(MAIN_CONTENT);
 
-    // the back button leads through the tabs, and a direct link lands on the right one
+    // the back button leads through the topics, and a direct link lands on the right one
     cy.go('back');
     cy.url().should('contain', '/konto/design');
     cy.visit('/konto/design');
-    cy.byTestId('account-tab-theme').should('have.attr', 'aria-selected', 'true');
+    cy.byTestId('account-nav-theme').should('have.attr', 'aria-current', 'page');
+  });
+
+  // On a phone the account's menu is the drawer, like the main menu - and the way back leads to the application.
+  it('on a phone, lists the topics in the drawer, and leads back to the application', () => {
+    cy.viewport('iphone-x');
+    cy.visit('/konto');
+    cy.url().should('contain', '/konto/daten');
+
+    cy.get('button[aria-label="Menü ein-/ausklappen"]').filter(':visible').first().click();
+    cy.byTestId('account-nav').should('be.visible');
+    cy.get('mat-sidenav').should(expectAnimationsSettled);
+    cy.checkAccessibility('mat-sidenav');
+    cy.byTestId('account-nav-password').click();
+    cy.url().should('contain', '/konto/passwort');
+    cy.byTestId('currentPasswordText').should('be.visible');
+
+    cy.get('button[aria-label="Menü ein-/ausklappen"]').filter(':visible').first().click();
+    cy.byTestId('account-nav-back').click();
+    cy.url().should('contain', '/uebersicht');
+    cy.get('button[aria-label="Menü ein-/ausklappen"]').filter(':visible').first().click();
+    cy.byTestId('main-nav').should('be.visible');
   });
 
   describe('own data', () => {
@@ -85,14 +112,14 @@ describe('Account page', () => {
       cy.request({method: 'PUT', url: '/api/users/account', body: {firstname: 'E2E', lastname: 'Test', email: null}});
     });
 
-    it('changes the own name and e-mail, which the two-factor tab then sends its code to', () => {
+    it('changes the own name and e-mail, which the two-factor topic then sends its code to', () => {
       cy.visit('/konto/daten');
 
       // nothing changed, nothing to save
       cy.byTestId('account-save-button').should('be.disabled');
 
-      // no address on record: the two-factor tab points here instead of offering a code by e-mail
-      cy.byTestId('account-tab-mfa').click();
+      // no address on record: the two-factor topic points here instead of offering a code by e-mail
+      cy.byTestId('account-nav-mfa').click();
       cy.byTestId('mfaEmailNoAddress').should('be.visible').and('contain.text', 'keine E-Mail-Adresse hinterlegt');
       cy.byTestId('mfaEmailSetupButton').should('not.exist');
       cy.checkAccessibility(MAIN_CONTENT);
@@ -115,7 +142,7 @@ describe('Account page', () => {
       cy.byTestId('account-username').should('have.text', 'e2etest');
       cy.byTestId('account-personnel-number').should('have.text', '00000');
 
-      cy.byTestId('account-tab-mfa').click();
+      cy.byTestId('account-nav-mfa').click();
       cy.byTestId('mfaEmailNoAddress').should('not.exist');
       cy.byTestId('mfaEmailAddress').should('contain.text', 'erika.muster@example.org');
       cy.byTestId('mfaEmailSetupButton').should('be.visible');
@@ -201,8 +228,8 @@ describe('Account page', () => {
       cy.byTestId('theme-option-dark').should('have.class', 'mat-mdc-radio-checked');
       cy.checkAccessibility(MAIN_CONTENT);
 
-      // The inactive status badges of the two-factor tab sit on a neutral surface that has to keep its contrast here.
-      cy.byTestId('account-tab-mfa').click();
+      // The inactive status badges of the two-factor topic sit on a neutral surface that has to keep its contrast here.
+      cy.byTestId('account-nav-mfa').click();
       cy.byTestId('mfaTotpStatus').should('contain.text', 'Nicht aktiv');
       cy.checkAccessibility(MAIN_CONTENT);
     });

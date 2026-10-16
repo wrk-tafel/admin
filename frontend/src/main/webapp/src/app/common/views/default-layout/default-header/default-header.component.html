@@ -1,4 +1,4 @@
-<div class="relative border-b border-gray-200">
+<div class="@container relative border-b border-gray-200">
   <!--
     Non-empty only outside production - the same fact the login page shows beneath its title, kept
     visible after login too so an already-open session doesn't get mistaken for production.
@@ -49,17 +49,19 @@
         visible indication, since the sidebar starts closed there. The real `h1` (sr-only, rendered
         by the shell's `<main>`) already gives a screen reader that information, so this is
         `aria-hidden` rather than a second heading announcing the same title twice.
-        Centered only on very wide screens (`2xl`): positioned absolutely against the header's
+        Centered only in a very wide header (1600px): positioned absolutely against the header's
         `relative` outer wrapper so it sits in the middle of the whole header regardless of how wide
         the button groups either side of it are. Any narrower, the right-hand group (clock, distribution
-        state, registered customers, connection) reaches past the middle of the header, so the title
-        stays in the flow next to the buttons and truncates instead of running under it.
+        state, registered customers, connection, bell, user menu) reaches past the middle of the header,
+        so the title stays in the flow next to the buttons and truncates instead of running under it.
+        A container query, not a viewport breakpoint: the header is the viewport minus the sidebar,
+        so a viewport just past `2xl` still left the title on top of the clock.
       -->
       @if (pageTitle()) {
         <!-- text tight against the tags: the indentation would otherwise collapse into leading/
              trailing spaces, and the e2e spec asserts this title's exact text -->
         <span aria-hidden="true" testid="page-title"
-              class="truncate text-sm font-semibold text-slate-700 2xl:absolute 2xl:left-1/2 2xl:top-1/2 2xl:max-w-[40%] 2xl:-translate-x-1/2 2xl:-translate-y-1/2">{{ pageTitle() }}</span>
+              class="truncate text-sm font-semibold text-slate-700 @min-[1600px]:absolute @min-[1600px]:left-1/2 @min-[1600px]:top-1/2 @min-[1600px]:max-w-[40%] @min-[1600px]:-translate-x-1/2 @min-[1600px]:-translate-y-1/2">{{ pageTitle() }}</span>
       }
     </div>
 
@@ -172,7 +174,7 @@
         -->
         <div role="group" aria-labelledby="usermenu-group-account">
           <div id="usermenu-group-account" class="px-4 pt-3 pb-1 text-xs uppercase tracking-wide font-semibold text-[var(--tafel-text-inactive)]" testid="usermenu-group-account">Konto</div>
-          <!-- Password, two-factor authentication, notifications and the theme are the tabs of this one page. -->
+          <!-- Own data, password, two-factor authentication, notifications, design and privacy: the sidebar lists them once the page is open. -->
           <a mat-menu-item [routerLink]="['/konto']" testid="usermenu-account">
             <mat-icon svgIcon="manage_accounts"></mat-icon> Mein Konto
           </a>

@@ -276,8 +276,8 @@ The frontend is an Angular single-page application using Angular Material and Ta
 - **customer**: Search, create, edit, detail views with duplicate detection. Deliberately *not* renamed to match the backend's `household`/`person` model — routes, components, and `CustomerData`/`CustomerAddPersonData` DTOs are unchanged; only `customer-api.service.ts` translates to/from the backend's household+persons wire shape (main person flattened onto the customer object, other persons as `additionalPersons`)
 - **checkin**: Scanner registration, QR code reading, ticket screen for customer calls
 - **logistics**: Food collection recording only (desktop/responsive layouts), one screen (`warenerfassung`). Shelter/car/food-category as well as route/shop admin CRUD screens actually live under the **settings** module below, not here — this module only ever reads routes and shops, from within the food-collection-recording flow.
-- **user**: User search, create, edit (with an optional e-mail address), plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking. Also "Mein Konto" (`account.routes.ts`, rendered by `UserAccountComponent` at `/konto`): one page, one child route per tab — own data (name and e-mail editable, username and personnel number read-only), password, two-factor authentication, notifications, design, privacy — reachable by every logged-in user. `AuthGuardService` recognises the routes a session that must set up a second factor may open by their path, so renaming `konto`/`zwei-faktor` means changing it there too
-- **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a list of expandable cards with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded body instead of a separate details dialog — see the settings module README before restyling them back into a table
+- **user**: User search, create, edit (with an optional e-mail address), plus the login attempts (`anmelde-versuche`) admin screen — read + delete over failed-login lockout tracking. Also "Mein Konto" (`account.routes.ts`, at `/konto`): one child route per topic, rendered straight into the shell's outlet — own data (name and e-mail editable, username and personnel number read-only), password, two-factor authentication, notifications, design, privacy — reachable by every logged-in user. While a `/konto` page is open the sidebar lists the topics instead of the main menu (`accountMenuItems` in `navigation-menuItems.ts`, a sidebar area — see the settings module below), so a new topic is a child route plus an entry with an icon in that list. `AuthGuardService` recognises the routes a session that must set up a second factor may open by their path, so renaming `konto`/`zwei-faktor` means changing it there too
+- **settings**: System settings and mail recipient configuration, plus admin CRUD screens for shelters (`notschlafstellen`), food categories (`lebensmittelkategorien`), and cars (`fahrzeuge`) — all three with drag-and-drop sortOrder reordering (Angular CDK) — as well as employees (`mitarbeiter`), static values/limits (`statische-werte`), shops (`filialen`) and routes (`routen`). Shops and routes are the two screens that are deliberately *not* Material tables with a mobile card fallback: they render a list of expandable cards with a search field and an Alle/Aktiv/Inaktiv filter, so the record's details (a shop's contacts, a route's stops) live in the expanded body instead of a separate details dialog — see the settings module README before restyling them back into a table Every settings screen is an entry of `settingsMenuItems` in `navigation-menuItems.ts`, which the overview page's cards, the quick-open palette and the sidebar all read: while a `/einstellungen` page is open the sidebar shows them instead of the main menu. That is a *sidebar area* (`sidebarAreas`, `DefaultLayoutComponent.sidebarArea`) — an area with many pages of its own gets one there rather than a menu inside its pages; a new settings screen is a route plus an entry with an icon and a description in that list
 - **statistics**: Chart.js-powered distribution/demographic statistics panels
 - **audit**: the `zugriffsprotokoll` screen — the whole audit trail, filterable. The per-household
   view of the same data is the customer detail screen's "Verlauf" tab; both render the shared
@@ -410,7 +410,9 @@ since it lives outside the code you're editing. On every update or regeneration,
   (`benutzermenue.jpg`, `support-anfrage.jpg`, `kunden-anspruch-pruefen.jpg`) keep the header
   specifically because their subject — a dropdown or dialog anchored to a header control —
   visually extends into that region; crop
-  those to the sidebar only, not the header. When taking a new screenshot, crop it the same way
+  those to the sidebar only, not the header. `konto-uebersicht.jpg` and `einstellungen-uebersicht.jpg`
+  keep the sidebar but not the header: their subject is the area's menu, which the sidebar shows
+  while "Mein Konto" or the settings are open. When taking a new screenshot, crop it the same way
   before adding it.
 - **Verify a screenshot actually rendered before committing it** — a Chart.js canvas or a camera
   `<video>` element captured before its first frame paints shows as a large solid-black area
@@ -822,14 +824,19 @@ Authentication: Basic HTTP auth with JWT token stored in cookie. A user with two
   user they didn't create. See ADR-0035 and the README's "New Installation".
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
 - **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
-- **Fuzzy Search**: the customer and user search screens each have one free-text box (`searchInput`)
-  rather than per-field inputs, sent as a `POST .../search` request body rather than a query
-  parameter (ADR-0057). Both match against a denormalized, lower-cased `search_text` column
-  that a database trigger keeps in sync (`R__00088_fulltext_search.sql`) — for a household that
-  covers its number, the names of *all* its persons, address, phone and e-mail; for a user, username
-  plus the user's own personnel number and name. Two modes are OR'd: `like '%term%'` for the
-  verbatim hit and `strict_word_similarity` (`pg_trgm`, GIN-indexed) for typo tolerance, with results
-  ranked verbatim-first — see `SearchTextSpecs`. The cutoff is
+- **Fuzzy Search**: the customer, user and employee search screens each have one free-text box
+  (`searchInput`) rather than per-field inputs, sent as a `POST .../search` request body rather than
+  a query parameter (ADR-0057). All three match against a denormalized `search_text` column that a
+  database trigger keeps in sync (`R__00088_fulltext_search.sql`, `R__00134_...`) — for a household
+  that covers its number, the names, birth dates (`DD.MM.YYYY`) and employers of *all* its persons,
+  address, phone and e-mail; for a user, username, personnel number, name and e-mail; for an
+  employee, personnel number and name. The text is *folded* (lower-cased, diacritics stripped, `ß` →
+  `ss`) by the SQL function `fold_search_text`, and the term is folded by the very same function
+  through `SearchTermNormalizer` (one query per search) — never fold in Kotlin, or the two drift
+  apart (ADR-0071). Two modes are OR'd: `like '%term%'` for the verbatim hit and
+  `strict_word_similarity` (`pg_trgm`, GIN-indexed) for typo tolerance, with results ranked
+  verbatim-first — see `SearchTextSpecs`. The driver/co-driver picker asks for verbatim matches only
+  (`verbatimOnly`), since it auto-selects a single hit. The cutoff is
   `tafeladmin.search.similarityThreshold`, read per request so it can be tuned without a restart.
   Note the trigger is the only thing maintaining `search_text`: a new searchable column on
   `households`/`persons`/`users`/`employees` has to be added to those trigger functions too, or it

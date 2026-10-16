@@ -16,14 +16,13 @@ modules/user/
   ├── views/login-attempts/user-login-attempts.component.ts # route: benutzer/anmelde-versuche
   │     └── dialogs/delete-login-attempt-dialog.component.ts
   ├── components/user-form/user-form.component.ts        # the actual reactive form (fields + permissions grid)
-  ├── account.routes.ts                                  # "Mein Konto": /konto and its tab routes (not behind USER_MANAGEMENT)
-  ├── views/user-account/user-account.component.ts       # the frame: mat-tab-nav-bar + router-outlet
-  ├── components/user-account-data/user-account-data.component.ts # "Meine Daten" tab: own name and e-mail, editable
-  ├── components/user-passwordchange/user-passwordchange.component.ts # "Passwort" tab, wraps the shared password-change form
-  ├── components/user-mfa/user-mfa.component.ts          # "Zwei-Faktor-Authentifizierung" tab: app, e-mail code, passkeys
-  ├── components/push-notification-settings/push-notification-settings.component.ts # "Benachrichtigungen" tab
-  ├── components/user-theme-settings/user-theme-settings.component.ts # "Design" tab
-  └── components/user-privacy-settings/user-privacy-settings.component.ts # "Datenschutz" tab: own data export, staff privacy notice
+  ├── account.routes.ts                                  # "Mein Konto": /konto and its topic routes (not behind USER_MANAGEMENT)
+  ├── components/user-account-data/user-account-data.component.ts # "Meine Daten" topic: own name and e-mail, editable
+  ├── components/user-passwordchange/user-passwordchange.component.ts # "Passwort" topic, wraps the shared password-change form
+  ├── components/user-mfa/user-mfa.component.ts          # "Zwei-Faktor-Authentifizierung" topic: app, e-mail code, passkeys
+  ├── components/push-notification-settings/push-notification-settings.component.ts # "Benachrichtigungen" topic
+  ├── components/user-theme-settings/user-theme-settings.component.ts # "Design" topic
+  └── components/user-privacy-settings/user-privacy-settings.component.ts # "Datenschutz" topic: own data export, staff privacy notice
 ```
 
 Despite the `-resolver.component.ts` filename suffix (a convention shared across the whole
@@ -181,20 +180,22 @@ nothing in at all stays omitted rather than shown fully muted - see
 
 ### "Mein Konto" — what a user settles about their own account, login and device
 
-One page at `/konto` (`account.routes.ts`, lazy-loaded from `shell.routes.ts`), one tab per topic: Meine Daten,
-Passwort, Zwei-Faktor-Authentifizierung, Benachrichtigungen, Design and Datenschutz. It is mounted **outside** the
+`/konto` (`account.routes.ts`, lazy-loaded from `shell.routes.ts`), one child route per topic: Meine Daten,
+Datenschutz, Passwort, Zwei-Faktor-Authentifizierung, Benachrichtigungen and Design. It is mounted **outside** the
 `USER_MANAGEMENT`-gated route tree, behind the login only, so *any* logged-in user reaches it whatever they hold. The
-tabs are child routes (`/konto/daten`, `/konto/passwort`, `/konto/zwei-faktor`, `/konto/benachrichtigungen`,
-`/konto/design`, `/konto/datenschutz`; `/konto` itself redirects to the first) rendered by `UserAccountComponent` as a
-`mat-tab-nav-bar`, so each tab has an address of its own. A session that still has to set a second factor up never
+topics (`/konto/daten`, `/konto/passwort`, `/konto/zwei-faktor`, `/konto/benachrichtigungen`, `/konto/design`,
+`/konto/datenschutz`; `/konto` itself redirects to the first) render straight into the shell's outlet, each with an
+address of its own. While a `/konto` page is open the shell's sidebar lists them instead of the main menu
+(`accountMenuItems` in `navigation-menuItems.ts`, grouped into Profil, Sicherheit and Einstellungen, with "Zurück zur
+Anwendung" on top) - a new topic is a child route plus an entry with an icon in that list. A session that still has to set a second factor up never
 reaches any of this: `AuthGuardService` sends it to `LoginMfaSetupComponent` on the login flow instead (see
-`common/views/login-mfa-setup/`), so the two-factor tab here only ever shows a method that is already active or
+`common/views/login-mfa-setup/`), so the two-factor topic here only ever shows a method that is already active or
 being changed voluntarily. The user menu has a single entry for all of it; the light/dark choice (`ThemeService`)
-lives on the Design tab and applies at once, without a save button.
+lives on the Design topic and applies at once, without a save button.
 
 ### UserAccountDataComponent — "Meine Daten"
 
-The first tab: the user's own account, and the part of it that is theirs to change. Username and personnel number
+The first topic: the user's own account, and the part of it that is theirs to change. Username and personnel number
 are shown read-only (an administrator assigns them through `UserFormComponent`); first name, last name and e-mail
 are a small `@angular/forms/signals` form (`required`/`maxLength`, the shared `email` validator) with a save button
 that is disabled while nothing differs from what is saved (`changed`, a `computed` over the trimmed form value
@@ -202,12 +203,12 @@ against the loaded account) and a "Verwerfen" button back to it. Saving goes thr
 `UserApiService.updateAccount` → `PUT /users/account` (`UserAccountRequest`: name and e-mail only - the backend's
 `TafelUserDetailsManager.updateOwnAccount` touches nothing else, so unlike an admin's `updateUser` it can neither
 hand an account over nor invalidate the session); an error is shown inline from the problem detail rather than
-toasted. The e-mail is what the two-factor tab's code by e-mail goes to: `UserMfaComponent` reads the address from
+toasted. The e-mail is what the two-factor topic's code by e-mail goes to: `UserMfaComponent` reads the address from
 `MfaStatus.emailAddress` and, while it is null, points here instead of offering the method.
 
 ### UserPasswordChangeComponent — a different password-change path entirely
 
-This is the "Passwort" tab. It wraps the **shared** `common/views/passwordchange-form/passwordchange-form.component.ts`
+This is the "Passwort" topic. It wraps the **shared** `common/views/passwordchange-form/passwordchange-form.component.ts`
 (`PasswordChangeFormComponent`); a successful change toasts that the session stays valid and empties the fields. The same
 `PasswordChangeFormComponent` is also reused by the login module's forced-password-change flow
 (`login/passwortaendern`). It talks to a completely separate endpoint/shape

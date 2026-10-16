@@ -1,0 +1,19 @@
+<tafel-dialog testId="emergencylist-dialog" type="warning" title="Notfallliste">
+  <div tafel-dialog-content>
+    <p class="mb-2">
+      Die Notfallliste enthält alle derzeit bezugsberechtigten Kunden - Kundennummer, Name, Anzahl der Personen,
+      Gültigkeit und Sperren. Sie ist für den Fall gedacht, dass die Anwendung während einer Ausgabe nicht erreichbar ist.
+    </p>
+    <p class="mb-2 font-semibold">Die Liste enthält personenbezogene Daten:</p>
+    <ul class="list-disc pl-6 mb-2" testid="emergencylist-rules">
+      <li>bis zur Verwendung versperrt aufbewahren,</li>
+      <li>nicht mit nach Hause nehmen,</li>
+      <li>nach dem Ausgabetag vernichten.</li>
+    </ul>
+    <p class="mb-0">Jeder Abruf wird im Zugriffsprotokoll festgehalten.</p>
+  </div>
+  <div tafel-dialog-actions>
+    <button type="button" testid="okButton" matButton="filled" (click)="dialogRef.close(true)">Notfallliste herunterladen</button>
+    <button type="button" testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

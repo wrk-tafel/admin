@@ -237,6 +237,13 @@ paper-ticket-booklet/UI convention, not something enforced in this module. The b
 invariant is *uniqueness of ticket number per distribution*, and it explicitly allows re-submitting the
 same `(householdId, ticketNumber)` pair (used to flip `costContributionPaid` without erroring).
 
+A **locked** household gets no ticket: `assignHouseholdToDistribution()` refuses it with a
+`BusinessRuleException` (400), and this service - not the check-in or customer-detail screen - is
+what enforces the lock, since a screen that loaded the household before a colleague locked it still
+offers the ticket (both screens reload the household after a 400, so the user sees the lock). Two
+things stay allowed for a locked household: re-submitting the ticket it already holds, and deleting
+its ticket. An expired validity (`validUntil` in the past) is no refusal at all - only the lock is.
+
 The check above plus the insert that follows it is a check-then-act against two `UNIQUE`
 constraints (`uc_distributionid_ticketnumber` and
 `uq_distributions_households_distribution_household`), so the whole method body is wrapped in

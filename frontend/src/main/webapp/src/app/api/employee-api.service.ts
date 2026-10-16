@@ -11,20 +11,25 @@ export class EmployeeApiService {
    * Sent as a `POST /employees/search` body rather than `?searchInput=...` query parameters - a
    * search term is, in practice, a person's name, and a query string ends up in the never-rotated
    * access.log, the browser's history and support-mail context (GDPR gap G25, issue #3506/#3703).
+   *
+   * `verbatimOnly` turns the typo tolerance off - for the driver/co-driver picker, which selects a
+   * single hit on its own and offers "create" on none, so a near miss must not count as a hit.
    */
   findEmployees(
     searchInput?: string,
     page?: number,
     pageSize?: number,
     sortBy?: string,
-    sortDirection?: string
+    sortDirection?: string,
+    verbatimOnly?: boolean
   ): Observable<EmployeeListResponse> {
     const body: EmployeeSearchRequest = {
       searchInput: searchInput || undefined,
       page,
       pageSize,
       sortBy,
-      sortDirection
+      sortDirection,
+      verbatimOnly: verbatimOnly || undefined
     };
     return this.http.post<EmployeeListResponse>('/employees/search', body);
   }
@@ -73,6 +78,7 @@ interface EmployeeSearchRequest {
   pageSize?: number;
   sortBy?: string;
   sortDirection?: string;
+  verbatimOnly?: boolean;
 }
 
 export interface CreateEmployeeRequest {

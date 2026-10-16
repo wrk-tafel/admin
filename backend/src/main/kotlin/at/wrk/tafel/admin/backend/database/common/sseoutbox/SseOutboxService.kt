@@ -44,7 +44,8 @@ class SseOutboxService(
     /**
      * Every stream currently held open through [finalize], so [sendHeartbeats] has something to
      * iterate without the outbox listener's per-notification-name callback registry (which doesn't
-     * keep the [SseEmitter] itself, only the closures a notification fans out to).
+     * keep the [SseEmitter] itself, only the closures a notification fans out to). A stream is in
+     * here once, however many topics it carries.
      */
     private val openEmitters = CopyOnWriteArrayList<SseEmitter>()
 
@@ -98,7 +99,7 @@ class SseOutboxService(
             return
         }
         shuttingDown = true
-        val emitters = openEmitters.distinct()
+        val emitters = openEmitters.toList()
         if (emitters.isNotEmpty()) {
             logger.info("Application is shutting down, completing {} open SSE stream(s)", emitters.size)
         }
@@ -199,7 +200,9 @@ class SseOutboxService(
         notificationName: String,
         callback: (String?) -> Unit,
     ) {
-        openEmitters.add(sseEmitter)
+        // One stream carries several topics, and each of them comes through here with the same
+        // emitter. The cleanup is per topic; what is said about the stream itself is said once.
+        val firstTopicOfStream = openEmitters.addIfAbsent(sseEmitter)
 
         val cleanup = {
             openEmitters.remove(sseEmitter)
@@ -223,7 +226,9 @@ class SseOutboxService(
         val openedAt = System.nanoTime()
         sseEmitter.onError { error ->
             cleanup()
-            logStreamError(stream, Duration.ofNanos(System.nanoTime() - openedAt), error)
+            if (firstTopicOfStream) {
+                logStreamError(stream, Duration.ofNanos(System.nanoTime() - openedAt), error)
+            }
         }
 
         if (shuttingDown) {

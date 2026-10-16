@@ -198,6 +198,20 @@ describe('QuickOpenDialogComponent', () => {
     expect(component.navResults()).toEqual([]);
   });
 
+  // The main menu does not list them, but the palette finds them from anywhere.
+  it('finds the topics of "Mein Konto" without any permission', () => {
+    authenticationService.hasPermission.mockReturnValue(false);
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.query.set('zwei-faktor');
+    fixture.detectChanges();
+
+    expect(component.navResults())
+      .toEqual([{label: 'Mein Konto › Zwei-Faktor-Authentifizierung', url: '/konto/zwei-faktor', icon: 'shield_lock'}]);
+  });
+
   it('opening a navigation entry navigates and closes the dialog', () => {
     const navigateByUrl = vi.spyOn(router, 'navigateByUrl');
     const fixture = TestBed.createComponent(QuickOpenDialogComponent);
@@ -344,6 +358,86 @@ describe('QuickOpenDialogComponent', () => {
 
     expect(dialogRef.close).toHaveBeenCalled();
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('datenschutzerklaerung-mitarbeiter.pdf', response.body);
+  });
+
+  it('Enter right after typing opens the first navigation entry of what was just typed', () => {
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl');
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    // no change detection in between - the rendered buttons still show the previous (empty) query
+    component.query.set('fahrzeuge');
+    component.openFirstResult();
+
+    const expected = component.navResults()[0];
+    expect(expected.label).toContain('Fahrzeuge');
+    expect(navigateByUrl).toHaveBeenCalledWith(expected.url);
+    expect(dialogRef.close).toHaveBeenCalled();
+  });
+
+  it('Enter opens an action when no navigation entry matches', () => {
+    customerApiService.generatePrivacyNoticeTemplate.mockReturnValue(of(new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders({'Content-Disposition': 'inline; filename=vorlage.pdf'}),
+      body: new Blob()
+    })));
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.query.set('Vorlage');
+    component.openFirstResult();
+
+    expect(customerApiService.generatePrivacyNoticeTemplate).toHaveBeenCalled();
+  });
+
+  it('Enter before the household search answered opens nothing', () => {
+    const navigate = vi.spyOn(router, 'navigate');
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl');
+    customerApiService.searchCustomer.mockReturnValue(searchResult([testCustomer]));
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.query.set('Muster');
+    component.openFirstResult();
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(navigateByUrl).not.toHaveBeenCalled();
+    expect(dialogRef.close).not.toHaveBeenCalled();
+  });
+
+  it('Enter after the household search answered opens the first customer', async () => {
+    const navigate = vi.spyOn(router, 'navigate');
+    customerApiService.searchCustomer.mockReturnValue(searchResult([testCustomer]));
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.query.set('Muster');
+    fixture.detectChanges();
+    await new Promise(resolve => setTimeout(resolve, SEARCH_DEBOUNCE_WAIT_MS));
+    component.openFirstResult();
+
+    expect(navigate).toHaveBeenCalledWith(['/kunden/detail', 133]);
+  });
+
+  it('Enter does not open a customer of the previous query', async () => {
+    const navigate = vi.spyOn(router, 'navigate');
+    customerApiService.searchCustomer.mockReturnValue(searchResult([testCustomer]));
+    const fixture = TestBed.createComponent(QuickOpenDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.query.set('Muster');
+    fixture.detectChanges();
+    await new Promise(resolve => setTimeout(resolve, SEARCH_DEBOUNCE_WAIT_MS));
+
+    component.query.set('Musterfrau');
+    component.openFirstResult();
+
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('announces the result counts for the screen reader status region', async () => {

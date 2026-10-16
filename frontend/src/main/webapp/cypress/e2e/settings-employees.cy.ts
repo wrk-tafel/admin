@@ -69,6 +69,18 @@ describe('Settings - Employees', () => {
     cy.byTestId('employeesSearchAnnouncement').should('contain.text', 'Mitarbeiter gefunden');
   });
 
+  it('finds an employee regardless of accents and despite a typo, best match first', () => {
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      cy.request('POST', '/api/employees', {personnelNumber: 'acc' + randomNumber, firstname: 'Ayşe', lastname: 'Öztürk' + randomNumber});
+
+      cy.byTestId('employeeSearchInput').type('ayse ozturk' + randomNumber);
+      cy.byTestId('employees-table').should('contain.text', 'Öztürk' + randomNumber);
+
+      cy.byTestId('employeeSearchInput').clear().type('Ozturc' + randomNumber);
+      cy.byTestId('employees-table').should('contain.text', 'Öztürk' + randomNumber);
+    });
+  });
+
   it('says that employees can always be deleted', () => {
     cy.byTestId('employeesCaption').should('contain.text', 'jederzeit gelöscht werden')
       .and('not.contain.text', 'muss dieses zuerst entfernt werden');

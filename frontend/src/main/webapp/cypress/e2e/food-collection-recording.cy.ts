@@ -110,6 +110,25 @@ describe('Food Collection Recording', () => {
     cy.get('@employeeSearchOnReopen.all').should('have.length', 0);
   });
 
+  it('offers to create a driver whose name is only a near miss of an existing employee', () => {
+    // The employee screen's search tolerates typos, the driver picker deliberately does not: it
+    // selects a single hit on its own, so a near miss would be picked for someone else.
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      cy.request('POST', '/api/employees', {
+        personnelNumber: 'nm' + randomNumber, firstname: 'Near', lastname: 'Zuckerbaecker' + randomNumber
+      });
+
+      enterRouteData();
+      cy.byTestId('driverSearchInput').type('Zuckerbaeker' + randomNumber);
+      cy.byTestId('driver-employee-search-button').click();
+
+      cy.byTestId('driver-search-create-dialog').should('be.visible');
+      cy.byTestId('selectedDriverDescription').should('not.exist');
+      cy.byTestId('driver-search-create-dialog').within(() => cy.byTestId('cancel-button').click());
+      cy.byTestId('driver-search-create-dialog').should('not.exist');
+    });
+  });
+
   it('rejects a free-text return item repeating a return category', () => {
     cy.getAnyRandomNumber().then((randomNumber) => {
       enterRouteData();
@@ -523,6 +542,26 @@ describe('Food Collection Recording', () => {
       cy.byTestId('route-tab-status-complete').scrollIntoView().should('be.visible');
       cy.byTestId('waren-tab-status-complete').scrollIntoView().should('be.visible');
     });
+  });
+
+  it('phone: fits each tab\'s status badge into its tab, with the word kept for screen readers', () => {
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible').click();
+    cy.get('mat-option').contains('Route 2').click();
+    cy.byTestId('carInput').click();
+    cy.get('mat-option').contains('W-NC-123 (Lieferwagen 123)').click();
+    cy.byTestId('select-items-tab').click();
+    cy.byTestId('category-1-input').type('1');
+
+    cy.byTestId('route-tab-status-invalid').should('contain.text', 'Ungültig');
+    cy.byTestId('waren-tab-status-unsaved').should('contain.text', 'Nicht gespeichert');
+    cy.get('.mat-mdc-tab').each(tab => {
+      const label = tab[0].querySelector<HTMLElement>('.mdc-tab__content')!;
+      expect(label.getBoundingClientRect().right, 'tab label stays inside its tab')
+        .to.be.at.most(tab[0].getBoundingClientRect().right);
+    });
+
+    completeRouteViaApi();
   });
 
   it('marks the route tab complete when driver/co-driver are picked via the search icon without typing first', () => {

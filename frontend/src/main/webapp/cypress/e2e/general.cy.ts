@@ -514,4 +514,21 @@ describe('Shell', () => {
     cy.byTestId('page-title').should('be.visible').and('have.text', 'Übersicht');
   });
 
+  it('keeps the page title clear of the clock while a distribution fills the right-hand side of the header', () => {
+    // just past the 2xl viewport breakpoint, with the sidebar open the header itself is far narrower
+    cy.viewport(1568, 744);
+    cy.loginDefault();
+    cy.visit('/uebersicht');
+    cy.createDistribution();
+    cy.byTestId('registered-customers-badge').should('be.visible');
+
+    cy.byTestId('page-title').then(title => {
+      cy.byTestId('header-clock').should(clock => {
+        expect(title[0].getBoundingClientRect().right).to.be.at.most(clock[0].getBoundingClientRect().left);
+      });
+    });
+
+    cy.closeDistribution();
+  });
+
 });

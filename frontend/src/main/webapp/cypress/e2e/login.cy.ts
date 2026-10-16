@@ -75,6 +75,20 @@ describe('Login', () => {
     cy.byTestId('username').should('have.focus');
   });
 
+  // The XSRF interceptor used to repeat every 403, and wrong credentials are answered with one: each
+  // mistyped password reached the server twice and counted as two failed attempts towards the
+  // lockout (#3830). Only a real backend shows it - the repeat needs the XSRF-TOKEN cookie a real
+  // response sets, and the 403 has to be the one the login filter really sends.
+  it('a wrong password is sent to the server once', () => {
+    cy.intercept('POST', '/api/login').as('loginRequest');
+
+    enterLoginData('dummy', 'dummy');
+
+    // the message only appears once the interceptor has given up, so the count is final by then
+    cy.byTestId('errorMessage').should('exist');
+    cy.get('@loginRequest.all').should('have.length', 1);
+  });
+
   // A network/5xx failure used to read exactly like a typo ("Anmeldung fehlgeschlagen!"), which
   // risked on-site staff resetting a correct password when the backend was actually just down.
   it('login shows a distinct message when the server is unreachable rather than the generic credentials failure', () => {
@@ -276,6 +290,23 @@ describe('Login', () => {
 
     cy.url().should('contain', '/login/abgelaufen');
     cy.byTestId('errorMessage').should('exist').and('contain.text', 'Sitzung abgelaufen');
+  });
+
+  it('asks for the user info once when a nested route is opened directly', () => {
+    cy.loginDefault();
+    cy.intercept('GET', '/api/users/info').as('userInfo');
+
+    // two guarded levels (the shell and the settings area) below the app initializer's own request
+    cy.visit('/einstellungen/fahrzeuge');
+    cy.byTestId('cars-table').should('be.visible');
+
+    cy.get('@userInfo.all').should('have.length', 1);
+
+    // the next navigation asks again - that is how an expired session is still noticed
+    cy.byTestId('quickOpenButton').click();
+    cy.byTestId('quickOpenInput').type('Filialen{enter}');
+    cy.url().should('include', '/einstellungen/filialen');
+    cy.get('@userInfo.all').should('have.length', 2);
   });
 
   it('accessing a module without the required permission shows access denied', () => {

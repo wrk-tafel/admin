@@ -1,11 +1,25 @@
 # Changelog
 
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
-
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
-
 ## [Unreleased]
+- Die Suche nach Kunden, Benutzern und Mitarbeitern ignoriert jetzt Akzente und Sonderzeichen (z. B. findet "Ozturk" auch "Öztürk"), findet Kunden auch über Geburtsdatum und Arbeitgeber und Benutzer über die E-Mail-Adresse; die Mitarbeitersuche ist tippfehlertolerant wie die Kundensuche.
+- In der Schnellsuche (Strg+K) öffnet die Eingabetaste jetzt zuverlässig den ersten Treffer zur gerade eingetippten Eingabe statt eines Treffers der vorherigen Eingabe; in der Kunden- und Benutzersuche bricht ein spät eintreffendes Suchergebnis das Öffnen eines angeklickten Treffers nicht mehr ab.
+- Seiten hinter der Anmeldung laden schneller, weil die Anwendung die Benutzerdaten pro Seitenwechsel nur noch einmal statt mehrmals abfragt.
+- Ein gesperrter Kunde erhält kein Ticket mehr, auch nicht über eine Seite, die vor dem Sperren geöffnet wurde; die Anmeldung zeigt dann die Sperre an.
+- Die Mitarbeitersuche behandelt "%" und "_" jetzt als normale Zeichen, statt dabei alle Mitarbeiter zu finden.
+- Ein Kennzeichen kann nur noch einmal vergeben werden: Der Dialog "Fahrzeug anlegen" erkennt ein bestehendes Fahrzeug jetzt auch, wenn er geöffnet wurde, bevor die Fahrzeugliste geladen war, und der Server lehnt ein doppeltes Kennzeichen ab.
+- Neue "Notfallliste": ein druckbares PDF aller aktuell bezugsberechtigten Kunden (mit Sperren) für den Fall, dass die Anwendung während einer Ausgabe nicht erreichbar ist; mit eigener Berechtigung, jeder Abruf wird im Zugriffsprotokoll festgehalten.
+- Die Seitenleiste zeigt jetzt in "Mein Konto" und in den Einstellungen statt des Hauptmenüs die Themen bzw. Bereiche dieses Teils, nach Gruppen geordnet und mit "Zurück zur Anwendung" ganz oben; die Reiter in "Mein Konto" entfallen dafür, und die Themen von "Mein Konto" lassen sich auch über die Schnellsuche (Strg+K) öffnen.
+- Im Zugriffsprotokoll heißen die protokollierten Abrufe der Kunden-Auswertungen (Über Limit, Gesperrt, Neu & Verlängert, Duplikate, Vorschau beim Zusammenführen) und der Protokoll-Abfragen jetzt auf Deutsch statt mit ihrem technischen Namen, und ihre Filterangaben stehen ohne irreführendes "Nr." davor.
+- Der Seitentitel in der Kopfzeile überdeckt bei geöffneter Ausgabe und eingeblendeter Seitenleiste nicht mehr die Uhrzeit, und in der Waren-Eingabe am Handy passen die Reiter "Route" und "Waren" samt ihrem Speicherstand wieder vollständig in die Breite (dort steht nur noch das Symbol ✓, ● bzw. !); dazu zeigen 31 Abbildungen im Benutzerhandbuch wieder den aktuellen Stand der Anwendung.
+- Die 500-Fehlerseite verweist für eine Support-Anfrage jetzt richtig auf die Kopfzeile statt auf das Hauptmenü, und beim Löschen eines Benutzers steht zwischen Benutzername und Name wieder ein Leerzeichen.
 - Mein Konto → Zwei-Faktor-Authentifizierung: Neben der Authenticator-App und dem Code per E-Mail gibt es jetzt den Passkey als dritte Methode (Fingerabdruck, Gesichtserkennung, Geräte-PIN oder Sicherheitsschlüssel) - zusätzlich zu einer anderen Methode oder für sich allein; bei der Anmeldung genügt dann "Mit Passkey bestätigen" statt eines Codes. Geht das Gerät mit dem einzigen Passkey verloren, setzt ein Administrator die Zwei-Faktor-Authentifizierung in der Benutzerverwaltung zurück.
+
+## [1.30.2] - 2026-10-13
+- Ein falsch eingegebenes Passwort zählt wieder als ein Fehlversuch: bisher wurde die abgelehnte Anmeldung im Hintergrund ein zweites Mal gesendet, sodass die Sperre nach der Hälfte der eingestellten Versuche griff, jeder Tippfehler zweimal unter "Anmeldeversuche" stand und die Fehlermeldung doppelt so lange auf sich warten ließ. Dasselbe gilt für jede andere Aktion, die mangels Berechtigung abgelehnt wird - auch sie wird nicht mehr wiederholt.
+- Das Anwendungsprotokoll meldet eine abgerissene Live-Verbindung nur noch einmal statt einmal pro abonniertem Thema (bisher vier bis fünf gleichlautende Zeilen), und jede offene Live-Verbindung erhält nur noch ein Lebenszeichen pro Intervall.
+- Nach der Eingabe des Codes der Zwei-Faktor-Authentifizierung erscheint im Anwendungsprotokoll kein Client-Fehler "NG05601" mehr, wenn im Browser kein Service Worker registriert ist, und die Push-Registrierung des Geräts wird erst nach dem Code abgefragt statt davor (bisher eine abgelehnte Anfrage pro Anmeldung). Ein Client-Fehler, den niemand abgefangen hat, nennt im Protokoll nun auch die Stelle im Programm, an der er entstand.
 
 ## [1.30.0] - 2026-10-12
 - Neue Versionen werden jetzt ohne Unterbrechung eingespielt, auch während einer Ausgabe: Die Anwendung bleibt dabei erreichbar, und geöffnete Seiten verbinden sich von selbst mit der neuen Version.

@@ -9,7 +9,7 @@
                (keydown.enter)="openFirstResult()"/>
       </mat-form-field>
       <tafel-info-tooltip [testId]="'quick-open-input-info-tooltip'"
-                          text="Durchsucht Navigationsseiten und - mit Berechtigung - Kunden: Kundennummer, Namen aller Personen des Haushalts, Adresse, Telefonnummer und E-Mail. Tippfehler werden toleriert."></tafel-info-tooltip>
+                          text="Durchsucht Navigationsseiten und - mit Berechtigung - Kunden: Kundennummer, Namen, Geburtsdaten und Arbeitgeber aller Personen des Haushalts, Adresse, Telefonnummer und E-Mail. Akzente spielen keine Rolle, Tippfehler werden toleriert."></tafel-info-tooltip>
     </div>
 
     <p class="sr-only" role="status">{{ resultAnnouncement() }}</p>

@@ -842,6 +842,43 @@ describe('CheckinComponent', () => {
 
         expect(component.customer()).toBeDefined();
         expect(component.lastAcceptedCheckin()).toBeUndefined();
+        // a taken ticket number is no reason to load the customer again
+        expect(customerApiService.getCustomer).not.toHaveBeenCalled();
+    });
+
+    it('assign customer loads the customer again when the backend refuses it, so a lock set meanwhile shows', async () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+        fixture.detectChanges();
+
+        const customer = {
+            id: 133,
+            lastname: 'Mustermann',
+            firstname: 'Max',
+            birthDate: dayjs().subtract(30, 'years').startOf('day').toDate(),
+            gender: Gender.MALE,
+            address: {street: 'Teststraße', houseNumber: '123A', door: '21', postalCode: 1020, city: 'Wien'},
+            employer: 'test employer',
+            income: 1000,
+            validUntil: dayjs().add(3, 'months').startOf('day').toDate(),
+            additionalPersons: []
+        };
+        component.processCustomer(customer);
+        component.ticketNumber.set(55);
+
+        distributionApiService.assignCustomer.mockReturnValue(throwError(() => new HttpErrorResponse({status: 400})));
+        customerApiService.getCustomer.mockReturnValue(of({...customer, locked: true}));
+        customerNoteApiService.getNotesForCustomer.mockReturnValue(
+            of({items: [], totalCount: 0, currentPage: 1, totalPages: 0, pageSize: 5}));
+        distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({ticketNumber: null}));
+
+        component.assignCustomer();
+        await fixture.whenStable();
+
+        expect(customerApiService.getCustomer).toHaveBeenCalledWith(133, expect.anything());
+        expect(component.customerState()).toBe(CustomerState.LOCKED);
+        expect(component.lastAcceptedCheckin()).toBeUndefined();
     });
 
     it('undo action from the confirmation toast deletes the ticket again', async () => {

@@ -6,13 +6,13 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
-import {catchError, debounceTime, distinctUntilChanged, map, of, switchMap} from 'rxjs';
+import {catchError, debounceTime, distinctUntilChanged, map, Observable, of, switchMap} from 'rxjs';
 import {HttpResponse} from '@angular/common/http';
 import {MatIcon} from '@angular/material/icon';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {TafelInfoTooltipComponent} from '../../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {TafelAutofocusDirective} from '../../../../../common/directive/tafel-autofocus.directive';
-import {ITafelNavData, navigationMenuItems, registerNavigationIcons} from '../../navigation-menuItems';
+import {accountMenuItems, ITafelNavData, navigationMenuItems, registerNavigationIcons} from '../../navigation-menuItems';
 import {AuthenticationService} from '../../../../../common/security/authentication.service';
 import {GlobalStateService} from '../../../../../common/state/global-state.service';
 import {CustomerApiService, CustomerData} from '../../../../../api/customer-api.service';
@@ -76,6 +76,17 @@ export function flattenNavigationItems(
   return result;
 }
 
+/**
+ * The topics of "Mein Konto", which the main menu does not list (the user menu opens them, and the sidebar shows them
+ * once a page of the account is open) - found from anywhere, like a settings screen.
+ */
+const ACCOUNT_GROUP: ITafelNavData = {name: 'Mein Konto', icon: 'person', children: accountMenuItems};
+
+interface CustomerSearchState {
+  query: string;
+  items: CustomerData[] | null;
+}
+
 const SEARCH_DEBOUNCE_MS = 250;
 const MIN_CUSTOMER_SEARCH_CHARS = 2;
 const CUSTOMER_RESULT_LIMIT = 5;
@@ -118,7 +129,7 @@ export class QuickOpenDialogComponent {
 
   private readonly navEntries = computed(() =>
     flattenNavigationItems(
-      navigationMenuItems,
+      [...navigationMenuItems, ACCOUNT_GROUP],
       permission => this.authenticationService.hasPermission(permission),
       this.distribution() !== null
     )
@@ -133,27 +144,34 @@ export class QuickOpenDialogComponent {
   private readonly hasCustomerPermission = computed(() => this.authenticationService.hasPermission('CUSTOMER'));
 
   /**
-   * `null` means "no customer search ran" (no permission or the query is too short), which hides
-   * the whole section - as opposed to an empty array, which renders its "nothing found" state.
+   * The household search's answer together with the trimmed query it ran for - the search is
+   * debounced and asynchronous, so its items can belong to an older query than what is typed now.
+   * `items: null` means "no customer search ran" (no permission or the query is too short).
    */
-  readonly customerResults = toSignal(
+  private readonly customerSearch = toSignal(
     toObservable(computed(() => this.query().trim())).pipe(
       debounceTime(SEARCH_DEBOUNCE_MS),
       distinctUntilChanged(),
-      switchMap(query => {
+      switchMap((query): Observable<CustomerSearchState> => {
         if (!this.hasCustomerPermission() || query.length < MIN_CUSTOMER_SEARCH_CHARS) {
-          return of(null);
+          return of({query, items: null});
         }
         return this.customerApiService.searchCustomer(
           query, null, null, null, null, null, null, null, undefined, CUSTOMER_RESULT_LIMIT
         ).pipe(
-          map(result => result.items ?? []),
-          catchError(() => of<CustomerData[]>([]))
+          map(result => ({query, items: result.items ?? []})),
+          catchError(() => of({query, items: [] as CustomerData[]}))
         );
       })
     ),
-    {initialValue: null}
+    {initialValue: {query: '', items: null} as CustomerSearchState}
   );
+
+  /**
+   * `null` hides the whole section - as opposed to an empty array, which renders its "nothing
+   * found" state.
+   */
+  readonly customerResults = computed(() => this.customerSearch().items);
 
   /**
    * A one-off action, not a navigation target - filtered by the same typed query as the "Navigation"
@@ -225,8 +243,28 @@ export class QuickOpenDialogComponent {
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 
+  /**
+   * Enter in the input: decided from the component's state, not from the rendered buttons - in the
+   * zoneless app those are a change detection behind the last keystroke, so a quick Enter would
+   * click an entry of the previous query. Goes through the sections in the order they are rendered,
+   * and takes a customer only when the household search ran for exactly what is typed now: an Enter
+   * before that search answered opens nothing rather than something wrong.
+   */
   openFirstResult() {
-    this.resultButtons()[0]?.click();
+    const firstNavEntry = this.navResults()[0];
+    if (firstNavEntry) {
+      this.openNavEntry(firstNavEntry);
+    } else if (this.showPrivacyNoticeTemplateAction()) {
+      this.downloadPrivacyNoticeTemplate();
+    } else if (this.showStaffPrivacyNoticeAction()) {
+      this.downloadStaffPrivacyNotice();
+    } else {
+      const search = this.customerSearch();
+      const firstCustomer = search.query === this.query().trim() ? search.items?.[0] : undefined;
+      if (firstCustomer) {
+        this.openCustomer(firstCustomer);
+      }
+    }
   }
 
   /**

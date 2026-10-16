@@ -1,6 +1,6 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {ActivatedRoute, convertToParamMap, Router} from '@angular/router';
+import {ActivatedRoute, convertToParamMap, DefaultUrlSerializer, Router} from '@angular/router';
 import {HttpErrorResponse} from '@angular/common/http';
 import {EMPTY, of, throwError} from 'rxjs';
 import {UserApiService, UserData, UserSearchResult} from '../../../../api/user-api.service';
@@ -59,6 +59,8 @@ describe('UserSearchComponent', () => {
           provide: Router,
           useValue: {
             navigate: vi.fn().mockName('Router.navigate').mockResolvedValue(true),
+            currentNavigation: vi.fn().mockName('Router.currentNavigation').mockReturnValue(null),
+            url: '/benutzer/suchen',
             // the result table's name column is a real link now, and RouterLink builds
             // its href from these two
             createUrlTree: vi.fn().mockName('Router.createUrlTree').mockReturnValue({}),
@@ -135,6 +137,33 @@ describe('UserSearchComponent', () => {
     expect(apiService.searchUser).toHaveBeenCalledWith('Muster', false, 2, undefined, undefined, undefined);
     // A restore must not rewrite the URL that was just used to arrive here.
     expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('does not write the URL when a search answers while a navigation to another page runs', () => {
+    apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+    const {component} = createComponent();
+    router.navigate.mockClear();
+    // a result was clicked - writing the search state now would cancel that navigation
+    router.currentNavigation.mockReturnValue({extractedUrl: new DefaultUrlSerializer().parse('/benutzer/detail/1')} as any);
+
+    component.query.set('muster');
+    component.search();
+
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('still writes the URL while only a navigation to other query parameters of this page runs', () => {
+    apiService.searchUser.mockReturnValue(of(searchUserMockResponse));
+    const {component} = createComponent();
+    router.navigate.mockClear();
+    router.currentNavigation.mockReturnValue({extractedUrl: new DefaultUrlSerializer().parse('/benutzer/suchen?suche=alt')} as any);
+
+    component.query.set('muster');
+    component.search();
+
+    expect(router.navigate).toHaveBeenCalledWith([], expect.objectContaining({
+      queryParams: expect.objectContaining({suche: 'muster'})
+    }));
   });
 
   describe('the omnibox', () => {

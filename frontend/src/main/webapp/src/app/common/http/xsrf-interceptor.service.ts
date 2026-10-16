@@ -5,6 +5,12 @@ import {catchError} from 'rxjs/operators';
 import {CookieService} from 'ngx-cookie-service';
 
 /**
+ * What the backend puts on a `403` it answered because of the CSRF token, and on no other - see
+ * `TafelAccessDeniedHandler`.
+ */
+export const CSRF_REJECTED_HEADER = 'X-Csrf-Rejected';
+
+/**
  * Adds the CSRF token from the XSRF-TOKEN cookie as X-XSRF-TOKEN header on mutating requests.
  * Angular's built-in XSRF interceptor cannot be used here: it skips absolute URLs, and the
  * apiPathInterceptor turns every API request into an absolute URL.
@@ -26,7 +32,11 @@ export const xsrfInterceptor: HttpInterceptorFn = (
 
   return send(initialToken).pipe(
     catchError((error: unknown) => {
-      if (!(error instanceof HttpErrorResponse) || error.status !== 403) {
+      // Only the CSRF rejection is repeated. Any other 403 is the answer to the request - wrong
+      // credentials on the login, a missing permission, a session that still owes its second
+      // factor - and sending it again has it processed twice: a mistyped password then counts as
+      // two failed attempts towards the lockout.
+      if (!(error instanceof HttpErrorResponse) || error.status !== 403 || !error.headers.has(CSRF_REJECTED_HEADER)) {
         return throwError(() => error);
       }
 
@@ -38,8 +48,8 @@ export const xsrfInterceptor: HttpInterceptorFn = (
       // with one the cookie has moved on from by the time the request reaches the server.
       // Retry once with whatever the cookie is now before treating this as a genuine failure - the
       // value read here can equal the one just sent and still be the one the server accepts, so
-      // this deliberately doesn't require the cookie to have changed. A 403 means the request was
-      // rejected before it reached its controller, so repeating it has no side effect.
+      // this deliberately doesn't require the cookie to have changed. The request was rejected
+      // before it reached its controller, so repeating it has no side effect.
       const freshToken = cookieService.get('XSRF-TOKEN');
       if (!freshToken) {
         return throwError(() => error);

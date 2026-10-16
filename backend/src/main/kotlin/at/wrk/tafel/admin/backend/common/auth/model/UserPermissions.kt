@@ -38,6 +38,17 @@ enum class UserPermissions(val key: String, val title: String, val category: Per
     CUSTOMER_DOCUMENTS("CUSTOMER_DOCUMENTS", "Kunden-Dokumente", PermissionCategory.OPERATIONS),
 
     /**
+     * The printable "Notfallliste" - `HouseholdController`'s `/emergency-list`, every household
+     * entitled today on paper, for when the application cannot be reached during a distribution.
+     * Additive to `CUSTOMER`, enforced server-side
+     * (`hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_EMERGENCY_LIST')`), like
+     * `CUSTOMER_DUPLICATES`: the whole register leaving the application on paper is a different
+     * level of access than looking up one household, so it goes to whoever prepares a distribution
+     * day rather than to everyone at the desk.
+     */
+    CUSTOMER_EMERGENCY_LIST("CUSTOMER_EMERGENCY_LIST", "Kunden-Notfallliste", PermissionCategory.OPERATIONS),
+
+    /**
      * The duplicate-search screen and household merging - `HouseholdController`'s `/duplicates` and
      * merge endpoints. Additive to `CUSTOMER`, enforced server-side
      * (`hasAuthority('CUSTOMER') and hasAuthority('CUSTOMER_DUPLICATES')`): the response embeds full

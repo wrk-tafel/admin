@@ -19,10 +19,15 @@ const HOUSEHOLD_SCOPED_ENTITY_TYPES = ['Household', 'Person', 'HouseholdNote', '
 /**
  * The entity types whose business key is free text rather than a record number - "Nr." reads as a
  * record number, which none of these are: a username (`User`/`UserAuthority`/the login entry
- * `LoginAuditService` writes), a scanner-folder filename, a distribution's formatted date, or an
- * employee's personnel number (see `AuditScope`'s `businessKey` for each).
+ * `LoginAuditService` writes), a scanner-folder filename, a distribution's formatted date, an
+ * employee's personnel number, or the filter/sort parameters of a list that was read (see
+ * `AuditScope`'s `businessKey` for each).
  */
-const PLAIN_BUSINESS_KEY_ENTITY_TYPES = ['User', 'UserAuthority', 'UserLogin', 'ScannerFile', 'DistributionHouseholdList', 'Employee'];
+const PLAIN_BUSINESS_KEY_ENTITY_TYPES = [
+  'User', 'UserAuthority', 'UserLogin', 'ScannerFile', 'DistributionHouseholdList', 'Employee',
+  'AuditLogQuery', 'HouseholdsAboveLimit', 'LockedHouseholds', 'HouseholdsOverview', 'HouseholdDuplicates', 'HouseholdMergePreview',
+  'HouseholdEmergencyList'
+];
 
 /** One day's entries, as the list renders them under a single heading. */
 interface AuditEntryDayGroup {

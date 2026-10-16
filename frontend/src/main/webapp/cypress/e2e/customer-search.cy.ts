@@ -34,6 +34,41 @@ describe('Customer Search', () => {
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
   });
 
+  it('explains how to handle the Notfallliste before downloading it', () => {
+    cy.intercept('GET', '/api/households/emergency-list').as('emergencyList');
+
+    cy.byTestId('emergencyListButton').click();
+    cy.byTestId('emergencylist-dialog').should('be.visible');
+    cy.byTestId('emergencylist-rules').should('contain.text', 'nach dem Ausgabetag vernichten');
+    cy.checkDialogAccessibility();
+
+    cy.byTestId('okButton').click();
+    cy.wait('@emergencyList').its('response.statusCode').should('eq', 200);
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const filename = `notfallliste-${dayjs().format('YYYY-MM-DD')}.pdf`;
+    cy.readFile(path.join(downloadsFolder, filename), 'binary', {timeout: 15000})
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
+  });
+
+  it('downloads no Notfallliste when its dialog is cancelled', () => {
+    cy.intercept('GET', '/api/households/emergency-list', cy.spy().as('emergencyListRequest'));
+
+    cy.byTestId('emergencyListButton').click();
+    cy.byTestId('cancelButton').click();
+
+    cy.byTestId('emergencylist-dialog').should('not.exist');
+    cy.get('@emergencyListRequest').should('not.have.been.called');
+  });
+
+  it('hides the Notfallliste from a user without its permission', () => {
+    cy.loginE2ETest2();
+    cy.visit('/kunden/suchen');
+
+    cy.byTestId('downloadPrivacyNoticeTemplateButton').should('be.visible');
+    cy.byTestId('emergencyListButton').should('not.exist');
+  });
+
   it('jumps straight to a customer by its exact number', () => {
     cy.createDummyCustomer().then((response) => {
       const customerId = response.body.data.id!;
@@ -98,6 +133,32 @@ describe('Customer Search', () => {
 
       cy.byTestId('searchInputText').type(customer.address!.street!);
       clickSearchAndOpenExpectedResult(customer.id!);
+    });
+  });
+
+  it('search ignores accents in the name, in either direction', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+      const suffix = customer.lastname.replace('lastname-', '');
+      cy.updateCustomer({...customer, lastname: 'Öztürk-' + suffix}).then(() => {
+        cy.byTestId('searchInputText').type('ozturk-' + suffix);
+        clickSearchAndOpenExpectedResult(customer.id!);
+      });
+    });
+  });
+
+  it('search finds a customer by birth date and by employer', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+      const suffix = customer.lastname.replace('lastname-', '');
+      cy.updateCustomer({...customer, employer: 'Bäckerei ' + suffix}).then(() => {
+        cy.byTestId('searchInputText').type('backerei ' + suffix);
+        clickSearchAndOpenExpectedResult(customer.id!);
+
+        cy.visit('/kunden/suchen');
+        cy.byTestId('searchInputText').type(dayjs(customer.birthDate).format('DD.MM.YYYY') + ' ' + customer.lastname);
+        clickSearchAndOpenExpectedResult(customer.id!);
+      });
     });
   });
 
@@ -546,8 +607,12 @@ describe('Customer Search', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
-      cy.byTestId('searchInputText').type(customer.lastname);
-      clickSearchAndWaitForResult();
+      // Every dummy customer of this spec is a typo-tolerant match for another's "lastname-<n>", so the
+      // result can hold more than one default page - the large page keeps this one on it whichever way
+      // the list is sorted.
+      cy.intercept('POST', '/api/households/search').as('initialSearch');
+      cy.visit(`/kunden/suchen?suche=${encodeURIComponent(customer.lastname)}&anzahl=100`);
+      cy.wait('@initialSearch');
       cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
 
       cy.intercept('POST', '/api/households/search').as('sortedSearch');
