@@ -5,7 +5,7 @@ import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createHousehold
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.generateRandomLong
-import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import org.assertj.core.api.Assertions.assertThat
@@ -28,6 +28,9 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
     @Autowired
     private lateinit var userRepository: UserRepository
 
+    @Autowired
+    private lateinit var searchTermNormalizer: SearchTermNormalizer
+
     @Test
     fun `searchTextMatches returns null spec when the search term is null`() {
         assertThat(UserEntity.Specs.searchTextMatches(null, SIMILARITY_THRESHOLD)).isNull()
@@ -41,6 +44,39 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
         testEntityManager.flush()
 
         val result = userRepository.findAll(searchSpec(tag.uppercase()))
+
+        assertThat(result.map { it.id }).contains(matching.id).doesNotContain(notMatching.id)
+    }
+
+    @Test
+    fun `searchTextMatches ignores accents in either direction`() {
+        val tag = generateRandomLong()
+        val accented = persistUser { lastname = "Öztürk$tag" }
+        val plain = persistUser { lastname = "Yilmaz$tag" }
+        testEntityManager.flush()
+
+        assertThat(userRepository.findAll(searchSpec("ozturk$tag")).map { it.id }).containsExactly(accented.id)
+        assertThat(userRepository.findAll(searchSpec("Yılmaz$tag")).map { it.id }).containsExactly(plain.id)
+    }
+
+    @Test
+    fun `searchTextMatches matches ß and ss both ways`() {
+        val tag = generateRandomLong()
+        val withSharpS = persistUser { lastname = "Weiß$tag" }
+        testEntityManager.flush()
+
+        assertThat(userRepository.findAll(searchSpec("weiss$tag")).map { it.id }).containsExactly(withSharpS.id)
+        assertThat(userRepository.findAll(searchSpec("WEIß$tag")).map { it.id }).containsExactly(withSharpS.id)
+    }
+
+    @Test
+    fun `searchTextMatches matches the e-mail address`() {
+        val tag = generateRandomLong()
+        val matching = persistUser { email = "findme$tag@example.org" }
+        val notMatching = persistUser()
+        testEntityManager.flush()
+
+        val result = userRepository.findAll(searchSpec("findme$tag@example"))
 
         assertThat(result.map { it.id }).contains(matching.id).doesNotContain(notMatching.id)
     }
@@ -125,7 +161,7 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
         val verbatimHit = persistUser { lastname = "Findme$tag" }
         testEntityManager.flush()
 
-        val searchTerm = SearchTextSpecs.normalize("Findme$tag")
+        val searchTerm = searchTermNormalizer.normalize("Findme$tag")
         val spec = UserEntity.Specs.orderBySearchRelevance(searchTerm, searchSpec("Findme$tag"))
         val result = userRepository.findAll(spec)
 
@@ -274,7 +310,7 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
     }
 
     private fun searchSpec(searchInput: String) = UserEntity.Specs.searchTextMatches(
-        SearchTextSpecs.normalize(searchInput),
+        searchTermNormalizer.normalize(searchInput),
         SIMILARITY_THRESHOLD,
     )!!
 

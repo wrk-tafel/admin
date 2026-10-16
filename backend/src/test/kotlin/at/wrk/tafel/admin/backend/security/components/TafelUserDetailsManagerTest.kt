@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.common.test.stubFolding
 import at.wrk.tafel.admin.backend.config.WebSecurityConfig
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
@@ -14,6 +15,7 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
@@ -91,8 +93,14 @@ class TafelUserDetailsManagerTest {
 
     private val clock: Clock = Clock.fixed(Instant.parse("2026-08-28T10:00:00Z"), ZoneId.of("UTC"))
 
+    @RelaxedMockK
+    private lateinit var searchTermNormalizer: SearchTermNormalizer
+
     @InjectMockKs
     private lateinit var manager: TafelUserDetailsManager
+
+    @BeforeEach
+    fun stubSearchTermNormalizer() = stubFolding(searchTermNormalizer)
 
     private lateinit var testUserEntityPassword: String
 

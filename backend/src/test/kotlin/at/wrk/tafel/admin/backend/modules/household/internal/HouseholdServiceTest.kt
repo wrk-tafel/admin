@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.household.internal
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
+import at.wrk.tafel.admin.backend.common.test.stubFolding
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.audit.AuditActorProvider
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
@@ -9,6 +10,7 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
@@ -121,8 +123,14 @@ class HouseholdServiceTest {
 
     private val clock: Clock = Clock.fixed(Instant.parse("2026-08-27T10:00:00Z"), ZoneId.of("UTC"))
 
+    @RelaxedMockK
+    private lateinit var searchTermNormalizer: SearchTermNormalizer
+
     @InjectMockKs
     private lateinit var service: HouseholdService
+
+    @BeforeEach
+    fun stubSearchTermNormalizer() = stubFolding(searchTermNormalizer)
 
     private val testCountry = CountryItem(id = testCountry1.id!!, name = testCountry1.name!!)
 

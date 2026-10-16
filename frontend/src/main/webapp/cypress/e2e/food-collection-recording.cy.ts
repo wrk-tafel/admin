@@ -110,6 +110,25 @@ describe('Food Collection Recording', () => {
     cy.get('@employeeSearchOnReopen.all').should('have.length', 0);
   });
 
+  it('offers to create a driver whose name is only a near miss of an existing employee', () => {
+    // The employee screen's search tolerates typos, the driver picker deliberately does not: it
+    // selects a single hit on its own, so a near miss would be picked for someone else.
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      cy.request('POST', '/api/employees', {
+        personnelNumber: 'nm' + randomNumber, firstname: 'Near', lastname: 'Zuckerbaecker' + randomNumber
+      });
+
+      enterRouteData();
+      cy.byTestId('driverSearchInput').type('Zuckerbaeker' + randomNumber);
+      cy.byTestId('driver-employee-search-button').click();
+
+      cy.byTestId('driver-search-create-dialog').should('be.visible');
+      cy.byTestId('selectedDriverDescription').should('not.exist');
+      cy.byTestId('driver-search-create-dialog').within(() => cy.byTestId('cancel-button').click());
+      cy.byTestId('driver-search-create-dialog').should('not.exist');
+    });
+  });
+
   it('rejects a free-text return item repeating a return category', () => {
     cy.getAnyRandomNumber().then((randomNumber) => {
       enterRouteData();

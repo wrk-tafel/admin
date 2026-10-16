@@ -824,14 +824,19 @@ Authentication: Basic HTTP auth at `POST /api/login` opens a login session - a r
   user they didn't create. See ADR-0035 and the README's "New Installation".
 - **Distribution State**: Many features require an active distribution (started but not ended). The backend enforces this via the `@TafelActiveDistributionRequired` marker annotation, checked by a global `HandlerInterceptor` (`TafelActiveDistributionRequiredInterceptor`, not an AOP aspect) registered for all controllers; the frontend uses the `tafelIfDistributionActive` directive.
 - **Customer Duplicates**: The system detects potential duplicates based on lastname, firstname, and birthdate. Review duplicate candidates before creating customers. Merging duplicates is a real field-by-field picker plus person/note/distribution-history re-parenting (`HouseholdMergeService`, `views/customer-merge/`), not a deletion - see the household module README.
-- **Fuzzy Search**: the customer and user search screens each have one free-text box (`searchInput`)
-  rather than per-field inputs, sent as a `POST .../search` request body rather than a query
-  parameter (ADR-0057). Both match against a denormalized, lower-cased `search_text` column
-  that a database trigger keeps in sync (`R__00088_fulltext_search.sql`) — for a household that
-  covers its number, the names of *all* its persons, address, phone and e-mail; for a user, username
-  plus the user's own personnel number and name. Two modes are OR'd: `like '%term%'` for the
-  verbatim hit and `strict_word_similarity` (`pg_trgm`, GIN-indexed) for typo tolerance, with results
-  ranked verbatim-first — see `SearchTextSpecs`. The cutoff is
+- **Fuzzy Search**: the customer, user and employee search screens each have one free-text box
+  (`searchInput`) rather than per-field inputs, sent as a `POST .../search` request body rather than
+  a query parameter (ADR-0057). All three match against a denormalized `search_text` column that a
+  database trigger keeps in sync (`R__00088_fulltext_search.sql`, `R__00134_...`) — for a household
+  that covers its number, the names, birth dates (`DD.MM.YYYY`) and employers of *all* its persons,
+  address, phone and e-mail; for a user, username, personnel number, name and e-mail; for an
+  employee, personnel number and name. The text is *folded* (lower-cased, diacritics stripped, `ß` →
+  `ss`) by the SQL function `fold_search_text`, and the term is folded by the very same function
+  through `SearchTermNormalizer` (one query per search) — never fold in Kotlin, or the two drift
+  apart (ADR-0071). Two modes are OR'd: `like '%term%'` for the verbatim hit and
+  `strict_word_similarity` (`pg_trgm`, GIN-indexed) for typo tolerance, with results ranked
+  verbatim-first — see `SearchTextSpecs`. The driver/co-driver picker asks for verbatim matches only
+  (`verbatimOnly`), since it auto-selects a single hit. The cutoff is
   `tafeladmin.search.similarityThreshold`, read per request so it can be tuned without a restart.
   Note the trigger is the only thing maintaining `search_text`: a new searchable column on
   `households`/`persons`/`users`/`employees` has to be added to those trigger functions too, or it

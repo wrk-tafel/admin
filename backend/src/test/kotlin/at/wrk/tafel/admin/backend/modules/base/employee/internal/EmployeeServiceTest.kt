@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeItem
@@ -35,6 +37,12 @@ class EmployeeServiceTest {
 
     @RelaxedMockK
     private lateinit var employeeRepository: EmployeeRepository
+
+    @RelaxedMockK
+    private lateinit var searchTermNormalizer: SearchTermNormalizer
+
+    @RelaxedMockK
+    private lateinit var tafelAdminProperties: TafelAdminProperties
 
     @InjectMockKs
     private lateinit var employeeService: EmployeeService
@@ -135,6 +143,17 @@ class EmployeeServiceTest {
         val response = employeeService.findEmployees(page = 1, pageSize = 7)
 
         assertThat(response.pageSize).isEqualTo(PaginationDefaults.DEFAULT_PAGE_SIZE)
+    }
+
+    @Test
+    fun `find employees folds the search input through the normalizer`() {
+        every { searchTermNormalizer.normalize(" Öztürk ") } returns "ozturk"
+        every { employeeRepository.findAll(any<Specification<EmployeeEntity>>(), any<PageRequest>()) } returns PageImpl(emptyList())
+
+        employeeService.findEmployees(searchInput = " Öztürk ", verbatimOnly = true)
+
+        verify { searchTermNormalizer.normalize(" Öztürk ") }
+        verify { employeeRepository.findAll(any<Specification<EmployeeEntity>>(), any<PageRequest>()) }
     }
 
     @Test
