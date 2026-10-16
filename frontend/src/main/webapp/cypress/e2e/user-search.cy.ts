@@ -85,7 +85,7 @@ describe('User Search', () => {
 
   it('search ignores accents and finds a user by e-mail address', () => {
     cy.getAnyRandomNumber().then((randomNumber) => {
-      const password = 'aSecretPassword-' + randomNumber;
+      const password = testUserPassword(randomNumber);
       cy.createUser({
         username: 'accent-' + randomNumber,
         personnelNumber: 'acc' + randomNumber,
