@@ -43,6 +43,12 @@ Solange **Mein Konto** geöffnet ist, zeigt die Seitenleiste statt des Hauptmen�
 
 ![Meine Daten](images/konto-meine-daten.jpg)
 
+Wird eine bereits hinterlegte Adresse durch eine andere ersetzt, gilt die neue erst, **nachdem sie über die bisherige Adresse bestätigt wurde** - schließlich gehen an die Adresse Bestätigungscodes und die Links von [Passwort vergessen?](#passwort-vergessen), und ein unbeaufsichtigt angemeldeter Browser soll sie nicht umleiten können. Nach dem Speichern bleibt im Feld zunächst die bisherige Adresse stehen; ein Hinweis nennt die neue Adresse, die auf ihre Bestätigung wartet, und an die bisherige Adresse geht eine E-Mail mit dem Link **Neue E-Mail-Adresse bestätigen**. Der Link ist eine Stunde gültig und funktioniert auch auf einem anderen Gerät, ohne angemeldet zu sein; er öffnet eine Seite, auf der man die Änderung mit **Bestätigen** übernimmt - erst dieser Klick ändert die Adresse, und an die bisherige Adresse geht danach noch ein Sicherheitshinweis. Wer die Änderung nicht selbst veranlasst hat, bestätigt nicht (und ändert am besten sein Passwort). Ein weiteres Speichern einer anderen Adresse ersetzt die wartende Anfrage, ein abgelaufener, bereits verwendeter oder durch eine spätere Änderung überholter Link zeigt "Dieser Link ist ungültig oder abgelaufen.". Unmittelbar übernommen werden dagegen die erste Adresse eines Kontos (es gibt noch keine bisherige, über die man bestätigen könnte) und das Entfernen der Adresse - ebenso jede Änderung, solange auf der Anlage kein E-Mail-Versand eingerichtet ist. Ändert ein Administrator die Adresse in der Benutzerverwaltung, gilt sie sofort.
+
+![Meine Daten: neue Adresse wartet auf die Bestätigung](images/konto-meine-daten-bestaetigung-ausstehend.jpg)
+
+![Neue E-Mail-Adresse bestätigen](images/login-e-mail-bestaetigen.jpg)
+
 Unter **Design** wählt man, ob die Anwendung hell, dunkel oder passend zur Einstellung des Geräts (**System**, Standard) dargestellt wird. Die Auswahl gilt sofort und wird zum eigenen Benutzerkonto gespeichert: Nach der Anmeldung auf einem anderen Gerät erscheint die Anwendung wieder im selben Design. Bei **System** folgt die Anwendung auch einem späteren Wechsel der Geräteeinstellung (z. B. abends automatisch auf dunkel), ohne dass sie neu geladen werden muss.
 
 ![Dunkles Design](images/design-dunkel.jpg)

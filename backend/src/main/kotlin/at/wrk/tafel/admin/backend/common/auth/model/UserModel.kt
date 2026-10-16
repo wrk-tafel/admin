@@ -125,6 +125,8 @@ data class UserAccountResponse(
     val email: String? = null,
     /** Whether the e-mail method is on - then the address is a second factor and changing it takes a code. */
     val mfaEmailEnabled: Boolean = false,
+    /** A new address waiting for its confirmation through the current one (see `EmailChangeService`). */
+    val pendingEmail: String? = null,
 )
 
 @ExcludeFromTestCoverage

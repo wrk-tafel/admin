@@ -3,7 +3,8 @@ import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 
 /**
- * "Passwort vergessen?" - both calls are made without a session. The request is always answered with
+ * The links the application mails - "Passwort vergessen?" and the confirmation of a changed e-mail
+ * address. All calls are made without a session. For the password reset: The request is always answered with
  * `202`, whether an account was found or not; a confirm answers `204`, `400` (the password policy
  * refused the password) or `410` (the link is unknown, expired or used).
  */
@@ -17,6 +18,11 @@ export class PasswordResetApiService {
 
   confirmReset(token: string, newPassword: string, context?: HttpContext): Observable<void> {
     return this.http.post<void>('/password-reset/confirm', {token, newPassword} satisfies PasswordResetConfirmRequest, {context});
+  }
+
+  /** Applies a changed e-mail address: `204`, or `410` for an unknown, expired or outdated link. */
+  confirmEmailChange(token: string, context?: HttpContext): Observable<void> {
+    return this.http.post<void>('/email-change/confirm', {token}, {context});
   }
 }
 

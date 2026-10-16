@@ -204,6 +204,8 @@ export interface UserAccountData {
   email: string | null;
   /** The e-mail method of two-factor authentication is on: the address is then a second factor. */
   mfaEmailEnabled: boolean;
+  /** A new address waiting for its confirmation through a link mailed to the current one. */
+  pendingEmail?: string | null;
 }
 
 /** What the "Meine Daten" tab may change: the name and the e-mail address (null clears it). */

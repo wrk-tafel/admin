@@ -14,6 +14,7 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
+import at.wrk.tafel.admin.backend.database.model.auth.EmailChangeTokenRepository
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -62,6 +63,7 @@ class UserExportService(
     private val pushPreferencesRepository: PushPreferencesRepository,
     private val pushTypePreferenceRepository: PushTypePreferenceRepository,
     private val loginAttemptRepository: LoginAttemptRepository,
+    private val emailChangeTokenRepository: EmailChangeTokenRepository,
     private val auditLogRepository: AuditLogRepository,
     private val auditLogWriter: AuditLogWriter,
     private val pdfService: PDFService,
@@ -167,6 +169,8 @@ class UserExportService(
             UserExportField("Personalnummer", userEntity.personnelNumber),
             UserExportField("Name", "${userEntity.lastname} ${userEntity.firstname}"),
             UserExportField("E-Mail-Adresse", userEntity.email ?: "-"),
+            // a new address waiting for its confirmation through the current one is personal data too
+            UserExportField("Neue E-Mail-Adresse (noch nicht bestätigt)", emailChangeTokenRepository.findByUserId(userEntity.id!!)?.newEmail ?: "-"),
             UserExportField("Aktiv", userEntity.enabled.yesNo()),
             // Only whether - the secret never leaves the server, not even to its owner.
             UserExportField("Zwei-Faktor-Authentifizierung aktiv", mfaExportValue(userEntity)),
