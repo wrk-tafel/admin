@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -84,7 +84,7 @@ class RouteGuidanceServiceTest {
         every { advisoryLockService.withLock<Any>(any(), any()) } answers { secondArg<() -> Any>().invoke() }
 
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
+            TafelAuthentication("TOKEN", testUserEntity.username, true)
     }
 
     @AfterEach

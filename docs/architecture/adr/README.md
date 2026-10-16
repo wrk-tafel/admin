@@ -53,7 +53,8 @@ instead, so a number's position in a group says nothing about its age.
 | [0046](0046-a-mail-given-up-on-is-kept-for-a-window-not-forever.md) | A mail given up on is kept for a window, not forever | accepted |
 | [0047](0047-scheduled-jobs-coordinated-by-rows-first-shedlock-second.md) | Scheduled jobs coordinate on their own rows first, ShedLock second | accepted |
 | [0017](0017-web-push-as-a-second-notification-channel.md) | Web Push (VAPID) as a second, out-of-app channel | accepted |
-| [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted |
+| [0006](0006-stateless-jwt-cookie-authentication.md) | Stateless JWT-in-cookie auth with fine-grained permissions | accepted; session half superseded by [ADR-0070](0070-login-sessions-are-rows-in-the-database.md) |
+| [0070](0070-login-sessions-are-rows-in-the-database.md) | Login sessions are rows in the database (Spring Session JDBC), not signed cookies | accepted |
 | [0058](0058-two-factor-authentication-gates-the-session-not-the-page.md) | Two-factor authentication (authenticator app or e-mail code) gates the session, not the page | accepted |
 | [0059](0059-second-factor-changes-need-an-existing-second-factor.md) | A completed session proves an existing second factor before it changes the second factor | accepted |
 | [0061](0061-mandatory-two-factor-setup-happens-in-the-login-flow.md) | A mandatory two-factor setup happens in the login flow, not inside the application | accepted |
@@ -102,7 +103,8 @@ instead, so a number's position in a group says nothing about its age.
 | [0056](0056-backend-coverage-skipped-on-a-frontend-only-pull-request.md) | Backend suite and its coverage skipped on a pull request that cannot touch the backend | accepted |
 | [0036](0036-page-performance-index-in-the-pipeline.md) | Page performance rated by Lighthouse, with thresholds that fail the build | accepted (pull-request gating superseded by [0055](0055-lighthouse-runs-after-the-merge-not-on-every-pull-request.md)) |
 | [0055](0055-lighthouse-runs-after-the-merge-not-on-every-pull-request.md) | Lighthouse rates the frontend after the merge, not on every pull request | accepted |
-| [0037](0037-eager-bundle-bounded-by-its-own-build-check.md) | The eager bundle bounded by a build check of its own | accepted |
+| [0037](0037-eager-bundle-bounded-by-its-own-build-check.md) | The eager bundle bounded by a build check of its own | accepted (file-count ceiling superseded by [0073](0073-the-eager-bundle-is-bounded-by-bytes-only.md)) |
+| [0073](0073-the-eager-bundle-is-bounded-by-bytes-only.md) | The eager bundle is bounded by its bytes only | accepted |
 | [0038](0038-axe-assertions-in-the-e2e-suite.md) | Post-interaction accessibility asserted by axe inside the e2e suite | accepted |
 | [0039](0039-audit-trail-as-an-append-only-log-written-by-the-application.md) | Audit trail as one append-only `audit_log` table, written by the application | accepted |
 | [0052](0052-change-tracking-actor-becomes-a-foreign-key.md) | `created_by`/`updated_by` become a foreign key to `users`, not a stored username | accepted |

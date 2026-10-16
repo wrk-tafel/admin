@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -192,7 +192,7 @@ class RouteGuidanceService(
             .associateBy { it.routeStop.id }
     }
 
-    private fun currentUser() = (SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication)
+    private fun currentUser() = (SecurityContextHolder.getContext().authentication as? TafelAuthentication)
         ?.username
         ?.let { userRepository.findByUsername(it) }
 

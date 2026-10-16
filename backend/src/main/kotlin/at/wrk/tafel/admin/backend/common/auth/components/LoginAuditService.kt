@@ -21,8 +21,8 @@ import java.time.LocalDateTime
  *
  * The audit entry's actor is the logging-in user themselves, passed explicitly as
  * [AuditLogWriter.PendingEntry.actorOverride] - at this point in the request `SecurityContextHolder`
- * holds nothing yet (this app is stateless; the JWT that would populate it is the very thing this
- * login is about to issue), so the usual `SecurityContext`-resolved actor would otherwise record the
+ * holds nothing yet (the session that would populate it is the very thing this login is about
+ * to open), so the usual `SecurityContext`-resolved actor would otherwise record the
  * login as done by nobody.
  */
 @Service

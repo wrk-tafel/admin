@@ -120,7 +120,7 @@ overview and duplicate/merge endpoints additionally require `CUSTOMERS_ABOVE_LIM
 `CUSTOMERS_OVERVIEW` or `CUSTOMER_DUPLICATES` respectively - additive, not a substitute for
 `CUSTOMER`, since their responses embed full household records (GDPR G26, issue #3508). Notable behavior:
 - `createHousehold`/`updateHousehold` take a `force: Boolean` query param and check
-  `isSupervisor` (role `SUPERVISOR`) from the JWT - see "Income validation" below for what that
+  `isSupervisor` (role `SUPERVISOR`) from the request's authentication - see "Income validation" below for what that
   gates.
 - `generatePdf` streams back a PDF (`HouseholdPdfType.MASTERDATA`, `IDCARD`, `MASTERDATA_IDCARD` -
   the two in one file - or `PRIVACY_NOTICE`, a printable privacy-notice/consent sheet for the

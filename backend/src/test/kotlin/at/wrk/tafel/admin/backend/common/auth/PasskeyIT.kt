@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import at.wrk.tafel.admin.backend.common.auth.components.MfaService
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelSessionAttributes
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminMailProperties
@@ -121,8 +121,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
     @Test
     fun `a passkey completes a login instead of a code`() {
         switchOnEmail()
-        val session = completedSession()
-        addPasskey(session, "Mein Laptop")
+        val session = addPasskey(completedSession(), "Mein Laptop")
 
         val status = get("/api/mfa", session).body()
         assertThat(status).contains(""""name":"Mein Laptop"""")
@@ -130,15 +129,15 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         val login = login()
         assertThat(login.body).contains("PASSKEY")
         // the password-only session is as stuck as ever ...
-        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/users/export", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
 
         // ... until the passkey answers the challenge
-        val verify = post("/api/mfa/passkey/verify", credentialBody(authenticator.get(passkeyOptions(login.jwt))), login.jwt)
+        val verify = post("/api/mfa/passkey/verify", credentialBody(authenticator.get(passkeyOptions(login.cookie))), login.cookie)
         assertThat(verify.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
-        val fullJwt = jwtOf(verify)
+        val full = cookieOf(verify)
 
-        assertThat(get("/api/users/info", fullJwt).body()).contains(""""mfaPending":false""").contains("CHECKIN")
-        assertThat(get("/api/users/export", fullJwt).statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(get("/api/users/info", full).body()).contains(""""mfaPending":false""").contains("CHECKIN")
+        assertThat(get("/api/users/export", full).statusCode()).isEqualTo(HttpStatus.OK.value())
         assertThat(userPasskeyRepository.findAllByUserIdOrderByCreatedAtAsc(user.id!!).single().lastUsedAt).isNotNull()
     }
 
@@ -155,7 +154,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
 
     @Test
     fun `a passkey can be the first and only method, and then completes the login on its own`() {
-        val session = login().jwt
+        val session = login().cookie
 
         val credential = authenticator.create(setupOptions(session))
         assertThat(post("/api/mfa/passkey/enable", enableBody(credential, "Mein Laptop"), session).statusCode())
@@ -163,9 +162,9 @@ class PasskeyIT : TafelBaseIntegrationTest() {
 
         val login = login()
         assertThat(login.body).contains(""""mfaRequired":true""").contains("PASSKEY")
-        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/users/export", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
         // there is no code that would do
-        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", login.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(post("/api/mfa/verify", """{"code":"$emailCode"}""", login.cookie).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
 
         assertThat(get("/api/users/export", passkeySession()).statusCode()).isEqualTo(HttpStatus.OK.value())
     }
@@ -206,16 +205,18 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         addPasskey(completedSession(), "Mein Laptop")
 
         val first = login()
-        val assertion = credentialBody(authenticator.get(passkeyOptions(first.jwt)))
-        assertThat(post("/api/mfa/passkey/verify", assertion, first.jwt).statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
+        val assertion = credentialBody(authenticator.get(passkeyOptions(first.cookie)))
+        val verify = post("/api/mfa/passkey/verify", assertion, first.cookie)
+        assertThat(verify.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
 
-        // replayed on the same login: its challenge is gone ...
-        assertThat(post("/api/mfa/passkey/verify", assertion, first.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        // replayed on the same login: the password-only session id is gone, and the completed one owes nothing ...
+        assertThat(post("/api/mfa/passkey/verify", assertion, first.cookie).statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value())
+        assertThat(post("/api/mfa/passkey/verify", assertion, cookieOf(verify)).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
         // ... and on the next one it answers the wrong challenge
         val second = login()
-        passkeyOptions(second.jwt)
-        assertThat(post("/api/mfa/passkey/verify", assertion, second.jwt).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(get("/api/users/export", second.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        passkeyOptions(second.cookie)
+        assertThat(post("/api/mfa/passkey/verify", assertion, second.cookie).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(get("/api/users/export", second.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
     @Test
@@ -224,19 +225,18 @@ class PasskeyIT : TafelBaseIntegrationTest() {
         addPasskey(completedSession(), "Mein Laptop")
 
         val login = login()
-        passkeyOptions(login.jwt)
-        val refused = post("/api/mfa/passkey/verify", credentialBody("""{"id":"AAAA","type":"public-key"}"""), login.jwt)
+        passkeyOptions(login.cookie)
+        val refused = post("/api/mfa/passkey/verify", credentialBody("""{"id":"AAAA","type":"public-key"}"""), login.cookie)
 
         assertThat(refused.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(get("/api/users/export", login.jwt).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(get("/api/users/export", login.cookie).statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value())
         assertThat(loginAttemptRepository.findByUsername(MfaService.attemptKey(user.username))).isNotNull()
     }
 
     @Test
     fun `the code method can go while a passkey is left, and the passkey then proves every further change`() {
         switchOnEmail()
-        val session = completedSession()
-        addPasskey(session, "Mein Laptop")
+        val session = addPasskey(completedSession(), "Mein Laptop")
         val passkeyId = userPasskeyRepository.findAllByUserIdOrderByCreatedAtAsc(user.id!!).single().id
 
         post("/api/mfa/email/send", "", session)
@@ -275,15 +275,17 @@ class PasskeyIT : TafelBaseIntegrationTest() {
     /** A session that has passed its second step, by the e-mailed code. */
     private fun completedSession(): String {
         val login = login()
-        post("/api/mfa/email/send", "", login.jwt)
-        return jwtOf(post("/api/mfa/verify", """{"code":"$emailCode"}""", login.jwt))
+        post("/api/mfa/email/send", "", login.cookie)
+        return cookieOf(post("/api/mfa/verify", """{"code":"$emailCode"}""", login.cookie))
     }
 
-    private fun addPasskey(session: String, name: String) {
+    /** Adds a passkey and returns the session it is answered with - the id changes, as after every second step. */
+    private fun addPasskey(session: String, name: String): String {
         post("/api/mfa/email/send", "", session)
         val credential = authenticator.create(setupOptions(session))
-        assertThat(post("/api/mfa/passkey/enable", enableBody(credential, name, emailCode), session).statusCode())
-            .isEqualTo(HttpStatus.NO_CONTENT.value())
+        val enable = post("/api/mfa/passkey/enable", enableBody(credential, name, emailCode), session)
+        assertThat(enable.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value())
+        return cookieOf(enable)
     }
 
     private fun setupOptions(session: String): Map<String, Any?> = optionsOf(post("/api/mfa/passkey/setup", "", session))
@@ -293,7 +295,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
     /** A session that has passed its second step, by a passkey. */
     private fun passkeySession(): String {
         val login = login()
-        return jwtOf(post("/api/mfa/passkey/verify", credentialBody(authenticator.get(passkeyOptions(login.jwt))), login.jwt))
+        return cookieOf(post("/api/mfa/passkey/verify", credentialBody(authenticator.get(passkeyOptions(login.cookie))), login.cookie))
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -306,7 +308,7 @@ class PasskeyIT : TafelBaseIntegrationTest() {
 
     private fun enableBody(credentialJson: String, name: String, code: String? = null) = """{"credential":$credentialJson,"name":"$name","currentCode":${code?.let { "\"$it\"" }}}"""
 
-    private data class Login(val jwt: String, val body: String)
+    private data class Login(val cookie: String, val body: String)
 
     private fun login(): Login {
         val credentials = Base64.getEncoder().encodeToString("${user.username}:$password".toByteArray())
@@ -318,29 +320,29 @@ class PasskeyIT : TafelBaseIntegrationTest() {
             HttpResponse.BodyHandlers.ofString(),
         )
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
-        return Login(jwtOf(response), response.body())
+        return Login(cookieOf(response), response.body())
     }
 
-    private fun jwtOf(response: HttpResponse<*>): String = response.headers().allValues("set-cookie")
-        .first { it.startsWith("${TafelLoginFilter.jwtCookieName}=") }
+    private fun cookieOf(response: HttpResponse<*>): String = response.headers().allValues("set-cookie")
+        .first { it.startsWith("${TafelSessionAttributes.COOKIE_NAME}=") }
         .substringAfter("=").substringBefore(";")
 
-    private fun get(path: String, jwt: String): HttpResponse<String> = httpClient.send(
+    private fun get(path: String, cookie: String): HttpResponse<String> = httpClient.send(
         HttpRequest.newBuilder(URI.create("http://localhost:$port$path"))
-            .header("Cookie", "${TafelLoginFilter.jwtCookieName}=$jwt")
+            .header("Cookie", "${TafelSessionAttributes.COOKIE_NAME}=$cookie")
             .GET()
             .build(),
         HttpResponse.BodyHandlers.ofString(),
     )
 
     /** A state-changing request needs the CSRF token: a cookie that has to come back as the `X-XSRF-TOKEN` header too. */
-    private fun post(path: String, json: String, jwt: String): HttpResponse<String> {
-        val csrf = get("/api/users/info", jwt).headers().allValues("set-cookie")
+    private fun post(path: String, json: String, cookie: String): HttpResponse<String> {
+        val csrf = get("/api/users/info", cookie).headers().allValues("set-cookie")
             .first { it.startsWith("XSRF-TOKEN=") }
             .substringAfter("=").substringBefore(";")
         return httpClient.send(
             HttpRequest.newBuilder(URI.create("http://localhost:$port$path"))
-                .header("Cookie", "${TafelLoginFilter.jwtCookieName}=$jwt; XSRF-TOKEN=$csrf")
+                .header("Cookie", "${TafelSessionAttributes.COOKIE_NAME}=$cookie; XSRF-TOKEN=$csrf")
                 .header("X-XSRF-TOKEN", csrf)
                 .header("Content-Type", "application/json")
                 .method("POST", HttpRequest.BodyPublishers.ofString(json))

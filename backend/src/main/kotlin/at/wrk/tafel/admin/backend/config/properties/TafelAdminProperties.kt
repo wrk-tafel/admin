@@ -689,7 +689,7 @@ class TafelAdminServerProperties {
      *
      * Without one, the last path segment counts as a filename and gets replaced rather than
      * appended to: `"/verwaltung-dev" + "main.js"` resolves to `/main.js`, not
-     * `/verwaltung-dev/main.js`. [relativeBaseUrl] historically only fed the JWT cookie path, where
+     * `/verwaltung-dev/main.js`. [relativeBaseUrl] also feeds the session cookie path, where
      * that distinction doesn't matter, so not every environment's config carries the slash -
      * normalized here rather than relied upon from ops config.
      */

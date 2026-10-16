@@ -26,11 +26,8 @@ spring:
       starttls.required: false
 
 security:
-  jwtToken:
-    issuer: http://localhost
-    audience: wrk-tafel
-    secret.value: local-dev-only-not-a-real-secret-do-not-use-in-production-0000000000000000000000000000000000000
-    expirationTimeInSeconds: 604800 # 1 week for local development
+  session:
+    lifetimeInSeconds: 604800 # 1 week for local development
 
 tafeladmin:
   environmentLabel: "LOCAL"

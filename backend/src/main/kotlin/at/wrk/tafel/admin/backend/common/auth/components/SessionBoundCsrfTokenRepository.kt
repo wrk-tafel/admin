@@ -6,12 +6,11 @@ import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.security.web.csrf.CsrfTokenRepository
 import org.springframework.security.web.csrf.DefaultCsrfToken
 import org.springframework.web.util.WebUtils
+import java.security.MessageDigest
 import java.util.Base64
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
 
 /**
- * A [CookieCsrfTokenRepository] whose generated token is a pure function of the session's JWT
+ * A [CookieCsrfTokenRepository] whose generated token is a pure function of the session cookie
  * instead of a fresh random value per call.
  *
  * A token is only ever generated for a request that arrives *without* an `XSRF-TOKEN` cookie, and
@@ -23,49 +22,37 @@ import javax.crypto.spec.SecretKeySpec
  * with an `InvalidCsrfTokenException` even though header and cookie were both present and both
  * server-issued - the sporadic 403s of issue #3101.
  *
- * Deriving the value from the JWT instead makes the burst converge: every response of a given
- * session writes the identical token, so the cookie stops moving and there is nothing left to race
- * with. The derivation is an HMAC keyed with a sub-key of the JWT secret (see [derivedSecret]), so
- * the value stays unguessable for anyone who cannot read the (http-only) JWT cookie - which is what
- * a CSRF token has to be - and leaks nothing about the JWT itself. A request with no JWT (the login
- * page) still gets a random token; the only mutating endpoint reachable there is `/api/login`,
- * which is CSRF-exempt.
+ * Deriving the value from the session cookie instead makes the burst converge: every response of a
+ * given session writes the identical token, so the cookie stops moving and there is nothing left to
+ * race with. The derivation is a SHA-256 over a fixed label and the cookie's value. The cookie carries
+ * a random session id nobody but its browser knows (and it is `HttpOnly`), so the token is as
+ * unguessable as a CSRF token has to be, and being a one-way hash it tells whoever reads it - it is
+ * readable by script, unlike the session cookie - nothing about the session id. It is computed from
+ * the cookie alone, without loading the session. A request with no session cookie (the login page)
+ * still gets a random token; the only mutating endpoint reachable there is `/api/login`, which is
+ * CSRF-exempt.
  */
 class SessionBoundCsrfTokenRepository(
     private val delegate: CookieCsrfTokenRepository,
-    secret: String,
+    private val sessionCookieName: String,
 ) : CsrfTokenRepository by delegate {
 
     companion object {
-        private const val HMAC_ALGORITHM = "HmacSHA256"
-
-        // Fixed label an HMAC of the JWT secret is keyed with to derive a CSRF-only sub-key -
-        // key separation so a compromise of the CSRF token cookie (which is not http-only, unlike
-        // the JWT cookie) can never be turned into the JWT signing key, and vice versa.
-        private const val KEY_DERIVATION_LABEL = "tafel-admin-csrf-token-v1"
+        // Domain separation: the same cookie value hashed for any other purpose never yields this token.
+        private const val DERIVATION_LABEL = "tafel-admin-csrf-token-v2:"
     }
-
-    // Derived once per repository instance rather than per request - the label is fixed, so the
-    // result never changes for a given JWT secret.
-    private val derivedSecret: ByteArray = hmac(secret.toByteArray(), KEY_DERIVATION_LABEL.toByteArray())
 
     override fun generateToken(request: HttpServletRequest): CsrfToken {
         val generatedToken = delegate.generateToken(request)
-        val jwt = WebUtils.getCookie(request, TafelLoginFilter.jwtCookieName)?.value
-        if (jwt.isNullOrBlank()) {
+        val sessionCookie = WebUtils.getCookie(request, sessionCookieName)?.value
+        if (sessionCookie.isNullOrBlank()) {
             return generatedToken
         }
-        return DefaultCsrfToken(generatedToken.headerName, generatedToken.parameterName, deriveTokenValue(jwt))
+        return DefaultCsrfToken(generatedToken.headerName, generatedToken.parameterName, deriveTokenValue(sessionCookie))
     }
 
-    private fun deriveTokenValue(jwt: String): String = Base64.getUrlEncoder().withoutPadding().encodeToString(hmac(derivedSecret, jwt.toByteArray()))
-
-    private fun hmac(
-        key: ByteArray,
-        data: ByteArray,
-    ): ByteArray {
-        val mac = Mac.getInstance(HMAC_ALGORITHM)
-        mac.init(SecretKeySpec(key, HMAC_ALGORITHM))
-        return mac.doFinal(data)
+    private fun deriveTokenValue(sessionCookie: String): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest((DERIVATION_LABEL + sessionCookie).toByteArray())
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(digest)
     }
 }

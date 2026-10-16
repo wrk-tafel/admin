@@ -1,6 +1,6 @@
 # ADR-0006: Stateless JWT-in-cookie authentication with fine-grained permissions
 
-**Status:** accepted · **Recorded:** 2026-08-09
+**Status:** accepted; the session half (the JWT cookie, `STATELESS` session state) superseded by [ADR-0070](0070-login-sessions-are-rows-in-the-database.md) · **Recorded:** 2026-08-09
 
 ## Context
 

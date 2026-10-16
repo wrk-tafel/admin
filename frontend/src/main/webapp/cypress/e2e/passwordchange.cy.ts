@@ -97,6 +97,32 @@ describe('PasswordChange', () => {
     cy.byTestId('passwordRule-4').should('contain.text', 'Noch nicht erfüllt'); // no uppercase letter
   });
 
+  it('refuses a sequence and a commonly used password with the server\'s messages', () => {
+    cy.byTestId('usermenu').click();
+    cy.byTestId('usermenu-account').click();
+    cy.byTestId('account-nav-password').click();
+    cy.intercept('POST', '/api/users/change-password').as('changePassword');
+
+    cy.byTestId('currentPasswordText').type('e2etest');
+    cy.byTestId('newPasswordText').type('Abcd5791x');
+    cy.byTestId('newRepeatedPasswordText').type('Abcd5791x');
+    // the checklist already says so while typing ...
+    cy.byTestId('passwordRule-5').should('contain.text', 'Noch nicht erfüllt');
+    cy.byTestId('saveButton').click();
+
+    // ... and the server refuses it
+    cy.wait('@changePassword').its('response.statusCode').should('eq', 400);
+    cy.byTestId('errorMessage').should('contain.text', 'Darf keine Zeichenfolgen wie "1234" oder "abcd" enthalten');
+
+    cy.byTestId('newPasswordText').find('input').clear().type('Passwort2024');
+    cy.byTestId('newRepeatedPasswordText').find('input').clear().type('Passwort2024');
+    cy.byTestId('saveButton').click();
+
+    cy.wait('@changePassword');
+    cy.byTestId('errorMessage').should('contain.text', 'Dieses Passwort wird zu häufig verwendet und ist leicht zu erraten');
+    cy.byTestId('errorMessage').should('not.contain.text', 'Passwort2024');
+  });
+
   it('remains usable on mobile viewports', () => {
     [PHONE_VIEWPORT, TABLET_VIEWPORT].forEach((viewport) => {
       cy.viewport(viewport);

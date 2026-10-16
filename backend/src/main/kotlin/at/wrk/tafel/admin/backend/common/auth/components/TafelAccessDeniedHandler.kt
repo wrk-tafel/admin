@@ -24,7 +24,7 @@ import org.springframework.security.web.csrf.CsrfException
  *
  * **Why the denial's cause is logged, not just the principal:** by far the most common denial here
  * is a [CsrfException] (missing/stale `X-XSRF-TOKEN` header), and `CsrfFilter` runs *before*
- * `TafelJwtAuthenticationFilter` - so the security context is still empty and the principal reads
+ * `TafelSessionAuthenticationFilter` - so the security context is still empty and the principal reads
  * `anonymous`/`none` even for a fully authenticated user with every authority they need. Logging
  * only the principal therefore describes a CSRF failure as if it were an authorization failure,
  * which is exactly what left the production 403s in issue #2989 unexplained: they looked like a

@@ -30,12 +30,12 @@ class SessionBoundCsrfTokenRepositoryTest {
     @BeforeEach
     fun beforeEach() {
         cookieTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse()
-        repository = SessionBoundCsrfTokenRepository(delegate = cookieTokenRepository, secret = "test-secret")
+        repository = SessionBoundCsrfTokenRepository(delegate = cookieTokenRepository, sessionCookieName = TafelSessionAttributes.COOKIE_NAME)
     }
 
     @Test
     fun `generated token is the same for every request of the same session`() {
-        every { request.cookies } returns arrayOf(Cookie(TafelLoginFilter.jwtCookieName, "jwt-value"))
+        every { request.cookies } returns arrayOf(Cookie(TafelSessionAttributes.COOKIE_NAME, "session-cookie-value"))
 
         val firstToken = repository.generateToken(request)
         val secondToken = repository.generateToken(request)
@@ -47,37 +47,26 @@ class SessionBoundCsrfTokenRepositoryTest {
 
     @Test
     fun `generated token differs between sessions`() {
-        every { request.cookies } returns arrayOf(Cookie(TafelLoginFilter.jwtCookieName, "jwt-value-1"))
+        every { request.cookies } returns arrayOf(Cookie(TafelSessionAttributes.COOKIE_NAME, "session-cookie-value-1"))
         val firstToken = repository.generateToken(request)
 
-        every { request.cookies } returns arrayOf(Cookie(TafelLoginFilter.jwtCookieName, "jwt-value-2"))
+        every { request.cookies } returns arrayOf(Cookie(TafelSessionAttributes.COOKIE_NAME, "session-cookie-value-2"))
         val secondToken = repository.generateToken(request)
 
         assertThat(firstToken.token).isNotEqualTo(secondToken.token)
     }
 
     @Test
-    fun `generated token doesnt expose the jwt`() {
-        every { request.cookies } returns arrayOf(Cookie(TafelLoginFilter.jwtCookieName, "jwt-value"))
+    fun `generated token doesnt expose the session cookie`() {
+        every { request.cookies } returns arrayOf(Cookie(TafelSessionAttributes.COOKIE_NAME, "session-cookie-value"))
 
         val token = repository.generateToken(request)
 
-        assertThat(token.token).doesNotContain("jwt-value")
+        assertThat(token.token).doesNotContain("session-cookie-value")
     }
 
     @Test
-    fun `generated token differs per secret`() {
-        every { request.cookies } returns arrayOf(Cookie(TafelLoginFilter.jwtCookieName, "jwt-value"))
-        val otherRepository = SessionBoundCsrfTokenRepository(delegate = cookieTokenRepository, secret = "other-secret")
-
-        val token = repository.generateToken(request)
-        val otherToken = otherRepository.generateToken(request)
-
-        assertThat(token.token).isNotEqualTo(otherToken.token)
-    }
-
-    @Test
-    fun `generated token falls back to a random value without a jwt cookie`() {
+    fun `generated token falls back to a random value without a session cookie`() {
         every { request.cookies } returns arrayOf(Cookie("unrelated-cookie", "value"))
 
         val firstToken = repository.generateToken(request)
@@ -87,8 +76,8 @@ class SessionBoundCsrfTokenRepositoryTest {
     }
 
     @Test
-    fun `generated token falls back to a random value for a blank jwt cookie`() {
-        every { request.cookies } returns arrayOf(Cookie(TafelLoginFilter.jwtCookieName, ""))
+    fun `generated token falls back to a random value for a blank session cookie`() {
+        every { request.cookies } returns arrayOf(Cookie(TafelSessionAttributes.COOKIE_NAME, ""))
 
         val firstToken = repository.generateToken(request)
         val secondToken = repository.generateToken(request)
@@ -101,7 +90,7 @@ class SessionBoundCsrfTokenRepositoryTest {
         val token = DefaultCsrfToken("X-XSRF-TOKEN", "_csrf", "token-value")
         val delegate = mockk<CookieCsrfTokenRepository>(relaxed = true)
         every { delegate.loadToken(request) } returns token
-        val delegatingRepository = SessionBoundCsrfTokenRepository(delegate = delegate, secret = "test-secret")
+        val delegatingRepository = SessionBoundCsrfTokenRepository(delegate = delegate, sessionCookieName = TafelSessionAttributes.COOKIE_NAME)
 
         delegatingRepository.saveToken(token, request, response)
 

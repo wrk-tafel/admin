@@ -4,10 +4,12 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.verify
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpSession
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -21,7 +23,7 @@ import org.springframework.security.web.authentication.AuthenticationConverter
 import org.springframework.security.web.util.matcher.RequestMatcher
 
 @ExtendWith(MockKExtension::class)
-class TafelJwtAuthenticationFilterTest {
+class TafelSessionAuthenticationFilterTest {
 
     @RelaxedMockK
     private lateinit var request: HttpServletRequest
@@ -42,7 +44,7 @@ class TafelJwtAuthenticationFilterTest {
     private lateinit var requestMatcher: RequestMatcher
 
     @InjectMockKs
-    private lateinit var filter: TafelJwtAuthenticationFilter
+    private lateinit var filter: TafelSessionAuthenticationFilter
 
     @AfterEach
     fun afterEach() {
@@ -101,5 +103,21 @@ class TafelJwtAuthenticationFilterTest {
         assertThat(SecurityContextHolder.getContext().authentication).isNull()
         verify(exactly = 1) { response.sendError(HttpServletResponse.SC_UNAUTHORIZED) }
         verify(exactly = 0) { filterChain.doFilter(any(), any()) }
+    }
+
+    @Test
+    fun `doFilterInternal ends a session that is no longer good, so it is not refused again on every request`() {
+        val session = mockk<HttpSession>(relaxed = true)
+        val authRequest = UsernamePasswordAuthenticationToken.unauthenticated("some-user", null)
+
+        every { requestMatcher.matches(request) } returns true
+        every { request.getSession(false) } returns session
+        every { authenticationConverter.convert(request) } returns authRequest
+        every { authenticationManager.authenticate(authRequest) } throws BadCredentialsException("expired")
+
+        filter.doFilterInternal(request, response, filterChain)
+
+        verify(exactly = 1) { session.invalidate() }
+        verify(exactly = 1) { response.sendError(HttpServletResponse.SC_UNAUTHORIZED) }
     }
 }

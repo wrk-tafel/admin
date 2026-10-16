@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
@@ -24,10 +24,13 @@ import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.ValidationResult
 import org.passay.data.EnglishCharacterData
+import org.passay.data.EnglishSequenceData
 import org.passay.data.GermanCharacterData
+import org.passay.data.GermanSequenceData
 import org.passay.rule.CharacterCharacteristicsRule
 import org.passay.rule.DictionarySubstringRule
 import org.passay.rule.LengthRule
+import org.passay.rule.RepeatCharactersRule
 import org.passay.rule.UsernameRule
 import org.passay.rule.WhitespaceRule
 import org.springframework.data.domain.PageRequest
@@ -209,7 +212,7 @@ class TafelUserDetailsManager(
      * not routed through [updateUser]: that takes a whole [TafelUser], and a loaded one carries the
      * password *hash* in its password field, which [mapToUserEntity] would encode a second time as
      * if it were a new password. This touches nothing but the three fields - no username, no
-     * personnel number, no permissions, no password, no token invalidation.
+     * personnel number, no permissions, no password.
      */
     fun updateOwnAccount(username: String, firstname: String, lastname: String, email: String?): TafelUser {
         val userEntity = userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
@@ -240,7 +243,7 @@ class TafelUserDetailsManager(
             throw PasswordChangeException("Aktuelles Passwort ist falsch!")
         }
 
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelAuthentication
         var storedUser = userRepository.findByUsername(authenticatedUser.username!!)!!
 
         // A session that is already open is not a reason to let the current password be guessed at Argon2's pace:
@@ -259,7 +262,6 @@ class TafelUserDetailsManager(
         if (isPasswordValid(storedUser.username, newPassword)) {
             storedUser.password = passwordEncoder.encode(newPassword)!!
             storedUser.passwordChangeRequired = false
-            markTokensInvalidated(storedUser)
             userRepository.save(storedUser)
         }
     }
@@ -267,38 +269,16 @@ class TafelUserDetailsManager(
     /**
      * Sets a new password without asking for the old one - for "Passwort vergessen?"
      * (`PasswordResetService`), where the mailed link is the proof. Same rules as [changePassword]:
-     * the password policy, `passwordChangeRequired` cleared, and every session of the account ended.
+     * the password policy and `passwordChangeRequired` cleared. Ending the account's sessions is the
+     * caller's part (`UserSessionService.endAllSessions`), as it is for every other password change.
      * Throws [PasswordChangeException] for a password the policy refuses.
      */
     fun resetPassword(userEntity: UserEntity, newPassword: String) {
         if (isPasswordValid(userEntity.username, newPassword)) {
             userEntity.password = passwordEncoder.encode(newPassword)!!
             userEntity.passwordChangeRequired = false
-            markTokensInvalidated(userEntity)
             userRepository.save(userEntity)
         }
-    }
-
-    /**
-     * Bumps [UserEntity.tokenInvalidatedAt] to now, so [TafelJwtAuthProvider] rejects every JWT
-     * issued for this user before this moment on their very next request. Called wherever a
-     * password is changed - here and from [mapToUserEntity] - and, separately, from
-     * [invalidateTokens] on logout. Does not save; callers already persist [userEntity] themselves.
-     */
-    private fun markTokensInvalidated(userEntity: UserEntity) {
-        userEntity.tokenInvalidatedAt = LocalDateTime.now()
-    }
-
-    /**
-     * Logout only ever clears the cookie client-side otherwise, so the JWT it carried - and any
-     * other still-live token for the same user, since a JWT carries no session id to invalidate just
-     * the one - would keep authenticating for the rest of its lifetime. Called from
-     * `UserController.logout`.
-     */
-    fun invalidateTokens(username: String) {
-        val userEntity = userRepository.findByUsername(username) ?: return
-        markTokensInvalidated(userEntity)
-        userRepository.save(userEntity)
     }
 
     private fun isPasswordValid(username: String, newPassword: String): Boolean {
@@ -310,6 +290,8 @@ class TafelUserDetailsManager(
         return true
     }
 
+    // distinct: the sequence rules (alphabetical, keyboard, numerical) share one message, and more
+    // than one of them can fire on the same password
     private fun translateViolationsToMessages(result: ValidationResult): List<String> = result.details.mapNotNull {
         when (it.errorCode) {
             LengthRule.ERROR_CODE_MIN -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""
@@ -320,12 +302,18 @@ class TafelUserDetailsManager(
             GermanCharacterData.LowerCase.errorCode -> "Muss mindestens einen Kleinbuchstaben enthalten"
             GermanCharacterData.UpperCase.errorCode -> "Muss mindestens einen Großbuchstaben enthalten"
             EnglishCharacterData.Digit.errorCode -> "Muss mindestens eine Ziffer enthalten"
+            GermanSequenceData.Alphabetical.errorCode,
+            GermanSequenceData.DEQwertz.errorCode,
+            EnglishSequenceData.Numerical.errorCode,
+            -> "Darf keine Zeichenfolgen wie \"1234\" oder \"abcd\" enthalten"
+            RepeatCharactersRule.ERROR_CODE -> "Darf nicht mehr als drei gleiche Zeichen hintereinander enthalten"
+            CommonPasswordRule.ERROR_CODE -> "Dieses Passwort wird zu häufig verwendet und ist leicht zu erraten"
             // the individual character-class messages above already say what's missing - this
             // aggregate detail (CharacterCharacteristicsRule always reports both) would only repeat it
             CharacterCharacteristicsRule.ERROR_CODE -> null
             else -> null
         }
-    }
+    }.distinct()
 
     /**
      * Re-persists [username]'s password hash as [upgradedHash], with no re-validation of the
@@ -389,7 +377,6 @@ class TafelUserDetailsManager(
         val newPassword = tafelUser.password
         if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
             userEntity.password = passwordEncoder.encode(newPassword)!!
-            markTokensInvalidated(userEntity)
         }
         userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
 

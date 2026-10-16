@@ -251,7 +251,7 @@ export class LoginMfaSetupComponent implements OnInit {
   /**
    * A step (a method enabled, an address saved) may or may not have been the last thing owed - only the session
    * itself, read fresh, knows: `isMfaSetupRequired()` is recomputed from the DB on every request (see
-   * `TafelJwtAuthProvider`), not from what this page has loaded. Nothing left owed continues the login exactly
+   * `TafelSessionAuthProvider`), not from what this page has loaded. Nothing left owed continues the login exactly
    * where a plain one would have; something still is re-renders this page for whatever step remains.
    */
   private async afterStepCompleted() {

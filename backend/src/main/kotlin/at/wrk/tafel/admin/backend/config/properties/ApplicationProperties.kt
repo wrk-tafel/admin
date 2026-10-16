@@ -7,22 +7,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * constructor-bound, which Spring Cloud's rebinder can only replace and never update, so a config
  * reload ([ConfigFileReloadService]) leaves them exactly as they were bound at startup.
  *
- * That is deliberate. Rotating a JWT secret or moving the issuer/audience under a running
- * application would invalidate every session in flight at a moment nobody chose, and requiring
- * these as constructor parameters is what makes the application refuse to start at all when one of
- * them is missing - a guarantee that would be traded for a silent default the moment they became
- * mutable JavaBeans.
+ * That is deliberate: these are the rules a login is checked against - lockout policy, password
+ * hashing, session lifetime - and a reload changing them under a running application would apply
+ * them to sessions and lockouts already in flight at a moment nobody chose.
  *
- * The practical catch: `LoginAttemptService` and `TafelLoginFilter` read these per call, which
- * looks live but isn't. Changing a lockout policy or a token lifetime needs a restart.
+ * The practical catch: `LoginAttemptService` and `UserSessionService` read these per call, which
+ * looks live but isn't. Changing a lockout policy or a session lifetime needs a restart.
  */
 @ConfigurationProperties
 data class ApplicationProperties(
-    val security: SecurityProperties,
+    val security: SecurityProperties = SecurityProperties(),
 )
 
 data class SecurityProperties(
-    val jwtToken: SecurityJwtTokenProperties,
+    val session: SecuritySessionProperties = SecuritySessionProperties(),
     val loginAttempts: SecurityLoginAttemptsProperties = SecurityLoginAttemptsProperties(),
     val loginAttemptsIp: SecurityLoginAttemptsIpProperties = SecurityLoginAttemptsIpProperties(),
     val argon2: SecurityArgon2Properties = SecurityArgon2Properties(),
@@ -68,17 +66,18 @@ data class SecurityRateLimitProperties(
     val maxTrackedKeys: Int = 10_000,
 )
 
-data class SecurityJwtTokenProperties(
-    val issuer: String,
-    val audience: String,
-    val secret: SecurityJwtTokenSecretProperties,
-    val expirationTimeInSeconds: Int,
-    val expirationTimePwdChangeInSeconds: Int,
-)
-
-data class SecurityJwtTokenSecretProperties(
-    val value: String,
-    val algorithm: String,
+/**
+ * How long a login session (`spring_session`, ADR-0070) lasts. Both are counted from the moment of
+ * the login, not from the last request - a session used all day still ends [lifetimeInSeconds] after
+ * it began, like the signed cookie it replaced did.
+ *
+ * [pendingLifetimeInSeconds] applies while the session is not finished yet: the password has to be
+ * changed first, or the second factor is still owed. Such a session has no permissions anyway; the
+ * short lifetime keeps a half-finished login from lying around.
+ */
+data class SecuritySessionProperties(
+    val lifetimeInSeconds: Long = 36000,
+    val pendingLifetimeInSeconds: Long = 300,
 )
 
 /**

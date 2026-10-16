@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
@@ -191,7 +191,7 @@ class PushSubscriptionService(
             address.isMulticastAddress
     }
 
-    private fun currentUser() = (SecurityContextHolder.getContext().authentication as TafelJwtAuthentication).username
+    private fun currentUser() = (SecurityContextHolder.getContext().authentication as TafelAuthentication).username
         ?.let { userRepository.findByUsername(it) }
 
     private fun requireCurrentUser() = currentUser()

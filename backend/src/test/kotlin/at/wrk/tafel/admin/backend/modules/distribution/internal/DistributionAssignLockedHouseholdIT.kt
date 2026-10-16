@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createDistribution
@@ -91,8 +91,8 @@ class DistributionAssignLockedHouseholdIT : TafelBaseIntegrationTest() {
 
         SecurityContextHolder.setContext(
             SecurityContextImpl(
-                TafelJwtAuthentication(
-                    tokenValue = "TOKEN",
+                TafelAuthentication(
+                    sessionKey = "TOKEN",
                     username = testUser.username,
                     authenticated = true,
                     authorities = listOf(SimpleGrantedAuthority(UserPermissions.CHECKIN.key)),

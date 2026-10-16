@@ -6,6 +6,7 @@ import {By} from '@angular/platform-browser';
 import {of, throwError} from 'rxjs';
 import {ForgotPasswordComponent} from './forgot-password.component';
 import {ResetPasswordComponent} from './reset-password.component';
+import {ConfirmEmailChangeComponent} from './confirm-email-change.component';
 import {PasswordResetApiService} from '../../../api/password-reset-api.service';
 
 describe('password reset pages', () => {
@@ -20,7 +21,8 @@ describe('password reset pages', () => {
           provide: PasswordResetApiService,
           useValue: {
             requestReset: vi.fn().mockName('PasswordResetApiService.requestReset').mockReturnValue(of(undefined)),
-            confirmReset: vi.fn().mockName('PasswordResetApiService.confirmReset').mockReturnValue(of(undefined))
+            confirmReset: vi.fn().mockName('PasswordResetApiService.confirmReset').mockReturnValue(of(undefined)),
+            confirmEmailChange: vi.fn().mockName('PasswordResetApiService.confirmEmailChange').mockReturnValue(of(undefined))
           }
         }
       ]
@@ -134,6 +136,38 @@ describe('password reset pages', () => {
 
       expect(byTestId(fixture, 'resetPasswordError').nativeElement.textContent).toContain('Das neue Passwort ist ungültig!');
       expect(byTestId(fixture, 'resetPasswordError-detail-0').nativeElement.textContent).toContain('Mindestlänge: 8');
+    });
+  });
+
+  describe('ConfirmEmailChangeComponent', () => {
+    it('sends nothing when the page loads, and the token on the button', () => {
+      configure('token=abc');
+      const fixture = TestBed.createComponent(ConfirmEmailChangeComponent);
+      fixture.detectChanges();
+      expect(api.confirmEmailChange).not.toHaveBeenCalled();
+
+      byTestId(fixture, 'confirmEmailChangeButton').nativeElement.click();
+      fixture.detectChanges();
+
+      expect(api.confirmEmailChange).toHaveBeenCalledWith('abc', expect.anything());
+      expect(byTestId(fixture, 'emailChangeDone')).not.toBeNull();
+    });
+
+    it('shows the invalid-link state without a token or when the link is gone', () => {
+      configure(null);
+      const withoutToken = TestBed.createComponent(ConfirmEmailChangeComponent);
+      withoutToken.detectChanges();
+      expect(byTestId(withoutToken, 'emailChangeInvalidLink')).not.toBeNull();
+    });
+
+    it('shows the invalid-link state when the backend says the link is gone', () => {
+      configure('token=abc');
+      api.confirmEmailChange.mockReturnValue(throwError(() => new HttpErrorResponse({status: 410})));
+      const fixture = TestBed.createComponent(ConfirmEmailChangeComponent);
+      fixture.componentInstance.confirm();
+      fixture.detectChanges();
+
+      expect(byTestId(fixture, 'emailChangeInvalidLink')).not.toBeNull();
     });
   });
 });

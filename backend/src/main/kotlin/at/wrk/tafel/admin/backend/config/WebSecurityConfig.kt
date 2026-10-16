@@ -12,8 +12,11 @@ import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import jakarta.servlet.DispatcherType
 import org.passay.DefaultPasswordValidator
+import org.passay.PasswordData
 import org.passay.data.EnglishCharacterData
+import org.passay.data.EnglishSequenceData
 import org.passay.data.GermanCharacterData
+import org.passay.data.GermanSequenceData
 import org.passay.dictionary.ArrayWordList
 import org.passay.dictionary.WordListDictionary
 import org.passay.dictionary.sort.ArraysSort
@@ -45,7 +48,7 @@ import java.time.Clock
 @EnableMethodSecurity
 @ExcludeFromTestCoverage
 class WebSecurityConfig(
-    private val jwtTokenService: JwtTokenService,
+    private val userSessionService: UserSessionService,
     private val userRepository: UserRepository,
     private val applicationProperties: ApplicationProperties,
     private val tafelAdminProperties: TafelAdminProperties,
@@ -64,15 +67,23 @@ class WebSecurityConfig(
 ) {
 
     companion object {
-        // Reachable without a JWT cookie. Listing an endpoint here does two things at once: it
-        // permits the request, and it excludes the path from TafelJwtAuthenticationFilter below -
-        // which matters because TafelJwtAuthConverter rejects a cookie-less request outright
-        // instead of letting it through unauthenticated.
+        // Reachable without a session. Listing an endpoint here does two things at once: it permits
+        // the request, and it excludes the path from TafelSessionAuthenticationFilter below - which
+        // matters because TafelSessionAuthConverter rejects a session-less request outright instead
+        // of letting it through unauthenticated, and because it keeps these requests from loading a
+        // session at all.
         private const val LOGIN_ENDPOINT = "/api/login"
         private const val PASSWORD_RESET_ENDPOINTS = "/api/password-reset/*"
-        private val publicEndpoints = listOf(LOGIN_ENDPOINT, "/api/config/public", PASSWORD_RESET_ENDPOINTS)
+        private const val EMAIL_CHANGE_CONFIRM_ENDPOINT = "/api/email-change/confirm"
+
+        /** The endpoints a link from a mail leads to - reached without a session (ADR-0072). */
+        private val mailedLinkEndpoints = listOf(PASSWORD_RESET_ENDPOINTS, EMAIL_CHANGE_CONFIRM_ENDPOINT)
+        private val publicEndpoints = listOf(LOGIN_ENDPOINT, "/api/config/public") + mailedLinkEndpoints
 
         val passwordLengthRule = LengthRule(8, 50)
+
+        /** The shortest sequence ("1234", "abcd", "qwer") or run of one character ("aaaa") refused. */
+        private const val ILLEGAL_RUN_LENGTH = 4
 
         // Same three character classes a generated password is already built from (see
         // tafelPasswordGenerator below) - required here too via CharacterCharacteristicsRule so a
@@ -97,18 +108,38 @@ class WebSecurityConfig(
                     ),
                 ),
                 CharacterCharacteristicsRule(generatedPasswordCharactersRules.size, generatedPasswordCharactersRules),
+                // A run of 4, not Passay's default of 5: "1234", "abcd" and "qwer" are exactly what
+                // people type first, and a run of 5 would still let them through.
+                IllegalSequenceRule(GermanSequenceData.Alphabetical, ILLEGAL_RUN_LENGTH, false),
+                IllegalSequenceRule(GermanSequenceData.DEQwertz, ILLEGAL_RUN_LENGTH, false),
+                IllegalSequenceRule(EnglishSequenceData.Numerical, ILLEGAL_RUN_LENGTH, false),
+                RepeatCharactersRule(ILLEGAL_RUN_LENGTH, 1),
+                CommonPasswordRule(CommonPasswordRule.bundledBlocklist),
             ),
+        )
+
+        /** Whether [password] passes [passwordValidator] on its own, i.e. without a username to compare it with. */
+        fun isAcceptablePassword(password: String): Boolean = passwordValidator.validate(PasswordData(password)).isValid
+
+        /**
+         * Generated passwords are built from the same character classes a chosen one needs, and only one
+         * the rules for a chosen password accept is handed out.
+         */
+        fun passwordGenerator(): TafelPasswordGenerator = TafelPasswordGenerator(
+            passwordLengthRule.minimumLength + 2,
+            generatedPasswordCharactersRules,
+            isAcceptable = ::isAcceptablePassword,
         )
     }
 
     @Bean
-    fun tafelPasswordGenerator(): TafelPasswordGenerator = TafelPasswordGenerator(passwordLengthRule.minimumLength + 2, generatedPasswordCharactersRules)
+    fun tafelPasswordGenerator(): TafelPasswordGenerator = passwordGenerator()
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        val authFilter = TafelJwtAuthenticationFilter(
+        val authFilter = TafelSessionAuthenticationFilter(
             authenticationManager = authenticationManager(),
-            authenticationConverter = tafelJwtAuthConverter(),
+            authenticationConverter = TafelSessionAuthConverter(),
             requestMatcher = AndRequestMatcher(
                 PathPatternRequestMatcher.pathPattern("/api/**"),
                 NegatedRequestMatcher(
@@ -149,8 +180,9 @@ class WebSecurityConfig(
             )
             .addFilterBefore(
                 RateLimitFilter(
-                    // anonymous and mails something - the cooldown per account is in PasswordResetService
-                    requestMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.POST, PASSWORD_RESET_ENDPOINTS),
+                    // anonymous, and the password reset mails something - its cooldown per account is in
+                    // PasswordResetService
+                    requestMatcher = OrRequestMatcher(mailedLinkEndpoints.map { PathPatternRequestMatcher.pathPattern(HttpMethod.POST, it) }),
                     scope = "passwordReset",
                     rateLimiterService = rateLimiterIpService,
                 ),
@@ -175,19 +207,17 @@ class WebSecurityConfig(
             .addFilter(
                 TafelLoginFilter(
                     authenticationManager = authenticationManager(),
-                    jwtTokenService = jwtTokenService,
-                    applicationProperties = applicationProperties,
-                    tafelAdminProperties = tafelAdminProperties,
+                    userSessionService = userSessionService,
                     jsonMapper = jsonMapper,
                     mfaEmailCodeService = mfaEmailCodeService,
                 ),
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
-            .addFilterAfter(MfaPendingFilter(), TafelJwtAuthenticationFilter::class.java)
+            .addFilterAfter(MfaPendingFilter(), TafelSessionAuthenticationFilter::class.java)
             .authorizeHttpRequests { auth ->
                 // SSE endpoints (SseEmitter) keep the request open via request.startAsync(); when
                 // the emitter completes/times out/errors, the container re-enters the filter chain
-                // on an ASYNC dispatch to finish the request. TafelJwtAuthenticationFilter (a
+                // on an ASYNC dispatch to finish the request. TafelSessionAuthenticationFilter (a
                 // OncePerRequestFilter) skips re-authenticating on that dispatch by default, so
                 // without this, AuthorizationFilter - which runs on every dispatch type, unlike
                 // OncePerRequestFilter - sees no authentication and denies it, even though the
@@ -198,8 +228,17 @@ class WebSecurityConfig(
                 auth.requestMatchers("/api/**").authenticated()
                 auth.anyRequest().permitAll()
             }
+            // Spring Security itself keeps nothing in the session - no serialized SecurityContext, no saved
+            // request. The login session (Spring Session JDBC, ADR-0070) is opened by TafelLoginFilter, holds
+            // strings only (TafelSessionAttributes), and the Authentication is rebuilt from it per request.
+            //
+            // Spring Security's own session fixation protection is off: it would see the Authentication that
+            // TafelSessionAuthenticationFilter sets as a login happening on this very request and change the session
+            // id on every one of them. UserSessionService does it where it belongs instead - a new session at the
+            // login, a new id once the second factor was passed.
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                it.sessionFixation { fixation -> fixation.none() }
             }
             .exceptionHandling { exceptionHandling ->
                 exceptionHandling.accessDeniedHandler(TafelAccessDeniedHandler())
@@ -209,7 +248,7 @@ class WebSecurityConfig(
                 cookieTokenRepository.setCookieCustomizer { it.sameSite("Strict") }
                 val tokenRepository = SessionBoundCsrfTokenRepository(
                     delegate = cookieTokenRepository,
-                    secret = applicationProperties.security.jwtToken.secret.value,
+                    sessionCookieName = TafelSessionAttributes.COOKIE_NAME,
                 )
 
                 csrf.csrfTokenRepository(tokenRepository)
@@ -218,9 +257,9 @@ class WebSecurityConfig(
                 // cannot set - and the client has no token yet at that point
                 csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(LOGIN_ENDPOINT))
                 // reached without a session, so there is no session a forged request could ride on:
-                // asking for a link only mails the account's own address, and setting a password takes
-                // the token from that mail, which a cross-site page cannot know (ADR-0072)
-                csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(PASSWORD_RESET_ENDPOINTS))
+                // asking for a link only mails the account's own address, and acting on a link takes the
+                // token from that mail, which a cross-site page cannot know (ADR-0072)
+                mailedLinkEndpoints.forEach { csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(it)) }
             }
             .headers { headers ->
                 headers.contentSecurityPolicy {
@@ -294,7 +333,7 @@ class WebSecurityConfig(
     )
 
     @Bean
-    fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
+    fun authenticationManager(): AuthenticationManager = ProviderManager(tafelLoginProvider(), tafelSessionAuthProvider())
 
     @Bean
     fun tafelLoginProvider(): TafelLoginProvider = TafelLoginProvider(
@@ -307,8 +346,5 @@ class WebSecurityConfig(
     )
 
     @Bean
-    fun tafelJwtAuthProvider(): TafelJwtAuthProvider = TafelJwtAuthProvider(jwtTokenService, userRepository, tafelAdminProperties)
-
-    @Bean
-    fun tafelJwtAuthConverter(): TafelJwtAuthConverter = TafelJwtAuthConverter()
+    fun tafelSessionAuthProvider(): TafelSessionAuthProvider = TafelSessionAuthProvider(userRepository, tafelAdminProperties, applicationProperties, clock)
 }

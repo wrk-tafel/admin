@@ -4,11 +4,10 @@ import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.UserController
 import at.wrk.tafel.admin.backend.common.auth.components.*
+import at.wrk.tafel.admin.backend.common.auth.components.EmailChangeService
 import at.wrk.tafel.admin.backend.common.auth.model.*
-import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminMfaProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminServerProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
@@ -52,9 +51,6 @@ class UserControllerTest {
     private lateinit var tafelAdminProperties: TafelAdminProperties
 
     @RelaxedMockK
-    private lateinit var applicationProperties: ApplicationProperties
-
-    @RelaxedMockK
     private lateinit var loginAttemptService: LoginAttemptService
 
     @RelaxedMockK
@@ -64,7 +60,7 @@ class UserControllerTest {
     private lateinit var staffPrivacyNoticeService: StaffPrivacyNoticeService
 
     @RelaxedMockK
-    private lateinit var jwtTokenService: JwtTokenService
+    private lateinit var userSessionService: UserSessionService
 
     @RelaxedMockK
     private lateinit var request: HttpServletRequest
@@ -84,6 +80,9 @@ class UserControllerTest {
     @RelaxedMockK
     private lateinit var notificationService: AccountSecurityNotificationService
 
+    @RelaxedMockK
+    private lateinit var emailChangeService: EmailChangeService
+
     @InjectMockKs
     private lateinit var controller: UserController
 
@@ -100,6 +99,7 @@ class UserControllerTest {
     fun stubDefaults() {
         every { loginAttemptService.getLockedUntil(any<String>()) } returns null
         every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
+        every { emailChangeService.pendingEmail(any()) } returns null
     }
 
     @AfterEach
@@ -109,8 +109,8 @@ class UserControllerTest {
 
     @Test
     fun `get userinfo`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
@@ -131,8 +131,8 @@ class UserControllerTest {
 
     @Test
     fun `update theme of the authenticated user`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
@@ -150,8 +150,8 @@ class UserControllerTest {
 
     @Test
     fun `get own account returns the caller's data and nothing an administrator owns`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
@@ -176,8 +176,8 @@ class UserControllerTest {
 
     @Test
     fun `update own account passes the trimmed name and e-mail on for the authenticated user only`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
@@ -258,6 +258,24 @@ class UserControllerTest {
     }
 
     @Test
+    fun `update own account turns a change to another address into a request confirmed through the old one`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserByUsername(testUser.username) } returns testUser.copy(email = "max@example.org")
+        every { emailChangeService.needsConfirmation("max@example.org", "new@example.org") } returns true
+        every { userDetailsManager.updateOwnAccount(testUser.username, "Maxi", "Muster", "max@example.org") } returns
+            testUser.copy(firstname = "Maxi", lastname = "Muster", email = "max@example.org")
+        every { emailChangeService.pendingEmail(testUser.id) } returns "new@example.org"
+
+        val account = controller.updateAccount(UserAccountRequest(firstname = "Maxi", lastname = "Muster", email = "new@example.org"))
+
+        assertThat(account.email).isEqualTo("max@example.org")
+        assertThat(account.pendingEmail).isEqualTo("new@example.org")
+        verify(exactly = 1) { emailChangeService.request(testUser.id!!, "new@example.org") }
+        // the confirmation mail itself goes to the old address - no second "it changed" notice
+        verify(exactly = 0) { notificationService.notify(any(), any(), any()) }
+    }
+
+    @Test
     fun `update own account removing the address says so to the old one`() {
         authenticateWith(UserPermissions.USER_MANAGEMENT)
         every { userDetailsManager.loadUserByUsername(testUser.username) } returns testUser.copy(email = "max@example.org")
@@ -270,8 +288,8 @@ class UserControllerTest {
 
     @Test
     fun `update own account stores a blank e-mail as no address`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
@@ -302,8 +320,8 @@ class UserControllerTest {
 
     @Test
     fun `export user`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
@@ -327,8 +345,8 @@ class UserControllerTest {
 
     @Test
     fun `export user - not found`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
@@ -394,12 +412,8 @@ class UserControllerTest {
 
     @Test
     fun `change password`() {
-        val relativeBaseUrl = "/test-base/"
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
-        every { jwtTokenService.generateToken(any(), any()) } returns "NEW-TOKEN"
-
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "OLD-TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "CURRENT",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
@@ -407,23 +421,14 @@ class UserControllerTest {
 
         val changePasswordRequest = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
 
-        val responseEntity = controller.changePassword(changePasswordRequest, request, response)
+        val responseEntity = controller.changePassword(changePasswordRequest, request)
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.OK)
         verify { userDetailsManager.changePassword("old", "new") }
-        // Changing one's own password invalidates the very token this request came in on (see
-        // TafelUserDetailsManager.changePassword) - the frontend keeps the user on this session
-        // afterwards, so a fresh cookie has to be issued in the same response.
-        verify {
-            response.addCookie(
-                withArg {
-                    assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
-                    assertThat(it.value).isEqualTo("NEW-TOKEN")
-                    assertThat(it.path).isEqualTo(relativeBaseUrl)
-                    assertThat(it.attributes["SameSite"]).isEqualTo("strict")
-                },
-            )
-        }
+        // Whoever knew the old password is logged out everywhere else; the session the change was made on
+        // stays, and is no longer one that is waiting for a password change.
+        verify(exactly = 1) { userSessionService.endOtherSessions(testUser.username, "CURRENT") }
+        verify(exactly = 1) { userSessionService.completePasswordChange(request) }
     }
 
     @Test
@@ -433,43 +438,31 @@ class UserControllerTest {
         every { userDetailsManager.changePassword(any(), any()) } throws PasswordChangeException(errMsg, errDetails)
         val changePasswordRequest = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
 
-        val responseEntity = controller.changePassword(changePasswordRequest, request, response)
+        val responseEntity = controller.changePassword(changePasswordRequest, request)
 
         assertThat(responseEntity.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         assertThat(responseEntity.body?.message).isEqualTo(errMsg)
         assertThat(responseEntity.body?.details).hasSameElementsAs(errDetails)
 
         verify { userDetailsManager.changePassword("old", "new") }
-        verify(exactly = 0) { response.addCookie(any()) }
+        verify(exactly = 0) { userSessionService.endOtherSessions(any(), any()) }
     }
 
     @Test
     fun `logout`() {
-        val relativeBaseUrl = "/test-base/"
-        every { tafelAdminProperties.server } returns TafelAdminServerProperties().apply { this.relativeBaseUrl = relativeBaseUrl }
-
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
-        val responseEntity = controller.logout(request, response)
+        val responseEntity = controller.logout(request)
 
         assertThat(responseEntity.statusCode.value()).isEqualTo(HttpStatus.OK.value())
-
-        verify {
-            response.addCookie(
-                withArg {
-                    assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
-                    assertThat(it.value).isNull()
-                    assertThat(it.maxAge).isZero
-                    assertThat(it.path).isEqualTo(relativeBaseUrl)
-                    assertThat(it.attributes["SameSite"]).isEqualTo("strict")
-                },
-            )
-        }
+        // only this session - the user's other devices stay logged in
+        verify(exactly = 1) { userSessionService.endCurrentSession(request) }
+        verify(exactly = 0) { userSessionService.endAllSessions(any()) }
     }
 
     @Test
@@ -704,8 +697,8 @@ class UserControllerTest {
 
     @Test
     fun `get userinfo reports a login that still owes its code`() {
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
-            tokenValue = "token",
+        SecurityContextHolder.getContext().authentication = TafelAuthentication(
+            sessionKey = "token",
             username = "max",
             authenticated = true,
             mfaPending = true,
@@ -743,8 +736,8 @@ class UserControllerTest {
             id = 5,
             authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)),
         )
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
-            tokenValue = "token",
+        SecurityContextHolder.getContext().authentication = TafelAuthentication(
+            sessionKey = "token",
             username = "manager",
             authenticated = true,
             authorities = listOf(SimpleGrantedAuthority(UserPermissions.USER_MANAGEMENT.key)),
@@ -762,8 +755,8 @@ class UserControllerTest {
             id = 5,
             authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)),
         )
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
-            tokenValue = "token",
+        SecurityContextHolder.getContext().authentication = TafelAuthentication(
+            sessionKey = "token",
             username = "admin",
             authenticated = true,
             authorities = listOf(SimpleGrantedAuthority(UserPermissions.ADMINISTRATOR.key)),
@@ -1004,8 +997,8 @@ class UserControllerTest {
      */
     @Test
     fun `update user changing the caller's own e-mail address is refused while their e-mail method is on`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = listOf(SimpleGrantedAuthority(UserPermissions.USER_MANAGEMENT.key)),
             userId = testUser.id,
@@ -1023,8 +1016,8 @@ class UserControllerTest {
 
     @Test
     fun `update user changing the caller's own e-mail address is allowed while their e-mail method is off`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = listOf(SimpleGrantedAuthority(UserPermissions.USER_MANAGEMENT.key)),
             userId = testUser.id,
@@ -1100,6 +1093,7 @@ class UserControllerTest {
         controller.deleteUser(userId = testUser.id!!)
 
         verify(exactly = 1) { userDetailsManager.deleteUser(testUser.username) }
+        verify(exactly = 1) { userSessionService.endAllSessions(testUser.username) }
     }
 
     /**
@@ -1146,8 +1140,8 @@ class UserControllerTest {
     )
 
     private fun authenticateWith(vararg permissions: UserPermissions) {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "TOKEN",
             username = testUser.username,
             authorities = permissions.map { SimpleGrantedAuthority(it.key) },
         )
@@ -1281,6 +1275,8 @@ class UserControllerTest {
         assertThat(userDetails.password).isEqualTo(updatedUser.password)
         assertThat(userDetails.passwordChangeRequired).isEqualTo(updatedUser.passwordChangeRequired)
         assertThat(userDetails.enabled).isEqualTo(updatedUser.enabled)
+        // renamed and disabled: logged out everywhere, under the name the sessions were opened with
+        verify(exactly = 1) { userSessionService.endAllSessions(testUser.username) }
     }
 
     /**
@@ -1302,7 +1298,7 @@ class UserControllerTest {
         assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(updatedUserResponse.body).isEqualTo(testUserResponse)
         verify(exactly = 1) { userDetailsManager.updateUser(testUser.copy(password = newPassword)) }
-        verify(exactly = 0) { response.addCookie(any()) }
+        verify(exactly = 1) { userSessionService.endAllSessions(testUser.username) }
     }
 
     /**
@@ -1314,8 +1310,8 @@ class UserControllerTest {
     fun `update user including own password change is refused`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "OLD-TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "OLD-TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
             userId = testUser.id,
@@ -1332,16 +1328,16 @@ class UserControllerTest {
 
         assertThat(exception.message).contains("Passwort ändern")
         verify(exactly = 0) { userDetailsManager.updateUser(any()) }
-        verify(exactly = 0) { response.addCookie(any()) }
+        verify(exactly = 0) { userSessionService.endAllSessions(any()) }
     }
 
-    /** Editing another field on one's own account - without a password change - mints no cookie. */
+    /** Editing another field - no new password, same name, still enabled - leaves the sessions alone. */
     @Test
-    fun `update user own account without a password change mints no cookie`() {
+    fun `update user without a change to how the account logs in ends no session`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "OLD-TOKEN",
+        val authentication = TafelAuthentication(
+            sessionKey = "OLD-TOKEN",
             username = testUser.username,
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
             userId = testUser.id,
@@ -1353,7 +1349,7 @@ class UserControllerTest {
             user = testUserRequest.copy(firstname = "updated-firstname"),
         )
 
-        verify(exactly = 0) { response.addCookie(any()) }
+        verify(exactly = 0) { userSessionService.endAllSessions(any()) }
     }
 
     @Test

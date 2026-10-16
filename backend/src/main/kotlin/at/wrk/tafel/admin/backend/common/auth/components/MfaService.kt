@@ -19,7 +19,7 @@ import java.time.LocalDateTime
  * user opts in by setting a method up and proving it works ([startSetup]/[enable], [startEmailSetup]/
  * [enableEmail], [startPasskeySetup]/[enablePasskey]), and can switch it off again ([disable], [removePasskey]);
  * an administrator can clear all of them for someone who lost the phone ([reset]). Once a user has a method, a
- * login is only complete after [verifyLogin] or [verifyLoginWithPasskey] - see `TafelJwtAuthProvider` for how an
+ * login is only complete after [verifyLogin] or [verifyLoginWithPasskey] - see `TafelSessionAuthProvider` for how an
  * unfinished login is kept from doing anything. The deployment can also require every user to have one
  * (`tafeladmin.mfa.required`); the last method of such a user cannot be switched off.
  *

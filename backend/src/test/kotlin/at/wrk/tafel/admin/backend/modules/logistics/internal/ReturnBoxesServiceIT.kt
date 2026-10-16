@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
@@ -42,7 +42,7 @@ class ReturnBoxesServiceIT : TafelBaseIntegrationTest() {
             lastname = "Boxes",
         )
         testEntityManager.persist(user)
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication("TOKEN", "return-boxes-it", true)
+        SecurityContextHolder.getContext().authentication = TafelAuthentication("TOKEN", "return-boxes-it", true)
 
         shop = ShopEntity(
             number = 93_001,

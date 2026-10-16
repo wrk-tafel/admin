@@ -1,12 +1,11 @@
 package at.wrk.tafel.admin.backend.common.auth
 
-import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.MfaService
 import at.wrk.tafel.admin.backend.common.auth.components.PasskeyAnswer
 import at.wrk.tafel.admin.backend.common.auth.components.PasskeyEnableResult
 import at.wrk.tafel.admin.backend.common.auth.components.PasskeyRelyingParty
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
+import at.wrk.tafel.admin.backend.common.auth.components.UserSessionService
 import at.wrk.tafel.admin.backend.common.auth.model.MfaCodeRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaDisableRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaEnableRequest
@@ -17,13 +16,10 @@ import at.wrk.tafel.admin.backend.common.auth.model.MfaPasskeyVerifyRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaProofRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaSetupResponse
 import at.wrk.tafel.admin.backend.common.auth.model.MfaStatusResponse
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -57,9 +53,7 @@ import tools.jackson.databind.JsonNode
 class MfaController(
     private val mfaService: MfaService,
     private val userDetailsManager: TafelUserDetailsManager,
-    private val jwtTokenService: JwtTokenService,
-    private val applicationProperties: ApplicationProperties,
-    private val tafelAdminProperties: TafelAdminProperties,
+    private val userSessionService: UserSessionService,
 ) {
 
     @GetMapping
@@ -88,7 +82,7 @@ class MfaController(
 
     /**
      * Switches the app on. The session this arrives on has by definition passed no second factor yet - it never
-     * needed one, or it had none to give - so it is answered with one that has, or the very next request would
+     * needed one, or it had none to give - so it is marked as having passed it now, or the very next request would
      * count as unfinished. A user who already has a method has to give a code of it as well (`currentCode`): the
      * session they are on may have been left open, and adding a second factor is as good as taking over the first.
      */
@@ -96,13 +90,12 @@ class MfaController(
     fun enable(
         @Valid @RequestBody request: MfaEnableRequest,
         httpRequest: HttpServletRequest,
-        httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
         if (!mfaService.enable(authentication.username!!, request.code, request.currentCode, passkeyAnswer(request.currentCredential, httpRequest))) {
             throw invalidCode()
         }
-        issueCompletedSession(authentication.username, httpRequest, httpResponse)
+        completeSession(authentication.username, httpRequest)
         return ResponseEntity.noContent().build()
     }
 
@@ -116,18 +109,17 @@ class MfaController(
         return ResponseEntity.accepted().build()
     }
 
-    /** Switches the e-mail method on with the code that was just sent - answered with a completed session, like [enable]. */
+    /** Switches the e-mail method on with the code that was just sent - completing the session, like [enable]. */
     @PostMapping("/email/enable")
     fun enableEmail(
         @Valid @RequestBody request: MfaEnableRequest,
         httpRequest: HttpServletRequest,
-        httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
         if (!mfaService.enableEmail(authentication.username!!, request.code, request.currentCode, passkeyAnswer(request.currentCredential, httpRequest))) {
             throw invalidCode()
         }
-        issueCompletedSession(authentication.username, httpRequest, httpResponse)
+        completeSession(authentication.username, httpRequest)
         return ResponseEntity.noContent().build()
     }
 
@@ -137,7 +129,7 @@ class MfaController(
      */
     @PostMapping("/email/send")
     fun sendLoginCode(): ResponseEntity<Unit> {
-        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authentication = SecurityContextHolder.getContext().authentication as TafelAuthentication
         mfaService.sendLoginCode(authentication.username!!)
         return ResponseEntity.accepted().build()
     }
@@ -156,7 +148,6 @@ class MfaController(
     fun enablePasskey(
         @Valid @RequestBody request: MfaPasskeyEnableRequest,
         httpRequest: HttpServletRequest,
-        httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireNoCodeOwed()
         val result = mfaService.enablePasskey(
@@ -172,7 +163,7 @@ class MfaController(
             PasskeyEnableResult.PROOF_REFUSED -> throw invalidCode()
             PasskeyEnableResult.PASSKEY_REFUSED -> throw BusinessRuleException("Der Passkey konnte nicht eingerichtet werden - bitte erneut versuchen!")
         }
-        issueCompletedSession(authentication.username, httpRequest, httpResponse)
+        completeSession(authentication.username, httpRequest)
         return ResponseEntity.noContent().build()
     }
 
@@ -196,7 +187,7 @@ class MfaController(
      */
     @PostMapping("/passkey/options")
     fun passkeyOptions(httpRequest: HttpServletRequest): MfaPasskeyOptionsResponse {
-        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val authentication = SecurityContextHolder.getContext().authentication as TafelAuthentication
         return MfaPasskeyOptionsResponse(options = mfaService.startPasskeyAssertion(authentication.username!!, PasskeyRelyingParty.of(httpRequest)))
     }
 
@@ -205,13 +196,12 @@ class MfaController(
     fun verifyPasskey(
         @Valid @RequestBody request: MfaPasskeyVerifyRequest,
         httpRequest: HttpServletRequest,
-        httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireCodeOwed()
         if (!mfaService.verifyLoginWithPasskey(authentication.username!!, PasskeyAnswer(PasskeyRelyingParty.of(httpRequest), request.credential.toString()))) {
             throw BusinessRuleException("Der Passkey wurde nicht akzeptiert, oder es gab zu viele Fehlversuche - bitte später erneut versuchen!")
         }
-        issueCompletedSession(authentication.username, httpRequest, httpResponse)
+        completeSession(authentication.username, httpRequest)
         return ResponseEntity.noContent().build()
     }
 
@@ -227,33 +217,32 @@ class MfaController(
     }
 
     /**
-     * Finishes a login that was waiting for its code by exchanging the password-only session for a full one. The
-     * answer to a wrong code and to a locked-out account is the same, like at login itself.
+     * Finishes a login that was waiting for its code: the session is marked as having passed the second factor and
+     * gets a new id (see `UserSessionService.completeSecondFactor`). The answer to a wrong code and to a locked-out account is the same, like at login itself.
      */
     @PostMapping("/verify")
     fun verify(
         @Valid @RequestBody request: MfaCodeRequest,
         httpRequest: HttpServletRequest,
-        httpResponse: HttpServletResponse,
     ): ResponseEntity<Unit> {
         val authentication = requireCodeOwed()
         if (!mfaService.verifyLogin(authentication.username!!, request.code)) {
             throw invalidCode()
         }
-        issueCompletedSession(authentication.username, httpRequest, httpResponse)
+        completeSession(authentication.username, httpRequest)
         return ResponseEntity.noContent().build()
     }
 
-    private fun requireCodeOwed(): TafelJwtAuthentication {
-        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+    private fun requireCodeOwed(): TafelAuthentication {
+        val authentication = SecurityContextHolder.getContext().authentication as TafelAuthentication
         if (!authentication.mfaPending) {
             throw BusinessRuleException("Es ist keine Bestätigung mit einem Code erforderlich!")
         }
         return authentication
     }
 
-    private fun requireNoCodeOwed(): TafelJwtAuthentication {
-        val authentication = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+    private fun requireNoCodeOwed(): TafelAuthentication {
+        val authentication = SecurityContextHolder.getContext().authentication as TafelAuthentication
         if (authentication.mfaPending) {
             throw TafelApiException(HttpStatus.FORBIDDEN, "Bitte zuerst die Anmeldung mit dem Code aus der Authenticator-App abschließen!")
         }
@@ -267,16 +256,10 @@ class MfaController(
         ?.takeUnless { it.isNull || it.isMissingNode }
         ?.let { PasskeyAnswer(PasskeyRelyingParty.of(request), it.toString()) }
 
-    private fun issueCompletedSession(username: String, request: HttpServletRequest, response: HttpServletResponse) {
-        val jwtProperties = applicationProperties.security.jwtToken
-        // An account that still has to change its password stays on the short-lived token, exactly as
-        // it is after the login itself - it has no permissions until it did.
-        val expirationSeconds = if (userDetailsManager.loadUserByUsername(username).passwordChangeRequired) {
-            jwtProperties.expirationTimePwdChangeInSeconds
-        } else {
-            jwtProperties.expirationTimeInSeconds
-        }
-        val token = jwtTokenService.generateToken(username = username, expirationSeconds = expirationSeconds, mfaVerified = true)
-        response.addCookie(TafelLoginFilter.createTokenCookie(token, expirationSeconds, tafelAdminProperties.server.relativeBaseUrl, request))
+    private fun completeSession(username: String, request: HttpServletRequest) {
+        // An account that still has to change its password stays on the short lifetime, exactly as it is
+        // after the login itself - it has no permissions until it did.
+        val passwordChangeRequired = userDetailsManager.loadUserByUsername(username).passwordChangeRequired
+        userSessionService.completeSecondFactor(request, passwordChangeRequired)
     }
 }

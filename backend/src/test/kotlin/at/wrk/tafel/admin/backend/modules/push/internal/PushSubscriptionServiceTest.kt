@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminPushProperties
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
@@ -68,7 +68,7 @@ internal class PushSubscriptionServiceTest {
 
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
+            TafelAuthentication("TOKEN", testUserEntity.username, true)
     }
 
     @AfterEach
@@ -126,7 +126,7 @@ internal class PushSubscriptionServiceTest {
 
     @Test
     fun `getSubscriptionsForCurrentUser returns an empty list when the authentication has no username`() {
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication("TOKEN", null, true)
+        SecurityContextHolder.getContext().authentication = TafelAuthentication("TOKEN", null, true)
 
         val result = service.getSubscriptionsForCurrentUser()
 

@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.push.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
@@ -48,7 +48,7 @@ internal class PushPreferencesServiceTest {
 
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
+            TafelAuthentication("TOKEN", testUserEntity.username, true)
 
         every { pushPreferencesRepository.findByUserId(any()) } returns null
         every { pushTypePreferenceRepository.findAllByUserId(any()) } returns emptyList()

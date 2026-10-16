@@ -1,8 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
-import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenProperties
-import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenSecretProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityRateLimitProperties
 import org.assertj.core.api.Assertions.assertThat
@@ -39,13 +37,6 @@ internal class RateLimiterIpServiceTest {
     fun setUp() {
         applicationProperties = ApplicationProperties(
             security = SecurityProperties(
-                jwtToken = SecurityJwtTokenProperties(
-                    issuer = "issuer",
-                    audience = "audience",
-                    secret = SecurityJwtTokenSecretProperties(value = "secret", algorithm = "HMACSHA256"),
-                    expirationTimeInSeconds = 3600,
-                    expirationTimePwdChangeInSeconds = 300,
-                ),
                 rateLimit = rateLimitProperties,
             ),
         )

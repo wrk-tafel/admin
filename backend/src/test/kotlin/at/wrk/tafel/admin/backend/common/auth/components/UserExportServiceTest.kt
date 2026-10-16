@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogEntity
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
+import at.wrk.tafel.admin.backend.database.model.auth.EmailChangeTokenRepository
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptEntity
 import at.wrk.tafel.admin.backend.database.model.auth.LoginAttemptRepository
 import at.wrk.tafel.admin.backend.database.model.auth.UserPasskeyRepository
@@ -72,6 +73,9 @@ internal class UserExportServiceTest {
 
     private val jsonMapper: JsonMapper = JsonMapper.builder().build()
 
+    @RelaxedMockK
+    private lateinit var emailChangeTokenRepository: EmailChangeTokenRepository
+
     @InjectMockKs
     private lateinit var service: UserExportService
 
@@ -89,6 +93,7 @@ internal class UserExportServiceTest {
 
     @BeforeEach
     fun setup() {
+        every { emailChangeTokenRepository.findByUserId(any()) } returns null
         // Explicit rather than relying on RelaxedMockK's default for a Spring Data `Page` return -
         // `buildLoginRows` calls `.content` on it, which a bare relaxed mock cannot answer safely.
         every {

@@ -119,8 +119,8 @@ internal class PushNotificationTypeTargetingTest {
 
     /**
      * ADMINISTRATOR grants every other permission, so it is an audience for every type - including
-     * the ones it isn't named on. Checked here as well as in `JwtTokenServiceTest` because a
-     * broadcast reaches people who are not logged in, so it cannot rely on the token's expansion and
+     * the ones it isn't named on. Checked here as well as in `TafelSessionAuthProviderTest` because a
+     * broadcast reaches people who are not logged in, so it cannot rely on the per-request expansion and
      * has to apply the same rule against the stored authorities.
      */
     @Test

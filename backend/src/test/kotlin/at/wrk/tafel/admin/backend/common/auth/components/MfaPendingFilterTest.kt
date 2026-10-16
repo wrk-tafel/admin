@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -19,8 +19,8 @@ class MfaPendingFilterTest {
     }
 
     private fun authenticate(mfaPending: Boolean = false, mfaSetupRequired: Boolean = false) {
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
-            tokenValue = "token",
+        SecurityContextHolder.getContext().authentication = TafelAuthentication(
+            sessionKey = "token",
             username = "max",
             authenticated = true,
             mfaPending = mfaPending,

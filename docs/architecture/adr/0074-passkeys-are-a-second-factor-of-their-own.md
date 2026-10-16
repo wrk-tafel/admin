@@ -15,8 +15,8 @@ convenience. So the feature is worth having for those users, as long as it costs
 
 Three things about this application shaped how it is built:
 
-- There is no server-side session ([ADR-0006](0006-stateless-jwt-cookie-authentication.md)), and a deploy runs
-  two instances against one database for a moment
+- A login session is a row in the database ([ADR-0070](0070-login-sessions-are-rows-in-the-database.md)), and
+  a deploy runs two instances against one database for a moment
   ([ADR-0069](0069-prod-is-deployed-without-downtime-and-without-a-deploy-window.md)). A WebAuthn ceremony is two
   requests with a challenge to remember in between.
 - [ADR-0059](0059-second-factor-changes-need-an-existing-second-factor.md) requires "a code of a method the
@@ -42,8 +42,8 @@ is asked.**
   wrong code (`mfa:<username>` in `login_attempts`).
 - **At login the passkey is offered first**, above the code form if the account also has a code method, and
   alone if it does not. `POST /api/mfa/passkey/options` and `/passkey/verify` are two more calls
-  `MfaPendingFilter` allows a session that owes its second step; a verified assertion ends in the same exchange
-  of the pending token for a full one as `POST /api/mfa/verify`. The same options call serves a completed
+  `MfaPendingFilter` allows a session that owes its second step; a verified assertion completes the session the
+  same way `POST /api/mfa/verify` does (`UserSessionService.completeSecondFactor`, which also gives it a new id). The same options call serves a completed
   session that needs a passkey as proof.
 - **A lost device is an administrator's reset**, exactly like a lost phone with the authenticator app:
   `DELETE /api/users/{id}/mfa` removes the passkeys together with the other methods, and the user management
@@ -60,7 +60,7 @@ is asked.**
   registering on test neither replaces nor is mistaken for the passkey for prod.
 - **Verification is `webauthn4j` behind `PasskeyService`**, with no attestation requested. Spring Security's
   WebAuthn module is not used: its filters keep the challenge in the `HttpSession` and end in a login of their
-  own, where this needs the pending-session exchange `MfaController` already has. `webauthn4j` is the library
+  own, where this needs the completion of the pending session `MfaController` already does. `webauthn4j` is the library
   that module is built on, pinned to the version Spring Security 7.1 uses.
 - **The browser converts the options and the credential to and from JSON itself**
   (`PublicKeyCredential.parseCreationOptionsFromJSON()`, `parseRequestOptionsFromJSON()`, `toJSON()`). A browser
@@ -113,7 +113,12 @@ is asked.**
   be added on top of this: storage, registration and the account page are the same.
 - **Spring Security's WebAuthn filters with custom challenge repositories.** Both repositories would have to be
   written anyway (only `HttpSession` implementations ship), and the authentication filter's own notion of a
-  successful login would have to be bent back into the pending-token exchange.
+  successful login would have to be bent back into completing the pending session.
+- **The challenge as an attribute of the login session** ([ADR-0070](0070-login-sessions-are-rows-in-the-database.md)).
+  It would bind the challenge to the browser session rather than to the user and make `passkey_challenges`
+  unnecessary. This record was written before the sessions were rows in the database, and the table works
+  across instances as it is; moving the challenge into the session is a simplification for later, with its own
+  migration and record.
 - **The challenge in a signed, short-lived cookie.** No table, but a challenge has to be usable once, and a
   cookie cannot be taken back after it was answered without a server-side record of that.
 - **The relying party as configuration** (`rpId` and the allowed origins per deployment). The verification
@@ -125,6 +130,6 @@ is asked.**
 - [Issue #3820](https://github.com/wrk-tafel/admin/issues/3820), [`passkey-evaluation.md`](../passkey-evaluation.md)
 - `backend/.../common/auth/components/PasskeyService.kt`, `MfaService.kt`, `MfaPendingFilter.kt`,
   `common/auth/MfaController.kt`
-- `backend/src/main/resources/db-migration/R__00137_user_passkeys.sql`
+- `backend/src/main/resources/db-migration/R__00138_user_passkeys.sql`
 - `backend/src/test/.../common/auth/PasskeyIT.kt`, `TestPasskeyAuthenticator.kt`
 - `frontend/.../common/security/passkey.service.ts`, `common/views/login-mfa/`, `modules/user/components/user-mfa/`

@@ -38,10 +38,13 @@ describe('Settings - Cars', () => {
   });
 
   it('warns about an existing license plate even when the dialog was opened before the list arrived', () => {
-    let releaseCars: () => void = () => undefined;
-    const carsHeldBack = new Promise<void>(resolve => releaseCars = resolve);
+    // the page's own first request has to be done before the next one is held back - a reload that
+    // aborts a request still waiting in an intercept fails the test
+    cy.byTestId('cars-table').should('contain.text', 'W-NC-456');
     cy.intercept('GET', '/api/cars', (request) => {
-      request.continue(response => carsHeldBack.then(() => response.send()));
+      request.on('response', (response) => {
+        response.setDelay(4000);
+      });
     }).as('cars');
     cy.reload();
 
@@ -49,7 +52,6 @@ describe('Settings - Cars', () => {
     cy.get('input[formControlName="licensePlate"]').should('be.visible').type('w-nc-456');
     cy.byTestId('carDuplicateHint').should('not.exist');
 
-    cy.then(() => releaseCars());
     cy.wait('@cars');
 
     cy.byTestId('carDuplicateHint').should('be.visible').and('contain.text', 'W-NC-456');

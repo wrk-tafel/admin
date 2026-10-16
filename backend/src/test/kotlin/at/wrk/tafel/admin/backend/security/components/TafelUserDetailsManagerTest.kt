@@ -4,7 +4,7 @@ import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.common.test.stubFolding
@@ -107,7 +107,7 @@ class TafelUserDetailsManagerTest {
     @BeforeEach
     fun beforeEach() {
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication(tokenValue = "TOKEN", testUser.username)
+            TafelAuthentication(sessionKey = "TOKEN", testUser.username)
         every { userRepository.findByUsername(testUser.username) } returns testUserEntity
         testUserEntityPassword = testUserEntity.password
     }
@@ -238,7 +238,6 @@ class TafelUserDetailsManagerTest {
                 withArg {
                     assertThat(it.password).isEqualTo(newPasswordEncoded)
                     assertThat(it.passwordChangeRequired).isFalse()
-                    assertThat(it.tokenInvalidatedAt).isNotNull()
                 },
             )
         }
@@ -282,27 +281,6 @@ class TafelUserDetailsManagerTest {
     }
 
     @Test
-    fun `invalidateTokens sets tokenInvalidatedAt and saves`() {
-        every { userRepository.findByUsername(testUserEntity.username) } returns testUserEntity
-        every { userRepository.save(any()) } returns testUserEntity
-
-        manager.invalidateTokens(testUserEntity.username)
-
-        verify(exactly = 1) {
-            userRepository.save(withArg { assertThat(it.tokenInvalidatedAt).isNotNull() })
-        }
-    }
-
-    @Test
-    fun `invalidateTokens for an unknown user does nothing`() {
-        every { userRepository.findByUsername("unknown") } returns null
-
-        manager.invalidateTokens("unknown")
-
-        verify(exactly = 0) { userRepository.save(any()) }
-    }
-
-    @Test
     fun `changePassword - old password missing throws exception`() {
         val exception = assertThrows<PasswordChangeException> {
             manager.changePassword(null, "67890")
@@ -322,6 +300,51 @@ class TafelUserDetailsManagerTest {
 
         verify(exactly = 0) { userRepository.findByUsername(any()) }
         verify(exactly = 0) { userRepository.save(any()) }
+    }
+
+    private fun rejectionOf(newPassword: String): List<String> = assertThrows<PasswordChangeException> { manager.changePassword("12345", newPassword) }.validationDetails.orEmpty()
+
+    @Test
+    fun `changePassword - a sequence of four characters is refused`() {
+        val message = "Darf keine Zeichenfolgen wie \"1234\" oder \"abcd\" enthalten"
+
+        assertThat(rejectionOf("Abcd1234")).containsExactly(message)
+        assertThat(rejectionOf("Xyqwer7Mn")).containsExactly(message)
+        assertThat(rejectionOf("Gr8Hund6789")).containsExactly(message)
+        assertThat(rejectionOf("Gr8HUND9876")).containsExactly(message)
+    }
+
+    @Test
+    fun `changePassword - four equal characters in a row are refused`() {
+        assertThat(rejectionOf("Aaaa1111x")).containsExactly("Darf nicht mehr als drei gleiche Zeichen hintereinander enthalten")
+    }
+
+    @Test
+    fun `changePassword - a commonly used password is refused without naming it`() {
+        val message = "Dieses Passwort wird zu häufig verwendet und ist leicht zu erraten"
+
+        assertThat(rejectionOf("Passwort2024")).containsExactly(message)
+        assertThat(rejectionOf("Willkommen1")).containsExactly(message)
+        assertThat(rejectionOf("Sommer2025!")).containsExactly(message)
+        verify(exactly = 0) { userRepository.save(any()) }
+    }
+
+    @Test
+    fun `changePassword - a password that only contains a common one is accepted`() {
+        every { userRepository.save(any()) } returns testUserEntity
+
+        manager.changePassword("12345", "Passwort2024Kx")
+
+        verify(exactly = 1) { userRepository.save(any()) }
+    }
+
+    @Test
+    fun `changePassword - three equal characters and a sequence of three are still accepted`() {
+        every { userRepository.save(any()) } returns testUserEntity
+
+        manager.changePassword("12345", "Baaa123Xz")
+
+        verify(exactly = 1) { userRepository.save(any()) }
     }
 
     @Test
@@ -386,10 +409,10 @@ class TafelUserDetailsManagerTest {
     @Test
     fun `changePassword - password too short`() {
         // otherwise satisfies every rule (incl. character classes) so only the length violation shows up
-        val newPassword = "Ab12345"
+        val candidate = "Ab1357x"
 
         val exception = assertThrows<PasswordChangeException> {
-            manager.changePassword("12345", newPassword)
+            manager.changePassword("12345", candidate)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
@@ -402,10 +425,10 @@ class TafelUserDetailsManagerTest {
     @Test
     fun `changePassword - password too long`() {
         // otherwise satisfies every rule (incl. character classes) so only the length violation shows up
-        val newPassword = "Ab123456".repeat(7)
+        val candidate = "Ab135792".repeat(7)
 
         val exception = assertThrows<PasswordChangeException> {
-            manager.changePassword("12345", newPassword)
+            manager.changePassword("12345", candidate)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
@@ -465,10 +488,10 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - missing every character class`() {
-        val newPassword = "12345678"
+        val candidate = "13579135"
 
         val exception = assertThrows<PasswordChangeException> {
-            manager.changePassword("12345", newPassword)
+            manager.changePassword("12345", candidate)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
@@ -481,10 +504,10 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - missing only the uppercase character class`() {
-        val newPassword = "abcd1234"
+        val candidate = "abxd1357"
 
         val exception = assertThrows<PasswordChangeException> {
-            manager.changePassword("12345", newPassword)
+            manager.changePassword("12345", candidate)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
         assertThat(exception.validationDetails).hasSameElementsAs(
@@ -713,8 +736,6 @@ class TafelUserDetailsManagerTest {
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
         assertThat(updatedUser.authorities).hasSize(1)
         assertThat(updatedUser.authorities.first().name).isEqualTo(UserPermissions.CHECKIN.key)
-        // No password field on this update - no reason to invalidate the user's existing sessions.
-        assertThat(updatedUser.tokenInvalidatedAt).isNull()
     }
 
     @Test
@@ -746,7 +767,6 @@ class TafelUserDetailsManagerTest {
         assertThat(savedUser.password).isEqualTo("{argon2}hash")
         assertThat(savedUser.enabled).isTrue()
         assertThat(savedUser.authorities).extracting("name").containsExactly(UserPermissions.CHECKIN.key)
-        assertThat(savedUser.tokenInvalidatedAt).isNull()
 
         assertThat(updated.firstname).isEqualTo("new-firstname")
         assertThat(updated.lastname).isEqualTo("new-lastname")
@@ -786,14 +806,14 @@ class TafelUserDetailsManagerTest {
         val encodedPassword = "dummy-encoded-pwd"
         every { passwordEncoder.encode(any()) } returns encodedPassword
 
-        val newPassword = "New-Pwd1234"
+        val replacement = "New-Pwd1357"
         val userUpdate = testUser.copy(
             personnelNumber = "new-persnr",
             username = "new-username",
             firstname = "new-firstname",
             lastname = "new-lastname",
             enabled = false,
-            password = newPassword,
+            password = replacement,
             passwordChangeRequired = true,
         )
         manager.updateUser(userUpdate)
@@ -802,17 +822,16 @@ class TafelUserDetailsManagerTest {
         verify(exactly = 1) {
             userRepository.save(capture<UserEntity>(updatedUserSlot))
         }
-        verify(exactly = 1) { passwordEncoder.encode(newPassword) }
+        verify(exactly = 1) { passwordEncoder.encode(replacement) }
 
         val passwordValidationDataSlot = slot<PasswordData>()
         verify(exactly = 1) { passwordValidator.validate(capture(passwordValidationDataSlot)) }
         assertThat(passwordValidationDataSlot.captured.username.toString()).isEqualTo(userUpdate.username)
-        assertThat(passwordValidationDataSlot.captured.password.toString()).isEqualTo(newPassword)
+        assertThat(passwordValidationDataSlot.captured.password.toString()).isEqualTo(replacement)
 
         val updatedUser = updatedUserSlot.captured
         assertThat(updatedUser.password).isEqualTo(encodedPassword)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
-        assertThat(updatedUser.tokenInvalidatedAt).isNotNull()
     }
 
     @Test

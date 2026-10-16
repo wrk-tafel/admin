@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.audit.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.database.common.audit.AuditLogWriter
 import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
@@ -54,8 +54,8 @@ class AuditServiceTest {
     private fun authenticateWith(vararg authorities: String) {
         SecurityContextHolder.setContext(
             SecurityContextImpl(
-                TafelJwtAuthentication(
-                    tokenValue = "TOKEN",
+                TafelAuthentication(
+                    sessionKey = "TOKEN",
                     username = "test-user",
                     authorities = authorities.map { SimpleGrantedAuthority(it) },
                 ),

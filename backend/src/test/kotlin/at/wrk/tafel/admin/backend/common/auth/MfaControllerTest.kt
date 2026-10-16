@@ -1,18 +1,15 @@
 package at.wrk.tafel.admin.backend.common.auth
 
-import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.MfaService
 import at.wrk.tafel.admin.backend.common.auth.components.MfaSetup
 import at.wrk.tafel.admin.backend.common.auth.components.MfaStatus
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
+import at.wrk.tafel.admin.backend.common.auth.components.UserSessionService
 import at.wrk.tafel.admin.backend.common.auth.model.MfaCodeRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaDisableRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaEnableRequest
 import at.wrk.tafel.admin.backend.common.auth.model.MfaMethod
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelApiException
@@ -27,29 +24,21 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockHttpServletRequest
-import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.core.context.SecurityContextHolder
 
 class MfaControllerTest {
 
     private val mfaService = mockk<MfaService>(relaxed = true)
     private val userDetailsManager = mockk<TafelUserDetailsManager>(relaxed = true)
-    private val jwtTokenService = mockk<JwtTokenService>(relaxed = true)
-    private val applicationProperties = mockk<ApplicationProperties>(relaxed = true)
-    private val tafelAdminProperties = TafelAdminProperties()
+    private val userSessionService = mockk<UserSessionService>(relaxed = true)
 
     private lateinit var controller: MfaController
     private val request = MockHttpServletRequest()
-    private lateinit var response: MockHttpServletResponse
 
     @BeforeEach
     fun setup() {
-        controller = MfaController(mfaService, userDetailsManager, jwtTokenService, applicationProperties, tafelAdminProperties)
-        response = MockHttpServletResponse()
+        controller = MfaController(mfaService, userDetailsManager, userSessionService)
         every { userDetailsManager.loadUserByUsername("max") } returns testUser.copy(username = "max")
-        every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns 3600
-        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns 300
-        every { jwtTokenService.generateToken(any(), any(), any()) } returns "FULL-TOKEN"
     }
 
     @AfterEach
@@ -58,8 +47,8 @@ class MfaControllerTest {
     }
 
     private fun signedIn(mfaPending: Boolean = false, mfaSetupRequired: Boolean = false) {
-        SecurityContextHolder.getContext().authentication = TafelJwtAuthentication(
-            tokenValue = "token",
+        SecurityContextHolder.getContext().authentication = TafelAuthentication(
+            sessionKey = "token",
             username = "max",
             authenticated = true,
             mfaPending = mfaPending,
@@ -97,9 +86,9 @@ class MfaControllerTest {
 
         assertThrows<TafelApiException> { controller.getStatus() }.also { assertThat(it.statusCode).isEqualTo(HttpStatus.FORBIDDEN) }
         assertThrows<TafelApiException> { controller.setup() }
-        assertThrows<TafelApiException> { controller.enable(enableRequest(), request, response) }
+        assertThrows<TafelApiException> { controller.enable(enableRequest(), request) }
         assertThrows<TafelApiException> { controller.setupEmail() }
-        assertThrows<TafelApiException> { controller.enableEmail(enableRequest(), request, response) }
+        assertThrows<TafelApiException> { controller.enableEmail(enableRequest(), request) }
         assertThrows<TafelApiException> { controller.disable(MfaDisableRequest(MfaMethod.TOTP, "123456"), request) }
 
         verify(exactly = 0) { mfaService.startSetup(any()) }
@@ -117,12 +106,12 @@ class MfaControllerTest {
         controller.getStatus()
         controller.setup()
         controller.setupEmail()
-        controller.enable(enableRequest(), request, response)
+        controller.enable(enableRequest(), request)
 
         verify(exactly = 1) { mfaService.startSetup("max") }
         verify(exactly = 1) { mfaService.startEmailSetup("max") }
         // and the answer is a session that has passed the second factor, so it is usable from here on
-        verify(exactly = 1) { jwtTokenService.generateToken("max", 3600, true) }
+        verify(exactly = 1) { userSessionService.completeSecondFactor(request, false) }
     }
 
     @Test
@@ -130,25 +119,22 @@ class MfaControllerTest {
         signedIn()
         every { mfaService.enable("max", "123456", null) } returns true
 
-        val result = controller.enable(enableRequest(), request, response)
+        val result = controller.enable(enableRequest(), request)
 
         assertThat(result.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
-        verify(exactly = 1) { jwtTokenService.generateToken("max", 3600, true) }
-        val cookie = response.getCookie(TafelLoginFilter.jwtCookieName)!!
-        assertThat(cookie.value).isEqualTo("FULL-TOKEN")
-        assertThat(cookie.maxAge).isEqualTo(3600)
+        verify(exactly = 1) { userSessionService.completeSecondFactor(request, false) }
     }
 
     @Test
-    fun `enabling with a wrong code is refused and sets no cookie`() {
+    fun `enabling with a wrong code is refused and completes no session`() {
         signedIn()
         every { mfaService.enable("max", "000000", null) } returns false
         every { mfaService.enableEmail("max", "000000", null) } returns false
 
-        assertThrows<BusinessRuleException> { controller.enable(enableRequest("000000"), request, response) }
-        assertThrows<BusinessRuleException> { controller.enableEmail(enableRequest("000000"), request, response) }
+        assertThrows<BusinessRuleException> { controller.enable(enableRequest("000000"), request) }
+        assertThrows<BusinessRuleException> { controller.enableEmail(enableRequest("000000"), request) }
 
-        assertThat(response.getCookie(TafelLoginFilter.jwtCookieName)).isNull()
+        verify(exactly = 0) { userSessionService.completeSecondFactor(any(), any()) }
     }
 
     @Test
@@ -157,8 +143,8 @@ class MfaControllerTest {
         every { mfaService.enable("max", "123456", "777777") } returns true
         every { mfaService.enableEmail("max", "654321", "888888") } returns true
 
-        controller.enable(enableRequest("123456", currentCode = "777777"), request, response)
-        controller.enableEmail(enableRequest("654321", currentCode = "888888"), request, response)
+        controller.enable(enableRequest("123456", currentCode = "777777"), request)
+        controller.enableEmail(enableRequest("654321", currentCode = "888888"), request)
 
         verify(exactly = 1) { mfaService.enable("max", "123456", "777777") }
         verify(exactly = 1) { mfaService.enableEmail("max", "654321", "888888") }
@@ -179,10 +165,10 @@ class MfaControllerTest {
         signedIn()
         every { mfaService.enableEmail("max", "654321", null) } returns true
 
-        val result = controller.enableEmail(enableRequest("654321"), request, response)
+        val result = controller.enableEmail(enableRequest("654321"), request)
 
         assertThat(result.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
-        assertThat(response.getCookie(TafelLoginFilter.jwtCookieName)!!.value).isEqualTo("FULL-TOKEN")
+        verify(exactly = 1) { userSessionService.completeSecondFactor(request, false) }
     }
 
     @Test
@@ -218,39 +204,38 @@ class MfaControllerTest {
         signedIn(mfaPending = true)
         every { mfaService.verifyLogin("max", "123456") } returns true
 
-        val result = controller.verify(code(), request, response)
+        val result = controller.verify(code(), request)
 
         assertThat(result.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
-        verify(exactly = 1) { jwtTokenService.generateToken("max", 3600, true) }
-        assertThat(response.getCookie(TafelLoginFilter.jwtCookieName)!!.value).isEqualTo("FULL-TOKEN")
+        verify(exactly = 1) { userSessionService.completeSecondFactor(request, false) }
     }
 
     @Test
-    fun `an account that still has to change its password stays on the short-lived token after the code`() {
+    fun `an account that still has to change its password stays on the short lifetime after the code`() {
         signedIn(mfaPending = true)
         every { mfaService.verifyLogin("max", "123456") } returns true
         every { userDetailsManager.loadUserByUsername("max") } returns testUser.copy(username = "max", passwordChangeRequired = true)
 
-        controller.verify(code(), request, response)
+        controller.verify(code(), request)
 
-        verify(exactly = 1) { jwtTokenService.generateToken("max", 300, true) }
+        verify(exactly = 1) { userSessionService.completeSecondFactor(request, true) }
     }
 
     @Test
-    fun `a wrong or locked-out code finishes nothing and sets no cookie`() {
+    fun `a wrong or locked-out code finishes nothing and completes no session`() {
         signedIn(mfaPending = true)
         every { mfaService.verifyLogin("max", "000000") } returns false
 
-        assertThrows<BusinessRuleException> { controller.verify(code("000000"), request, response) }
+        assertThrows<BusinessRuleException> { controller.verify(code("000000"), request) }
 
-        assertThat(response.getCookie(TafelLoginFilter.jwtCookieName)).isNull()
+        verify(exactly = 0) { userSessionService.completeSecondFactor(any(), any()) }
     }
 
     @Test
     fun `verifying on a session that owes no code is refused`() {
         signedIn()
 
-        assertThrows<BusinessRuleException> { controller.verify(code(), request, response) }
+        assertThrows<BusinessRuleException> { controller.verify(code(), request) }
 
         verify(exactly = 0) { mfaService.verifyLogin(any(), any()) }
     }
