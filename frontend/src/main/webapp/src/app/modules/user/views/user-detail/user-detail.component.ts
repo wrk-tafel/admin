@@ -22,6 +22,13 @@ import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-err
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {UserDeleteConfirmDialogComponent} from '../../components/user-delete-confirm-dialog/user-delete-confirm-dialog.component';
 
+/** How a second-factor method reads on this screen; a method the screen does not know shows as the API names it. */
+const MFA_METHOD_LABELS: Record<string, string> = {
+  TOTP: 'Authenticator-App',
+  EMAIL: 'Code per E-Mail',
+  PASSKEY: 'Passkey'
+};
+
 @Component({
     selector: 'tafel-user-detail',
     templateUrl: 'user-detail.component.html',
@@ -71,7 +78,7 @@ export class UserDetailComponent {
 
   /** Whether two-factor authentication is on, and which methods the user has. */
   readonly mfaText = computed(() => {
-    const methods = (this.currentUserData().mfaMethods ?? []).map(method => method === 'TOTP' ? 'Authenticator-App' : 'Code per E-Mail');
+    const methods = (this.currentUserData().mfaMethods ?? []).map(method => MFA_METHOD_LABELS[method] ?? method);
     return methods.length > 0 ? `Aktiv (${methods.join(', ')})` : 'Nicht aktiv';
   });
 

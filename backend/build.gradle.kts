@@ -109,6 +109,8 @@ dependencies {
     implementation(libs.googleauth) {
         exclude(group = "org.apache.httpcomponents")
     }
+    // Verifies passkey (WebAuthn) registrations and assertions (see PasskeyService, ADR-0070).
+    implementation(libs.webauthn4j.core)
     implementation(libs.shedlock.spring)
     implementation(libs.shedlock.provider.jdbc.template)
     implementation(libs.flyway.database.postgresql)
@@ -148,6 +150,8 @@ dependencies {
     testImplementation(libs.spring.security.test)
     testImplementation(libs.spring.modulith.starter.test)
     testImplementation(libs.mockk.jvm)
+    // A software authenticator, so a test can register and use a passkey without a browser.
+    testImplementation(libs.webauthn4j.test)
     testImplementation(libs.archunit.junit5)
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.junit.jupiter)

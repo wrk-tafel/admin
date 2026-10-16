@@ -169,6 +169,9 @@ class WebSecurityConfig(
                         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/verify"),
                         // a login can also have a mail sent - the cooldown per user is in MfaEmailCodeService
                         PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/email/send"),
+                        // a passkey cannot be guessed, but each attempt is a signature check and a few queries
+                        PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/passkey/options"),
+                        PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/mfa/passkey/verify"),
                     ),
                     scope = "mfa",
                     rateLimiterService = rateLimiterIpService,

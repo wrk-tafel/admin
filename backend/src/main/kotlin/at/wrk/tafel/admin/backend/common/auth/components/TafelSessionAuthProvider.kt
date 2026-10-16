@@ -67,7 +67,11 @@ class TafelSessionAuthProvider(
             mfaVerified = mfaVerified,
             mfaPending = mfaPending,
             mfaSetupRequired = mfaSetupRequired,
-            mfaMethods = listOfNotNull("TOTP".takeIf { userEntity.mfaTotpEnabled }, "EMAIL".takeIf { userEntity.mfaEmailEnabled }),
+            mfaMethods = listOfNotNull(
+                "TOTP".takeIf { userEntity.mfaTotpEnabled },
+                "EMAIL".takeIf { userEntity.mfaEmailEnabled },
+                "PASSKEY".takeIf { userEntity.mfaPasskeyEnabled },
+            ),
             sessionCreatedAt = sessionAuthentication.sessionCreatedAt,
         )
     }

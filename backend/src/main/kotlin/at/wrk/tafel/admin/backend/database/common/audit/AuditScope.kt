@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.database.common.audit
 
 import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserPasskeyEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.MailRecipientEntity
 import at.wrk.tafel.admin.backend.database.model.household.DocumentEntity
@@ -181,6 +182,13 @@ object AuditScope {
             // than the users table. That a password changed is the auditable fact; what it changed
             // to is not.
             redactedFields = setOf("password", "mfaSecret"),
+        ),
+        UserPasskeyEntity::class.java to AuditedEntity(
+            entityType = "UserPasskey",
+            householdScoped = false,
+            businessKey = { (it as UserPasskeyEntity).user.username },
+            // A public key is no secret, but as a diff it is a block of bytes nobody can read.
+            redactedFields = setOf("attestedCredentialData"),
         ),
         UserAuthorityEntity::class.java to AuditedEntity(
             entityType = "UserAuthority",

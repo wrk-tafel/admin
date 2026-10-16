@@ -62,9 +62,16 @@ class UserEntity(
     @Column(name = "mfa_email_enabled")
     var mfaEmailEnabled: Boolean = false
 
-    /** Whether a login needs a second factor at all: one method is enough, and a user can have both. */
+    /**
+     * Whether the user has at least one passkey (`user_passkeys`), kept in step by `MfaService` - a way to
+     * complete a login like the two above.
+     */
+    @Column(name = "mfa_passkey_enabled")
+    var mfaPasskeyEnabled: Boolean = false
+
+    /** Whether a login needs a second factor at all: one method is enough, and a user can have several. */
     val hasMfa: Boolean
-        get() = mfaTotpEnabled || mfaEmailEnabled
+        get() = mfaTotpEnabled || mfaEmailEnabled || mfaPasskeyEnabled
 
     /**
      * The time step of the last accepted code. Written only by

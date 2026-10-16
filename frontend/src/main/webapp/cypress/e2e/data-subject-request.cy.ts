@@ -1,6 +1,6 @@
 import * as path from 'path';
 import dayjs from 'dayjs';
-import {Gender} from '../support/commands';
+import {Gender, testUserPassword} from '../support/commands';
 import {MAIN_CONTENT} from '../support/accessibility';
 
 const AUSTRIA = {id: 165, name: 'Österreich'};
@@ -63,7 +63,7 @@ describe('Data Subject Request', () => {
           firstname: 'Driver',
           lastname: discriminator
         });
-        const password = 'Dsr-' + randomId + '-Password1';
+        const password = testUserPassword(randomId, 'Dsr-');
         cy.createUser({
           username: 'dsr-user-' + randomId,
           personnelNumber: 'DSR-USER-' + randomId,
@@ -92,7 +92,7 @@ describe('Data Subject Request', () => {
   it('lists a person once as a user account and once as an employee', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       const personnelNumber = 'DSR-BOTH-' + randomId;
-      const password = 'Dsr-' + randomId + '-Password1';
+      const password = testUserPassword(randomId, 'Dsr-');
 
       cy.createUser({
         username: 'dsr-both-' + randomId,

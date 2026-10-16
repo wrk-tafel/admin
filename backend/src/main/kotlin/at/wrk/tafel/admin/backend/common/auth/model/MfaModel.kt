@@ -3,8 +3,13 @@ package at.wrk.tafel.admin.backend.common.auth.model
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
+import tools.jackson.databind.JsonNode
+import java.time.LocalDateTime
 
-/** The two ways to complete a login with a second factor; a user can have either or both. */
+/**
+ * The two methods a user switches on and off as a whole. Passkeys are the third method but not listed here: a
+ * user has any number of those, added and removed one by one.
+ */
 enum class MfaMethod {
     /** A code from an authenticator app. */
     TOTP,
@@ -26,6 +31,58 @@ data class MfaStatusResponse(
      * record, which is when the page sends the user to the "Meine Daten" tab instead of offering the method.
      */
     val emailAddress: String? = null,
+    val passkeys: List<MfaPasskeyItem> = emptyList(),
+)
+
+/** One passkey as the "Mein Konto" page lists it. */
+@ExcludeFromTestCoverage
+data class MfaPasskeyItem(
+    val id: Long,
+    val name: String,
+    val createdAt: LocalDateTime?,
+    val lastUsedAt: LocalDateTime?,
+)
+
+/**
+ * What the browser needs for a passkey ceremony: the WebAuthn options in their JSON form, which the page hands
+ * to `PublicKeyCredential.parseCreationOptionsFromJSON()` / `parseRequestOptionsFromJSON()` unchanged.
+ */
+@ExcludeFromTestCoverage
+data class MfaPasskeyOptionsResponse(
+    val options: Map<String, Any?>,
+)
+
+/**
+ * Adds a passkey. [credential] is what the browser's `PublicKeyCredential.toJSON()` returned for the options of
+ * the setup call and [name] what the user calls it. A user who already has a method proves one with it, like in
+ * [MfaEnableRequest].
+ */
+@ExcludeFromTestCoverage
+data class MfaPasskeyEnableRequest(
+    val credential: JsonNode,
+    @field:NotBlank
+    @field:Size(max = 100)
+    val name: String,
+    @field:Size(max = 16)
+    val currentCode: String? = null,
+    val currentCredential: JsonNode? = null,
+)
+
+/**
+ * Proof of a method the user has, for removing a passkey: [code] of a code method, or [credential] - the answer
+ * of one of the user's passkeys to the options of `POST /api/mfa/passkey/options`.
+ */
+@ExcludeFromTestCoverage
+data class MfaProofRequest(
+    @field:Size(max = 16)
+    val code: String? = null,
+    val credential: JsonNode? = null,
+)
+
+/** Completes a login with a passkey: [credential] is the browser's `PublicKeyCredential.toJSON()` of the assertion. */
+@ExcludeFromTestCoverage
+data class MfaPasskeyVerifyRequest(
+    val credential: JsonNode,
 )
 
 /**
@@ -49,8 +106,9 @@ data class MfaCodeRequest(
 
 /**
  * Switches a method on. [code] is the one that proves the new method works (from the app for the secret that was
- * just handed out, or the one that was mailed); [currentCode] is one of a method the user already has, which is
- * required exactly when they have one - a session left open cannot add its own second factor.
+ * just handed out, or the one that was mailed). A user who already has a method also proves one - a session left
+ * open cannot add its own second factor: with [currentCode] of a code method, or with [currentCredential], the
+ * answer of one of their passkeys to the options of `POST /api/mfa/passkey/options`.
  */
 @ExcludeFromTestCoverage
 data class MfaEnableRequest(
@@ -59,13 +117,14 @@ data class MfaEnableRequest(
     val code: String,
     @field:Size(max = 16)
     val currentCode: String? = null,
+    val currentCredential: JsonNode? = null,
 )
 
-/** Switches [method] off; [code] may come from either method the user has. */
+/** Switches [method] off, with proof of any method the user has: [code], or [credential] as in [MfaProofRequest]. */
 @ExcludeFromTestCoverage
 data class MfaDisableRequest(
     val method: MfaMethod,
-    @field:NotBlank
     @field:Size(max = 16)
-    val code: String,
+    val code: String? = null,
+    val credential: JsonNode? = null,
 )

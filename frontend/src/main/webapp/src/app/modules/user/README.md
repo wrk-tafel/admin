@@ -19,7 +19,7 @@ modules/user/
   ├── account.routes.ts                                  # "Mein Konto": /konto and its topic routes (not behind USER_MANAGEMENT)
   ├── components/user-account-data/user-account-data.component.ts # "Meine Daten" topic: own name and e-mail, editable
   ├── components/user-passwordchange/user-passwordchange.component.ts # "Passwort" topic, wraps the shared password-change form
-  ├── components/user-mfa/user-mfa.component.ts          # "Zwei-Faktor-Authentifizierung" topic
+  ├── components/user-mfa/user-mfa.component.ts          # "Zwei-Faktor-Authentifizierung" topic: app, e-mail code, passkeys
   ├── components/push-notification-settings/push-notification-settings.component.ts # "Benachrichtigungen" topic
   ├── components/user-theme-settings/user-theme-settings.component.ts # "Design" topic
   └── components/user-privacy-settings/user-privacy-settings.component.ts # "Datenschutz" topic: own data export, staff privacy notice

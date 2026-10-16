@@ -89,7 +89,7 @@ class MfaControllerTest {
         assertThrows<TafelApiException> { controller.enable(enableRequest(), request) }
         assertThrows<TafelApiException> { controller.setupEmail() }
         assertThrows<TafelApiException> { controller.enableEmail(enableRequest(), request) }
-        assertThrows<TafelApiException> { controller.disable(MfaDisableRequest(MfaMethod.TOTP, "123456")) }
+        assertThrows<TafelApiException> { controller.disable(MfaDisableRequest(MfaMethod.TOTP, "123456"), request) }
 
         verify(exactly = 0) { mfaService.startSetup(any()) }
         verify(exactly = 0) { mfaService.enable(any(), any(), any()) }
@@ -187,8 +187,8 @@ class MfaControllerTest {
         every { mfaService.disable("max", MfaMethod.EMAIL, "123456") } returns true
         every { mfaService.disable("max", MfaMethod.TOTP, "000000") } returns false
 
-        assertThat(controller.disable(MfaDisableRequest(MfaMethod.EMAIL, "123456")).statusCode).isEqualTo(HttpStatus.NO_CONTENT)
-        assertThrows<BusinessRuleException> { controller.disable(MfaDisableRequest(MfaMethod.TOTP, "000000")) }
+        assertThat(controller.disable(MfaDisableRequest(MfaMethod.EMAIL, "123456"), request).statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        assertThrows<BusinessRuleException> { controller.disable(MfaDisableRequest(MfaMethod.TOTP, "000000"), request) }
     }
 
     @Test
@@ -196,7 +196,7 @@ class MfaControllerTest {
         signedIn()
         every { mfaService.disable(any(), any(), any()) } throws ConflictException("Eine Zwei-Faktor-Authentifizierung ist verpflichtend")
 
-        assertThrows<ConflictException> { controller.disable(MfaDisableRequest(MfaMethod.TOTP, "123456")) }
+        assertThrows<ConflictException> { controller.disable(MfaDisableRequest(MfaMethod.TOTP, "123456"), request) }
     }
 
     @Test

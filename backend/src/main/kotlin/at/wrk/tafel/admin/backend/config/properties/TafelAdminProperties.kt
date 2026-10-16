@@ -581,6 +581,18 @@ class TafelAdminMfaProperties {
     var emailCodeCooldown: Duration = Duration.ofSeconds(60)
 
     var emailCodeForTests: String? = null
+
+    var passkey: TafelAdminPasskeyProperties = TafelAdminPasskeyProperties()
+}
+
+/**
+ * Passkeys as a way to complete the second step of a login (ADR-0074). Which site a passkey belongs to is not
+ * configured - it is the one the request came in on, see `PasskeyRelyingParty`. Read per use.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminPasskeyProperties {
+    /** How long the browser has to answer once a registration or a login with a passkey was started. */
+    var challengeValidity: Duration = Duration.ofMinutes(5)
 }
 
 /**

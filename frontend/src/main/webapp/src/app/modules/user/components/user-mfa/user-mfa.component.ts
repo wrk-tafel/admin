@@ -1,3 +1,4 @@
+import {DatePipe} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
 import {Component, computed, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {form, FormField, validate} from '@angular/forms/signals';
@@ -5,16 +6,25 @@ import {RouterLink} from '@angular/router';
 import {MatButton} from '@angular/material/button';
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatDivider} from '@angular/material/divider';
-import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
+import {MatError, MatFormField, MatHint, MatInput, MatLabel} from '@angular/material/input';
 import {BrowserQRCodeSvgWriter} from '@zxing/library';
+import {firstValueFrom} from 'rxjs';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {SUPPRESS_ERROR_TOAST_CONTEXT} from '../../../../common/http/suppress-error-toast.token';
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {visibleErrorMessages} from '../../../../common/util/signal-form-helper';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
-import {MfaApiService, MfaMethod, MfaSetup, MfaStatus} from '../../../../api/mfa-api.service';
+import {MfaApiService, MfaMethod, MfaPasskeyItem, MfaProof, MfaSetup, MfaStatus} from '../../../../api/mfa-api.service';
+import {PasskeyService} from '../../../../common/security/passkey.service';
 
 const QR_CODE_SIZE = 220;
+const PASSKEY_NAME_MAX_LENGTH = 100;
+
+type CodeField = keyof ReturnType<typeof emptyCodes>;
+
+function emptyCodes() {
+  return {appCode: '', emailCode: '', disableCode: '', appCurrentCode: '', emailCurrentCode: '', passkeyName: '', passkeyCurrentCode: ''};
+}
 
 /** Six digits, as an authenticator app shows them and as the e-mail carries them (an app may put a space in the middle). */
 function codeError(value: string) {
@@ -26,8 +36,8 @@ function codeError(value: string) {
 }
 
 /**
- * The "Zwei-Faktor-Authentifizierung" tab of "Mein Konto" - what protects the own login beyond the password. Two methods,
- * which can be used side by side, and either completes a login:
+ * The "Zwei-Faktor-Authentifizierung" tab of "Mein Konto" - what protects the own login beyond the password. Three
+ * methods, which can be used side by side, and any one completes a login:
  *
  * - **Authenticator app.** Setting it up is two steps: a secret is handed out and shown as a QR code, and it only
  *   counts once a code from the app for that secret was accepted - which is also what proves the app was set up
@@ -36,10 +46,14 @@ function codeError(value: string) {
  * - **Code by e-mail.** A code is sent to the address on the account and has to be entered. A user with no address
  *   on record is sent to the "Meine Daten" tab to add one, instead of being offered a method that cannot work.
  *
- * Switching a method off asks for a code of either method, so a browser left signed in cannot take the second
- * factor away - and so does adding a second method next to one that is on already (`appCurrentCode`/
- * `emailCurrentCode`), or a browser left signed in could put its own next to the user's. When the deployment
- * requires one the last method cannot be switched off. A user who has none yet never reaches this tab in the
+ * - **Passkeys.** A passkey completes a login without a code; it is added with a name, and the browser and the
+ *   device do the rest (`PasskeyService`). A user can have several.
+ *
+ * Switching a method off asks for proof of a method the user has, so a browser left signed in cannot take the
+ * second factor away - and so does adding a method next to one that is on already, or a browser left signed in
+ * could put its own next to the user's. The proof is a code while the app or the e-mail code is on, and the
+ * answer of a passkey for a user who has nothing else (`proof`). When the deployment requires one the last
+ * method cannot be switched off. A user who has none yet never reaches this tab in the
  * first place while the requirement is on - `AuthGuardService` sends that session to `LoginMfaSetupComponent`
  * on the login flow instead.
  */
@@ -58,12 +72,15 @@ function codeError(value: string) {
     MatInput,
     MatLabel,
     MatError,
-    RouterLink
+    MatHint,
+    RouterLink,
+    DatePipe
   ]
 })
 export class UserMfaComponent {
   private readonly mfaApiService = inject(MfaApiService);
   private readonly authenticationService = inject(AuthenticationService);
+  private readonly passkeyService = inject(PasskeyService);
   private readonly toastr = inject(TafelToastrService);
 
   private readonly qrContainer = viewChild<ElementRef<HTMLElement>>('qrContainer');
@@ -82,22 +99,39 @@ export class UserMfaComponent {
   /** The secret in groups of four, which is how it is easiest to copy by eye. */
   readonly formattedSecret = computed(() => this.appSetup()?.secret.match(/.{1,4}/g)?.join(' ') ?? '');
 
+  readonly passkeys = computed(() => this.status()?.passkeys ?? []);
+  /** Whether this browser can create a passkey at all - one that cannot still lists them. */
+  readonly passkeySupported = this.passkeyService.isSupported();
+
+  /** The app or the e-mail code is on, so a change is proven with a code. */
+  readonly codeMethodEnabled = computed(() => !!this.status()?.totpEnabled || !!this.status()?.emailEnabled);
+  /** Passkeys are all the user has, so a change is proven with one of them. */
+  readonly provesWithPasskey = computed(() => !this.codeMethodEnabled() && this.passkeys().length > 0);
+  readonly anyMethodEnabled = computed(() => this.codeMethodEnabled() || this.passkeys().length > 0);
+
   /** Whether the last method is the only thing left, which cannot be switched off while the deployment requires one. */
   readonly lastMethodLocked = computed(() => {
     const status = this.status();
-    return !!status && status.required && status.totpEnabled !== status.emailEnabled;
+    const methods = [status?.totpEnabled, status?.emailEnabled, this.passkeys().length > 0].filter(Boolean).length;
+    return !!status && status.required && methods === 1;
   });
 
-  readonly anyMethodEnabled = computed(() => !!this.status()?.totpEnabled || !!this.status()?.emailEnabled);
-
-  private readonly formModel = signal({appCode: '', emailCode: '', disableCode: '', appCurrentCode: '', emailCurrentCode: ''});
+  private readonly formModel = signal(emptyCodes());
   codeForm = form(this.formModel, (schemaPath) => {
     validate(schemaPath.appCode, ({value}) => codeError(value()));
     validate(schemaPath.emailCode, ({value}) => codeError(value()));
-    validate(schemaPath.disableCode, ({value}) => codeError(value()));
-    // only asked for while there is a method to prove - the very first one has nothing to show
-    validate(schemaPath.appCurrentCode, ({value}) => this.anyMethodEnabled() ? codeError(value()) : null);
-    validate(schemaPath.emailCurrentCode, ({value}) => this.anyMethodEnabled() ? codeError(value()) : null);
+    // a code of an existing method is only asked for while there is one to give - see proof()
+    validate(schemaPath.disableCode, ({value}) => this.codeMethodEnabled() ? codeError(value()) : null);
+    validate(schemaPath.appCurrentCode, ({value}) => this.codeMethodEnabled() ? codeError(value()) : null);
+    validate(schemaPath.emailCurrentCode, ({value}) => this.codeMethodEnabled() ? codeError(value()) : null);
+    validate(schemaPath.passkeyCurrentCode, ({value}) => this.codeMethodEnabled() ? codeError(value()) : null);
+    validate(schemaPath.passkeyName, ({value}) => {
+      const name = value().trim();
+      if (name.length === 0) {
+        return {kind: 'required', message: 'Bitte einen Namen eingeben'};
+      }
+      return name.length <= PASSKEY_NAME_MAX_LENGTH ? null : {kind: 'maxLength', message: `Höchstens ${PASSKEY_NAME_MAX_LENGTH} Zeichen`};
+    });
   });
 
   constructor() {
@@ -147,8 +181,9 @@ export class UserMfaComponent {
 
   enableApp(event: Event) {
     event.preventDefault();
-    this.submitCode('appCode', (code, currentCode) =>
-      this.mfaApiService.enable(code, currentCode, SUPPRESS_ERROR_TOAST_CONTEXT), () => {
+    return this.run(['appCode'], 'appCurrentCode', async () => {
+      const proof = await this.proof('appCurrentCode');
+      await firstValueFrom(this.mfaApiService.enable(this.code('appCode'), proof, SUPPRESS_ERROR_TOAST_CONTEXT));
       this.appSetup.set(null);
       this.toastr.success('Authenticator-App eingerichtet!');
     });
@@ -177,10 +212,37 @@ export class UserMfaComponent {
 
   enableEmail(event: Event) {
     event.preventDefault();
-    this.submitCode('emailCode', (code, currentCode) =>
-      this.mfaApiService.enableEmail(code, currentCode, SUPPRESS_ERROR_TOAST_CONTEXT), () => {
+    return this.run(['emailCode'], 'emailCurrentCode', async () => {
+      const proof = await this.proof('emailCurrentCode');
+      await firstValueFrom(this.mfaApiService.enableEmail(this.code('emailCode'), proof, SUPPRESS_ERROR_TOAST_CONTEXT));
       this.emailSetupStarted.set(false);
       this.toastr.success('Code per E-Mail eingerichtet!');
+    });
+  }
+
+  // ---- passkeys
+
+  /**
+   * Adds a passkey: the backend hands out the options, the browser lets the device create the key, and the backend
+   * stores it once the proof of an existing method checks out. A prompt the user dismisses is no error of the
+   * application, so it is told apart from a refusal by the backend.
+   */
+  addPasskey(event: Event) {
+    event.preventDefault();
+    return this.run(['passkeyName'], 'passkeyCurrentCode', async () => {
+      const name = this.codeForm.passkeyName().value().trim();
+      const {options} = await firstValueFrom(this.mfaApiService.setupPasskey(SUPPRESS_ERROR_TOAST_CONTEXT));
+      const credential = await this.passkeyService.create(options);
+      const proof = await this.proof('passkeyCurrentCode');
+      await firstValueFrom(this.mfaApiService.enablePasskey(credential, name, proof, SUPPRESS_ERROR_TOAST_CONTEXT));
+      this.toastr.success('Passkey hinzugefügt!');
+    }, 'Der Passkey wurde nicht erstellt - der Vorgang wurde abgebrochen, oder dieses Gerät hat bereits einen Passkey für dieses Konto.');
+  }
+
+  removePasskey(passkey: MfaPasskeyItem) {
+    return this.run([], 'disableCode', async () => {
+      await firstValueFrom(this.mfaApiService.disablePasskey(passkey.id, (await this.proof('disableCode'))!, SUPPRESS_ERROR_TOAST_CONTEXT));
+      this.toastr.success('Passkey entfernt!');
     });
   }
 
@@ -203,48 +265,72 @@ export class UserMfaComponent {
   }
 
   disable(method: MfaMethod) {
-    this.submitCode('disableCode', (code) => this.mfaApiService.disable(method, code, SUPPRESS_ERROR_TOAST_CONTEXT), () => {
+    return this.run([], 'disableCode', async () => {
+      await firstValueFrom(this.mfaApiService.disable(method, (await this.proof('disableCode'))!, SUPPRESS_ERROR_TOAST_CONTEXT));
       this.toastr.success(method === 'TOTP' ? 'Authenticator-App entfernt!' : 'Code per E-Mail entfernt!');
     });
   }
 
   // ---- shared
 
-  private submitCode(
-    field: 'appCode' | 'emailCode' | 'disableCode',
-    call: (code: string, currentCode: string | null) => ReturnType<MfaApiService['enable']>,
-    onSuccess: () => void
+  private code(field: CodeField) {
+    return this.codeForm[field]().value().replace(/\s/g, '');
+  }
+
+  /**
+   * Proof of a method the user already has, which every change but the very first setup takes: the code typed into
+   * `codeField` while the app or the e-mail code is on, otherwise the answer of one of the user's passkeys - the
+   * browser asks for it. `null` while there is no method to prove.
+   */
+  private async proof(codeField: CodeField): Promise<MfaProof | null> {
+    if (this.codeMethodEnabled()) {
+      return {code: this.code(codeField)};
+    }
+    if (!this.provesWithPasskey()) {
+      return null;
+    }
+    const {options} = await firstValueFrom(this.mfaApiService.passkeyOptions(SUPPRESS_ERROR_TOAST_CONTEXT));
+    return {credential: await this.passkeyService.get(options)};
+  }
+
+  /**
+   * Runs one change: `fields` - and `proofField`, while a code is what proves an existing method - have to be valid
+   * first. A refusal by the backend shows its message; anything else came from the browser's passkey prompt (it
+   * was dismissed, or no passkey is at hand) and shows `promptError`.
+   */
+  private async run(
+    fields: CodeField[],
+    proofField: CodeField,
+    change: () => Promise<void>,
+    promptError = 'Die Bestätigung mit dem Passkey wurde abgebrochen oder ist nicht möglich - bitte erneut versuchen.'
   ) {
-    this.codeForm[field]().markAsTouched();
-    if (!this.codeForm[field]().valid()) {
+    const required = this.codeMethodEnabled() ? [...fields, proofField] : fields;
+    required.forEach(field => this.codeForm[field]().markAsTouched());
+    if (required.some(field => !this.codeForm[field]().valid())) {
       return;
     }
 
-    // Adding a method next to one that is on also takes a code of that one.
-    const currentField = field === 'appCode' ? 'appCurrentCode' : field === 'emailCode' ? 'emailCurrentCode' : null;
-    const needsCurrentCode = currentField !== null && this.anyMethodEnabled();
-    if (needsCurrentCode) {
-      this.codeForm[currentField]().markAsTouched();
-      if (!this.codeForm[currentField]().valid()) {
-        return;
-      }
-    }
-    const currentCode = needsCurrentCode ? this.codeForm[currentField]().value().replace(/\s/g, '') : null;
-
     this.working.set(true);
     this.clearMessages();
-    call(this.codeForm[field]().value().replace(/\s/g, ''), currentCode).subscribe({
-      next: async () => {
-        onSuccess();
-        this.resetCodes();
-        // The answer replaced the session (a method that was just set up completes it), so what the session may do
-        // is read again.
-        await this.authenticationService.loadUserInfo();
-        this.loadStatus();
+    try {
+      await change();
+      this.resetCodes();
+      // A form that stays on the page must not greet the user with "required" errors.
+      required.forEach(field => this.codeForm[field]().reset());
+      // The answer may have replaced the session (a method that was just set up completes it), so what the session
+      // may do is read again.
+      await this.authenticationService.loadUserInfo();
+      this.loadStatus();
+      this.working.set(false);
+    } catch (error) {
+      // What the browser's passkey prompt throws is an Error; a refusal by the backend is not.
+      if (error instanceof Error) {
+        this.errorMessage.set(promptError);
         this.working.set(false);
-      },
-      error: (error: HttpErrorResponse) => this.fail(error)
-    });
+      } else {
+        this.fail(error as HttpErrorResponse);
+      }
+    }
   }
 
   private fail(error: HttpErrorResponse) {
@@ -261,7 +347,7 @@ export class UserMfaComponent {
   }
 
   private resetCodes() {
-    this.formModel.set({appCode: '', emailCode: '', disableCode: '', appCurrentCode: '', emailCurrentCode: ''});
+    this.formModel.set(emptyCodes());
   }
 
   protected readonly visibleErrorMessages = visibleErrorMessages;

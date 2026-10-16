@@ -11,28 +11,30 @@ import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 /**
- * Two-factor authentication (see ADR-0058). Two methods, which a user can switch on side by side - a code from an
- * authenticator app (TOTP) and a code sent by e-mail - and either one completes a login. A user opts in by
- * setting a method up and proving it works ([startSetup]/[enable], [startEmailSetup]/[enableEmail]), and can
- * switch a method off again with a code ([disable]); an administrator can clear both for someone who lost the
- * phone ([reset]). Once a user has a method, a login is only complete after [verifyLogin] - see
- * `TafelSessionAuthProvider` for how an unfinished login is kept from doing anything. The deployment can also
- * require every user to have one (`tafeladmin.mfa.required`); the last method of such a user cannot be
- * switched off.
+ * Two-factor authentication (see ADR-0058). Three methods, which a user can have side by side - a code from an
+ * authenticator app (TOTP), a code sent by e-mail, and passkeys (ADR-0074) - and any one completes a login. A
+ * user opts in by setting a method up and proving it works ([startSetup]/[enable], [startEmailSetup]/
+ * [enableEmail], [startPasskeySetup]/[enablePasskey]), and can switch it off again ([disable], [removePasskey]);
+ * an administrator can clear all of them for someone who lost the phone ([reset]). Once a user has a method, a
+ * login is only complete after [verifyLogin] or [verifyLoginWithPasskey] - see `TafelSessionAuthProvider` for how an
+ * unfinished login is kept from doing anything. The deployment can also require every user to have one
+ * (`tafeladmin.mfa.required`); the last method of such a user cannot be switched off.
  *
  * **A completed session proves an existing factor before it changes the second factor.** Switching a method on
- * ([enable]/[enableEmail]) takes a code of a method the user already has, exactly like [disable] - otherwise a
- * session left open in a browser could add the attacker's own authenticator app or address next to the user's.
- * Only a user with no method yet (the first setup) has nothing to prove. The two "start" calls
- * ([startSetup]/[startEmailSetup]) change nothing that counts until the matching enable call, so they ask for
- * no code - which also keeps a one-time code of the existing method from being needed twice for one setup.
- * The same rule covers the address the e-mail method sends to, see [confirmExistingFactor]. Every one of these
- * changes is mailed to the user ([AccountSecurityNotificationService]).
+ * takes proof of one the user already has, exactly like switching one off - otherwise a session left open in a
+ * browser could add the attacker's own authenticator app, address or passkey next to the user's. The proof is
+ * a code of a code method or the answer of one of the user's passkeys ([confirmExistingFactor]), so a user whose
+ * only method is a passkey can give it too. Only a user with no method yet (the first setup) has nothing to
+ * prove. The "start" calls change nothing that counts until the matching enable call, so they ask for no proof
+ * - which also keeps a one-time code of the existing method from being needed twice for one setup. The same
+ * rule covers the address the e-mail method sends to, see [confirm]. Every one of these changes is mailed to
+ * the user ([AccountSecurityNotificationService]).
  *
  * The check is the same wherever a code is asked for ([checkCode]):
- * - **Wrong codes are counted**, per user and across both methods, in `login_attempts` under the key
+ * - **Wrong codes are counted**, per user and across all methods - a refused passkey included - in `login_attempts` under the key
  *   `mfa:<username>`, so the same lockout rule (`security.loginAttempts`) and the same admin screen apply. That is
  *   what keeps a million-code search space from being walked: a login by password resets the *login* counter, but
  *   not this one.
@@ -50,6 +52,7 @@ class MfaService(
     private val loginAttemptService: LoginAttemptService,
     private val properties: TafelAdminProperties,
     private val notificationService: AccountSecurityNotificationService,
+    private val passkeyService: PasskeyService,
 ) {
 
     companion object {
@@ -71,6 +74,9 @@ class MfaService(
             required = properties.mfa.required,
             emailAvailable = mfaEmailCodeService.isAvailable(),
             emailAddress = user.email?.takeIf { it.isNotBlank() },
+            passkeys = passkeyService.list(user.id!!).map {
+                MfaPasskey(id = it.id!!, name = it.name, createdAt = it.createdAt, lastUsedAt = it.lastUsedAt)
+            },
         )
     }
 
@@ -102,7 +108,7 @@ class MfaService(
      * [currentCode] of it. `false` if a code is refused.
      */
     @Transactional
-    fun enable(username: String, code: String, currentCode: String? = null): Boolean {
+    fun enable(username: String, code: String, currentCode: String? = null, currentPasskey: PasskeyAnswer? = null): Boolean {
         val user = findUser(username)
         if (user.mfaTotpEnabled) {
             throw ConflictException("Die Authenticator-App ist bereits eingerichtet!")
@@ -110,7 +116,7 @@ class MfaService(
         if (user.mfaSecret == null) {
             throw BusinessRuleException("Bitte zuerst die Einrichtung starten!")
         }
-        if (!confirmExistingFactor(user, currentCode) || !checkCode(user, code, totp = true, email = false)) {
+        if (!confirmExistingFactor(user, currentCode, currentPasskey) || !checkCode(user, code, totp = true, email = false)) {
             return false
         }
 
@@ -138,12 +144,12 @@ class MfaService(
      * also has to give [currentCode] of it. `false` if a code is refused.
      */
     @Transactional
-    fun enableEmail(username: String, code: String, currentCode: String? = null): Boolean {
+    fun enableEmail(username: String, code: String, currentCode: String? = null, currentPasskey: PasskeyAnswer? = null): Boolean {
         val user = findUser(username)
         if (user.mfaEmailEnabled) {
             throw ConflictException("Der Code per E-Mail ist bereits eingerichtet!")
         }
-        if (!confirmExistingFactor(user, currentCode) || !checkCode(user, code, totp = false, email = true)) {
+        if (!confirmExistingFactor(user, currentCode, currentPasskey) || !checkCode(user, code, totp = false, email = true)) {
             return false
         }
 
@@ -164,9 +170,91 @@ class MfaService(
         mfaEmailCodeService.send(user)
     }
 
+    // ---- passkeys
+
+    /**
+     * Hands out the options the browser creates a passkey from. Like the other two "start" calls it changes
+     * nothing that counts and asks for no proof - [enablePasskey] does.
+     */
+    @Transactional
+    fun startPasskeySetup(username: String, relyingParty: PasskeyRelyingParty): Map<String, Any?> = passkeyService.startRegistration(findUser(username), relyingParty)
+
+    /**
+     * Adds the passkey the browser created for [startPasskeySetup]'s options, under [name]. A user who already
+     * has a method also has to prove one ([currentCode] or [currentPasskey]). The new passkey is looked at first
+     * and the proof second, so a registration the browser got wrong does not use a one-time code up.
+     */
+    @Transactional
+    fun enablePasskey(
+        username: String,
+        relyingParty: PasskeyRelyingParty,
+        credentialJson: String,
+        name: String,
+        currentCode: String? = null,
+        currentPasskey: PasskeyAnswer? = null,
+    ): PasskeyEnableResult {
+        val user = findUser(username)
+
+        val verified = passkeyService.verifyRegistration(user, relyingParty, credentialJson) ?: return PasskeyEnableResult.PASSKEY_REFUSED
+        if (!confirmExistingFactor(user, currentCode, currentPasskey)) {
+            return PasskeyEnableResult.PROOF_REFUSED
+        }
+
+        val passkey = passkeyService.save(user, verified, name)
+        user.mfaPasskeyEnabled = true
+        userRepository.save(user)
+        notificationService.notify(user.username, user.email, "Der Passkey \"${passkey.name}\" wurde für die Zwei-Faktor-Authentifizierung hinzugefügt.")
+        log.info("Passkey added for user {}", user.username)
+        return PasskeyEnableResult.ENABLED
+    }
+
+    /**
+     * Removes one passkey of the user, who has to prove a method they have to do so - with a code, or with a
+     * passkey (the one being removed will do). `false` if the proof is refused or the user has no such passkey.
+     * Refused, without looking at the proof, when it is the last method of a user the deployment requires one of.
+     */
+    @Transactional
+    fun removePasskey(username: String, passkeyId: Long, code: String?, passkey: PasskeyAnswer? = null): Boolean {
+        val user = findUser(username)
+        val passkeys = passkeyService.list(user.id!!)
+        if (passkeys.none { it.id == passkeyId }) {
+            return false
+        }
+        if (passkeys.size == 1 && !user.mfaTotpEnabled && !user.mfaEmailEnabled && properties.mfa.required) {
+            throw lastMethodRequired()
+        }
+        if (!confirmExistingFactor(user, code, passkey)) {
+            return false
+        }
+
+        val removed = passkeyService.remove(user, passkeyId) ?: return false
+        user.mfaPasskeyEnabled = passkeys.size > 1
+        userRepository.save(user)
+        notificationService.notify(user.username, user.email, "Der Passkey \"${removed.name}\" wurde entfernt.")
+        log.info("Passkey removed by user {}", user.username)
+        return true
+    }
+
+    /**
+     * Hands out the options the browser asks one of the user's passkeys with - for a login that owes its second
+     * step, or for a completed session that proves a method it has before changing one.
+     */
+    @Transactional
+    fun startPasskeyAssertion(username: String, relyingParty: PasskeyRelyingParty): Map<String, Any?> {
+        val user = findUser(username)
+        if (!user.mfaPasskeyEnabled) {
+            throw BusinessRuleException("Es ist kein Passkey eingerichtet!")
+        }
+        return passkeyService.startAuthentication(user, relyingParty)
+    }
+
+    /** The second step of a login with a passkey. `false` if it is refused, or there is none to use. */
+    @Transactional
+    fun verifyLoginWithPasskey(username: String, passkey: PasskeyAnswer): Boolean = checkPasskey(findUser(username), passkey)
+
     // ---- login and switching off
 
-    /** The second step of a login, with a code from either method. `false` if it is refused, or there is none to give. */
+    /** The second step of a login, with a code from either code method. `false` if it is refused, or there is none to give. */
     @Transactional
     fun verifyLogin(username: String, code: String): Boolean {
         val user = findUser(username)
@@ -185,12 +273,12 @@ class MfaService(
     }
 
     /**
-     * Switches [method] off for the user themselves, who has to give a valid code of *either* of the methods they
-     * have to do so - a session left open in a browser cannot take the second factor away. Refused, without
-     * looking at the code, when the deployment requires one and this is the last method the user has.
+     * Switches [method] off for the user themselves, who has to prove *any* of the methods they have to do so -
+     * a session left open in a browser cannot take the second factor away. Refused, without looking at the
+     * proof, when this is the last method the user has and the deployment requires one.
      */
     @Transactional
-    fun disable(username: String, method: MfaMethod, code: String): Boolean {
+    fun disable(username: String, method: MfaMethod, code: String?, passkey: PasskeyAnswer? = null): Boolean {
         val user = findUser(username)
         val enabled = when (method) {
             MfaMethod.TOTP -> user.mfaTotpEnabled
@@ -200,14 +288,15 @@ class MfaService(
             return false
         }
 
-        val otherEnabled = when (method) {
-            MfaMethod.TOTP -> user.mfaEmailEnabled
-            MfaMethod.EMAIL -> user.mfaTotpEnabled
-        }
+        val otherEnabled = user.mfaPasskeyEnabled ||
+            when (method) {
+                MfaMethod.TOTP -> user.mfaEmailEnabled
+                MfaMethod.EMAIL -> user.mfaTotpEnabled
+            }
         if (!otherEnabled && properties.mfa.required) {
-            throw ConflictException("Eine Zwei-Faktor-Authentifizierung ist verpflichtend - die letzte Methode kann nicht ausgeschaltet werden!")
+            throw lastMethodRequired()
         }
-        if (!checkCode(user, code, totp = user.mfaTotpEnabled, email = user.mfaEmailEnabled)) {
+        if (!confirmExistingFactor(user, code, passkey)) {
             return false
         }
 
@@ -226,14 +315,17 @@ class MfaService(
     }
 
     /**
-     * Switches both methods off for [userId] without a code - an administrator's answer to a lost phone. When the
-     * deployment requires a second factor the user has to set one up again at the next request.
+     * Switches every method off - the passkeys are removed - for [userId] without a proof: an administrator's
+     * answer to a lost phone or device. When the deployment requires a second factor the user has to set one up
+     * again at the next request.
      */
     @Transactional
     fun reset(userId: Long) {
         val user = userRepository.findById(userId).orElseThrow { NotFoundException("Benutzer (ID: $userId) nicht vorhanden!") }
         clearTotp(user)
         clearEmail(user)
+        passkeyService.removeAll(user)
+        user.mfaPasskeyEnabled = false
         userRepository.save(user)
         loginAttemptService.deleteAttempts(attemptKey(user.username))
         log.info("Two-factor authentication of user {} was reset by an administrator", user.username)
@@ -251,28 +343,30 @@ class MfaService(
         mfaEmailCodeService.discard(user.id!!)
     }
 
+    private fun lastMethodRequired() = ConflictException("Eine Zwei-Faktor-Authentifizierung ist verpflichtend - die letzte Methode kann nicht ausgeschaltet werden!")
+
     /**
-     * Whether the user has shown a code of a method they already have - trivially so while they have none, which
-     * is the first setup. A missing code is refused without counting as a failure: nothing was guessed.
+     * Whether the user has proven a method they already have, with [code] or with the answer of one of their
+     * passkeys - trivially so while they have none, which is the first setup. A missing proof is refused without
+     * counting as a failure: nothing was guessed.
      */
-    private fun confirmExistingFactor(user: UserEntity, code: String?): Boolean {
-        if (!user.hasMfa) {
-            return true
-        }
-        return !code.isNullOrBlank() && checkCode(user, code, totp = user.mfaTotpEnabled, email = user.mfaEmailEnabled)
+    private fun confirmExistingFactor(user: UserEntity, code: String?, passkey: PasskeyAnswer? = null): Boolean = when {
+        !user.hasMfa -> true
+        passkey != null -> checkPasskey(user, passkey)
+        code.isNullOrBlank() -> false
+        else -> checkCode(user, code, totp = user.mfaTotpEnabled, email = user.mfaEmailEnabled)
     }
+
+    /** Whether [passkey] is a valid answer of one of the user's passkeys - counted like a code, see [countingFailures]. */
+    private fun checkPasskey(user: UserEntity, passkey: PasskeyAnswer): Boolean = user.mfaPasskeyEnabled &&
+        countingFailures(user) { passkeyService.verifyAuthentication(user, passkey.relyingParty, passkey.credentialJson) }
 
     /**
      * Whether [code] is a valid code of a method [totp]/[email] allow for - the app's for the secret (which need not
      * be switched on yet, that is what proves it), or the e-mailed one. One wrong code is one failure, however many
      * methods it was tried against.
      */
-    private fun checkCode(user: UserEntity, code: String, totp: Boolean, email: Boolean): Boolean {
-        val key = attemptKey(user.username)
-        if (loginAttemptService.isLocked(key)) {
-            return false
-        }
-
+    private fun checkCode(user: UserEntity, code: String, totp: Boolean, email: Boolean): Boolean = countingFailures(user) {
         var accepted = false
         if (totp) {
             val step = user.mfaSecret?.let { totpService.matchingStep(it, code) }
@@ -281,8 +375,20 @@ class MfaService(
         if (!accepted && email) {
             accepted = mfaEmailCodeService.consume(user.id!!, code)
         }
+        accepted
+    }
 
-        if (!accepted) {
+    /**
+     * Runs [check] - unless the user is locked out, which refuses without looking - and counts its outcome: a
+     * refusal is one more failure, an acceptance clears the count.
+     */
+    private fun countingFailures(user: UserEntity, check: () -> Boolean): Boolean {
+        val key = attemptKey(user.username)
+        if (loginAttemptService.isLocked(key)) {
+            return false
+        }
+
+        if (!check()) {
             loginAttemptService.recordFailure(key)
             return false
         }
@@ -309,4 +415,32 @@ data class MfaStatus(
     val emailAvailable: Boolean,
     /** Where a code by e-mail goes - the address on the account; null when none is on record. */
     val emailAddress: String? = null,
+    val passkeys: List<MfaPasskey> = emptyList(),
+)
+
+/** One passkey as its owner sees it: what they called it, and when it was added and last used. */
+@ExcludeFromTestCoverage
+data class MfaPasskey(
+    val id: Long,
+    val name: String,
+    val createdAt: LocalDateTime?,
+    val lastUsedAt: LocalDateTime?,
+)
+
+/** How adding a passkey ended - the two refusals are told apart because the user has to redo different things. */
+enum class PasskeyEnableResult {
+    ENABLED,
+
+    /** The new passkey itself did not pass verification. */
+    PASSKEY_REFUSED,
+
+    /** The proof of a method the user already has was refused. */
+    PROOF_REFUSED,
+}
+
+/** What a browser sent back for a passkey challenge, and the site it was sent to. */
+@ExcludeFromTestCoverage
+data class PasskeyAnswer(
+    val relyingParty: PasskeyRelyingParty,
+    val credentialJson: String,
 )

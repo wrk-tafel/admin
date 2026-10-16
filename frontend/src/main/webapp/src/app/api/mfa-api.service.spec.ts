@@ -43,11 +43,11 @@ describe('MfaApiService', () => {
     apiService.verify('345678').subscribe();
 
     const enable = httpMock.expectOne({method: 'POST', url: '/mfa/enable'});
-    expect(enable.request.body).toEqual({code: '123456', currentCode: null});
+    expect(enable.request.body).toEqual({code: '123456', currentCode: null, currentCredential: null});
     enable.flush(null, noContent);
 
     const enableEmail = httpMock.expectOne({method: 'POST', url: '/mfa/email/enable'});
-    expect(enableEmail.request.body).toEqual({code: '234567', currentCode: null});
+    expect(enableEmail.request.body).toEqual({code: '234567', currentCode: null, currentCredential: null});
     enableEmail.flush(null, noContent);
 
     const verify = httpMock.expectOne({method: 'POST', url: '/mfa/verify'});
@@ -56,12 +56,14 @@ describe('MfaApiService', () => {
     httpMock.verify();
   });
 
-  it('hands in a code of the method the user has already when a second one is switched on', () => {
-    apiService.enable('123456', '654321').subscribe();
-    apiService.enableEmail('234567', '765432').subscribe();
+  it('hands in proof of a method the user has already - a code or a passkey - when another one is switched on', () => {
+    apiService.enable('123456', {code: '654321'}).subscribe();
+    apiService.enableEmail('234567', {credential: {id: 'abc'}}).subscribe();
 
-    expect(httpMock.expectOne({method: 'POST', url: '/mfa/enable'}).request.body).toEqual({code: '123456', currentCode: '654321'});
-    expect(httpMock.expectOne({method: 'POST', url: '/mfa/email/enable'}).request.body).toEqual({code: '234567', currentCode: '765432'});
+    expect(httpMock.expectOne({method: 'POST', url: '/mfa/enable'}).request.body)
+      .toEqual({code: '123456', currentCode: '654321', currentCredential: null});
+    expect(httpMock.expectOne({method: 'POST', url: '/mfa/email/enable'}).request.body)
+      .toEqual({code: '234567', currentCode: null, currentCredential: {id: 'abc'}});
     httpMock.verify();
   });
 
@@ -75,10 +77,43 @@ describe('MfaApiService', () => {
   });
 
   it('names the method to switch off, and hands a code in', () => {
-    apiService.disable('EMAIL', '456789').subscribe();
+    apiService.disable('EMAIL', {code: '456789'}).subscribe();
 
     const disable = httpMock.expectOne({method: 'POST', url: '/mfa/disable'});
-    expect(disable.request.body).toEqual({method: 'EMAIL', code: '456789'});
+    expect(disable.request.body).toEqual({method: 'EMAIL', code: '456789', credential: null});
+    disable.flush(null, noContent);
+    httpMock.verify();
+  });
+
+  it('fetches the options for a new passkey and for a login with one', () => {
+    let setup: unknown;
+    let login: unknown;
+    apiService.setupPasskey().subscribe(response => setup = response);
+    apiService.passkeyOptions().subscribe(response => login = response);
+
+    httpMock.expectOne({method: 'POST', url: '/mfa/passkey/setup'}).flush({options: {challenge: 'a'}});
+    httpMock.expectOne({method: 'POST', url: '/mfa/passkey/options'}).flush({options: {challenge: 'b'}});
+    expect(setup).toEqual({options: {challenge: 'a'}});
+    expect(login).toEqual({options: {challenge: 'b'}});
+    httpMock.verify();
+  });
+
+  it('hands the credential in to add a passkey and to complete a login, and proof to remove one', () => {
+    const credential = {id: 'abc', type: 'public-key'};
+    apiService.enablePasskey(credential, 'Laptop', {code: '123456'}).subscribe();
+    apiService.verifyPasskey(credential).subscribe();
+    apiService.disablePasskey(7, {credential}).subscribe();
+
+    const enable = httpMock.expectOne({method: 'POST', url: '/mfa/passkey/enable'});
+    expect(enable.request.body).toEqual({credential, name: 'Laptop', currentCode: '123456', currentCredential: null});
+    enable.flush(null, noContent);
+
+    const verify = httpMock.expectOne({method: 'POST', url: '/mfa/passkey/verify'});
+    expect(verify.request.body).toEqual({credential});
+    verify.flush(null, noContent);
+
+    const disable = httpMock.expectOne({method: 'POST', url: '/mfa/passkey/7/disable'});
+    expect(disable.request.body).toEqual({code: null, credential});
     disable.flush(null, noContent);
     httpMock.verify();
   });

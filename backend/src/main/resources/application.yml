@@ -475,10 +475,17 @@ tafeladmin:
   # needs tafeladmin.mail. All read per use. emailCodeForTests must never be set on a real deployment: the
   # application refuses to start with it outside the e2e/test profiles and ignores it there - see
   # TafelAdminMfaProperties.
+  # passkey lets a user who has one of the two code methods complete a login with a passkey instead of a code
+  # (ADR-0074). It needs no setting to be on: the site a passkey belongs to is the host the request came in on,
+  # so the reverse proxy has to pass Host and X-Forwarded-Proto/-Port on (see the README's nginx example). A
+  # passkey is bound to that host name for good - moving the installation to another one leaves every
+  # registered passkey unusable.
   mfa:
     required: false
     emailCodeValidity: 10m
     emailCodeCooldown: 60s
+    passkey:
+      challengeValidity: 5m
   # The in-app support form mails the request, together with the technical context the browser
   # reports, to these addresses. Deployment-specific, so unset here - with no recipient the endpoint
   # fails with a clear error rather than pretending to have sent something. The mail goes out over

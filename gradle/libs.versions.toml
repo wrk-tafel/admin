@@ -31,6 +31,8 @@ spring-retry = "2.0.13"
 # PostgreSQL as everything else (ADR-0003) - a library, not another piece of infrastructure.
 shedlock = "7.10.1"
 googleauth = "1.5.0"
+# WebAuthn (passkey) verification - the version Spring Security 7.1 builds its own WebAuthn support on.
+webauthn4j = "0.31.9.RELEASE"
 
 # Test dependency versions
 archunit = "1.5.1"
@@ -79,6 +81,8 @@ spring-retry = { module = "org.springframework.retry:spring-retry", version.ref 
 
 # ShedLock
 googleauth = { module = "com.warrenstrange:googleauth", version.ref = "googleauth" }
+webauthn4j-core = { module = "com.webauthn4j:webauthn4j-core", version.ref = "webauthn4j" }
+webauthn4j-test = { module = "com.webauthn4j:webauthn4j-test", version.ref = "webauthn4j" }
 shedlock-spring = { module = "net.javacrumbs.shedlock:shedlock-spring", version.ref = "shedlock" }
 shedlock-provider-jdbc-template = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-template", version.ref = "shedlock" }
 

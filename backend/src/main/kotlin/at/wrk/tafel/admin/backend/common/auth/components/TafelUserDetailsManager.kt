@@ -343,6 +343,7 @@ class TafelUserDetailsManager(
         email = userEntity.email,
         mfaTotpEnabled = userEntity.mfaTotpEnabled,
         mfaEmailEnabled = userEntity.mfaEmailEnabled,
+        mfaPasskeyEnabled = userEntity.mfaPasskeyEnabled,
     )
 
     /**

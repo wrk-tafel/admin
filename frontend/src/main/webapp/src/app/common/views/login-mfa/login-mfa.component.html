@@ -8,19 +8,26 @@
             <div class="mb-4 rounded-lg bg-white px-4 py-3">
               <img ngSrc="assets/img/brand/logo.svg" width="200" height="54" priority alt="ÖRK Logo" class="h-[54px] w-[200px] object-contain"/>
             </div>
-            <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">Bestätigungscode</h1>
+            <h1 class="mat-headline-6 font-semibold text-slate-800 m-0">{{ hasCode() ? 'Bestätigungscode' : 'Anmeldung bestätigen' }}</h1>
           </div>
 
-          <p class="text-sm text-slate-600 mb-4" testid="mfaHint">
-            @if (hasApp() && hasEmail()) {
-              Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein - oder lassen Sie sich einen Code per E-Mail senden -,
-              um die Anmeldung abzuschließen.
-            } @else if (hasEmail()) {
-              Geben Sie den 6-stelligen Code ein, der an Ihre E-Mail-Adresse gesendet wurde, um die Anmeldung abzuschließen.
-            } @else {
-              Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein, um die Anmeldung abzuschließen.
-            }
-          </p>
+          @if (hasPasskey()) {
+            <p class="text-sm text-slate-600 mb-4" testid="mfaPasskeyHint">
+              @if (hasCode()) {
+                Bestätigen Sie die Anmeldung mit Ihrem Passkey - oder mit einem Code, wenn der Passkey gerade nicht zur
+                Hand ist.
+              } @else {
+                Bestätigen Sie die Anmeldung mit Ihrem Passkey.
+              }
+            </p>
+          }
+          @if (noWayIn()) {
+            <p class="text-sm text-slate-600 mb-4" testid="mfaPasskeyUnsupported">
+              Für dieses Konto ist nur ein Passkey eingerichtet, und dieser Browser kann keinen Passkey verwenden. Bitte
+              melden Sie sich mit dem Gerät bzw. Browser an, auf dem der Passkey eingerichtet wurde - oder bitten Sie
+              einen Administrator, die Zwei-Faktor-Authentifizierung zurückzusetzen.
+            </p>
+          }
 
           @if (errorMessage()) {
             <div testid="errorMessage" class="tafel-banner-error" role="alert">{{ errorMessage() }}</div>
@@ -29,20 +36,42 @@
             <div testid="infoMessage" class="tafel-banner-success" role="status">{{ infoMessage() }}</div>
           }
 
+          @if (hasPasskey()) {
+            <button testid="mfaPasskeyButton" matButton="filled" type="button" class="w-full mb-6" tafelAutofocus
+                    (click)="usePasskey()" [disabled]="submitting()">
+              Mit Passkey bestätigen
+            </button>
+          }
+
+          @if (hasCode()) {
+          <p class="text-sm text-slate-600 mb-4" testid="mfaHint">
+            @if (hasApp() && hasEmail()) {
+              Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein - oder lassen Sie sich einen Code per E-Mail senden -,
+              um die Anmeldung abzuschließen.
+            } @else if (hasEmail() && hasPasskey()) {
+              Für einen Code wählen Sie "Code per E-Mail senden" und geben den 6-stelligen Code aus der E-Mail ein.
+            } @else if (hasEmail()) {
+              Geben Sie den 6-stelligen Code ein, der an Ihre E-Mail-Adresse gesendet wurde, um die Anmeldung abzuschließen.
+            } @else {
+              Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein, um die Anmeldung abzuschließen.
+            }
+          </p>
+
           <form (submit)="onSubmit($event)" novalidate class="flex flex-col">
             <mat-form-field class="w-full">
               <mat-label>Code</mat-label>
               <input [formField]="codeForm.code" matInput testid="mfaCode" type="text" inputmode="numeric"
-                     autocomplete="one-time-code" tafelAutofocus>
+                     autocomplete="one-time-code" tafelAutofocus [tafelAutofocusEnabled]="!hasPasskey()">
               @for (message of visibleErrorMessages(codeForm.code()); track message) {
                 <mat-error class="block">{{ message }}</mat-error>
               }
             </mat-form-field>
 
-            <button testid="mfaSubmit" matButton="filled" type="submit" class="w-full mt-4" [disabled]="submitting()">
+            <button testid="mfaSubmit" [matButton]="hasPasskey() ? 'outlined' : 'filled'" type="submit" class="w-full mt-4" [disabled]="submitting()">
               {{ submitting() ? 'Wird geprüft…' : 'Bestätigen' }}
             </button>
           </form>
+          }
 
           @if (hasEmail()) {
             <div class="mt-4 text-center">
