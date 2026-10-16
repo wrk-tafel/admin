@@ -58,6 +58,7 @@ class HouseholdServiceValidityTest {
             auditActorProvider = mockk(),
             clock = clock,
             advisoryLockService = mockk(),
+            searchTermNormalizer = mockk(),
         )
 
         // incomplete on purpose: a main person with a birth date but neither a name nor a gender
