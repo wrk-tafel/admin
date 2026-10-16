@@ -10,7 +10,7 @@ import at.wrk.tafel.admin.backend.database.common.audit.AuditOperation
 import at.wrk.tafel.admin.backend.database.common.audit.AuditScope
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
 import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
-import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.audit.AuditLogRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.household.DocumentRepository
@@ -80,6 +80,7 @@ class HouseholdService(
     private val auditActorProvider: AuditActorProvider,
     private val clock: Clock,
     private val advisoryLockService: AdvisoryLockService,
+    private val searchTermNormalizer: SearchTermNormalizer,
 ) {
 
     companion object {
@@ -480,7 +481,7 @@ class HouseholdService(
         sortDirection: String? = null,
     ): HouseholdSearchResult {
         val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
-        val searchTerm = SearchTextSpecs.normalize(searchInput)
+        val searchTerm = searchTermNormalizer.normalize(searchInput)
 
         val where = where(
             Specification.allOf(

@@ -23,37 +23,51 @@ class EmployeeEntity(
     var lastname: String,
 ) : BaseChangeTrackingEntity() {
 
+    /**
+     * Personnel number and name, folded (lower-cased, diacritics stripped) for the search box.
+     * Maintained by a database trigger (see `R__00134_fold_search_text_and_employee_search_text.sql`),
+     * hence read-only here.
+     */
+    @Column(name = "search_text", insertable = false, updatable = false)
+    var searchText: String? = null
+
     interface Specs {
         companion object {
             /**
-             * `%` and `_` in the term are matched as the characters they are, not as `LIKE`
-             * wildcards - same escaping as the `search_text` searches (see [SearchTextSpecs]).
+             * [searchTerm] has to be folded already (`SearchTermNormalizer`). [verbatimOnly] drops the
+             * typo-tolerant half of the match - for the driver/co-driver picker, which selects a single
+             * hit on its own and offers to create the employee on none, so a fuzzy near miss would be
+             * picked for the user or would hide the "create" option.
              */
-            fun searchInputMatches(searchInput: String?): Specification<EmployeeEntity>? = SearchTextSpecs.normalize(searchInput)?.let {
+            fun searchTextMatches(
+                searchTerm: String?,
+                similarityThreshold: Float,
+                verbatimOnly: Boolean = false,
+            ): Specification<EmployeeEntity>? = searchTerm?.let {
                 Specification { root: Root<EmployeeEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    val pattern = "%${SearchTextSpecs.escapeLikeWildcards(it)}%"
-                    val escape = SearchTextSpecs.LIKE_ESCAPE_CHARACTER
-                    cb.or(
-                        cb.like(cb.lower(root["personnelNumber"]), pattern, escape),
-                        cb.like(cb.lower(root["firstname"]), pattern, escape),
-                        cb.like(cb.lower(root["lastname"]), pattern, escape),
-                    )
+                    val searchText: Expression<String> = root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE]
+                    if (verbatimOnly) {
+                        SearchTextSpecs.contains(cb, searchText, it)
+                    } else {
+                        SearchTextSpecs.matches(cb, searchText, it, similarityThreshold)
+                    }
                 }
             }
 
             /**
-             * `id` ascending by default - the order the screen has always shown. A [sortBy]/
-             * [sortDirection] pair - a user clicking a sortable `mat-sort-header` column on the
-             * employees screen - overrides that, the same way `UserEntity.Specs.orderBySearchRelevance`
-             * does. [sortBy] takes the same column ids the frontend's `mat-sort-header`s use
-             * (`personnelNumber`, `firstname`, `lastname`); an unrecognized or missing value falls back
-             * to `id`. `id` still closes out the order so paging stays stable when two employees tie on
+             * Best match first while a [searchTerm] is given, `id` ascending otherwise - the order the
+             * screen has always shown. A [sortBy]/[sortDirection] pair - a user clicking a sortable
+             * `mat-sort-header` column on the employees screen - overrides both, the same way
+             * `UserEntity.Specs.orderBySearchRelevance` does. [sortBy] takes the same column ids the
+             * frontend's `mat-sort-header`s use (`personnelNumber`, `firstname`, `lastname`); an
+             * unrecognized or missing value falls back to the default. `id` still closes out the order so paging stays stable when two employees tie on
              * the requested column.
              */
             fun orderById(
                 spec: Specification<EmployeeEntity>,
                 sortBy: String? = null,
                 sortDirection: String? = null,
+                searchTerm: String? = null,
             ): Specification<EmployeeEntity> = Specification { root: Root<EmployeeEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                 val id: Expression<Long> = root["id"]
                 val personnelNumber: Expression<String> = root["personnelNumber"]
@@ -68,6 +82,9 @@ class EmployeeEntity(
                         "personnelNumber" -> add(cb.orderBy(personnelNumber))
                         "firstname" -> add(cb.orderBy(firstname))
                         "lastname" -> add(cb.orderBy(lastname))
+                        else -> searchTerm?.let {
+                            add(cb.desc(SearchTextSpecs.score(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], it)))
+                        }
                     }
                     add(cb.asc(id))
                 }

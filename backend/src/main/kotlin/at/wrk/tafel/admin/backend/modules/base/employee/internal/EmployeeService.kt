@@ -2,6 +2,8 @@ package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeItem
@@ -21,24 +23,38 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class EmployeeService(
     private val employeeRepository: EmployeeRepository,
+    private val searchTermNormalizer: SearchTermNormalizer,
+    private val tafelAdminProperties: TafelAdminProperties,
 ) {
 
     companion object {
         private val log = LoggerFactory.getLogger(EmployeeService::class.java)
     }
 
+    /**
+     * The same accent-insensitive, typo-tolerant search as for households and users, best match first
+     * - unless [verbatimOnly], which the driver/co-driver picker asks for (see
+     * `EmployeeEntity.Specs.searchTextMatches`).
+     */
     fun findEmployees(
         searchInput: String? = null,
         page: Int? = null,
         pageSize: Int? = null,
         sortBy: String? = null,
         sortDirection: String? = null,
+        verbatimOnly: Boolean = false,
     ): EmployeeListResponse {
         val pageRequest = PageRequest.of(PaginationDefaults.resolvePageIndex(page), PaginationDefaults.resolvePageSize(pageSize))
+        val searchTerm = searchTermNormalizer.normalize(searchInput)
         val spec = EmployeeEntity.Specs.orderById(
-            Specification.allOf(listOfNotNull(EmployeeEntity.Specs.searchInputMatches(searchInput))),
+            Specification.allOf(
+                listOfNotNull(
+                    EmployeeEntity.Specs.searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold, verbatimOnly),
+                ),
+            ),
             sortBy,
             sortDirection,
+            searchTerm,
         )
         val pagedResult = employeeRepository.findAll(spec, pageRequest)
 

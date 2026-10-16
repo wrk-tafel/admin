@@ -5,7 +5,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.export.ExportFileResult
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
-import at.wrk.tafel.admin.backend.database.common.search.SearchTextSpecs
+import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
@@ -48,6 +48,7 @@ class DataSubjectRequestService(
     private val userExportService: UserExportService,
     private val userDetailsManager: TafelUserDetailsManager,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val searchTermNormalizer: SearchTermNormalizer,
 ) {
 
     companion object {
@@ -68,7 +69,7 @@ class DataSubjectRequestService(
      * household number or username the caller couldn't otherwise reach (issue #3428).
      */
     fun search(searchInput: String): DataSubjectMatchListResponse {
-        val searchTerm = SearchTextSpecs.normalize(searchInput)
+        val searchTerm = searchTermNormalizer.normalize(searchInput)
             ?: return DataSubjectMatchListResponse(items = emptyList())
 
         val results = listOfNotNull(
@@ -181,7 +182,12 @@ class DataSubjectRequestService(
     }
 
     private fun searchEmployees(searchTerm: String): SearchResult {
-        val spec = EmployeeEntity.Specs.orderById(Specification.allOf(listOfNotNull(EmployeeEntity.Specs.searchInputMatches(searchTerm))))
+        val spec = EmployeeEntity.Specs.orderById(
+            Specification.allOf(
+                listOfNotNull(EmployeeEntity.Specs.searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold)),
+            ),
+            searchTerm = searchTerm,
+        )
         val page = employeeRepository.findAll(spec, PageRequest.of(0, MAX_RESULTS_PER_TYPE))
         return SearchResult(
             items = page.content.map {

@@ -83,6 +83,33 @@ describe('User Search', () => {
     });
   });
 
+  it('search ignores accents and finds a user by e-mail address', () => {
+    cy.getAnyRandomNumber().then((randomNumber) => {
+      const password = 'aSecretPassword-' + randomNumber;
+      cy.createUser({
+        username: 'accent-' + randomNumber,
+        personnelNumber: 'acc' + randomNumber,
+        firstname: 'Ayşe',
+        lastname: 'Yılmaz-' + randomNumber,
+        email: 'weiss-' + randomNumber + '@example.org',
+        enabled: true,
+        password,
+        passwordRepeat: password,
+        passwordChangeRequired: false,
+        permissions: []
+      }).then((response) => {
+        const user = response.body;
+
+        cy.byTestId('searchInputText').type('yilmaz-' + randomNumber);
+        clickSearchAndOpenExpectedResult(user.id!);
+
+        cy.visit('/benutzer/suchen');
+        cy.byTestId('searchInputText').type('weiß-' + randomNumber + '@example');
+        clickSearchAndOpenExpectedResult(user.id!);
+      });
+    });
+  });
+
   it('search finds the user despite a typo in the name', () => {
     cy.createDummyUser().then((response) => {
       const user = response.body;

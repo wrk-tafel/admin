@@ -37,7 +37,8 @@ instead, so a number's position in a group says nothing about its age.
 | [0007](0007-household-person-model-with-customer-vocabulary-in-the-frontend.md) | Household/person model, "customer" vocabulary in the frontend | accepted |
 | [0020](0020-reports-are-frozen-snapshots.md) | Reports and statistics are frozen snapshots, never live joins | accepted |
 | [0021](0021-documents-on-a-volume-metadata-in-the-database.md) | Documents on a mounted volume, metadata in the database | accepted |
-| [0025](0025-single-free-text-fuzzy-search.md) | One free-text search box over a trigger-maintained column | accepted |
+| [0025](0025-single-free-text-fuzzy-search.md) | One free-text search box over a trigger-maintained column | accepted (extended by [0071](0071-search-text-and-search-term-are-folded-by-one-database-function.md)) |
+| [0071](0071-search-text-and-search-term-are-folded-by-one-database-function.md) | Search text and search term are folded by one database function | accepted |
 | [0048](0048-static-values-resolved-from-a-per-run-snapshot.md) | Static values resolved from a per-run snapshot instead of a cache | accepted |
 
 ### Interfaces and communication

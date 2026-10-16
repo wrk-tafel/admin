@@ -136,6 +136,32 @@ describe('Customer Search', () => {
     });
   });
 
+  it('search ignores accents in the name, in either direction', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+      const suffix = customer.lastname.replace('lastname-', '');
+      cy.updateCustomer({...customer, lastname: 'Öztürk-' + suffix}).then(() => {
+        cy.byTestId('searchInputText').type('ozturk-' + suffix);
+        clickSearchAndOpenExpectedResult(customer.id!);
+      });
+    });
+  });
+
+  it('search finds a customer by birth date and by employer', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+      const suffix = customer.lastname.replace('lastname-', '');
+      cy.updateCustomer({...customer, employer: 'Bäckerei ' + suffix}).then(() => {
+        cy.byTestId('searchInputText').type('backerei ' + suffix);
+        clickSearchAndOpenExpectedResult(customer.id!);
+
+        cy.visit('/kunden/suchen');
+        cy.byTestId('searchInputText').type(dayjs(customer.birthDate).format('DD.MM.YYYY') + ' ' + customer.lastname);
+        clickSearchAndOpenExpectedResult(customer.id!);
+      });
+    });
+  });
+
   it('search finds the customer despite a typo in the name', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
@@ -581,8 +607,12 @@ describe('Customer Search', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;
 
-      cy.byTestId('searchInputText').type(customer.lastname);
-      clickSearchAndWaitForResult();
+      // Every dummy customer of this spec is a typo-tolerant match for another's "lastname-<n>", so the
+      // result can hold more than one default page - the large page keeps this one on it whichever way
+      // the list is sorted.
+      cy.intercept('POST', '/api/households/search').as('initialSearch');
+      cy.visit(`/kunden/suchen?suche=${encodeURIComponent(customer.lastname)}&anzahl=100`);
+      cy.wait('@initialSearch');
       cy.byTestId('searchresult-table').scrollIntoView().should('be.visible');
 
       cy.intercept('POST', '/api/households/search').as('sortedSearch');
