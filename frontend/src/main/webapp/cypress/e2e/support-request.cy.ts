@@ -16,9 +16,7 @@ describe('Support request', () => {
     cy.checkDialogAccessibility();
 
     cy.byTestId('supportHint').should('contain.text', 'technische Infos');
-    cy.byTestId('supportHint').should('contain.text', 'Screenshot');
-    // the hint below both fields asks for the customer number instead of a name
-    cy.byTestId('support-dialog').find('mat-hint').should('contain.text', 'Kundennummer');
+    cy.byTestId('supportHint').should('contain.text', 'Kundennummer');
 
     cy.byTestId('okButton').should('be.disabled');
 
@@ -42,26 +40,6 @@ describe('Support request', () => {
 
     cy.contains('Support-Anfrage wurde übermittelt!');
     cy.byTestId('support-dialog').should('not.exist');
-  });
-
-  it('sends the request without a screenshot once the reporter unticks it', () => {
-    cy.intercept('POST', '/api/support').as('createSupportRequest');
-
-    cy.byTestId('supportButton').click();
-    cy.byTestId('includeScreenshot').find('input').should('be.checked').click();
-    cy.byTestId('includeScreenshot').find('input').should('not.be.checked');
-    cy.checkDialogAccessibility();
-
-    cy.byTestId('supportTitle').type('Ohne Bild');
-    cy.byTestId('supportText').type('Die Seite zeigt Kundendaten.');
-    cy.byTestId('okButton').click();
-
-    cy.wait('@createSupportRequest').then(({request, response}) => {
-      expect(response!.statusCode).to.eq(201);
-      expect(request.body.clientContext.page).to.contain('/uebersicht');
-      expect(request.body.clientContext.screenshot ?? null).to.eq(null);
-    });
-    cy.contains('Support-Anfrage wurde übermittelt!');
   });
 
   it('strips a search query string out of the reported page - it is, in practice, a customer name', () => {

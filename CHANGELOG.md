@@ -5,7 +5,6 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 ## [Unreleased]
 - Die Suche nach Kunden, Benutzern und Mitarbeitern ignoriert jetzt Akzente und Sonderzeichen (z. B. findet "Ozturk" auch "Öztürk"), findet Kunden auch über Geburtsdatum und Arbeitgeber und Benutzer über die E-Mail-Adresse; die Mitarbeitersuche ist tippfehlertolerant wie die Kundensuche.
 - Neue Passwörter dürfen keine häufig verwendeten Passwörter, keine Zeichenfolgen wie "1234" oder "abcd" und nicht vier gleiche Zeichen hintereinander mehr enthalten.
-- Bei einer Support-Anfrage lässt sich jetzt abwählen, ob ein Screenshot der aktuellen Seite mitgeschickt wird.
 - In der Schnellsuche (Strg+K) öffnet die Eingabetaste jetzt zuverlässig den ersten Treffer zur gerade eingetippten Eingabe statt eines Treffers der vorherigen Eingabe; in der Kunden- und Benutzersuche bricht ein spät eintreffendes Suchergebnis das Öffnen eines angeklickten Treffers nicht mehr ab.
 - Seiten hinter der Anmeldung laden schneller, weil die Anwendung die Benutzerdaten pro Seitenwechsel nur noch einmal statt mehrmals abfragt.
 - Ein gesperrter Kunde erhält kein Ticket mehr, auch nicht über eine Seite, die vor dem Sperren geöffnet wurde; die Anmeldung zeigt dann die Sperre an.
