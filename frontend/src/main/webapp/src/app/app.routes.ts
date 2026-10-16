@@ -1,5 +1,5 @@
 import {inject} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivateFn, Routes} from '@angular/router';
+import {ActivatedRouteSnapshot, CanActivateFn, Routes, UrlSegment} from '@angular/router';
 
 import {P404Component} from './common/views/error/404.component';
 import {P500Component} from './common/views/error/500.component';
@@ -9,6 +9,11 @@ import {AuthGuardService} from './common/security/authguard.service';
 import {RELOAD_ON_NEW_VERSION} from './common/pwa/sw-update.service';
 
 const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => inject(AuthGuardService).canActivate(route);
+
+/** The pages of "Passwort vergessen?" - kept in sync with `password-reset.routes.ts`. */
+const PASSWORD_RESET_PATHS = ['passwort-vergessen', 'passwort-zuruecksetzen'];
+const passwordResetMatcher = (segments: UrlSegment[]) =>
+  segments.length === 1 && PASSWORD_RESET_PATHS.includes(segments[0].path) ? {consumed: []} : null;
 
 /**
  * Only the screens a browser can reach without a session stay eager here - the login page itself and
@@ -57,6 +62,11 @@ export const routes: Routes = [
     title: 'Zwei-Faktor-Authentifizierung einrichten',
     loadComponent: () => import('./common/views/login-mfa-setup/login-mfa-setup.component')
       .then(m => m.LoginMfaSetupComponent)
+  },
+  {
+    // both pages in one lazy chunk, reachable without a session
+    matcher: passwordResetMatcher,
+    loadChildren: () => import('./common/views/password-reset/password-reset.routes').then(m => m.routes)
   },
   {
     path: 'login',

@@ -171,6 +171,26 @@ Je nach Grund wird am Login unterschiedlich informiert: bei falschem Benutzernam
 
 ![Sitzung abgelaufen](images/login-sitzung-abgelaufen.jpg)
 
+<a id="passwort-vergessen"></a>
+
+### Passwort vergessen?
+
+Wer sein Passwort vergessen hat, wählt auf der Anmeldeseite **Passwort vergessen?** und gibt dort den Benutzernamen oder die E-Mail-Adresse des Kontos ein. Ist für das Konto eine E-Mail-Adresse hinterlegt (siehe [Benutzer](benutzer.md#benutzer-anlegen--bearbeiten) bzw. **Mein Konto** → **Meine Daten**), kommt an diese Adresse eine E-Mail mit dem Link **Neues Passwort festlegen**. Die Seite zeigt danach immer dieselbe Bestätigung, ob es ein solches Konto gibt oder nicht - so lässt sich von außen nicht herausfinden, welche Benutzernamen oder Adressen es gibt. Wer keine E-Mail bekommt (auch im Spam-Ordner nicht), hat entweder keine Adresse hinterlegt oder einen anderen Benutzernamen; dann setzt wie bisher eine Administratorin oder ein Administrator das Passwort zurück. Wird kurz hintereinander mehrmals ein Link angefordert, kommt innerhalb einer Minute nur eine E-Mail.
+
+![Passwort vergessen](images/login-passwort-vergessen.jpg)
+
+![Passwort vergessen: Bestätigung](images/login-passwort-vergessen-gesendet.jpg)
+
+Der Link öffnet die Seite **Neues Passwort festlegen**. Dort gibt man das neue Passwort zweimal ein und bestätigt mit **Passwort speichern** - erst dieser Klick setzt das Passwort, das bloße Öffnen des Links ändert nichts. Es gelten dieselben Passwortregeln wie beim Ändern des Passworts (siehe oben). Danach sind alle bisherigen Anmeldungen des Kontos beendet, auch auf anderen Geräten, und man meldet sich mit dem neuen Passwort an; ist die Zwei-Faktor-Authentifizierung eingerichtet, wird dabei wie gewohnt nach dem Code gefragt. An die Adresse des Kontos geht zusätzlich ein Sicherheitshinweis, dass das Passwort neu gesetzt wurde.
+
+![Neues Passwort festlegen](images/login-neues-passwort.jpg)
+
+Ein Link ist eine Stunde gültig und kann nur einmal verwendet werden; ein neu angeforderter Link ersetzt den vorigen. Ein abgelaufener, bereits verwendeter oder ersetzter Link zeigt "Dieser Link ist ungültig oder abgelaufen." und über **Neuen Link anfordern** geht es zurück zur Seite **Passwort vergessen**.
+
+![Neues Passwort festlegen: Link ungültig oder abgelaufen](images/login-neues-passwort-ungueltig.jpg)
+
+Der Link **Passwort vergessen?** erscheint nur, wenn der Betreiber den E-Mail-Versand eingerichtet und die Adresse der Anwendung hinterlegt hat.
+
 ## Navigation
 
 Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Waren-Eingabe"), werden grau dargestellt und mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde; ein Kurzhinweis (Tooltip) "Keine Verteilung aktiv" erklärt den Grund, statt den Menüpunkt einfach verschwinden zu lassen. Untergeordnete Bereiche wie "Benutzer" und "Statistiken" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Menü-Symbol ein-/ausgeblendet (siehe [Darstellung auf schmalen Bildschirmen](#darstellung-auf-schmalen-bildschirmen)). Der eingeklappte Zustand der Seitenleiste sowie aufgeklappte Gruppen bleiben auch nach einem Neuladen der Seite erhalten.

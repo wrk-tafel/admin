@@ -109,6 +109,12 @@
               {{ submitting() ? 'Anmeldung läuft…' : 'Anmelden' }}
             </button>
           </form>
+
+          @if (passwordResetAvailable()) {
+            <div class="mt-6 text-center">
+              <a testid="forgotPasswordLink" class="text-sm text-blue-700 hover:underline" routerLink="/passwort-vergessen">Passwort vergessen?</a>
+            </div>
+          }
         </mat-card-content>
       </mat-card>
     </div>

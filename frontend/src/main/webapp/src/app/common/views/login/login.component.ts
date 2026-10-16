@@ -1,7 +1,7 @@
 import {Component, computed, ElementRef, inject, linkedSignal, signal, viewChild} from '@angular/core';
 import {NgOptimizedImage} from '@angular/common';
 import {form, FormField, required} from '@angular/forms/signals';
-import {ActivatedRoute, Params, Router} from '@angular/router';
+import {ActivatedRoute, Params, Router, RouterLink} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
@@ -35,7 +35,8 @@ import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
     MatError,
     MatPrefix,
     MatSuffix,
-    MatIcon
+    MatIcon,
+    RouterLink
   ]
 })
 export class LoginComponent {
@@ -89,6 +90,7 @@ export class LoginComponent {
   // before anyone is logged in, so it goes to the public endpoint rather than /api/config.
   private readonly publicConfig = toSignal(this.configApiService.getPublicConfig(), {initialValue: null});
   readonly environmentLabel = computed(() => this.publicConfig()?.environmentLabel ?? '');
+  readonly passwordResetAvailable = computed(() => this.publicConfig()?.passwordResetAvailable === true);
 
   public togglePasswordVisibility() {
     this.passwordVisible.update(value => !value);

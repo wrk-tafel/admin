@@ -125,6 +125,6 @@ is asked.**
 - [Issue #3820](https://github.com/wrk-tafel/admin/issues/3820), [`passkey-evaluation.md`](../passkey-evaluation.md)
 - `backend/.../common/auth/components/PasskeyService.kt`, `MfaService.kt`, `MfaPendingFilter.kt`,
   `common/auth/MfaController.kt`
-- `backend/src/main/resources/db-migration/R__00136_user_passkeys.sql`
+- `backend/src/main/resources/db-migration/R__00137_user_passkeys.sql`
 - `backend/src/test/.../common/auth/PasskeyIT.kt`, `TestPasskeyAuthenticator.kt`
 - `frontend/.../common/security/passkey.service.ts`, `common/views/login-mfa/`, `modules/user/components/user-mfa/`

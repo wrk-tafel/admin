@@ -45,6 +45,7 @@ class TafelAdminProperties {
     var employeeDeletion: TafelAdminEmployeeRetentionProperties = TafelAdminEmployeeRetentionProperties()
     var mail: TafelAdminMailProperties? = null
     var mfa: TafelAdminMfaProperties = TafelAdminMfaProperties()
+    var passwordReset: TafelAdminPasswordResetProperties = TafelAdminPasswordResetProperties()
     var mailOutbox: TafelAdminMailOutboxProperties = TafelAdminMailOutboxProperties()
     var server: TafelAdminServerProperties = TafelAdminServerProperties()
     var notification: TafelAdminNotificationProperties = TafelAdminNotificationProperties()
@@ -594,6 +595,24 @@ class TafelAdminPasskeyProperties {
     var challengeValidity: Duration = Duration.ofMinutes(5)
 }
 
+/**
+ * "Passwort vergessen?" - see `PasswordResetService` and ADR-0072. Read per use. The feature itself is
+ * only offered where a mail can be sent (`tafeladmin.mail`) and `tafeladmin.server.publicUrl` is set,
+ * since the link in the mail needs both.
+ */
+@ExcludeFromTestCoverage
+class TafelAdminPasswordResetProperties {
+    /** How long a mailed link stays usable. */
+    var tokenValidity: Duration = Duration.ofHours(1)
+
+    /**
+     * How long a further request for the same account is ignored after a link was sent - so the
+     * public request endpoint cannot be used to fill somebody's mailbox. The answer stays the same
+     * either way, the request is just not acted on.
+     */
+    var requestCooldown: Duration = Duration.ofSeconds(60)
+}
+
 @ExcludeFromTestCoverage
 class TafelAdminMailProperties {
     var from: String = ""
@@ -651,6 +670,18 @@ class TafelAdminMailOutboxProperties {
 @ExcludeFromTestCoverage
 class TafelAdminServerProperties {
     var relativeBaseUrl: String = "/"
+
+    /**
+     * The address the application is reached at from outside, including its base path - e.g.
+     * `https://example.org/verwaltung`. The one thing a link in a mail (password reset, e-mail change)
+     * is built from: never derived from a request's `Host` header, which the caller controls.
+     * Per environment, and empty by default, which switches those features off.
+     */
+    var publicUrl: String? = null
+
+    /** [publicUrl] without a trailing slash, or `null` while none is configured. */
+    val publicBaseUrl: String?
+        get() = publicUrl?.trim()?.trimEnd('/')?.ifEmpty { null }
 
     /**
      * [relativeBaseUrl] with a guaranteed trailing slash - what anything building a URL *below* the

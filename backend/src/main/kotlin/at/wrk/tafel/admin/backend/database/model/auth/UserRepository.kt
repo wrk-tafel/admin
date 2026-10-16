@@ -14,6 +14,9 @@ interface UserRepository :
 
     fun findByUsername(username: String): UserEntity?
 
+    /** An address is not unique across accounts - every account holding it is returned. */
+    fun findAllByEmailIgnoreCase(email: String): List<UserEntity>
+
     /**
      * Deliberately a bulk update rather than loading the entity and saving it back: every login
      * would otherwise bump `updated_at` (misplacing the account in the user search's "most recently
