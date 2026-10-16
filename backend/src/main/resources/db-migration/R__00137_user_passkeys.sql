@@ -1,5 +1,5 @@
 -- Passkeys (WebAuthn credentials) as a further way to complete a login's second step, next to the
--- authenticator app and the e-mailed code (see R__00124_user_mfa.sql and ADR-0073).
+-- authenticator app and the e-mailed code (see R__00124_user_mfa.sql and ADR-0074).
 --
 -- user_passkeys holds one row per registered passkey. credential_id is the id the authenticator chose
 -- (base64url), attested_credential_data the AAGUID, credential id and public key as the authenticator

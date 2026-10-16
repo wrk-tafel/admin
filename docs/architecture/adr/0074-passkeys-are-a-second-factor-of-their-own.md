@@ -1,4 +1,4 @@
-# ADR-0073: Passkeys are a second factor of their own
+# ADR-0074: Passkeys are a second factor of their own
 
 **Status:** accepted · **Recorded:** 2026-10-13
 

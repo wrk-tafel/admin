@@ -3,7 +3,7 @@
 Analysis for [issue #3820](https://github.com/wrk-tafel/admin/issues/3820), which asks whether
 passkeys (WebAuthn credentials) make sense as a way to log in here. This is an evaluation, not a
 decision record. The one decision that came out of it is
-[ADR-0073](adr/0073-passkeys-are-a-second-factor-of-their-own.md): a
+[ADR-0074](adr/0074-passkeys-are-a-second-factor-of-their-own.md): a
 passkey as a third, optional second factor, for the people who do log in on a device of their own.
 A passkey instead of the password is undecided, and this document is the case against doing it now.
 
@@ -35,7 +35,7 @@ A passkey can enter at either step, and those are two different features:
 | Size | medium | A plus the login page flow, discoverable credentials and the policy questions in [§5](#5-recovery-and-fallback) |
 
 B can be added on top of A: the credential storage, the registration and the "Mein Konto" tab are
-the same. ADR-0073 is A.
+the same. ADR-0074 is A.
 
 ## 2. What is specific to this application
 
@@ -111,7 +111,7 @@ That leaves three ways to build it rather than two:
 | `WebAuthnRelyingPartyOperations` behind endpoints in `MfaController` | well: registration and verification become two more methods next to TOTP and e-mail, and the lockout, ADR-0059 check and notification stay where they are | the options/response JSON handling the filters would have done |
 | `webauthn4j` directly | well | the same, plus the credential storage and the verification wiring Spring already provides |
 
-ADR-0073 took the third: with the ceremony behind the application's own endpoints, what Spring's
+ADR-0074 took the third: with the ceremony behind the application's own endpoints, what Spring's
 module still adds is its credential repositories, and those would have been a second, unaudited
 persistence path next to the JPA entities everything else here uses.
 

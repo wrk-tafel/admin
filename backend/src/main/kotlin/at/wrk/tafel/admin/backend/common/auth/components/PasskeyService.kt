@@ -34,7 +34,7 @@ import java.time.LocalDateTime
 import java.util.Base64
 
 /**
- * Passkeys (WebAuthn credentials) as a way to complete the second step of a login - see ADR-0073. This class is
+ * Passkeys (WebAuthn credentials) as a way to complete the second step of a login - see ADR-0074. This class is
  * the WebAuthn part only: it hands out the options a browser needs for a ceremony, remembers the challenge in
  * between, and verifies what the browser sends back. Who may register, use or remove a passkey, what a failure
  * counts for and who is told is [MfaService]'s business, like for the other methods.

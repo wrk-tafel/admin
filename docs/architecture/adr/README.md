@@ -59,7 +59,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0061](0061-mandatory-two-factor-setup-happens-in-the-login-flow.md) | A mandatory two-factor setup happens in the login flow, not inside the application | accepted |
 | [0062](0062-mandatory-mfa-also-requires-an-email-address.md) | A mandatory second factor also requires an e-mail address on file | accepted |
 | [0072](0072-mailed-links-carry-a-hashed-single-use-token-in-the-fragment.md) | Mailed links carry a hashed, single-use token in the URL fragment | accepted |
-| [0073](0073-passkeys-are-a-second-factor-of-their-own.md) | Passkeys are a second factor of their own | accepted |
+| [0074](0074-passkeys-are-a-second-factor-of-their-own.md) | Passkeys are a second factor of their own | accepted |
 | [0063](0063-one-event-stream-per-tab-with-topics.md) | One event stream per browser tab, made of topics | accepted |
 | [0064](0064-client-error-reports-and-the-event-stream-need-a-completed-login.md) | Client-error reports and the event stream need a completed login | accepted |
 | [0066](0066-the-digital-id-card-is-a-pdf-and-an-image-not-a-wallet-pass.md) | The digital ID card is a PDF and an image, not a wallet pass | superseded by [0067](0067-the-id-card-is-handed-out-on-paper-only.md) |
@@ -122,7 +122,7 @@ decided. They live one level up, in `docs/architecture/`:
 | [`gdpr-compliance.md`](../gdpr-compliance.md) | What the application does with personal data, and where that falls short of the GDPR ([#3124](https://github.com/wrk-tafel/admin/issues/3124)) |
 | [`rls-postgres-evaluation.md`](../rls-postgres-evaluation.md) | Whether Postgres Row Level Security makes sense given this application's single-tenant, permission-not-row access model ([#3411](https://github.com/wrk-tafel/admin/issues/3411)) |
 | [`openspec-evaluation.md`](../openspec-evaluation.md) | Whether the OpenSpec spec-driven-development toolkit would be beneficial here, given the existing ADR/skill-based propose-implement-review workflow ([#3671](https://github.com/wrk-tafel/admin/issues/3671)) |
-| [`passkey-evaluation.md`](../passkey-evaluation.md) | Whether passkeys make sense as a login method, given the stateless two-step login and that most logins happen on shared machines ([#3820](https://github.com/wrk-tafel/admin/issues/3820)); the part that was built is [ADR-0073](0073-passkeys-are-a-second-factor-of-their-own.md) |
+| [`passkey-evaluation.md`](../passkey-evaluation.md) | Whether passkeys make sense as a login method, given the stateless two-step login and that most logins happen on shared machines ([#3820](https://github.com/wrk-tafel/admin/issues/3820)); the part that was built is [ADR-0074](0074-passkeys-are-a-second-factor-of-their-own.md) |
 
 ## Reference
 
