@@ -132,6 +132,8 @@ jobs:
             urls: >-
               /login,
               /login/passwortaendern,
+              /passwort-vergessen,
+              /passwort-zuruecksetzen,
               /404,
               /500,
               /uebersicht,

@@ -268,6 +268,21 @@ class TafelUserDetailsManager(
     }
 
     /**
+     * Sets a new password without asking for the old one - for "Passwort vergessen?"
+     * (`PasswordResetService`), where the mailed link is the proof. Same rules as [changePassword]:
+     * the password policy, `passwordChangeRequired` cleared, and every session of the account ended.
+     * Throws [PasswordChangeException] for a password the policy refuses.
+     */
+    fun resetPassword(userEntity: UserEntity, newPassword: String) {
+        if (isPasswordValid(userEntity.username, newPassword)) {
+            userEntity.password = passwordEncoder.encode(newPassword)!!
+            userEntity.passwordChangeRequired = false
+            markTokensInvalidated(userEntity)
+            userRepository.save(userEntity)
+        }
+    }
+
+    /**
      * Bumps [UserEntity.tokenInvalidatedAt] to now, so [TafelJwtAuthProvider] rejects every JWT
      * issued for this user before this moment on their very next request. Called wherever a
      * password is changed - here and from [mapToUserEntity] - and, separately, from

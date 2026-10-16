@@ -40,8 +40,11 @@ data class ConfigResponse(
  * empty on production and set per deployment elsewhere ("DEV", "TEST"), which is what the login
  * page shows beneath its title so it's obvious which environment is being logged into - the same
  * value [ConfigResponse.environmentLabel] carries on for an already-authenticated session.
+ * [passwordResetAvailable] is whether the login page offers "Passwort vergessen?" - only where a mail
+ * can be sent and `tafeladmin.server.publicUrl` is set (`PasswordResetService.isAvailable`).
  */
 @ExcludeFromTestCoverage
 data class PublicConfigResponse(
     val environmentLabel: String,
+    val passwordResetAvailable: Boolean = false,
 )

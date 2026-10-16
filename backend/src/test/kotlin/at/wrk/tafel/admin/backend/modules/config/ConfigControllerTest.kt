@@ -1,6 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.config
 
+import at.wrk.tafel.admin.backend.common.auth.components.PasswordResetService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import io.mockk.every
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -8,7 +11,7 @@ class ConfigControllerTest {
 
     @Test
     fun `get config`() {
-        val controller = ConfigController(
+        val controller = controller(
             TafelAdminProperties().apply {
                 version = "1.2.3"
                 buildDate = "2026-07-28"
@@ -30,7 +33,7 @@ class ConfigControllerTest {
 
     @Test
     fun `get config reports the scanner folder as disabled when it is switched off`() {
-        val controller = ConfigController(
+        val controller = controller(
             TafelAdminProperties().apply {
                 storage.scannerPath = "/mnt/scanner"
                 features.scannerFolderEnabled = false
@@ -42,7 +45,7 @@ class ConfigControllerTest {
 
     @Test
     fun `get config reports the scanner folder as disabled when no folder is configured`() {
-        val controller = ConfigController(TafelAdminProperties())
+        val controller = controller(TafelAdminProperties())
 
         assertThat(controller.getConfig().scannerFolderEnabled).isFalse()
     }
@@ -55,7 +58,7 @@ class ConfigControllerTest {
     @Test
     fun `get config answers with reloaded configuration`() {
         val properties = TafelAdminProperties().apply { version = "1.2.3" }
-        val controller = ConfigController(properties)
+        val controller = controller(properties)
         assertThat(controller.getConfig().scannerFolderEnabled).isFalse()
 
         properties.storage.scannerPath = "/mnt/scanner"
@@ -72,22 +75,33 @@ class ConfigControllerTest {
 
     @Test
     fun `get config trims and reports the configured environment label`() {
-        val controller = ConfigController(TafelAdminProperties().apply { environmentLabel = " DEV " })
+        val controller = controller(TafelAdminProperties().apply { environmentLabel = " DEV " })
 
         assertThat(controller.getConfig().environmentLabel).isEqualTo("DEV")
     }
 
     @Test
     fun `get public config returns the configured environment label`() {
-        val controller = ConfigController(TafelAdminProperties().apply { environmentLabel = " DEV " })
+        val controller = controller(TafelAdminProperties().apply { environmentLabel = " DEV " })
 
         assertThat(controller.getPublicConfig()).isEqualTo(PublicConfigResponse(environmentLabel = "DEV"))
     }
 
     @Test
     fun `get public config returns an empty environment label when none is configured`() {
-        val controller = ConfigController(TafelAdminProperties())
+        val controller = controller(TafelAdminProperties())
 
         assertThat(controller.getPublicConfig()).isEqualTo(PublicConfigResponse(environmentLabel = ""))
     }
+
+    @Test
+    fun `get public config says whether the password reset is offered`() {
+        assertThat(controller(TafelAdminProperties(), passwordResetAvailable = true).getPublicConfig().passwordResetAvailable).isTrue()
+        assertThat(controller(TafelAdminProperties(), passwordResetAvailable = false).getPublicConfig().passwordResetAvailable).isFalse()
+    }
+
+    private fun controller(properties: TafelAdminProperties, passwordResetAvailable: Boolean = false) = ConfigController(
+        properties,
+        mockk<PasswordResetService> { every { isAvailable() } returns passwordResetAvailable },
+    )
 }

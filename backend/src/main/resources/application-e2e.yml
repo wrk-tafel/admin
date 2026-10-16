@@ -4,21 +4,24 @@ tafeladmin:
   environmentLabel: E2E
   testdata:
     enabled: true
-  # A fixed code instead of a random one: there is no mail server, so a spec could not read the mail the
-  # e-mail method of two-factor authentication would send. The cooldown is shortened so a spec can ask for a
-  # second code without waiting.
+  # A fixed code instead of a random one, so a spec can complete the e-mail method of two-factor authentication
+  # without reading the mail. The cooldown is shortened so a spec can ask for a second code without waiting.
   mfa:
     emailCodeForTests: "424242"
     emailCodeCooldown: 1s
-  # Only makes the e-mail method of two-factor authentication available (it needs a mail to compose): no mail
-  # server is set up for the e2e run, so the mail is dropped by MailOutboxService and nothing is delivered anywhere.
+  # Makes every feature that mails something available. The mails go to the Mailpit that the CI job
+  # runs as a service and docker-compose.yml runs locally (spring.mail below); password-reset.cy.ts
+  # reads its link from there.
   mail:
     from: "e2e@e2e-test"
   support:
-    # Only makes the support endpoint answer "configured" - no mail server is set up for the e2e
-    # run, so the send itself is skipped (see MailSenderService) and nothing is delivered anywhere.
+    # Makes the support endpoint answer "configured" - the mail ends up in Mailpit like any other.
     recipients:
       - "support@e2e-test"
+  server:
+    # What the links in mails are built from ("Passwort vergessen?") - a spec reads only the token
+    # out of the link and opens the page on its own baseUrl, so the port here does not matter.
+    publicUrl: http://localhost:8080
   storage:
     # Written to by the Cypress e2e run via a Node fs task (see cypress.config.ts) - java.io.tmpdir
     # and Node's os.tmpdir() resolve to the same OS temp directory on the runner both processes
@@ -40,6 +43,15 @@ spring:
     username: tafeladmin
     password: tafeladmin
   flyway.locations: classpath:/db-migration,classpath:/db-migration-testdata
+  mail:
+    host: localhost
+    port: 1025
+    # application.yml's SMTP authentication stays on; Mailpit accepts any credentials
+    username: e2e
+    password: e2e
+    properties.mail.smtp:
+      # Mailpit has no TLS certificate, so it never offers STARTTLS - see application-local.yml.
+      starttls.required: false
   # testdata setup wipes and re-creates the schema on startup (see FlywayConfig)
   flyway.clean-disabled: false
 
