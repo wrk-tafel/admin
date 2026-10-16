@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.MfaMethod
+import at.wrk.tafel.admin.backend.common.auth.model.PasskeyKind
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
@@ -75,7 +76,7 @@ class MfaService(
             emailAvailable = mfaEmailCodeService.isAvailable(),
             emailAddress = user.email?.takeIf { it.isNotBlank() },
             passkeys = passkeyService.list(user.id!!).map {
-                MfaPasskey(id = it.id!!, name = it.name, createdAt = it.createdAt, lastUsedAt = it.lastUsedAt)
+                MfaPasskey(id = it.id!!, name = it.name, kind = PasskeyKind.of(it.transports), createdAt = it.createdAt, lastUsedAt = it.lastUsedAt)
             },
         )
     }
@@ -418,11 +419,12 @@ data class MfaStatus(
     val passkeys: List<MfaPasskey> = emptyList(),
 )
 
-/** One passkey as its owner sees it: what they called it, and when it was added and last used. */
+/** One passkey as its owner sees it: what they called it, what holds it, and when it was added and last used. */
 @ExcludeFromTestCoverage
 data class MfaPasskey(
     val id: Long,
     val name: String,
+    val kind: PasskeyKind,
     val createdAt: LocalDateTime?,
     val lastUsedAt: LocalDateTime?,
 )

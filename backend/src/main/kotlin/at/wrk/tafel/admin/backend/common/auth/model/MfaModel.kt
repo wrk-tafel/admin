@@ -39,9 +39,39 @@ data class MfaStatusResponse(
 data class MfaPasskeyItem(
     val id: Long,
     val name: String,
+    val kind: PasskeyKind,
     val createdAt: LocalDateTime?,
     val lastUsedAt: LocalDateTime?,
 )
+
+/**
+ * What kind of authenticator holds a passkey, as far as the transports it reported when it was added tell: one
+ * built into a device (or a phone reached over `hybrid`), or a separate security key plugged in or held against
+ * the device. Only shown to the owner, so they can tell their passkeys apart - nothing is decided by it.
+ */
+enum class PasskeyKind {
+    DEVICE,
+    SECURITY_KEY,
+
+    /** The authenticator reported no transports (or only ones not listed here). */
+    UNKNOWN,
+    ;
+
+    companion object {
+        private val DEVICE_TRANSPORTS = setOf("internal", "hybrid")
+        private val SECURITY_KEY_TRANSPORTS = setOf("usb", "nfc", "ble", "smart-card")
+
+        /** [transports] as stored on the passkey: comma-separated, `null` when none were reported. */
+        fun of(transports: String?): PasskeyKind {
+            val reported = transports?.split(",")?.map { it.trim() }?.toSet() ?: emptySet()
+            return when {
+                reported.any { it in DEVICE_TRANSPORTS } -> DEVICE
+                reported.any { it in SECURITY_KEY_TRANSPORTS } -> SECURITY_KEY
+                else -> UNKNOWN
+            }
+        }
+    }
+}
 
 /**
  * What the browser needs for a passkey ceremony: the WebAuthn options in their JSON form, which the page hands

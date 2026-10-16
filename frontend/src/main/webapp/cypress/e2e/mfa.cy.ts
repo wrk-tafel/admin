@@ -107,6 +107,19 @@ describe('Two-factor authentication', () => {
     cy.byTestId('mfaSubmit').click();
   }
 
+  // The methods are rows that start closed; what a test does with a method happens inside its opened row
+  function openRow(row: 'app' | 'email' | 'passkey') {
+    cy.byTestId('mfaRowToggle-' + row).click();
+    cy.byTestId('mfaRowPanel-' + row).should('be.visible');
+  }
+
+  // Every change but the very first setup is confirmed in the shared dialog, with a code of an existing method
+  function confirmWithCode(code: string) {
+    cy.byTestId('mfaConfirmDialog').should('be.visible');
+    cy.byTestId('mfaConfirmCode').clear().type(code);
+    cy.byTestId('mfaConfirmSubmit').click();
+  }
+
   function logoutThroughTheMenu() {
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-logout').click();
@@ -120,6 +133,8 @@ describe('Two-factor authentication', () => {
       cy.visit('/konto/zwei-faktor');
 
       cy.byTestId('mfaTotpStatus').should('have.text', 'Nicht aktiv');
+      cy.byTestId('mfaSummaryTitle').should('contain.text', 'nur durch das Passwort geschützt');
+      openRow('app');
       cy.byTestId('mfaSetupButton').click();
       cy.byTestId('mfaQrCode').find('svg').should('be.visible');
       cy.byTestId('mfaStoreLinkGoogle').should('have.attr', 'href').and('contain', 'play.google.com');
@@ -132,6 +147,8 @@ describe('Two-factor authentication', () => {
         cy.byTestId('mfaEnableButton').click();
         cy.get('.toast-message').should('be.visible').and('contain.text', 'eingerichtet');
         cy.byTestId('mfaTotpStatus').should('have.text', 'Aktiv');
+        cy.byTestId('mfaSummaryTitle').should('contain.text', '1 von 3 Methoden aktiv');
+        cy.byTestId('mfaWarning').should('contain.text', 'Nur eine Methode');
 
         // the next login asks for a code after the password ...
         logoutThroughTheMenu();
@@ -146,11 +163,15 @@ describe('Two-factor authentication', () => {
         cy.task('totpCode', {secret, stepOffset: 0}).then(code => enterCode(code as string));
         cy.url().should('contain', '/uebersicht');
 
-        // ... and it can be switched off again, with a code
+        // ... and it can be removed again from its row, confirmed with a code
         cy.visit('/konto/zwei-faktor');
         cy.byTestId('mfaTotpStatus').should('have.text', 'Aktiv');
-        cy.task('totpCode', {secret, stepOffset: 1}).then(code => cy.byTestId('mfaDisableCode').type(code as string));
+        openRow('app');
         cy.byTestId('mfaDisableTotpButton').click();
+        cy.byTestId('mfaConfirmDialog').should('be.visible');
+        cy.byTestId('mfaConfirmSendCodeButton').should('not.exist');
+        cy.checkDialogAccessibility();
+        cy.task('totpCode', {secret, stepOffset: 1}).then(code => confirmWithCode(code as string));
         cy.get('.toast-message').should('be.visible').and('contain.text', 'entfernt');
         cy.byTestId('mfaTotpStatus').should('have.text', 'Nicht aktiv');
 
@@ -166,6 +187,7 @@ describe('Two-factor authentication', () => {
       cy.login(user.username, user.password);
       cy.visit('/konto/zwei-faktor');
 
+      openRow('app');
       cy.byTestId('mfaSetupButton').click();
       cy.byTestId('mfaAppCode').type('000000');
       cy.byTestId('mfaEnableButton').click();
@@ -185,6 +207,7 @@ describe('Two-factor authentication', () => {
       cy.visit('/konto/zwei-faktor');
       cy.intercept('POST', '/api/mfa/enable').as('enable');
 
+      openRow('app');
       cy.byTestId('mfaSetupButton').click();
       cy.byTestId('mfaAppCode').type('12345').blur();
       cy.contains('mat-error', 'Der Code besteht aus 6 Ziffern').should('be.visible');
@@ -202,6 +225,7 @@ describe('Two-factor authentication', () => {
       cy.visit('/konto/zwei-faktor');
 
       cy.byTestId('mfaEmailStatus').should('have.text', 'Nicht aktiv');
+      openRow('email');
       cy.byTestId('mfaEmailSetupButton').click();
       cy.byTestId('infoMessage').should('be.visible').and('contain.text', 'gesendet');
       cy.byTestId('mfaEmailStatus').should('have.text', 'Wird eingerichtet');
@@ -214,6 +238,7 @@ describe('Two-factor authentication', () => {
       cy.byTestId('mfaEmailEnableButton').click();
       cy.get('.toast-message').should('be.visible').and('contain.text', 'eingerichtet');
       cy.byTestId('mfaEmailStatus').should('have.text', 'Aktiv');
+      cy.byTestId('mfaWarning').should('contain.text', 'Nur der Code per E-Mail');
 
       // the next login asks for the e-mailed code, which is sent as the page opens
       logoutThroughTheMenu();
@@ -226,12 +251,14 @@ describe('Two-factor authentication', () => {
       enterCode(EMAIL_CODE);
       cy.url().should('contain', '/uebersicht');
 
-      // switching it off needs a code too: the e-mail is the only method, so one is sent for it
+      // removing it needs a code too: the e-mail is the only method, so the dialog sends one for it
       cy.visit('/konto/zwei-faktor');
-      cy.byTestId('mfaSendDisableCodeButton').click();
-      cy.byTestId('infoMessage').should('be.visible').and('contain.text', 'gesendet');
-      cy.byTestId('mfaDisableCode').type(EMAIL_CODE);
+      openRow('email');
       cy.byTestId('mfaDisableEmailButton').click();
+      cy.byTestId('mfaConfirmSendCodeButton').click();
+      cy.byTestId('mfaConfirmInfo').should('be.visible').and('contain.text', 'gesendet');
+      cy.checkDialogAccessibility();
+      confirmWithCode(EMAIL_CODE);
       cy.get('.toast-message').should('be.visible').and('contain.text', 'entfernt');
       cy.byTestId('mfaEmailStatus').should('have.text', 'Nicht aktiv');
     });
@@ -268,27 +295,27 @@ describe('Two-factor authentication', () => {
       enableApp(user).then(secret => {
         cy.visit('/konto/zwei-faktor');
 
+        openRow('email');
         cy.byTestId('mfaEmailSetupButton').click();
-        cy.byTestId('mfaEmailCurrentCode').scrollIntoView().should('be.visible');
-        // the app has the code, so there is no e-mail to send one by
-        cy.byTestId('mfaEmailSendCurrentCodeButton').should('not.exist');
-        cy.checkAccessibility('main');
-
-        // the code from the mail alone is not enough
         cy.byTestId('mfaEmailCode').type(EMAIL_CODE);
+        cy.checkAccessibility('main');
         cy.byTestId('mfaEmailEnableButton').click();
+
+        // the code from the mail alone is not enough: the dialog asks for one of the app - which has it, so there
+        // is no e-mail to send one by
+        cy.byTestId('mfaConfirmDialog').should('be.visible');
+        cy.byTestId('mfaConfirmSendCodeButton').should('not.exist');
+        cy.byTestId('mfaConfirmSubmit').click();
         cy.contains('mat-error', 'Bitte den Code eingeben').should('be.visible');
+        cy.checkDialogAccessibility();
+
+        // a wrong one is refused, and the dialog stays open for another try
+        confirmWithCode('000000');
+        cy.byTestId('mfaConfirmError').should('be.visible').and('contain.text', 'Der Code ist ungültig');
         cy.byTestId('mfaEmailStatus').should('have.text', 'Wird eingerichtet');
 
-        // nor is a wrong one for the app
-        cy.byTestId('mfaEmailCurrentCode').type('000000');
-        cy.byTestId('mfaEmailEnableButton').click();
-        cy.byTestId('errorMessage').should('be.visible').and('contain.text', 'Der Code ist ungültig');
-        cy.byTestId('mfaEmailStatus').should('have.text', 'Wird eingerichtet');
-
-        cy.byTestId('mfaEmailCode').clear().type(EMAIL_CODE);
-        cy.task('totpCode', {secret, stepOffset: 0}).then(code => cy.byTestId('mfaEmailCurrentCode').clear().type(code as string));
-        cy.byTestId('mfaEmailEnableButton').click();
+        cy.task('totpCode', {secret, stepOffset: 0}).then(code => confirmWithCode(code as string));
+        cy.byTestId('mfaConfirmDialog').should('not.exist');
         cy.get('.toast-message').should('be.visible').and('contain.text', 'eingerichtet');
         cy.byTestId('mfaEmailStatus').should('have.text', 'Aktiv');
       });
@@ -302,19 +329,19 @@ describe('Two-factor authentication', () => {
       loginByApiWithEmailCode(user);
       cy.visit('/konto/zwei-faktor');
 
+      openRow('app');
       cy.byTestId('mfaSetupButton').click();
       cy.byTestId('mfaQrCode').find('svg').should('be.visible');
-      cy.byTestId('mfaAppCurrentCode').scrollIntoView().should('be.visible');
-      cy.byTestId('mfaAppSendCurrentCodeButton').click();
-      cy.byTestId('infoMessage').should('be.visible').and('contain.text', 'gesendet');
       cy.checkAccessibility('main');
 
-      // the app code for the secret shown, and the code that was sent for the method the user has
+      // the app code for the secret shown, and in the dialog the code that was sent for the method the user has
       cy.byTestId('mfaSecret').invoke('text').then(text => {
         cy.task('totpCode', {secret: text.replace(/\s/g, ''), stepOffset: 0}).then(code => cy.byTestId('mfaAppCode').type(code as string));
       });
-      cy.byTestId('mfaAppCurrentCode').type(EMAIL_CODE);
       cy.byTestId('mfaEnableButton').click();
+      cy.byTestId('mfaConfirmSendCodeButton').click();
+      cy.byTestId('mfaConfirmInfo').should('be.visible').and('contain.text', 'gesendet');
+      confirmWithCode(EMAIL_CODE);
       cy.get('.toast-message').should('be.visible').and('contain.text', 'eingerichtet');
       cy.byTestId('mfaTotpStatus').should('have.text', 'Aktiv');
     });
@@ -360,7 +387,7 @@ describe('Two-factor authentication', () => {
     });
   });
 
-  it('a method can be switched off with a code of the other one', () => {
+  it('a method can be removed with a code of the other one', () => {
     createUser().then(user => {
       enableApp(user).then(secret => {
         enableEmailThroughTheApi(secret);
@@ -368,8 +395,11 @@ describe('Two-factor authentication', () => {
 
         cy.byTestId('mfaTotpStatus').should('have.text', 'Aktiv');
         cy.byTestId('mfaEmailStatus').should('have.text', 'Aktiv');
-        cy.task('totpCode', {secret, stepOffset: 1}).then(code => cy.byTestId('mfaDisableCode').type(code as string));
+        cy.byTestId('mfaSummaryTitle').should('contain.text', '2 von 3 Methoden aktiv');
+        cy.byTestId('mfaWarning').should('not.exist');
+        openRow('email');
         cy.byTestId('mfaDisableEmailButton').click();
+        cy.task('totpCode', {secret, stepOffset: 1}).then(code => confirmWithCode(code as string));
 
         cy.byTestId('mfaEmailStatus').should('have.text', 'Nicht aktiv');
         cy.byTestId('mfaTotpStatus').should('have.text', 'Aktiv');
@@ -572,8 +602,8 @@ describe('Two-factor authentication', () => {
         // normally again now that a method is set up
         cy.visit('/konto/zwei-faktor');
         cy.byTestId('mfaRequiredHint').should('be.visible');
-        // far down the page: Cypress counts what is scrolled out of the content area as hidden, so bring it in first
-        cy.byTestId('mfaLastMethodHint').scrollIntoView().should('be.visible');
+        cy.byTestId('mfaLastMethodHint').should('be.visible');
+        openRow('email');
         cy.byTestId('mfaDisableEmailButton').should('be.disabled');
       });
     });
@@ -713,11 +743,12 @@ describe('Two-factor authentication', () => {
     }
 
     function addPasskeyThroughThePage(name: string) {
+      openRow('passkey');
       cy.byTestId('mfaPasskeyName').type(name);
-      cy.byTestId('mfaPasskeySendCurrentCodeButton').click();
-      cy.byTestId('infoMessage').should('be.visible').and('contain.text', 'gesendet');
-      cy.byTestId('mfaPasskeyCurrentCode').type(EMAIL_CODE);
       cy.byTestId('mfaPasskeyAddButton').click();
+      cy.byTestId('mfaConfirmSendCodeButton').click();
+      cy.byTestId('mfaConfirmInfo').should('be.visible').and('contain.text', 'gesendet');
+      confirmWithCode(EMAIL_CODE);
       cy.get('.toast-message').should('be.visible').and('contain.text', 'Passkey hinzugefügt');
     }
 
@@ -727,7 +758,10 @@ describe('Two-factor authentication', () => {
         cy.byTestId('mfaPasskeyList').should('not.exist');
 
         addPasskeyThroughThePage('Laptop');
+        // the virtual authenticator is built into the device (transport "internal")
         cy.byTestId('mfaPasskeyItem').should('contain.text', 'Laptop').and('contain.text', 'noch nicht verwendet');
+        cy.byTestId('mfaPasskeyKind').should('contain.text', '(Gerät)');
+        cy.byTestId('mfaPasskeyStatus').should('have.text', '1 eingerichtet');
         cy.checkAccessibility('main');
 
         // the next login offers the passkey first, and sends no e-mail nobody asked for
@@ -740,21 +774,25 @@ describe('Two-factor authentication', () => {
         cy.byTestId('mfaPasskeyButton').click();
         cy.url().should('contain', '/uebersicht');
 
-        // the code method can be switched off: the passkey is a method of its own
+        // the code method can be removed: the passkey is a method of its own
         cy.visit('/konto/zwei-faktor');
+        openRow('passkey');
         cy.byTestId('mfaPasskeyItem').should('contain.text', 'zuletzt verwendet');
-        cy.byTestId('mfaSendDisableCodeButton').click();
-        cy.byTestId('infoMessage').should('be.visible').and('contain.text', 'gesendet');
-        cy.byTestId('mfaDisableCode').type(EMAIL_CODE);
+        openRow('email');
         cy.byTestId('mfaDisableEmailButton').click();
+        cy.byTestId('mfaConfirmSendCodeButton').click();
+        cy.byTestId('mfaConfirmInfo').should('be.visible').and('contain.text', 'gesendet');
+        confirmWithCode(EMAIL_CODE);
         cy.get('.toast-message').should('be.visible').and('contain.text', 'Code per E-Mail entfernt');
         cy.byTestId('mfaEmailStatus').should('have.text', 'Nicht aktiv');
+        cy.byTestId('mfaWarning').should('contain.text', 'Nur ein Passkey');
 
         // with no code left to give, the passkey itself proves the change that removes it
-        cy.byTestId('mfaDisableCode').should('not.exist');
-        cy.byTestId('mfaDisableHint').should('contain.text', 'Passkeys');
-        cy.checkAccessibility('main');
         cy.get('[testid^="mfaRemovePasskeyButton-"]').click();
+        cy.byTestId('mfaConfirmCode').should('not.exist');
+        cy.byTestId('mfaConfirmPasskeyHint').should('contain.text', 'Passkeys');
+        cy.checkDialogAccessibility();
+        cy.byTestId('mfaConfirmSubmit').click();
         cy.get('.toast-message').should('be.visible').and('contain.text', 'Passkey entfernt');
         cy.byTestId('mfaPasskeyList').should('not.exist');
         cy.createLoginRequest(user.username, user.password).its('body').should('deep.include', {mfaRequired: false});
@@ -782,10 +820,12 @@ describe('Two-factor authentication', () => {
       createUser().then(user => {
         cy.login(user.username, user.password);
         cy.visit('/konto/zwei-faktor');
-        cy.byTestId('mfaPasskeyCurrentCode').should('not.exist');
+        openRow('passkey');
         cy.byTestId('mfaPasskeyName').type('Laptop');
         cy.byTestId('mfaPasskeyAddButton').click();
+        // the first method needs no proof, so no dialog asks for one
         cy.get('.toast-message').should('be.visible').and('contain.text', 'Passkey hinzugefügt');
+        cy.byTestId('mfaConfirmDialog').should('not.exist');
         cy.byTestId('mfaPasskeyItem').should('contain.text', 'Laptop');
 
         logoutThroughTheMenu();
@@ -810,10 +850,12 @@ describe('Two-factor authentication', () => {
     it('adding a passkey next to a code method is refused with a wrong code', () => {
       userWithEmailMethod().then(() => {
         cy.visit('/konto/zwei-faktor');
+        openRow('passkey');
         cy.byTestId('mfaPasskeyName').type('Laptop');
-        cy.byTestId('mfaPasskeyCurrentCode').type('000000');
         cy.byTestId('mfaPasskeyAddButton').click();
-        cy.byTestId('errorMessage').should('be.visible').and('contain.text', 'Der Code ist ungültig');
+        confirmWithCode('000000');
+        cy.byTestId('mfaConfirmError').should('be.visible').and('contain.text', 'Der Code ist ungültig');
+        cy.byTestId('mfaConfirmCancel').click();
         cy.byTestId('mfaPasskeyList').should('not.exist');
       });
     });
@@ -823,15 +865,20 @@ describe('Two-factor authentication', () => {
 
   describe('account page', () => {
 
-    it('has no accessibility violations while the methods are being set up', () => {
+    it('has no accessibility violations with the rows closed, and open while the methods are being set up', () => {
       createUser().then(user => {
         cy.login(user.username, user.password);
         cy.visit('/konto/zwei-faktor');
+        cy.byTestId('mfaSummary').should('be.visible');
+        cy.checkAccessibility('main');
 
+        openRow('app');
         cy.byTestId('mfaSetupButton').click();
         cy.byTestId('mfaQrCode').find('svg').should('be.visible');
+        openRow('email');
         cy.byTestId('mfaEmailSetupButton').click();
         cy.byTestId('mfaEmailCode').scrollIntoView().should('be.visible');
+        openRow('passkey');
         cy.checkAccessibility('main');
       });
     });

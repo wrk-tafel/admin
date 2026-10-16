@@ -3,6 +3,12 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Mein Konto → Zwei-Faktor-Authentifizierung zeigt jetzt oben, ob und wie viele Methoden das Konto schützen, und warnt, wenn nur eine leicht zu verlierende eingerichtet ist (etwa nur der Code per E-Mail oder ein einzelner Passkey); jede Methode steht in einer eigenen, aufklappbaren Zeile, in der sie auch entfernt wird, Passkeys zeigen ihre Art (Gerät oder Sicherheitsschlüssel), und das Bestätigen mit einer bestehenden Methode geschieht in einem gemeinsamen Fenster.
+
+## [1.32.0] - 2026-10-16
+- Mein Konto → Zwei-Faktor-Authentifizierung: Neben der Authenticator-App und dem Code per E-Mail gibt es jetzt den Passkey als dritte Methode (Fingerabdruck, Gesichtserkennung, Geräte-PIN oder Sicherheitsschlüssel) - zusätzlich zu einer anderen Methode oder für sich allein; bei der Anmeldung genügt dann "Mit Passkey bestätigen" statt eines Codes. Geht das Gerät mit dem einzigen Passkey verloren, setzt ein Administrator die Zwei-Faktor-Authentifizierung in der Benutzerverwaltung zurück.
+
+## [1.31.0] - 2026-10-16
 - Eine geänderte eigene E-Mail-Adresse wird erst übernommen, nachdem sie über einen Link an die bisherige Adresse bestätigt wurde.
 - Neu: "Passwort vergessen?" auf der Anmeldeseite - wer eine E-Mail-Adresse hinterlegt hat, erhält einen einmal gültigen Link (eine Stunde gültig) und vergibt damit selbst ein neues Passwort.
 - Die Suche nach Kunden, Benutzern und Mitarbeitern ignoriert jetzt Akzente und Sonderzeichen (z. B. findet "Ozturk" auch "Öztürk"), findet Kunden auch über Geburtsdatum und Arbeitgeber und Benutzer über die E-Mail-Adresse; die Mitarbeitersuche ist tippfehlertolerant wie die Kundensuche.
@@ -19,7 +25,6 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Im Zugriffsprotokoll heißen die protokollierten Abrufe der Kunden-Auswertungen (Über Limit, Gesperrt, Neu & Verlängert, Duplikate, Vorschau beim Zusammenführen) und der Protokoll-Abfragen jetzt auf Deutsch statt mit ihrem technischen Namen, und ihre Filterangaben stehen ohne irreführendes "Nr." davor.
 - Der Seitentitel in der Kopfzeile überdeckt bei geöffneter Ausgabe und eingeblendeter Seitenleiste nicht mehr die Uhrzeit, und in der Waren-Eingabe am Handy passen die Reiter "Route" und "Waren" samt ihrem Speicherstand wieder vollständig in die Breite (dort steht nur noch das Symbol ✓, ● bzw. !); dazu zeigen 31 Abbildungen im Benutzerhandbuch wieder den aktuellen Stand der Anwendung.
 - Die 500-Fehlerseite verweist für eine Support-Anfrage jetzt richtig auf die Kopfzeile statt auf das Hauptmenü, und beim Löschen eines Benutzers steht zwischen Benutzername und Name wieder ein Leerzeichen.
-- Mein Konto → Zwei-Faktor-Authentifizierung: Neben der Authenticator-App und dem Code per E-Mail gibt es jetzt den Passkey als dritte Methode (Fingerabdruck, Gesichtserkennung, Geräte-PIN oder Sicherheitsschlüssel) - zusätzlich zu einer anderen Methode oder für sich allein; bei der Anmeldung genügt dann "Mit Passkey bestätigen" statt eines Codes. Geht das Gerät mit dem einzigen Passkey verloren, setzt ein Administrator die Zwei-Faktor-Authentifizierung in der Benutzerverwaltung zurück.
 
 ## [1.30.2] - 2026-10-13
 - Ein falsch eingegebenes Passwort zählt wieder als ein Fehlversuch: bisher wurde die abgelehnte Anmeldung im Hintergrund ein zweites Mal gesendet, sodass die Sperre nach der Hälfte der eingestellten Versuche griff, jeder Tippfehler zweimal unter "Anmeldeversuche" stand und die Fehlermeldung doppelt so lange auf sich warten ließ. Dasselbe gilt für jede andere Aktion, die mangels Berechtigung abgelehnt wird - auch sie wird nicht mehr wiederholt.

@@ -66,7 +66,7 @@ class MfaController(
             required = status.required,
             emailAvailable = status.emailAvailable,
             emailAddress = status.emailAddress,
-            passkeys = status.passkeys.map { MfaPasskeyItem(id = it.id, name = it.name, createdAt = it.createdAt, lastUsedAt = it.lastUsedAt) },
+            passkeys = status.passkeys.map { MfaPasskeyItem(id = it.id, name = it.name, kind = it.kind, createdAt = it.createdAt, lastUsedAt = it.lastUsedAt) },
         )
     }
 

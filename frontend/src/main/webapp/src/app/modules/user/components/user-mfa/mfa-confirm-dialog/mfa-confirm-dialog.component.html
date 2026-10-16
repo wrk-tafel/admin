@@ -1,0 +1,45 @@
+<tafel-dialog testId="mfaConfirmDialog" [type]="data.danger ? 'danger' : 'info'" [title]="data.title">
+  <div tafel-dialog-content>
+    <form id="mfaConfirmForm" (submit)="confirm($event)" novalidate class="flex flex-col gap-2 max-w-sm">
+      @if (errorMessage()) {
+        <div testid="mfaConfirmError" class="tafel-banner-error !mb-2" role="alert">{{ errorMessage() }}</div>
+      }
+      @if (infoMessage()) {
+        <div testid="mfaConfirmInfo" class="tafel-banner-success !mb-2" role="status">{{ infoMessage() }}</div>
+      }
+
+      @if (withCode) {
+        <p class="text-sm text-slate-600" testid="mfaConfirmCodeHint">
+          Zur Sicherheit bestätigen Sie die Änderung mit einem aktuellen Code einer Methode, die bereits eingerichtet
+          ist - {{ codeSource }}.
+        </p>
+        <mat-form-field>
+          <mat-label>Code der bestehenden Methode</mat-label>
+          <input [formField]="codeForm.code" matInput testid="mfaConfirmCode" type="text" inputmode="numeric"
+                 autocomplete="one-time-code">
+          @for (message of visibleErrorMessages(codeForm.code()); track message) {
+            <mat-error>{{ message }}</mat-error>
+          }
+        </mat-form-field>
+        @if (data.emailEnabled) {
+          <button testid="mfaConfirmSendCodeButton" matButton="outlined" type="button" class="self-start"
+                  (click)="sendCode()" [disabled]="working()">
+            Code per E-Mail senden
+          </button>
+        }
+      } @else {
+        <p class="text-sm text-slate-600" testid="mfaConfirmPasskeyHint">
+          Zur Sicherheit bestätigen Sie die Änderung mit einem Ihrer Passkeys - der Browser fragt danach, sobald Sie
+          auf "{{ data.confirmLabel }}" klicken.
+        </p>
+      }
+    </form>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="mfaConfirmSubmit" matButton="filled" type="submit" form="mfaConfirmForm"
+            [class.button-danger]="data.danger" [disabled]="working()">
+      {{ data.confirmLabel }}
+    </button>
+    <button testid="mfaConfirmCancel" matButton="outlined" type="button" (click)="cancel()">Abbrechen</button>
+  </div>
+</tafel-dialog>

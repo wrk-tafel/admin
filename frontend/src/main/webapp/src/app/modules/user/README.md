@@ -20,6 +20,7 @@ modules/user/
   ├── components/user-account-data/user-account-data.component.ts # "Meine Daten" topic: own name and e-mail, editable
   ├── components/user-passwordchange/user-passwordchange.component.ts # "Passwort" topic, wraps the shared password-change form
   ├── components/user-mfa/user-mfa.component.ts          # "Zwei-Faktor-Authentifizierung" topic: app, e-mail code, passkeys
+  ├── components/user-mfa/mfa-confirm-dialog/            # the one dialog that confirms a change with an existing method
   ├── components/push-notification-settings/push-notification-settings.component.ts # "Benachrichtigungen" topic
   ├── components/user-theme-settings/user-theme-settings.component.ts # "Design" topic
   └── components/user-privacy-settings/user-privacy-settings.component.ts # "Datenschutz" topic: own data export, staff privacy notice
@@ -190,7 +191,11 @@ address of its own. While a `/konto` page is open the shell's sidebar lists them
 Anwendung" on top) - a new topic is a child route plus an entry with an icon in that list. A session that still has to set a second factor up never
 reaches any of this: `AuthGuardService` sends it to `LoginMfaSetupComponent` on the login flow instead (see
 `common/views/login-mfa-setup/`), so the two-factor topic here only ever shows a method that is already active or
-being changed voluntarily. The user menu has a single entry for all of it; the light/dark choice (`ThemeService`)
+being changed voluntarily. That topic is a summary (protected or not, how many methods, whether the setup is
+fragile) over one collapsed row per method, which holds both the setup and the removal of that method. Every change
+that needs proof of an existing method (ADR-0059) goes through `MfaConfirmDialogComponent`, which asks for a code or a
+passkey and runs the change itself, so a wrong code is answered inside the dialog; only the very first method is set up
+without it. The user menu has a single entry for all of it; the light/dark choice (`ThemeService`)
 lives on the Design topic and applies at once, without a save button.
 
 ### UserAccountDataComponent — "Meine Daten"
