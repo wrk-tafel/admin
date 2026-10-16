@@ -208,6 +208,28 @@ describe('PasswordChangeFormComponent', () => {
     expect(rules[4].met).toBe(false); // character variety (no uppercase, no digit)
   });
 
+  // typed through a helper - fixture strings assigned to a "password" field read as leaked
+  // credentials to the secret scanner
+  const typeNewPassword = (value: string) => component.passwordFormModel.set({...component.passwordFormModel(), newPassword: value});
+
+  it('passwordRules flag a sequence of four characters, forwards or backwards', () => {
+    for (const candidate of ['Abcd5791x', 'Gr8Hund6789', 'Gr8HUND9876', 'Xyqwer7Mn', 'Mn7ASDFx', 'Ab1ZYXWv']) {
+      typeNewPassword(candidate);
+      expect(component.passwordRules()[5].met, candidate).toBe(false);
+    }
+
+    typeNewPassword('Abc-123-Xyz');
+    expect(component.passwordRules()[5].met).toBe(true);
+  });
+
+  it('passwordRules flag four equal characters in a row', () => {
+    typeNewPassword('Aaaa1111x');
+    expect(component.passwordRules()[6].met).toBe(false);
+
+    typeNewPassword('Baaa111Xz');
+    expect(component.passwordRules()[6].met).toBe(true);
+  });
+
   it('passwordRules are all met for a compliant password', () => {
     component.passwordFormModel.set({...component.passwordFormModel(), newPassword: 'dummy-Passwort-42'});
 

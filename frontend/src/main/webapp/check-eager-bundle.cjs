@@ -13,9 +13,12 @@
 // those shared chunks grows the eager payload without tripping anything.
 //
 // Turning the optimizer off (`NG_BUILD_OPTIMIZE_CHUNKS=false`) does restore the classification, but
-// it also stops the chunk merging: the same application then ships 17 eager script files instead of
-// 6, which is the worse trade on the HTTP/1.1 connections production serves over. So the optimizer
-// stays on and the accounting is done here instead.
+// it also stops the chunk merging and grows the payload. So the optimizer stays on and the accounting
+// is done here instead.
+//
+// Only bytes are bounded, not the number of files: production is served over HTTP/2, where the eager
+// chunks share one connection, and how the optimizer splits the same code into files shifts with
+// every lazy route added elsewhere (ADR-0073).
 //
 // This checks scripts only. Stylesheets are classified correctly and stay covered by the `initial`
 // budget in `angular.json`. What the browser really transfers, gzip and all, is asserted separately
@@ -30,11 +33,6 @@ const zlib = require('node:zlib');
 // has come down for good, bring these down with it.
 const MAX_EAGER_SCRIPT_BYTES_WARNING = 900 * 1024;
 const MAX_EAGER_SCRIPT_BYTES_ERROR = 950 * 1024;
-
-// Production serves over HTTP/1.1, where a browser opens at most six connections per origin and
-// three of those are already spoken for by the application's permanent SSE streams. Splitting the
-// eager payload into ever more files is therefore not free, however small each one gets.
-const MAX_EAGER_SCRIPT_FILES = 8;
 
 const statsPath = ['browser-stats.json', 'stats.json']
   .map(name => path.join(__dirname, 'dist', name))
@@ -96,9 +94,6 @@ console.log(`  ${`${files.length} files`.padEnd(24)} ${kb(totalRaw).padStart(11)
 const failures = [];
 if (totalRaw > MAX_EAGER_SCRIPT_BYTES_ERROR) {
   failures.push(`eager scripts exceeded maximum budget. Budget ${kb(MAX_EAGER_SCRIPT_BYTES_ERROR)} was not met by ${kb(totalRaw - MAX_EAGER_SCRIPT_BYTES_ERROR)} with a total of ${kb(totalRaw)}.`);
-}
-if (files.length > MAX_EAGER_SCRIPT_FILES) {
-  failures.push(`eager scripts exceeded maximum file count. Budget ${MAX_EAGER_SCRIPT_FILES} files was not met by ${files.length - MAX_EAGER_SCRIPT_FILES} with a total of ${files.length}.`);
 }
 
 if (failures.length > 0) {

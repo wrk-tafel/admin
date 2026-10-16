@@ -1,6 +1,6 @@
 # ADR-0037: The eager bundle is bounded by a build check of its own, not by Angular's `initial` budget
 
-**Status:** accepted · **Recorded:** 2026-08-09
+**Status:** accepted; the file-count ceiling is superseded by [ADR-0073](0073-the-eager-bundle-is-bounded-by-bytes-only.md) · **Recorded:** 2026-08-09
 
 ## Context
 

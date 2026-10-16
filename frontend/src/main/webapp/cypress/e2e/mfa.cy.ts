@@ -344,13 +344,18 @@ describe('Two-factor authentication', () => {
       cy.byTestId('account-error-message').should('be.visible').and('contain.text', 'Der Code ist ungültig');
       cy.request('/api/users/account').its('body.email').should('eq', user.username + '@example.org');
 
-      // the code goes to the address on record, and with it the change goes through
+      // the code goes to the address on record, and with it the change is accepted - as a request the old
+      // address still has to confirm (email-change.cy.ts follows that link)
       cy.byTestId('account-send-code-button').click();
       cy.byTestId('account-info-message').should('be.visible').and('contain.text', 'bisherige E-Mail-Adresse');
       cy.byTestId('account-mfa-code').type(EMAIL_CODE);
       cy.byTestId('account-save-button').click();
       cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
-      cy.request('/api/users/account').its('body.email').should('eq', 'neue-adresse@example.org');
+      cy.request('/api/users/account').its('body').should('deep.include', {
+        email: user.username + '@example.org',
+        pendingEmail: 'neue-adresse@example.org'
+      });
+      cy.byTestId('account-pending-email').should('contain.text', 'neue-adresse@example.org');
       cy.byTestId('account-mfa-code').should('not.exist');
     });
   });

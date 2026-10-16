@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.common.auth
 import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.components.AccountSecurityNotificationService
+import at.wrk.tafel.admin.backend.common.auth.components.EmailChangeService
 import at.wrk.tafel.admin.backend.common.auth.components.LoginAttemptService
 import at.wrk.tafel.admin.backend.common.auth.components.MfaService
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
@@ -55,6 +56,7 @@ class UserController(
     private val mfaService: MfaService,
     private val notificationService: AccountSecurityNotificationService,
     private val userSessionService: UserSessionService,
+    private val emailChangeService: EmailChangeService,
 ) {
 
     companion object {
@@ -104,6 +106,11 @@ class UserController(
      * browser could redirect every future login code to an address of the caller's choosing. The old
      * address is told about the change either way. A wrong code is answered with the failure already
      * counted: `noRollbackFor` keeps the count from being rolled back along with the refused change.
+     *
+     * Changing one address to another is only a request where links can be mailed
+     * ([EmailChangeService]): the name is saved at once, the new address once the link mailed to the
+     * current one is confirmed, and [UserAccountResponse.pendingEmail] carries it until then. Adding a
+     * first address and removing the address take effect at once.
      */
     @PutMapping("/account")
     @Transactional(noRollbackFor = [BusinessRuleException::class])
@@ -120,13 +127,17 @@ class UserController(
             throw BusinessRuleException("Der Code ist ungültig, oder es gab zu viele Fehlversuche - bitte später erneut versuchen!")
         }
 
+        val confirmThroughOldAddress = emailChanged && emailChangeService.needsConfirmation(oldEmail, newEmail)
         val updatedUser = userDetailsManager.updateOwnAccount(
             username = username,
             firstname = request.firstname.trim(),
             lastname = request.lastname.trim(),
-            email = newEmail,
+            email = if (confirmThroughOldAddress) oldEmail else newEmail,
         )
-        if (emailChanged) {
+        if (confirmThroughOldAddress) {
+            emailChangeService.request(updatedUser.id!!, newEmail!!)
+        } else if (emailChanged) {
+            emailChangeService.cancel(updatedUser.id!!)
             val message = if (newEmail == null) {
                 "Die E-Mail-Adresse Ihres Kontos wurde entfernt."
             } else {
@@ -144,6 +155,7 @@ class UserController(
         lastname = user.lastname,
         email = user.email,
         mfaEmailEnabled = user.mfaEmailEnabled,
+        pendingEmail = emailChangeService.pendingEmail(user.id),
     )
 
     /** The caller's own display preference - self-service, so `isAuthenticated()` is all it needs. */

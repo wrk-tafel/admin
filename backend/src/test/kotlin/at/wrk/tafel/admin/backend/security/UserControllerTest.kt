@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.api.PagedResponse
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.auth.UserController
 import at.wrk.tafel.admin.backend.common.auth.components.*
+import at.wrk.tafel.admin.backend.common.auth.components.EmailChangeService
 import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminMfaProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
@@ -79,6 +80,9 @@ class UserControllerTest {
     @RelaxedMockK
     private lateinit var notificationService: AccountSecurityNotificationService
 
+    @RelaxedMockK
+    private lateinit var emailChangeService: EmailChangeService
+
     @InjectMockKs
     private lateinit var controller: UserController
 
@@ -95,6 +99,7 @@ class UserControllerTest {
     fun stubDefaults() {
         every { loginAttemptService.getLockedUntil(any<String>()) } returns null
         every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
+        every { emailChangeService.pendingEmail(any()) } returns null
     }
 
     @AfterEach
@@ -250,6 +255,24 @@ class UserControllerTest {
 
         verify(exactly = 0) { mfaService.confirm(any(), any()) }
         verify(exactly = 1) { notificationService.notify(testUser.username, "max@example.org", any()) }
+    }
+
+    @Test
+    fun `update own account turns a change to another address into a request confirmed through the old one`() {
+        authenticateWith(UserPermissions.USER_MANAGEMENT)
+        every { userDetailsManager.loadUserByUsername(testUser.username) } returns testUser.copy(email = "max@example.org")
+        every { emailChangeService.needsConfirmation("max@example.org", "new@example.org") } returns true
+        every { userDetailsManager.updateOwnAccount(testUser.username, "Maxi", "Muster", "max@example.org") } returns
+            testUser.copy(firstname = "Maxi", lastname = "Muster", email = "max@example.org")
+        every { emailChangeService.pendingEmail(testUser.id) } returns "new@example.org"
+
+        val account = controller.updateAccount(UserAccountRequest(firstname = "Maxi", lastname = "Muster", email = "new@example.org"))
+
+        assertThat(account.email).isEqualTo("max@example.org")
+        assertThat(account.pendingEmail).isEqualTo("new@example.org")
+        verify(exactly = 1) { emailChangeService.request(testUser.id!!, "new@example.org") }
+        // the confirmation mail itself goes to the old address - no second "it changed" notice
+        verify(exactly = 0) { notificationService.notify(any(), any(), any()) }
     }
 
     @Test

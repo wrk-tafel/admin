@@ -134,6 +134,7 @@ jobs:
               /login/passwortaendern,
               /passwort-vergessen,
               /passwort-zuruecksetzen,
+              /e-mail-bestaetigen,
               /404,
               /500,
               /uebersicht,

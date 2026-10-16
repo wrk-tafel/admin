@@ -120,9 +120,14 @@ export class UserAccountDataComponent {
     this.infoMessage.set(null);
     this.userApiService.updateAccount(this.request(), SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
       next: (account) => {
+        const confirmationSent = !!account.pendingEmail && account.pendingEmail === this.request().email;
         this.show(account);
         this.working.set(false);
         this.toastr.success('Daten gespeichert!');
+        if (confirmationSent) {
+          this.infoMessage.set(`Die neue Adresse ${account.pendingEmail} wird übernommen, sobald Sie den Link bestätigen, ` +
+            `der an Ihre bisherige Adresse ${account.email} gesendet wurde.`);
+        }
         // the header's avatar shows the initials of the name that was just changed
         void this.authenticationService.loadUserInfo();
       },

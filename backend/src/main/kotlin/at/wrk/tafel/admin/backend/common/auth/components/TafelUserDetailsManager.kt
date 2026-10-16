@@ -24,10 +24,13 @@ import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.ValidationResult
 import org.passay.data.EnglishCharacterData
+import org.passay.data.EnglishSequenceData
 import org.passay.data.GermanCharacterData
+import org.passay.data.GermanSequenceData
 import org.passay.rule.CharacterCharacteristicsRule
 import org.passay.rule.DictionarySubstringRule
 import org.passay.rule.LengthRule
+import org.passay.rule.RepeatCharactersRule
 import org.passay.rule.UsernameRule
 import org.passay.rule.WhitespaceRule
 import org.springframework.data.domain.PageRequest
@@ -287,6 +290,8 @@ class TafelUserDetailsManager(
         return true
     }
 
+    // distinct: the sequence rules (alphabetical, keyboard, numerical) share one message, and more
+    // than one of them can fire on the same password
     private fun translateViolationsToMessages(result: ValidationResult): List<String> = result.details.mapNotNull {
         when (it.errorCode) {
             LengthRule.ERROR_CODE_MIN -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""
@@ -297,12 +302,18 @@ class TafelUserDetailsManager(
             GermanCharacterData.LowerCase.errorCode -> "Muss mindestens einen Kleinbuchstaben enthalten"
             GermanCharacterData.UpperCase.errorCode -> "Muss mindestens einen Großbuchstaben enthalten"
             EnglishCharacterData.Digit.errorCode -> "Muss mindestens eine Ziffer enthalten"
+            GermanSequenceData.Alphabetical.errorCode,
+            GermanSequenceData.DEQwertz.errorCode,
+            EnglishSequenceData.Numerical.errorCode,
+            -> "Darf keine Zeichenfolgen wie \"1234\" oder \"abcd\" enthalten"
+            RepeatCharactersRule.ERROR_CODE -> "Darf nicht mehr als drei gleiche Zeichen hintereinander enthalten"
+            CommonPasswordRule.ERROR_CODE -> "Dieses Passwort wird zu häufig verwendet und ist leicht zu erraten"
             // the individual character-class messages above already say what's missing - this
             // aggregate detail (CharacterCharacteristicsRule always reports both) would only repeat it
             CharacterCharacteristicsRule.ERROR_CODE -> null
             else -> null
         }
-    }
+    }.distinct()
 
     /**
      * Re-persists [username]'s password hash as [upgradedHash], with no re-validation of the

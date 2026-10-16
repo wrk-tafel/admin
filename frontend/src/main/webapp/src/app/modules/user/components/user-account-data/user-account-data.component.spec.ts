@@ -109,6 +109,27 @@ describe('UserAccountDataComponent', () => {
     expect(button(fixture, 'account-save-button').disabled).toBe(true);
   });
 
+  it('keeps the old address and says where the confirmation went when the change has to be confirmed', async () => {
+    userApiService.getAccount.mockReturnValue(of({...account, email: 'max@example.org'}));
+    const fixture = await create();
+    userApiService.updateAccount.mockReturnValue(of({...account, email: 'max@example.org', pendingEmail: 'neu@example.org'}));
+
+    type(fixture, 'email', 'neu@example.org');
+    submit(fixture);
+
+    expect(input(fixture, 'account-email').value).toBe('max@example.org');
+    expect(text(fixture, 'account-pending-email')).toContain('neu@example.org');
+    expect(text(fixture, 'account-info-message')).toContain('max@example.org');
+  });
+
+  it('shows a change still waiting for its confirmation', async () => {
+    userApiService.getAccount.mockReturnValue(of({...account, email: 'max@example.org', pendingEmail: 'neu@example.org'}));
+    const fixture = await create();
+
+    expect(text(fixture, 'account-pending-email')).toContain('neu@example.org');
+    expect(element(fixture, 'account-info-message')).toBeNull();
+  });
+
   it('sends an emptied e-mail as no address', async () => {
     userApiService.getAccount.mockReturnValue(of({...account, email: 'max@example.org'}));
     const fixture = await create();

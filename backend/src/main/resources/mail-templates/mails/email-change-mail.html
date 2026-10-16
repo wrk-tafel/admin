@@ -1,0 +1,9 @@
+<div th:fragment="content">
+    <p>Für das Konto <strong>[[ ${username} ]]</strong> soll die E-Mail-Adresse auf <strong>[[ ${newEmail} ]]</strong> geändert werden. Diese E-Mail geht an die bisherige Adresse, damit niemand die Adresse ohne Zugriff auf dieses Postfach ändern kann.</p>
+
+    <p style="margin: 16px 0;"><a th:href="${link}" style="font-weight: bold;">Neue E-Mail-Adresse bestätigen</a></p>
+
+    <p>Der Link ist [[ ${validityMinutes} ]] Minuten gültig und kann nur einmal verwendet werden. Bis zur Bestätigung bleibt die bisherige Adresse gültig - auch für Bestätigungscodes und "Passwort vergessen?".</p>
+
+    <p>Haben Sie keine Änderung veranlasst, bestätigen Sie den Link nicht und ändern Sie Ihr Passwort: Dann war jemand anderer mit Ihrem Konto angemeldet.</p>
+</div>

@@ -10,8 +10,8 @@ import {RELOAD_ON_NEW_VERSION} from './common/pwa/sw-update.service';
 
 const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => inject(AuthGuardService).canActivate(route);
 
-/** The pages of "Passwort vergessen?" - kept in sync with `password-reset.routes.ts`. */
-const PASSWORD_RESET_PATHS = ['passwort-vergessen', 'passwort-zuruecksetzen'];
+/** The pages the links in mails lead to - kept in sync with `password-reset.routes.ts`. */
+const PASSWORD_RESET_PATHS = ['passwort-vergessen', 'passwort-zuruecksetzen', 'e-mail-bestaetigen'];
 const passwordResetMatcher = (segments: UrlSegment[]) =>
   segments.length === 1 && PASSWORD_RESET_PATHS.includes(segments[0].path) ? {consumed: []} : null;
 
@@ -64,7 +64,7 @@ export const routes: Routes = [
       .then(m => m.LoginMfaSetupComponent)
   },
   {
-    // both pages in one lazy chunk, reachable without a session
+    // one lazy chunk for all of them, reachable without a session
     matcher: passwordResetMatcher,
     loadChildren: () => import('./common/views/password-reset/password-reset.routes').then(m => m.routes)
   },
