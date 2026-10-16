@@ -1,4 +1,6 @@
 server.port: 0 # Random port for each SpringBootTest
+# As in the main application.yml: the connector speaks HTTP/2 without TLS (h2c) next to HTTP/1.1
+server.http2.enabled: true
 
 spring:
   datasource:
