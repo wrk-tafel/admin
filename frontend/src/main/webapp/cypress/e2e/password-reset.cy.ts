@@ -44,7 +44,7 @@ describe('Password reset', () => {
             cy.wait(1000);
             return findMessage(attempt + 1);
           }
-          expect(message, 'reset mail to ' + email).to.exist;
+          expect(message, 'reset mail to ' + email).to.not.equal(undefined);
           return cy.request(`${MAILPIT_URL}/api/v1/message/${message.ID}`).then((detail) => {
             const match = /passwort-zuruecksetzen#token=([A-Za-z0-9_-]+)/.exec(detail.body.HTML as string);
             expect(match, 'link in the mail').to.not.equal(null);
