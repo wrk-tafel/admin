@@ -982,11 +982,10 @@ This repository includes custom skills for Claude Code in the `.claude/skills/` 
   then hands off to process-pr
 - **process-pr**: Reviews and fixes an already-open PR, then babysits CI/SonarCloud until green
 - **process-dependabot**: Handles Dependabot PRs
-- **cleanup-git**: Repo/branch cleanup workflow
 - **release**: Release workflow
 
 You can invoke these using `/fix-e2e`, `/process-issue`, `/process-pr`, `/process-dependabot`,
-`/cleanup-git`, `/release` in conversations.
+`/release` in conversations.
 
 ## Common Tasks
 
