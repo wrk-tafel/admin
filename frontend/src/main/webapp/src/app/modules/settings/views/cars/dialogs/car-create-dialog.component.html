@@ -33,10 +33,14 @@
         </div>
       }
     }
+
+    @if (saveError(); as error) {
+      <div class="tafel-banner-error mb-0 mt-2" role="alert" testid="carSaveError">{{ error }}</div>
+    }
   </div>
 
   <div tafel-dialog-actions>
-    <button matButton="filled" testid="saveNewCarButton" [disabled]="!!duplicate()" (click)="save()">Speichern</button>
+    <button matButton="filled" testid="saveNewCarButton" [disabled]="!!duplicate() || saving()" (click)="save()">Speichern</button>
     <button matButton="outlined" (click)="cancel()">Abbrechen</button>
   </div>
 </tafel-dialog>

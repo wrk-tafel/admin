@@ -114,7 +114,7 @@ Das **Kennzeichen** wird immer in Großbuchstaben gespeichert, damit dasselbe Fa
 
 ![Fahrzeuge](images/einstellungen-fahrzeuge.jpg)
 
-Wird beim Anlegen ein bereits vorhandenes Kennzeichen eingegeben, weist das Fenster darauf hin und lässt sich nicht speichern (auch dann, wenn es geöffnet wurde, bevor die Fahrzeugliste fertig geladen war) — ist das vorhandene Fahrzeug deaktiviert, kann es direkt über **Stattdessen wieder aktivieren** reaktiviert werden, statt es ein zweites Mal anzulegen.
+Wird beim Anlegen ein bereits vorhandenes Kennzeichen eingegeben, weist das Fenster darauf hin und lässt sich nicht speichern (auch dann, wenn es geöffnet wurde, bevor die Fahrzeugliste fertig geladen war) — ist das vorhandene Fahrzeug deaktiviert, kann es direkt über **Stattdessen wieder aktivieren** reaktiviert werden, statt es ein zweites Mal anzulegen. Hat ein anderes Fahrzeug das Kennzeichen erst nach dem Öffnen des Fensters erhalten (z. B. gleichzeitig von jemand anderem angelegt), lehnt die Anwendung das Speichern ab und zeigt den Grund direkt im Fenster an, das offen bleibt — das Kennzeichen kann dort gleich korrigiert werden.
 
 ![Bereits vorhandenes Kennzeichen](images/einstellungen-fahrzeuge-duplikat.jpg)
 
