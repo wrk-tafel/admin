@@ -36,7 +36,7 @@ export class SelectEmployeeDialogComponent {
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 
   triggerSearch(page: number, pageSize?: number) {
-    this.employeeApiService.findEmployees(this.data.searchInput, page, pageSize).subscribe((response) => {
+    this.employeeApiService.findEmployees(this.data.searchInput, page, pageSize, undefined, undefined, true).subscribe((response) => {
       this.employeeSearchResponse.set(response);
     });
   }

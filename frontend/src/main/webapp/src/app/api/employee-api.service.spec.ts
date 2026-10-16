@@ -62,6 +62,15 @@ describe('EmployeeApiService', () => {
     httpMock.verify();
   });
 
+  it('find employees with verbatim matches only', () => {
+    apiService.findEmployees('Muster', 1, undefined, undefined, undefined, true).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/employees/search'});
+    expect(req.request.body).toEqual({searchInput: 'Muster', page: 1, verbatimOnly: true});
+    req.flush({items: []});
+    httpMock.verify();
+  });
+
   it('save employee', () => {
     const mockCreateEmployeeRequest: CreateEmployeeRequest = {
       personnelNumber: '00001',

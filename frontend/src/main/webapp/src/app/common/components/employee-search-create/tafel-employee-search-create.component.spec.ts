@@ -76,6 +76,8 @@ describe('TafelEmployeeSearchCreate', () => {
         component.triggerSearch();
 
         expect(emittedEmployee).toEqual(mockEmployeeResponse.items[0]);
+        // a fuzzy near miss would be selected without asking - the picker only takes verbatim hits
+        expect(employeeApiService.findEmployees).toHaveBeenCalledWith(personnelNumber, undefined, undefined, undefined, undefined, true);
     });
 
     it('multiple employees found - opens select employee dialog', () => {
