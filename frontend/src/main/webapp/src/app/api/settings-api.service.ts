@@ -22,8 +22,17 @@ export class SettingsApiService {
     return this.http.get<StaticValueListResponse>('/settings/static-values');
   }
 
-  updateStaticValue(staticValueId: number, staticValue: StaticValueItem): Observable<StaticValueItem> {
+  /**
+   * Applies [staticValue]'s amount from its `validFrom`: today or earlier means now, a later day plans
+   * it. The id of a planned amount changes that plan.
+   */
+  updateStaticValue(staticValueId: number, staticValue: StaticValueRequest): Observable<StaticValueItem> {
     return this.http.put<StaticValueItem>(`/settings/static-values/${staticValueId}`, staticValue);
+  }
+
+  /** Removes an amount planned for a later date; the current one then stays valid beyond it. */
+  deleteStaticValue(staticValueId: number): Observable<void> {
+    return this.http.delete<void>(`/settings/static-values/${staticValueId}`);
   }
 
 }
@@ -72,7 +81,18 @@ export interface StaticValueItem {
   countAdults: number | null;
   countChildren: number | null;
   age: number | null;
+  /** The amount already planned to replace this one from a later date, if any. */
+  scheduled?: ScheduledStaticValue | null;
 }
+
+export interface ScheduledStaticValue {
+  id: number;
+  /** `yyyy-MM-dd` */
+  validFrom: string;
+  amount: number;
+}
+
+export type StaticValueRequest = Omit<StaticValueItem, 'scheduled'>;
 
 export enum StaticValueTypeEnum {
   INCOME_LIMIT = 'INCOME_LIMIT',

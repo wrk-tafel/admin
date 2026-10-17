@@ -1,25 +1,51 @@
-<tafel-dialog testId="static-value-change-dialog" type="warning" title="Grenzwert ändern">
+<tafel-dialog testId="static-value-change-dialog" type="warning" [title]="title">
   <div tafel-dialog-content>
     <p class="mb-3" testid="static-value-change-label">{{ data.label }}</p>
 
-    <!-- The arrow is decoration; the two amounts carry a visible label of their own so the change
-         is read as "bisher X, neu Y" rather than as two numbers in a row. -->
-    <p class="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-      <span class="text-sm text-slate-500">Bisher</span>
-      <span class="text-slate-500 line-through" testid="static-value-change-old">
-        {{ data.oldAmount !== null ? (data.oldAmount | currency) : '-' }}
-      </span>
-      <span class="text-slate-400" aria-hidden="true">&rarr;</span>
-      <span class="text-sm text-slate-500">Neu</span>
-      <span class="text-lg font-semibold" testid="static-value-change-new">{{ data.newAmount | currency }}</span>
-    </p>
+    @if (data.newAmount === null) {
+      <p class="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span class="text-sm text-slate-500">Geplant ab {{ data.validFrom | date:'dd.MM.yyyy' }}</span>
+        <span class="text-slate-500 line-through" testid="static-value-change-old">
+          {{ data.oldAmount !== null ? (data.oldAmount | currency) : '-' }}
+        </span>
+      </p>
 
-    <p class="text-sm text-slate-600" testid="static-value-change-hint">
-      Die Änderung gilt sofort: Jede weitere Anspruchsprüfung rechnet mit dem neuen Betrag.
-    </p>
+      <p class="text-sm text-slate-600" testid="static-value-change-hint">
+        Der geplante Betrag wird entfernt. Der aktuelle Betrag gilt dann auch nach dem
+        {{ data.validFrom | date:'dd.MM.yyyy' }} weiter.
+      </p>
+    } @else {
+      <!-- The arrow is decoration; the two amounts carry a visible label of their own so the change
+           is read as "bisher X, neu Y" rather than as two numbers in a row. -->
+      <p class="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span class="text-sm text-slate-500">{{ data.oldAmountIsScheduled ? 'Bisher geplant' : 'Bisher' }}</span>
+        <span class="text-slate-500 line-through" testid="static-value-change-old">
+          {{ data.oldAmount !== null ? (data.oldAmount | currency) : '-' }}
+        </span>
+        <span class="text-slate-400" aria-hidden="true">&rarr;</span>
+        <span class="text-sm text-slate-500">Neu</span>
+        <span class="text-lg font-semibold" testid="static-value-change-new">{{ data.newAmount | currency }}</span>
+        @if (data.validFrom) {
+          <span class="text-sm text-slate-500" testid="static-value-change-valid-from">
+            ab {{ data.validFrom | date:'dd.MM.yyyy' }}
+          </span>
+        }
+      </p>
+
+      <p class="text-sm text-slate-600" testid="static-value-change-hint">
+        @if (data.validFrom) {
+          Der neue Betrag gilt ab {{ data.validFrom | date:'dd.MM.yyyy' }}. Bis dahin rechnet jede
+          Anspruchsprüfung weiter mit dem aktuellen Betrag.
+        } @else {
+          Die Änderung gilt sofort: Jede weitere Anspruchsprüfung rechnet mit dem neuen Betrag.
+        }
+      </p>
+    }
   </div>
   <div tafel-dialog-actions>
-    <button testid="confirmButton" matButton="filled" (click)="dialogRef.close(true)">Ändern</button>
+    <button testid="confirmButton" matButton="filled" (click)="dialogRef.close(true)">
+      {{ data.newAmount === null ? 'Entfernen' : data.validFrom ? 'Planen' : 'Ändern' }}
+    </button>
     <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close(false)">Abbrechen</button>
   </div>
 </tafel-dialog>

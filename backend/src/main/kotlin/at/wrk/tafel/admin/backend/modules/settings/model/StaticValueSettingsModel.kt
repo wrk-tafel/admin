@@ -16,6 +16,7 @@ data class StaticValueRequest(
     val id: Long?,
     @field:NotBlank
     val type: String,
+    /** The day [amount] applies from: today or earlier means now, a later day plans it. */
     val validFrom: LocalDate,
     val validTo: LocalDate,
     @field:PositiveOrZero
@@ -38,4 +39,13 @@ data class StaticValueResponse(
     val countAdults: Int?,
     val countChildren: Int?,
     val age: Int?,
+    /** The amount already planned to replace this one, if any. */
+    val scheduled: ScheduledStaticValue? = null,
+)
+
+@ExcludeFromTestCoverage
+data class ScheduledStaticValue(
+    val id: Long?,
+    val validFrom: LocalDate,
+    val amount: BigDecimal,
 )

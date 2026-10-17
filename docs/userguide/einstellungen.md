@@ -57,7 +57,7 @@ Im Bearbeiten-Dialog werden neben Name und Adresse (inkl. optional Stiege/Tür) 
 
 ## Grenzwerte
 
-Unter **Einstellungen → Grenzwerte** werden die Beträge gepflegt, die darüber entscheiden, wer bezugsberechtigt ist. Es handelt sich um eine fest vorgegebene Liste von Werten (kein Hinzufügen/Entfernen einzelner Zeilen möglich) – bearbeitbar ist ausschließlich der jeweilige Betrag über Stift-/Häkchen-Symbol.
+Unter **Einstellungen → Grenzwerte** werden die Beträge gepflegt, die darüber entscheiden, wer bezugsberechtigt ist. Es handelt sich um eine fest vorgegebene Liste von Werten (kein Hinzufügen/Entfernen einzelner Zeilen möglich) – bearbeitbar sind über Stift-/Häkchen-Symbol der jeweilige Betrag und das Datum, ab dem er gilt (**Gültig ab**).
 
 Die Werte sind in zwei Bereiche gegliedert, und zu jedem Wert steht direkt darüber, wofür er verwendet wird:
 
@@ -68,9 +68,21 @@ Bei der Familienbeihilfe ist das angegebene Alter jeweils die Altersuntergrenze:
 
 ![Grenzwerte](images/einstellungen-statische-werte.jpg)
 
-Beim Speichern wird die Änderung zunächst mit altem und neuem Betrag zur Bestätigung angezeigt. Das ist bewusst so: Die Änderung gilt sofort – jede weitere Anspruchsprüfung rechnet ab dem Speichern mit dem neuen Betrag.
+Beim Speichern wird die Änderung zunächst mit altem und neuem Betrag zur Bestätigung angezeigt. Das ist bewusst so: Bleibt **Gültig ab** auf dem heutigen Tag, gilt die Änderung sofort – jede weitere Anspruchsprüfung rechnet ab dem Speichern mit dem neuen Betrag.
 
 ![Grenzwert ändern](images/einstellungen-statische-werte-bestaetigung.jpg)
+
+<a id="grenzwerte-im-voraus"></a>
+
+### Neue Beträge im Voraus hinterlegen
+
+Werden die Werte für das nächste Jahr veröffentlicht, müssen sie nicht erst am 1. Jänner eingetragen werden: Beim Bearbeiten wird bei **Gültig ab** einfach das spätere Datum gewählt (z. B. 01.01. des nächsten Jahres). Die Bestätigung zeigt dann, ab wann der neue Betrag gilt – bis dahin rechnet jede Anspruchsprüfung weiter mit dem aktuellen Betrag, danach automatisch mit dem neuen.
+
+Ein so hinterlegter Betrag steht in der Spalte **Geplant** neben dem aktuellen, mit dem Datum, ab dem er gilt. Ein Hinweis oben auf der Seite zeigt außerdem, für wie viele Werte ab welchem Datum bereits neue Beträge hinterlegt sind – so ist auf einen Blick erkennbar, dass die Werte des nächsten Jahres schon eingetragen sind.
+
+![Geplante Grenzwerte](images/einstellungen-statische-werte-geplant.jpg)
+
+Bis zu seinem Datum lässt sich ein geplanter Betrag über das Stift-Symbol in der Spalte **Geplant** ändern (Betrag und Datum) oder über das Papierkorb-Symbol wieder entfernen – dann gilt der aktuelle Betrag einfach weiter. Pro Wert gibt es höchstens einen geplanten Betrag: Wird beim aktuellen Betrag erneut ein späteres Datum gewählt, ersetzt das den bisher geplanten.
 
 Über **Kunden über Limit ansehen** gelangt man direkt zu [Kunden über Limit](kunden.md#kunden-über-limit), also zu jenen Kunden, die mit diesen Werten aktuell über dem Limit liegen. **Wer hat zuletzt geändert?** öffnet das [Zugriffsprotokoll](zugriffsprotokoll.md), gefiltert auf die Änderungen an diesen Werten. Beide Links sind nur mit der jeweiligen Berechtigung sichtbar.
 

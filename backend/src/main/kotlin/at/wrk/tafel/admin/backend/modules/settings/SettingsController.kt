@@ -44,4 +44,10 @@ class SettingsController(
         @PathVariable staticValueId: Long,
         @Valid @RequestBody staticValue: StaticValueRequest,
     ): StaticValueResponse = settingsService.updateStaticValue(staticValueId, staticValue)
+
+    @DeleteMapping("/static-values/{staticValueId}")
+    fun deleteStaticValue(@PathVariable staticValueId: Long): ResponseEntity<Unit> {
+        settingsService.deleteStaticValue(staticValueId)
+        return ResponseEntity.noContent().build()
+    }
 }

@@ -22,6 +22,7 @@ import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsPerMailType
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.MailRecipientsResponse
+import at.wrk.tafel.admin.backend.modules.settings.model.ScheduledStaticValue
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueRequest
 import at.wrk.tafel.admin.backend.modules.settings.model.StaticValueResponse
 import ch.qos.logback.classic.Level
@@ -357,11 +358,12 @@ class SettingsServiceTest {
         }
 
         // type/countAdults/countChildren/age differ from the existing row, but must be ignored - only
-        // amount is editable, so the new historized row keeps the existing row's own values
+        // amount is editable, so the new historized row keeps the existing row's own values. A
+        // validFrom in the past means "now", the same as today.
         val requestedChanges = StaticValueRequest(
             id = 1,
             type = "TOLERANCE",
-            validFrom = LocalDate.of(2030, 1, 1),
+            validFrom = LocalDate.of(2022, 1, 1),
             validTo = LocalDate.of(2031, 1, 1),
             amount = BigDecimal("1500.00"),
             countAdults = 9,
@@ -540,6 +542,158 @@ class SettingsServiceTest {
             }
         }
     }
+
+    @Test
+    fun `fetch static values carries the amount planned to replace a row`() {
+        val today = LocalDate.now()
+        val current = incomeLimit(id = 1, validFrom = today.minusDays(10), validTo = today.plusDays(9), amount = "1661.00")
+        val planned = incomeLimit(id = 2, validFrom = today.plusDays(10), validTo = LocalDate.of(2999, 12, 31), amount = "1827.00")
+        val otherKeysPlan = incomeLimit(id = 3, validFrom = today.plusDays(10), validTo = LocalDate.of(2999, 12, 31), amount = "2375.00")
+            .apply { countChildren = 1 }
+        every { staticValueRepository.findAll() } returns listOf(current, planned, otherKeysPlan)
+
+        val response = service.getStaticValues()
+
+        assertThat(response.staticValues).hasSize(1)
+        assertThat(response.staticValues.single().scheduled)
+            .isEqualTo(ScheduledStaticValue(id = 2, validFrom = today.plusDays(10), amount = BigDecimal("1827.00")))
+    }
+
+    @Test
+    fun `update static value with a later date plans the amount instead of applying it now`() {
+        val today = LocalDate.now()
+        val validFrom = today.plusMonths(2)
+        val current = incomeLimit(id = 1, validFrom = LocalDate.of(2022, 1, 1), validTo = LocalDate.of(2999, 12, 31), amount = "1661.00")
+        every { staticValueRepository.findByIdOrNull(1L) } returns current
+        every { staticValueRepository.findAll() } returns listOf(current)
+        every { staticValueRepository.save(any()) } answers { firstArg<StaticValueEntity>().apply { if (id == null) id = 2L } }
+
+        val response = service.updateStaticValue(1L, incomeLimitRequest(id = 1, validFrom = validFrom, amount = "1827.00"))
+
+        assertThat(current.validTo).isEqualTo(validFrom.minusDays(1))
+        assertThat(current.amount).isEqualByComparingTo("1661.00")
+        assertThat(response.id).isEqualTo(2L)
+        assertThat(response.validFrom).isEqualTo(validFrom)
+        assertThat(response.validTo).isEqualTo(LocalDate.of(2999, 12, 31))
+        assertThat(response.amount).isEqualByComparingTo("1827.00")
+        assertThat(response.countAdults).isEqualTo(1)
+        assertThat(response.countChildren).isEqualTo(0)
+    }
+
+    @Test
+    fun `update static value with a later date changes an existing plan instead of stacking a second one`() {
+        val today = LocalDate.now()
+        val current = incomeLimit(id = 1, validFrom = LocalDate.of(2022, 1, 1), validTo = today.plusDays(9), amount = "1661.00")
+        val planned = incomeLimit(id = 2, validFrom = today.plusDays(10), validTo = LocalDate.of(2999, 12, 31), amount = "1800.00")
+        every { staticValueRepository.findByIdOrNull(1L) } returns current
+        every { staticValueRepository.findAll() } returns listOf(current, planned)
+        every { staticValueRepository.save(any()) } answers { firstArg() }
+
+        val response = service.updateStaticValue(1L, incomeLimitRequest(id = 1, validFrom = today.plusDays(20), amount = "1827.00"))
+
+        assertThat(response.id).isEqualTo(2L)
+        assertThat(planned.validFrom).isEqualTo(today.plusDays(20))
+        assertThat(planned.amount).isEqualByComparingTo("1827.00")
+        assertThat(current.validTo).isEqualTo(today.plusDays(19))
+        verify(exactly = 0) { staticValueRepository.save(match { it.id == null }) }
+    }
+
+    @Test
+    fun `update static value applied now keeps an amount planned for later`() {
+        val today = LocalDate.now()
+        val current = incomeLimit(id = 1, validFrom = LocalDate.of(2022, 1, 1), validTo = today.plusDays(9), amount = "1661.00")
+        every { staticValueRepository.findByIdOrNull(1L) } returns current
+        every { staticValueRepository.save(any()) } answers { firstArg<StaticValueEntity>().apply { if (id == null) id = 3L } }
+
+        val response = service.updateStaticValue(1L, incomeLimitRequest(id = 1, validFrom = today, amount = "1700.00"))
+
+        assertThat(current.validTo).isEqualTo(today.minusDays(1))
+        assertThat(response.validFrom).isEqualTo(today)
+        // ends the day before the planned row starts, rather than overlapping it until 2999
+        assertThat(response.validTo).isEqualTo(today.plusDays(9))
+    }
+
+    @Test
+    fun `update planned static value moves its start and the end of the row it replaces`() {
+        val today = LocalDate.now()
+        val current = incomeLimit(id = 1, validFrom = LocalDate.of(2022, 1, 1), validTo = today.plusDays(9), amount = "1661.00")
+        val planned = incomeLimit(id = 2, validFrom = today.plusDays(10), validTo = LocalDate.of(2999, 12, 31), amount = "1800.00")
+        every { staticValueRepository.findByIdOrNull(2L) } returns planned
+        every { staticValueRepository.findAll() } returns listOf(current, planned)
+        every { staticValueRepository.save(any()) } answers { firstArg() }
+
+        service.updateStaticValue(2L, incomeLimitRequest(id = 2, validFrom = today.plusDays(5), amount = "1827.00"))
+
+        assertThat(planned.validFrom).isEqualTo(today.plusDays(5))
+        assertThat(planned.amount).isEqualByComparingTo("1827.00")
+        assertThat(current.validTo).isEqualTo(today.plusDays(4))
+    }
+
+    @Test
+    fun `update planned static value rejects a date that is not in the future`() {
+        val today = LocalDate.now()
+        val planned = incomeLimit(id = 2, validFrom = today.plusDays(10), validTo = LocalDate.of(2999, 12, 31), amount = "1800.00")
+        every { staticValueRepository.findByIdOrNull(2L) } returns planned
+
+        assertThatThrownBy { service.updateStaticValue(2L, incomeLimitRequest(id = 2, validFrom = today, amount = "1827.00")) }
+            .isInstanceOf(BusinessRuleException::class.java)
+
+        verify(exactly = 0) { staticValueRepository.save(any()) }
+    }
+
+    @Test
+    fun `delete static value removes a plan and lets the row it would have replaced stay valid`() {
+        val today = LocalDate.now()
+        val current = incomeLimit(id = 1, validFrom = LocalDate.of(2022, 1, 1), validTo = today.plusDays(9), amount = "1661.00")
+        val planned = incomeLimit(id = 2, validFrom = today.plusDays(10), validTo = LocalDate.of(2999, 12, 31), amount = "1827.00")
+        every { staticValueRepository.findByIdOrNull(2L) } returns planned
+        every { staticValueRepository.findAll() } returns listOf(current, planned)
+        every { staticValueRepository.save(any()) } answers { firstArg() }
+
+        service.deleteStaticValue(2L)
+
+        assertThat(current.validTo).isEqualTo(LocalDate.of(2999, 12, 31))
+        verify(exactly = 1) { staticValueRepository.delete(planned) }
+    }
+
+    @Test
+    fun `delete static value refuses a row that is already valid`() {
+        val current = incomeLimit(id = 1, validFrom = LocalDate.of(2022, 1, 1), validTo = LocalDate.of(2999, 12, 31), amount = "1661.00")
+        every { staticValueRepository.findByIdOrNull(1L) } returns current
+
+        assertThatThrownBy { service.deleteStaticValue(1L) }.isInstanceOf(BusinessRuleException::class.java)
+
+        verify(exactly = 0) { staticValueRepository.delete(any()) }
+    }
+
+    @Test
+    fun `delete static value fails when id is not found`() {
+        every { staticValueRepository.findByIdOrNull(99L) } returns null
+
+        assertThatThrownBy { service.deleteStaticValue(99L) }.isInstanceOf(NotFoundException::class.java)
+    }
+
+    private fun incomeLimit(id: Long, validFrom: LocalDate, validTo: LocalDate, amount: String) = StaticValueEntity(
+        validFrom = validFrom,
+        validTo = validTo,
+        type = StaticValueType.INCOME_LIMIT,
+        amount = BigDecimal(amount),
+    ).apply {
+        this.id = id
+        countAdults = 1
+        countChildren = 0
+    }
+
+    private fun incomeLimitRequest(id: Long, validFrom: LocalDate, amount: String) = StaticValueRequest(
+        id = id,
+        type = "INCOME_LIMIT",
+        validFrom = validFrom,
+        validTo = LocalDate.of(2999, 12, 31),
+        amount = BigDecimal(amount),
+        countAdults = 1,
+        countChildren = 0,
+        age = null,
+    )
 
     private fun withLogAppender(loggerClass: Class<*>, block: (ListAppender<ILoggingEvent>) -> Unit) {
         val logger = LoggerFactory.getLogger(loggerClass) as Logger
