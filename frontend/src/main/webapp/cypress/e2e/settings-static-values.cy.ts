@@ -210,6 +210,27 @@ describe('Settings - Static Values', () => {
     });
   });
 
+  it('applies a planned amount now when its date is moved to today, and drops the plan', () => {
+    cy.byTestId('static-values-row-0').filterDisplayed().find('td').eq(1).invoke('text').then((currentText) => {
+      const next = Number(currentText.replace(/[^\d,]/g, '').replace(',', '.')) + 13;
+      planFirstRow(next);
+
+      cy.byTestId('editScheduledStaticValueButton-0').click();
+      cy.byTestId('staticValueValidFromInput-0').clear().type(new Date().toLocaleDateString('de-AT', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      }));
+      cy.byTestId('saveStaticValueButton-0').click();
+
+      cy.byTestId('static-value-change-hint').should('contain.text', 'gilt sofort').and('contain.text', 'entfällt');
+      cy.byTestId('confirmButton').should('contain.text', 'Ändern').click();
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
+      cy.byTestId('staticValueScheduled-0').should('not.exist');
+      cy.byTestId('static-values-scheduled-notice').should('not.exist');
+      cy.byTestId('static-values-row-0').filterDisplayed().should('contain.text', formatAmount(next));
+    });
+  });
+
   it('refuses a start date in the past', () => {
     cy.byTestId('editStaticValueButton-0').click();
     cy.byTestId('staticValueAmountInput-0').clear().type('999999');

@@ -14,6 +14,8 @@ export interface StaticValueChangeDialogData {
   newAmount: number | null;
   /** `yyyy-MM-dd` the change applies from, `null` for "now". */
   validFrom: string | null;
+  /** `yyyy-MM-dd` of a planned amount that applying this one now drops. */
+  droppedScheduledFrom?: string;
 }
 
 /**

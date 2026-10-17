@@ -227,7 +227,6 @@ export class SettingsStaticValuesComponent {
   protected amountControl = new FormControl<number | null>(null);
   protected validFromControl = new FormControl<Date | null>(null);
   protected readonly today = startOfDay(new Date());
-  protected readonly tomorrow = new Date(this.today.getFullYear(), this.today.getMonth(), this.today.getDate() + 1);
   // The table and the card list both render the editor, one of them hidden by a breakpoint -
   // focusing the hidden one does nothing.
   private amountInputs = viewChildren<ElementRef<HTMLInputElement>>('amountInput');
@@ -283,7 +282,7 @@ export class SettingsStaticValuesComponent {
    *
    * A date after today plans the amount. A current row that already has a plan changes that plan
    * rather than stacking a second one behind it, so the confirmation compares against the planned
-   * amount then.
+   * amount then. A planned amount moved to today applies now instead, and its plan is dropped.
    */
   protected saveEdit(section: StaticValueSectionView, row: StaticValueRowView) {
     const amount = this.amountControl.value;
@@ -301,20 +300,20 @@ export class SettingsStaticValuesComponent {
     const editingScheduled = this.isEditingScheduled(row);
     const validFrom = formatIsoDate(date);
     const today = formatIsoDate(this.today);
-    if (editingScheduled ? validFrom <= today : validFrom < today) {
-      this.toastr.error(editingScheduled
-        ? 'Ein geplanter Betrag braucht ein Datum nach heute'
-        : 'Das Datum darf nicht in der Vergangenheit liegen', 'Fehler');
+    if (validFrom < today) {
+      this.toastr.error('Das Datum darf nicht in der Vergangenheit liegen', 'Fehler');
       return;
     }
 
     const appliesNow = validFrom === today;
     const scheduled = row.staticValue.scheduled ?? null;
     const replaced = appliesNow ? null : scheduled;
+    // a planned amount moved to today applies now, and the plan is dropped
+    const dropsScheduled = editingScheduled && appliesNow;
 
     const unchanged = replaced
       ? amount === replaced.amount && validFrom === replaced.validFrom
-      : appliesNow && amount === row.staticValue.amount;
+      : appliesNow && !dropsScheduled && amount === row.staticValue.amount;
     if (unchanged) {
       this.cancelEdit();
       return;
@@ -325,7 +324,8 @@ export class SettingsStaticValuesComponent {
       oldAmount: replaced ? replaced.amount : row.staticValue.amount,
       oldAmountIsScheduled: replaced !== null,
       newAmount: amount,
-      validFrom: appliesNow ? null : validFrom
+      validFrom: appliesNow ? null : validFrom,
+      ...(dropsScheduled ? {droppedScheduledFrom: scheduled!.validFrom} : {})
     };
 
     this.confirm(data, () => {

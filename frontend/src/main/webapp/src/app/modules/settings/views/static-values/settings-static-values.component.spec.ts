@@ -353,7 +353,7 @@ describe('SettingsStaticValuesComponent', () => {
     }));
   });
 
-  it('saveEdit() on a planned amount rejects today as its date', () => {
+  it('saveEdit() on a planned amount moved to today applies it now and says the plan is dropped', () => {
     loadWith(withScheduled());
     const component = createComponent();
     const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
@@ -362,7 +362,33 @@ describe('SettingsStaticValuesComponent', () => {
     component['validFromControl'].setValue(dayAt(0));
     component['saveEdit'](section, section.rows[0]);
 
-    expect(toastrMock.error).toHaveBeenCalledWith('Ein geplanter Betrag braucht ein Datum nach heute', 'Fehler');
+    expect(dialogMock.open).toHaveBeenCalledWith(StaticValueChangeDialogComponent, expect.objectContaining({
+      data: expect.objectContaining({
+        oldAmount: 1450,
+        oldAmountIsScheduled: false,
+        newAmount: 1600,
+        validFrom: null,
+        droppedScheduledFrom: isoDay(30)
+      })
+    }));
+    expect(settingsApiMock.updateStaticValue).toHaveBeenCalledWith(11, expect.objectContaining({
+      id: 11,
+      validFrom: isoDay(0),
+      amount: 1600
+    }));
+    expect(toastrMock.success).toHaveBeenCalledWith('Statischer Wert gespeichert', 'Erfolgreich');
+  });
+
+  it('saveEdit() on a planned amount rejects a date in the past', () => {
+    loadWith(withScheduled());
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    component['startEditScheduled'](section.rows[0].staticValue);
+    component['validFromControl'].setValue(dayAt(-1));
+    component['saveEdit'](section, section.rows[0]);
+
+    expect(toastrMock.error).toHaveBeenCalledWith('Das Datum darf nicht in der Vergangenheit liegen', 'Fehler');
     expect(settingsApiMock.updateStaticValue).not.toHaveBeenCalled();
   });
 

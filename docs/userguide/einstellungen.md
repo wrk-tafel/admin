@@ -82,7 +82,7 @@ Ein so hinterlegter Betrag steht in der Spalte **Geplant** neben dem aktuellen, 
 
 ![Geplante Grenzwerte](images/einstellungen-statische-werte-geplant.jpg)
 
-Bis zu seinem Datum lässt sich ein geplanter Betrag über das Stift-Symbol in der Spalte **Geplant** ändern (Betrag und Datum) oder über das Papierkorb-Symbol wieder entfernen – dann gilt der aktuelle Betrag einfach weiter. Pro Wert gibt es höchstens einen geplanten Betrag: Wird beim aktuellen Betrag erneut ein späteres Datum gewählt, ersetzt das den bisher geplanten.
+Bis zu seinem Datum lässt sich ein geplanter Betrag über das Stift-Symbol in der Spalte **Geplant** ändern (Betrag und Datum) oder über das Papierkorb-Symbol wieder entfernen – dann gilt der aktuelle Betrag einfach weiter. Wird das Datum eines geplanten Betrags auf heute gesetzt, gilt er sofort, und der Plan entfällt. Pro Wert gibt es höchstens einen geplanten Betrag: Wird beim aktuellen Betrag erneut ein späteres Datum gewählt, ersetzt das den bisher geplanten.
 
 Über **Kunden über Limit ansehen** gelangt man direkt zu [Kunden über Limit](kunden.md#kunden-über-limit), also zu jenen Kunden, die mit diesen Werten aktuell über dem Limit liegen. **Wer hat zuletzt geändert?** öffnet das [Zugriffsprotokoll](zugriffsprotokoll.md), gefiltert auf die Änderungen an diesen Werten. Beide Links sind nur mit der jeweiligen Berechtigung sichtbar.
 

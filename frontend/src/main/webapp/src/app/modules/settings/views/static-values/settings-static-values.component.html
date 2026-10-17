@@ -205,7 +205,7 @@
     <mat-form-field subscriptSizing="dynamic" class="w-44">
       <mat-label>Gültig ab</mat-label>
       <input matInput placeholder="TT.MM.JJJJ" [formControl]="validFromControl" [matDatepicker]="validFromPicker"
-             [min]="isEditingScheduled(row) ? tomorrow : today"
+             [min]="today"
              [attr.testid]="'staticValueValidFromInput' + suffix + '-' + row.index"
              (keydown.enter)="saveEdit(section, row)" (keydown.escape)="cancelEdit()"/>
       <mat-datepicker-toggle matIconSuffix [for]="validFromPicker"></mat-datepicker-toggle>

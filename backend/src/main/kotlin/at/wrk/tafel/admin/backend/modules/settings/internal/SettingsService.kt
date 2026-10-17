@@ -153,7 +153,8 @@ class SettingsService(
     // unless the currently valid row already started today (i.e. it was itself created by an earlier
     // edit made today), in which case that same-day row is updated in place instead of stacking up
     // multiple same-day history entries. A later date plans the amount instead (scheduleStaticValue),
-    // and the id of a planned row changes that plan.
+    // and the id of a planned row changes that plan - or, with a date of today or earlier, applies its
+    // amount now and drops the plan (applyPlannedNow).
     @Transactional
     fun updateStaticValue(staticValueId: Long, item: StaticValueRequest): StaticValueResponse {
         val entity = staticValueRepository.findByIdOrNull(staticValueId)
@@ -163,28 +164,28 @@ class SettingsService(
         val today = LocalDate.now()
 
         if (entity.validFrom.isAfter(today)) {
-            return reschedule(entity, item.validFrom, amount, today)
+            return if (item.validFrom.isAfter(today)) {
+                reschedule(entity, item.validFrom, amount)
+            } else {
+                applyPlannedNow(entity, amount, today)
+            }
         }
 
-        // The given row must still be the one currently valid "today" - a stale one (already closed
-        // off by a concurrent edit, e.g. two tabs on the same value) would otherwise be historized a
-        // second time, leaving two rows both valid today for the same (type, countAdults,
-        // countChildren, age) and breaking findSingleValueOfType's single-row assumption for every
-        // later lookup until fixed by hand.
-        if (!isCurrentlyValid(entity, today)) {
-            throw ConflictException(
-                "Statischer Wert mit ID $staticValueId wurde zwischenzeitlich bereits geändert - bitte Seite neu laden!",
-            )
-        }
+        assertCurrentlyValid(entity, today)
 
         if (item.validFrom.isAfter(today)) {
             return scheduleStaticValue(entity, item.validFrom, amount, today)
         }
 
+        return applyNow(entity, amount, today)
+    }
+
+    // Applies [amount] in place of the currently valid [entity] from today on.
+    private fun applyNow(entity: StaticValueEntity, amount: BigDecimal, today: LocalDate): StaticValueResponse {
         if (entity.validFrom == today) {
             entity.amount = amount
             val savedEntity = staticValueRepository.save(entity)
-            log.info("Updated static value {} ({}) to {}", staticValueId, entity.type, amount)
+            log.info("Updated static value {} ({}) to {}", entity.id, entity.type, amount)
             return mapStaticValue(savedEntity)
         }
 
@@ -195,8 +196,35 @@ class SettingsService(
         staticValueRepository.save(entity)
 
         val savedEntity = staticValueRepository.save(historizedEntity)
-        log.info("Updated static value {} ({}) to {} (historized as new entry {})", staticValueId, entity.type, amount, savedEntity.id)
+        log.info("Updated static value {} ({}) to {} (historized as new entry {})", entity.id, entity.type, amount, savedEntity.id)
         return mapStaticValue(savedEntity)
+    }
+
+    // A planned amount moved to today or earlier simply applies now: the plan is dropped, the row it
+    // would have replaced runs on to the plan's end again, and then takes the amount like any edit
+    // applied now.
+    private fun applyPlannedNow(planned: StaticValueEntity, amount: BigDecimal, today: LocalDate): StaticValueResponse {
+        val current = predecessorOf(planned)?.also { assertCurrentlyValid(it, today) }
+            ?: throw ConflictException(
+                "Statischer Wert mit ID ${planned.id} wurde zwischenzeitlich bereits geändert - bitte Seite neu laden!",
+            )
+
+        current.validTo = planned.validTo
+        staticValueRepository.delete(planned)
+        log.info("Dropped planned static value {} ({}) from {} to apply it now", planned.id, planned.type, planned.validFrom)
+        return applyNow(current, amount, today)
+    }
+
+    // The given row must still be the one currently valid "today" - a stale one (already closed off by
+    // a concurrent edit, e.g. two tabs on the same value) would otherwise be historized a second time,
+    // leaving two rows both valid today for the same (type, countAdults, countChildren, age) and
+    // breaking findSingleValueOfType's single-row assumption for every later lookup until fixed by hand.
+    private fun assertCurrentlyValid(entity: StaticValueEntity, today: LocalDate) {
+        if (!isCurrentlyValid(entity, today)) {
+            throw ConflictException(
+                "Statischer Wert mit ID ${entity.id} wurde zwischenzeitlich bereits geändert - bitte Seite neu laden!",
+            )
+        }
     }
 
     // Removes an amount planned for a later date; the row it would have replaced stays valid in its
@@ -228,7 +256,7 @@ class SettingsService(
     ): StaticValueResponse {
         val planned = scheduledOf(current, staticValueRepository.findAll(), today)
         if (planned != null) {
-            return reschedule(planned, validFrom, amount, today)
+            return reschedule(planned, validFrom, amount)
         }
 
         val scheduledEntity = copyWith(current, validFrom = validFrom, validTo = current.validTo, amount = amount)
@@ -240,15 +268,12 @@ class SettingsService(
         return mapStaticValue(savedEntity)
     }
 
+    // Moves the [planned] row to [validFrom] (a day after today) with [amount].
     private fun reschedule(
         planned: StaticValueEntity,
         validFrom: LocalDate,
         amount: BigDecimal,
-        today: LocalDate,
     ): StaticValueResponse {
-        if (!validFrom.isAfter(today)) {
-            throw BusinessRuleException("Ein geplanter Wert muss ab einem Datum in der Zukunft gelten!")
-        }
         if (validFrom.isAfter(planned.validTo)) {
             throw BusinessRuleException("Das Datum liegt nach dem Ende des geplanten Werts!")
         }

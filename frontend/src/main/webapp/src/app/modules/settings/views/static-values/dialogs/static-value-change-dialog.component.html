@@ -38,6 +38,9 @@
           Anspruchsprüfung weiter mit dem aktuellen Betrag.
         } @else {
           Die Änderung gilt sofort: Jede weitere Anspruchsprüfung rechnet mit dem neuen Betrag.
+          @if (data.droppedScheduledFrom) {
+            Der bisher ab {{ data.droppedScheduledFrom | date:'dd.MM.yyyy' }} geplante Betrag entfällt.
+          }
         }
       </p>
     }

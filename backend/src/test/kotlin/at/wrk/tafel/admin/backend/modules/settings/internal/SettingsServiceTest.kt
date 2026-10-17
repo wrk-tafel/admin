@@ -630,15 +630,37 @@ class SettingsServiceTest {
     }
 
     @Test
-    fun `update planned static value rejects a date that is not in the future`() {
+    fun `update planned static value to today applies its amount now and drops the plan`() {
+        val today = LocalDate.now()
+        val current = incomeLimit(id = 1, validFrom = LocalDate.of(2022, 1, 1), validTo = today.plusDays(9), amount = "1661.00")
+        val planned = incomeLimit(id = 2, validFrom = today.plusDays(10), validTo = LocalDate.of(2999, 12, 31), amount = "1800.00")
+        every { staticValueRepository.findByIdOrNull(2L) } returns planned
+        every { staticValueRepository.findAll() } returns listOf(current, planned)
+        every { staticValueRepository.save(any()) } answers { firstArg<StaticValueEntity>().apply { if (id == null) id = 3L } }
+
+        val response = service.updateStaticValue(2L, incomeLimitRequest(id = 2, validFrom = today, amount = "1827.00"))
+
+        verify(exactly = 1) { staticValueRepository.delete(planned) }
+        assertThat(current.validTo).isEqualTo(today.minusDays(1))
+        assertThat(current.amount).isEqualByComparingTo("1661.00")
+        assertThat(response.id).isEqualTo(3L)
+        assertThat(response.validFrom).isEqualTo(today)
+        // runs on to where the dropped plan would have ended, not just to the day before it started
+        assertThat(response.validTo).isEqualTo(LocalDate.of(2999, 12, 31))
+        assertThat(response.amount).isEqualByComparingTo("1827.00")
+    }
+
+    @Test
+    fun `update planned static value to today fails with conflict when the row it replaces is gone`() {
         val today = LocalDate.now()
         val planned = incomeLimit(id = 2, validFrom = today.plusDays(10), validTo = LocalDate.of(2999, 12, 31), amount = "1800.00")
         every { staticValueRepository.findByIdOrNull(2L) } returns planned
+        every { staticValueRepository.findAll() } returns listOf(planned)
 
         assertThatThrownBy { service.updateStaticValue(2L, incomeLimitRequest(id = 2, validFrom = today, amount = "1827.00")) }
-            .isInstanceOf(BusinessRuleException::class.java)
+            .isInstanceOf(ConflictException::class.java)
 
-        verify(exactly = 0) { staticValueRepository.save(any()) }
+        verify(exactly = 0) { staticValueRepository.delete(any()) }
     }
 
     @Test

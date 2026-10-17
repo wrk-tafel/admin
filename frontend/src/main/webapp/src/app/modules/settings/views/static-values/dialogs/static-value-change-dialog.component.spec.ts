@@ -89,6 +89,15 @@ describe('StaticValueChangeDialogComponent', () => {
     expect(element.textContent).toContain('Bisher geplant');
   });
 
+  it('says that applying a planned amount now drops its plan', () => {
+    data = {...data, droppedScheduledFrom: '2027-01-01'};
+    const element: HTMLElement = createFixture().nativeElement;
+
+    const hint = element.querySelector('[testid="static-value-change-hint"]')?.textContent;
+    expect(hint).toContain('gilt sofort');
+    expect(hint).toContain('01.01.2027 geplante Betrag entfällt');
+  });
+
   it('confirms the removal of a planned amount', () => {
     data = {...data, oldAmountIsScheduled: true, newAmount: null, validFrom: '2027-01-01'};
     const element: HTMLElement = createFixture().nativeElement;
