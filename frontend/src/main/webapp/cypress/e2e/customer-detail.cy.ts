@@ -141,6 +141,8 @@ describe('Customer Detail', () => {
 
     openEditMenu();
     cy.byTestId('lockCustomerButton').click();
+    cy.byTestId('lockreason-type-select').click();
+    cy.byTestId('lockreason-type-select-option-OTHER').click();
     cy.byTestId('lockreason-input-text').type('dummy lockreason');
     cy.byTestId('lock-customer-dialog').within(() => {
       cy.byTestId('okButton').click();
@@ -162,16 +164,16 @@ describe('Customer Detail', () => {
     openEditMenu();
     cy.byTestId('lockCustomerButton').click();
     cy.byTestId('lock-customer-dialog').within(() => {
-      // the reason category is only a convenience tag - the free-text reason is what is actually
-      // required to save, regardless of which (or whether any) category is picked
+      // nothing is preselected: neither the free-text reason nor the category alone allows saving
+      cy.byTestId('okButton').should('be.disabled');
+      cy.byTestId('lockreason-type-select').should('not.contain.text', 'Sonstiger Grund');
+    });
+    cy.byTestId('lockreason-input-text').type('threw a chair');
+    cy.byTestId('lock-customer-dialog').within(() => {
       cy.byTestId('okButton').should('be.disabled');
       cy.byTestId('lockreason-type-select').click();
     });
     cy.byTestId('lockreason-type-select-option-BANNED_FROM_PREMISES').click();
-    cy.byTestId('lock-customer-dialog').within(() => {
-      cy.byTestId('okButton').should('be.disabled');
-    });
-    cy.byTestId('lockreason-input-text').type('threw a chair');
     cy.byTestId('lockeduntil-input').type(lockedUntil.format('DD.MM.YYYY'));
     cy.byTestId('lock-customer-dialog').within(() => {
       cy.byTestId('okButton').click();
@@ -213,6 +215,8 @@ describe('Customer Detail', () => {
 
         openEditMenu();
         cy.byTestId('lockCustomerButton').click();
+        cy.byTestId('lockreason-type-select').click();
+        cy.byTestId('lockreason-type-select-option-OTHER').click();
         cy.byTestId('lockreason-input-text').type('dummy lockreason');
         cy.byTestId('lock-customer-dialog').within(() => {
           cy.byTestId('okButton').click();
@@ -236,6 +240,8 @@ describe('Customer Detail', () => {
 
     openEditMenu();
     cy.byTestId('lockCustomerButton').click();
+    cy.byTestId('lockreason-type-select').click();
+    cy.byTestId('lockreason-type-select-option-OTHER').click();
     cy.byTestId('lockreason-input-text').type('incomplete lockreason');
     cy.byTestId('lock-customer-dialog').within(() => {
       cy.byTestId('okButton').click();
@@ -459,6 +465,8 @@ describe('Customer Detail', () => {
 
     openEditMenu();
     cy.byTestId('lockCustomerButton').click();
+    cy.byTestId('lockreason-type-select').click();
+    cy.byTestId('lockreason-type-select-option-OTHER').click();
     cy.byTestId('lockreason-input-text').type('dummy lockreason');
     cy.byTestId('lock-customer-dialog').within(() => {
       cy.byTestId('okButton').click();
@@ -603,7 +611,7 @@ describe('Customer Detail', () => {
           cy.byTestId('lock-info-banner').should('not.exist');
 
           // a colleague locks the customer while this page still shows it unlocked
-          cy.request('POST', `/api/households/${customerId}/lock`, {lockReason: 'Gesperrt im Hintergrund'});
+          cy.request('POST', `/api/households/${customerId}/lock`, {lockReason: 'Gesperrt im Hintergrund', lockReasonType: 'OTHER'});
 
           cy.byTestId('ticket-number-input').type('16');
           cy.byTestId('assign-ticket-button').click();
@@ -1086,6 +1094,8 @@ describe('Customer Detail', () => {
 
         openEditMenu();
         cy.byTestId('lockCustomerButton').click();
+        cy.byTestId('lockreason-type-select').click();
+        cy.byTestId('lockreason-type-select-option-OTHER').click();
         cy.byTestId('lockreason-input-text').type('dummy lockreason');
         cy.byTestId('lock-customer-dialog').within(() => {
           cy.byTestId('okButton').click();
@@ -1245,6 +1255,8 @@ describe('Customer Detail', () => {
 
         openEditMenu();
         cy.byTestId('lockCustomerButton').click();
+        cy.byTestId('lockreason-type-select').click();
+        cy.byTestId('lockreason-type-select-option-OTHER').click();
         cy.byTestId('lockreason-input-text').type('dummy lockreason');
         cy.byTestId('lock-customer-dialog').within(() => {
           cy.byTestId('okButton').click();

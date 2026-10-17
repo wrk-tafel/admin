@@ -4,6 +4,7 @@ Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsc
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
 - Die Sperre eines Kunden lässt sich jetzt über "Weitere Aktionen → Sperre bearbeiten" ändern (Kategorie, Sperrgrund und Enddatum), ohne den Kunden zuerst entsperren zu müssen; Zeitpunkt und Benutzer der ursprünglichen Sperrung bleiben dabei erhalten.
+- Beim Sperren eines Kunden ist die Kategorie nicht mehr mit "Sonstiger Grund" vorausgewählt, sondern muss bewusst gewählt werden; bestehende Sperren ohne Kategorie erhalten einmalig "Sonstiger Grund".
 
 ## [1.33.0] - 2026-10-16
 - Mein Konto → Zwei-Faktor-Authentifizierung zeigt jetzt oben, ob und wie viele Methoden das Konto schützen, und warnt, wenn nur eine leicht zu verlierende eingerichtet ist (etwa nur der Code per E-Mail oder ein einzelner Passkey); jede Methode steht in einer eigenen, aufklappbaren Zeile, in der sie auch entfernt wird, Passkeys zeigen ihre Art (Gerät oder Sicherheitsschlüssel), und das Bestätigen mit einer bestehenden Methode geschieht in einem gemeinsamen Fenster.

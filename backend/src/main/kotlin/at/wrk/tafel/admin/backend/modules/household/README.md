@@ -21,9 +21,10 @@ service/DTO access only (see [`base`'s README](../base/README.md#entities-are-re
   (`valid_until`), lock state (`locked`/`lockedAt`/`lockedBy`/`lockReason`/`lockReasonType`/
   `lockedUntil`), cost-contribution state (`pending_cost_contribution`) and the issuing user account
   (`issuer`, cleared when that account is deleted). `lockReasonType`
-  ([`HouseholdLockReason`](../../database/model/household/HouseholdLockReason.kt)) tags the always-
-  required free-text `lockReason` with one of a handful of common categories - a convenience, not an
-  exhaustive list the reason must be chosen from, so it stays optional even on a locked household.
+  ([`HouseholdLockReason`](../../database/model/household/HouseholdLockReason.kt)) is the lock's
+  category next to the free-text `lockReason`; both are required whenever a lock is set or edited
+  (`OTHER` when nothing else fits), and the column is nullable only because an unlocked household has
+  none.
   `lockedUntil` makes a lock temporary: `HouseholdLockExpiryService` lifts it automatically once that
   date has passed, the same row-claim pattern `HouseholdRetentionService` uses (see below). A
   household currently locked for `HouseholdLockReason.BANNED_FROM_PREMISES` is never swept by that
@@ -543,7 +544,7 @@ screen - regardless of `validUntil` (issue #3753); no other lock reason gets thi
 Locking, editing a lock and unlocking by hand - the customer detail screen's
 "Sperren"/"Sperre bearbeiten"/"Entsperren".
 `lockHousehold` (`POST /api/households/{id}/lock`, body `HouseholdLockRequest`: the required
-free-text `lockReason`, the optional `lockReasonType` and `lockedUntil`), `updateLock`
+free-text `lockReason`, the required `lockReasonType` and the optional `lockedUntil`), `updateLock`
 (`PUT /api/households/{id}/lock`, same body) and `unlockHousehold`
 (`POST /api/households/{id}/unlock`) write the lock fields of the stored household and nothing else,
 and all three answer with the full `HouseholdResponse`. None takes the household as input: an

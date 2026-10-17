@@ -97,8 +97,7 @@ class HouseholdConverter(
             // reason/expiration - only a fresh lock (storedEntity wasn't locked yet) re-stamps them.
             // Without this, any later edit of an already-locked household (e.g. disableCustomer's
             // validUntil update, which round-trips the full record) would silently rewrite who locked
-            // it, when, why and until when - there is no "edit an existing lock" action, only
-            // lock/unlock.
+            // it, when, why and until when - changing a lock is HouseholdLockService.updateLock.
             if (wasAlreadyLocked) {
                 householdEntity.lockedAt = previousLockedAt
                 householdEntity.lockedBy = previousLockedBy

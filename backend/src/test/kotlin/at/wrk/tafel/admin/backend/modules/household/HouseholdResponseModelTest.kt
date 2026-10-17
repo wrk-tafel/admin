@@ -219,21 +219,34 @@ class HouseholdResponseModelTest {
 
     @Test
     fun `household lock request without a reason is invalid`() {
-        val violations = validator.validate(HouseholdLockRequest(lockReason = " "))
+        val violations = validator.validate(HouseholdLockRequest(lockReason = " ", lockReasonType = HouseholdLockReason.OTHER))
 
         assertThat(violations).extracting<String> { it.propertyPath.toString() }.containsExactly("lockReason")
     }
 
     @Test
     fun `household lock request with an expiration date in the past is invalid`() {
-        val violations = validator.validate(HouseholdLockRequest(lockReason = "Grund", lockedUntil = LocalDate.now().minusDays(1)))
+        val request = HouseholdLockRequest(
+            lockReason = "Grund",
+            lockReasonType = HouseholdLockReason.OTHER,
+            lockedUntil = LocalDate.now().minusDays(1),
+        )
+        val violations = validator.validate(request)
 
         assertThat(violations).extracting<String> { it.propertyPath.toString() }.containsExactly("lockedUntilValid")
     }
 
     @Test
-    fun `household lock request with a reason alone or an expiration date from today on is valid`() {
-        assertThat(validator.validate(HouseholdLockRequest(lockReason = "Grund"))).isEmpty()
-        assertThat(validator.validate(HouseholdLockRequest(lockReason = "Grund", lockedUntil = LocalDate.now()))).isEmpty()
+    fun `household lock request without a category is invalid`() {
+        val violations = validator.validate(HouseholdLockRequest(lockReason = "Grund"))
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }.containsExactly("lockReasonType")
+    }
+
+    @Test
+    fun `household lock request with category and reason or an expiration date from today on is valid`() {
+        val withoutEnd = HouseholdLockRequest(lockReason = "Grund", lockReasonType = HouseholdLockReason.OTHER)
+        assertThat(validator.validate(withoutEnd)).isEmpty()
+        assertThat(validator.validate(withoutEnd.copy(lockedUntil = LocalDate.now()))).isEmpty()
     }
 }

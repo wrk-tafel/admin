@@ -44,9 +44,9 @@ export class LockCustomerDialogComponent {
   protected readonly householdLockReasonLabel = householdLockReasonLabel;
   protected readonly lockReasonTypes = Object.values(HouseholdLockReason);
 
-  // A convenience tag, not an exhaustive list the reason must be chosen from (see HouseholdLockReason)
-  // - "Sonstiger Grund" is the sensible default for a reason that doesn't fit one of the others.
-  reasonType = signal<HouseholdLockReason>(this.existingLock?.reasonType ?? HouseholdLockReason.OTHER);
+  // Chosen deliberately for every lock rather than preselected, so a lock never ends up as "Sonstiger
+  // Grund" only because nobody looked at the field.
+  reasonType = signal<HouseholdLockReason | null>(this.existingLock?.reasonType ?? null);
   reasonText = signal<string | null>(this.existingLock?.reasonText ?? null);
   lockedUntil = signal<Date | null>(parseIsoDate(this.existingLock?.lockedUntil));
 
@@ -61,11 +61,11 @@ export class LockCustomerDialogComponent {
     return existing && dayjs(existing).isBefore(tomorrow) ? dayjs(existing).startOf('day').toDate() : tomorrow.toDate();
   }
 
-  canSave = computed(() => !!this.reasonText()?.trim());
+  canSave = computed(() => !!this.reasonType() && !!this.reasonText()?.trim());
 
   save() {
     this.dialogRef.close({
-      reasonType: this.reasonType(),
+      reasonType: this.reasonType()!,
       reasonText: this.reasonText()!.trim(),
       lockedUntil: this.lockedUntil() ? formatIsoDate(this.lockedUntil()!) : null
     } as LockCustomerDialogResult);

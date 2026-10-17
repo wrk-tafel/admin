@@ -20,6 +20,8 @@ describe('Customer Locked', () => {
     cy.visit('/kunden/detail/' + customerId);
     cy.byTestId('editCustomerToggleButton').click();
     cy.byTestId('lockCustomerButton').click();
+    cy.byTestId('lockreason-type-select').click();
+    cy.byTestId('lockreason-type-select-option-OTHER').click();
     cy.byTestId('lockreason-input-text').type(reason);
     cy.byTestId('lock-customer-dialog').within(() => {
       cy.byTestId('okButton').click();
@@ -85,6 +87,7 @@ describe('Customer Locked', () => {
         // the dialog opens with the existing lock filled in
         cy.byTestId('lock-customer-dialog').should('contain.text', 'Sperre bearbeiten');
         cy.byTestId('lockreason-input-text').should('have.value', 'original e2e lock reason');
+        cy.byTestId('lockreason-type-select').should('contain.text', 'Sonstiger Grund');
         cy.checkDialogAccessibility();
 
         cy.byTestId('lockreason-type-select').click();
@@ -117,6 +120,8 @@ describe('Customer Locked', () => {
       cy.visit('/kunden/detail/' + customer.id);
       cy.byTestId('editCustomerToggleButton').click();
       cy.byTestId('lockCustomerButton').click();
+      cy.byTestId('lockreason-type-select').click();
+      cy.byTestId('lockreason-type-select-option-OTHER').click();
       cy.byTestId('lockreason-input-text').type('temporary e2e lock reason');
       cy.byTestId('lockeduntil-input').type(dayjs().add(14, 'day').format('DD.MM.YYYY'));
       cy.byTestId('lock-customer-dialog').within(() => {
