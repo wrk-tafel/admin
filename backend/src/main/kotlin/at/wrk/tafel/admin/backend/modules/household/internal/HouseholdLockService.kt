@@ -18,7 +18,7 @@ import at.wrk.tafel.admin.backend.database.model.household.HouseholdLockReason a
  * Locking, editing a lock and unlocking a household by hand - the customer detail screen's
  * "Sperren"/"Sperre bearbeiten"/"Entsperren".
  *
- * All three write the lock fields of the stored household and nothing else, so neither takes the
+ * All three write the lock fields of the stored household and nothing else, so none takes the
  * household itself as input. A household may be incomplete on purpose (see the module README): a
  * lock that had to submit the whole record would be refused by the required-field validation of
  * exactly the households that cannot be completed, and would re-run an income check that has nothing
