@@ -1,7 +1,9 @@
 <div th:fragment="content">
     <p>Für die Anmeldung von <strong>[[ ${username} ]]</strong> wurde ein Bestätigungscode angefordert.</p>
 
-    <p style="font-size: 28px; font-weight: bold; letter-spacing: 6px; margin: 16px 0;">[[ ${code} ]]</p>
+    <!--/* One span per digit: a run of six digits is what mail clients' phone-number detection turns into a
+         tel: link. Separate spans keep it from seeing one, and copying the code still yields just the digits. */-->
+    <p style="font-size: 28px; font-weight: bold; letter-spacing: 6px; margin: 16px 0;"><span th:each="digit : ${code.toCharArray()}" th:text="${digit}"></span></p>
 
     <p>Der Code ist [[ ${validityMinutes} ]] Minuten gültig und kann nur einmal verwendet werden.</p>
 

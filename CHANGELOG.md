@@ -3,6 +3,7 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Der Bestätigungscode in der E-Mail zur Zwei-Faktor-Anmeldung wird von E-Mail-Programmen nicht mehr als Telefonnummer erkannt und verlinkt.
 - Mein Konto → Zwei-Faktor-Authentifizierung: Ein Sicherheitsschlüssel (z. B. ein YubiKey) lässt sich jetzt über "Sicherheitsschlüssel hinzufügen" direkt einrichten, ohne dass der Browser zuerst den Passkey im Gerät oder ein Smartphone anbietet; der Hinweistext erklärt, dass ein Sicherheitsschlüssel auch an gemeinsam genutzten PCs funktioniert, und empfiehlt einen Ersatzschlüssel.
 
 ## [1.34.0] - 2026-10-17
