@@ -1,8 +1,8 @@
-<tafel-dialog testId="lock-customer-dialog" type="info" title="Kunde sperren">
+<tafel-dialog testId="lock-customer-dialog" type="info" [title]="editing ? 'Sperre bearbeiten' : 'Kunde sperren'">
   <div tafel-dialog-content>
     <mat-form-field class="w-full">
       <mat-label>Kategorie</mat-label>
-      <mat-select testid="lockreason-type-select" [ngModel]="reasonType()" (ngModelChange)="reasonType.set($event)">
+      <mat-select testid="lockreason-type-select" required [ngModel]="reasonType()" (ngModelChange)="reasonType.set($event)">
         @for (type of lockReasonTypes; track type) {
           <mat-option [value]="type" [attr.testid]="'lockreason-type-select-option-' + type">{{ householdLockReasonLabel[type] }}</mat-option>
         }

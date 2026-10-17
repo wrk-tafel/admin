@@ -15,9 +15,10 @@ import java.time.LocalDateTime
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdLockReason as HouseholdLockReasonEntity
 
 /**
- * Locking and unlocking a household by hand - the customer detail screen's "Sperren"/"Entsperren".
+ * Locking, editing a lock and unlocking a household by hand - the customer detail screen's
+ * "Sperren"/"Sperre bearbeiten"/"Entsperren".
  *
- * Both write the lock fields of the stored household and nothing else, so neither takes the
+ * All three write the lock fields of the stored household and nothing else, so none takes the
  * household itself as input. A household may be incomplete on purpose (see the module README): a
  * lock that had to submit the whole record would be refused by the required-field validation of
  * exactly the households that cannot be completed, and would re-run an income check that has nothing
@@ -36,8 +37,8 @@ class HouseholdLockService(
     }
 
     /**
-     * There is no "edit an existing lock" action, only lock/unlock - an already locked household is
-     * refused rather than silently re-stamped with a new "Gesperrt seit/von".
+     * An already locked household is refused rather than silently re-stamped with a new "Gesperrt
+     * seit/von" - changing an existing lock is [updateLock].
      */
     @Transactional
     fun lockHousehold(householdId: Long, request: HouseholdLockRequest, username: String): HouseholdResponse {
@@ -56,6 +57,28 @@ class HouseholdLockService(
 
         val savedEntity = householdRepository.saveAndFlush(household)
         log.info("Locked household {}", householdId)
+        return householdConverter.mapEntityToHousehold(savedEntity)
+    }
+
+    /**
+     * Changes reason, category and end date of an existing lock. "Gesperrt seit/von" stays, since the
+     * household has been locked since then all along, and so does the lock's review: confirming that a
+     * lock stays is the "Gesperrte Kunden" screen's action, not a side effect of editing it.
+     */
+    @Transactional
+    fun updateLock(householdId: Long, request: HouseholdLockRequest): HouseholdResponse {
+        val household = householdRepository.findByHouseholdId(householdId)
+            ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
+        if (!household.locked) {
+            throw BusinessRuleException("Kunde ist nicht gesperrt!")
+        }
+
+        household.lockReason = request.lockReason?.trim()
+        household.lockReasonType = request.lockReasonType?.let { HouseholdLockReasonEntity.valueOf(it.name) }
+        household.lockedUntil = request.lockedUntil
+
+        val savedEntity = householdRepository.saveAndFlush(household)
+        log.info("Updated lock of household {}", householdId)
         return householdConverter.mapEntityToHousehold(savedEntity)
     }
 

@@ -256,6 +256,16 @@ Content-Type: application/json
   "lockedUntil": null
 }
 
+### Edit the lock of a locked household (reason, category, end date; "locked since/by" stays)
+PUT {{baseApiPath}}/households/100/lock
+Content-Type: application/json
+
+{
+  "lockReason": "Neuer Grund der Sperre",
+  "lockReasonType": "BANNED_FROM_PREMISES",
+  "lockedUntil": null
+}
+
 ### Prolong a household by a number of months (force=true: supervisor override for an above-limit income)
 POST {{baseApiPath}}/households/100/prolong?force=false
 Content-Type: application/json

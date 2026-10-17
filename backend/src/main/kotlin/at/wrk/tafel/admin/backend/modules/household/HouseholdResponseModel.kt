@@ -274,14 +274,15 @@ data class HouseholdDuplicateDismissRequest(
 )
 
 /**
- * Input for `POST /{householdId}/lock`: the lock alone, never the household it is put on - see
- * `HouseholdLockService`. [lockReasonType] only tags the always-required free-text [lockReason] and
- * stays optional.
+ * Input for `POST`/`PUT /{householdId}/lock`: the lock alone, never the household it is put on - see
+ * `HouseholdLockService`. Both the category [lockReasonType] and the free-text [lockReason] are
+ * required; only [lockedUntil] is optional.
  */
 @ExcludeFromTestCoverage
 data class HouseholdLockRequest(
     @field:NotBlank(message = "Sperrgrund muss angegeben werden!")
     val lockReason: String? = null,
+    @field:NotNull(message = "Kategorie muss angegeben werden!")
     val lockReasonType: HouseholdLockReason? = null,
     val lockedUntil: LocalDate? = null,
 ) {

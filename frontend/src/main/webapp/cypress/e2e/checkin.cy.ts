@@ -241,7 +241,7 @@ describe('CheckIn', () => {
         cy.byTestId('verdictBanner').should('contain.text', 'GÜLTIG');
 
         // a colleague locks the customer while this screen still shows it as valid
-        cy.request('POST', `/api/households/${customerId}/lock`, {lockReason: 'Gesperrt im Hintergrund'});
+        cy.request('POST', `/api/households/${customerId}/lock`, {lockReason: 'Gesperrt im Hintergrund', lockReasonType: 'OTHER'});
 
         assignTicket(31);
 

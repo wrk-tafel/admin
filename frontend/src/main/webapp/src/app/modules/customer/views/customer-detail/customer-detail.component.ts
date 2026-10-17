@@ -30,7 +30,7 @@ import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.co
 import {EditNoteDialogComponent} from './dialogs/edit-note-dialog.component';
 import {DeleteNoteDialogComponent} from './dialogs/delete-note-dialog.component';
 import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
-import {LockCustomerDialogComponent, LockCustomerDialogResult} from './dialogs/lock-customer-dialog.component';
+import {LockCustomerDialogComponent, LockCustomerDialogData, LockCustomerDialogResult} from './dialogs/lock-customer-dialog.component';
 import {
   PayCostContributionDialogComponent
 } from '../../../../common/components/pay-cost-contribution-dialog/pay-cost-contribution-dialog.component';
@@ -418,6 +418,24 @@ export class CustomerDetailComponent {
         this.customerApiService.lockCustomer(this.customerData().id!, lock, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
           next: (customerData: CustomerData) => this.customerData.set(customerData),
           error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Sperren fehlgeschlagen!'),
+        });
+      }
+    });
+  }
+
+  openEditLockDialog() {
+    const customer = this.customerData();
+    const data: LockCustomerDialogData = {
+      reasonType: customer.lockReasonType,
+      reasonText: customer.lockReason,
+      lockedUntil: customer.lockedUntil
+    };
+    this.dialog.open(LockCustomerDialogComponent, {data}).afterClosed().subscribe((result: LockCustomerDialogResult | undefined) => {
+      if (result) {
+        const lock = {lockReason: result.reasonText, lockReasonType: result.reasonType, lockedUntil: result.lockedUntil};
+        this.customerApiService.updateCustomerLock(customer.id!, lock, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
+          next: (customerData: CustomerData) => this.customerData.set(customerData),
+          error: (error: HttpErrorResponse) => this.toastr.error(extractErrorMessage(error), 'Sperre bearbeiten fehlgeschlagen!'),
         });
       }
     });

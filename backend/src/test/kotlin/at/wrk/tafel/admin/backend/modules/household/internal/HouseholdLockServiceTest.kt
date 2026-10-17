@@ -118,6 +118,78 @@ class HouseholdLockServiceTest {
     }
 
     @Test
+    fun `updating a lock changes reason, category and end date but keeps who locked it, when and its review`() {
+        val lockedAt = LocalDateTime.of(2026, 1, 1, 9, 0)
+        val reviewedAt = LocalDateTime.of(2026, 6, 1, 9, 0)
+        val household = HouseholdEntity(householdId = 1, validUntil = LocalDate.of(2027, 1, 1), locked = true).apply {
+            this.lockedAt = lockedAt
+            lockedBy = testUserEntity
+            lockReason = "Alter Grund"
+            lockReasonType = null
+            lockedUntil = null
+            lockReviewedAt = reviewedAt
+            lockReviewedBy = testUserEntity
+        }
+        every { householdRepository.findByHouseholdId(1) } returns household
+
+        val result = service.updateLock(
+            1,
+            HouseholdLockRequest(
+                lockReason = "  Neuer Grund  ",
+                lockReasonType = HouseholdLockReason.CODE_OF_CONDUCT_VIOLATION,
+                lockedUntil = LocalDate.of(2026, 12, 1),
+            ),
+        )
+
+        assertThat(result).isSameAs(response)
+        assertThat(household.locked).isTrue()
+        assertThat(household.lockReason).isEqualTo("Neuer Grund")
+        assertThat(household.lockReasonType).isEqualTo(HouseholdLockReasonEntity.CODE_OF_CONDUCT_VIOLATION)
+        assertThat(household.lockedUntil).isEqualTo(LocalDate.of(2026, 12, 1))
+        assertThat(household.lockedAt).isEqualTo(lockedAt)
+        assertThat(household.lockedBy).isSameAs(testUserEntity)
+        assertThat(household.lockReviewedAt).isEqualTo(reviewedAt)
+        assertThat(household.lockReviewedBy).isSameAs(testUserEntity)
+        verify { householdRepository.saveAndFlush(household) }
+    }
+
+    @Test
+    fun `updating a lock can remove its category and end date`() {
+        val household = HouseholdEntity(householdId = 1, validUntil = LocalDate.of(2027, 1, 1), locked = true).apply {
+            lockReason = "Grund"
+            lockReasonType = HouseholdLockReasonEntity.OTHER
+            lockedUntil = LocalDate.of(2026, 12, 1)
+        }
+        every { householdRepository.findByHouseholdId(1) } returns household
+
+        service.updateLock(1, HouseholdLockRequest(lockReason = "Grund"))
+
+        assertThat(household.lockReasonType).isNull()
+        assertThat(household.lockedUntil).isNull()
+    }
+
+    @Test
+    fun `updating the lock of a household that is not locked fails`() {
+        val household = HouseholdEntity(householdId = 1, validUntil = LocalDate.of(2027, 1, 1))
+        every { householdRepository.findByHouseholdId(1) } returns household
+
+        assertThatThrownBy { service.updateLock(1, HouseholdLockRequest(lockReason = "Grund")) }
+            .isInstanceOf(BusinessRuleException::class.java)
+
+        assertThat(household.locked).isFalse()
+        assertThat(household.lockReason).isNull()
+        verify(exactly = 0) { householdRepository.saveAndFlush(any<HouseholdEntity>()) }
+    }
+
+    @Test
+    fun `updating the lock of an unknown household fails`() {
+        every { householdRepository.findByHouseholdId(99) } returns null
+
+        assertThatThrownBy { service.updateLock(99, HouseholdLockRequest(lockReason = "Grund")) }
+            .isInstanceOf(NotFoundException::class.java)
+    }
+
+    @Test
     fun `unlocking clears the lock and its review`() {
         val household = HouseholdEntity(householdId = 1, validUntil = LocalDate.of(2027, 1, 1), locked = true).apply {
             lockedAt = LocalDateTime.of(2026, 1, 1, 9, 0)

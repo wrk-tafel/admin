@@ -266,6 +266,12 @@ export class CustomerApiService {
       .pipe(map(mapHouseholdToCustomer));
   }
 
+  /** Changes reason, category and end date of an existing lock; who locked the customer and when stay. */
+  updateCustomerLock(customerId: number, lock: CustomerLockData, context?: HttpContext): Observable<CustomerData> {
+    return this.http.put<HouseholdData>(`/households/${customerId}/lock`, lock, {context})
+      .pipe(map(mapHouseholdToCustomer));
+  }
+
   unlockCustomer(customerId: number, context?: HttpContext): Observable<CustomerData> {
     return this.http.post<HouseholdData>(`/households/${customerId}/unlock`, null, {context})
       .pipe(map(mapHouseholdToCustomer));
@@ -523,9 +529,9 @@ export const genderLabel: { [key in Gender]: string } = {
 };
 
 /**
- * A handful of common categories a household lock's reason can be tagged with - always alongside the
- * actual, always-required free-text {@link CustomerData.lockReason}, never instead of it: this is a
- * convenience tag, not an exhaustive list a lock's reason must be chosen from.
+ * The category of a household lock - always alongside the free-text {@link CustomerData.lockReason},
+ * never instead of it. Every lock has to pick one, {@link HouseholdLockReason.OTHER} when none of the
+ * others fits.
  */
 export enum HouseholdLockReason {
   BANNED_FROM_PREMISES = 'BANNED_FROM_PREMISES',
@@ -552,7 +558,7 @@ export interface CustomerDuplicatesItem {
 
 export interface CustomerLockData {
   lockReason: string;
-  lockReasonType?: HouseholdLockReason | null;
+  lockReasonType: HouseholdLockReason;
   lockedUntil?: string | null;
 }
 

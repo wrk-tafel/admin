@@ -160,6 +160,7 @@ describe('CustomerDetailComponent', () => {
       deactivateCustomer: vi.fn().mockName('CustomerApiService.deactivateCustomer'),
       lockCustomer: vi.fn().mockName('CustomerApiService.lockCustomer'),
       unlockCustomer: vi.fn().mockName('CustomerApiService.unlockCustomer'),
+      updateCustomerLock: vi.fn().mockName('CustomerApiService.updateCustomerLock'),
       payCostContribution: vi.fn().mockName('CustomerApiService.payCostContribution'),
       editCostContribution: vi.fn().mockName('CustomerApiService.editCostContribution'),
       getCustomer: vi.fn().mockName('CustomerApiService.getCustomer')
@@ -727,6 +728,67 @@ describe('CustomerDetailComponent', () => {
     component.openLockCustomerDialog();
 
     expect(customerApiService.lockCustomer).not.toHaveBeenCalled();
+  });
+
+  it('edit lock opens the dialog with the existing lock and sends the changed one', () => {
+    const lockedCustomer = {
+      ...mockCustomer,
+      locked: true,
+      lockedBy: 'whoever',
+      lockReason: 'old reason',
+      lockReasonType: HouseholdLockReason.OTHER,
+      lockedUntil: '2027-01-01'
+    };
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    const editResult = {reasonType: HouseholdLockReason.BANNED_FROM_PREMISES, reasonText: 'new reason', lockedUntil: null};
+    matDialog.open.mockReturnValue({afterClosed: () => of(editResult)} as any);
+    const updatedCustomer = {
+      ...lockedCustomer,
+      lockReason: 'new reason',
+      lockReasonType: HouseholdLockReason.BANNED_FROM_PREMISES,
+      lockedUntil: null
+    };
+    customerApiService.updateCustomerLock.mockReturnValue(of(updatedCustomer));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', lockedCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.openEditLockDialog();
+
+    expect(matDialog.open).toHaveBeenCalledWith(expect.anything(), {
+      data: {reasonType: HouseholdLockReason.OTHER, reasonText: 'old reason', lockedUntil: '2027-01-01'}
+    });
+    expect(customerApiService.updateCustomerLock).toHaveBeenCalledWith(
+      mockCustomer.id,
+      {lockReason: 'new reason', lockReasonType: HouseholdLockReason.BANNED_FROM_PREMISES, lockedUntil: null},
+      expect.anything()
+    );
+    expect(customerApiService.lockCustomer).not.toHaveBeenCalled();
+    expect(component.customerData()).toEqual(updatedCustomer);
+  });
+
+  it('edit lock failed shows the error and keeps the customer unchanged', () => {
+    const lockedCustomer = {...mockCustomer, locked: true, lockReason: 'old reason'};
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    const editResult = {reasonType: HouseholdLockReason.OTHER, reasonText: 'x', lockedUntil: null};
+    matDialog.open.mockReturnValue({afterClosed: () => of(editResult)} as any);
+    customerApiService.updateCustomerLock.mockReturnValue(throwError(() => ({status: 400, error: {detail: 'Kunde ist nicht gesperrt!'}})));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', lockedCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.openEditLockDialog();
+
+    expect(toastr.error).toHaveBeenCalledWith('Kunde ist nicht gesperrt!', 'Sperre bearbeiten fehlgeschlagen!');
+    expect(component.customerData()).toEqual(lockedCustomer);
   });
 
   it('unlock customer', () => {
