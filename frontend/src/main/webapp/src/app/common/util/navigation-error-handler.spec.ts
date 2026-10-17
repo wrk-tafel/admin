@@ -17,17 +17,28 @@ describe('handleNavigationError', () => {
       error: vi.fn().mockName('TafelToastrService.error')
     };
 
+    const storage = new Map<string, string>();
+    const windowSpy = {
+      sessionStorage: {
+        getItem: (key: string) => storage.get(key) ?? null,
+        setItem: (key: string, value: string) => storage.set(key, value)
+      },
+      location: {assign: vi.fn().mockName('Location.assign')},
+      document: {baseURI: 'https://tafel.example/verwaltung/'}
+    };
+
     TestBed.configureTestingModule({
       providers: [
         {provide: Router, useValue: routerSpy},
-        {provide: TafelToastrService, useValue: toastrSpy}
+        {provide: TafelToastrService, useValue: toastrSpy},
+        {provide: Window, useValue: windowSpy}
       ]
     });
 
     // The handler logs every failure for diagnosis - keep that out of the test output.
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    return {toastrSpy};
+    return {toastrSpy, windowSpy};
   }
 
   function handle(error: unknown) {
@@ -65,12 +76,42 @@ describe('handleNavigationError', () => {
     );
   });
 
-  it('asks for a reload when the route\'s own code could not be fetched', () => {
-    const {toastrSpy} = setup('exists');
+  // A tab still running the build from before a deploy asks for chunk files that are gone (#3872).
+  it('reloads the target page under the base href when the route\'s own code could not be fetched', () => {
+    const {toastrSpy, windowSpy} = setup('exists');
+
+    const result = handle(new TypeError('error loading dynamically imported module: https://tafel.example/verwaltung/chunk-ABC123.js'));
+
+    expect(result).toBeUndefined();
+    expect(windowSpy.location.assign).toHaveBeenCalledWith('https://tafel.example/verwaltung/kunden/suchen');
+    expect(toastrSpy.error).not.toHaveBeenCalled();
+  });
+
+  it('reloads a page whose code could not be fetched even without a page to stay on', () => {
+    const {windowSpy} = setup('none');
+
+    const result = handle(new TypeError('Importing a module script failed.'));
+
+    expect(result).toBeUndefined();
+    expect(windowSpy.location.assign).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reload for a failed resolver request', () => {
+    const {windowSpy} = setup('exists');
+
+    handle(new HttpErrorResponse({status: 500, statusText: 'Internal Server Error'}));
+
+    expect(windowSpy.location.assign).not.toHaveBeenCalled();
+  });
+
+  it('asks for a reload instead of reloading again when the code is still missing after the reload', () => {
+    const {toastrSpy, windowSpy} = setup('exists');
+    handle(new TypeError('Failed to fetch dynamically imported module: /chunk-ABC123.js'));
 
     const result = handle(new TypeError('Failed to fetch dynamically imported module: /chunk-ABC123.js'));
 
     expect(result).toBeUndefined();
+    expect(windowSpy.location.assign).toHaveBeenCalledTimes(1);
     expect(toastrSpy.error).toHaveBeenCalledWith(
       'Die Seite konnte nicht geladen werden. Bitte die Anwendung neu laden.',
       'Seite konnte nicht geöffnet werden'

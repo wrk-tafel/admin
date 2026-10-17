@@ -54,7 +54,7 @@
       <div class="flex flex-wrap items-center gap-3 text-sm mt-2 px-3 py-1 rounded border"
            style="border-color: var(--tafel-border-color);" testid="lastAcceptedCheckin">
         <span>Zuletzt angenommen: Kunde Nr. {{ last.customerId }} → Ticket {{ last.ticketNumber }}</span>
-        <button matButton (click)="undoLastCheckin()" testid="undoLastCheckinButton">
+        <button matButton [disabled]="deletingTicket()" (click)="undoLastCheckin()" testid="undoLastCheckinButton">
           <mat-icon svgIcon="restart_alt"></mat-icon>
           Rückgängig
         </button>
@@ -213,7 +213,7 @@
                 }
               </mat-form-field>
               @if (ticketNumberEdit() === true) {
-                <button matButton="filled" class="button-danger" testid="deleteTicketButton" (click)="deleteTicket()"
+                <button matButton="filled" class="button-danger" testid="deleteTicketButton" [disabled]="deletingTicket()" (click)="deleteTicket()"
                         matTooltip="Zugewiesenes Ticket wieder entfernen" aria-label="Zugewiesenes Ticket wieder entfernen">
                   <mat-icon svgIcon="delete"></mat-icon>
                 </button>

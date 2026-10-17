@@ -11,11 +11,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import tools.jackson.databind.json.JsonMapper
 import java.io.File
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.security.MessageDigest
+import java.util.HexFormat
 
 // Exercises the real Spring wiring behind IndexHtmlController over real HTTP - property binding,
 // static file resolution from disk, and (critically) actual DispatcherServlet routing precedence -
@@ -49,6 +52,7 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
     private val staticDir = File(System.getProperty("user.dir"), "static")
     private val indexHtmlFile = File(staticDir, "index.html")
     private val manifestFile = File(staticDir, "manifest.webmanifest")
+    private val ngswFile = File(staticDir, "ngsw.json")
     private val staticDirPreexisted = staticDir.exists()
 
     @BeforeEach
@@ -71,6 +75,7 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
     fun afterEach() {
         indexHtmlFile.delete()
         manifestFile.delete()
+        ngswFile.delete()
         if (!staticDirPreexisted) {
             staticDir.delete()
         }
@@ -164,6 +169,70 @@ class IndexHtmlControllerIT : TafelBaseIntegrationTest() {
         manifestFile.delete()
 
         assertThat(get("/manifest.webmanifest").statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value())
+    }
+
+    @Test
+    fun `index html requested by its file name is rewritten like the root path`() {
+        val response = get("/index.html")
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
+        assertThat(response.body()).isEqualTo(get("/").body())
+    }
+
+    /**
+     * Issue #3872: the worker resolves these URLs against the origin, and checks each file it
+     * fetches against its hash - so the hashes have to be those of the bytes actually served. The
+     * index carries a non-ASCII character to catch a response written in a charset other than the
+     * one hashed.
+     */
+    @Test
+    fun `service worker manifest carries the base path and the hashes of the files as served`() {
+        indexHtmlFile.writeText("<html><head><base href=\"/\"></head><body>Wird geladen …</body></html>")
+        ngswFile.writeText(
+            """
+            {
+              "configVersion": 1,
+              "index": "/index.html",
+              "assetGroups": [{"name": "app", "installMode": "prefetch", "urls": ["/assets/favicon.ico", "/index.html", "/manifest.webmanifest"]}],
+              "dataGroups": [],
+              "hashTable": {"/assets/favicon.ico": "fcd991f15477516f929c3f06638afa41406e00dd", "/index.html": "0000", "/manifest.webmanifest": "0000"},
+              "navigationUrls": [{"positive": true, "regex": "^\\/.*$"}]
+            }
+            """.trimIndent(),
+        )
+
+        val response = get("/ngsw.json")
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
+        val manifest = JsonMapper().readTree(response.body())
+        assertThat(manifest["index"].stringValue()).isEqualTo("/tafel-admin/index.html")
+        assertThat(manifest["assetGroups"][0]["urls"].values().map { it.stringValue() }).containsExactly(
+            "/tafel-admin/assets/favicon.ico",
+            "/tafel-admin/index.html",
+            "/tafel-admin/manifest.webmanifest",
+        )
+        val hashTable = manifest["hashTable"]
+        assertThat(hashTable.propertyNames()).containsExactlyInAnyOrder(
+            "/tafel-admin/assets/favicon.ico",
+            "/tafel-admin/index.html",
+            "/tafel-admin/manifest.webmanifest",
+        )
+        assertThat(hashTable["/tafel-admin/assets/favicon.ico"].stringValue()).isEqualTo("fcd991f15477516f929c3f06638afa41406e00dd")
+        assertThat(hashTable["/tafel-admin/index.html"].stringValue()).isEqualTo(sha1(getBytes("/index.html")))
+        assertThat(hashTable["/tafel-admin/manifest.webmanifest"].stringValue()).isEqualTo(sha1(getBytes("/manifest.webmanifest")))
+        assertThat(manifest["navigationUrls"][0]["regex"].stringValue()).isEqualTo("^\\/.*$")
+    }
+
+    @Test
+    fun `missing service worker manifest on disk results in a 404`() {
+        assertThat(get("/ngsw.json").statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value())
+    }
+
+    private fun sha1(bytes: ByteArray): String = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-1").digest(bytes))
+
+    private fun getBytes(path: String): ByteArray {
+        val request = HttpRequest.newBuilder(URI.create("http://localhost:$port$path")).GET().build()
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray()).body()
     }
 
     private fun get(path: String): HttpResponse<String> {

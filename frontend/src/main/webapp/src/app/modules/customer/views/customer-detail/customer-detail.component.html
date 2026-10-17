@@ -81,7 +81,7 @@
         } @else {
           <span testid="ticket-number-display" class="font-bold">Ticket: {{ ticketNumber() }}</span>
           <button testid="delete-ticket-button" matButton="filled" class="button-danger w-full lg:w-auto"
-                  (click)="deleteTicket()">
+                  [disabled]="deletingTicket()" (click)="deleteTicket()">
             Ticket löschen
           </button>
         }

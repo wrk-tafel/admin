@@ -1232,6 +1232,28 @@ describe('CustomerDetailComponent', () => {
     expect(toastr.success).toHaveBeenCalledWith('Ticket wurde gelöscht!');
   });
 
+  it('delete ticket sends no second request while one is pending', () => {
+    const pending = new Subject<void>();
+    distributionTicketApiService.deleteCurrentTicketOfCustomer.mockReturnValue(pending);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.componentRef.setInput('customerDocumentsResponse', mockCustomerDocumentsResponse);
+    const component = fixture.componentInstance;
+
+    component.deleteTicket();
+    component.deleteTicket();
+
+    expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledTimes(1);
+    expect(component.deletingTicket()).toBe(true);
+
+    pending.next();
+    pending.complete();
+
+    expect(component.deletingTicket()).toBe(false);
+  });
+
   it('openConfirmProlongCustomerDialog prolongs with force=true when confirmed', () => {
     const mockMessage = 'Einkommen befindet sich über dem Limit';
     const prolongedCustomer = {...mockCustomer, validUntil: dayjs(mockCustomer.validUntil).add(3, 'months').toDate()};
