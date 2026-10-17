@@ -3,6 +3,9 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Mein Konto → Zwei-Faktor-Authentifizierung: Ein Sicherheitsschlüssel (z. B. ein YubiKey) lässt sich jetzt über "Sicherheitsschlüssel hinzufügen" direkt einrichten, ohne dass der Browser zuerst den Passkey im Gerät oder ein Smartphone anbietet; der Hinweistext erklärt, dass ein Sicherheitsschlüssel auch an gemeinsam genutzten PCs funktioniert, und empfiehlt einen Ersatzschlüssel.
+
+## [1.34.0] - 2026-10-17
 - Die Sperre eines Kunden lässt sich jetzt über "Weitere Aktionen → Sperre bearbeiten" ändern (Kategorie, Sperrgrund und Enddatum), ohne den Kunden zuerst entsperren zu müssen; Zeitpunkt und Benutzer der ursprünglichen Sperrung bleiben dabei erhalten.
 - Beim Sperren eines Kunden ist die Kategorie nicht mehr mit "Sonstiger Grund" vorausgewählt, sondern muss bewusst gewählt werden; bestehende Sperren ohne Kategorie erhalten einmalig "Sonstiger Grund".
 
