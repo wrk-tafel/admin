@@ -803,6 +803,33 @@ describe('Two-factor authentication', () => {
       });
     });
 
+    it('a security key is added from its own button and listed as one', () => {
+      // a key plugged in over USB, next to the one built into the device - the button has to pick this one
+      devTools('WebAuthn.addVirtualAuthenticator', {
+        options: {
+          protocol: 'ctap2',
+          transport: 'usb',
+          hasResidentKey: false,
+          hasUserVerification: true,
+          isUserVerified: true,
+          automaticPresenceSimulation: true
+        }
+      });
+
+      createUser().then(user => {
+        cy.login(user.username, user.password);
+        cy.visit('/konto/zwei-faktor');
+        openRow('passkey');
+        cy.byTestId('mfaPasskeyName').type('YubiKey');
+        cy.byTestId('mfaSecurityKeyAddButton').click();
+        cy.get('.toast-message').should('be.visible').and('contain.text', 'Passkey hinzugefügt');
+
+        cy.byTestId('mfaPasskeyItem').should('contain.text', 'YubiKey');
+        cy.byTestId('mfaPasskeyKind').should('contain.text', '(Sicherheitsschlüssel)');
+        cy.checkAccessibility('main');
+      });
+    });
+
     it('the code still completes the login of a user who has a passkey', () => {
       userWithEmailMethod().then(user => {
         cy.visit('/konto/zwei-faktor');

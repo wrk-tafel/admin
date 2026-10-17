@@ -480,7 +480,19 @@ describe('UserMfaComponent', () => {
 
       expect(dialog.open).not.toHaveBeenCalled();
       expect(mfaApiService.enablePasskey).toHaveBeenCalledWith(credential, 'Laptop', null, expect.anything());
+      expect(passkeyService.create).toHaveBeenCalledWith({challenge: 'c'}, false);
       expect(passkeyService.get).not.toHaveBeenCalled();
+    });
+
+    it('asks the browser for a security key from its own button', async () => {
+      const fixture = await create();
+
+      type(fixture, 'passkeyName', 'YubiKey');
+      element(fixture, 'mfaSecurityKeyAddButton')!.click();
+      await fixture.whenStable();
+
+      expect(passkeyService.create).toHaveBeenCalledWith({challenge: 'c'}, true);
+      expect(mfaApiService.enablePasskey).toHaveBeenCalledWith(credential, 'YubiKey', null, expect.anything());
     });
 
     it('says so when the first passkey is not created', async () => {

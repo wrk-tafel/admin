@@ -42,6 +42,22 @@ describe('PasskeyService', () => {
     expect(result).toEqual({id: 'abc', type: 'public-key'});
   });
 
+  it('asks for a security key by hint and attachment, keeping the rest of the options', async () => {
+    stubBrowserSupport();
+
+    await service.create({challenge: 'c', authenticatorSelection: {residentKey: 'discouraged'}}, true);
+
+    expect(credentials.create).toHaveBeenCalledWith({
+      publicKey: {
+        parsedCreation: {
+          challenge: 'c',
+          hints: ['security-key'],
+          authenticatorSelection: {residentKey: 'discouraged', authenticatorAttachment: 'cross-platform'}
+        }
+      }
+    });
+  });
+
   it('asks a passkey for an assertion from the options the browser parsed, and returns it as JSON', async () => {
     stubBrowserSupport();
 

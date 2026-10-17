@@ -158,8 +158,9 @@ export class UserMfaComponent {
         + 'Administrator die Zwei-Faktor-Authentifizierung zurücksetzen. Eine zweite Methode wird empfohlen.';
     }
     return this.passkeys().length === 1
-      ? 'Nur ein Passkey ist eingerichtet - ist das Gerät nicht zur Hand, kann nur ein Administrator die '
-      + 'Zwei-Faktor-Authentifizierung zurücksetzen. Ein zweiter Passkey oder eine weitere Methode wird empfohlen.'
+      ? 'Nur ein Passkey ist eingerichtet - ist er nicht zur Hand, kann nur ein Administrator die '
+      + 'Zwei-Faktor-Authentifizierung zurücksetzen. Ein zweiter Passkey (etwa ein Ersatzschlüssel) oder eine weitere '
+      + 'Methode wird empfohlen.'
       : null;
   });
 
@@ -299,9 +300,10 @@ export class UserMfaComponent {
   /**
    * Adds a passkey: the backend hands out the options, the browser lets the device create the key, and the backend
    * stores it once the proof of an existing method checks out. A prompt the user dismisses is no error of the
-   * application, so it is told apart from a refusal by the backend.
+   * application, so it is told apart from a refusal by the backend. With `securityKey`, the browser goes straight to
+   * a key plugged in or held against the device (see `PasskeyService.create`).
    */
-  addPasskey(event: Event) {
+  addPasskey(event: Event, securityKey = false) {
     event.preventDefault();
     if (!this.validate('passkeyName')) {
       return;
@@ -309,7 +311,7 @@ export class UserMfaComponent {
     const name = this.formModel().passkeyName.trim();
     return this.change('Passkey hinzufügen', 'Hinzufügen', async proof => {
       const {options} = await firstValueFrom(this.mfaApiService.setupPasskey(SUPPRESS_ERROR_TOAST_CONTEXT));
-      const credential = await this.passkeyService.create(options);
+      const credential = await this.passkeyService.create(options, securityKey);
       await firstValueFrom(this.mfaApiService.enablePasskey(credential, name, proof, SUPPRESS_ERROR_TOAST_CONTEXT));
       this.toastr.success('Passkey hinzugefügt!');
     }, {

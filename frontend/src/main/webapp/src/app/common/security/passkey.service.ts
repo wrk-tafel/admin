@@ -17,9 +17,17 @@ export class PasskeyService {
       && typeof PublicKeyCredential.parseRequestOptionsFromJSON === 'function';
   }
 
-  /** Creates a passkey for the registration options; rejects when the user cancels or the authenticator refuses. */
-  async create(options: PasskeyOptions): Promise<PasskeyCredential> {
-    const publicKey = PublicKeyCredential.parseCreationOptionsFromJSON(options as unknown as PublicKeyCredentialCreationOptionsJSON);
+  /**
+   * Creates a passkey for the registration options; rejects when the user cancels or the authenticator refuses.
+   *
+   * With `securityKey`, the browser is asked to go straight to a key plugged in or held against the device instead of
+   * offering the device's own passkey or a phone first: `hints` for the browsers that read it (WebAuthn level 3), and
+   * a cross-platform attachment for the others. Neither is something the backend checks - the passkey it gets is an
+   * ordinary one, told apart afterwards only by the transports it reports.
+   */
+  async create(options: PasskeyOptions, securityKey = false): Promise<PasskeyCredential> {
+    const json = securityKey ? withSecurityKeyPreference(options) : options;
+    const publicKey = PublicKeyCredential.parseCreationOptionsFromJSON(json as unknown as PublicKeyCredentialCreationOptionsJSON);
     return this.toJson(await navigator.credentials.create({publicKey}));
   }
 
@@ -35,6 +43,15 @@ export class PasskeyService {
     }
     return (credential as PublicKeyCredential).toJSON();
   }
+}
+
+function withSecurityKeyPreference(options: PasskeyOptions): PasskeyOptions {
+  const authenticatorSelection = (options['authenticatorSelection'] ?? {}) as Record<string, unknown>;
+  return {
+    ...options,
+    hints: ['security-key'],
+    authenticatorSelection: {...authenticatorSelection, authenticatorAttachment: 'cross-platform'}
+  };
 }
 
 /** WebAuthn options in their JSON form, as the backend sends them - opaque to everything but the browser. */

@@ -251,10 +251,11 @@
                testid="mfaRowPanel-passkey" [hidden]="!isExpanded('passkey')">
             <p class="text-sm text-slate-600 mb-4" testid="mfaPasskeyIntro">
               Mit einem Passkey bestätigen Sie die Anmeldung per Fingerabdruck, Gesichtserkennung, Geräte-PIN oder
-              Sicherheitsschlüssel, statt einen Code einzutippen. Ein Passkey gehört zu dem Gerät, auf dem er
-              eingerichtet wurde: Ist er die einzige Methode und das Gerät nicht zur Hand, kann nur ein Administrator
-              die Zwei-Faktor-Authentifizierung zurücksetzen - eine weitere Methode oder ein zweiter Passkey beugt dem
-              vor.
+              Sicherheitsschlüssel, statt einen Code einzutippen. Ein Passkey im Gerät gehört zu dem Gerät, auf dem er
+              eingerichtet wurde; ein Sicherheitsschlüssel (z. B. ein YubiKey) kommt dagegen mit Ihnen und funktioniert
+              an jedem PC, an dem Sie ihn anstecken oder auflegen - auch an einem gemeinsam genutzten. Ist ein Passkey die
+              einzige Methode und nicht zur Hand, kann nur ein Administrator die Zwei-Faktor-Authentifizierung
+              zurücksetzen - eine weitere Methode, ein zweiter Passkey oder ein Ersatzschlüssel beugt dem vor.
             </p>
 
             @if (passkeys().length > 0) {
@@ -292,9 +293,9 @@
                 Dieser Browser unterstützt keine Passkeys.
               </p>
             } @else {
-              <form (submit)="addPasskey($event)" novalidate class="flex flex-col gap-2 max-w-xs">
+              <form (submit)="addPasskey($event)" novalidate class="flex flex-col gap-2">
                 <!-- the hint sits below the field's own box, so the field keeps its distance to the next one itself -->
-                <mat-form-field class="mb-3">
+                <mat-form-field class="mb-3 max-w-xs">
                   <mat-label>Name des Passkeys</mat-label>
                   <input [formField]="setupForm.passkeyName" matInput testid="mfaPasskeyName" type="text" autocomplete="off">
                   <mat-hint>z. B. "Laptop" oder "YubiKey"</mat-hint>
@@ -302,9 +303,13 @@
                     <mat-error>{{ message }}</mat-error>
                   }
                 </mat-form-field>
-                <div>
+                <div class="flex flex-wrap gap-2">
                   <button testid="mfaPasskeyAddButton" matButton="filled" type="submit" [disabled]="working()">
                     Passkey hinzufügen
+                  </button>
+                  <button testid="mfaSecurityKeyAddButton" matButton="outlined" type="button" [disabled]="working()"
+                          (click)="addPasskey($event, true)">
+                    Sicherheitsschlüssel hinzufügen
                   </button>
                 </div>
               </form>
