@@ -32,7 +32,7 @@ block over the actually-open one from another's.
   `households`/`foodCollections` associations.
 - **DistributionHouseholdEntity** (table `distributions_households`) — a household's ticket within a
   distribution: `ticketNumber`, `processed` (has this ticket already been called/served?),
-  `costContributionPaid`.
+  `costContributionPaid`, `skipped` (closed without being served - the household wasn't there).
 - **DistributionStatisticEntity** / **DistributionStatisticShelterEntity** (tables
   `distributions_statistics`, and a shelter snapshot list) — the statistics snapshot for a
   *closed* distribution. `isEmpty()` is used to validate that a distribution isn't closed without
@@ -40,8 +40,9 @@ block over the actually-open one from another's.
 
 ### DistributionService (`internal/DistributionService.kt`)
 The core service. Notable methods: `createNewDistribution()`, `assignHouseholdToDistribution()`,
-`getCurrentTicketNumber()` / `closeCurrentTicketAndGetNext()` / `reopenAndGetPreviousTicket()` /
-`deleteCurrentTicket()` (the ticket queue workflow), `validateClose()` / `closeDistribution()`,
+`getCurrentTicketNumber()` / `closeCurrentTicketAndGetNext()` / `skipCurrentTicketAndGetNext()` /
+`reopenAndGetPreviousTicket()` / `deleteCurrentTicket()` (the ticket queue workflow),
+`getHouseholdIdForTicketNumber()`, `validateClose()` / `closeDistribution()`,
 `generateHouseholdListPdf()`, `updateDistributionStatisticData()` / `updateDistributionNoteData()`,
 and `sendMails()` (manual re-send, see below).
 
@@ -51,10 +52,12 @@ and `sendMails()` (manual re-send, see below).
   `DistributionUpdateResponse` whenever the current distribution starts/ends. The response also
   carries `registeredCustomers` (the header's live count): the stream re-sends it whenever the
   count changes, driven by the `dashboard_update` notification, so the header needs no stream of its own.
-- **DistributionTicketController** (`internal/ticket/`) — `/api/distributions/tickets/households/{id}`:
+- **DistributionTicketController** (`internal/ticket/`) — `/api/households/{householdId}/ticket`:
   get/delete the ticket assigned to a household.
+- **DistributionTicketLookupController** (`internal/ticket/`) — `/api/distributions/tickets/{ticketNumber}`:
+  the household holding a ticket number of the running distribution (customer search's ticket field).
 - **DistributionTicketScreenController** (`internal/ticket/`) — `/api/distributions/ticket-screen/*`
-  (`show-text`, `show-current`, `show-previous`, `show-next`) plus
+  (`show-text`, `show-current`, `show-previous`, `show-next`, `skip`) plus
   the `ticket-screen` SSE topic (`TicketScreenSseTopic`): drives the fullscreen "now serving" ticket display.
 
 ### DistributionEndedEventListener (`internal/DistributionEndedEventListener.kt`)
@@ -84,7 +87,7 @@ implementation was left, so the interface/list indirection was removed in favor 
   `DistributionEndedEventListener`, never on-demand. Every number in the snapshot is reproducible from
   the distribution alone: infants are counted against `distribution.startedAt`, not against the clock,
   and the food weight is summed from the weights stored on the collected items.
-- **MissingCostContributionService** — for every household whose `costContributionPaid == false` on this
+- **MissingCostContributionService** — for every household whose `costContributionPaid == false` (and not `skipped`) on this
   distribution, adds the current cost-contribution amount to `household.pendingCostContribution` so it
   can be collected next time. Doesn't touch `reporting`. Deliberately not called by
   `DistributionService.sendMails()` (the manual mail re-send), since re-running it would double-count
@@ -256,6 +259,8 @@ instead of both passing the check: the loser sees the up-to-date state and gets 
 Once assigned, the "queue" is walked in `ticketNumber` order using the `processed` flag:
 - `getFirstUnprocessedDistributionHouseholdEntity()` → who's currently being called
 - `closeCurrentTicketAndGetNext()` marks the current one `processed = true` and returns the next
+- `skipCurrentTicketAndGetNext()` does the same without a paid/unpaid decision and flags it `skipped`, so
+  no cost contribution is charged for it; it then counts as processed (queue counts, phase events)
 - `reopenAndGetPreviousTicket()` finds the *last processed* ticket and flips it back to unprocessed (for
   "oops, go back one")
 

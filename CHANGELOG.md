@@ -3,6 +3,8 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Kunden → Kunden suchen: Während einer Ausgabe führt das neue Feld "Ticketnummer der laufenden Ausgabe" direkt zum Kunden, der dieses Ticket erhalten hat - etwa wenn ein Kunde nur mit seiner Ticketnummer kommt.
+- Ticket-Monitor - Steuerung: Mit "Überspringen (Kunde nicht da)" geht es zum nächsten Ticket weiter, ohne einen Unkostenbeitrag zu verrechnen; kommt der Kunde doch noch, öffnet der Zurück-Pfeil das übersprungene Ticket wieder.
 - Einstellungen → Grenzwerte: Ein Betrag lässt sich jetzt auch im Voraus mit einem späteren Gültigkeitsbeginn hinterlegen (z. B. die Werte des nächsten Jahres ab 01.01.), wird in der neuen Spalte "Geplant" neben dem aktuellen Betrag angezeigt, kann bis dahin geändert oder entfernt werden, und ein Hinweis oben zeigt, ab wann bereits neue Beträge hinterlegt sind.
 - Die Einkommensgrenzen für 2027 (Armutsgefährdungsschwelle EU-SILC 2025: 1.827 € für einen Einpersonenhaushalt) sind bereits hinterlegt und gelten automatisch ab 01.01.2027; Familienbeihilfe, Kinderabsetzbetrag und Geschwisterstaffelung bleiben 2027 unverändert.
 

@@ -7,7 +7,7 @@ import {
   DistributionTicketScreenApiService,
   TicketScreenTicketResponse
 } from '../../../../api/distribution-ticket-screen-api.service';
-import {finalize} from 'rxjs';
+import {finalize, Observable} from 'rxjs';
 import {ParseErrorRefreshDirective} from '../../../../common/date/parse-error-refresh.directive';
 import {form, FormField, required} from '@angular/forms/signals';
 import {MatTimepickerModule} from '@angular/material/timepicker';
@@ -30,6 +30,7 @@ import euroIcon from '@material-symbols/svg-400/outlined/euro-fill.svg';
 import linkIcon from '@material-symbols/svg-400/outlined/link-fill.svg';
 import linkOffIcon from '@material-symbols/svg-400/outlined/link_off-fill.svg';
 import closeIcon from '@material-symbols/svg-400/outlined/close-fill.svg';
+import skipNextIcon from '@material-symbols/svg-400/outlined/skip_next-fill.svg';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {CustomerApiService} from '../../../../api/customer-api.service';
 import {HttpErrorResponse} from '@angular/common/http';
@@ -72,7 +73,8 @@ export class TicketScreenControlComponent {
     euro: euroIcon,
     link: linkIcon,
     link_off: linkOffIcon,
-    close: closeIcon
+    close: closeIcon,
+    skip_next: skipNextIcon
   });
 
   private readonly distributionTicketScreenApiService = inject(DistributionTicketScreenApiService);
@@ -247,12 +249,22 @@ export class TicketScreenControlComponent {
     this.advanceTicket(costContributionPaid);
   }
 
+  /** Closes the current ticket without a paid/unpaid decision - its household isn't there. "Ticket
+   *  zurück" reopens it like any other ticket. */
+  skipTicket() {
+    this.advance(this.distributionTicketScreenApiService.skipTicket());
+  }
+
   private advanceTicket(costContributionPaid: boolean | null) {
+    this.advance(this.distributionTicketScreenApiService.showNextTicket(costContributionPaid));
+  }
+
+  private advance(request: Observable<TicketScreenTicketResponse>) {
     if (this.isShowingNextTicket()) {
       return;
     }
     this.isShowingNextTicket.set(true);
-    this.distributionTicketScreenApiService.showNextTicket(costContributionPaid)
+    request
       .pipe(finalize(() => this.isShowingNextTicket.set(false)))
       .subscribe({
         next: (response) => {

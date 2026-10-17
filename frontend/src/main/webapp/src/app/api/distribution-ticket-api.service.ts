@@ -14,8 +14,18 @@ export class DistributionTicketApiService {
     return this.http.delete<void>(`/households/${customerId}/ticket`, {context});
   }
 
+  /** The household holding `ticketNumber` in the current distribution - 404 when nobody does. */
+  getHouseholdForTicketNumber(ticketNumber: number, context?: HttpContext): Observable<TicketHouseholdResponse> {
+    return this.http.get<TicketHouseholdResponse>(`/distributions/tickets/${ticketNumber}`, {context});
+  }
+
 }
 
 export interface TicketNumberResponse {
   ticketNumber: number | null;
+}
+
+export interface TicketHouseholdResponse {
+  ticketNumber: number;
+  householdId: number;
 }

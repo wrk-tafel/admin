@@ -17,9 +17,11 @@ import {EmergencyListDialogComponent} from './dialogs/emergency-list-dialog.comp
 import {AuthenticationService} from '../../../../common/security/authentication.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 
 describe('CustomerSearchComponent', () => {
   let apiService: MockedObject<CustomerApiService>;
+  let ticketApiService: MockedObject<DistributionTicketApiService>;
   let router: MockedObject<Router>;
   let toastr: MockedObject<TafelToastrService>;
   let fileHelperService: MockedObject<FileHelperService>;
@@ -71,6 +73,12 @@ describe('CustomerSearchComponent', () => {
           }
         },
         {
+          provide: DistributionTicketApiService,
+          useValue: {
+            getHouseholdForTicketNumber: vi.fn().mockName('DistributionTicketApiService.getHouseholdForTicketNumber')
+          }
+        },
+        {
           provide: AuthenticationService,
           useValue: {
             hasPermission: vi.fn().mockName('AuthenticationService.hasPermission').mockReturnValue(false)
@@ -117,6 +125,7 @@ describe('CustomerSearchComponent', () => {
     }).compileComponents();
 
     apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
+    ticketApiService = TestBed.inject(DistributionTicketApiService) as MockedObject<DistributionTicketApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
@@ -142,6 +151,38 @@ describe('CustomerSearchComponent', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
     return {fixture, component: fixture.componentInstance};
   }
+
+  describe('ticket number lookup', () => {
+    it('jumps to the household holding the ticket', () => {
+      const {component} = createComponent();
+      ticketApiService.getHouseholdForTicketNumber.mockReturnValue(of({ticketNumber: 12, householdId: 345}));
+
+      component.ticketNumber.set(12);
+      component.searchTicketNumber();
+
+      expect(ticketApiService.getHouseholdForTicketNumber).toHaveBeenCalledWith(12, expect.anything());
+      expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 345]);
+    });
+
+    it('says so when nobody holds the ticket, without navigating', () => {
+      const {component} = createComponent();
+      ticketApiService.getHouseholdForTicketNumber.mockReturnValue(throwError(() => new HttpErrorResponse({status: 404})));
+
+      component.ticketNumber.set(99);
+      component.searchTicketNumber();
+
+      expect(toastr.warning).toHaveBeenCalledWith('Ticket 99 wurde in der laufenden Ausgabe nicht vergeben.');
+      expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', expect.anything()]);
+    });
+
+    it('does nothing without a ticket number', () => {
+      const {component} = createComponent();
+
+      component.searchTicketNumber();
+
+      expect(ticketApiService.getHouseholdForTicketNumber).not.toHaveBeenCalled();
+    });
+  });
 
   it('component can be created', () => {
     const {component} = createComponent();
