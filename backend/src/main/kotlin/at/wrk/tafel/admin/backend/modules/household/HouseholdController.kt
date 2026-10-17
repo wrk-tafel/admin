@@ -292,6 +292,14 @@ class HouseholdController(
         return householdLockService.lockHousehold(householdId, request, authenticatedUser.username!!)
     }
 
+    /** Changes reason, category and end date of an existing lock, see [HouseholdLockService.updateLock]. */
+    @PutMapping("/{householdId}/lock")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
+    fun updateLock(
+        @PathVariable householdId: Long,
+        @Valid @RequestBody request: HouseholdLockRequest,
+    ): HouseholdResponse = householdLockService.updateLock(householdId, request)
+
     @PostMapping("/{householdId}/unlock")
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun unlockHousehold(@PathVariable householdId: Long): HouseholdResponse = householdLockService.unlockHousehold(householdId)

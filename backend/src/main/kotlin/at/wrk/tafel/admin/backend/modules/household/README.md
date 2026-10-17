@@ -540,16 +540,22 @@ currently locked for `HouseholdLockReason.BANNED_FROM_PREMISES` is excluded from
 screen - regardless of `validUntil` (issue #3753); no other lock reason gets this treatment.
 
 ### `HouseholdLockService` (`internal`)
-Locking and unlocking by hand - the customer detail screen's "Sperren"/"Entsperren".
+Locking, editing a lock and unlocking by hand - the customer detail screen's
+"Sperren"/"Sperre bearbeiten"/"Entsperren".
 `lockHousehold` (`POST /api/households/{id}/lock`, body `HouseholdLockRequest`: the required
-free-text `lockReason`, the optional `lockReasonType` and `lockedUntil`) and `unlockHousehold`
+free-text `lockReason`, the optional `lockReasonType` and `lockedUntil`), `updateLock`
+(`PUT /api/households/{id}/lock`, same body) and `unlockHousehold`
 (`POST /api/households/{id}/unlock`) write the lock fields of the stored household and nothing else,
-and both answer with the full `HouseholdResponse`. Neither takes the household as input: an
+and all three answer with the full `HouseholdResponse`. None takes the household as input: an
 incomplete household (see above) fails `PUT /api/households/{id}`'s required-field validation, so a
 lock that round-tripped the record could never be put on exactly the households nobody can complete -
-and it would re-run an income check that has nothing to do with a lock. An already locked household
-is refused (`BusinessRuleException`), since there is no "edit an existing lock" action. Both are
-ordinary audited household updates.
+and it would re-run an income check that has nothing to do with a lock. Locking an already locked
+household is refused (`BusinessRuleException`) rather than re-stamping "Gesperrt seit/von", and
+`updateLock` refuses a household that is not locked. `updateLock` replaces reason, category and end
+date and leaves `lockedAt`/`lockedBy` and the lock review (`lockReviewedAt`/`lockReviewedBy`) alone:
+the household has been locked since then all along, and confirming that a lock stays is the
+"Gesperrte Kunden" screen's action, not a side effect of editing it. All three are ordinary audited
+household updates.
 
 ### Prolonging and deactivating
 The detail screen's two validity actions have their own endpoints for the same reason locking does:

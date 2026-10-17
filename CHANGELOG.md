@@ -3,6 +3,9 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Die Sperre eines Kunden lässt sich jetzt über "Weitere Aktionen → Sperre bearbeiten" ändern (Kategorie, Sperrgrund und Enddatum), ohne den Kunden zuerst entsperren zu müssen; Zeitpunkt und Benutzer der ursprünglichen Sperrung bleiben dabei erhalten.
+
+## [1.33.0] - 2026-10-16
 - Mein Konto → Zwei-Faktor-Authentifizierung zeigt jetzt oben, ob und wie viele Methoden das Konto schützen, und warnt, wenn nur eine leicht zu verlierende eingerichtet ist (etwa nur der Code per E-Mail oder ein einzelner Passkey); jede Methode steht in einer eigenen, aufklappbaren Zeile, in der sie auch entfernt wird, Passkeys zeigen ihre Art (Gerät oder Sicherheitsschlüssel), und das Bestätigen mit einer bestehenden Methode geschieht in einem gemeinsamen Fenster.
 
 ## [1.32.0] - 2026-10-16

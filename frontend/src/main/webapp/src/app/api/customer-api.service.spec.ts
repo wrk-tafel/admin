@@ -616,6 +616,20 @@ describe('CustomerApiService', () => {
     expect(result?.lastname).toEqual(mockCustomer.lastname);
   });
 
+  it('update customer lock sends only the lock with PUT and maps the response to a customer', () => {
+    let result: CustomerData | undefined;
+    const lock = {lockReason: 'new reason', lockReasonType: HouseholdLockReason.BANNED_FROM_PREMISES, lockedUntil: null};
+    apiService.updateCustomerLock(133, lock).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'PUT', url: '/households/133/lock'});
+    expect(req.request.body).toEqual(lock);
+
+    req.flush(mockHousehold);
+    httpMock.verify();
+
+    expect(result?.id).toEqual(mockCustomer.id);
+  });
+
   it('unlock customer maps the response to a customer', () => {
     let result: CustomerData | undefined;
     apiService.unlockCustomer(133).subscribe(response => result = response);

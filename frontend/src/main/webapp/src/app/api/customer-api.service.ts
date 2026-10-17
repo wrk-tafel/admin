@@ -266,6 +266,12 @@ export class CustomerApiService {
       .pipe(map(mapHouseholdToCustomer));
   }
 
+  /** Changes reason, category and end date of an existing lock; who locked the customer and when stay. */
+  updateCustomerLock(customerId: number, lock: CustomerLockData, context?: HttpContext): Observable<CustomerData> {
+    return this.http.put<HouseholdData>(`/households/${customerId}/lock`, lock, {context})
+      .pipe(map(mapHouseholdToCustomer));
+  }
+
   unlockCustomer(customerId: number, context?: HttpContext): Observable<CustomerData> {
     return this.http.post<HouseholdData>(`/households/${customerId}/unlock`, null, {context})
       .pipe(map(mapHouseholdToCustomer));

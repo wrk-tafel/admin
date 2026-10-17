@@ -2,7 +2,7 @@
   <div testid="lock-info-banner" class="tafel-banner-error">
     <div><strong>Kunde ist gesperrt!</strong></div>
     @if (customerData().lockedBy) {
-      <div>Gesperrt am {{ customerData().lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{ customerData().lockedBy }}</div>
+      <div testid="lock-info-locked-since">Gesperrt am {{ customerData().lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{ customerData().lockedBy }}</div>
     }
     @if (customerData().lockReasonType) {
       <div><strong>Kategorie:</strong> {{ householdLockReasonLabel[customerData().lockReasonType!] }}</div>
@@ -194,6 +194,9 @@
       <mat-divider></mat-divider>
       <button mat-menu-item testid="lockCustomerButton" (click)="openLockCustomerDialog()"
               [disabled]="!customerData() || customerData()?.locked">Kunde sperren
+      </button>
+      <button mat-menu-item testid="editLockButton" (click)="openEditLockDialog()"
+              [disabled]="!customerData() || !customerData()?.locked">Sperre bearbeiten
       </button>
       <button mat-menu-item testid="unlockCustomerButton" (click)="unlockCustomer()"
               [disabled]="!customerData() || !customerData()?.locked">Kunde entsperren

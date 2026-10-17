@@ -73,6 +73,44 @@ describe('Customer Locked', () => {
     });
   });
 
+  it('edits an existing lock without changing who locked the customer and when', () => {
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body.data;
+      lockCustomer(customer.id!, 'original e2e lock reason');
+      cy.byTestId('lock-info-locked-since').invoke('text').then((lockedSince) => {
+        cy.byTestId('editCustomerToggleButton').click();
+        cy.byTestId('lockCustomerButton').should('be.disabled');
+        cy.byTestId('editLockButton').click();
+
+        // the dialog opens with the existing lock filled in
+        cy.byTestId('lock-customer-dialog').should('contain.text', 'Sperre bearbeiten');
+        cy.byTestId('lockreason-input-text').should('have.value', 'original e2e lock reason');
+        cy.checkDialogAccessibility();
+
+        cy.byTestId('lockreason-type-select').click();
+        cy.byTestId('lockreason-type-select-option-BANNED_FROM_PREMISES').click();
+        cy.byTestId('lockreason-input-text').clear();
+        cy.byTestId('lockreason-input-text').type('edited e2e lock reason');
+        cy.byTestId('lockeduntil-input').type(dayjs().add(30, 'day').format('DD.MM.YYYY'));
+        cy.byTestId('lock-customer-dialog').within(() => {
+          cy.byTestId('okButton').click();
+        });
+
+        cy.byTestId('lock-info-banner')
+          .should('contain.text', 'edited e2e lock reason')
+          .and('contain.text', 'Hausverbot')
+          .and('contain.text', 'Gesperrt bis ' + dayjs().add(30, 'day').format('DD.MM.YYYY'));
+        cy.byTestId('lock-info-locked-since').should('have.text', lockedSince);
+      });
+
+      // the change survives a reload, i.e. it was stored and not only shown
+      cy.reload();
+      cy.byTestId('lock-info-banner').should('contain.text', 'edited e2e lock reason');
+
+      unlockCustomer(customer.id!);
+    });
+  });
+
   it('a lock with an end date lifts itself and offers no confirmation', () => {
     cy.createDummyCustomer().then((response) => {
       const customer = response.body.data;

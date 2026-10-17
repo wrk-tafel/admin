@@ -756,6 +756,17 @@ class HouseholdControllerTest {
     }
 
     @Test
+    fun `update lock of household`() {
+        val request = HouseholdLockRequest(lockReason = "Neuer Grund", lockReasonType = HouseholdLockReason.BANNED_FROM_PREMISES)
+        every { householdLockService.updateLock(1001, request) } returns testHouseholdResponse
+
+        val response = controller.updateLock(1001, request)
+
+        assertThat(response).isEqualTo(testHouseholdResponse)
+        verify { householdLockService.updateLock(1001, request) }
+    }
+
+    @Test
     fun `unlock household`() {
         every { householdLockService.unlockHousehold(1001) } returns testHouseholdResponse
 
