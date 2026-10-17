@@ -39,4 +39,15 @@ interface DistributionHouseholdRepository : JpaRepository<DistributionHouseholdE
         @Param("targetHousehold") targetHousehold: HouseholdEntity,
         @Param("ids") ids: Collection<Long>,
     ): Int
+
+    /**
+     * Deletes the ticket [id] if it is still unprocessed and reports whether it did, for
+     * `DistributionService.deleteCurrentTicket`. A bulk delete rather than `delete(entity)` because
+     * two requests deleting the same ticket at once both read the row: Postgres makes the second
+     * one wait for the first to commit and then deletes nothing, which this reports as `0`, while
+     * an entity delete would only find out at flush time and fail the whole transaction.
+     */
+    @Modifying
+    @Query("delete from DistributionHousehold dh where dh.id = :id and dh.processed = false")
+    fun deleteUnprocessed(@Param("id") id: Long): Int
 }

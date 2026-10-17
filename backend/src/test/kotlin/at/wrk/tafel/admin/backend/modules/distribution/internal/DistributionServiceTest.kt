@@ -1517,6 +1517,7 @@ internal class DistributionServiceTest {
 
     private fun distributionWithUnprocessedTickets(count: Int = 1): DistributionEntity {
         every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
+        every { distributionHouseholdRepository.deleteUnprocessed(any()) } returns 1
 
         val distribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
@@ -1549,12 +1550,27 @@ internal class DistributionServiceTest {
             )
         }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionHouseholdRepository.deleteUnprocessed(any()) } returns 1
 
-        val result =
-            service.deleteCurrentTicket(testDistributionHouseholdEntity2.household.householdId)
+        service.deleteCurrentTicket(testDistributionHouseholdEntity2.household.householdId)
 
-        assertThat(result).isTrue()
-        verify(exactly = 1) { distributionHouseholdRepository.delete(testDistributionHouseholdEntity2) }
+        verify(exactly = 1) { distributionHouseholdRepository.deleteUnprocessed(testDistributionHouseholdEntity2.id!!) }
+    }
+
+    /**
+     * The request that loses a race against another delete of the same ticket (a double click on
+     * the check-in screen, issue #3873) finds the row already gone - which is the state it asked for.
+     */
+    @Test
+    fun `deleting a ticket another request has just deleted logs nothing and publishes no event`() {
+        distributionWithUnprocessedTickets(count = 1)
+        every { distributionHouseholdRepository.deleteUnprocessed(any()) } returns 0
+
+        val logEvents = captureServiceLogs { service.deleteCurrentTicket(testHouseholdEntity1.householdId) }
+
+        assertThat(logEvents).isEmpty()
+        verify(exactly = 0) { distributionRepository.markTicketsCompleted(any(), any()) }
+        verify(exactly = 0) { eventPublisher.publishEvent(any<AllTicketsProcessedEvent>()) }
     }
 
     /**

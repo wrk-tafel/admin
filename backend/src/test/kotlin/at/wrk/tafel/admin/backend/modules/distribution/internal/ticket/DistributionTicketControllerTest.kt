@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
-import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
 import io.mockk.every
@@ -10,7 +9,6 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 
@@ -49,24 +47,10 @@ internal class DistributionTicketControllerTest {
 
     @Test
     fun `delete current ticket for household`() {
-        every { service.deleteCurrentTicket(any()) } returns true
-
         val householdId = 123L
         val response = controller.deleteCurrentTicketForHousehold(householdId)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
-        verify { service.deleteCurrentTicket(householdId) }
-    }
-
-    @Test
-    fun `delete current ticket for household failed`() {
-        every { service.deleteCurrentTicket(any()) } returns false
-
-        val householdId = 123L
-
-        val exception = assertThrows<BusinessRuleException> { controller.deleteCurrentTicketForHousehold(householdId) }
-        assertThat(exception.body.detail).isEqualTo("Löschen des Tickets von Kunde Nr. 123 fehlgeschlagen!")
-
         verify { service.deleteCurrentTicket(householdId) }
     }
 }

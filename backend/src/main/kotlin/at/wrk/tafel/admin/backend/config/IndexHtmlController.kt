@@ -8,7 +8,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.json.JsonMapper
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.util.HexFormat
 
 /**
  * The frontend is built once and deployed unchanged behind reverse proxies mounting it at
@@ -41,6 +45,13 @@ import java.nio.charset.StandardCharsets
  * at around twelve characters - the manifest's `short_name` and, its iOS equivalent,
  * `apple-mobile-web-app-title`. Using the long form for those is what turns an installed
  * environment into "Tafel Adm...", losing exactly the label that tells the environments apart.
+ *
+ * The service worker's manifest ([serviceWorkerManifest], `ngsw.json`) needs the same treatment for
+ * two reasons of its own. The build writes every URL in it from the `/` base href, and the worker
+ * resolves them against the origin rather than its scope - behind a prefix it would fetch
+ * `/assets/favicon.ico` instead of `/verwaltung/assets/favicon.ico` and fail to install every
+ * version (#3872). And it checks each file against the hash recorded for it, which for `index.html`
+ * and `manifest.webmanifest` is the hash of the file as built, not of what this controller serves.
  */
 @Controller
 class IndexHtmlController(
@@ -48,7 +59,11 @@ class IndexHtmlController(
     private val resourceLoader: ResourceLoader,
 ) {
 
-    @GetMapping("/", produces = [MediaType.TEXT_HTML_VALUE])
+    private val jsonMapper = JsonMapper()
+
+    // "/index.html" too: it is what the service worker fetches and then answers every navigation
+    // with, and the file as built carries the "/" base href.
+    @GetMapping(value = ["/", "/index.html"], produces = [MediaType.TEXT_HTML_VALUE])
     fun index(): ResponseEntity<String> = buildIndexResponse()
 
     @GetMapping(
@@ -64,32 +79,63 @@ class IndexHtmlController(
 
     @GetMapping("/manifest.webmanifest", produces = ["application/manifest+json"])
     fun manifest(): ResponseEntity<String> {
-        val resource = resourceLoader.getResource(staticResourceLocation() + "manifest.webmanifest")
-        if (!resource.exists()) {
-            return ResponseEntity.notFound().build()
-        }
-
-        val json = resource.inputStream.use { it.readBytes() }.toString(StandardCharsets.UTF_8)
-        val templatedJson = json
-            .replace("\"name\": \"Tafel Admin\"", "\"name\": \"$brandedTitle\"")
-            .replace("\"short_name\": \"Tafel Admin\"", "\"short_name\": \"$brandedShortTitle\"")
+        val templatedJson = renderManifest() ?: return ResponseEntity.notFound().build()
 
         return ResponseEntity.ok()
             .contentType(MediaType.valueOf("application/manifest+json"))
             .body(templatedJson)
     }
 
-    private fun buildIndexResponse(): ResponseEntity<String> {
-        val resource = resourceLoader.getResource(staticResourceLocation() + "index.html")
-        if (!resource.exists()) {
-            return ResponseEntity.notFound().build()
+    @GetMapping("/ngsw.json", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun serviceWorkerManifest(): ResponseEntity<String> {
+        val json = readStaticFile("ngsw.json") ?: return ResponseEntity.notFound().build()
+        val manifest = jsonMapper.readValue(json, object : TypeReference<LinkedHashMap<String, Any?>>() {})
+
+        // The two files rewritten before they are served; every other one is served as built.
+        val servedHashes = mapOf(
+            "/index.html" to renderIndexHtml(),
+            "/manifest.webmanifest" to renderManifest(),
+        ).mapNotNull { (url, content) -> content?.let { url to sha1(it) } }.toMap()
+
+        @Suppress("UNCHECKED_CAST")
+        val assetGroups = (manifest["assetGroups"] as List<Map<String, Any?>>).map { group ->
+            group + ("urls" to (group["urls"] as List<String>).map(::withBasePath))
         }
 
-        val html = resource.inputStream.use { it.readBytes() }.toString(StandardCharsets.UTF_8)
+        @Suppress("UNCHECKED_CAST")
+        val hashTable = (manifest["hashTable"] as Map<String, String>).entries.associate { (url, hash) ->
+            withBasePath(url) to (servedHashes[url] ?: hash)
+        }
+
+        // navigationUrls stay as built: the worker matches them against the URL with its scope
+        // already cut off.
+        manifest["index"] = withBasePath(manifest["index"] as String)
+        manifest["assetGroups"] = assetGroups
+        manifest["hashTable"] = hashTable
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(jsonMapper.writeValueAsString(manifest))
+    }
+
+    private fun buildIndexResponse(): ResponseEntity<String> {
+        val templatedHtml = renderIndexHtml() ?: return ResponseEntity.notFound().build()
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.TEXT_HTML)
+            .body(templatedHtml)
+    }
+
+    private fun renderManifest(): String? = readStaticFile("manifest.webmanifest")
+        ?.replace("\"name\": \"Tafel Admin\"", "\"name\": \"$brandedTitle\"")
+        ?.replace("\"short_name\": \"Tafel Admin\"", "\"short_name\": \"$brandedShortTitle\"")
+
+    private fun renderIndexHtml(): String? {
+        val html = readStaticFile("index.html") ?: return null
         // basePath, not relativeBaseUrl: a <base href> has to carry a trailing slash to be appended
         // to rather than replaced - see TafelAdminServerProperties.basePath.
         val relativeBaseUrl = tafelAdminProperties.server.basePath
-        val templatedHtml = html.replace("<base href=\"/\">", "<base href=\"$relativeBaseUrl\">")
+        return html.replace("<base href=\"/\">", "<base href=\"$relativeBaseUrl\">")
             .replace("<title>Tafel Admin</title>", "<title>$brandedTitle</title>")
             .replace(
                 "<meta name=\"apple-mobile-web-app-title\" content=\"Tafel Admin\">",
@@ -99,11 +145,25 @@ class IndexHtmlController(
                 "<div class=\"tafel-app-loading-environment-label\"></div>",
                 "<div class=\"tafel-app-loading-environment-label\">${tafelAdminProperties.environmentLabel.trim()}</div>",
             )
-
-        return ResponseEntity.ok()
-            .contentType(MediaType.TEXT_HTML)
-            .body(templatedHtml)
     }
+
+    private fun readStaticFile(name: String): String? {
+        val resource = resourceLoader.getResource(staticResourceLocation() + name)
+        if (!resource.exists()) {
+            return null
+        }
+        return resource.inputStream.use { it.readBytes() }.toString(StandardCharsets.UTF_8)
+    }
+
+    /** `/assets/favicon.ico` -> `/verwaltung/assets/favicon.ico`, see [serviceWorkerManifest]. */
+    private fun withBasePath(url: String): String =
+        if (url.startsWith("/")) tafelAdminProperties.server.basePath + url.removePrefix("/") else url
+
+    // SHA-1 because that is what ngsw.json records and the worker compares against: an integrity
+    // check of a file this application serves itself, not a security measure.
+    private fun sha1(content: String): String = HexFormat.of().formatHex(
+        MessageDigest.getInstance("SHA-1").digest(content.toByteArray(StandardCharsets.UTF_8)), // NOSONAR - kotlin:S4790, see above
+    )
 
     private val brandedTitle: String
         get() {

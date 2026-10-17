@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
-import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
 import org.springframework.http.ResponseEntity
@@ -28,10 +27,7 @@ class DistributionTicketController(
     fun deleteCurrentTicketForHousehold(
         @PathVariable householdId: Long,
     ): ResponseEntity<Unit> {
-        val deleted = service.deleteCurrentTicket(householdId)
-        if (!deleted) {
-            throw BusinessRuleException("Löschen des Tickets von Kunde Nr. $householdId fehlgeschlagen!")
-        }
+        service.deleteCurrentTicket(householdId)
         return ResponseEntity.noContent().build()
     }
 }

@@ -1,7 +1,7 @@
 import {Component, computed, effect, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
 import {takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
 import {BreakpointObserver} from '@angular/cdk/layout';
-import {catchError, map, of, Subject, switchMap} from 'rxjs';
+import {catchError, finalize, map, of, Subject, switchMap} from 'rxjs';
 import {Router} from '@angular/router';
 import dayjs from 'dayjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -205,6 +205,9 @@ export class CustomerDetailComponent {
 
   /** Whether the GDPR data-takeout download is currently running, so the triggering action can show a busy state. */
   readonly exporting = signal(false);
+
+  /** Whether the ticket is being deleted, so a double click sends one request rather than several. */
+  readonly deletingTicket = signal(false);
 
   readonly validityState = computed(() => computeCustomerValidityState(this.customerData()?.validUntil));
   readonly validityColor = computed(() => customerValidityStateColor(this.validityState()));
@@ -648,16 +651,22 @@ export class CustomerDetailComponent {
   }
 
   deleteTicket() {
+    if (this.deletingTicket()) {
+      return;
+    }
     const customerId = this.customerData().id!;
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId, SUPPRESS_ERROR_TOAST_CONTEXT).subscribe({
-      next: () => {
-        this.ticketNumber.set(null);
-        this.toastr.success('Ticket wurde gelöscht!');
-      },
-      error: (error: HttpErrorResponse) => {
-        this.toastr.error(extractErrorMessage(error), 'Ticket-Löschung fehlgeschlagen!');
-      }
-    });
+    this.deletingTicket.set(true);
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId, SUPPRESS_ERROR_TOAST_CONTEXT)
+      .pipe(finalize(() => this.deletingTicket.set(false)))
+      .subscribe({
+        next: () => {
+          this.ticketNumber.set(null);
+          this.toastr.success('Ticket wurde gelöscht!');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.toastr.error(extractErrorMessage(error), 'Ticket-Löschung fehlgeschlagen!');
+        }
+      });
   }
 
   private reloadCustomer(customerId: number) {

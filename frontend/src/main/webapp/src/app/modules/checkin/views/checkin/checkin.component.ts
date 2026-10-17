@@ -2,7 +2,7 @@ import {Component, computed, DestroyRef, effect, ElementRef, inject, signal, vie
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {HttpErrorResponse} from '@angular/common/http';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
-import {catchError, EMPTY, forkJoin, Subject, Subscription, switchMap} from 'rxjs';
+import {catchError, EMPTY, finalize, forkJoin, Subject, Subscription, switchMap} from 'rxjs';
 import dayjs from 'dayjs';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -94,6 +94,11 @@ export class CheckinComponent {
   ticketNumber = signal<number | undefined>(undefined);
   ticketNumberEdit = signal<boolean | undefined>(false);
   lastAcceptedCheckin = signal<LastAcceptedCheckin | undefined>(undefined);
+  /**
+   * A delete-ticket request (delete or undo) is on its way. Both buttons stay disabled until it is
+   * answered, so a double click or a held Enter key sends one request rather than a burst of them.
+   */
+  deletingTicket = signal(false);
 
   customerStateColor = computed<string | null>(() => {
     switch (this.customerState()) {
@@ -349,6 +354,9 @@ export class CheckinComponent {
   }
 
   deleteTicket() {
+    if (this.deletingTicket()) {
+      return;
+    }
     const observer = {
       next: () => {
         this.ticketNumber.set(undefined);
@@ -360,7 +368,10 @@ export class CheckinComponent {
       error: () => {
       }
     };
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer()!.id!).subscribe(observer);
+    this.deletingTicket.set(true);
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer()!.id!)
+      .pipe(finalize(() => this.deletingTicket.set(false)))
+      .subscribe(observer);
   }
 
   /**
@@ -372,19 +383,22 @@ export class CheckinComponent {
    */
   undoLastCheckin() {
     const last = this.lastAcceptedCheckin();
-    if (!last) {
+    if (!last || this.deletingTicket()) {
       return;
     }
 
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(last.customerId).subscribe({
-      next: () => {
-        this.lastAcceptedCheckin.set(undefined);
-        this.toastr.success(`Ticket ${last.ticketNumber} von Kunde Nr. ${last.customerId} wurde rückgängig gemacht.`);
-      },
-      // the interceptor already toasted and recorded the failure
-      error: () => {
-      }
-    });
+    this.deletingTicket.set(true);
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(last.customerId)
+      .pipe(finalize(() => this.deletingTicket.set(false)))
+      .subscribe({
+        next: () => {
+          this.lastAcceptedCheckin.set(undefined);
+          this.toastr.success(`Ticket ${last.ticketNumber} von Kunde Nr. ${last.customerId} wurde rückgängig gemacht.`);
+        },
+        // the interceptor already toasted and recorded the failure
+        error: () => {
+        }
+      });
   }
 
   private showUndoToast(customerId: number, ticketNumber: number) {

@@ -8,6 +8,12 @@ const NOT_FOUND_MESSAGE = 'Dieser Eintrag existiert nicht (mehr).';
 const REQUEST_FAILED_MESSAGE = 'Die Daten für diese Seite konnten nicht geladen werden. Bitte nochmal versuchen.';
 const RELOAD_MESSAGE = 'Die Seite konnte nicht geladen werden. Bitte die Anwendung neu laden.';
 
+/** Chrome, Firefox and Safari word a failed `import()` differently. */
+const CHUNK_LOAD_ERROR = /dynamically imported module|Importing a module script failed/;
+const CHUNK_RELOAD_KEY = 'tafel-chunk-reload';
+/** Long enough to tell "the reload did not help" apart from a later, unrelated deploy. */
+const CHUNK_RELOAD_WINDOW_MS = 60_000;
+
 /**
  * What the application does when a navigation fails - a resolver's request erroring out, a guard
  * throwing, or the lazily loaded code of the target route not arriving.
@@ -34,14 +40,23 @@ const RELOAD_MESSAGE = 'Die Seite konnte nicht geladen werden. Bitte die Anwendu
  * A route whose code could not be fetched is called out separately: the browser remembers a failed
  * dynamic import for the lifetime of the document, so clicking the same entry again cannot succeed
  * no matter how healthy the backend is by then - only reloading the application can fix that one.
+ * So the handler does that reload itself, once, straight to the target page: the usual cause is a
+ * tab left open across a deploy, still running the previous build and asking for chunk files that
+ * no longer exist, and a fresh load of the page is all it needs (#3872). Only when that same
+ * navigation fails again right after its reload does the user get the toast.
  */
 export function handleNavigationError(event: NavigationError): RedirectCommand | void {
   const router = inject(Router);
   const toastr = inject(TafelToastrService);
+  const windowRef = inject(Window);
 
   // Nothing else records this: the router reports the error through this handler instead of
   // rethrowing it, so without this line a failed navigation leaves no trace to diagnose from.
   console.error('Navigation to', event.url, 'failed', event.error);
+
+  if (reloadForMissingCode(event, windowRef)) {
+    return;
+  }
 
   const notFound = event.error instanceof HttpErrorResponse && event.error.status === 404;
 
@@ -59,4 +74,31 @@ function messageFor(error: unknown, notFound: boolean): string {
   // An HttpErrorResponse means the route's own code is already here and one of its requests failed -
   // that one is worth retrying. Anything else got as far as loading the route and no further.
   return error instanceof HttpErrorResponse ? REQUEST_FAILED_MESSAGE : RELOAD_MESSAGE;
+}
+
+function reloadForMissingCode(event: NavigationError, windowRef: Window): boolean {
+  if (!(event.error instanceof Error && CHUNK_LOAD_ERROR.test(event.error.message))) {
+    return false;
+  }
+
+  const now = Date.now();
+  try {
+    const previous = JSON.parse(windowRef.sessionStorage.getItem(CHUNK_RELOAD_KEY) ?? 'null') as ChunkReload | null;
+    if (previous?.url === event.url && now - previous.at < CHUNK_RELOAD_WINDOW_MS) {
+      return false;
+    }
+    windowRef.sessionStorage.setItem(CHUNK_RELOAD_KEY, JSON.stringify({url: event.url, at: now}));
+  } catch {
+    // Without the marker nothing would stop a page whose code is really gone from reloading forever.
+    return false;
+  }
+
+  // The router's URL is relative to the base href the application is served under.
+  windowRef.location.assign(new URL(event.url.replace(/^\//, ''), windowRef.document.baseURI).href);
+  return true;
+}
+
+interface ChunkReload {
+  url: string;
+  at: number;
 }

@@ -374,14 +374,19 @@ class DistributionService(
         totalTicketsCount = distribution?.households?.size,
     )
 
+    /**
+     * Idempotent: a household without an unprocessed ticket is already in the state the caller asks
+     * for, so that is no error. That covers a repeated request, too - a double click or a held Enter
+     * key on the check-in screen sends several at once, and only the one whose delete matched the
+     * row does anything below.
+     */
     @Transactional
-    fun deleteCurrentTicket(householdId: Long): Boolean {
+    fun deleteCurrentTicket(householdId: Long) {
         val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
         val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution, householdId)
 
-        return distributionHouseholdEntity?.let {
-            distributionHouseholdRepository.delete(it)
+        distributionHouseholdEntity?.takeIf { distributionHouseholdRepository.deleteUnprocessed(it.id!!) == 1 }?.let {
             logger.info(
                 "Deleted ticket ${it.ticketNumber} " +
                     "(household: ${it.household.householdId}, distribution: ID ${distribution.id})",
@@ -405,9 +410,7 @@ class DistributionService(
                     ),
                 )
             }
-
-            true
-        } ?: false
+        }
     }
 
     @Transactional(readOnly = true)

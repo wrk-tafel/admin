@@ -4,7 +4,7 @@ import {CheckinComponent, CustomerState, ScanResult} from './checkin.component';
 import {CommonModule} from '@angular/common';
 import {HttpErrorResponse} from '@angular/common/http';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {CustomerApiService, Gender} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {EMPTY, of, throwError} from 'rxjs';
 import dayjs from 'dayjs';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../api/customer-note-api.service';
@@ -942,6 +942,32 @@ describe('CheckinComponent', () => {
         expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(133);
         expect(component.lastAcceptedCheckin()).toBeUndefined();
         expect(toastr.success).toHaveBeenCalledWith('Ticket 55 von Kunde Nr. 133 wurde rückgängig gemacht.');
+    });
+
+    // A double click or a held Enter key used to send a burst of deletes (issue #3873).
+    it('deleteTicket and undoLastCheckin send no second request while one is pending', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+        component.customer.set(<CustomerData>{id: 133});
+        component.lastAcceptedCheckin.set({customerId: 134, ticketNumber: 55});
+        const pending = new Subject<void>();
+        distributionTicketApiService.deleteCurrentTicketOfCustomer.mockReturnValue(pending);
+
+        component.deleteTicket();
+        component.deleteTicket();
+        component.undoLastCheckin();
+
+        expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledTimes(1);
+        expect(component.deletingTicket()).toBe(true);
+
+        pending.next();
+        pending.complete();
+
+        expect(component.deletingTicket()).toBe(false);
+        distributionTicketApiService.deleteCurrentTicketOfCustomer.mockReturnValue(of(undefined));
+        component.undoLastCheckin();
+        expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledTimes(2);
     });
 
     it('householdSize counts the main person plus additional persons', () => {

@@ -97,6 +97,24 @@ describe('CheckIn', () => {
     cy.byTestId('ticketNumberInput').should('have.value', '');
   });
 
+  // A double click used to send a burst of deletes that answered with 400s and 500s (issue #3873).
+  it('double click on the delete button deletes the ticket with a single request', () => {
+    searchCustomer(100);
+
+    assignTicket(10);
+    assertFormReset();
+
+    searchCustomer(100);
+    cy.byTestId('ticketNumberInput').should('have.value', '10');
+    cy.intercept('DELETE', '/api/households/100/ticket').as('deleteTicket');
+    cy.byTestId('deleteTicketButton').dblclick();
+
+    cy.wait('@deleteTicket').its('response.statusCode').should('eq', 204);
+    cy.get('.toast-message').should('be.visible').should('contain.text', 'Ticket-Nummer gelöscht!');
+    cy.byTestId('deleteTicketButton').should('not.exist');
+    cy.get('@deleteTicket.all').should('have.length', 1);
+  });
+
   it('customer added, counted on dashboard and deleted again on phone', () => {
     // Below md: (768px) everything stacks into a single column (form rows, detail
     // panel, address/ticket rows) - verify the full flow still works stacked.

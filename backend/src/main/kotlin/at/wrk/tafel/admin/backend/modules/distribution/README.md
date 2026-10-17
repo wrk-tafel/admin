@@ -51,8 +51,11 @@ and `sendMails()` (manual re-send, see below).
   `DistributionUpdateResponse` whenever the current distribution starts/ends. The response also
   carries `registeredCustomers` (the header's live count): the stream re-sends it whenever the
   count changes, driven by the `dashboard_update` notification, so the header needs no stream of its own.
-- **DistributionTicketController** (`internal/ticket/`) — `/api/distributions/tickets/households/{id}`:
-  get/delete the ticket assigned to a household.
+- **DistributionTicketController** (`internal/ticket/`) — `/api/households/{householdId}/ticket`:
+  get/delete the ticket assigned to a household. The delete is idempotent: a household without an
+  unprocessed ticket answers `204`, and of several deletes of the same ticket arriving at once only
+  one removes it (`DistributionHouseholdRepository.deleteUnprocessed`) while the others find nothing
+  left to do.
 - **DistributionTicketScreenController** (`internal/ticket/`) — `/api/distributions/ticket-screen/*`
   (`show-text`, `show-current`, `show-previous`, `show-next`) plus
   the `ticket-screen` SSE topic (`TicketScreenSseTopic`): drives the fullscreen "now serving" ticket display.
