@@ -156,8 +156,11 @@ class IndexHtmlController(
     }
 
     /** `/assets/favicon.ico` -> `/verwaltung/assets/favicon.ico`, see [serviceWorkerManifest]. */
-    private fun withBasePath(url: String): String =
-        if (url.startsWith("/")) tafelAdminProperties.server.basePath + url.removePrefix("/") else url
+    private fun withBasePath(url: String): String = if (url.startsWith("/")) {
+        tafelAdminProperties.server.basePath + url.removePrefix("/")
+    } else {
+        url
+    }
 
     // SHA-1 because that is what ngsw.json records and the worker compares against: an integrity
     // check of a file this application serves itself, not a security measure.
