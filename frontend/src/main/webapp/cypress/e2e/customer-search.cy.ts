@@ -19,6 +19,27 @@ describe('Customer Search', () => {
     cy.byTestId('searchresult-row').should('exist');
   });
 
+  it('offers no ticket number lookup without a running distribution', () => {
+    cy.byTestId('searchInputText').should('be.visible');
+    cy.byTestId('ticketNumberInput').should('not.exist');
+  });
+
+  it('jumps to the customer holding a ticket number of the running distribution', () => {
+    cy.createDistribution();
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 7});
+    cy.visit('/kunden/suchen');
+
+    cy.byTestId('ticketNumberInput').type('8{enter}');
+    cy.contains('Ticket 8 wurde in der laufenden Ausgabe nicht vergeben.').should('be.visible');
+    cy.url().should('contain', '/kunden/suchen');
+
+    cy.byTestId('ticketNumberInput').clear().type('7');
+    cy.byTestId('ticketNumberSearchButton').click();
+    cy.url().should('contain', '/kunden/detail/100');
+
+    cy.closeDistribution();
+  });
+
   it('downloads the reference-less privacy notice template', () => {
     cy.intercept('/api/households/privacy-notice-template**', request => {
       request.on('response', function (response) {

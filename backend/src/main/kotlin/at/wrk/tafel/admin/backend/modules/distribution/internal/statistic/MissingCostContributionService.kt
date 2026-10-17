@@ -48,7 +48,8 @@ class MissingCostContributionService(
         }
 
         val householdsMissingCostContribution = distribution.households
-            .filter { it.costContributionPaid == false }
+            // A skipped ticket's household wasn't served, so it owes nothing for this distribution.
+            .filter { it.costContributionPaid == false && !it.skipped }
             .mapNotNull { it.household }
 
         householdsMissingCostContribution.forEach { household ->

@@ -32,6 +32,12 @@ Content-Type: application/json
   "costContributionPaid": true
 }
 
+### Skip the current ticket (household not there) - closed without a paid/unpaid decision, no cost contribution
+POST {{baseApiPath}}/distributions/ticket-screen/skip
+
+### Find the household holding a ticket number of the running distribution
+GET {{baseApiPath}}/distributions/tickets/12
+
 ### Listen for ticket screen changes
 GET {{baseApiPath}}/sse/distributions/ticket-screen/current
 Accept: text/event-stream

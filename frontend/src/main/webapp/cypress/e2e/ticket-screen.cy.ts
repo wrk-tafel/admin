@@ -88,6 +88,25 @@ describe('TicketScreen', () => {
     cy.closeDistribution();
   });
 
+  it('skips a ticket whose customer is not there, and the back arrow reopens it', () => {
+    createDistributionWithTickets();
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
+    cy.byTestId('current-ticket-number').should('have.text', '1');
+
+    cy.byTestId('skip-ticket-button').click();
+
+    cy.byTestId('current-ticket-number').should('have.text', '2');
+    cy.byTestId('ticket-queue-context').should('contain.text', '1 / 3 verarbeitet');
+    cy.byTestId('text').should('have.text', '2');
+
+    // The customer came back after all: going back reopens the skipped ticket like any other.
+    cy.byTestId('show-previousticket-button').click();
+    cy.byTestId('current-ticket-number').should('have.text', '1');
+    cy.byTestId('ticket-queue-context').should('contain.text', '0 / 3 verarbeitet');
+
+    cy.closeDistribution();
+  });
+
   it('monitor opened correctly', () => {
     // Stubbed without a fake implementation that redirects the current window: the target URL is
     // now a real path rather than a hash fragment, so setting location.href to it (as this test

@@ -141,6 +141,25 @@ internal class DistributionTicketScreenControllerTest {
     }
 
     @Test
+    fun `skip ticket shows the next one on the monitor`() {
+        val expectedResponse = TicketScreenTicketResponse(ticketNumber = 7, householdId = 300, pendingCostContribution = BigDecimal("0.00"))
+        every { service.skipCurrentTicketAndGetNext() } returns expectedResponse
+
+        val response = controller.skipTicket()
+
+        assertThat(response).isEqualTo(expectedResponse)
+        verify {
+            sseOutboxService.saveOutboxEntry(
+                TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
+                TicketScreenShowTextRequest(
+                    text = "Ticket",
+                    value = "7",
+                ),
+            )
+        }
+    }
+
+    @Test
     fun `show next ticket`() {
         val expectedResponse = TicketScreenTicketResponse(ticketNumber = 123, householdId = 300, pendingCostContribution = BigDecimal("0.00"))
         every { service.closeCurrentTicketAndGetNext(false) } returns expectedResponse

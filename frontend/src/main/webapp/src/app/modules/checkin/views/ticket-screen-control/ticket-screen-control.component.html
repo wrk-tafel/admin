@@ -65,6 +65,13 @@
             Weiter (nicht bezahlt)
           </button>
         </div>
+        <div class="mt-4 flex justify-center">
+          <button testid="skip-ticket-button" matButton (click)="skipTicket()"
+                  [disabled]="isShowingNextTicket() || currentDistribution() === null">
+            <mat-icon svgIcon="skip_next"></mat-icon>
+            Überspringen (Kunde nicht da)
+          </button>
+        </div>
         <div class="mt-2 text-xs text-gray-500" testid="keyboard-shortcut-legend">
           Tastenkürzel: <kbd>Enter</kbd> = bezahlt &middot; <kbd>N</kbd> = nicht bezahlt
         </div>

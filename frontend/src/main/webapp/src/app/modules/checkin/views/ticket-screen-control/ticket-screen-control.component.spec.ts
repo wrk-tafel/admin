@@ -58,7 +58,8 @@ describe('TicketScreenControlComponent', () => {
             getCurrentTicket: vi.fn().mockReturnValue(of(emptyTicket)).mockName('DistributionTicketScreenApiService.getCurrentTicket'),
             showCurrentTicket: vi.fn().mockReturnValue(of(emptyTicket)).mockName('DistributionTicketScreenApiService.showCurrentTicket'),
             showPreviousTicket: vi.fn().mockName('DistributionTicketScreenApiService.showPreviousTicket'),
-            showNextTicket: vi.fn().mockName('DistributionTicketScreenApiService.showNextTicket')
+            showNextTicket: vi.fn().mockName('DistributionTicketScreenApiService.showNextTicket'),
+            skipTicket: vi.fn().mockName('DistributionTicketScreenApiService.skipTicket')
           }
         },
         {
@@ -195,6 +196,30 @@ describe('TicketScreenControlComponent', () => {
     component.showNextTicket(false);
 
     expect(distributionTicketScreenApiService.showNextTicket).toHaveBeenCalledWith(false);
+  });
+
+  it('skipTicket moves on to the next ticket without a paid/unpaid decision', () => {
+    const fixture = TestBed.createComponent(TicketScreenControlComponent);
+    const component = fixture.componentInstance;
+    const nextTicket = {...emptyTicket, ticketNumber: 8};
+    distributionTicketScreenApiService.skipTicket.mockReturnValue(of(nextTicket));
+
+    component.skipTicket();
+
+    expect(distributionTicketScreenApiService.skipTicket).toHaveBeenCalled();
+    expect(distributionTicketScreenApiService.showNextTicket).not.toHaveBeenCalled();
+    expect(component.currentTicket()).toEqual(nextTicket);
+  });
+
+  it('skipTicket handles errors and shows toast', () => {
+    const fixture = TestBed.createComponent(TicketScreenControlComponent);
+    const component = fixture.componentInstance;
+    distributionTicketScreenApiService.skipTicket.mockReturnValue(throwError(() => new Error('API Error')));
+
+    component.skipTicket();
+
+    expect(toastr.error).toHaveBeenCalledWith('Fehler beim Anzeigen des nächsten Tickets!');
+    expect(component.isShowingNextTicket()).toBe(false);
   });
 
   it('showStartTime handles errors and shows toast', () => {

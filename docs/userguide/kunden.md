@@ -16,6 +16,8 @@ Zusätzlich lässt sich über die Filter-Chips "Daten unvollständig", "Unkosten
 
 Über den Button **Datenschutzerklärung (Vorlage)** rechts oben lässt sich die Datenschutzerklärung ohne Kundenbezug herunterladen und ausdrucken - etwa um sie einer Person schon vor der Kundenanlage zum Unterschreiben mitzugeben. Die unterschriebene Erklärung wird später am neu angelegten Kunden im Tab "[Dokumente](#dokumente)" hochgeladen.
 
+Während eine Ausgabe läuft, erscheint unter dem Suchfeld zusätzlich das Feld **Ticketnummer der laufenden Ausgabe**: Kommt ein Kunde nur mit seiner Ticketnummer, führt die Nummer mit **Enter** oder **Kunde anzeigen** direkt zur Detailansicht des Kunden, der dieses Ticket in der laufenden Ausgabe erhalten hat. Ist die Nummer in der laufenden Ausgabe nicht vergeben, erscheint ein Hinweis.
+
 ![Kunden-Suche](images/kunden-suchen.jpg)
 
 Beim Öffnen der Seite werden bereits die ersten Kunden angezeigt – man muss also nicht erst suchen, um überhaupt etwas zu sehen. Ein Suchbegriff oder ein Filter grenzt diese Liste dann ein. Suchbegriff, Filter und die aktuelle Seite bleiben in der Adresszeile erhalten: Wird ein Kunde aus dem Ergebnis geöffnet und über "Zurück" wieder zur Suche zurückgekehrt, ist dasselbe Ergebnis - inklusive Filter und Seite - sofort wieder da, ohne erneut suchen zu müssen.
