@@ -88,4 +88,12 @@ class SettingsControllerTest {
         assertThat(response).isEqualTo(staticValueResponse)
         verify(exactly = 1) { settingsService.updateStaticValue(42L, staticValueRequest) }
     }
+
+    @Test
+    fun `delete static value`() {
+        val response = settingsController.deleteStaticValue(42L)
+
+        assertThat(response.statusCode.value()).isEqualTo(204)
+        verify(exactly = 1) { settingsService.deleteStaticValue(42L) }
+    }
 }

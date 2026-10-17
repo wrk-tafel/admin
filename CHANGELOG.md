@@ -3,6 +3,10 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Einstellungen → Grenzwerte: Ein Betrag lässt sich jetzt auch im Voraus mit einem späteren Gültigkeitsbeginn hinterlegen (z. B. die Werte des nächsten Jahres ab 01.01.), wird in der neuen Spalte "Geplant" neben dem aktuellen Betrag angezeigt, kann bis dahin geändert oder entfernt werden, und ein Hinweis oben zeigt, ab wann bereits neue Beträge hinterlegt sind.
+- Die Einkommensgrenzen für 2027 (Armutsgefährdungsschwelle EU-SILC 2025: 1.827 € für einen Einpersonenhaushalt) sind bereits hinterlegt und gelten automatisch ab 01.01.2027; Familienbeihilfe, Kinderabsetzbetrag und Geschwisterstaffelung bleiben 2027 unverändert.
+
+## [1.34.1] - 2026-10-17
 - Der Bestätigungscode in der E-Mail zur Zwei-Faktor-Anmeldung wird von E-Mail-Programmen nicht mehr als Telefonnummer erkannt und verlinkt.
 - Mein Konto → Zwei-Faktor-Authentifizierung: Ein Sicherheitsschlüssel (z. B. ein YubiKey) lässt sich jetzt über "Sicherheitsschlüssel hinzufügen" direkt einrichten, ohne dass der Browser zuerst den Passkey im Gerät oder ein Smartphone anbietet; der Hinweistext erklärt, dass ein Sicherheitsschlüssel auch an gemeinsam genutzten PCs funktioniert, und empfiehlt einen Ersatzschlüssel.
 

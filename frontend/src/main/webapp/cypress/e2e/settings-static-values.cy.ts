@@ -30,6 +30,32 @@ const editAmountBy = (
   });
 };
 
+/** 1 January of the coming year, as the date input takes it - the day next year's limits apply from. */
+const nextNewYear = () => `01.01.${new Date().getFullYear() + 1}`;
+
+/**
+ * Plans [next] for the first row from next New Year's Day on, through the inline editor. Every test
+ * that plans one removes it again (removeFirstRowsPlan) - the e2e database is shared by the specs
+ * that follow.
+ */
+const planFirstRow = (next: number) => {
+  cy.byTestId('editStaticValueButton-0').click();
+  cy.byTestId('staticValueAmountInput-0').clear().type(`${next}`);
+  cy.byTestId('staticValueValidFromInput-0').clear().type(nextNewYear());
+  cy.byTestId('saveStaticValueButton-0').click();
+
+  cy.byTestId('static-value-change-dialog').should('be.visible');
+  cy.byTestId('confirmButton').should('contain.text', 'Planen').click();
+  cy.byTestId('staticValueScheduled-0').should('be.visible');
+};
+
+const removeFirstRowsPlan = () => {
+  cy.byTestId('removeScheduledStaticValueButton-0').click();
+  cy.byTestId('static-value-change-dialog').should('be.visible');
+  cy.byTestId('confirmButton').should('contain.text', 'Entfernen').click();
+  cy.byTestId('staticValueScheduled-0').should('not.exist');
+};
+
 describe('Settings - Static Values', () => {
 
   beforeEach(() => {
@@ -145,6 +171,76 @@ describe('Settings - Static Values', () => {
     });
   });
 
+  it('plans an amount for a later date, shows it beside the current one, changes and removes the plan', () => {
+    cy.byTestId('static-values-scheduled-notice').should('not.exist');
+    cy.byTestId('editStaticValueButton-0').click();
+
+    editAmountBy('staticValueAmountInput-0', 11, (previous, next) => {
+      cy.byTestId('staticValueValidFromInput-0').clear().type(nextNewYear());
+      cy.byTestId('saveStaticValueButton-0').click();
+
+      cy.byTestId('static-value-change-dialog').should('be.visible');
+      cy.byTestId('static-value-change-valid-from').should('contain.text', nextNewYear());
+      cy.byTestId('static-value-change-hint').should('contain.text', 'Bis dahin');
+      cy.byTestId('confirmButton').should('contain.text', 'Planen').click();
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'geplant');
+      // the current amount still applies - the planned one sits next to it until its date
+      cy.byTestId('static-values-row-0').filterDisplayed().should('contain.text', formatAmount(previous));
+      cy.byTestId('staticValueScheduled-0')
+        .should('contain.text', formatAmount(next))
+        .and('contain.text', `ab ${nextNewYear()}`);
+      cy.byTestId('static-values-scheduled-notice')
+        .should('be.visible')
+        .and('contain.text', '1 Wert')
+        .and('contain.text', nextNewYear());
+
+      cy.byTestId('editScheduledStaticValueButton-0').click();
+      cy.byTestId('staticValueAmountInput-0').should('have.value', `${next}`).clear().type(`${next + 1}`);
+      cy.byTestId('saveStaticValueButton-0').click();
+      cy.byTestId('static-value-change-dialog').should('contain.text', 'Bisher geplant');
+      cy.byTestId('static-value-change-old').should('contain.text', formatAmount(next));
+      cy.byTestId('confirmButton').click();
+      cy.byTestId('staticValueScheduled-0').should('contain.text', formatAmount(next + 1));
+
+      removeFirstRowsPlan();
+      cy.get('.toast-message').should('contain.text', 'entfernt');
+      cy.byTestId('static-values-scheduled-notice').should('not.exist');
+      cy.byTestId('static-values-row-0').filterDisplayed().should('contain.text', formatAmount(previous));
+    });
+  });
+
+  it('applies a planned amount now when its date is moved to today, and drops the plan', () => {
+    cy.byTestId('static-values-row-0').filterDisplayed().find('td').eq(1).invoke('text').then((currentText) => {
+      const next = Number(currentText.replace(/[^\d,]/g, '').replace(',', '.')) + 13;
+      planFirstRow(next);
+
+      cy.byTestId('editScheduledStaticValueButton-0').click();
+      cy.byTestId('staticValueValidFromInput-0').clear().type(new Date().toLocaleDateString('de-AT', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      }));
+      cy.byTestId('saveStaticValueButton-0').click();
+
+      cy.byTestId('static-value-change-hint').should('contain.text', 'gilt sofort').and('contain.text', 'entfällt');
+      cy.byTestId('confirmButton').should('contain.text', 'Ändern').click();
+
+      cy.get('.toast-message').should('be.visible').and('contain.text', 'gespeichert');
+      cy.byTestId('staticValueScheduled-0').should('not.exist');
+      cy.byTestId('static-values-scheduled-notice').should('not.exist');
+      cy.byTestId('static-values-row-0').filterDisplayed().should('contain.text', formatAmount(next));
+    });
+  });
+
+  it('refuses a start date in the past', () => {
+    cy.byTestId('editStaticValueButton-0').click();
+    cy.byTestId('staticValueAmountInput-0').clear().type('999999');
+    cy.byTestId('staticValueValidFromInput-0').clear().type('01.01.2020');
+    cy.byTestId('saveStaticValueButton-0').click();
+
+    cy.byTestId('static-value-change-dialog').should('not.exist');
+    cy.get('.toast-message').should('be.visible').and('contain.text', 'Vergangenheit');
+  });
+
   it('renders as a card list on phone and stays usable', () => {
     cy.viewport(PHONE_VIEWPORT);
     cy.reload();
@@ -202,6 +298,20 @@ describe('Settings - Static Values', () => {
         cy.byTestId('static-value-change-dialog').should('be.visible');
         cy.checkDialogAccessibility();
       });
+    });
+
+    it('has no violations with a planned amount, nor in the confirmation of its removal', () => {
+      planFirstRow(123456);
+
+      cy.checkAccessibility('[testid="static-values-scheduled-notice"]');
+      cy.checkAccessibility('[testid="static-values-table-INCOME_LIMIT"]');
+
+      cy.byTestId('removeScheduledStaticValueButton-0').click();
+      cy.byTestId('static-value-change-dialog').should('be.visible');
+      cy.checkDialogAccessibility();
+      cy.byTestId('cancelButton').click();
+
+      removeFirstRowsPlan();
     });
 
   });

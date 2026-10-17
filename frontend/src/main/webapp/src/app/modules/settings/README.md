@@ -235,9 +235,9 @@ Read-mostly view of the numeric business constants (income limit, additional
 adult/child amounts, tolerance, family allowance, child tax allowance, sibling
 addition, cost contribution — the full `StaticValueTypeEnum` from
 `settings-api.service.ts`). Same inline-edit-with-autofocus pattern as
-food-categories (`editingId` signal + `viewChild`/`effect()` focus), but no
-create, delete, or reordering — only `amount` is editable per row via
-`updateStaticValue()`.
+food-categories (`editingId` signal + `viewChildren`/`effect()` focus), but no
+create or reordering — per row, the `amount` and the date it applies from are
+editable via `updateStaticValue()`.
 
 These numbers decide who receives food, which is what the screen is shaped
 around:
@@ -256,9 +256,22 @@ around:
   `countChildren` of `0` that no lookup reads, so "every column that is not
   null" would show numbers that decide nothing. The qualifier column disappears
   entirely for a type whose rows don't differ in one.
+- **An amount can be planned for a later date.** The inline editor carries a
+  "Gültig ab" datepicker next to the amount, starting at today (= applies now).
+  A later date — typically 1 January, once next year's limits are published —
+  makes the backend close the current row the day before and add a row from that
+  date on, so the change takes effect by itself. The API returns such a row as
+  the current row's `scheduled`; the screen shows it in a "Geplant" column (only
+  in a section that has one) with its own edit and remove actions, and a notice
+  above the lists says from which dates amounts are planned and for how many
+  rows, so a planned value is never a surprise or entered twice. A row has at
+  most one plan: planning again from the current row changes it, and removing it
+  (`deleteStaticValue()`, planned rows only) lets the current amount run on.
 - **A changed amount is confirmed as old → new** (`dialogs/static-value-change-dialog.component.ts`)
-  before it is sent, stating that it takes effect immediately; an amount left as
-  it was ends the edit without a request, so the audit trail records no
+  before it is sent, stating whether it takes effect immediately or from its
+  planned date (and comparing against the planned amount when a plan is
+  changed); the removal of a plan is confirmed in the same dialog. An amount
+  left as it was ends the edit without a request, so the audit trail records no
   no-op change.
 - **Cross-links** to `/kunden/ueber-limit` (the direct consumer of these
   numbers) and to `/zugriffsprotokoll?art=StaticValue` (who changed one last),
@@ -271,8 +284,11 @@ map — if you add a new static value type, update that file, not the component;
 the screen renders nothing it has no entry for.
 
 Test hooks are numbered by the row's position in the list **as the API returns
-it** (`static-values-row-3`, `staticValueAmountInput-3`), not within its
-section, so grouping doesn't renumber them. The per-section table/card wrappers
+it** (`static-values-row-3`, `staticValueAmountInput-3`,
+`staticValueValidFromInput-3`, `staticValueScheduled-3`), not within its
+section, so grouping doesn't renumber them. The editor and the planned amount
+are `ng-template`s rendered by both the table and the card list; their hooks take
+a `Mobile` suffix in the card list. The per-section table/card wrappers
 carry the type (`static-values-table-INCOME_LIMIT`).
 
 ## `cars` (`SettingsCarsComponent`)

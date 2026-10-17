@@ -63,7 +63,7 @@ DELETE {{baseApiPath}}/settings/mail-recipients/1
 ### Get static values
 GET {{baseApiPath}}/settings/static-values
 
-### Update static value 1
+### Update static value 1 - a validFrom of today or earlier applies the amount now
 PUT {{baseApiPath}}/settings/static-values/1
 Content-Type: application/json
 
@@ -74,6 +74,21 @@ Content-Type: application/json
   "validTo": "2999-12-31",
   "amount": 150
 }
+
+### Plan static value 1 - a later validFrom keeps the current amount until then (returned as "scheduled" by the GET)
+PUT {{baseApiPath}}/settings/static-values/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "type": "INCOME_LIMIT",
+  "validFrom": "2027-01-01",
+  "validTo": "2999-12-31",
+  "amount": 1827
+}
+
+### Remove a planned static value (planned rows only; the current one then stays valid)
+DELETE {{baseApiPath}}/settings/static-values/2
 
 ### What the retention jobs will delete soon (within their warning window, already-due included), one paged list per
 ### kind of record. Administrators only.

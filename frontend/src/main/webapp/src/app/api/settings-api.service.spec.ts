@@ -104,4 +104,11 @@ describe('SettingsApiService', () => {
     expect(req.request.body).toEqual(testData);
   });
 
+  it('delete static value', () => {
+    apiService.deleteStaticValue(11).subscribe();
+
+    httpMock.expectOne({method: 'DELETE', url: '/settings/static-values/11'}).flush(null);
+    httpMock.verify();
+  });
+
 });

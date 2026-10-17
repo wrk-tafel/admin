@@ -8,6 +8,7 @@ import {SettingsApiService, StaticValueItem, StaticValueListResponse, StaticValu
 import {of} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {StaticValueChangeDialogComponent} from './dialogs/static-value-change-dialog.component';
+import {formatIsoDate} from '../../../../common/date/date-values';
 
 describe('SettingsStaticValuesComponent', () => {
   const testIncomeLimit: StaticValueItem = {
@@ -54,6 +55,22 @@ describe('SettingsStaticValuesComponent', () => {
     return fixture.componentInstance;
   };
 
+  const isoDay = (offsetDays: number) => {
+    const date = new Date();
+    return formatIsoDate(new Date(date.getFullYear(), date.getMonth(), date.getDate() + offsetDays));
+  };
+  const dayAt = (offsetDays: number) => {
+    const date = new Date();
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() + offsetDays);
+  };
+  const withScheduled = (scheduledValidFrom = isoDay(30)): StaticValueItem => ({
+    ...testIncomeLimit,
+    scheduled: {id: 11, validFrom: scheduledValidFrom, amount: 1600}
+  });
+  const loadWith = (...staticValues: StaticValueItem[]) => {
+    settingsApiMock.getStaticValues = vi.fn(() => of<StaticValueListResponse>({staticValues}));
+  };
+
   const sectionOf = (component: SettingsStaticValuesComponent, type: StaticValueTypeEnum) =>
     component['groups']().flatMap(group => group.sections).find(section => section.type === type)!;
 
@@ -64,7 +81,8 @@ describe('SettingsStaticValuesComponent', () => {
       getStaticValues: vi.fn(() => of<StaticValueListResponse>({
         staticValues: [testIncomeLimit, testTolerance, testCostContribution]
       })),
-      updateStaticValue: vi.fn(() => of(testIncomeLimit))
+      updateStaticValue: vi.fn(() => of(testIncomeLimit)),
+      deleteStaticValue: vi.fn(() => of(undefined))
     };
 
     toastrMock = {
@@ -191,11 +209,14 @@ describe('SettingsStaticValuesComponent', () => {
       data: {
         label: 'Einkommensgrenze - 2 Erwachsene, 1 Kind',
         oldAmount: 1450,
-        newAmount: 1540
+        oldAmountIsScheduled: false,
+        newAmount: 1540,
+        validFrom: null
       }
     });
     expect(settingsApiMock.updateStaticValue).toHaveBeenCalledWith(testIncomeLimit.id, {
       ...testIncomeLimit,
+      validFrom: isoDay(0),
       amount: 1540
     });
     expect(toastrMock.success).toHaveBeenCalled();
@@ -238,6 +259,174 @@ describe('SettingsStaticValuesComponent', () => {
     expect(toastrMock.error).toHaveBeenCalledWith('Bitte einen Betrag eingeben', 'Fehler');
     expect(dialogMock.open).not.toHaveBeenCalled();
     expect(settingsApiMock.updateStaticValue).not.toHaveBeenCalled();
+  });
+
+  it('shows the planned column only for a type one of whose rows has a planned amount', () => {
+    loadWith(withScheduled(), testTolerance);
+    const component = createComponent();
+
+    expect(sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT).columns)
+      .toEqual(['qualifier', 'amount', 'scheduled', 'actions']);
+    expect(sectionOf(component, StaticValueTypeEnum.TOLERANCE).columns).toEqual(['amount', 'actions']);
+  });
+
+  it('announces the dates amounts are already planned from, with how many each', () => {
+    loadWith(
+      withScheduled('2027-01-01'),
+      {...testTolerance, scheduled: {id: 12, validFrom: '2027-01-01', amount: 120}},
+      {...testCostContribution, scheduled: {id: 13, validFrom: '2026-12-01', amount: 5}}
+    );
+    const component = createComponent();
+
+    expect(component['scheduledDates']()).toEqual([
+      {validFrom: '2026-12-01', count: 1},
+      {validFrom: '2027-01-01', count: 2}
+    ]);
+  });
+
+  it('announces nothing when no amount is planned', () => {
+    expect(createComponent()['scheduledDates']()).toEqual([]);
+  });
+
+  it('saveEdit() with a later date plans the amount instead of applying it now', () => {
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    component['startEdit'](testIncomeLimit);
+    component['amountControl'].setValue(1540);
+    component['validFromControl'].setValue(dayAt(30));
+    component['saveEdit'](section, section.rows[0]);
+
+    expect(dialogMock.open).toHaveBeenCalledWith(StaticValueChangeDialogComponent, expect.objectContaining({
+      data: expect.objectContaining({oldAmount: 1450, oldAmountIsScheduled: false, newAmount: 1540, validFrom: isoDay(30)})
+    }));
+    expect(settingsApiMock.updateStaticValue).toHaveBeenCalledWith(testIncomeLimit.id, expect.objectContaining({
+      id: testIncomeLimit.id,
+      validFrom: isoDay(30),
+      amount: 1540
+    }));
+    expect(toastrMock.success).toHaveBeenCalledWith('Statischer Wert geplant', 'Erfolgreich');
+  });
+
+  it('saveEdit() rejects a start date in the past', () => {
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    component['startEdit'](testIncomeLimit);
+    component['amountControl'].setValue(1540);
+    component['validFromControl'].setValue(dayAt(-1));
+    component['saveEdit'](section, section.rows[0]);
+
+    expect(toastrMock.error).toHaveBeenCalledWith('Das Datum darf nicht in der Vergangenheit liegen', 'Fehler');
+    expect(dialogMock.open).not.toHaveBeenCalled();
+  });
+
+  it('startEditScheduled() edits the planned amount and its date', () => {
+    loadWith(withScheduled());
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    component['startEditScheduled'](section.rows[0].staticValue);
+
+    expect(component['editingId']()).toBe(11);
+    expect(component['isEditingScheduled'](section.rows[0])).toBe(true);
+    expect(component['amountControl'].value).toBe(1600);
+    expect(formatIsoDate(component['validFromControl'].value!)).toBe(isoDay(30));
+  });
+
+  it('saveEdit() on a planned amount sends the change to the planned row, compared against the plan', () => {
+    loadWith(withScheduled());
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    component['startEditScheduled'](section.rows[0].staticValue);
+    component['amountControl'].setValue(1650);
+    component['saveEdit'](section, section.rows[0]);
+
+    expect(dialogMock.open).toHaveBeenCalledWith(StaticValueChangeDialogComponent, expect.objectContaining({
+      data: expect.objectContaining({oldAmount: 1600, oldAmountIsScheduled: true, newAmount: 1650, validFrom: isoDay(30)})
+    }));
+    expect(settingsApiMock.updateStaticValue).toHaveBeenCalledWith(11, expect.objectContaining({
+      id: 11,
+      validFrom: isoDay(30),
+      amount: 1650
+    }));
+  });
+
+  it('saveEdit() on a planned amount moved to today applies it now and says the plan is dropped', () => {
+    loadWith(withScheduled());
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    component['startEditScheduled'](section.rows[0].staticValue);
+    component['validFromControl'].setValue(dayAt(0));
+    component['saveEdit'](section, section.rows[0]);
+
+    expect(dialogMock.open).toHaveBeenCalledWith(StaticValueChangeDialogComponent, expect.objectContaining({
+      data: expect.objectContaining({
+        oldAmount: 1450,
+        oldAmountIsScheduled: false,
+        newAmount: 1600,
+        validFrom: null,
+        droppedScheduledFrom: isoDay(30)
+      })
+    }));
+    expect(settingsApiMock.updateStaticValue).toHaveBeenCalledWith(11, expect.objectContaining({
+      id: 11,
+      validFrom: isoDay(0),
+      amount: 1600
+    }));
+    expect(toastrMock.success).toHaveBeenCalledWith('Statischer Wert gespeichert', 'Erfolgreich');
+  });
+
+  it('saveEdit() on a planned amount rejects a date in the past', () => {
+    loadWith(withScheduled());
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    component['startEditScheduled'](section.rows[0].staticValue);
+    component['validFromControl'].setValue(dayAt(-1));
+    component['saveEdit'](section, section.rows[0]);
+
+    expect(toastrMock.error).toHaveBeenCalledWith('Das Datum darf nicht in der Vergangenheit liegen', 'Fehler');
+    expect(settingsApiMock.updateStaticValue).not.toHaveBeenCalled();
+  });
+
+  it('saveEdit() just ends the edit when a planned amount and its date were left as they were', () => {
+    loadWith(withScheduled());
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    component['startEditScheduled'](section.rows[0].staticValue);
+    component['saveEdit'](section, section.rows[0]);
+
+    expect(dialogMock.open).not.toHaveBeenCalled();
+    expect(component['editingId']()).toBeNull();
+  });
+
+  it('removeScheduled() removes the planned amount after confirming it', () => {
+    loadWith(withScheduled());
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    component['removeScheduled'](section, section.rows[0]);
+
+    expect(dialogMock.open).toHaveBeenCalledWith(StaticValueChangeDialogComponent, expect.objectContaining({
+      data: expect.objectContaining({oldAmount: 1600, newAmount: null, validFrom: isoDay(30)})
+    }));
+    expect(settingsApiMock.deleteStaticValue).toHaveBeenCalledWith(11);
+    expect(toastrMock.success).toHaveBeenCalledWith('Geplanter Wert entfernt', 'Erfolgreich');
+  });
+
+  it('removeScheduled() keeps the plan when the confirmation is dismissed', () => {
+    dialogResult = false;
+    loadWith(withScheduled());
+    const component = createComponent();
+    const section = sectionOf(component, StaticValueTypeEnum.INCOME_LIMIT);
+
+    component['removeScheduled'](section, section.rows[0]);
+
+    expect(settingsApiMock.deleteStaticValue).not.toHaveBeenCalled();
   });
 
 });
