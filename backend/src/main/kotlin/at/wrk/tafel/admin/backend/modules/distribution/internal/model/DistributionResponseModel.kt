@@ -40,6 +40,12 @@ data class TicketNumberResponse(
 )
 
 @ExcludeFromTestCoverage
+data class TicketHouseholdResponse(
+    val ticketNumber: Int,
+    val householdId: Long,
+)
+
+@ExcludeFromTestCoverage
 data class DistributionStatisticRequest(
     @field:Positive
     val employeeCount: Int,

@@ -5,6 +5,8 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 ## [Unreleased]
 - Anmeldung und Kundendetails: Ein Doppelklick auf "Ticket löschen" oder "Rückgängig" löscht das Ticket nur noch einmal, statt mehrere Fehlermeldungen ("Interner Serverfehler!", "Löschen des Tickets ... fehlgeschlagen!") zu zeigen, obwohl das Ticket gelöscht wurde.
 - Ein Tab, der über ein Update hinweg offen geblieben ist, lädt eine Seite, deren Programmteile es nicht mehr gibt, jetzt einmal automatisch neu, statt das Öffnen stillschweigend zu verweigern; außerdem erscheint der Hinweis "Eine neue Version ist verfügbar" (und das automatische Neuladen des Ticketmonitors) jetzt zuverlässig.
+- Kunden → Kunden suchen: Während einer Ausgabe führt das neue Feld "Ticketnummer der laufenden Ausgabe" direkt zum Kunden, der dieses Ticket erhalten hat - etwa wenn ein Kunde nur mit seiner Ticketnummer kommt.
+- Ticket-Monitor - Steuerung: Mit "Überspringen (Kunde nicht da)" geht es zum nächsten Ticket weiter, ohne einen Unkostenbeitrag zu verrechnen; kommt der Kunde doch noch, öffnet der Zurück-Pfeil das übersprungene Ticket wieder.
 - Einstellungen → Grenzwerte: Ein Betrag lässt sich jetzt auch im Voraus mit einem späteren Gültigkeitsbeginn hinterlegen (z. B. die Werte des nächsten Jahres ab 01.01.), wird in der neuen Spalte "Geplant" neben dem aktuellen Betrag angezeigt, kann bis dahin geändert oder entfernt werden, und ein Hinweis oben zeigt, ab wann bereits neue Beträge hinterlegt sind.
 - Die Einkommensgrenzen für 2027 (Armutsgefährdungsschwelle EU-SILC 2025: 1.827 € für einen Einpersonenhaushalt) sind bereits hinterlegt und gelten automatisch ab 01.01.2027; Familienbeihilfe, Kinderabsetzbetrag und Geschwisterstaffelung bleiben 2027 unverändert.
 

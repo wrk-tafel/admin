@@ -319,6 +319,7 @@ class DistributionService(
             // keeps the decision recorded when it was originally processed.
             if (costContributionPaid != null) {
                 distributionHouseholdEntity.costContributionPaid = costContributionPaid
+                distributionHouseholdEntity.skipped = false
             }
             distributionHouseholdEntity.processed = true
             distributionHouseholdRepository.save(distributionHouseholdEntity)
@@ -354,6 +355,38 @@ class DistributionService(
             return mapToTicketScreenTicket(nextTicket, distribution)
         }
         return mapToTicketScreenTicket(null, distribution)
+    }
+
+    /**
+     * Closes the current ticket without serving it - its household wasn't there. Like
+     * [closeCurrentTicketAndGetNext], but without a paid/unpaid decision: the ticket is recorded as
+     * paid, so [at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.MissingCostContributionService]
+     * charges nothing for it. "Ticket zurück" ([reopenAndGetPreviousTicket]) reopens it like any other.
+     */
+    @Transactional
+    fun skipCurrentTicketAndGetNext(): TicketScreenTicketResponse {
+        val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
+
+        val distributionHouseholdEntity = getFirstUnprocessedDistributionHouseholdEntity(distribution)
+            ?: return mapToTicketScreenTicket(null, distribution)
+
+        distributionHouseholdEntity.skipped = true
+        distributionHouseholdEntity.costContributionPaid = true
+        // Through the same path as a served ticket, so the phase events and the queue counts treat a
+        // skipped ticket exactly like one that was processed.
+        return closeCurrentTicketAndGetNext(costContributionPaid = null)
+    }
+
+    /**
+     * The household holding [ticketNumber] in the current distribution - for a customer who shows up
+     * with nothing but their ticket.
+     */
+    @Transactional(readOnly = true)
+    fun getHouseholdIdForTicketNumber(ticketNumber: Int): Long {
+        val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
+
+        return distribution.households.firstOrNull { it.ticketNumber == ticketNumber }?.household?.householdId
+            ?: throw NotFoundException("Ticket $ticketNumber wurde in der laufenden Ausgabe nicht vergeben!")
     }
 
     /**

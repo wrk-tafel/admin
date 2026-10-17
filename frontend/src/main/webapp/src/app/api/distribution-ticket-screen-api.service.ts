@@ -38,6 +38,11 @@ export class DistributionTicketScreenApiService {
     return this.http.post<TicketScreenTicketResponse>('/distributions/ticket-screen/show-next', request);
   }
 
+  /** Closes the current ticket without a paid/unpaid decision - its household isn't there. */
+  skipTicket(): Observable<TicketScreenTicketResponse> {
+    return this.http.post<TicketScreenTicketResponse>('/distributions/ticket-screen/skip', undefined);
+  }
+
 }
 
 export interface TicketScreenShowTextRequest {

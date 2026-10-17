@@ -1515,6 +1515,111 @@ internal class DistributionServiceTest {
         verify(exactly = 0) { eventPublisher.publishEvent(any<AllTicketsProcessedEvent>()) }
     }
 
+    @Test
+    fun `skipping closes the current ticket without a cost contribution and returns the next one`() {
+        val distribution = distributionWithTickets(count = 2)
+        distribution.households.first().costContributionPaid = false
+
+        val ticket = service.skipCurrentTicketAndGetNext()
+
+        assertThat(ticket.ticketNumber).isEqualTo(2)
+        assertThat(ticket.processedTicketsCount).isEqualTo(1)
+        val skipped = distribution.households.first()
+        assertThat(skipped.processed).isTrue()
+        assertThat(skipped.skipped).isTrue()
+        assertThat(skipped.costContributionPaid).isTrue()
+    }
+
+    @Test
+    fun `skipping the last open ticket publishes AllTicketsProcessedEvent like processing it`() {
+        val distribution = distributionWithTickets(count = 1)
+        every { distributionRepository.markTicketsCompleted(distribution.id!!, any()) } returns 1
+
+        service.skipCurrentTicketAndGetNext()
+
+        verify { eventPublisher.publishEvent(AllTicketsProcessedEvent(distributionId = distribution.id!!, ticketCount = 1)) }
+    }
+
+    @Test
+    fun `skipping without an open ticket changes nothing`() {
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+
+        val ticket = service.skipCurrentTicketAndGetNext()
+
+        assertThat(ticket.ticketNumber).isNull()
+        verify(exactly = 0) { distributionHouseholdRepository.save(any()) }
+    }
+
+    @Test
+    fun `skipping when the distribution was already closed reports a conflict`() {
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+
+        assertThrows<ConflictException> { service.skipCurrentTicketAndGetNext() }
+    }
+
+    @Test
+    fun `a skipped ticket reopened and re-closed by the forward arrow stays skipped`() {
+        val distribution = distributionWithTickets(count = 2)
+
+        service.skipCurrentTicketAndGetNext()
+        service.reopenAndGetPreviousTicket()
+        assertThat(distribution.households.first().processed).isFalse()
+        service.closeCurrentTicketAndGetNext(costContributionPaid = null)
+
+        assertThat(distribution.households.first().skipped).isTrue()
+    }
+
+    @Test
+    fun `a skipped ticket reopened and then served is no longer skipped`() {
+        val distribution = distributionWithTickets(count = 2)
+
+        service.skipCurrentTicketAndGetNext()
+        service.reopenAndGetPreviousTicket()
+        service.closeCurrentTicketAndGetNext(costContributionPaid = false)
+
+        val served = distribution.households.first()
+        assertThat(served.skipped).isFalse()
+        assertThat(served.costContributionPaid).isFalse()
+    }
+
+    @Test
+    fun `household for a ticket number of the current distribution`() {
+        distributionWithTickets(count = 2)
+
+        assertThat(service.getHouseholdIdForTicketNumber(2)).isEqualTo(testHouseholdEntity2.householdId)
+    }
+
+    @Test
+    fun `household for a ticket number nobody holds is not found`() {
+        distributionWithTickets(count = 2)
+
+        val exception = assertThrows<NotFoundException> { service.getHouseholdIdForTicketNumber(3) }
+        assertThat(exception.body.detail).isEqualTo("Ticket 3 wurde in der laufenden Ausgabe nicht vergeben!")
+    }
+
+    /** Open tickets 1..[count] (at most 2), each held by a household of its own. */
+    private fun distributionWithTickets(count: Int): DistributionEntity {
+        every { distributionHouseholdRepository.save(any()) } answers { firstArg() }
+
+        val distribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        distribution.households = listOf(testHouseholdEntity1, testHouseholdEntity2).take(count).mapIndexed { index, household ->
+            DistributionHouseholdEntity(
+                distribution = distribution,
+                household = household,
+                ticketNumber = index + 1,
+            ).apply {
+                id = index + 1L
+                createdAt = LocalDateTime.now()
+            }
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distribution
+        return distribution
+    }
+
     private fun distributionWithUnprocessedTickets(count: Int = 1): DistributionEntity {
         every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
         every { distributionHouseholdRepository.deleteUnprocessed(any()) } returns 1

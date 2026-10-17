@@ -66,6 +66,17 @@ class DistributionTicketScreenController(
         return response
     }
 
+    /** Closes the current ticket without serving it - see [DistributionService.skipCurrentTicketAndGetNext]. */
+    @PostMapping("/skip")
+    @TafelActiveDistributionRequired
+    @PreAuthorize("hasAuthority('CHECKIN')")
+    fun skipTicket(): TicketScreenTicketResponse {
+        val response = service.skipCurrentTicketAndGetNext()
+
+        saveToOutbox(text = TICKET_SCREEN_TITLE, value = response.ticketNumber?.toString())
+        return response
+    }
+
     private fun saveToOutbox(text: String, value: String?) {
         sseOutboxService.saveOutboxEntry(
             TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,

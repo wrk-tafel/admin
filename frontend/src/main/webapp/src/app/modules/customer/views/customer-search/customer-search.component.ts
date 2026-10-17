@@ -39,6 +39,8 @@ import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {DeleteCustomerDialogComponent} from '../customer-detail/dialogs/delete-customer-dialog.component';
 import {TafelIfPermissionDirective} from '../../../../common/security/tafel-if-permission.directive';
 import {EmergencyListDialogComponent} from './dialogs/emergency-list-dialog.component';
+import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
+import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 
 /** Long enough not to search on every keystroke, short enough to still feel immediate. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -97,6 +99,7 @@ const QUERY_PARAMS = {
     MatTooltipModule,
     TafelInfoTooltipComponent,
     TafelIfPermissionDirective,
+    TafelIfDistributionActiveDirective,
     RouterLink
   ]
 })
@@ -115,12 +118,16 @@ export class CustomerSearchComponent {
   private readonly toastr = inject(TafelToastrService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly dialog = inject(MatDialog);
+  private readonly distributionTicketApiService = inject(DistributionTicketApiService);
 
   /** Whether the reference-less privacy notice template is currently being generated/downloaded. */
   downloadingPrivacyNoticeTemplate = signal(false);
 
   /** Whether the "Notfallliste" is currently being generated/downloaded. */
   downloadingEmergencyList = signal(false);
+
+  /** The ticket number of the running distribution to look up - for a customer who brings nothing but their ticket. */
+  ticketNumber = signal<number | null>(null);
 
   /** The one search box. A pure number is tried as an exact customer-id jump first - see [resolveSearch$]. */
   query = signal('');
@@ -305,6 +312,24 @@ export class CustomerSearchComponent {
     if (outcome.writeParams && !isNavigatingToAnotherPage(this.router)) {
       this.writeStateToQueryParams(outcome.response);
     }
+  }
+
+  /** Jumps to the household holding [ticketNumber] in the running distribution. */
+  searchTicketNumber() {
+    const ticketNumber = this.ticketNumber();
+    if (!ticketNumber) {
+      return;
+    }
+    this.distributionTicketApiService.getHouseholdForTicketNumber(ticketNumber, expectedErrorContext(404)).subscribe({
+      next: (response) => this.navigateToCustomerDetail(response.householdId),
+      error: (error: HttpErrorResponse) => {
+        if (error.status === 404) {
+          this.toastr.warning(`Ticket ${ticketNumber} wurde in der laufenden Ausgabe nicht vergeben.`);
+          return;
+        }
+        this.toastr.error(extractErrorMessage(error), 'Ticket konnte nicht gesucht werden!');
+      }
+    });
   }
 
   private navigateToCustomerDetail(customerId: number) {

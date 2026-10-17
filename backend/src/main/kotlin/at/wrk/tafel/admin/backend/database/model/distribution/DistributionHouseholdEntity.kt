@@ -25,4 +25,7 @@ class DistributionHouseholdEntity(
     var processed: Boolean = false,
     @Column(name = "cost_contribution_paid")
     var costContributionPaid: Boolean = true,
+    /** Closed without being served - the household wasn't there. Only meaningful while [processed]. */
+    @Column(name = "skipped")
+    var skipped: Boolean = false,
 ) : BaseChangeTrackingEntity()
