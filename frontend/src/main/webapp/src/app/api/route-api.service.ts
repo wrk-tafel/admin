@@ -93,18 +93,24 @@ export interface RouteGuidanceShelter {
   personsCount: number;
   // null: not known
   hasKitchen: boolean | null;
-  acceptsEverything: boolean;
   hasFreezer: boolean;
   foodCategories: string[];
   excludedFoodCategories: string[];
   restrictions?: string;
-  fixedQuantities?: string;
+  fixedQuantities: RouteGuidanceFixedQuantity[];
   contacts: RouteGuidanceShelterContact[];
   note?: string;
   // confirmed by the driver today - counts into the route's progress next to the ticked stops
   delivered: boolean;
   deliveredAt?: string;
   deliveredBy?: string;
+}
+
+export interface RouteGuidanceFixedQuantity {
+  foodCategory: string;
+  // whole boxes
+  amount: number;
+  note?: string;
 }
 
 export interface RouteGuidanceShelterContact {

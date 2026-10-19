@@ -68,23 +68,24 @@ describe('Settings - Shelters', () => {
       cy.byTestId('shelter-has-kitchen').click();
       cy.contains('mat-option', 'Ja').click();
       cy.byTestId('shelter-has-freezer').find('input[type="checkbox"]').check();
-      cy.byTestId('shelter-food-categories').click();
-      cy.contains('mat-option', 'Konserven').click();
-      cy.contains('mat-option', 'Backwaren').click();
-      cy.get('body').type('{esc}');
+      // a shelter that takes everything has every category selected
+      cy.byTestId('shelter-select-all-food-categories').click();
+      cy.byTestId('shelter-food-categories').should('contain.text', 'Backwaren').and('contain.text', 'Tiefkühlprodukte');
       cy.byTestId('shelter-excluded-food-categories').click();
       cy.contains('mat-option', 'Süßwaren').click();
       cy.get('body').type('{esc}');
       cy.byTestId('shelter-restrictions').type('kein Schweinefleisch');
-      cy.byTestId('shelter-fixed-quantities').type('2 Kisten Gebäck');
+      cy.byTestId('shelter-add-fixed-quantity').click();
+      cy.byTestId('shelter-fixed-quantity-amount-0').clear().type('2');
+      cy.byTestId('shelter-fixed-quantity-category-0').click();
+      cy.contains('mat-option', 'Backwaren').click();
+      cy.byTestId('shelter-fixed-quantity-note-0').type('Gebäck');
 
       cy.intercept('POST', '/api/shelters').as('createShelter');
       cy.contains('Speichern').click();
-      cy.wait('@createShelter').its('request.body').should('deep.include', {
-        hasKitchen: true,
-        hasFreezer: true,
-        restrictions: 'kein Schweinefleisch',
-        fixedQuantities: '2 Kisten Gebäck'
+      cy.wait('@createShelter').its('request.body').then(body => {
+        expect(body).to.deep.include({hasKitchen: true, hasFreezer: true, restrictions: 'kein Schweinefleisch'});
+        expect(body.fixedQuantities).to.deep.equal([{foodCategoryId: 1, amount: 2, note: 'Gebäck'}]);
       });
 
       cy.byTestId('shelters-list').contains('[testid^="shelters-row-"]', name).as('row');
@@ -92,10 +93,10 @@ describe('Settings - Shelters', () => {
       cy.get('@row').find('[testid^="shelter-has-kitchen-"]').should('have.text', 'Ja');
       cy.get('@row').find('[testid^="shelter-food-categories-"]')
         .should('contain.text', 'Backwaren')
-        .and('contain.text', 'Konserven');
+        .and('contain.text', 'Tiefkühlprodukte');
       cy.get('@row').find('[testid^="shelter-excluded-food-categories-"]').should('contain.text', 'Süßwaren');
       cy.get('@row').find('[testid^="shelter-restrictions-"]').should('have.text', 'kein Schweinefleisch');
-      cy.get('@row').find('[testid^="shelter-fixed-quantities-"]').should('have.text', '2 Kisten Gebäck');
+      cy.get('@row').find('[testid^="shelter-fixed-quantities-"]').should('contain.text', '2 Kisten Backwaren (Gebäck)');
     });
   });
 

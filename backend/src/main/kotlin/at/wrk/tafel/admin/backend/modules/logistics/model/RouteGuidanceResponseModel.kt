@@ -68,19 +68,26 @@ data class RouteGuidanceShelter(
     val personsCount: Int,
     // null: not known
     val hasKitchen: Boolean?,
-    val acceptsEverything: Boolean,
     val hasFreezer: Boolean,
     // names in the categories' own order
     val foodCategories: List<String>,
     val excludedFoodCategories: List<String>,
     val restrictions: String?,
-    val fixedQuantities: String?,
+    val fixedQuantities: List<RouteGuidanceFixedQuantityItem>,
     val contacts: List<ShelterContactItem>,
     val note: String?,
     // confirmed by the driver today - counted into the route's progress next to the ticked stops
     val delivered: Boolean = false,
     val deliveredAt: LocalDateTime? = null,
     val deliveredBy: String? = null,
+)
+
+@ExcludeFromTestCoverage
+data class RouteGuidanceFixedQuantityItem(
+    val foodCategory: String,
+    // whole boxes
+    val amount: Int,
+    val note: String?,
 )
 
 @ExcludeFromTestCoverage

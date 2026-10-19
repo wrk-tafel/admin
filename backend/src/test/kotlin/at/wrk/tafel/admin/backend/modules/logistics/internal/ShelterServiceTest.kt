@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterFixedQuantityItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterResponse
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
@@ -260,10 +261,9 @@ class ShelterServiceTest {
         val updated = testShelter3ShelterRequest().copy(
             id = 7,
             hasKitchen = false,
-            acceptsEverything = true,
             hasFreezer = true,
             restrictions = "  kein Schweinefleisch ",
-            fixedQuantities = " ",
+            fixedQuantities = listOf(ShelterFixedQuantityItem(foodCategoryId = testFoodCategory2.id!!, amount = 4, note = " Schnittbrot ")),
             foodCategoryIds = listOf(testFoodCategory3.id!!),
             excludedFoodCategoryIds = listOf(testFoodCategory1.id!!),
         )
@@ -271,6 +271,7 @@ class ShelterServiceTest {
         every { shelterRepository.findByIdOrNull(7) } returns existing
         every { foodCategoryRepository.findAllById(setOf(testFoodCategory3.id!!)) } returns listOf(testFoodCategory3)
         every { foodCategoryRepository.findAllById(setOf(testFoodCategory1.id!!)) } returns listOf(testFoodCategory1)
+        every { foodCategoryRepository.findAllById(setOf(testFoodCategory2.id!!)) } returns listOf(testFoodCategory2)
         every { shelterRepository.save(any()) } answers { firstArg() as ShelterEntity }
 
         val result = service.updateShelter(7, updated)
@@ -278,10 +279,14 @@ class ShelterServiceTest {
         assertThat(existing.hasKitchen).isFalse()
         assertThat(existing.foodCategories).containsExactly(testFoodCategory3)
         assertThat(existing.excludedFoodCategories).containsExactly(testFoodCategory1)
-        assertThat(existing.acceptsEverything).isTrue()
         assertThat(existing.hasFreezer).isTrue()
         assertThat(existing.restrictions).isEqualTo("kein Schweinefleisch")
-        assertThat(existing.fixedQuantities).isNull()
+        assertThat(existing.fixedQuantities.single().foodCategory).isEqualTo(testFoodCategory2)
+        assertThat(existing.fixedQuantities.single().amount).isEqualTo(4)
+        assertThat(existing.fixedQuantities.single().note).isEqualTo("Schnittbrot")
+        assertThat(result.fixedQuantities).containsExactly(
+            ShelterFixedQuantityItem(foodCategoryId = testFoodCategory2.id!!, amount = 4, note = "Schnittbrot"),
+        )
         assertThat(result.excludedFoodCategoryIds).containsExactly(testFoodCategory1.id)
         assertThat(result.hasKitchen).isFalse()
         assertThat(result.foodCategoryIds).containsExactly(testFoodCategory3.id)

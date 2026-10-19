@@ -6,7 +6,7 @@ import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/mat
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {ShelterApiService, ShelterItem} from '../../../../api/shelter-api.service';
 import {FoodCategoriesApiService, FoodCategory} from '../../../../api/food-categories-api.service';
-import {shelterKitchenLabel} from '../../../../common/util/shelter-kitchen.util';
+import {formatFixedQuantity, shelterKitchenLabel} from '../../../../common/util/shelter-kitchen.util';
 import {MatIcon} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
@@ -89,7 +89,12 @@ export class SettingsSheltersComponent {
       (ids ?? []).map(id => names.get(id)).filter((name): name is string => !!name);
     return new Map(this._shelters().map(shelter => [
       shelter.id,
-      {needed: namesOf(shelter.foodCategoryIds), excluded: namesOf(shelter.excludedFoodCategoryIds)}
+      {
+        needed: namesOf(shelter.foodCategoryIds),
+        excluded: namesOf(shelter.excludedFoodCategoryIds),
+        fixedQuantities: (shelter.fixedQuantities ?? []).map(quantity =>
+          formatFixedQuantity(quantity.amount, names.get(quantity.foodCategoryId) ?? '', quantity.note))
+      }
     ]));
   });
 

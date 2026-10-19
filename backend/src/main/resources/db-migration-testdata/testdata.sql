@@ -1289,15 +1289,18 @@ values (4, NOW(), NOW(), 'Shelter 4 disabled', 'Erdberg', 4, null, null, '1040',
 -- what the shelters usually need, modelled on the kinds of answers real shelters give:
 -- shelter 1 cooks, asks for vegetables, dairy and canned food, wants no bread and no pork;
 -- shelter 2 serves cold food only and gets a standing amount of bread every time;
--- shelter 3 takes everything, frozen food included; shelter 4 has not said (kitchen unknown)
+-- shelter 3 takes everything (every category selected), frozen food included;
+-- shelter 4 has not said (kitchen unknown)
 UPDATE shelters SET has_kitchen = true, restrictions = 'kein Schweinefleisch' WHERE id = 1;
-UPDATE shelters SET has_kitchen = false, fixed_quantities = '4 Kisten Schnittbrot' WHERE id = 2;
-UPDATE shelters SET has_kitchen = true, accepts_everything = true, has_freezer = true,
-                    note = 'Familien mit Kindern' WHERE id = 3;
+UPDATE shelters SET has_kitchen = false WHERE id = 2;
+UPDATE shelters SET has_kitchen = true, has_freezer = true, note = 'Familien mit Kindern' WHERE id = 3;
 INSERT INTO shelters_food_categories (shelter_id, food_category_id)
-VALUES (1, 2), (1, 3), (1, 7), (2, 2), (2, 8);
+VALUES (1, 2), (1, 3), (1, 7), (2, 2), (2, 8),
+       (3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8), (3, 9), (3, 10);
 INSERT INTO shelters_excluded_food_categories (shelter_id, food_category_id)
 VALUES (1, 1);
+INSERT INTO shelters_fixed_quantities (shelter_id, food_category_id, amount, note)
+VALUES (2, 1, 4, 'Schnittbrot');
 
 INSERT INTO shelters_contacts (id, created_at, updated_at, shelter_id, firstname, lastname, phone)
 values (1, NOW(), NOW(), 1, null, null, '01 23 45 67 89');

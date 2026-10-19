@@ -11,3 +11,9 @@ export function shelterKitchenLabel(hasKitchen: boolean | null | undefined): str
   }
   return 'Unbekannt';
 }
+
+/** A fixed amount as it reads on screen, e.g. "4 Kisten Backwaren (Schnittbrot)". */
+export function formatFixedQuantity(amount: number, foodCategory: string, note?: string | null): string {
+  const boxes = `${amount} ${amount === 1 ? 'Kiste' : 'Kisten'} ${foodCategory}`;
+  return note ? `${boxes} (${note})` : boxes;
+}

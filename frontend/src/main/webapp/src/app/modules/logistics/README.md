@@ -117,8 +117,7 @@ A few things about it are worth knowing before changing it:
   collection, so it is empty (and the block absent) with no distribution running or none picked.
   Each shelter is a collapsed row (name, persons count) that expands to its address with its own
   map link (`buildSingleDestinationMapsUrl`), its needs - kitchen (via `shelterKitchenLabel`, so an
-  unknown kitchen reads "Unbekannt" rather than "Nein"), freezer, the food categories it needs or
-  "Nimmt alles", and, highlighted in red since they are what goes wrong at the door, the categories
+  unknown kitchen reads "Unbekannt" rather than "Nein"), freezer, the food categories it needs, and, highlighted in red since they are what goes wrong at the door, the categories
   it does not want and its restrictions - its fixed quantities, its contacts as `tel:` links and its
   note. Which rows are expanded is local state
   (`expandedShelterIds`), cleared when another route is picked.

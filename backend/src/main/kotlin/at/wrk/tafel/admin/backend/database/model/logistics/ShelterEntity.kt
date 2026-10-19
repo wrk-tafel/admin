@@ -3,7 +3,9 @@ package at.wrk.tafel.admin.backend.database.model.logistics
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
 import jakarta.persistence.CascadeType
+import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
+import jakarta.persistence.ElementCollection
 import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
@@ -37,9 +39,6 @@ class ShelterEntity(
     @Column(name = "has_kitchen")
     var hasKitchen: Boolean? = null
 
-    @Column(name = "accepts_everything")
-    var acceptsEverything: Boolean = false
-
     @Column(name = "has_freezer")
     var hasFreezer: Boolean = false
 
@@ -47,9 +46,10 @@ class ShelterEntity(
     @Column(name = "restrictions")
     var restrictions: String? = null
 
-    // standing amounts it gets every time, e.g. "4 Kisten Schnittbrot"
-    @Column(name = "fixed_quantities")
-    var fixedQuantities: String? = null
+    // the amounts it gets every time, e.g. 4 boxes of bread
+    @ElementCollection
+    @CollectionTable(name = "shelters_fixed_quantities", joinColumns = [JoinColumn(name = "shelter_id")])
+    var fixedQuantities: MutableList<ShelterFixedQuantityEntity> = mutableListOf()
 
     @Column(name = "address_stairway")
     var addressStairway: String? = null

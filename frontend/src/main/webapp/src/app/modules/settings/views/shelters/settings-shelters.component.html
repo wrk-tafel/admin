@@ -99,9 +99,7 @@
               <div>
                 <dt class="text-xs uppercase tracking-wide text-slate-500">Benötigte Lebensmittel</dt>
                 <dd class="m-0" [attr.testid]="'shelter-food-categories-' + i">
-                  @if (shelter.acceptsEverything) {
-                    <span class="font-medium">Nimmt alles</span>
-                  } @else if (needs?.needed?.length) {
+                  @if (needs?.needed?.length) {
                     {{ needs!.needed.join(', ') }}
                   } @else {
                     <span class="text-slate-400">Keine angegeben</span>
@@ -120,10 +118,16 @@
                   <dd class="m-0" [attr.testid]="'shelter-restrictions-' + i">{{ shelter.restrictions }}</dd>
                 </div>
               }
-              @if (shelter.fixedQuantities) {
+              @if (needs?.fixedQuantities?.length) {
                 <div>
                   <dt class="text-xs uppercase tracking-wide text-slate-500">Fixe Mengen</dt>
-                  <dd class="m-0" [attr.testid]="'shelter-fixed-quantities-' + i">{{ shelter.fixedQuantities }}</dd>
+                  <dd class="m-0" [attr.testid]="'shelter-fixed-quantities-' + i">
+                    <ul class="m-0 list-none p-0">
+                      @for (quantity of needs!.fixedQuantities; track $index) {
+                        <li>{{ quantity }}</li>
+                      }
+                    </ul>
+                  </dd>
                 </div>
               }
               <div class="sm:col-span-2">

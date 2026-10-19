@@ -5,10 +5,12 @@ import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterFixedQuantityEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterFixedQuantityItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterResponse
 import org.slf4j.LoggerFactory
@@ -90,10 +92,11 @@ class ShelterService(
             )
         },
         hasKitchen = shelterEntity.hasKitchen,
-        acceptsEverything = shelterEntity.acceptsEverything,
         hasFreezer = shelterEntity.hasFreezer,
         restrictions = shelterEntity.restrictions,
-        fixedQuantities = shelterEntity.fixedQuantities,
+        fixedQuantities = shelterEntity.fixedQuantities.map {
+            ShelterFixedQuantityItem(foodCategoryId = it.foodCategory.id!!, amount = it.amount, note = it.note)
+        },
         foodCategoryIds = sortedIds(shelterEntity.foodCategories),
         excludedFoodCategoryIds = sortedIds(shelterEntity.excludedFoodCategories),
     )
@@ -104,10 +107,21 @@ class ShelterService(
 
     private fun applyNeeds(shelterEntity: ShelterEntity, shelter: ShelterRequest) {
         shelterEntity.hasKitchen = shelter.hasKitchen
-        shelterEntity.acceptsEverything = shelter.acceptsEverything
         shelterEntity.hasFreezer = shelter.hasFreezer
         shelterEntity.restrictions = shelter.restrictions?.trim()?.ifBlank { null }
-        shelterEntity.fixedQuantities = shelter.fixedQuantities?.trim()?.ifBlank { null }
+
+        val categoriesById = findFoodCategories(shelter.fixedQuantities.map { it.foodCategoryId }).associateBy { it.id }
+        // replaced in place, like the other collections - see updateShelter
+        shelterEntity.fixedQuantities.clear()
+        shelterEntity.fixedQuantities.addAll(
+            shelter.fixedQuantities.map {
+                ShelterFixedQuantityEntity(
+                    foodCategory = categoriesById.getValue(it.foodCategoryId),
+                    amount = it.amount,
+                    note = it.note?.trim()?.ifBlank { null },
+                )
+            },
+        )
     }
 
     @Transactional

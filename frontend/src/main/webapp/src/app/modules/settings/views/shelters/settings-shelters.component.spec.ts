@@ -26,7 +26,8 @@ describe('SettingsSheltersComponent', () => {
     hasKitchen: true,
     foodCategoryIds: [2, 1],
     excludedFoodCategoryIds: [1],
-    restrictions: 'kein Schweinefleisch'
+    restrictions: 'kein Schweinefleisch',
+    fixedQuantities: [{foodCategoryId: 1, amount: 4, note: 'Schnittbrot'}]
   };
   const testShelter2: ShelterItem = {
     id: 2,
@@ -155,6 +156,8 @@ describe('SettingsSheltersComponent', () => {
     expect(element.querySelector('[testid="shelter-excluded-food-categories-0"]')!.textContent).toContain('Backwaren');
     expect(element.querySelector('[testid="shelter-restrictions-0"]')!.textContent).toContain('kein Schweinefleisch');
     expect(element.querySelector('[testid="shelter-restrictions-1"]')).toBeNull();
+    expect(element.querySelector('[testid="shelter-fixed-quantities-0"]')!.textContent).toContain('4 Kisten Backwaren (Schnittbrot)');
+    expect(element.querySelector('[testid="shelter-fixed-quantities-1"]')).toBeNull();
   });
 
   it('hands the food categories to the edit dialog', () => {

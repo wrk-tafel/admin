@@ -7,7 +7,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButton} from '@angular/material/button';
-import {ShelterItem, ShelterContact} from '../../../../../api/shelter-api.service';
+import {ShelterContact, ShelterFixedQuantity, ShelterItem} from '../../../../../api/shelter-api.service';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatSelectModule} from '@angular/material/select';
 import {FoodCategory} from '../../../../../api/food-categories-api.service';
@@ -64,17 +64,47 @@ export class ShelterEditDialogComponent {
     enabled: [this.data.shelter?.enabled ?? true],
     // null stays null: a kitchen nobody knows about is not "no kitchen"
     hasKitchen: [this.data.shelter?.hasKitchen ?? null],
-    acceptsEverything: [this.data.shelter?.acceptsEverything ?? false],
     hasFreezer: [this.data.shelter?.hasFreezer ?? false],
     foodCategoryIds: [this.data.shelter?.foodCategoryIds ?? []],
     excludedFoodCategoryIds: [this.data.shelter?.excludedFoodCategoryIds ?? []],
     restrictions: [this.data.shelter?.restrictions ?? '', [Validators.maxLength(500)]],
-    fixedQuantities: [this.data.shelter?.fixedQuantities ?? '', [Validators.maxLength(500)]],
+    fixedQuantities: this.fb.array((this.data.shelter?.fixedQuantities ?? []).map(q => this.createFixedQuantityGroup(q))),
     // Not user-editable here - preserved as-is on edit, auto-assigned by the backend on
     // create; reordering afterwards happens via drag-and-drop.
     sortOrder: [this.data.shelter?.sortOrder ?? 0],
     contacts: this.fb.array((this.data.shelter?.contacts ?? []).map(c => this.createContactGroup(c)))
   });
+
+  createFixedQuantityGroup(q?: ShelterFixedQuantity) {
+    return this.fb.group({
+      foodCategoryId: [q?.foodCategoryId ?? null, [Validators.required]],
+      amount: [q?.amount ?? 1, [Validators.required, Validators.min(1)]],
+      note: [q?.note ?? '', [Validators.maxLength(100)]]
+    });
+  }
+
+  get fixedQuantities(): FormArray {
+    return this.form.get('fixedQuantities') as FormArray;
+  }
+
+  addFixedQuantity() {
+    this.fixedQuantities.push(this.createFixedQuantityGroup());
+    this.form.updateValueAndValidity();
+    this.cd.detectChanges();
+  }
+
+  removeFixedQuantity(index: number) {
+    this.fixedQuantities.removeAt(index);
+    this.form.updateValueAndValidity();
+    this.cd.detectChanges();
+  }
+
+  /** A shelter that takes whatever there is - every category it can be offered, at once. */
+  selectAllFoodCategories() {
+    const control = this.form.get('foodCategoryIds')!;
+    control.setValue(this.selectableFoodCategories.map(category => category.id));
+    control.markAsDirty();
+  }
 
   createContactGroup(c?: ShelterContact) {
     return this.fb.group({

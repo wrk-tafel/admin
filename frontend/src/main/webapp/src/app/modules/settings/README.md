@@ -169,10 +169,13 @@ CRUD + drag-and-drop reordering for shelters (Notschlafstellen). Loads via
   contact can be a bare number and the list renders it without a name.
 - The dialog's **Bedarf** section edits what the shelter usually needs: `hasKitchen` as a
   three-way select (`true`/`false`/`null` - a new shelter starts at `null`, "Unbekannt", since an
-  unasked question is not a "no"), `acceptsEverything`, `hasFreezer`, needed and unwanted food
-  categories (`foodCategoryIds`/`excludedFoodCategoryIds`, both offering the active categories plus
-  any deactivated one the shelter already has), and the free texts `restrictions` and
-  `fixedQuantities`. The expanded row shows the same, with `shelterKitchenLabel`
+  unasked question is not a "no"), `hasFreezer`, needed and unwanted food categories
+  (`foodCategoryIds`/`excludedFoodCategoryIds`, both offering the active categories plus any
+  deactivated one the shelter already has; "Alle auswählen" selects every offered category for a
+  shelter that takes everything - there is no separate flag for that), the free text
+  `restrictions`, and `fixedQuantities` as a `FormArray` of rows (category, whole boxes `>= 1`,
+  optional note), added/removed like the contacts. `formatFixedQuantity` renders a row as
+  "4 Kisten Backwaren (Schnittbrot)" here and in Routen-Navi. The expanded row shows the same, with `shelterKitchenLabel`
   (`common/util/shelter-kitchen.util.ts`) shared with Routen-Navi for the kitchen.
 - This `sortOrder` is respected outside this module too: the Routenerfassung's
   shelter picker, the Routen-Navi's "Notschlafstellen heute" block, the

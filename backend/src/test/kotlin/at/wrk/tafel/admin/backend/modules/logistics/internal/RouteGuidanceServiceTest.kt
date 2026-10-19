@@ -20,10 +20,12 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterFixedQuantityEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopAddress
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.events.RouteAtLastStopEvent
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceFixedQuantityItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
@@ -215,7 +217,7 @@ class RouteGuidanceServiceTest {
             hasKitchen = true
             hasFreezer = true
             restrictions = "kein Schweinefleisch"
-            fixedQuantities = "2 Kisten Gebäck"
+            fixedQuantities = mutableListOf(ShelterFixedQuantityEntity(foodCategory = bread, amount = 2, note = "Gebäck"))
             note = "Hintereingang"
             foodCategories = mutableSetOf(vegetables, bread)
             excludedFoodCategories = mutableSetOf(FoodCategoryEntity(name = "Brot", sortOrder = 3).apply { id = 3 })
@@ -247,9 +249,10 @@ class RouteGuidanceServiceTest {
             assertThat(foodCategories).containsExactly("Backwaren", "Obst / Gemüse")
             assertThat(excludedFoodCategories).containsExactly("Brot")
             assertThat(hasFreezer).isTrue()
-            assertThat(acceptsEverything).isFalse()
             assertThat(restrictions).isEqualTo("kein Schweinefleisch")
-            assertThat(fixedQuantities).isEqualTo("2 Kisten Gebäck")
+            assertThat(fixedQuantities).containsExactly(
+                RouteGuidanceFixedQuantityItem(foodCategory = "Backwaren", amount = 2, note = "Gebäck"),
+            )
             assertThat(contacts).containsExactly(ShelterContactItem(firstname = "Anna", lastname = null, phone = "0664 1"))
             assertThat(note).isEqualTo("Hintereingang")
             assertThat(personsCount).isEqualTo(20)

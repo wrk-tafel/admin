@@ -27,13 +27,14 @@ import {
   RouteApiService,
   RouteData,
   RouteGuidanceData,
+  RouteGuidanceFixedQuantity,
   RouteGuidanceShelter,
   RouteGuidanceShop,
   RouteGuidanceStop,
   RouteList
 } from '../../../../api/route-api.service';
 import {ReturnBoxesApiService} from '../../../../api/return-boxes-api.service';
-import {shelterKitchenLabel} from '../../../../common/util/shelter-kitchen.util';
+import {formatFixedQuantity, shelterKitchenLabel} from '../../../../common/util/shelter-kitchen.util';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
@@ -203,6 +204,10 @@ export class RouteGuidanceComponent {
   }
 
   protected readonly kitchenLabel = shelterKitchenLabel;
+
+  protected fixedQuantityLabel(quantity: RouteGuidanceFixedQuantity): string {
+    return formatFixedQuantity(quantity.amount, quantity.foodCategory, quantity.note);
+  }
 
   // the shelter whose delivery request is still on its way, so its button can't be pressed twice
   protected readonly pendingShelterId = signal<number | undefined>(undefined);

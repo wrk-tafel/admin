@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterFixedQuantityItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -30,6 +31,7 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
                 hasKitchen = true,
                 foodCategoryIds = listOf(bread.id!!, vegetables.id!!),
                 excludedFoodCategoryIds = listOf(cans.id!!),
+                fixedQuantities = listOf(ShelterFixedQuantityItem(foodCategoryId = bread.id!!, amount = 4, note = "Schnittbrot")),
                 contacts = listOf(ShelterContactItem(firstname = "Anna", lastname = null, phone = "0664 1")),
             ),
         )
@@ -40,6 +42,9 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
         assertThat(reloaded.hasKitchen).isTrue()
         assertThat(reloaded.foodCategoryIds).containsExactly(vegetables.id, bread.id)
         assertThat(reloaded.excludedFoodCategoryIds).containsExactly(cans.id)
+        assertThat(reloaded.fixedQuantities).containsExactly(
+            ShelterFixedQuantityItem(foodCategoryId = bread.id!!, amount = 4, note = "Schnittbrot"),
+        )
 
         shelterService.updateShelter(
             created.id!!,
@@ -56,6 +61,7 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
         assertThat(updated.hasKitchen).isFalse()
         assertThat(updated.foodCategoryIds).containsExactly(cans.id)
         assertThat(updated.excludedFoodCategoryIds).isEmpty()
+        assertThat(updated.fixedQuantities).isEmpty()
         // the contacts are replaced inside the same transaction, which an orphan-removal collection
         // only allows when it is changed in place rather than swapped for a new instance
         assertThat(updated.contacts).extracting<String> { it.phone }.containsExactly("0664 2")
@@ -68,6 +74,7 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
         foodCategoryIds: List<Long>,
         contacts: List<ShelterContactItem>,
         excludedFoodCategoryIds: List<Long> = emptyList(),
+        fixedQuantities: List<ShelterFixedQuantityItem> = emptyList(),
     ) = ShelterRequest(
         id = null,
         name = "IT Shelter",
@@ -85,5 +92,6 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
         hasKitchen = hasKitchen,
         foodCategoryIds = foodCategoryIds,
         excludedFoodCategoryIds = excludedFoodCategoryIds,
+        fixedQuantities = fixedQuantities,
     )
 }

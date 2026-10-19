@@ -19,6 +19,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryReposi
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.events.RouteAtLastStopEvent
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceFixedQuantityItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceReturnItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceShelter
@@ -258,12 +259,13 @@ class RouteGuidanceService(
         ).joinToString(", "),
         personsCount = shelter.personsCount,
         hasKitchen = shelter.hasKitchen,
-        acceptsEverything = shelter.acceptsEverything,
         hasFreezer = shelter.hasFreezer,
         foodCategories = categoryNames(shelter.foodCategories),
         excludedFoodCategories = categoryNames(shelter.excludedFoodCategories),
         restrictions = shelter.restrictions,
-        fixedQuantities = shelter.fixedQuantities,
+        fixedQuantities = shelter.fixedQuantities.map {
+            RouteGuidanceFixedQuantityItem(foodCategory = it.foodCategory.name, amount = it.amount, note = it.note)
+        },
         contacts = shelter.contacts.map {
             ShelterContactItem(firstname = it.firstname, lastname = it.lastname, phone = it.phone)
         },

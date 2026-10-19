@@ -87,6 +87,33 @@ describe('ShelterEditDialogComponent', () => {
     expect((fixture.componentInstance as any).selectableFoodCategories.map((c: FoodCategory) => c.id)).toEqual([1, 2]);
   });
 
+  it('selects every offered food category at once for a shelter that takes everything', () => {
+    const fixture = TestBed.createComponent(ShelterEditDialogComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.selectAllFoodCategories();
+
+    expect(component.form.value.foodCategoryIds).toEqual([1, 2]);
+  });
+
+  it('records fixed quantities as rows of a category, whole boxes and an optional note', () => {
+    const fixture = TestBed.createComponent(ShelterEditDialogComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.addFixedQuantity();
+    expect(component.fixedQuantities.at(0).valid).toBe(false);
+
+    component.fixedQuantities.at(0).patchValue({foodCategoryId: 1, amount: 4, note: 'Schnittbrot'});
+    expect(component.fixedQuantities.at(0).valid).toBe(true);
+    component.fixedQuantities.at(0).patchValue({amount: 0});
+    expect(component.fixedQuantities.at(0).valid).toBe(false);
+
+    component.removeFixedQuantity(0);
+    expect(component.fixedQuantities.length).toBe(0);
+  });
+
   it('can add and remove contacts', () => {
     const fixture = TestBed.createComponent(ShelterEditDialogComponent);
     const component = fixture.componentInstance;
@@ -146,8 +173,8 @@ describe('ShelterEditDialogComponent (create mode - no shelter passed)', () => {
     // a new shelter's kitchen is unknown until someone asks, not "no kitchen"
     expect(fixture.componentInstance.form.value).toMatchObject({
       hasKitchen: null,
-      acceptsEverything: false,
       hasFreezer: false,
+      fixedQuantities: [],
       foodCategoryIds: [],
       excludedFoodCategoryIds: []
     });

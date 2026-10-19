@@ -128,11 +128,7 @@
                     <dd class="m-0" [attr.testid]="'guidance-shelter-freezer-' + i">{{ shelter.hasFreezer ? 'Ja' : 'Nein' }}</dd>
                     <dt class="text-slate-500">Benötigt</dt>
                     <dd class="m-0" [attr.testid]="'guidance-shelter-food-categories-' + i">
-                      @if (shelter.acceptsEverything) {
-                        <span class="font-medium">Nimmt alles</span>
-                      } @else {
-                        {{ shelter.foodCategories.length ? shelter.foodCategories.join(', ') : 'Keine Angabe' }}
-                      }
+                      {{ shelter.foodCategories.length ? shelter.foodCategories.join(', ') : 'Keine Angabe' }}
                     </dd>
                     @if (shelter.excludedFoodCategories.length) {
                       <dt class="text-slate-500">Nicht gewünscht</dt>
@@ -144,9 +140,13 @@
                       <dt class="text-slate-500">Einschränkungen</dt>
                       <dd class="m-0 font-medium text-red-700" [attr.testid]="'guidance-shelter-restrictions-' + i">{{ shelter.restrictions }}</dd>
                     }
-                    @if (shelter.fixedQuantities) {
+                    @if (shelter.fixedQuantities.length) {
                       <dt class="text-slate-500">Fixe Mengen</dt>
-                      <dd class="m-0" [attr.testid]="'guidance-shelter-fixed-quantities-' + i">{{ shelter.fixedQuantities }}</dd>
+                      <dd class="m-0" [attr.testid]="'guidance-shelter-fixed-quantities-' + i">
+                        @for (quantity of shelter.fixedQuantities; track $index) {
+                          <div>{{ fixedQuantityLabel(quantity) }}</div>
+                        }
+                      </dd>
                     }
                   </dl>
                   @for (contact of shelter.contacts; track $index) {

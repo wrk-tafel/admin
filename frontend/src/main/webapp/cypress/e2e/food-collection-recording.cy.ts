@@ -34,7 +34,8 @@ describe('Food Collection Recording', () => {
     cy.reload();
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains('Route 2').click();
-    cy.byTestId('food-collection-shelters').should('contain.text', 'Shelter 1');
+    // by the long name of shelter 2 - other specs rename shelter 1 when they share a backend
+    cy.byTestId('food-collection-shelters').should('contain.text', 'Shelter 2 with a very long name');
 
     // the drivers see where the goods go, with what they need to get there
     cy.window().then(win => win.localStorage.removeItem('tafel.routeGuidance.selectedRouteId'));
@@ -42,7 +43,7 @@ describe('Food Collection Recording', () => {
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains('Route 2').click();
     cy.byTestId('guidance-shelters').should('be.visible');
-    cy.byTestId('guidance-shelter-0').should('contain.text', 'Shelter 1');
+    cy.byTestId('guidance-shelter-0').should('contain.text', '100 Personen');
     cy.byTestId('guidance-shelter-details-0').should('not.be.visible');
     cy.byTestId('guidance-shelter-toggle-0').click();
     cy.byTestId('guidance-shelter-details-0').should('be.visible').and('contain.text', 'Erdberg');

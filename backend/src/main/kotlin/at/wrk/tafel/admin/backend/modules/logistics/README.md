@@ -136,9 +136,9 @@ DB level — it only governs `modules`-to-`modules` traffic.
   make them vanish the moment a driver ticks the stop.
 - **`shelters` are where the goods go today** - the shelters picked for this route on the *running*
   distribution's food collection (see food collections below), ordered by `(sortOrder, name)`, each
-  with its formatted address, `personsCount`, its needs (`hasKitchen`, `acceptsEverything`,
-  `hasFreezer`, the names of the food categories it needs and of those it does not want,
-  `restrictions`, `fixedQuantities`), its contacts and its note. Unlike stop progress this is keyed by the distribution, since
+  with its formatted address, `personsCount`, its needs (`hasKitchen`, `hasFreezer`, the names of
+  the food categories it needs and of those it does not want, `restrictions`, and `fixedQuantities`
+  as category name, whole boxes and note), its contacts and its note. Unlike stop progress this is keyed by the distribution, since
   that is where the recording screen stores it: with no distribution running the list is empty,
   even on the morning of a distribution day before it is started.
 - **A shelter delivery is confirmed per shelter, not as a stop** - `PUT .../guidance/shelters/{shelterId}`
@@ -179,9 +179,13 @@ DB level — it only governs `modules`-to-`modules` traffic.
   the UI). Contacts are a `@OneToMany` to `ShelterContactEntity` (table `shelters_contacts`) with
   `cascade = [CascadeType.ALL], orphanRemoval = true`.
 - What a shelter usually needs: `hasKitchen` (nullable - `null` is "not known", deliberately not
-  the same as "no kitchen"), `acceptsEverything`, `hasFreezer`, and the free texts `restrictions`
-  (what no category expresses, e.g. "kein Schweinefleisch") and `fixedQuantities` (standing amounts,
-  e.g. "4 Kisten Schnittbrot"), all on `shelters` (`R__00142`). Plus two `@ManyToMany`s to
+  the same as "no kitchen"), `hasFreezer` and the free text `restrictions` (what no category
+  expresses, e.g. "kein Schweinefleisch"), all on `shelters` (`R__00142`); and `fixedQuantities`,
+  an `@ElementCollection` of `ShelterFixedQuantityEntity` (`shelters_fixed_quantities`: food
+  category, whole boxes `> 0`, optional note such as "Schnittbrot") - structured rather than free
+  text so a calculation can take them into account. There is deliberately no "takes everything"
+  flag: such a shelter has every category selected, so the needed categories are always the one
+  answer to "what does it take". Plus two `@ManyToMany`s to
   `FoodCategoryEntity` over plain join tables (no entity, no sequence): `foodCategories`
   (`shelters_food_categories`, what it needs) and `excludedFoodCategories`
   (`shelters_excluded_food_categories`, what it does not want). On the wire they are
