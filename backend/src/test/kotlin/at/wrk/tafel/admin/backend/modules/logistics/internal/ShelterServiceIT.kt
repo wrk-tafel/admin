@@ -58,8 +58,7 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
         assertThat(updated.contacts).extracting<String> { it.phone }.containsExactly("0664 2")
     }
 
-    private fun persistFoodCategory(name: String, sortOrder: Int): FoodCategoryEntity =
-        testEntityManager.persistAndFlush(FoodCategoryEntity(name = name, sortOrder = sortOrder))
+    private fun persistFoodCategory(name: String, sortOrder: Int): FoodCategoryEntity = testEntityManager.persistAndFlush(FoodCategoryEntity(name = name, sortOrder = sortOrder))
 
     private fun shelterRequest(hasKitchen: Boolean, foodCategoryIds: List<Long>, contacts: List<ShelterContactItem>) = ShelterRequest(
         id = null,
