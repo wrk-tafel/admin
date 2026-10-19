@@ -29,6 +29,7 @@ class FoodCollectionService(
     private val shopRepository: ShopRepository,
     private val foodCategoryRepository: FoodCategoryRepository,
     private val carRepository: CarRepository,
+    private val shelterRepository: ShelterRepository,
     private val advisoryLockService: AdvisoryLockService,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
@@ -66,6 +67,9 @@ class FoodCollectionService(
                 kmEnd = foodCollection.kmEnd,
                 items = mapItemsEntityToItems(foodCollection.items ?: emptyList()),
                 returnItems = mapReturnItemsEntityToReturnItems(foodCollection.returnItems ?: emptyList()),
+                shelterIds = foodCollection.shelters
+                    .sortedWith(compareBy({ it.sortOrder }, { it.name }))
+                    .map { it.id!! },
             )
         }
     }
@@ -88,6 +92,37 @@ class FoodCollectionService(
                 data.coDriverId,
             )
             publishIfFoodCollectionCompleted(distribution.id!!)
+        }
+    }
+
+    /**
+     * Replaces the shelters the route delivers to today. Saved on its own rather than with the base
+     * data, which needs car, driver and co-driver complete - the shelters are often known before the
+     * team is.
+     */
+    @Transactional
+    fun saveShelters(routeId: Long, data: FoodCollectionSaveSheltersRequest) {
+        // see saveRouteData - same find-or-create race on the food_collections row
+        advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM) {
+            val distribution = distributionRepository.getCurrentDistribution()!!
+
+            val requestedIds = data.shelterIds.toSet()
+            val shelters = shelterRepository.findAllById(requestedIds)
+            val unknownIds = requestedIds - shelters.mapNotNull { it.id }.toSet()
+            if (unknownIds.isNotEmpty()) {
+                throw BusinessRuleException("Notschlafstelle nicht gefunden: $unknownIds")
+            }
+
+            val foodCollectionEntity = getOrCreateFoodCollectionEntity(distribution, routeId)
+            foodCollectionEntity.shelters.clear()
+            foodCollectionEntity.shelters.addAll(shelters)
+            foodCollectionRepository.save(foodCollectionEntity)
+            log.info(
+                "Saved food collection shelters for route {} (distribution: {}, shelters: {})",
+                routeId,
+                distribution.id,
+                requestedIds,
+            )
         }
     }
 

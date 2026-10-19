@@ -63,6 +63,9 @@ class FoodCollectionServiceTest {
     private lateinit var carRepository: CarRepository
 
     @RelaxedMockK
+    private lateinit var shelterRepository: ShelterRepository
+
+    @RelaxedMockK
     private lateinit var advisoryLockService: AdvisoryLockService
 
     @RelaxedMockK
@@ -284,6 +287,48 @@ class FoodCollectionServiceTest {
         verify(exactly = 1) {
             advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM, any<() -> Unit>())
         }
+    }
+
+    @Test
+    fun `save shelters replaces the shelters the route delivers to today`() {
+        val routeId = testRoute1.id!!
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+        }
+        val existingCollection = FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
+            id = 2
+            shelters = mutableSetOf(testShelter1)
+        }
+        distributionEntity.foodCollections = mutableListOf(existingCollection)
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
+        every { shelterRepository.findAllById(setOf(testShelter2.id!!)) } returns listOf(testShelter2)
+        every { foodCollectionRepository.save(any()) } returns mockk()
+
+        service.saveShelters(routeId = routeId, data = FoodCollectionSaveSheltersRequest(shelterIds = listOf(testShelter2.id!!)))
+
+        val foodCollectionSlot = slot<FoodCollectionEntity>()
+        verify(exactly = 1) { foodCollectionRepository.save(capture(foodCollectionSlot)) }
+        assertThat(foodCollectionSlot.captured.id).isEqualTo(existingCollection.id)
+        assertThat(foodCollectionSlot.captured.shelters).containsExactly(testShelter2)
+        verify(exactly = 1) {
+            advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM, any<() -> Unit>())
+        }
+    }
+
+    @Test
+    fun `save shelters rejects a shelter that does not exist`() {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
+        every { shelterRepository.findAllById(setOf(999L)) } returns emptyList()
+
+        val exception = assertThrows<BusinessRuleException> {
+            service.saveShelters(routeId = testRoute1.id!!, data = FoodCollectionSaveSheltersRequest(shelterIds = listOf(999L)))
+        }
+
+        assertThat(exception.body.detail).isEqualTo("Notschlafstelle nicht gefunden: [999]")
+        verify(exactly = 0) { foodCollectionRepository.save(any()) }
     }
 
     @Test

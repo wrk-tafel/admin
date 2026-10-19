@@ -45,7 +45,9 @@ export class ShelterEditDialogComponent {
    * has stays in the list - otherwise it would silently drop out of the selection on the next save.
    */
   protected readonly selectableFoodCategories = (this.data.foodCategories ?? []).filter(category =>
-    category.enabled || (this.data.shelter?.foodCategoryIds ?? []).includes(category.id)
+    category.enabled
+    || (this.data.shelter?.foodCategoryIds ?? []).includes(category.id)
+    || (this.data.shelter?.excludedFoodCategoryIds ?? []).includes(category.id)
   );
 
   form = this.fb.group({
@@ -60,8 +62,14 @@ export class ShelterEditDialogComponent {
     note: [this.data.shelter?.note ?? ''],
     personsCount: [this.data.shelter?.personsCount ?? '', [Validators.required]],
     enabled: [this.data.shelter?.enabled ?? true],
-    hasKitchen: [this.data.shelter?.hasKitchen ?? false],
+    // null stays null: a kitchen nobody knows about is not "no kitchen"
+    hasKitchen: [this.data.shelter?.hasKitchen ?? null],
+    acceptsEverything: [this.data.shelter?.acceptsEverything ?? false],
+    hasFreezer: [this.data.shelter?.hasFreezer ?? false],
     foodCategoryIds: [this.data.shelter?.foodCategoryIds ?? []],
+    excludedFoodCategoryIds: [this.data.shelter?.excludedFoodCategoryIds ?? []],
+    restrictions: [this.data.shelter?.restrictions ?? '', [Validators.maxLength(500)]],
+    fixedQuantities: [this.data.shelter?.fixedQuantities ?? '', [Validators.maxLength(500)]],
     // Not user-editable here - preserved as-is on edit, auto-assigned by the backend on
     // create; reordering afterwards happens via drag-and-drop.
     sortOrder: [this.data.shelter?.sortOrder ?? 0],

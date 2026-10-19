@@ -20,6 +20,9 @@ data class RouteGuidanceResponse(
     // Return boxes for a shop the route no longer stops at - they have nowhere to be shown along
     // the way, and dropping them would send a driver out without them.
     val unassignedReturnItems: List<RouteGuidanceReturnItem>,
+    // Where the goods go today, as picked in the food collection recording - empty while no
+    // distribution is running or nobody has picked any yet.
+    val shelters: List<RouteGuidanceShelter>,
 )
 
 @ExcludeFromTestCoverage
@@ -55,6 +58,25 @@ data class RouteGuidanceShop(
     val contactPerson: String?,
     val note: String?,
     val foodUnit: FoodUnit,
+)
+
+@ExcludeFromTestCoverage
+data class RouteGuidanceShelter(
+    val id: Long,
+    val name: String,
+    val address: String,
+    val personsCount: Int,
+    // null: not known
+    val hasKitchen: Boolean?,
+    val acceptsEverything: Boolean,
+    val hasFreezer: Boolean,
+    // names in the categories' own order
+    val foodCategories: List<String>,
+    val excludedFoodCategories: List<String>,
+    val restrictions: String?,
+    val fixedQuantities: String?,
+    val contacts: List<ShelterContactItem>,
+    val note: String?,
 )
 
 @ExcludeFromTestCoverage

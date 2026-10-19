@@ -56,6 +56,7 @@ class FoodCollectionsControllerTest {
                     amount = 4,
                 ),
             ),
+            shelterIds = listOf(3L),
         )
 
         every { service.getFoodCollection(routeId) } returns testFoodCollectionData
@@ -89,6 +90,16 @@ class FoodCollectionsControllerTest {
         controller.saveFoodCollectionRouteData(routeId = routeId, request = request)
 
         verify(exactly = 1) { service.saveRouteData(routeId = routeId, data = request) }
+    }
+
+    @Test
+    fun `saves shelters`() {
+        val routeId = 123L
+        val request = FoodCollectionSaveSheltersRequest(shelterIds = listOf(1L, 2L))
+
+        controller.saveFoodCollectionShelters(routeId = routeId, request = request)
+
+        verify(exactly = 1) { service.saveShelters(routeId = routeId, data = request) }
     }
 
     @Test

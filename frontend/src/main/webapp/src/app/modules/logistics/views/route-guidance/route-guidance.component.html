@@ -88,6 +88,92 @@
         </div>
       }
 
+      @if (shelters().length > 0) {
+        <!-- where the goods go today, as picked in the food collection recording. Each shelter is a
+             summary row first; address, contacts and what it needs are one tap away so the list stays
+             short above the current stop. -->
+        <section class="mb-4 rounded-md border border-slate-200 p-3" aria-labelledby="guidance-shelters-heading"
+                 testid="guidance-shelters">
+          <h2 id="guidance-shelters-heading" class="tafel-h6 mb-2 flex items-center gap-2">
+            <mat-icon svgIcon="home" class="text-slate-500"></mat-icon>
+            Notschlafstellen heute
+          </h2>
+          <ul class="m-0 list-none p-0">
+            @for (shelter of shelters(); track shelter.id; let i = $index) {
+              <li class="border-t border-slate-200 first:border-t-0" [attr.testid]="'guidance-shelter-' + i">
+                <button type="button" class="flex w-full items-center gap-2 py-2 text-start"
+                        [id]="'guidance-shelter-toggle-' + i" [attr.testid]="'guidance-shelter-toggle-' + i"
+                        [attr.aria-expanded]="isShelterExpanded(shelter.id)"
+                        [attr.aria-controls]="'guidance-shelter-panel-' + i"
+                        (click)="toggleShelterExpanded(shelter.id)">
+                  <span class="font-medium">{{ shelter.name }}</span>
+                  <span class="text-sm text-slate-500">{{ shelter.personsCount }} Personen</span>
+                  <mat-icon [svgIcon]="isShelterExpanded(shelter.id) ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                            class="ms-auto text-slate-500"></mat-icon>
+                </button>
+                <div class="pb-3 text-sm text-slate-700" role="region" [id]="'guidance-shelter-panel-' + i"
+                     [attr.aria-labelledby]="'guidance-shelter-toggle-' + i" [hidden]="!isShelterExpanded(shelter.id)"
+                     [attr.testid]="'guidance-shelter-details-' + i">
+                  <div class="flex items-start gap-2">
+                    <mat-icon svgIcon="location_on" class="mt-0.5 text-slate-500"></mat-icon>
+                    <span>{{ shelter.address }}</span>
+                  </div>
+                  <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                    <dt class="text-slate-500">Kochmöglichkeit</dt>
+                    <dd class="m-0" [attr.testid]="'guidance-shelter-kitchen-' + i">{{ kitchenLabel(shelter.hasKitchen) }}</dd>
+                    <dt class="text-slate-500">Tiefkühlware</dt>
+                    <dd class="m-0" [attr.testid]="'guidance-shelter-freezer-' + i">{{ shelter.hasFreezer ? 'Ja' : 'Nein' }}</dd>
+                    <dt class="text-slate-500">Benötigt</dt>
+                    <dd class="m-0" [attr.testid]="'guidance-shelter-food-categories-' + i">
+                      @if (shelter.acceptsEverything) {
+                        <span class="font-medium">Nimmt alles</span>
+                      } @else {
+                        {{ shelter.foodCategories.length ? shelter.foodCategories.join(', ') : 'Keine Angabe' }}
+                      }
+                    </dd>
+                    @if (shelter.excludedFoodCategories.length) {
+                      <dt class="text-slate-500">Nicht gewünscht</dt>
+                      <dd class="m-0 font-medium text-red-700" [attr.testid]="'guidance-shelter-excluded-' + i">
+                        {{ shelter.excludedFoodCategories.join(', ') }}
+                      </dd>
+                    }
+                    @if (shelter.restrictions) {
+                      <dt class="text-slate-500">Einschränkungen</dt>
+                      <dd class="m-0 font-medium text-red-700" [attr.testid]="'guidance-shelter-restrictions-' + i">{{ shelter.restrictions }}</dd>
+                    }
+                    @if (shelter.fixedQuantities) {
+                      <dt class="text-slate-500">Fixe Mengen</dt>
+                      <dd class="m-0" [attr.testid]="'guidance-shelter-fixed-quantities-' + i">{{ shelter.fixedQuantities }}</dd>
+                    }
+                  </dl>
+                  @for (contact of shelter.contacts; track $index) {
+                    <div class="mt-2 flex items-center gap-2">
+                      <mat-icon svgIcon="call" class="text-slate-500"></mat-icon>
+                      @if (contact.firstname || contact.lastname) {
+                        <span>{{ contact.firstname }} {{ contact.lastname }}</span>
+                      }
+                      <a class="text-blue-700 underline" [href]="'tel:' + contact.phone">{{ contact.phone }}</a>
+                    </div>
+                  }
+                  @if (shelter.note) {
+                    <div class="mt-2 flex gap-2 rounded-md bg-amber-50 p-2 text-amber-900">
+                      <mat-icon svgIcon="sticky_note_2" class="mt-0.5"></mat-icon>
+                      <span class="whitespace-pre-line">{{ shelter.note }}</span>
+                    </div>
+                  }
+                  <a matButton="outlined" class="mt-3" target="_blank" rel="noopener noreferrer"
+                     [href]="shelterNavigationUrl(shelter)" [attr.testid]="'guidance-shelter-navigate-' + i"
+                     [attr.aria-label]="'Navigation starten zu ' + shelter.name">
+                    <mat-icon svgIcon="directions" class="me-2"></mat-icon>
+                    Navigation starten
+                  </a>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
       <!-- grouped with the banners above, not with the current stop below: this plans the rest of
            the drive, which is a different question from "what do I do right now". Collapsed by
            default (see remainingRouteExpanded) so it does not compete with the current stop for

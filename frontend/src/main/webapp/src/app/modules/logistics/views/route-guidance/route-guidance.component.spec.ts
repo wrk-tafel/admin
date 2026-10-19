@@ -63,6 +63,7 @@ describe('RouteGuidanceComponent', () => {
 
   const guidance: RouteGuidanceData = {
     routeId: 2,
+    shelters: [],
     routeNumber: 2,
     routeName: 'Route 2',
     date: '2026-08-09',
@@ -376,6 +377,57 @@ describe('RouteGuidanceComponent', () => {
 
     component['toggleRemainingRouteExpanded']();
     expect(component['remainingRouteExpanded']()).toBe(false);
+  });
+
+  it('lists the shelters of the day collapsed, with their details one tap away', () => {
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
+      ...guidance,
+      shelters: [{
+        id: 5,
+        name: 'Notschlafstelle Erdberg',
+        address: 'Erdberg 1, 1030 Wien',
+        personsCount: 40,
+        hasKitchen: true,
+        acceptsEverything: false,
+        hasFreezer: false,
+        foodCategories: ['Backwaren', 'Konserven'],
+        excludedFoodCategories: ['Brot'],
+        restrictions: 'kein Schweinefleisch',
+        contacts: [{firstname: 'Anna', phone: '0664 1'}],
+        note: 'Hintereingang'
+      }]
+    }));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="guidance-shelter-0"]')!.textContent).toContain('Notschlafstelle Erdberg');
+    const details = () => element.querySelector('[testid="guidance-shelter-details-0"]')!;
+    expect(details().hasAttribute('hidden')).toBe(true);
+
+    (element.querySelector('[testid="guidance-shelter-toggle-0"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(details().hasAttribute('hidden')).toBe(false);
+    expect(element.querySelector('[testid="guidance-shelter-kitchen-0"]')!.textContent).toContain('Ja');
+    expect(element.querySelector('[testid="guidance-shelter-food-categories-0"]')!.textContent).toContain('Backwaren, Konserven');
+    expect(element.querySelector('[testid="guidance-shelter-excluded-0"]')!.textContent).toContain('Brot');
+    expect(element.querySelector('[testid="guidance-shelter-restrictions-0"]')!.textContent).toContain('kein Schweinefleisch');
+    // nothing standing to deliver here, so no empty line for it
+    expect(element.querySelector('[testid="guidance-shelter-fixed-quantities-0"]')).toBeNull();
+    expect(details().querySelector('a[href="tel:0664 1"]')).not.toBeNull();
+    expect(element.querySelector('[testid="guidance-shelter-navigate-0"]')!.getAttribute('href'))
+      .toContain(encodeURIComponent('Erdberg 1, 1030 Wien'));
+  });
+
+  it('shows no shelter block for a route without shelters today', () => {
+    const fixture = createComponent();
+    fixture.componentInstance['onSelectedRouteChange'](testRoute);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[testid="guidance-shelters"]')).toBeNull();
   });
 
   it('shows one stop at a time and opens on the first one still to do', () => {

@@ -370,10 +370,11 @@ describe('Navigation Errors', () => {
     cy.loginDefault();
     cy.visit('/kunden/suchen');
 
-    cy.intercept('GET', '/api/shelters/active', {statusCode: 503, body: {}}).as('shelters');
+    // Routen-Navi resolves its route list before it activates
+    cy.intercept('GET', '/api/routes/active', {statusCode: 503, body: {}}).as('routes');
 
-    cy.contains('a', 'Übersicht').click();
-    cy.wait('@shelters');
+    cy.contains('a', 'Routen-Navi').click();
+    cy.wait('@routes');
 
     cy.contains('.toast-message', 'Die Daten für diese Seite konnten nicht geladen werden')
       .should('be.visible');
@@ -397,10 +398,10 @@ describe('Navigation Errors', () => {
   it('shows the 500 page when a directly opened page fails for a technical reason', () => {
     cy.loginDefault();
 
-    cy.intercept('GET', '/api/shelters/active', {statusCode: 503, body: {}}).as('shelters');
+    cy.intercept('GET', '/api/routes/active', {statusCode: 503, body: {}}).as('routes');
 
-    cy.visit('/uebersicht');
-    cy.wait('@shelters');
+    cy.visit('/logistik/routen-navi');
+    cy.wait('@routes');
 
     cy.byTestId('status').should('have.text', '500');
     cy.byTestId('title').should('have.text', 'Houston, wir haben ein Problem!');
@@ -463,7 +464,7 @@ describe('Shell', () => {
     cy.loginDefault();
     cy.visit('/uebersicht');
 
-    cy.contains('a', 'Waren-Eingabe')
+    cy.contains('a', 'Routenerfassung')
       .should('be.visible')
       .and('have.attr', 'aria-disabled', 'true')
       .trigger('mouseenter');

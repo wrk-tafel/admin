@@ -119,7 +119,7 @@ export class SettingsCarsComponent {
   /**
    * A deactivated car is kept forever - it is what an already recorded food collection points at -
    * so the list only ever grows. The filter is what keeps the working list to the cars the
-   * Warenerfassung actually offers.
+   * Routenerfassung actually offers.
    */
   protected readonly visibleCars = computed(() =>
     (this.cars()?.cars ?? []).filter(car => matchesEnabledFilter(car.enabled, this.enabledFilter()))

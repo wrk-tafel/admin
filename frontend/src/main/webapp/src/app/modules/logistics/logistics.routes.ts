@@ -3,6 +3,7 @@ import {RouteDataResolver} from './resolver/route-data-resolver.component';
 import {FoodCategoriesDataResolver} from './resolver/food-categories-data-resolver.component';
 import {FoodReturnCategoriesDataResolver} from './resolver/food-return-categories-data-resolver.component';
 import {CarDataResolver} from './resolver/car-data-resolver.component';
+import {ShelterDataResolver} from './resolver/shelter-data-resolver.component';
 import {FoodCollectionRecordingComponent} from './views/food-collection-recording/food-collection-recording.component';
 import {ReturnBoxesComponent} from './views/return-boxes/return-boxes.component';
 import {RouteGuidanceComponent} from './views/route-guidance/route-guidance.component';
@@ -28,13 +29,14 @@ export const routes: Routes = [
   },
   {
     path: 'warenerfassung',
-    title: 'Waren-Eingabe',
+    title: 'Routenerfassung',
     component: FoodCollectionRecordingComponent,
     resolve: {
       routeList: RouteDataResolver,
       foodCategories: FoodCategoriesDataResolver,
       foodReturnCategories: FoodReturnCategoriesDataResolver,
-      carList: CarDataResolver
+      carList: CarDataResolver,
+      shelterList: ShelterDataResolver
     },
     canDeactivate: [foodCollectionRecordingCanDeactivate]
   }

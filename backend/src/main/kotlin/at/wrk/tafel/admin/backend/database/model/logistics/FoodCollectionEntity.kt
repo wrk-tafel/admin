@@ -9,6 +9,8 @@ import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection
 import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
@@ -83,6 +85,18 @@ class FoodCollectionEntity(
     var returnItems: List<FoodCollectionReturnItemEntity>? = null
 
     /**
+     * The shelters this route delivers to on this distribution day, shown to the driver in the route
+     * guidance. Not part of [isFullyRecorded] - not every trip goes to a shelter.
+     */
+    @ManyToMany
+    @JoinTable(
+        name = "food_collections_shelters",
+        joinColumns = [JoinColumn(name = "food_collection_id")],
+        inverseJoinColumns = [JoinColumn(name = "shelter_id")],
+    )
+    var shelters: MutableSet<ShelterEntity> = mutableSetOf()
+
+    /**
      * A route only counts as recorded once the whole trip is done: base data (car/driver/co-driver/
      * mileage) plus the picked-up food items - a row can otherwise exist with only one of the two
      * (see `FoodCollectionService.getOrCreateFoodCollectionEntity`).
@@ -98,4 +112,19 @@ class FoodCollectionEntity(
         kmStart != null &&
         kmEnd != null &&
         !items.isNullOrEmpty()
+
+    /**
+     * Whether anything of the trip itself has been recorded - base data, mileage, or an amount or
+     * return item above zero. Picking the route's shelters does not count: they are often chosen
+     * before the team leaves, and a route that was given shelters but never driven is a route not
+     * recorded, not a recording left half-done. Zero amounts don't count either: saving the screen
+     * sends the untouched amount grid along, all zeros, which records nothing.
+     */
+    fun hasRecordedTripData(): Boolean = car != null ||
+        driver != null ||
+        coDriver != null ||
+        kmStart != null ||
+        kmEnd != null ||
+        items.orEmpty().any { it.amount > 0 } ||
+        returnItems.orEmpty().any { it.amount > 0 }
 }

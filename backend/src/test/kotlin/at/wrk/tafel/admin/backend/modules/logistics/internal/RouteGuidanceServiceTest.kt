@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionReturnItemEntity
@@ -15,10 +16,13 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopAddress
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.events.RouteAtLastStopEvent
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -192,6 +196,56 @@ class RouteGuidanceServiceTest {
         assertThat(guidance.returnItemsFrom).isNull()
         assertThat(guidance.unassignedReturnItems).isEmpty()
         assertThat(guidance.stops).allSatisfy { assertThat(it.returnItems).isEmpty() }
+    }
+
+    @Test
+    fun `guidance lists the shelters picked for the route today with what a driver needs`() {
+        val currentDistribution = distribution(id = 77, startedAt = LocalDateTime.of(2026, 8, 9, 6, 0))
+        val vegetables = FoodCategoryEntity(name = "Obst / Gemüse", sortOrder = 2).apply { id = 2 }
+        val bread = FoodCategoryEntity(name = "Backwaren", sortOrder = 1).apply { id = 1 }
+        val second = guidanceShelter(id = 6, name = "Zweite", sortOrder = 2)
+        val first = guidanceShelter(id = 5, name = "Erste", sortOrder = 1).apply {
+            addressStairway = "2"
+            addressDoor = "14"
+            hasKitchen = true
+            hasFreezer = true
+            restrictions = "kein Schweinefleisch"
+            fixedQuantities = "2 Kisten Gebäck"
+            note = "Hintereingang"
+            foodCategories = mutableSetOf(vegetables, bread)
+            excludedFoodCategories = mutableSetOf(FoodCategoryEntity(name = "Brot", sortOrder = 3).apply { id = 3 })
+            contacts = mutableListOf(
+                ShelterContactEntity(shelter = this, phone = "0664 1").apply { firstname = "Anna" },
+            )
+        }
+        currentDistribution.foodCollections = mutableListOf(
+            FoodCollectionEntity(distribution = currentDistribution, route = route).apply {
+                shelters = mutableSetOf(second, first)
+            },
+        )
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns currentDistribution
+
+        val shelters = service.getGuidance(1).shelters
+
+        assertThat(shelters.map { it.name }).containsExactly("Erste", "Zweite")
+        with(shelters.first()) {
+            assertThat(address).isEqualTo("Gasse 5, Stiege 2, Top 14, 1030 Wien")
+            assertThat(hasKitchen).isTrue()
+            assertThat(foodCategories).containsExactly("Backwaren", "Obst / Gemüse")
+            assertThat(excludedFoodCategories).containsExactly("Brot")
+            assertThat(hasFreezer).isTrue()
+            assertThat(acceptsEverything).isFalse()
+            assertThat(restrictions).isEqualTo("kein Schweinefleisch")
+            assertThat(fixedQuantities).isEqualTo("2 Kisten Gebäck")
+            assertThat(contacts).containsExactly(ShelterContactItem(firstname = "Anna", lastname = null, phone = "0664 1"))
+            assertThat(note).isEqualTo("Hintereingang")
+            assertThat(personsCount).isEqualTo(20)
+        }
+    }
+
+    @Test
+    fun `guidance lists no shelters while no distribution is running`() {
+        assertThat(service.getGuidance(1).shelters).isEmpty()
     }
 
     @Test
@@ -428,4 +482,14 @@ class RouteGuidanceServiceTest {
             )
         }
     }
+
+    private fun guidanceShelter(id: Long, name: String, sortOrder: Int) = ShelterEntity(
+        name = name,
+        addressStreet = "Gasse",
+        addressHouseNumber = "5",
+        addressPostalCode = 1030,
+        addressCity = "Wien",
+        personsCount = 20,
+        sortOrder = sortOrder,
+    ).apply { this.id = id }
 }

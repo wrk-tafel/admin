@@ -36,15 +36,27 @@ block over the actually-open one from another's.
 - **DistributionStatisticEntity** / **DistributionStatisticShelterEntity** (tables
   `distributions_statistics`, and a shelter snapshot list) — the statistics snapshot for a
   *closed* distribution. `isEmpty()` is used to validate that a distribution isn't closed without
-  statistics ever having been entered.
+  statistics ever having been entered. The shelter list is a copy (name, address, persons count,
+  sort order) of the shelters the day's routes delivered to, taken from the food collections'
+  shelters (picked in the logistics module's food collection recording) when the distribution
+  closes - see `closeDistribution()` below; the statistic endpoint itself only takes the employee
+  count.
 
 ### DistributionService (`internal/DistributionService.kt`)
 The core service. Notable methods: `createNewDistribution()`, `assignHouseholdToDistribution()`,
 `getCurrentTicketNumber()` / `closeCurrentTicketAndGetNext()` / `skipCurrentTicketAndGetNext()` /
 `reopenAndGetPreviousTicket()` / `deleteCurrentTicket()` (the ticket queue workflow),
 `getHouseholdIdForTicketNumber()`, `validateClose()` / `closeDistribution()`,
-`generateHouseholdListPdf()`, `updateDistributionStatisticData()` / `updateDistributionNoteData()`,
+`generateHouseholdListPdf()`, `updateDistributionStatisticData(employeeCount)` /
+`updateDistributionNoteData()`,
 and `sendMails()` (manual re-send, see below).
+
+`validateClose()` refuses a route whose recording was started but not finished ("unvollständig") and
+only warns about a route not recorded at all ("nicht erfasst"). Which of the two a route is comes
+from `FoodCollectionEntity.hasRecordedTripData()`: a food collection holding nothing but the route's
+picked shelters, or the all-zero amount grid the recording screen sends on every save, counts as not
+recorded - otherwise picking a day's shelters in the morning would block closing a route that never
+ran.
 
 ### Controllers
 - **DistributionController** — `/api/distributions*`: list, create, close, notes, statistics,
@@ -141,8 +153,9 @@ not `reporting`.
 
 Note that `database.model.*` (entities/repositories for `household`, `logistics`, `auth`, etc.) is
 **not** subject to the Spring Modulith `allowedDependencies` check — only the `modules.*` package tree
-is. `DistributionService` and `MissingCostContributionPostProcessor` freely use `HouseholdRepository`,
-`ShelterRepository`, and `RouteRepository` from `database.model.*` even though `household` and
+is. `DistributionService` and `MissingCostContributionPostProcessor` freely use `HouseholdRepository`
+and `RouteRepository` from `database.model.*` (and `DistributionService` reads the food collections'
+`ShelterEntity` rows through `DistributionEntity.foodCollections`) even though `household` and
 `logistics` are not listed as allowed dependencies.
 
 ## `@TafelActiveDistributionRequired` — how it actually works
@@ -211,6 +224,11 @@ its own `REQUIRES_NEW` transaction *before* publishing `DistributionEndedEvent` 
 This matters because the post-processor runs on a different thread/connection — if `endedAt` were only
 visible in the (still-open, lock-holding) outer transaction, the async thread's own transaction might not
 see it yet.
+
+The same `REQUIRES_NEW` transaction also freezes the statistic's shelter list (`snapshotShelters()`),
+so it commits together with `endedAt` and is in place before `DistributionEndedEventListener` and
+`reporting`'s daily report read the statistic. Recording a food collection needs a running
+distribution, so nothing can change a route's shelters after that point.
 
 Both locks are **transaction-level** (`pg_try_advisory_xact_lock`), so everything that runs inside the
 locked block adds its own runtime to the lock, its transaction and its pooled connection. Two rules

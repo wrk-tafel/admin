@@ -65,8 +65,6 @@ class ShelterServiceTest {
                 enabled = testShelter1.enabled!!,
                 sortOrder = testShelter1.sortOrder!!,
                 contacts = emptyList(),
-                hasKitchen = false,
-                foodCategoryIds = emptyList(),
             ),
         )
     }
@@ -93,8 +91,6 @@ class ShelterServiceTest {
                 enabled = testShelter1.enabled!!,
                 sortOrder = testShelter1.sortOrder!!,
                 contacts = emptyList(),
-                hasKitchen = false,
-                foodCategoryIds = emptyList(),
             ),
         )
     }
@@ -137,8 +133,6 @@ class ShelterServiceTest {
                 enabled = updated.enabled,
                 sortOrder = updated.sortOrder,
                 contacts = updated.contacts,
-                hasKitchen = false,
-                foodCategoryIds = emptyList(),
             ),
         )
     }
@@ -185,8 +179,6 @@ class ShelterServiceTest {
                 enabled = createInput.enabled,
                 sortOrder = 4,
                 contacts = createInput.contacts,
-                hasKitchen = false,
-                foodCategoryIds = emptyList(),
             ),
         )
 
@@ -260,27 +252,53 @@ class ShelterServiceTest {
             addressCity = "City",
             personsCount = 1,
             sortOrder = 1,
-            hasKitchen = true,
         ).apply {
             id = 7
+            hasKitchen = true
             foodCategories = mutableSetOf(testFoodCategory1, testFoodCategory2)
         }
         val updated = testShelter3ShelterRequest().copy(
             id = 7,
             hasKitchen = false,
+            acceptsEverything = true,
+            hasFreezer = true,
+            restrictions = "  kein Schweinefleisch ",
+            fixedQuantities = " ",
             foodCategoryIds = listOf(testFoodCategory3.id!!),
+            excludedFoodCategoryIds = listOf(testFoodCategory1.id!!),
         )
 
         every { shelterRepository.findByIdOrNull(7) } returns existing
         every { foodCategoryRepository.findAllById(setOf(testFoodCategory3.id!!)) } returns listOf(testFoodCategory3)
+        every { foodCategoryRepository.findAllById(setOf(testFoodCategory1.id!!)) } returns listOf(testFoodCategory1)
         every { shelterRepository.save(any()) } answers { firstArg() as ShelterEntity }
 
         val result = service.updateShelter(7, updated)
 
         assertThat(existing.hasKitchen).isFalse()
         assertThat(existing.foodCategories).containsExactly(testFoodCategory3)
+        assertThat(existing.excludedFoodCategories).containsExactly(testFoodCategory1)
+        assertThat(existing.acceptsEverything).isTrue()
+        assertThat(existing.hasFreezer).isTrue()
+        assertThat(existing.restrictions).isEqualTo("kein Schweinefleisch")
+        assertThat(existing.fixedQuantities).isNull()
+        assertThat(result.excludedFoodCategoryIds).containsExactly(testFoodCategory1.id)
         assertThat(result.hasKitchen).isFalse()
         assertThat(result.foodCategoryIds).containsExactly(testFoodCategory3.id)
+    }
+
+    @Test
+    fun `create shelter keeps a kitchen nobody knows about as unknown`() {
+        every { shelterRepository.findAll() } returns emptyList()
+        every { shelterRepository.save(any()) } answers {
+            val arg = firstArg() as ShelterEntity
+            arg.id = 42
+            arg
+        }
+
+        val result = service.createShelter(testShelter3ShelterRequest().copy(hasKitchen = null))
+
+        assertThat(result.hasKitchen).isNull()
     }
 
     @Test
@@ -422,8 +440,6 @@ class ShelterServiceTest {
                 enabled = updated.enabled,
                 sortOrder = updated.sortOrder,
                 contacts = updated.contacts,
-                hasKitchen = false,
-                foodCategoryIds = emptyList(),
             ),
         )
 

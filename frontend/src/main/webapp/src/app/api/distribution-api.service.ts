@@ -31,10 +31,9 @@ export class DistributionApiService {
     return this.http.post<void>('/distributions/households', body, {context});
   }
 
-  saveStatistic(employeeCount: number, selectedShelterIds: number[]): Observable<void> {
+  saveStatistic(employeeCount: number): Observable<void> {
     const body: SaveDistributionStatisticRequest = {
-      employeeCount: employeeCount,
-      selectedShelterIds: selectedShelterIds
+      employeeCount: employeeCount
     };
     return this.http.post<void>('/distributions/statistics', body);
   }
@@ -89,7 +88,6 @@ interface AssignHouseholdRequest {
 
 export interface SaveDistributionStatisticRequest {
   employeeCount: number;
-  selectedShelterIds: number[];
 }
 
 export interface SaveDistributionNotesRequest {

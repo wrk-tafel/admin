@@ -9,9 +9,9 @@ Despite the module name, and despite the backend `logistics` module covering "ro
 food collections, shelters, shops, cars, and food category management",
 **this frontend module contains two screens** (`logistics.routes.ts`):
 **Routen-Navi** (route guidance) at `/logistik/routen-navi`, and
-**Warenerfassung** (food collection recording) at `/logistik/warenerfassung`.
+**Routenerfassung** (food collection recording) at `/logistik/warenerfassung`.
 
-The two differ in one way that is easy to miss: Warenerfassung requires an active
+The two differ in one way that is easy to miss: Routenerfassung requires an active
 distribution (its constructor `effect()` navigates away once there is none, and its
 nav entry carries `activeDistributionRequired`), while Routen-Navi deliberately
 does not — a driver looks at the route before the day starts.
@@ -19,8 +19,10 @@ does not — a driver looks at the route before the day starts.
 There is no route/shop/car management UI, and shelter and food-category admin
 screens are **not** here — they live in the
 [`settings` module](../settings/README.md) (`views/shelters`,
-`views/food-categories`). This module only *reads* routes, shops, cars and food
-categories to populate the recording form; it never creates or edits them.
+`views/food-categories`). This module only *reads* routes, shops, cars, shelters and
+food categories to populate the recording form; it never creates or edits them. What it
+does write is which shelters a route delivers to on the day (see "Notschlafstellen"
+below) - the only place in the frontend where that is picked.
 
 ## Structure
 
@@ -29,6 +31,7 @@ logistics/
   resolver/
     route-data-resolver.component.ts                     # GET /routes
     car-data-resolver.component.ts                       # GET /cars
+    shelter-data-resolver.component.ts                   # GET /shelters/active
     food-categories-data-resolver.component.ts           # GET /food-categories/active
     food-return-categories-data-resolver.component.ts    # GET /food-return-categories/active
   services/
@@ -39,6 +42,7 @@ logistics/
     route-guidance/                               # route picker + one stop at a time + map deep links
     food-collection-recording/                    # container: route picker + tabs + save button
     food-collection-recording-basedata/           # tab 1: car/driver/co-driver
+    food-collection-recording-shelters/           # tab 1, below basedata: today's shelters
     food-collection-recording-km/                 # tab 2: km start/end
       dialogs/km-diff-dialog.component.ts
     food-collection-recording-items-desktop/      # tab 2, desktop layout
@@ -108,14 +112,24 @@ A few things about it are worth knowing before changing it:
   (see the backend module README) — the component only renders `stop.returnItems` and the
   `unassignedReturnItems` block. The `PUT` answer carries them as well, which is why
   replacing a single stop with the response is safe.
+- **"Notschlafstellen heute"** sits near the top of the screen and lists `guidance.shelters` —
+  the shelters picked for this route in the Routenerfassung on the running distribution's food
+  collection, so it is empty (and the block absent) with no distribution running or none picked.
+  Each shelter is a collapsed row (name, persons count) that expands to its address with its own
+  map link (`buildSingleDestinationMapsUrl`), its needs - kitchen (via `shelterKitchenLabel`, so an
+  unknown kitchen reads "Unbekannt" rather than "Nein"), freezer, the food categories it needs or
+  "Nimmt alles", and, highlighted in red since they are what goes wrong at the door, the categories
+  it does not want and its restrictions - its fixed quantities, its contacts as `tel:` links and its
+  note. Which rows are expanded is local state
+  (`expandedShelterIds`), cleared when another route is picked.
 
 ## Food collection recording (`warenerfassung`)
 
 `FoodCollectionRecordingComponent` (`views/food-collection-recording`) is the
-container. It receives `routeList`, `carList` and `foodCategories` as
-`model.required()` inputs, pre-populated by the three resolvers above via
-`logistics.routes.ts`'s `resolve: {...}` block — all three fire in parallel before
-the route activates. Selecting a route from the `<select>` feeds it into
+container. It receives `routeList`, `carList`, `shelterList` and `foodCategories`
+(plus `foodReturnCategories`) as `model.required()` inputs, pre-populated by the
+resolvers above via `logistics.routes.ts`'s `resolve: {...}` block — they all fire
+in parallel before the route activates. Selecting a route from the `<select>` feeds it into
 `routeSelection$`, a `Subject` piped through `switchMap` into a `forkJoin` of the
 existing food-collection data for that route
 (`FoodCollectionsApiService.getFoodCollection`) and the shops assigned to it
@@ -159,7 +173,9 @@ km report their validity/saved state as one pair, `hasInvalidInput()`/
 `markAsSaved()`; the items sections report Warenmenge and Retourware separately -
 `hasInvalidItems()`/`hasInvalidReturnItems()` and `markItemsSaved()`/
 `markReturnItemsSaved()` - since either half can be skipped and saved
-independently of the other (see "Section panels" below). `saveAllSections()`
+independently of the other (see "Section panels" below). The shelters section
+has nothing it could be invalid about, so it only offers `saveRequest()` and
+`markAsSaved()`. `saveAllSections()`
 collects every part, names any it had to skip in a warning toast, and reports one
 success/error for the whole screen.
 
@@ -210,6 +226,25 @@ the data the team fills in at departure. The odometer readings deliberately do
   re-triggering the employee search via `setTimeout(...)` so the search-create
   component's internal state re-syncs after view stabilization (zoneless mode
   means this can't rely on a digest cycle).
+
+### Tab 1 — Notschlafstellen (`food-collection-recording-shelters`)
+
+Below the base data on the same "Route" tab: a multi-select over the active
+shelters (`shelterList`, from `ShelterDataResolver`) naming where the route
+delivers today. This is the one place a shelter is picked for a distribution day —
+the Routen-Navi shows the result to the drivers, and the dashboard's statistics card
+shows it read-only and has it frozen onto the statistic when the distribution closes.
+
+- It is a section of its own, saved with its own request
+  (`FoodCollectionsApiService.saveShelters`), rather than part of the base data: the
+  base data is only sent once car, driver and co-driver are complete, and the
+  shelters are often known before the team is.
+- `saveRequest()` returns `null` while the selection equals what the server holds,
+  so an untouched selection never creates the route's food collection.
+- A changed selection (`hasUnsavedChanges()`) turns the Route tab's badge to
+  "Nicht gespeichert" unless the base data is already invalid.
+- A shelter deactivated after it was picked stays in the selection, without an
+  option of its own.
 
 ### Tab 2 — Km (`food-collection-recording-km`)
 
@@ -291,8 +326,8 @@ only.
 
 ## Resolvers
 
-`RouteDataResolver`, `FoodCategoriesDataResolver` and `CarDataResolver`
-(`resolver/`) are plain data-fetching resolvers wired into
+`RouteDataResolver`, `FoodCategoriesDataResolver`, `FoodReturnCategoriesDataResolver`,
+`CarDataResolver` and `ShelterDataResolver` (`resolver/`) are plain data-fetching resolvers wired into
 `logistics.routes.ts`'s `resolve` map. Note they're decorated with `@Service()`
 (this repo's convention/alias, imported from `@angular/core` — not
 `@Injectable()`), consistent with every other resolver and API service in the
@@ -316,8 +351,11 @@ this module:
 - `food-return-categories-api.service.ts` — same split for the return-box
   categories, maintained in `settings/views/food-return-categories`.
 - `food-collections-api.service.ts` — `FoodCollectionsApiService`, the
-  read/save/patch endpoints described above. Note that route base data, km, items
-  and return items each have their own endpoint, matching the sections of the
-  screen.
+  read/save/patch endpoints described above. Note that route base data, shelters,
+  km, items and return items each have their own endpoint, matching the sections of
+  the screen.
+- `shelter-api.service.ts` — `ShelterApiService`; this module only calls
+  `getActiveShelters()` (via `ShelterDataResolver`). The shelter CRUD is consumed
+  from `settings/views/shelters`.
 - `employee-api.service.ts` — used by the driver/co-driver search-and-create
   flow.

@@ -3,7 +3,11 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
-- Einstellungen → Notschlafstellen: Je Notschlafstelle lässt sich jetzt festhalten, ob sie eine Kochmöglichkeit hat und welche Waren-Kategorien sie üblicherweise benötigt; beides steht in der aufgeklappten Zeile.
+- Einstellungen → Notschlafstellen: Je Notschlafstelle lässt sich jetzt ihr Bedarf festhalten - Kochmöglichkeit (ja, nein oder unbekannt), ob sie alles nimmt, ob sie Tiefkühlware lagern kann, benötigte und nicht gewünschte Waren-Kategorien, Einschränkungen (z. B. kein Schweinefleisch) und fixe Mengen; alles steht in der aufgeklappten Zeile.
+- Routenerfassung → Reiter "Route": Im neuen Feld "Notschlafstellen dieser Route" wird festgelegt, welche Notschlafstellen eine Route am laufenden Ausgabetag beliefert - das ist ab jetzt die einzige Stelle, an der die Notschlafstellen eines Ausgabetags ausgewählt werden.
+- Routen-Navi: Der neue Bereich "Notschlafstellen heute" zeigt die Notschlafstellen, die der Route zugeordnet sind, und klappt je Notschlafstelle Adresse samt Navigation, Kontakte, Kochmöglichkeit und benötigte Lebensmittel auf.
+- Übersicht → Statistik: Die Notschlafstellen werden hier nicht mehr über den Rechner-Button ausgewählt, sondern aus der Routenerfassung übernommen und nur angezeigt (samt Personen in Notschlafstellen); beim Beenden des Ausgabetags fließen sie in Statistik und Tagesbericht ein.
+- Logistik: Die "Waren-Eingabe" heißt jetzt "Routenerfassung", da dort neben Waren und Kilometerstand auch Fahrzeug, Team und die belieferten Notschlafstellen einer Route erfasst werden; die Adresse der Seite bleibt gleich.
 
 ## [1.35.0] - 2026-10-17
 - Anmeldung und Kundendetails: Ein Doppelklick auf "Ticket löschen" oder "Rückgängig" löscht das Ticket nur noch einmal, statt mehrere Fehlermeldungen ("Interner Serverfehler!", "Löschen des Tickets ... fehlgeschlagen!") zu zeigen, obwohl das Ticket gelöscht wurde.

@@ -114,6 +114,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
             coDriver: testCoDriver,
             kmStart: 0,
             kmEnd: 10,
+            shelterIds: [],
             items: [
                 { categoryId: testFoodCategories[0].id, shopId: testShops[0].id, amount: 7 }
             ],

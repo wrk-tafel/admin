@@ -1,0 +1,17 @@
+<section class="mt-6" aria-labelledby="food-collection-shelters-heading">
+  <h3 id="food-collection-shelters-heading" class="tafel-h6 mb-1">Notschlafstellen</h3>
+  <p class="mb-3 text-sm text-slate-600">
+    Wohin die Route heute liefert. Das Fahrer-Team sieht die Notschlafstellen samt Adresse und Kontakten
+    im Routen-Navi, und die Statistik am Dashboard übernimmt sie von hier.
+  </p>
+  <mat-form-field class="w-full md:w-1/2">
+    <mat-label>Notschlafstellen dieser Route</mat-label>
+    <mat-select [formControl]="shelterIds" multiple testid="food-collection-shelters">
+      @for (shelter of shelterList(); track shelter.id) {
+        <mat-option [value]="shelter.id" [attr.testid]="'food-collection-shelters-option-' + shelter.id">
+          {{ shelter.name }}
+        </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</section>

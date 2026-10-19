@@ -90,9 +90,9 @@
             Ihr Benutzerkonto wird gelöscht, wenn Sie sich seit mehr als
             <xsl:value-of select="./userRetentionText"/> nicht mehr angemeldet haben, oder zuvor auf
             Ihren Wunsch bzw. bei Beendigung Ihrer Tätigkeit manuell. Ein Mitarbeiter-Datensatz
-            (Personalnummer, Name), etwa als Fahrer:in oder Beifahrer:in einer Warenerfassung, besteht
+            (Personalnummer, Name), etwa als Fahrer:in oder Beifahrer:in einer Routenerfassung, besteht
             unabhängig von einem Benutzerkonto: Er wird automatisch entfernt, wenn er länger als
-            <xsl:value-of select="./employeeRetentionText"/> in keiner Warenerfassung mehr
+            <xsl:value-of select="./employeeRetentionText"/> in keiner Routenerfassung mehr
             eingetragen wurde, auf Wunsch auch früher. Einträge im
             Änderungsprotokoll, die Ihr Konto betreffen, werden nach
             <xsl:value-of select="./auditRetentionDays"/> Tagen gelöscht. Die bei einer

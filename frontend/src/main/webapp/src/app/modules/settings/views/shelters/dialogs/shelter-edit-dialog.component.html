@@ -41,9 +41,23 @@
         <input matInput type="number" formControlName="personsCount"/>
       </mat-form-field>
 
-      <mat-checkbox formControlName="enabled" class="mb-2">Aktiv</mat-checkbox>
+      <mat-checkbox formControlName="enabled" class="mb-6">Aktiv</mat-checkbox>
 
-      <mat-checkbox formControlName="hasKitchen" class="mb-6" testid="shelter-has-kitchen">Kochmöglichkeit vorhanden</mat-checkbox>
+      <!-- What the shelter usually needs - read by whoever loads the goods and by the drivers in
+           Routen-Navi -->
+      <h3 class="tafel-h4 mb-2">Bedarf</h3>
+
+      <mat-form-field>
+        <mat-label>Kochmöglichkeit</mat-label>
+        <mat-select formControlName="hasKitchen" testid="shelter-has-kitchen">
+          <mat-option [value]="true">Ja</mat-option>
+          <mat-option [value]="false">Nein, nur kalte Speisen</mat-option>
+          <mat-option [value]="null">Unbekannt</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="acceptsEverything" class="mb-2" testid="shelter-accepts-everything">Nimmt alles</mat-checkbox>
+      <mat-checkbox formControlName="hasFreezer" class="mb-4" testid="shelter-has-freezer">Kann Tiefkühlware lagern</mat-checkbox>
 
       <mat-form-field>
         <mat-label>Benötigte Lebensmittel</mat-label>
@@ -54,6 +68,29 @@
             </mat-option>
           }
         </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Nicht gewünscht</mat-label>
+        <mat-select formControlName="excludedFoodCategoryIds" multiple testid="shelter-excluded-food-categories">
+          @for (category of selectableFoodCategories; track category.id) {
+            <mat-option [value]="category.id">
+              {{ category.name }}@if (!category.enabled) { (inaktiv)}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Einschränkungen</mat-label>
+        <input matInput formControlName="restrictions" maxlength="500"
+               placeholder="z. B. kein Schweinefleisch, keine Aufbackware" testid="shelter-restrictions"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Fixe Mengen</mat-label>
+        <input matInput formControlName="fixedQuantities" maxlength="500"
+               placeholder="z. B. 4 Kisten Schnittbrot" testid="shelter-fixed-quantities"/>
       </mat-form-field>
 
       <mat-form-field>

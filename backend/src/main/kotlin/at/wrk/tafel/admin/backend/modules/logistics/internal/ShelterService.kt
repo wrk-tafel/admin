@@ -47,12 +47,13 @@ class ShelterService(
             personsCount = shelter.personsCount,
             sortOrder = nextSortOrder(),
             enabled = shelter.enabled,
-            hasKitchen = shelter.hasKitchen,
         ).apply {
             addressStairway = shelter.addressStairway?.takeIf { it.isNotBlank() }?.trim()
             addressDoor = shelter.addressDoor?.takeIf { it.isNotBlank() }?.trim()
             note = shelter.note
+            applyNeeds(this, shelter)
             foodCategories = findFoodCategories(shelter.foodCategoryIds)
+            excludedFoodCategories = findFoodCategories(shelter.excludedFoodCategoryIds)
         }
 
         // attach contacts
@@ -89,10 +90,25 @@ class ShelterService(
             )
         },
         hasKitchen = shelterEntity.hasKitchen,
-        foodCategoryIds = shelterEntity.foodCategories
-            .sortedWith(compareBy({ it.sortOrder }, { it.name }))
-            .map { it.id!! },
+        acceptsEverything = shelterEntity.acceptsEverything,
+        hasFreezer = shelterEntity.hasFreezer,
+        restrictions = shelterEntity.restrictions,
+        fixedQuantities = shelterEntity.fixedQuantities,
+        foodCategoryIds = sortedIds(shelterEntity.foodCategories),
+        excludedFoodCategoryIds = sortedIds(shelterEntity.excludedFoodCategories),
     )
+
+    private fun sortedIds(foodCategories: Set<FoodCategoryEntity>): List<Long> = foodCategories
+        .sortedWith(compareBy({ it.sortOrder }, { it.name }))
+        .map { it.id!! }
+
+    private fun applyNeeds(shelterEntity: ShelterEntity, shelter: ShelterRequest) {
+        shelterEntity.hasKitchen = shelter.hasKitchen
+        shelterEntity.acceptsEverything = shelter.acceptsEverything
+        shelterEntity.hasFreezer = shelter.hasFreezer
+        shelterEntity.restrictions = shelter.restrictions?.trim()?.ifBlank { null }
+        shelterEntity.fixedQuantities = shelter.fixedQuantities?.trim()?.ifBlank { null }
+    }
 
     @Transactional
     fun updateShelter(shelterId: Long, updatedShelter: ShelterRequest): ShelterResponse {
@@ -110,13 +126,16 @@ class ShelterService(
         shelterEntity.personsCount = updatedShelter.personsCount
         shelterEntity.enabled = updatedShelter.enabled
         shelterEntity.sortOrder = updatedShelter.sortOrder
-        shelterEntity.hasKitchen = updatedShelter.hasKitchen
+        applyNeeds(shelterEntity, updatedShelter)
 
         // replaced in place - the entity is managed here, and swapping out an orphan-removal
         // collection for a new instance is something Hibernate refuses on flush
         val foodCategories = findFoodCategories(updatedShelter.foodCategoryIds)
         shelterEntity.foodCategories.clear()
         shelterEntity.foodCategories.addAll(foodCategories)
+        val excludedFoodCategories = findFoodCategories(updatedShelter.excludedFoodCategoryIds)
+        shelterEntity.excludedFoodCategories.clear()
+        shelterEntity.excludedFoodCategories.addAll(excludedFoodCategories)
 
         shelterEntity.contacts.clear()
         shelterEntity.contacts.addAll(

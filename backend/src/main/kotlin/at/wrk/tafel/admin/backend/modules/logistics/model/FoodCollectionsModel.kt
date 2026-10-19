@@ -19,6 +19,13 @@ data class FoodCollectionResponse(
     val kmEnd: Int?,
     val items: List<FoodCollectionItem>,
     val returnItems: List<FoodCollectionReturnItem>,
+    // the shelters this route delivers to today, in the shelters' own order
+    val shelterIds: List<Long>,
+)
+
+@ExcludeFromTestCoverage
+data class FoodCollectionSaveSheltersRequest(
+    val shelterIds: List<Long>,
 )
 
 @ExcludeFromTestCoverage

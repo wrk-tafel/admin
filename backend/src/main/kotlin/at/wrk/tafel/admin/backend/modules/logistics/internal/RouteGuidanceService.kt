@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
@@ -13,12 +14,15 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.events.RouteAtLastStopEvent
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceReturnItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceShelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceShop
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceStopItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
@@ -81,6 +85,7 @@ class RouteGuidanceService(
                 .values
                 .flatten()
                 .sortedWith(compareBy({ it.shopName }, { it.description })),
+            shelters = findTodaysShelters(routeId).map { mapShelter(it) },
         )
     }
 
@@ -182,6 +187,45 @@ class RouteGuidanceService(
         return foodCollectionRepository
             .findFirstByRouteIdAndDistributionIdNotOrderByDistributionStartedAtDescIdDesc(routeId, currentDistributionId)
     }
+
+    /**
+     * The shelters picked for this route on the running distribution's food collection. Unlike the
+     * stop progress this is keyed by the distribution, since that is where the recording screen
+     * stores it - with no distribution running there is no day to deliver to yet.
+     */
+    private fun findTodaysShelters(routeId: Long): List<ShelterEntity> = distributionRepository.getCurrentDistribution()
+        ?.foodCollections
+        ?.firstOrNull { it.route.id == routeId }
+        ?.shelters
+        ?.sortedWith(compareBy({ it.sortOrder }, { it.name }))
+        .orEmpty()
+
+    private fun categoryNames(foodCategories: Set<FoodCategoryEntity>): List<String> = foodCategories
+        .sortedWith(compareBy({ it.sortOrder }, { it.name }))
+        .map { it.name }
+
+    private fun mapShelter(shelter: ShelterEntity) = RouteGuidanceShelter(
+        id = shelter.id!!,
+        name = shelter.name,
+        address = listOfNotNull(
+            "${shelter.addressStreet} ${shelter.addressHouseNumber}",
+            shelter.addressStairway?.let { "Stiege $it" },
+            shelter.addressDoor?.let { "Top $it" },
+            "${shelter.addressPostalCode} ${shelter.addressCity}",
+        ).joinToString(", "),
+        personsCount = shelter.personsCount,
+        hasKitchen = shelter.hasKitchen,
+        acceptsEverything = shelter.acceptsEverything,
+        hasFreezer = shelter.hasFreezer,
+        foodCategories = categoryNames(shelter.foodCategories),
+        excludedFoodCategories = categoryNames(shelter.excludedFoodCategories),
+        restrictions = shelter.restrictions,
+        fixedQuantities = shelter.fixedQuantities,
+        contacts = shelter.contacts.map {
+            ShelterContactItem(firstname = it.firstname, lastname = it.lastname, phone = it.phone)
+        },
+        note = shelter.note,
+    )
 
     private fun findCompletions(stops: List<RouteStopEntity>, date: LocalDate): Map<Long?, RouteStopCompletionEntity> {
         val stopIds = stops.mapNotNull { it.id }

@@ -143,6 +143,13 @@ describe('ShelterEditDialogComponent (create mode - no shelter passed)', () => {
   it('starts a new shelter without a kitchen and without food categories', () => {
     const fixture = TestBed.createComponent(ShelterEditDialogComponent);
 
-    expect(fixture.componentInstance.form.value).toMatchObject({hasKitchen: false, foodCategoryIds: []});
+    // a new shelter's kitchen is unknown until someone asks, not "no kitchen"
+    expect(fixture.componentInstance.form.value).toMatchObject({
+      hasKitchen: null,
+      acceptsEverything: false,
+      hasFreezer: false,
+      foodCategoryIds: [],
+      excludedFoodCategoryIds: []
+    });
   });
 });

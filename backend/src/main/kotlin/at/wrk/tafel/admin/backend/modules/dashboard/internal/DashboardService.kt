@@ -20,6 +20,7 @@ import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLogisticsData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardOrganizationOverviewData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardRouteProgressItem
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsData
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsShelter
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardTicketsData
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -125,10 +126,12 @@ class DashboardService(
 
     private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData = DashboardStatisticsData(
         employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },
-        // Intentionally names, not shelter ids: statistics keep a historic copy independent of later shelter renames/deletions
-        selectedShelterNames = currentDistribution?.statistic?.shelters
+        shelters = currentDistribution?.foodCollections
+            ?.flatMap { it.shelters }
+            ?.distinctBy { it.id }
             ?.sortedWith(compareBy({ it.sortOrder }, { it.name }))
-            ?.map { it.name } ?: emptyList(),
+            ?.map { DashboardStatisticsShelter(name = it.name, personsCount = it.personsCount) }
+            ?: emptyList(),
     )
 
     private fun getLogisticsData(currentDistribution: DistributionEntity): DashboardLogisticsData {

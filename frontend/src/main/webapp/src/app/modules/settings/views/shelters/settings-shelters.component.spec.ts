@@ -24,7 +24,9 @@ describe('SettingsSheltersComponent', () => {
     sortOrder: 1,
     contacts: [{firstname: 'Anna', lastname: 'Smith', phone: '0664 1234567'}],
     hasKitchen: true,
-    foodCategoryIds: [2, 1]
+    foodCategoryIds: [2, 1],
+    excludedFoodCategoryIds: [1],
+    restrictions: 'kein Schweinefleisch'
   };
   const testShelter2: ShelterItem = {
     id: 2,
@@ -147,8 +149,12 @@ describe('SettingsSheltersComponent', () => {
 
     expect(element.querySelector('[testid="shelter-has-kitchen-0"]')!.textContent).toContain('Ja');
     expect(element.querySelector('[testid="shelter-food-categories-0"]')!.textContent).toContain('Konserven, Backwaren');
-    expect(element.querySelector('[testid="shelter-has-kitchen-1"]')!.textContent).toContain('Nein');
+    // a kitchen nobody has asked about is not "no kitchen"
+    expect(element.querySelector('[testid="shelter-has-kitchen-1"]')!.textContent).toContain('Unbekannt');
     expect(element.querySelector('[testid="shelter-food-categories-1"]')!.textContent).toContain('Keine angegeben');
+    expect(element.querySelector('[testid="shelter-excluded-food-categories-0"]')!.textContent).toContain('Backwaren');
+    expect(element.querySelector('[testid="shelter-restrictions-0"]')!.textContent).toContain('kein Schweinefleisch');
+    expect(element.querySelector('[testid="shelter-restrictions-1"]')).toBeNull();
   });
 
   it('hands the food categories to the edit dialog', () => {
@@ -167,7 +173,7 @@ describe('SettingsSheltersComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('[testid="shelters-order-hint"]').textContent)
-      .toContain('Dashboard');
+      .toContain('Routenerfassung');
   });
 
   it('drop() reorders optimistically and persists the new order', () => {

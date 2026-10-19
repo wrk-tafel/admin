@@ -83,19 +83,13 @@ internal class DistributionControllerTest {
 
     @Test
     fun `save distribution statistic`() {
-        val statisticData = DistributionStatisticRequest(
-            employeeCount = 100,
-            selectedShelterIds = listOf(1, 2, 3),
-        )
+        val statisticData = DistributionStatisticRequest(employeeCount = 100)
 
         val response = controller.saveDistributionStatistic(statisticData)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         verify(exactly = 1) {
-            service.updateDistributionStatisticData(
-                statisticData.employeeCount,
-                statisticData.selectedShelterIds,
-            )
+            service.updateDistributionStatisticData(statisticData.employeeCount)
         }
     }
 

@@ -38,7 +38,7 @@ internal class DashboardSseTopicTest {
             ),
             statistics = DashboardStatisticsData(
                 employeeCount = 1,
-                selectedShelterNames = listOf("Shelter 1", "Shelter 2"),
+                shelters = listOf(DashboardStatisticsShelter(name = "Shelter 1", personsCount = 10)),
             ),
             logistics = DashboardLogisticsData(
                 foodCollectionsRecordedCount = 1,

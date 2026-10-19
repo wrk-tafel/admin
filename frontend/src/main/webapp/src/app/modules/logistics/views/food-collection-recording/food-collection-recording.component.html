@@ -1,11 +1,11 @@
 <mat-card>
   <mat-card-header>
-    <h2 class="tafel-h5">Warenerfassung</h2>
+    <h2 class="tafel-h5">Routenerfassung</h2>
   </mat-card-header>
   <mat-card-content>
     <p class="mb-4 text-sm text-slate-600">
-      Erfassung der von einem Routen-Team eingesammelten Warenmenge sowie der Retourware je
-      Geschäft. Die Eingaben beider Reiter werden gemeinsam gespeichert.
+      Erfassung einer Route: Fahrzeug und Team, die belieferten Notschlafstellen sowie die eingesammelte
+      Warenmenge und die Retourware je Geschäft. Die Eingaben beider Reiter werden gemeinsam gespeichert.
     </p>
 
     <div class="flex items-center">
@@ -55,6 +55,9 @@
             <tafel-food-collection-recording-basedata [carList]="carList()"
                                                       [selectedRouteData]="selectedRouteData()">
             </tafel-food-collection-recording-basedata>
+            <tafel-food-collection-recording-shelters [shelterList]="shelterList().shelters"
+                                                      [selectedRouteData]="selectedRouteData()">
+            </tafel-food-collection-recording-shelters>
           </div>
         </mat-tab>
         <mat-tab>

@@ -12,8 +12,8 @@ import at.wrk.tafel.admin.backend.database.model.distribution.*
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdEntity
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
-import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonEntity
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
@@ -105,9 +105,6 @@ internal class DistributionServiceTest {
 
     @SpyK
     private var transactionTemplate: TransactionTemplate = TransactionTemplate(mockk(relaxed = true))
-
-    @RelaxedMockK
-    private lateinit var shelterRepository: ShelterRepository
 
     @RelaxedMockK
     private lateinit var routeRepository: RouteRepository
@@ -500,6 +497,50 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `close distribution freezes the shelters picked in the food collection recording onto the statistic`() {
+        val distributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        distributionEntity.statistic = DistributionStatisticEntity(distribution = distributionEntity).apply {
+            employeeCount = 5
+        }
+        distributionEntity.foodCollections = mutableListOf(
+            FoodCollectionEntity(distribution = distributionEntity, route = testRoute1).apply {
+                shelters = mutableSetOf(testShelter1)
+            },
+            // the same shelter on a second route counts once
+            FoodCollectionEntity(distribution = distributionEntity, route = testRoute2).apply {
+                shelters = mutableSetOf(testShelter1, testShelter2)
+            },
+        )
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
+        every { distributionRepository.save(any()) } answers { firstArg() }
+        every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
+        every { advisoryLockService.tryWithLock(any(), any()) } answers {
+            secondArg<() -> Unit>().invoke()
+            true
+        }
+
+        service.closeDistribution()
+
+        val shelters = distributionEntity.statistic!!.shelters
+        assertThat(shelters.map { it.name }).containsExactlyInAnyOrder(testShelter1.name, testShelter2.name)
+        with(shelters.first { it.name == testShelter1.name }) {
+            assertThat(id).isNull()
+            assertThat(createdAt).isNotNull()
+            assertThat(addressStreet).isEqualTo(testShelter1.addressStreet)
+            assertThat(addressHouseNumber).isEqualTo(testShelter1.addressHouseNumber)
+            assertThat(addressStairway).isEqualTo(testShelter1.addressStairway)
+            assertThat(addressDoor).isEqualTo(testShelter1.addressDoor)
+            assertThat(addressPostalCode).isEqualTo(testShelter1.addressPostalCode)
+            assertThat(addressCity).isEqualTo(testShelter1.addressCity)
+            assertThat(personsCount).isEqualTo(testShelter1.personsCount)
+            assertThat(sortOrder).isEqualTo(testShelter1.sortOrder)
+        }
+    }
+
+    @Test
     fun `close distribution forwards the error when publishing DistributionEndedEvent fails`() {
         val distributionEntity = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
@@ -599,8 +640,8 @@ internal class DistributionServiceTest {
             statistic = testDistributionStatisticEntity
         }
         distributionForRouteCheck.foodCollections = listOf(
-            FoodCollectionEntity(distribution = distributionForRouteCheck, route = testRoute1),
-            FoodCollectionEntity(distribution = distributionForRouteCheck, route = testRoute2),
+            FoodCollectionEntity(distribution = distributionForRouteCheck, route = testRoute1).apply { kmStart = 100 },
+            FoodCollectionEntity(distribution = distributionForRouteCheck, route = testRoute2).apply { car = testCar1 },
         )
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionForRouteCheck
         every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute1, testRoute2)
@@ -609,6 +650,29 @@ internal class DistributionServiceTest {
 
         assertThat(result.errors).containsExactly("Die Route(n) Route 1, Route 2 sind unvollständig!")
         assertThat(result.warnings).isEmpty()
+    }
+
+    @Test
+    fun `validate close distribution counts a route with only its shelters picked as not recorded, not as incomplete`() {
+        val distributionForRouteCheck = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            endedAt = null
+            statistic = testDistributionStatisticEntity
+        }
+        distributionForRouteCheck.foodCollections = listOf(
+            testFoodCollectionRoute1Entity,
+            FoodCollectionEntity(distribution = distributionForRouteCheck, route = testRoute2).apply {
+                shelters = mutableSetOf(testShelter1)
+                // saving the screen sends the untouched amount grid along - all zeros, nothing recorded
+                items = listOf(FoodCollectionItemEntity(category = testFoodCategory1, shop = testShop1, amount = 0))
+            },
+        )
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionForRouteCheck
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute1, testRoute2)
+
+        val result = service.validateClose()
+
+        assertThat(result.errors).isEmpty()
+        assertThat(result.warnings).containsExactly("Die Route(n) Route 2 wurden nicht erfasst!")
     }
 
     @Test
@@ -1727,10 +1791,6 @@ internal class DistributionServiceTest {
 
     @Test
     fun `update statistic data of distribution`() {
-        val updatedEmployeeCount = 100
-        val selectedShelters = listOf(testShelter1, testShelter2)
-        val selectedShelterIds = selectedShelters.mapNotNull { it.id }
-
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             endedAt = null
         }
@@ -1739,41 +1799,19 @@ internal class DistributionServiceTest {
         }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
-        every { shelterRepository.findAllById(selectedShelterIds) } returns listOf(testShelter1, testShelter2)
 
-        service.updateDistributionStatisticData(updatedEmployeeCount, selectedShelterIds)
+        service.updateDistributionStatisticData(100)
 
         val updatedDistributionEntitySlot = slot<DistributionEntity>()
         verify(exactly = 1) { distributionRepository.save(capture(updatedDistributionEntitySlot)) }
-
-        val updatedDistributionEntity = updatedDistributionEntitySlot.captured
-        assertThat(updatedDistributionEntity.statistic!!.employeeCount).isEqualTo(updatedEmployeeCount)
-
-        val firstShelter = updatedDistributionEntity.statistic!!.shelters.first()
-        assertThat(firstShelter).isNotNull
-        assertThat(firstShelter.id).isNull()
-        assertThat(firstShelter.createdAt).isNotNull()
-        assertThat(firstShelter.updatedAt).isNotNull()
-        assertThat(firstShelter.name).isEqualTo(testShelter1.name)
-        assertThat(firstShelter.addressStreet).isEqualTo(testShelter1.addressStreet)
-        assertThat(firstShelter.addressHouseNumber).isEqualTo(testShelter1.addressHouseNumber)
-        assertThat(firstShelter.addressStairway).isEqualTo(testShelter1.addressStairway)
-        assertThat(firstShelter.addressPostalCode).isEqualTo(testShelter1.addressPostalCode)
-        assertThat(firstShelter.addressDoor).isEqualTo(testShelter1.addressDoor)
-        assertThat(firstShelter.addressCity).isEqualTo(testShelter1.addressCity)
-        assertThat(firstShelter.personsCount).isEqualTo(testShelter1.personsCount)
-        assertThat(firstShelter.sortOrder).isEqualTo(testShelter1.sortOrder)
-
-        val secondShelter = updatedDistributionEntity.statistic!!.shelters[1]
-        assertThat(secondShelter).isNotNull
-        assertThat(secondShelter.sortOrder).isEqualTo(testShelter2.sortOrder)
+        assertThat(updatedDistributionEntitySlot.captured.statistic!!.employeeCount).isEqualTo(100)
     }
 
     @Test
     fun `update statistic data when the distribution was already closed reports a conflict instead of throwing an NPE`() {
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
-        val exception = assertThrows<ConflictException> { service.updateDistributionStatisticData(1, emptyList()) }
+        val exception = assertThrows<ConflictException> { service.updateDistributionStatisticData(1) }
 
         assertThat(exception.body.detail).isEqualTo("Ausgabe bereits geschlossen!")
     }

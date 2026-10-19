@@ -65,15 +65,27 @@ describe('Settings - Shelters', () => {
       cy.get('input[formControlName="addressCity"]').type('Wien');
       cy.get('input[formControlName="personsCount"]').type('12');
 
-      cy.byTestId('shelter-has-kitchen').find('input[type="checkbox"]').check();
+      cy.byTestId('shelter-has-kitchen').click();
+      cy.contains('mat-option', 'Ja').click();
+      cy.byTestId('shelter-has-freezer').find('input[type="checkbox"]').check();
       cy.byTestId('shelter-food-categories').click();
       cy.contains('mat-option', 'Konserven').click();
       cy.contains('mat-option', 'Backwaren').click();
       cy.get('body').type('{esc}');
+      cy.byTestId('shelter-excluded-food-categories').click();
+      cy.contains('mat-option', 'Süßwaren').click();
+      cy.get('body').type('{esc}');
+      cy.byTestId('shelter-restrictions').type('kein Schweinefleisch');
+      cy.byTestId('shelter-fixed-quantities').type('2 Kisten Gebäck');
 
       cy.intercept('POST', '/api/shelters').as('createShelter');
       cy.contains('Speichern').click();
-      cy.wait('@createShelter').its('request.body').should('deep.include', {hasKitchen: true});
+      cy.wait('@createShelter').its('request.body').should('deep.include', {
+        hasKitchen: true,
+        hasFreezer: true,
+        restrictions: 'kein Schweinefleisch',
+        fixedQuantities: '2 Kisten Gebäck'
+      });
 
       cy.byTestId('shelters-list').contains('[testid^="shelters-row-"]', name).as('row');
       cy.get('@row').find('[testid^="shelters-toggle-"]').click();
@@ -81,6 +93,9 @@ describe('Settings - Shelters', () => {
       cy.get('@row').find('[testid^="shelter-food-categories-"]')
         .should('contain.text', 'Backwaren')
         .and('contain.text', 'Konserven');
+      cy.get('@row').find('[testid^="shelter-excluded-food-categories-"]').should('contain.text', 'Süßwaren');
+      cy.get('@row').find('[testid^="shelter-restrictions-"]').should('have.text', 'kein Schweinefleisch');
+      cy.get('@row').find('[testid^="shelter-fixed-quantities-"]').should('have.text', '2 Kisten Gebäck');
     });
   });
 

@@ -40,6 +40,7 @@ describe('FoodCollectionRecordingKmComponent', () => {
       coDriver: {id: 2, personnelNumber: 'D2', firstname: 'Driver', lastname: 'Two'},
       kmStart: 100,
       kmEnd: 200,
+      shelterIds: [],
       items: [],
       returnItems: []
     }

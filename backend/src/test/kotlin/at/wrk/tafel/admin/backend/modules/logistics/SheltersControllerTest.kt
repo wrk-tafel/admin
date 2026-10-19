@@ -40,8 +40,6 @@ class SheltersControllerTest {
             enabled = true,
             sortOrder = 1,
             contacts = emptyList(),
-            hasKitchen = false,
-            foodCategoryIds = emptyList(),
         )
         val shelter2 = shelter1.copy(id = 2, name = "Shelter 2", sortOrder = 2)
 
@@ -69,8 +67,6 @@ class SheltersControllerTest {
             enabled = true,
             sortOrder = 1,
             contacts = emptyList(),
-            hasKitchen = false,
-            foodCategoryIds = emptyList(),
         )
         val shelter2 = shelter1.copy(id = 2, name = "Shelter 2", sortOrder = 2)
 
@@ -128,8 +124,6 @@ class SheltersControllerTest {
             enabled = updatedShelter.enabled,
             sortOrder = updatedShelter.sortOrder,
             contacts = updatedShelter.contacts,
-            hasKitchen = false,
-            foodCategoryIds = emptyList(),
         )
         every { service.updateShelter(any(), any()) } returns updatedResponse
 
@@ -173,8 +167,6 @@ class SheltersControllerTest {
             enabled = newShelter.enabled,
             sortOrder = 1,
             contacts = newShelter.contacts,
-            hasKitchen = false,
-            foodCategoryIds = emptyList(),
         )
 
         every { service.createShelter(any()) } returns createdShelter
@@ -204,8 +196,6 @@ class SheltersControllerTest {
             enabled = true,
             sortOrder = 2,
             contacts = emptyList(),
-            hasKitchen = false,
-            foodCategoryIds = emptyList(),
         )
         val shelter2 = shelter1.copy(id = 2, name = "Shelter 2", sortOrder = 1)
         val request = ShelterReorderRequest(shelterIds = listOf(2L, 1L))

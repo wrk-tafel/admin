@@ -1,4 +1,4 @@
-import {Component, computed, inject, input, Signal} from '@angular/core';
+import {Component, computed, inject, Signal} from '@angular/core';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
 import {RegisteredPersonsComponent} from './components/registered-persons/registered-persons.component';
@@ -12,7 +12,6 @@ import {
 import {FoodAmountComponent} from './components/food-amount/food-amount.component';
 import {RecordedRouteNamesComponent} from './components/recorded-route-names/recorded-route-names.component';
 import {RouteProgressComponent} from './components/route-progress/route-progress.component';
-import {ShelterListResponse} from '../../api/shelter-api.service';
 import {
   DistributionNotesInputComponent
 } from './components/distribution-notes-input/distribution-notes-input.component';
@@ -54,8 +53,6 @@ import {MatDivider} from '@angular/material/list';
 export class DashboardComponent {
   private readonly sseService = inject(SseService);
   private readonly globalStateService = inject(GlobalStateService);
-
-  readonly sheltersData = input<ShelterListResponse>();
 
   readonly data: Signal<DashboardData | undefined> = toSignal(
     this.sseService.topic<DashboardData>('dashboard')
@@ -104,7 +101,13 @@ export interface DashboardTicketsData {
 
 export interface DashboardStatisticsData {
   employeeCount?: number;
-  selectedShelterNames?: string[];
+  // the shelters today's routes deliver to, as picked in the food collection recording
+  shelters?: DashboardStatisticsShelter[];
+}
+
+export interface DashboardStatisticsShelter {
+  name: string;
+  personsCount: number;
 }
 
 export interface DashboardLogisticsData {

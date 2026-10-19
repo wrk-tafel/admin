@@ -20,17 +20,20 @@ import callIcon from '@material-symbols/svg-400/outlined/call-fill.svg';
 import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
 import restartAltIcon from '@material-symbols/svg-400/outlined/restart_alt-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
+import homeIcon from '@material-symbols/svg-400/outlined/home-fill.svg';
 import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
 import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
 import {
   RouteApiService,
   RouteData,
   RouteGuidanceData,
+  RouteGuidanceShelter,
   RouteGuidanceShop,
   RouteGuidanceStop,
   RouteList
 } from '../../../../api/route-api.service';
 import {ReturnBoxesApiService} from '../../../../api/return-boxes-api.service';
+import {shelterKitchenLabel} from '../../../../common/util/shelter-kitchen.util';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
@@ -116,6 +119,7 @@ export class RouteGuidanceComponent {
     route: routeIcon,
     restart_alt: restartAltIcon,
     person: personIcon,
+    home: homeIcon,
     keyboard_arrow_up: keyboardArrowUpIcon,
     keyboard_arrow_down: keyboardArrowDownIcon
   });
@@ -175,6 +179,30 @@ export class RouteGuidanceComponent {
   // note worth reading, and it sits right under the route picker precisely so it is the first thing
   // a driver can check before setting off, not something permanently in the way after that. Reset
   // per route selection (see the routeSelection$ subscription) so each route starts unread again.
+  protected readonly shelters = computed(() => this._guidance()?.shelters ?? []);
+
+  // which shelters show their details, by id - collapsed by default so the list stays a glance at
+  // where the goods go, with address and contacts one tap away
+  private readonly expandedShelterIds = signal<ReadonlySet<number>>(new Set());
+
+  protected isShelterExpanded(shelterId: number): boolean {
+    return this.expandedShelterIds().has(shelterId);
+  }
+
+  protected toggleShelterExpanded(shelterId: number) {
+    const expanded = new Set(this.expandedShelterIds());
+    if (!expanded.delete(shelterId)) {
+      expanded.add(shelterId);
+    }
+    this.expandedShelterIds.set(expanded);
+  }
+
+  protected readonly kitchenLabel = shelterKitchenLabel;
+
+  protected shelterNavigationUrl(shelter: RouteGuidanceShelter): string {
+    return buildSingleDestinationMapsUrl(shelter.address);
+  }
+
   protected readonly routeNoteExpanded = signal(false);
 
   protected toggleRouteNoteExpanded() {
@@ -360,6 +388,7 @@ export class RouteGuidanceComponent {
     ).subscribe(guidance => {
       this._guidance.set(guidance);
       this.routeNoteExpanded.set(false);
+      this.expandedShelterIds.set(new Set());
       // open where the driver actually is - the first stop not done yet, or the last one when the
       // whole route is finished
       const firstOpenIndex = guidance.stops.findIndex(stop => !stop.completed);

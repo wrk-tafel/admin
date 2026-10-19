@@ -63,7 +63,7 @@ export const pushNotificationTypeLabel: { [key in PushNotificationType]: string 
   [PushNotificationType.FOOD_HANDOUT_STARTED]: 'Warenausgabe gestartet',
   [PushNotificationType.ALL_TICKETS_PROCESSED]: 'Alle Kunden abgearbeitet',
   [PushNotificationType.ROUTE_AT_LAST_STOP]: 'Route beim letzten Stopp',
-  [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Warenerfassung abgeschlossen',
+  [PushNotificationType.FOOD_COLLECTION_COMPLETED]: 'Routenerfassung abgeschlossen',
   [PushNotificationType.USER_LOCKED_OUT]: 'Benutzer gesperrt',
   [PushNotificationType.REPORT_MAIL_FAILED]: 'E-Mail nicht versendet',
   [PushNotificationType.EXCESSIVE_READ_ACCESS]: 'Ungewöhnlich viele Zugriffe',

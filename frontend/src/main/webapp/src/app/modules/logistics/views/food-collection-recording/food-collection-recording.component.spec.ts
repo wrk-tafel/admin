@@ -72,6 +72,7 @@ describe('FoodCollectionRecordingComponent', () => {
 
     function createSectionStubs(component: any, overrides: {
         basedata?: any;
+        shelters?: any;
         km?: any;
         items?: any;
     } = {}) {
@@ -82,6 +83,12 @@ describe('FoodCollectionRecordingComponent', () => {
             markAsSaved: vi.fn(),
             tabStatus: vi.fn().mockReturnValue(undefined),
             ...overrides.basedata
+        };
+        const shelters = {
+            saveRequest: vi.fn().mockReturnValue(null),
+            markAsSaved: vi.fn(),
+            hasUnsavedChanges: vi.fn().mockReturnValue(false),
+            ...overrides.shelters
         };
         const km = {
             markAllAsTouched: vi.fn(),
@@ -105,11 +112,12 @@ describe('FoodCollectionRecordingComponent', () => {
         };
 
         component.basedataComponent = () => basedata;
+        component.sheltersComponent = () => shelters;
         component.kmComponent = () => km;
         component.itemsDesktopComponent = () => items;
         component.itemsResponsiveComponent = () => items;
 
-        return {basedata, km, items};
+        return {basedata, shelters, km, items};
     }
 
     it('component can be created', () => {
@@ -182,6 +190,31 @@ describe('FoodCollectionRecordingComponent', () => {
         expect(toastr.warning).toHaveBeenCalledWith(
             'Gespeichert - unvollständig und daher nicht gespeichert: Routendaten'
         );
+    });
+
+    it('save - sends a changed shelter selection along and marks it saved', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        const stubs = createSectionStubs(component, {
+            shelters: {saveRequest: vi.fn().mockReturnValue(of(undefined))}
+        });
+
+        component.save();
+
+        expect(stubs.shelters.saveRequest).toHaveBeenCalled();
+        expect(stubs.shelters.markAsSaved).toHaveBeenCalled();
+        expect(toastr.success).toHaveBeenCalledWith('Daten wurden gespeichert!');
+    });
+
+    it('marks the route tab unsaved while the shelter selection has changed', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+        const component = fixture.componentInstance as any;
+        createSectionStubs(component, {
+            basedata: {tabStatus: vi.fn().mockReturnValue('complete')},
+            shelters: {hasUnsavedChanges: vi.fn().mockReturnValue(true)}
+        });
+
+        expect(component.routeTabStatus()).toBe('unsaved');
     });
 
     it('save - reports an error when nothing can be saved', () => {

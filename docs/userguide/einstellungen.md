@@ -16,7 +16,7 @@ Das Drag-Handle (⋮⋮) lässt sich nicht nur mit der Maus ziehen: Wird es mit 
 
 ## Aktiv und inaktiv
 
-Gelöscht wird in diesem Bereich in der Regel nichts: [Notschlafstellen](#notschlafstellen), [Waren-Kategorien](#lebensmittelkategorien), [Retour-Kategorien](#retourkategorien), [Fahrzeuge](#fahrzeuge), [Filialen](#filialen), [Routen](#routen) und [Länder](#laender) werden nur deaktiviert, weil bereits erfasste Ausgabetage, Warenerfassungen bzw. Personendaten darauf verweisen. Alle sieben Listen zeigen und schalten diesen Zustand gleich (bei [Fahrzeugen](#fahrzeuge) gibt es zusätzlich eine echte Löschfunktion, siehe dort):
+Gelöscht wird in diesem Bereich in der Regel nichts: [Notschlafstellen](#notschlafstellen), [Waren-Kategorien](#lebensmittelkategorien), [Retour-Kategorien](#retourkategorien), [Fahrzeuge](#fahrzeuge), [Filialen](#filialen), [Routen](#routen) und [Länder](#laender) werden nur deaktiviert, weil bereits erfasste Ausgabetage, Routenerfassungen bzw. Personendaten darauf verweisen. Alle sieben Listen zeigen und schalten diesen Zustand gleich (bei [Fahrzeugen](#fahrzeuge) gibt es zusätzlich eine echte Löschfunktion, siehe dort):
 
 - In jeder Zeile steht der Schalter **Aktiv**. Er zeigt den Zustand und ändert ihn — eine eigene Kennzeichnung daneben gibt es nicht.
 - Ein deaktivierter Eintrag bleibt in der Liste stehen, wird aber grau dargestellt, und sein **Bearbeiten**-Button ist gesperrt: Er muss zuerst wieder aktiviert werden.
@@ -39,22 +39,28 @@ Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (Auswah
 
 ## Notschlafstellen
 
-Unter **Einstellungen → Notschlafstellen** werden die Notschlafstellen verwaltet, deren Personenzahl in die Tagesstatistik einfließt.
+Unter **Einstellungen → Notschlafstellen** werden die Notschlafstellen verwaltet. Welche davon an einem Ausgabetag beliefert werden, wird in der [Routenerfassung](logistik.md#notschlafstellen-der-route) je Route festgelegt; von dort fließt ihre Personenzahl in die Tagesstatistik ein.
 
-Jede Notschlafstelle ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Name, Adresse und Personenanzahl, aufgeklappt die vollständige Adresse (inkl. Stiege/Tür), die Personenanzahl, ob es eine **Kochmöglichkeit** gibt, die **Benötigten Lebensmittel**, alle **Kontakte** und den **Hinweis**-Text. Die Telefonnummer eines Kontakts ist ein Link und lässt sich direkt wählen; sind keine Kontakte erfasst, steht dort "Keine Kontakte vorhanden".
+Jede Notschlafstelle ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Name, Adresse und Personenanzahl, aufgeklappt die vollständige Adresse (inkl. Stiege/Tür), die Personenanzahl, den **Bedarf** (Kochmöglichkeit, Tiefkühlware, benötigte und nicht gewünschte Lebensmittel, Einschränkungen und fixe Mengen), alle **Kontakte** und den **Hinweis**-Text. Die Telefonnummer eines Kontakts ist ein Link und lässt sich direkt wählen; sind keine Kontakte erfasst, steht dort "Keine Kontakte vorhanden".
 
 ![Notschlafstellen](images/einstellungen-notschlafstellen.jpg)
 
-Rechts in jeder Zeile stehen der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Notschlafstelle nicht aufgeklappt werden. Eine deaktivierte Notschlafstelle steht bei der Statistik nicht mehr zur Auswahl; im Übrigen gilt [Aktiv und inaktiv](#aktiv-inaktiv).
+Rechts in jeder Zeile stehen der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Notschlafstelle nicht aufgeklappt werden. Eine deaktivierte Notschlafstelle steht in der [Routenerfassung](logistik.md#notschlafstellen-der-route) nicht mehr zur Auswahl; im Übrigen gilt [Aktiv und inaktiv](#aktiv-inaktiv).
 
-Links in jeder Zeile sortiert das Drag-Handle (⋮⋮) die Liste. Diese Reihenfolge gilt nicht nur hier: Sie bestimmt auch die Reihenfolge der Notschlafstellen in der [Übersicht](README.md#übersicht-dashboard) und im Tagesbericht — deshalb steht dieser Hinweis auch über der Liste.
+Links in jeder Zeile sortiert das Drag-Handle (⋮⋮) die Liste. Diese Reihenfolge gilt nicht nur hier: Sie bestimmt auch die Reihenfolge der Notschlafstellen in der Auswahl der [Routenerfassung](logistik.md#notschlafstellen-der-route), im [Routen-Navi](logistik.md#routen-navi), in der [Übersicht](README.md#übersicht-dashboard) und im Tagesbericht — deshalb steht dieser Hinweis auch über der Liste.
 
 Im Bearbeiten-Dialog werden neben Name und Adresse (inkl. optional Stiege/Tür) ein freier **Hinweis**-Text sowie beliebig viele **Kontakte** (Vorname, Nachname, Telefonnummer als Pflichtfeld) über **Kontakt hinzufügen**/**Entfernen** erfasst.
 
-Außerdem hält der Dialog fest, was eine Notschlafstelle üblicherweise braucht – als Hilfe bei der Frage, welche Waren man ihr mitgibt:
+Im Abschnitt **Bedarf** hält der Dialog fest, was eine Notschlafstelle üblicherweise braucht – als Hilfe beim Beladen und für das Fahrer-Team, das diese Angaben im [Routen-Navi](logistik.md#routen-navi) sieht:
 
-- **Kochmöglichkeit vorhanden**: angehakt, wenn die Notschlafstelle eine Küche hat. Ohne Kochmöglichkeit kann sie mit Lebensmitteln, die erst zubereitet werden müssen, wenig anfangen.
-- **Benötigte Lebensmittel**: eine Mehrfachauswahl aus den [Waren-Kategorien](#lebensmittelkategorien). Angeboten werden die aktiven Kategorien; eine inzwischen deaktivierte Kategorie, die bei der Notschlafstelle schon ausgewählt war, bleibt mit dem Zusatz "(inaktiv)" in der Auswahl, bis sie dort abgewählt wird. Ist nichts ausgewählt, steht in der aufgeklappten Zeile "Keine angegeben".
+- **Kochmöglichkeit**: **Ja**, **Nein, nur kalte Speisen** oder **Unbekannt**. Ohne Kochmöglichkeit kann eine Notschlafstelle mit Lebensmitteln, die erst zubereitet werden müssen, wenig anfangen. Eine neue Notschlafstelle startet mit "Unbekannt", damit eine noch nicht erfragte Angabe nicht wie ein "Nein" aussieht.
+- **Nimmt alles**: angehakt, wenn die Notschlafstelle alles nimmt, was es gerade gibt – statt jede Kategorie einzeln auszuwählen.
+- **Kann Tiefkühlware lagern**: angehakt, wenn Tiefkühlware gelagert werden kann (z. B. mit eigenem Tiefkühler).
+- **Benötigte Lebensmittel** und **Nicht gewünscht**: je eine Mehrfachauswahl aus den [Waren-Kategorien](#lebensmittelkategorien), etwa "Backwaren" bei einer Notschlafstelle, die kein Brot möchte. Angeboten werden die aktiven Kategorien; eine inzwischen deaktivierte Kategorie, die bei der Notschlafstelle schon ausgewählt war, bleibt mit dem Zusatz "(inaktiv)" in der Auswahl, bis sie dort abgewählt wird. Ist bei den benötigten Lebensmitteln nichts ausgewählt, steht in der aufgeklappten Zeile "Keine angegeben".
+- **Einschränkungen**: was keine Kategorie ausdrückt, z. B. "kein Schweinefleisch" oder "keine Aufbackware".
+- **Fixe Mengen**: was die Notschlafstelle jedes Mal fix bekommt, z. B. "4 Kisten Schnittbrot".
+
+Alles Weitere – etwa dass der Bedarf jeweils telefonisch erfragt wird – gehört in den **Hinweis**.
 
 ![Notschlafstellen bearbeiten](images/einstellungen-notschlafstellen-kontakte.jpg)
 
@@ -95,7 +101,7 @@ Bis zu seinem Datum lässt sich ein geplanter Betrag über das Stift-Symbol in d
 
 ## Waren-Kategorien
 
-Unter **Einstellungen → Waren-Kategorien** werden die Warenkategorien für die [Warenerfassung](logistik.md) gepflegt. Die Reihenfolge in dieser Liste ist die Reihenfolge, in der die Kategorien dort erscheinen; eine deaktivierte Kategorie verschwindet sofort aus der Warenerfassung, bleibt aber in bereits erfassten Ausgabetagen erhalten (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
+Unter **Einstellungen → Waren-Kategorien** werden die Warenkategorien für die [Routenerfassung](logistik.md) gepflegt. Die Reihenfolge in dieser Liste ist die Reihenfolge, in der die Kategorien dort erscheinen; eine deaktivierte Kategorie verschwindet sofort aus der Routenerfassung, bleibt aber in bereits erfassten Ausgabetagen erhalten (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
 
 Das **Gewicht pro Einheit** rechnet die erfassten Einheiten (z. B. Kisten) in Kilogramm um und bestimmt damit die Warenmenge in allen Statistiken. Es steht in der Liste immer mit seiner Einheit ("9 kg"), und bei der Eingabe hängt "kg" am Eingabefeld — eine Kategorie ohne Gewicht wird eigens als "kein Gewicht - zählt mit 0 kg" ausgewiesen. Das **i**-Symbol neben der Spaltenüberschrift erklärt, was der Wert bewirkt: Eine Änderung wirkt ab der nächsten Erfassung, bereits erfasste Mengen behalten das Gewicht, mit dem sie erfasst wurden — abgeschlossene Ausgabetage und deren Statistiken bleiben also unverändert.
 
@@ -109,11 +115,11 @@ Beim Bearbeiten weist ein Hinweis unter dem Namensfeld darauf hin, dass **Enter*
 
 ## Retour-Kategorien
 
-Unter **Einstellungen → Retour-Kategorien** werden die geläufigen Kistenarten gepflegt, die im Abschnitt [Retourware](logistik.md#retourware) der Warenerfassung als Zähler vorgegeben werden. Sie haben — anders als Waren-Kategorien — kein Gewicht: Retourkisten werden nur gezählt, nie gewogen, und fließen daher auch nicht in die Warenmengen-Statistik ein. Kategorien können bearbeitet und sortiert werden (zum Deaktivieren siehe [Aktiv und inaktiv](#aktiv-inaktiv)); die Reihenfolge bestimmt sowohl die Reihenfolge der Zähler in der Warenerfassung als auch die Reihenfolge in der Retourkisten-E-Mail.
+Unter **Einstellungen → Retour-Kategorien** werden die geläufigen Kistenarten gepflegt, die im Abschnitt [Retourware](logistik.md#retourware) der Routenerfassung als Zähler vorgegeben werden. Sie haben — anders als Waren-Kategorien — kein Gewicht: Retourkisten werden nur gezählt, nie gewogen, und fließen daher auch nicht in die Warenmengen-Statistik ein. Kategorien können bearbeitet und sortiert werden (zum Deaktivieren siehe [Aktiv und inaktiv](#aktiv-inaktiv)); die Reihenfolge bestimmt sowohl die Reihenfolge der Zähler in der Routenerfassung als auch die Reihenfolge in der Retourkisten-E-Mail.
 
-Die Kategorien wirken auf zwei Bildschirme: Sie bestimmen die Zähler im Abschnitt [Retourware](logistik.md#retourware) der Warenerfassung, und ihre Namen erscheinen im [Routen-Navi](logistik.md#routen-navi) in den Hinweisen "Retourware mitnehmen" bzw. "Retourware abgeben". Eine Änderung hier ist also an beiden Stellen zu sehen. Ein Hinweis über der Tabelle grenzt den Bildschirm außerdem gegen die [Lebensmittelkategorien](#lebensmittelkategorien) ab und verlinkt dorthin.
+Die Kategorien wirken auf zwei Bildschirme: Sie bestimmen die Zähler im Abschnitt [Retourware](logistik.md#retourware) der Routenerfassung, und ihre Namen erscheinen im [Routen-Navi](logistik.md#routen-navi) in den Hinweisen "Retourware mitnehmen" bzw. "Retourware abgeben". Eine Änderung hier ist also an beiden Stellen zu sehen. Ein Hinweis über der Tabelle grenzt den Bildschirm außerdem gegen die [Lebensmittelkategorien](#lebensmittelkategorien) ab und verlinkt dorthin.
 
-Kisten, die hier nicht gelistet sind, müssen nicht angelegt werden — sie können in der Warenerfassung jederzeit als "Sonstige Retourware" mit freier Beschreibung erfasst werden.
+Kisten, die hier nicht gelistet sind, müssen nicht angelegt werden — sie können in der Routenerfassung jederzeit als "Sonstige Retourware" mit freier Beschreibung erfasst werden.
 
 Beim Bearbeiten eines Namens weist ein Hinweis unter dem Eingabefeld darauf hin, dass **Enter** speichert und **Esc** abbricht.
 
@@ -123,7 +129,7 @@ Beim Bearbeiten eines Namens weist ein Hinweis unter dem Eingabefeld darauf hin,
 
 ## Fahrzeuge
 
-Unter **Einstellungen → Fahrzeuge** werden die für die [Warenerfassung](logistik.md) verfügbaren Fahrzeuge (Kennzeichen, Name) verwaltet. Fahrzeuge können bearbeitet und sortiert werden; die Reihenfolge dieser Liste ist die Reihenfolge der Fahrzeug-Auswahl in der Warenerfassung. Der **Name** ist die Bezeichnung, die dem Routen-Team dort hinter dem Kennzeichen angezeigt wird (z. B. "W-NC-123 (Kleinbus)").
+Unter **Einstellungen → Fahrzeuge** werden die für die [Routenerfassung](logistik.md) verfügbaren Fahrzeuge (Kennzeichen, Name) verwaltet. Fahrzeuge können bearbeitet und sortiert werden; die Reihenfolge dieser Liste ist die Reihenfolge der Fahrzeug-Auswahl in der Routenerfassung. Der **Name** ist die Bezeichnung, die dem Routen-Team dort hinter dem Kennzeichen angezeigt wird (z. B. "W-NC-123 (Kleinbus)").
 
 Das **Kennzeichen** wird immer in Großbuchstaben gespeichert, damit dasselbe Fahrzeug nicht in mehreren Schreibweisen in der Auswahl landet. Ein Kennzeichen kann nur einmal vergeben werden, auch ein deaktiviertes Fahrzeug zählt dabei mit: Wird beim Anlegen oder Bearbeiten das Kennzeichen eines anderen Fahrzeugs eingegeben, lehnt die Anwendung das Speichern mit einer Meldung ab.
 
@@ -133,11 +139,11 @@ Wird beim Anlegen ein bereits vorhandenes Kennzeichen eingegeben, weist das Fens
 
 ![Bereits vorhandenes Kennzeichen](images/einstellungen-fahrzeuge-duplikat.jpg)
 
-Deaktivierte Fahrzeuge stehen in der Warenerfassung nicht mehr zur Auswahl. Ein Fahrzeug, das bereits in einer Warenerfassung verwendet wurde, wird deshalb nicht gelöscht, sondern bleibt ausgegraut in der Liste stehen und kann dort jederzeit wieder aktiviert werden — mit dem Filter **Inaktiv** zeigt die Liste genau diese Fahrzeuge (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
+Deaktivierte Fahrzeuge stehen in der Routenerfassung nicht mehr zur Auswahl. Ein Fahrzeug, das bereits in einer Routenerfassung verwendet wurde, wird deshalb nicht gelöscht, sondern bleibt ausgegraut in der Liste stehen und kann dort jederzeit wieder aktiviert werden — mit dem Filter **Inaktiv** zeigt die Liste genau diese Fahrzeuge (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
 
 ![Deaktivierte Fahrzeuge](images/einstellungen-fahrzeuge-deaktiviert.jpg)
 
-Über den roten Papierkorb-Button kann ein Fahrzeug endgültig gelöscht werden — unabhängig davon, ob es gerade aktiv oder deaktiviert ist. Das funktioniert nur, solange das Fahrzeug noch in keiner Warenerfassung verwendet wurde; danach lehnt die Anwendung das Löschen ab und weist mit einer Fehlermeldung darauf hin, dass das Fahrzeug bereits verwendet wird. Vor dem Löschen erscheint zur Sicherheit eine Bestätigungsabfrage.
+Über den roten Papierkorb-Button kann ein Fahrzeug endgültig gelöscht werden — unabhängig davon, ob es gerade aktiv oder deaktiviert ist. Das funktioniert nur, solange das Fahrzeug noch in keiner Routenerfassung verwendet wurde; danach lehnt die Anwendung das Löschen ab und weist mit einer Fehlermeldung darauf hin, dass das Fahrzeug bereits verwendet wird. Vor dem Löschen erscheint zur Sicherheit eine Bestätigungsabfrage.
 
 ![Fahrzeug löschen](images/einstellungen-fahrzeuge-loeschen.jpg)
 
@@ -149,13 +155,13 @@ Unter **Einstellungen → Filialen** werden die Geschäfte gepflegt, bei denen W
 
 Jede Filiale ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Nummer, Name, Adresse und Einheit, aufgeklappt die vollständigen Angaben inklusive Adresse mit **Kartenlink**, Telefonnummer (als Link direkt wählbar), Ansprechperson, Hinweis und die Liste der **Stopps** — jede Route, die hier hält, samt Uhrzeit (z. B. "Route 3 (08:15), Route 7 (09:40)"), verlinkt auf [Routen](#routen). Hält keine Route an der Filiale, steht dort "Wird derzeit von keiner Route angefahren". Über der Liste steht neben dem Filter **Alle / Aktiv / Inaktiv** ein **Suchfeld**, das Nummer, Name, Adresse, Ansprechperson, Telefonnummer und Hinweis durchsucht; sortiert ist die Liste stets nach Filialnummer. Ist die Liste durch Suche oder Filter eingeschränkt, zeigt eine Zeile darüber die Trefferzahl (z. B. "14 von 62 Filialen"); passt nichts zur Suche, benennt die Meldung den aktiven Filter (z. B. "Keine inaktiven Filialen gefunden").
 
-Die **Einheit** legt fest, wie die Menge dieser Filiale in der [Warenerfassung](logistik.md) gezählt wird: bei "Kisten" wird die eingegebene Anzahl mit dem Gewicht pro Einheit der jeweiligen [Waren-Kategorie](#lebensmittelkategorien) multipliziert, bei "Kilogramm" ist die Eingabe bereits das Gewicht. Eine falsche Einheit verfälscht daher alle Warenmengen-Statistiken dieser Filiale. Filialen, die in Kilogramm zählen, sind in der Liste farbig hervorgehoben.
+Die **Einheit** legt fest, wie die Menge dieser Filiale in der [Routenerfassung](logistik.md) gezählt wird: bei "Kisten" wird die eingegebene Anzahl mit dem Gewicht pro Einheit der jeweiligen [Waren-Kategorie](#lebensmittelkategorien) multipliziert, bei "Kilogramm" ist die Eingabe bereits das Gewicht. Eine falsche Einheit verfälscht daher alle Warenmengen-Statistiken dieser Filiale. Filialen, die in Kilogramm zählen, sind in der Liste farbig hervorgehoben.
 
 Die **Nummer** muss eindeutig sein; ist sie bereits vergeben, erscheint beim Speichern die Meldung "Filialnummer ... ist bereits vergeben!".
 
 ![Filialen](images/einstellungen-filialen.jpg)
 
-Rechts in jeder Zeile stehen der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Filiale nicht aufgeklappt werden. Eine deaktivierte Filiale steht in der Warenerfassung nicht mehr zur Auswahl, bleibt aber in bereits erfassten Ausgabetagen erhalten — deshalb gibt es bewusst keine Löschfunktion (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
+Rechts in jeder Zeile stehen der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet — dafür muss die Filiale nicht aufgeklappt werden. Eine deaktivierte Filiale steht in der Routenerfassung nicht mehr zur Auswahl, bleibt aber in bereits erfassten Ausgabetagen erhalten — deshalb gibt es bewusst keine Löschfunktion (siehe [Aktiv und inaktiv](#aktiv-inaktiv)).
 
 Hält mindestens eine aktive Route an der zu deaktivierenden Filiale, erscheint vor dem Deaktivieren eine Sicherheitsabfrage, die diese Routen namentlich nennt: Beim Deaktivieren wird die Filiale aus diesen Routen entfernt — die Stopps entfallen ersatzlos. Wird die Filiale später wieder aktiviert, muss sie den [Routen](#routen) neu als Stopp hinzugefügt werden.
 
@@ -185,19 +191,19 @@ Jede Route ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt s
 
 Der Link **Route in Karte öffnen** setzt dieselbe Kartenroute wie das Routen-Navi zusammen — alle Stopps mit Filiale, in der gefahrenen Reihenfolge — und öffnet sie in einem neuen Tab; er ist der schnellste Weg, eine Stopp-Reihenfolge auf Plausibilität zu prüfen. Bei mehr als 10 Stopps mit Filiale deckt die Karte nur die ersten 10 ab; ein Hinweistext darunter nennt, wie viele danach einzeln zu navigieren sind (dieselbe Grenze wie beim Routen-Navi selbst).
 
-Rechts in jeder Zeile stehen — wie bei den [Filialen](#filialen) — der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet; dafür muss die Route nicht aufgeklappt werden. Im Bearbeiten-Dialog wird über **Stopp hinzufügen** je Stopp eine **Uhrzeit**, eine **Filiale** und eine **Beschreibung** erfasst; das Papierkorb-Symbol entfernt einen Stopp wieder. Die Uhrzeit bestimmt die Reihenfolge der Stopps — sowohl in der Routenliste als auch in der [Warenerfassung](logistik.md); eine eigene Sortierung per Drag & Drop gibt es hier daher nicht. Das **Filiale**-Feld ist durchsuchbar und bietet zur Auswahl alle aktiven [Filialen](#filialen); mit "Keine Filiale" lässt sich auch ein Stopp ohne Warenabholung (z. B. eine Pause) eintragen — bei einem solchen Stopp steht in der Liste die Beschreibung anstelle der Filiale.
+Rechts in jeder Zeile stehen — wie bei den [Filialen](#filialen) — der Schalter **Aktiv** und der **Stift-Button**, der den Bearbeiten-Dialog öffnet; dafür muss die Route nicht aufgeklappt werden. Im Bearbeiten-Dialog wird über **Stopp hinzufügen** je Stopp eine **Uhrzeit**, eine **Filiale** und eine **Beschreibung** erfasst; das Papierkorb-Symbol entfernt einen Stopp wieder. Die Uhrzeit bestimmt die Reihenfolge der Stopps — sowohl in der Routenliste als auch in der [Routenerfassung](logistik.md); eine eigene Sortierung per Drag & Drop gibt es hier daher nicht. Das **Filiale**-Feld ist durchsuchbar und bietet zur Auswahl alle aktiven [Filialen](#filialen); mit "Keine Filiale" lässt sich auch ein Stopp ohne Warenabholung (z. B. eine Pause) eintragen — bei einem solchen Stopp steht in der Liste die Beschreibung anstelle der Filiale.
 
 Da Stopps in beliebiger Reihenfolge eingegeben und erst beim Speichern nach Uhrzeit sortiert werden, zeigt der Dialog oberhalb der Stopp-Liste live die **gefahrene Reihenfolge** — so, wie sie das Fahrer-Team später sieht, auch bevor gespeichert wird. Direkt darüber weist ein gelber Hinweis auf auffällige Eingaben hin: eine Filiale, die mehrfach als Stopp eingetragen ist, ein Stopp ohne Uhrzeit oder ein ungewöhnlich kurzer (wenige Minuten) oder ungewöhnlich langer (mehrere Stunden) Zeitabstand zwischen zwei benachbarten Stopps — typische Tippfehler. Dieser Hinweis blockiert das Speichern nicht, sondern macht nur vorab auf eine mögliche Ursache aufmerksam.
 
 ![Routen-Stopps](images/einstellungen-routen-stopps.jpg)
 
-Pro Route darf jede Filiale nur einmal vorkommen und jede Uhrzeit nur einmal vergeben sein; andernfalls erscheint beim Speichern eine entsprechende Meldung. Wie bei den Filialen können Routen deaktiviert statt gelöscht werden: eine deaktivierte Route steht im Routen-Navi und in der Warenerfassung nicht mehr zur Auswahl, bereits erfasste Ausgabetage bleiben aber unverändert.
+Pro Route darf jede Filiale nur einmal vorkommen und jede Uhrzeit nur einmal vergeben sein; andernfalls erscheint beim Speichern eine entsprechende Meldung. Wie bei den Filialen können Routen deaktiviert statt gelöscht werden: eine deaktivierte Route steht im Routen-Navi und in der Routenerfassung nicht mehr zur Auswahl, bereits erfasste Ausgabetage bleiben aber unverändert.
 
 <a id="mitarbeiter"></a>
 
 ## Mitarbeiter
 
-Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Personalnummer, Vorname, Nachname) verwaltet, auf denen die Fahrer/Beifahrer-Zuordnung in der [Warenerfassung](logistik.md) basiert. Mitarbeiter sind vom [Benutzerkonto](benutzer.md) völlig getrennt: Ein Benutzerkonto trägt seine Personalnummer und seinen Namen selbst, und es gibt keine Verbindung zwischen beiden. Ist jemand sowohl Benutzer als auch Fahrer, gibt es zwei Datensätze, die bei Bedarf beide gepflegt werden. Die Liste filtert sich beim Tippen im Suchfeld — es gibt keinen eigenen Such-Button —, gesucht wird nach Personalnummer, Vor- und Nachname, auch beides zusammen ("Max Mustermann"). Wie bei der Kunden- und Benutzersuche spielen Akzente keine Rolle ("Ozturk" findet "Öztürk"), Tippfehler werden toleriert, und die besten Treffer stehen oben, solange nicht nach einer Spalte sortiert wird. Anders als bei Notschlafstellen, Fahrzeugen und Waren-Kategorien gibt es hier keine Aktiv/Inaktiv-Kennzeichnung, dafür können Mitarbeiter jederzeit endgültig gelöscht werden; ein Hinweis über der Liste weist darauf hin.
+Unter **Einstellungen → Mitarbeiter** werden die Mitarbeiterstammdaten (Personalnummer, Vorname, Nachname) verwaltet, auf denen die Fahrer/Beifahrer-Zuordnung in der [Routenerfassung](logistik.md) basiert. Mitarbeiter sind vom [Benutzerkonto](benutzer.md) völlig getrennt: Ein Benutzerkonto trägt seine Personalnummer und seinen Namen selbst, und es gibt keine Verbindung zwischen beiden. Ist jemand sowohl Benutzer als auch Fahrer, gibt es zwei Datensätze, die bei Bedarf beide gepflegt werden. Die Liste filtert sich beim Tippen im Suchfeld — es gibt keinen eigenen Such-Button —, gesucht wird nach Personalnummer, Vor- und Nachname, auch beides zusammen ("Max Mustermann"). Wie bei der Kunden- und Benutzersuche spielen Akzente keine Rolle ("Ozturk" findet "Öztürk"), Tippfehler werden toleriert, und die besten Treffer stehen oben, solange nicht nach einer Spalte sortiert wird. Anders als bei Notschlafstellen, Fahrzeugen und Waren-Kategorien gibt es hier keine Aktiv/Inaktiv-Kennzeichnung, dafür können Mitarbeiter jederzeit endgültig gelöscht werden; ein Hinweis über der Liste weist darauf hin.
 
 Ein Klick auf eine der Spaltenüberschriften Personalnummer, Vorname oder Nachname sortiert die Tabelle danach statt nach der Anlagereihenfolge; ein erneuter Klick auf dieselbe Spalte kehrt die Richtung um.
 
@@ -205,13 +211,13 @@ Ein Klick auf eine der Spaltenüberschriften Personalnummer, Vorname oder Nachna
 
 ![Mitarbeiter](images/einstellungen-mitarbeiter.jpg)
 
-Beim Anlegen sind Personalnummer, Vorname und Nachname Pflichtfelder (max. 50 Zeichen). Ist die eingegebene Personalnummer bereits vergeben, wird das noch während der Eingabe gemeldet ("Personalnummer bereits vergeben") — samt Namen des bestehenden Mitarbeiters und dem Button **Mitarbeiter öffnen**, der den Dialog schließt, die Liste auf diesen Mitarbeiter filtert und ihn zum Bearbeiten öffnet. Dieselbe Prüfung läuft beim Bearbeiten einer Zeile; solange die Nummer vergeben ist, lässt sich nicht speichern. Fahrer und Beifahrer können auch direkt in der [Warenerfassung](logistik.md) angelegt werden — mit denselben Feldern und Regeln, es entsteht derselbe Mitarbeiter-Datensatz.
+Beim Anlegen sind Personalnummer, Vorname und Nachname Pflichtfelder (max. 50 Zeichen). Ist die eingegebene Personalnummer bereits vergeben, wird das noch während der Eingabe gemeldet ("Personalnummer bereits vergeben") — samt Namen des bestehenden Mitarbeiters und dem Button **Mitarbeiter öffnen**, der den Dialog schließt, die Liste auf diesen Mitarbeiter filtert und ihn zum Bearbeiten öffnet. Dieselbe Prüfung läuft beim Bearbeiten einer Zeile; solange die Nummer vergeben ist, lässt sich nicht speichern. Fahrer und Beifahrer können auch direkt in der [Routenerfassung](logistik.md) angelegt werden — mit denselben Feldern und Regeln, es entsteht derselbe Mitarbeiter-Datensatz.
 
 ![Mitarbeiter anlegen](images/einstellungen-mitarbeiter-anlegen.jpg)
 
-Über den roten Papierkorb-Button kann ein Mitarbeiter jederzeit endgültig gelöscht werden — auch wenn er bereits als Fahrer/Beifahrer einer Warenerfassung aufscheint: dieser Verweis wird geleert und zeigt dort stattdessen "Mitarbeiter gelöscht" an. Vor dem Löschen erscheint zur Sicherheit eine Bestätigungsabfrage.
+Über den roten Papierkorb-Button kann ein Mitarbeiter jederzeit endgültig gelöscht werden — auch wenn er bereits als Fahrer/Beifahrer einer Routenerfassung aufscheint: dieser Verweis wird geleert und zeigt dort stattdessen "Mitarbeiter gelöscht" an. Vor dem Löschen erscheint zur Sicherheit eine Bestätigungsabfrage.
 
-Mitarbeiter, die seit zwei Jahren in keiner Warenerfassung mehr als Fahrer/Beifahrer eingetragen wurden (bzw. nie eingetragen waren und seit zwei Jahren angelegt sind), entfernt die Anwendung automatisch (nächtliche Bereinigung); die alten Warenerfassungen bleiben erhalten und zeigen dann "Mitarbeiter gelöscht".
+Mitarbeiter, die seit zwei Jahren in keiner Routenerfassung mehr als Fahrer/Beifahrer eingetragen wurden (bzw. nie eingetragen waren und seit zwei Jahren angelegt sind), entfernt die Anwendung automatisch (nächtliche Bereinigung); die alten Routenerfassungen bleiben erhalten und zeigen dann "Mitarbeiter gelöscht".
 
 ![Mitarbeiter löschen](images/einstellungen-mitarbeiter-loeschen.jpg)
 
@@ -242,6 +248,6 @@ Jeder Abschnitt nennt die geltende Aufbewahrungsfrist und listet, was innerhalb 
 
 - **Benutzerkonten** werden nach einem Jahr ohne Anmeldung gelöscht (Administrator-Konten nie). Die Liste nennt Benutzername (als Link zu den [Benutzerdetails](benutzer.md)), Name, Personalnummer, den letzten Login - bei einem Konto, das sich nie angemeldet hat, das Anlagedatum - und das Datum der Löschung. Eine Anmeldung der Person genügt, damit das Konto bleibt.
 - **Kunden** werden 7 Jahre nach Ablauf ihrer Gültigkeit gelöscht. Die Liste nennt Kundennummer (als Link zur [Kunden-Detailansicht](kunden.md)), Name der Hauptperson, das Ende der Gültigkeit und das Datum der Löschung. Eine Verlängerung der Gültigkeit nimmt den Kunden wieder aus der Liste. Ein Kunde, der wegen eines **Hausverbots** gesperrt ist, steht nie in der Liste und wird nicht gelöscht, solange die Sperre besteht - auch nicht, wenn seine Gültigkeit längst abgelaufen ist.
-- **Mitarbeiter** werden nach zwei Jahren ohne Einsatz als Fahrer:in oder Beifahrer:in in einer Warenerfassung gelöscht. Die Liste nennt Personalnummer, Name, den letzten Einsatz - bei einem nie eingesetzten Mitarbeiter das Anlagedatum - und das Datum der Löschung. Ein Link führt zur Mitarbeiterverwaltung (siehe [Mitarbeiter](#mitarbeiter)), wo sich ein Mitarbeiter auch sofort löschen lässt.
+- **Mitarbeiter** werden nach zwei Jahren ohne Einsatz als Fahrer:in oder Beifahrer:in in einer Routenerfassung gelöscht. Die Liste nennt Personalnummer, Name, den letzten Einsatz - bei einem nie eingesetzten Mitarbeiter das Anlagedatum - und das Datum der Löschung. Ein Link führt zur Mitarbeiterverwaltung (siehe [Mitarbeiter](#mitarbeiter)), wo sich ein Mitarbeiter auch sofort löschen lässt.
 
 Ist die automatische Löschung eines Bereichs abgeschaltet, steht über der Liste zusätzlich der Hinweis "Die automatische Löschung ist deaktiviert." - die Liste selbst bleibt sichtbar und zeigt weiterhin, was gelöscht würde, sobald die Löschung wieder eingeschaltet wird. Die Fristen und die 30 Tage Vorlauf legt die Betreiberin bzw. der Betreiber der Anwendung in der Konfiguration fest.

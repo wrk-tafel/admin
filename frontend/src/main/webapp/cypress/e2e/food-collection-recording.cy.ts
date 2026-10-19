@@ -13,6 +13,52 @@ describe('Food Collection Recording', () => {
     cy.closeDistribution();
   });
 
+  it('picks the shelters of a route, which the drivers see in Routen-Navi and the dashboard takes over', () => {
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+
+    cy.byTestId('food-collection-shelters').click();
+    cy.byTestId('food-collection-shelters-option-1').click();
+    cy.byTestId('food-collection-shelters-option-2').click();
+    cy.checkSelectAccessibility();
+    cy.get('body').type('{esc}');
+    cy.byTestId('route-tab-status-unsaved').should('exist');
+
+    cy.intercept('POST', '/api/food-collections/routes/2/shelters').as('saveShelters');
+    cy.byTestId('save-button').click();
+    cy.wait('@saveShelters').its('request.body').should('deep.equal', {shelterIds: [1, 2]});
+    // the base data is still empty, which the save names - the shelters went out regardless
+    cy.contains('.toast-message', 'Gespeichert').should('be.visible');
+
+    // picked again once the route is loaded anew
+    cy.reload();
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+    cy.byTestId('food-collection-shelters').should('contain.text', 'Shelter 1');
+
+    // the drivers see where the goods go, with what they need to get there
+    cy.window().then(win => win.localStorage.removeItem('tafel.routeGuidance.selectedRouteId'));
+    cy.visit('/logistik/routen-navi');
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+    cy.byTestId('guidance-shelters').should('be.visible');
+    cy.byTestId('guidance-shelter-0').should('contain.text', 'Shelter 1');
+    cy.byTestId('guidance-shelter-details-0').should('not.be.visible');
+    cy.byTestId('guidance-shelter-toggle-0').click();
+    cy.byTestId('guidance-shelter-details-0').should('be.visible').and('contain.text', 'Erdberg');
+    // shelter 1 of the testdata cooks, asks for canned food among others and eats no pork
+    cy.byTestId('guidance-shelter-kitchen-0').should('have.text', 'Ja');
+    cy.byTestId('guidance-shelter-food-categories-0').should('contain.text', 'Konserven');
+    cy.byTestId('guidance-shelter-restrictions-0').should('have.text', 'kein Schweinefleisch');
+    cy.byTestId('guidance-shelter-details-0').find('a[href^="tel:"]').should('exist');
+    cy.byTestId('guidance-shelter-navigate-0').should('have.attr', 'href').and('include', 'google.com/maps');
+    cy.checkAccessibility('[testid="guidance-shelters"]');
+
+    // and the statistics card shows them, read-only
+    cy.visit('/');
+    cy.byTestId('distribution-statistics-persons-in-shelter').should('have.text', '150');
+  });
+
   it('food collection recorded properly on desktop', () => {
     // Uses the global 1024x768 desktop baseline from cypress.config.ts.
 

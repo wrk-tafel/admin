@@ -29,6 +29,7 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
             shelterRequest(
                 hasKitchen = true,
                 foodCategoryIds = listOf(bread.id!!, vegetables.id!!),
+                excludedFoodCategoryIds = listOf(cans.id!!),
                 contacts = listOf(ShelterContactItem(firstname = "Anna", lastname = null, phone = "0664 1")),
             ),
         )
@@ -38,6 +39,7 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
         val reloaded = shelterService.getAllShelters().single { it.id == created.id }
         assertThat(reloaded.hasKitchen).isTrue()
         assertThat(reloaded.foodCategoryIds).containsExactly(vegetables.id, bread.id)
+        assertThat(reloaded.excludedFoodCategoryIds).containsExactly(cans.id)
 
         shelterService.updateShelter(
             created.id!!,
@@ -53,6 +55,7 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
         val updated = shelterService.getAllShelters().single { it.id == created.id }
         assertThat(updated.hasKitchen).isFalse()
         assertThat(updated.foodCategoryIds).containsExactly(cans.id)
+        assertThat(updated.excludedFoodCategoryIds).isEmpty()
         // the contacts are replaced inside the same transaction, which an orphan-removal collection
         // only allows when it is changed in place rather than swapped for a new instance
         assertThat(updated.contacts).extracting<String> { it.phone }.containsExactly("0664 2")
@@ -60,7 +63,12 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
 
     private fun persistFoodCategory(name: String, sortOrder: Int): FoodCategoryEntity = testEntityManager.persistAndFlush(FoodCategoryEntity(name = name, sortOrder = sortOrder))
 
-    private fun shelterRequest(hasKitchen: Boolean, foodCategoryIds: List<Long>, contacts: List<ShelterContactItem>) = ShelterRequest(
+    private fun shelterRequest(
+        hasKitchen: Boolean,
+        foodCategoryIds: List<Long>,
+        contacts: List<ShelterContactItem>,
+        excludedFoodCategoryIds: List<Long> = emptyList(),
+    ) = ShelterRequest(
         id = null,
         name = "IT Shelter",
         addressStreet = "Street",
@@ -76,5 +84,6 @@ class ShelterServiceIT : TafelBaseIntegrationTest() {
         contacts = contacts,
         hasKitchen = hasKitchen,
         foodCategoryIds = foodCategoryIds,
+        excludedFoodCategoryIds = excludedFoodCategoryIds,
     )
 }

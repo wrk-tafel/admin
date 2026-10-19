@@ -1,7 +1,7 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {of} from 'rxjs';
+import {of, throwError} from 'rxjs';
 import {signal} from '@angular/core';
 import {DistributionStatisticsInputComponent} from './distribution-statistics-input.component';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
@@ -67,7 +67,7 @@ describe('DistributionStatisticsInputComponent', () => {
 
     fixture.componentInstance.save();
 
-    expect(distributionApiService.saveStatistic).toHaveBeenCalledWith(5, []);
+    expect(distributionApiService.saveStatistic).toHaveBeenCalledWith(5);
     expect(toastr.success).toHaveBeenCalledWith('Statistik-Daten gespeichert!');
   });
 
@@ -95,5 +95,41 @@ describe('DistributionStatisticsInputComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.employeeCount.value).toBe(7);
+  });
+
+  it('shows an error toast when saving fails', () => {
+    distributionApiService.saveStatistic.mockReturnValue(throwError(() => new Error('failed')));
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.employeeCount.setValue(5);
+
+    fixture.componentInstance.save();
+
+    expect(toastr.error).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
+  });
+
+  it('shows the shelters of the routes of the day and the persons in them, read-only', () => {
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    fixture.componentRef.setInput('shelters', [
+      {name: 'Shelter 1', personsCount: 100},
+      {name: 'Shelter 2', personsCount: 50}
+    ]);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="distribution-statistics-persons-in-shelter"]')!.textContent).toContain('150');
+    expect(element.querySelector('[testid="distribution-statistics-shelter-list"]')!.textContent)
+      .toContain('Shelter 1 (100)');
+    // nothing to pick here - the food collection recording is the one place shelters are chosen
+    expect(element.querySelector('[testid="dashboard-select-shelters-button"]')).toBeNull();
+  });
+
+  it('says that no shelters are assigned yet', () => {
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="distribution-statistics-persons-in-shelter"]')!.textContent).toContain('0');
+    expect(element.querySelector('[testid="distribution-statistics-no-shelters"]')).not.toBeNull();
   });
 });

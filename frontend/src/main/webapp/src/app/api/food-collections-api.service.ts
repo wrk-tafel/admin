@@ -15,6 +15,10 @@ export class FoodCollectionsApiService {
     return this.http.post<void>(`/food-collections/routes/${routeId}`, data);
   }
 
+  saveShelters(routeId: number, data: FoodCollectionSaveSheltersRequest): Observable<void> {
+    return this.http.post<void>(`/food-collections/routes/${routeId}/shelters`, data);
+  }
+
   saveKm(routeId: number, data: FoodCollectionSaveKmRequest): Observable<void> {
     return this.http.post<void>(`/food-collections/routes/${routeId}/km`, data);
   }
@@ -108,4 +112,10 @@ export interface FoodCollectionData {
   kmEnd: number;
   items: FoodCollectionItem[];
   returnItems: FoodCollectionReturnItem[];
+  // the shelters this route delivers to today, in the shelters' own order
+  shelterIds: number[];
+}
+
+export interface FoodCollectionSaveSheltersRequest {
+  shelterIds: number[];
 }

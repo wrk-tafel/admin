@@ -112,6 +112,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
       coDriver: mockEmployees[1],
       kmStart: 100,
       kmEnd: 200,
+      shelterIds: [],
       items: [],
       returnItems: []
     }

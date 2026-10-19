@@ -68,8 +68,8 @@ describe('DistributionApiService', () => {
   });
 
   it('save statistics', () => {
-    const requestBody: SaveDistributionStatisticRequest = {employeeCount: 100, selectedShelterIds: [1, 2, 3]};
-    apiService.saveStatistic(requestBody.employeeCount, requestBody.selectedShelterIds).subscribe();
+    const requestBody: SaveDistributionStatisticRequest = {employeeCount: 100};
+    apiService.saveStatistic(requestBody.employeeCount).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/statistics'});
     req.flush(null);

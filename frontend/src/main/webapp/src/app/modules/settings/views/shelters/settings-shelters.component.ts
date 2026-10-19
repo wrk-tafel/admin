@@ -6,6 +6,7 @@ import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/mat
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {ShelterApiService, ShelterItem} from '../../../../api/shelter-api.service';
 import {FoodCategoriesApiService, FoodCategory} from '../../../../api/food-categories-api.service';
+import {shelterKitchenLabel} from '../../../../common/util/shelter-kitchen.util';
 import {MatIcon} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
@@ -84,11 +85,15 @@ export class SettingsSheltersComponent {
   private readonly foodCategories = signal<FoodCategory[]>([]);
   protected readonly foodCategoryNamesByShelter = computed(() => {
     const names = new Map(this.foodCategories().map(category => [category.id, category.name]));
+    const namesOf = (ids: number[] | undefined) =>
+      (ids ?? []).map(id => names.get(id)).filter((name): name is string => !!name);
     return new Map(this._shelters().map(shelter => [
       shelter.id,
-      (shelter.foodCategoryIds ?? []).map(id => names.get(id)).filter((name): name is string => !!name)
+      {needed: namesOf(shelter.foodCategoryIds), excluded: namesOf(shelter.excludedFoodCategoryIds)}
     ]));
   });
+
+  protected readonly kitchenLabel = shelterKitchenLabel;
 
   protected readonly enabledFilter = signal<EnabledFilter>('ALL');
   /**

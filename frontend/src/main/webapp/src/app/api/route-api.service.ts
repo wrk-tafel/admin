@@ -77,6 +77,32 @@ export interface RouteGuidanceData {
   returnItemsFrom?: string;
   stops: RouteGuidanceStop[];
   unassignedReturnItems: RouteGuidanceReturnItem[];
+  // where the goods go today, as picked in the food collection recording - empty while no
+  // distribution is running or nobody has picked any yet
+  shelters: RouteGuidanceShelter[];
+}
+
+export interface RouteGuidanceShelter {
+  id: number;
+  name: string;
+  address: string;
+  personsCount: number;
+  // null: not known
+  hasKitchen: boolean | null;
+  acceptsEverything: boolean;
+  hasFreezer: boolean;
+  foodCategories: string[];
+  excludedFoodCategories: string[];
+  restrictions?: string;
+  fixedQuantities?: string;
+  contacts: RouteGuidanceShelterContact[];
+  note?: string;
+}
+
+export interface RouteGuidanceShelterContact {
+  firstname?: string;
+  lastname?: string;
+  phone: string;
 }
 
 export interface RouteGuidanceReturnItem {

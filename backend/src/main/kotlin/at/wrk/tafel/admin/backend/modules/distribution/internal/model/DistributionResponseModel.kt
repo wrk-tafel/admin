@@ -49,7 +49,6 @@ data class TicketHouseholdResponse(
 data class DistributionStatisticRequest(
     @field:Positive
     val employeeCount: Int,
-    val selectedShelterIds: List<Long>,
 )
 
 @ExcludeFromTestCoverage

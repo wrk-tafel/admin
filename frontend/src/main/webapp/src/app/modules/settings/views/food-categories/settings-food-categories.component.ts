@@ -109,7 +109,7 @@ export class SettingsFoodCategoriesComponent {
   protected readonly enabledFilter = signal<EnabledFilter>('ALL');
   /**
    * A deactivated category is never deleted, so the list only ever grows - the filter is what keeps
-   * the working list to the categories the Warenerfassung actually offers.
+   * the working list to the categories the Routenerfassung actually offers.
    */
   protected readonly visibleFoodCategories = computed(() =>
     this._foodCategories().filter(category => matchesEnabledFilter(category.enabled, this.enabledFilter()))

@@ -324,7 +324,7 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['LOGISTICS']
   },
   {
-    name: 'Waren-Eingabe',
+    name: 'Routenerfassung',
     url: '/logistik/warenerfassung',
     icon: 'local_shipping',
     permissions: ['LOGISTICS'],

@@ -25,10 +25,10 @@ class DailyReportService(
     }
 
     /**
-     * Reads shelter data straight off `statistic.shelters` - a historized snapshot captured at
-     * statistic-save time - rather than a live `Shelter` lookup, so renaming or deleting a shelter
-     * later doesn't change already-generated PDFs. Same reasoning as the dashboard module's own
-     * `DashboardService`, which reads the same kind of snapshot for the same reason.
+     * Reads shelter data straight off `statistic.shelters` - a historized snapshot taken from the
+     * food collections' shelters when the distribution is closed - rather than a live `Shelter`
+     * lookup, so renaming or deleting a shelter later doesn't change already-generated PDFs. The
+     * dashboard's last-distribution summary reads the same snapshot for the same reason.
      */
     private fun createPdfModel(statistic: DistributionStatisticEntity): DailyReportPdfModel {
         val logoBytes =

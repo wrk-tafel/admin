@@ -89,7 +89,7 @@ class UserExportService(
             PushNotificationType.FOOD_HANDOUT_STARTED to "Warenausgabe gestartet",
             PushNotificationType.ALL_TICKETS_PROCESSED to "Alle Kunden abgearbeitet",
             PushNotificationType.ROUTE_AT_LAST_STOP to "Route beim letzten Stopp",
-            PushNotificationType.FOOD_COLLECTION_COMPLETED to "Warenerfassung abgeschlossen",
+            PushNotificationType.FOOD_COLLECTION_COMPLETED to "Routenerfassung abgeschlossen",
             PushNotificationType.USER_LOCKED_OUT to "Benutzer gesperrt",
             PushNotificationType.REPORT_MAIL_FAILED to "E-Mail nicht versendet",
             PushNotificationType.EXCESSIVE_READ_ACCESS to "Ungewöhnlich viele Zugriffe",

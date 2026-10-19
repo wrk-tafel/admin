@@ -46,6 +46,7 @@ class RouteGuidanceControllerTest {
             returnItemsFrom = null,
             stops = listOf(testStop),
             unassignedReturnItems = emptyList(),
+            shelters = emptyList(),
         )
         every { routeGuidanceService.getGuidance(1) } returns guidance
 

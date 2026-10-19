@@ -167,8 +167,17 @@ CRUD + drag-and-drop reordering for shelters (Notschlafstellen). Loads via
   calls after array mutation — a sign this predates/coexists with signal-based
   change detection elsewhere in the app. Only the phone number is required, so a
   contact can be a bare number and the list renders it without a name.
-- This `sortOrder` is respected outside this module too: the dashboard shelter
-  listing and the daily-report PDF use the same ordering — so reordering here has
+- The dialog's **Bedarf** section edits what the shelter usually needs: `hasKitchen` as a
+  three-way select (`true`/`false`/`null` - a new shelter starts at `null`, "Unbekannt", since an
+  unasked question is not a "no"), `acceptsEverything`, `hasFreezer`, needed and unwanted food
+  categories (`foodCategoryIds`/`excludedFoodCategoryIds`, both offering the active categories plus
+  any deactivated one the shelter already has), and the free texts `restrictions` and
+  `fixedQuantities`. The expanded row shows the same, with `shelterKitchenLabel`
+  (`common/util/shelter-kitchen.util.ts`) shared with Routen-Navi for the kitchen.
+- This `sortOrder` is respected outside this module too: the Routenerfassung's
+  shelter picker, the Routen-Navi's "Notschlafstellen heute" block, the
+  dashboard's statistics card and the daily-report PDF all use the same
+  ordering — so reordering here has
   visible effects well beyond this screen, which is what the caption line above
   the list tells the administrator.
 
@@ -201,7 +210,7 @@ Differences worth knowing:
   contributes nothing to any warehouse statistic.
 - **The screen says what it drives**: the paragraph above the list carries the
   two facts about the list as a whole — the order here is the category order in
-  the Warenerfassung, and deactivating removes a category from that form at once
+  the Routenerfassung, and deactivating removes a category from that form at once
   — while what the weight does is a `tafel-info-tooltip` at the weight column
   itself (`weightExplanation` on the component, one tooltip per layout). It
   belongs there rather than in a third sentence of the intro: on a phone every
@@ -216,7 +225,7 @@ Differences worth knowing:
 
 ## `food-return-categories` (`SettingsFoodReturnCategoriesComponent`)
 
-The crate types offered as counters in the Warenerfassung's Retourware section — the twin of
+The crate types offered as counters in the Routenerfassung's Retourware section — the twin of
 `food-categories`, minus the weight (return crates are counted, never weighed) and minus the
 `returnItem` flag, and with the same inline-edit + dialog-create + optimistic-reorder pattern
 against `FoodReturnCategoriesApiService.reorderFoodReturnCategories()`.
@@ -224,7 +233,7 @@ against `FoodReturnCategoriesApiService.reorderFoodReturnCategories()`.
 Where it goes beyond that twin:
 
 - **The screen says what it drives**: the category order is the counter order in the
-  Warenerfassung, and the names appear in the route guidance's "Retourware mitnehmen/abgeben"
+  Routenerfassung, and the names appear in the route guidance's "Retourware mitnehmen/abgeben"
   hints. Both this screen and `food-categories` also carry a note distinguishing them from each
   other, since they look alike and are one nav entry apart — the two notes link to one another and
   belong together.

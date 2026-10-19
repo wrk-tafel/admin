@@ -1,5 +1,5 @@
 /**
- * Save state of one "Route"/"Waren" tab on the Warenerfassung screen, shown as a badge on the tab
+ * Save state of one "Route"/"Waren" tab on the Routenerfassung screen, shown as a badge on the tab
  * label so the single "Speichern" button's effect is visible before it is pressed - see issue #3225.
  *
  * `undefined` (no badge) means nothing has been entered yet for that tab, which is the normal state

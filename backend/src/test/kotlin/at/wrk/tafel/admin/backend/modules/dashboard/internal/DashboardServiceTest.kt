@@ -20,6 +20,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShopRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsShelter
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
@@ -32,6 +33,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.testRoute3
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute4
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter2
+import at.wrk.tafel.admin.backend.modules.logistics.testShelter3
 import at.wrk.tafel.admin.backend.modules.logistics.testShop1
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
@@ -179,48 +181,33 @@ internal class DashboardServiceTest {
         val data = service.getData()
 
         assertThat(data.statistics!!.employeeCount).isEqualTo(100)
-        assertThat(data.statistics.selectedShelterNames).hasSameElementsAs(
-            listOf(testShelter1.name, testShelter2.name),
-        )
     }
 
     @Test
-    fun `get statistics sorts shelters by their frozen sortOrder, not name`() {
+    fun `get statistics lists the shelters picked for today's routes once each, in their order`() {
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
         }
-        val testStatistic = DistributionStatisticEntity(distribution = testDistributionEntity).apply {
-            employeeCount = 100
-        }
-        testStatistic.shelters = mutableListOf(
-            DistributionStatisticShelterEntity(
-                statistic = testStatistic,
-                name = "Shelter Z",
-                addressStreet = "Street",
-                addressHouseNumber = "1",
-                addressPostalCode = 1234,
-                addressCity = "City",
-                personsCount = 1,
-                sortOrder = 1,
-            ),
-            DistributionStatisticShelterEntity(
-                statistic = testStatistic,
-                name = "Shelter A",
-                addressStreet = "Street",
-                addressHouseNumber = "2",
-                addressPostalCode = 1234,
-                addressCity = "City",
-                personsCount = 1,
-                sortOrder = 2,
-            ),
+        testDistributionEntity.foodCollections = mutableListOf(
+            FoodCollectionEntity(distribution = testDistributionEntity, route = testRoute1).apply {
+                shelters = mutableSetOf(testShelter2, testShelter1)
+            },
+            FoodCollectionEntity(distribution = testDistributionEntity, route = testRoute2).apply {
+                // the same shelter on a second route counts once; one deactivated since it was picked
+                // still counts - it was delivered to
+                shelters = mutableSetOf(testShelter3, testShelter1)
+            },
         )
-        testDistributionEntity.statistic = testStatistic
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val data = service.getData()
 
-        assertThat(data.statistics!!.selectedShelterNames).containsExactly("Shelter Z", "Shelter A")
+        assertThat(data.statistics!!.shelters).containsExactly(
+            DashboardStatisticsShelter(name = testShelter1.name, personsCount = testShelter1.personsCount),
+            DashboardStatisticsShelter(name = testShelter2.name, personsCount = testShelter2.personsCount),
+            DashboardStatisticsShelter(name = testShelter3.name, personsCount = testShelter3.personsCount),
+        )
     }
 
     @Test

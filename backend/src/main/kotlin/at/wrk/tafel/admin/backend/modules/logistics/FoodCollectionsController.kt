@@ -35,6 +35,16 @@ class FoodCollectionsController(
         return ResponseEntity.ok().build()
     }
 
+    @PostMapping("/routes/{routeId}/shelters")
+    @TafelActiveDistributionRequired
+    fun saveFoodCollectionShelters(
+        @PathVariable routeId: Long,
+        @Valid @RequestBody request: FoodCollectionSaveSheltersRequest,
+    ): ResponseEntity<Unit> {
+        foodCollectionService.saveShelters(routeId, request)
+        return ResponseEntity.ok().build()
+    }
+
     @PostMapping("/routes/{routeId}/km")
     @TafelActiveDistributionRequired
     fun saveFoodCollectionKm(

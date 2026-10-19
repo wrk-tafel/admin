@@ -31,9 +31,25 @@ class ShelterEntity(
     var sortOrder: Int,
     @Column(name = "enabled")
     var enabled: Boolean = true,
-    @Column(name = "has_kitchen")
-    var hasKitchen: Boolean = false,
 ) : BaseChangeTrackingEntity() {
+
+    // null while nobody knows - not the same as "no kitchen"
+    @Column(name = "has_kitchen")
+    var hasKitchen: Boolean? = null
+
+    @Column(name = "accepts_everything")
+    var acceptsEverything: Boolean = false
+
+    @Column(name = "has_freezer")
+    var hasFreezer: Boolean = false
+
+    // what no food category expresses, e.g. "kein Schweinefleisch"
+    @Column(name = "restrictions")
+    var restrictions: String? = null
+
+    // standing amounts it gets every time, e.g. "4 Kisten Schnittbrot"
+    @Column(name = "fixed_quantities")
+    var fixedQuantities: String? = null
 
     @Column(name = "address_stairway")
     var addressStairway: String? = null
@@ -55,4 +71,13 @@ class ShelterEntity(
         inverseJoinColumns = [JoinColumn(name = "food_category_id")],
     )
     var foodCategories: MutableSet<FoodCategoryEntity> = mutableSetOf()
+
+    // the food categories this shelter does not want
+    @ManyToMany
+    @JoinTable(
+        name = "shelters_excluded_food_categories",
+        joinColumns = [JoinColumn(name = "shelter_id")],
+        inverseJoinColumns = [JoinColumn(name = "food_category_id")],
+    )
+    var excludedFoodCategories: MutableSet<FoodCategoryEntity> = mutableSetOf()
 }

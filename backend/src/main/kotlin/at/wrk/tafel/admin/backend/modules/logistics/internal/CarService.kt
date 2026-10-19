@@ -79,7 +79,7 @@ class CarService(
             ?: throw NotFoundException("Fahrzeug (ID: $carId) nicht vorhanden!")
 
         if (foodCollectionRepository.existsByCarId(carId)) {
-            throw ConflictException("Fahrzeug wird bereits in einer Warenerfassung verwendet und kann nicht gelöscht werden!")
+            throw ConflictException("Fahrzeug wird bereits in einer Routenerfassung verwendet und kann nicht gelöscht werden!")
         }
 
         carRepository.delete(carEntity)
