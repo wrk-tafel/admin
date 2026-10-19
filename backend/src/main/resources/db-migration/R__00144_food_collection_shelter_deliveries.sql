@@ -5,8 +5,8 @@
 create table if not exists food_collections_shelter_deliveries
 (
     id                   bigint    primary key,
-    created_at           timestamp not null,
-    updated_at           timestamp not null,
+    created_at           timestamptz not null,
+    updated_at           timestamptz not null,
     created_by           bigint    null references users (id) on delete set null,
     updated_by           bigint    null references users (id) on delete set null,
     food_collection_id   bigint    not null references food_collections (id) on delete cascade,
@@ -14,6 +14,29 @@ create table if not exists food_collections_shelter_deliveries
     delivered_by_user_id bigint    null references users (id) on delete set null,
     constraint food_collections_shelter_deliveries_uq unique (food_collection_id, shelter_id)
 );
+
+-- event times are timestamptz (ADR-0054); a database that ran an earlier draft of this script has
+-- them as plain timestamp, written as Europe/Vienna wall-clock time (ADR-0027). Only converted while
+-- still naive - converting a timestamptz column again would shift its values on every re-run.
+DO
+$$
+DECLARE
+    column_name_to_convert text;
+BEGIN
+    FOREACH column_name_to_convert IN ARRAY ARRAY ['created_at', 'updated_at']
+        LOOP
+            IF EXISTS (SELECT 1
+                       FROM information_schema.columns
+                       WHERE table_name = 'food_collections_shelter_deliveries'
+                         AND column_name = column_name_to_convert
+                         AND data_type = 'timestamp without time zone') THEN
+                EXECUTE format(
+                        'alter table food_collections_shelter_deliveries alter column %I type timestamptz using %I at time zone ''Europe/Vienna''',
+                        column_name_to_convert, column_name_to_convert);
+            END IF;
+        END LOOP;
+END
+$$;
 
 create index if not exists food_collections_shelter_deliveries_shelter_id_idx
     on food_collections_shelter_deliveries (shelter_id);
