@@ -1,0 +1,18 @@
+@if (route(); as route) {
+  <section class="mt-6 rounded-lg border border-teal-200 bg-teal-50 p-4 text-teal-950"
+           aria-labelledby="food-collection-shelter-shares-heading" testid="food-collection-shelter-shares">
+    <h3 id="food-collection-shelter-shares-heading" class="tafel-h6 mb-1">Für Notschlafstellen (ca.)</h3>
+    <p class="mb-2 text-sm">
+      Aus dem bisher Erfassten, gleichmäßig pro Person auf die {{ householdPersons() }} angemeldeten Personen
+      und die Notschlafstellen aufgeteilt - fixe Mengen zuerst, ganze Kisten abgerundet.
+    </p>
+    <ul class="m-0 list-none p-0">
+      @for (shelter of route.shelters; track shelter.shelterId; let s = $index) {
+        <li [attr.testid]="'food-collection-shelter-share-' + s">
+          <span class="font-medium">{{ shelter.shelterName }}</span>
+          ({{ shelter.personsCount }} Personen): {{ shareLabel(shelter.items) }}
+        </li>
+      }
+    </ul>
+  </section>
+}

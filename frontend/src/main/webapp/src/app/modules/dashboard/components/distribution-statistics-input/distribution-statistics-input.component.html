@@ -46,6 +46,11 @@
                               text="Ergibt sich aus den Notschlafstellen, die in der Routenerfassung den heutigen Routen zugeordnet werden - geändert wird die Auswahl dort, nicht hier."></tafel-info-tooltip>
         </div>
         <span class="text-2xl font-medium" testid="distribution-statistics-persons-in-shelter">{{ personsInShelterCount() }}</span>
+        @if (shelterShares(); as shares) {
+          <span class="text-sm" testid="distribution-statistics-shelter-share">
+            Für Notschlafstellen: ca. {{ shares.totalBoxes }} {{ shares.totalBoxes === 1 ? 'Kiste' : 'Kisten' }}
+          </span>
+        }
         @if (shelters().length) {
           <ul class="m-0 list-none p-0 text-sm" testid="distribution-statistics-shelter-list">
             @for (shelter of shelters(); track shelter.name) {

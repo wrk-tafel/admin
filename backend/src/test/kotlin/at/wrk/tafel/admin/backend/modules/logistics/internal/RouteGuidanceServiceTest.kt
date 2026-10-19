@@ -62,6 +62,9 @@ class RouteGuidanceServiceTest {
     private lateinit var shelterDeliveryRepository: ShelterDeliveryRepository
 
     @RelaxedMockK
+    private lateinit var shelterShareService: ShelterShareService
+
+    @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
 
     @RelaxedMockK

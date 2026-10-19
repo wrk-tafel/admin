@@ -128,6 +128,9 @@ A few things about it are worth knowing before changing it:
   fixed stops. Unlike a stop tick it is online only - no offline queue - since it happens at the
   shelter's door rather than in a loading dock; a failure is a toast and nothing is applied.
 
+- **"Mitnehmen (ca.)"** in a shelter's expanded row is `shelter.estimatedShare` - the backend's
+  shelter share estimate (see the backend module README), rendered with `formatEstimatedShare`.
+
 ## Food collection recording (`warenerfassung`)
 
 `FoodCollectionRecordingComponent` (`views/food-collection-recording`) is the
@@ -250,6 +253,14 @@ shows it read-only and has it frozen onto the statistic when the distribution cl
   "Nicht gespeichert" unless the base data is already invalid.
 - A shelter deactivated after it was picked stays in the selection, without an
   option of its own.
+
+### Tab 2 — "Für Notschlafstellen (ca.)"
+
+`food-collection-recording-shelter-shares` sits at the end of the "Waren" tab in both layouts and
+shows the backend's shelter share estimate for the selected route (`GET
+/food-collections/shelter-shares`, filtered to this route). It asks again whenever the route's
+snapshot changes and on every completed save - the container's `saveCount` signal, bumped for
+partial saves too - and renders nothing for a route without shelters.
 
 ### Tab 2 — Km (`food-collection-recording-km`)
 

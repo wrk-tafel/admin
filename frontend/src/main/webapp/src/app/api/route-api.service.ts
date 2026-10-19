@@ -1,6 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
+import {ShelterShareItem} from './food-collections-api.service';
 import {FoodUnit} from './shop-api.service';
 
 @Service()
@@ -104,6 +105,8 @@ export interface RouteGuidanceShelter {
   delivered: boolean;
   deliveredAt?: string;
   deliveredBy?: string;
+  // what to take along for it - an estimate from what the routes collected so far
+  estimatedShare: ShelterShareItem[];
 }
 
 export interface RouteGuidanceFixedQuantity {

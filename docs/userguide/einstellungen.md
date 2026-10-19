@@ -106,6 +106,8 @@ Das **Gewicht pro Einheit** rechnet die erfassten Einheiten (z. B. Kisten) in Ki
 
 Ein Hinweis über der Tabelle grenzt den Bildschirm gegen die [Retour-Kategorien](#retourkategorien) ab, die auf den ersten Blick gleich aussehen: Hier werden die abgeholten Waren samt Gewicht gepflegt, dort nur die leeren Kisten, die an die Filiale zurückgehen. Der Link im Hinweis führt direkt auf den jeweils anderen Bildschirm.
 
+Die Spalte **Kochware** markiert Kategorien, die erst gekocht werden müssen, bevor man sie essen kann (z. B. Fleisch). Das Häkchen wird sofort gespeichert. Es zählt bei der [Schätzung für Notschlafstellen](logistik.md#fuer-notschlafstellen): Eine Notschlafstelle ohne Kochmöglichkeit – oder mit unbekannter – bekommt von diesen Kategorien nichts. Beim Anlegen einer Kategorie gibt es dafür das Kästchen **Kochware**.
+
 Beim Bearbeiten weist ein Hinweis unter dem Namensfeld darauf hin, dass **Enter** speichert und **Esc** abbricht; dasselbe steht in den Tooltips der beiden Buttons.
 
 ![Waren-Kategorien](images/einstellungen-lebensmittelkategorien.jpg)

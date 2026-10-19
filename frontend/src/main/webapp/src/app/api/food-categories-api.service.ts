@@ -41,4 +41,6 @@ export interface FoodCategory {
   weightPerUnit: number | null;
   sortOrder: number;
   enabled: boolean;
+  // has to be cooked before it can be eaten - a shelter without a kitchen gets none of it
+  needsCooking?: boolean;
 }

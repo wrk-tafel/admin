@@ -4,6 +4,7 @@ import {TafelDialogComponent} from '../../../../../common/components/tafel-dialo
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatCheckbox} from '@angular/material/checkbox';
 import {MatInputModule} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
 import {FoodCategory} from '../../../../../api/food-categories-api.service';
@@ -12,6 +13,7 @@ import {FoodCategory} from '../../../../../api/food-categories-api.service';
   selector: 'tafel-food-category-create-dialog',
   templateUrl: 'food-category-create-dialog.component.html',
   imports: [
+    MatCheckbox,
     CommonModule,
     TafelDialogComponent,
     ReactiveFormsModule,
@@ -29,6 +31,7 @@ export class FoodCategoryCreateDialogComponent {
     // The backend rejects a negative weight (@PositiveOrZero); caught here so it never becomes a
     // bare "Erstellen fehlgeschlagen" toast with the dialog's content already gone.
     weightPerUnit: [null as number | null, [Validators.required, Validators.min(0)]],
+    needsCooking: [false],
     // Not user-editable here - the backend auto-assigns the actual sort order on create,
     // placing new categories last; reordering afterwards happens via drag-and-drop.
     sortOrder: [0],

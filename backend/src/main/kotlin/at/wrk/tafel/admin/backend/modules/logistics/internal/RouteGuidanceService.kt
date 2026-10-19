@@ -49,6 +49,7 @@ class RouteGuidanceService(
     private val routeStopCompletionRepository: RouteStopCompletionRepository,
     private val foodCollectionRepository: FoodCollectionRepository,
     private val shelterDeliveryRepository: ShelterDeliveryRepository,
+    private val shelterShareService: ShelterShareService,
     private val distributionRepository: DistributionRepository,
     private val userRepository: UserRepository,
     private val eventPublisher: ApplicationEventPublisher,
@@ -207,9 +208,12 @@ class RouteGuidanceService(
         }
         val deliveriesByShelterId = shelterDeliveryRepository.findAllByFoodCollectionIdIn(listOf(collection.id!!))
             .associateBy { it.shelter.id }
+        val sharesByShelterId = shelterShareService.calculate(collection.distribution).routes
+            .flatMap { it.shelters }
+            .associate { it.shelterId to it.items }
         return collection.shelters
             .sortedWith(compareBy({ it.sortOrder }, { it.name }))
-            .map { mapShelter(it, deliveriesByShelterId[it.id]) }
+            .map { mapShelter(it, deliveriesByShelterId[it.id]).copy(estimatedShare = sharesByShelterId[it.id].orEmpty()) }
     }
 
     /**
@@ -227,7 +231,7 @@ class RouteGuidanceService(
         if (!delivered) {
             shelterDeliveryRepository.findByFoodCollectionIdAndShelterId(collection.id!!, shelterId)
                 ?.let { shelterDeliveryRepository.delete(it) }
-            return mapShelter(shelter, null)
+            return mapShelter(shelter, null).copy(estimatedShare = estimatedShare(collection, shelterId))
         }
 
         // see ROUTE_STOP_COMPLETION in setCompletion - the same check-then-act against a UNIQUE pair,
@@ -241,8 +245,15 @@ class RouteGuidanceService(
                     },
                 )
         }
-        return mapShelter(shelter, delivery)
+        // the answer replaces this shelter on the screen, so it has to carry the estimate too
+        return mapShelter(shelter, delivery).copy(estimatedShare = estimatedShare(collection, shelterId))
     }
+
+    private fun estimatedShare(collection: FoodCollectionEntity, shelterId: Long) = shelterShareService.calculate(collection.distribution).routes
+        .flatMap { it.shelters }
+        .firstOrNull { it.shelterId == shelterId }
+        ?.items
+        .orEmpty()
 
     private fun categoryNames(foodCategories: Set<FoodCategoryEntity>): List<String> = foodCategories
         .sortedWith(compareBy({ it.sortOrder }, { it.name }))

@@ -13,6 +13,38 @@ describe('Food Collection Recording', () => {
     cy.closeDistribution();
   });
 
+  it('estimates what goes to the shelters from what the route collected', () => {
+    // route 2 delivers to shelters 1 and 2 and brought back 30 boxes of fruit and vegetables and
+    // 10 of bread; shelter 2 gets 4 boxes of bread every time, shelter 1 wants no bread at all
+    cy.request('POST', '/api/food-collections/routes/2/shelters', {shelterIds: [1, 2]});
+    cy.request('POST', '/api/food-collections/routes/2/items', {
+      items: [{categoryId: 2, shopId: 20, amount: 30}, {categoryId: 1, shopId: 20, amount: 10}]
+    });
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+    cy.byTestId('select-items-tab').click();
+    cy.byTestId('food-collection-shelter-shares').should('be.visible');
+    cy.byTestId('food-collection-shelter-share-0').should('contain.text', 'Kisten Obst / Gemüse')
+      .and('not.contain.text', 'Backwaren');
+    cy.byTestId('food-collection-shelter-share-1').should('contain.text', '4 Kisten Backwaren');
+    cy.checkAccessibility('[testid="food-collection-shelter-shares"]');
+
+    // the drivers see it per shelter, the dashboard as a total
+    cy.window().then(win => win.localStorage.setItem('tafel.routeGuidance.selectedRouteId', '2'));
+    cy.visit('/logistik/routen-navi');
+    cy.byTestId('guidance-shelter-toggle-1').click();
+    cy.byTestId('guidance-shelter-estimate-1').should('contain.text', 'Mitnehmen: ca.').and('contain.text', '4 Kisten Backwaren');
+
+    cy.visit('/');
+    cy.byTestId('distribution-statistics-shelter-share').should('contain.text', 'Für Notschlafstellen: ca.');
+
+    // amounts without base data leave the route incomplete, which would refuse closing the day
+    cy.request('POST', '/api/food-collections/routes/2/items', {
+      items: [{categoryId: 2, shopId: 20, amount: 0}, {categoryId: 1, shopId: 20, amount: 0}]
+    });
+  });
+
   it('picks the shelters of a route, which the drivers see in Routen-Navi and the dashboard takes over', () => {
     cy.byTestId('routeInput').click();
     cy.get('mat-option').contains('Route 2').click();

@@ -1301,6 +1301,8 @@ INSERT INTO shelters_excluded_food_categories (shelter_id, food_category_id)
 VALUES (1, 1);
 INSERT INTO shelters_fixed_quantities (shelter_id, food_category_id, amount, note)
 VALUES (2, 1, 4, 'Schnittbrot');
+-- meat and fish have to be cooked first - a shelter without a kitchen gets none of them
+UPDATE food_categories SET needs_cooking = true WHERE id = 6;
 
 INSERT INTO shelters_contacts (id, created_at, updated_at, shelter_id, firstname, lastname, phone)
 values (1, NOW(), NOW(), 1, null, null, '01 23 45 67 89');

@@ -1,4 +1,7 @@
 import {Component, computed, effect, inject, input, linkedSignal, Signal} from '@angular/core';
+import {toObservable, toSignal} from '@angular/core/rxjs-interop';
+import {catchError, debounceTime, of, switchMap} from 'rxjs';
+import {FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatError, MatFormField, MatLabel} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
@@ -42,6 +45,9 @@ export class DistributionStatisticsInputComponent {
    * routes were told.
    */
   shelters = input<DashboardStatisticsShelter[]>([]);
+  // the dashboard's live data - any change to it (a recorded amount, a registration) can change the
+  // estimate below, so it is what asks again
+  refreshKey = input<unknown>();
 
   form = this.fb.group({
     employeeCount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
@@ -51,6 +57,28 @@ export class DistributionStatisticsInputComponent {
 
   // Panel disabled state derived from distribution - recomputes when distribution changes
   readonly panelDisabled = linkedSignal(() => !this.distribution());
+
+  private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
+
+  private readonly shareRequest = computed(() => ({
+    active: !!this.distribution() && this.shelters().length > 0,
+    refresh: this.refreshKey()
+  }));
+
+  /**
+   * How much of what the routes collected goes to the shelters, in whole boxes - the same estimate
+   * Routen-Navi and the Routenerfassung show per shelter. Debounced: a busy distribution pushes the
+   * dashboard several times a second, and the estimate needs no more than the latest of them.
+   */
+  readonly shelterShares = toSignal(
+    toObservable(this.shareRequest).pipe(
+      debounceTime(300),
+      switchMap(({active}) => active
+        ? this.foodCollectionsApiService.getShelterShares().pipe(catchError(() => of(null)))
+        : of(null)),
+    ),
+    {initialValue: null}
+  );
 
   readonly personsInShelterCount = computed(() =>
     this.shelters().reduce((sum, shelter) => sum + shelter.personsCount, 0)

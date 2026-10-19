@@ -164,6 +164,12 @@
                       <span class="whitespace-pre-line">{{ shelter.note }}</span>
                     </div>
                   }
+                  @if (shelter.estimatedShare.length) {
+                    <!-- an estimate from what the routes collected so far, so labelled "ca." -->
+                    <div class="mt-3 rounded-md bg-teal-50 p-2 text-teal-900" [attr.testid]="'guidance-shelter-estimate-' + i">
+                      <span class="font-medium">Mitnehmen:</span> {{ estimatedShareLabel(shelter) }}
+                    </div>
+                  }
                   <div class="mt-3 flex flex-wrap items-center gap-2">
                     @if (shelter.delivered) {
                       <span class="text-sm text-green-800" [attr.testid]="'guidance-shelter-delivered-label-' + i">{{ deliveredLabel(shelter) }}</span>

@@ -395,6 +395,7 @@ describe('RouteGuidanceComponent', () => {
         excludedFoodCategories: ['Brot'],
         restrictions: 'kein Schweinefleisch',
         delivered: false,
+        estimatedShare: [{foodCategoryId: 2, foodCategory: 'Konserven', boxes: 3}],
         contacts: [{firstname: 'Anna', phone: '0664 1'}],
         note: 'Hintereingang'
       }]
@@ -419,6 +420,8 @@ describe('RouteGuidanceComponent', () => {
     expect(element.querySelector('[testid="guidance-shelter-restrictions-0"]')!.textContent).toContain('kein Schweinefleisch');
     expect(element.querySelector('[testid="guidance-shelter-fixed-quantities-0"]')!.textContent)
       .toContain('4 Kisten Backwaren (Schnittbrot)');
+    expect(element.querySelector('[testid="guidance-shelter-estimate-0"]')!.textContent)
+      .toContain('Mitnehmen: ca. 3 Kisten Konserven');
     expect(details().querySelector('a[href="tel:0664 1"]')).not.toBeNull();
     expect(element.querySelector('[testid="guidance-shelter-navigate-0"]')!.getAttribute('href'))
       .toContain(encodeURIComponent('Erdberg 1, 1030 Wien'));
@@ -428,7 +431,7 @@ describe('RouteGuidanceComponent', () => {
     const shelter: RouteGuidanceShelter = {
       id: 5, name: 'Notschlafstelle Erdberg', address: 'Erdberg 1, 1030 Wien', personsCount: 40,
       hasKitchen: null, hasFreezer: false, fixedQuantities: [], foodCategories: [],
-      excludedFoodCategories: [], contacts: [], delivered: false
+      excludedFoodCategories: [], contacts: [], delivered: false, estimatedShare: []
     };
     routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({...guidance, shelters: [shelter]}));
     routeApiMock.setShelterDelivery = vi.fn(() => of<RouteGuidanceShelter>({

@@ -21,6 +21,9 @@ import {
 import {
   FoodCollectionRecordingSheltersComponent
 } from '../food-collection-recording-shelters/food-collection-recording-shelters.component';
+import {
+  FoodCollectionRecordingShelterSharesComponent
+} from '../food-collection-recording-shelter-shares/food-collection-recording-shelter-shares.component';
 import {ShelterListResponse} from '../../../../api/shelter-api.service';
 import {
   FoodCollectionRecordingKmComponent
@@ -60,6 +63,7 @@ const DESKTOP_BREAKPOINT = '(min-width: 768px)';
     MatIcon,
     FoodCollectionRecordingBasedataComponent,
     FoodCollectionRecordingSheltersComponent,
+    FoodCollectionRecordingShelterSharesComponent,
     FoodCollectionRecordingKmComponent,
     FoodCollectionRecordingItemsDesktopComponent,
     FoodCollectionRecordingItemsResponsiveComponent
@@ -103,6 +107,8 @@ export class FoodCollectionRecordingComponent {
   );
 
   saving = signal<boolean>(false);
+  // bumped by every completed save, partial ones included - the shelter estimate asks again on it
+  protected readonly saveCount = signal(0);
 
   private readonly itemsComponent = computed(() =>
     this.isDesktopLayout() ? this.itemsDesktopComponent() : this.itemsResponsiveComponent()
@@ -301,6 +307,7 @@ export class FoodCollectionRecordingComponent {
     concat(...requests).subscribe({
       complete: () => {
         this.saving.set(false);
+        this.saveCount.update(count => count + 1);
 
         // only the sections that actually had a complete request sent flip their badge back to
         // "complete" - a section skipped for being incomplete stays exactly as invalid as before

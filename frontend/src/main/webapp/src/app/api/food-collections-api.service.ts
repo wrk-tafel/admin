@@ -15,6 +15,11 @@ export class FoodCollectionsApiService {
     return this.http.post<void>(`/food-collections/routes/${routeId}`, data);
   }
 
+  /** How much of what the routes collected goes to today's shelters - an estimate, see the backend's ShelterShareService. */
+  getShelterShares(): Observable<ShelterSharesData | null> {
+    return this.http.get<ShelterSharesData | null>('/food-collections/shelter-shares');
+  }
+
   saveShelters(routeId: number, data: FoodCollectionSaveSheltersRequest): Observable<void> {
     return this.http.post<void>(`/food-collections/routes/${routeId}/shelters`, data);
   }
@@ -118,4 +123,34 @@ export interface FoodCollectionData {
 
 export interface FoodCollectionSaveSheltersRequest {
   shelterIds: number[];
+}
+
+export interface ShelterSharesData {
+  // registered so far - registration runs all day, which is why the result is only an estimate
+  householdPersons: number;
+  shelterPersons: number;
+  // whole boxes across every route and shelter
+  totalBoxes: number;
+  routes: ShelterShareRoute[];
+}
+
+export interface ShelterShareRoute {
+  routeId: number;
+  routeName: string;
+  shelters: ShelterShare[];
+}
+
+export interface ShelterShare {
+  shelterId: number;
+  shelterName: string;
+  personsCount: number;
+  // only categories with at least one box, in the categories' own order
+  items: ShelterShareItem[];
+}
+
+export interface ShelterShareItem {
+  foodCategoryId: number;
+  foodCategory: string;
+  // whole boxes
+  boxes: number;
 }

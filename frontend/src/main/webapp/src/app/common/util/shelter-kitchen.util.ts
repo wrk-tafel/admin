@@ -17,3 +17,10 @@ export function formatFixedQuantity(amount: number, foodCategory: string, note?:
   const boxes = `${amount} ${amount === 1 ? 'Kiste' : 'Kisten'} ${foodCategory}`;
   return note ? `${boxes} (${note})` : boxes;
 }
+
+/** An estimated share as it reads on screen, e.g. "ca. 3 Kisten Obst / Gemüse, 1 Kiste Backwaren". */
+export function formatEstimatedShare(items: {foodCategory: string; boxes: number}[]): string {
+  return 'ca. ' + items
+    .map(item => `${item.boxes} ${item.boxes === 1 ? 'Kiste' : 'Kisten'} ${item.foodCategory}`)
+    .join(', ');
+}

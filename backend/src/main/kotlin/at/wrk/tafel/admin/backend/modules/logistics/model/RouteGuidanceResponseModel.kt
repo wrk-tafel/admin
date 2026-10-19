@@ -80,6 +80,8 @@ data class RouteGuidanceShelter(
     val delivered: Boolean = false,
     val deliveredAt: LocalDateTime? = null,
     val deliveredBy: String? = null,
+    // what to take along for it - an estimate from what the routes collected so far, see ShelterShareService
+    val estimatedShare: List<ShelterShareCategoryItem> = emptyList(),
 )
 
 @ExcludeFromTestCoverage

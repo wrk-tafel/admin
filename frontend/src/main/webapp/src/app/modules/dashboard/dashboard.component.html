@@ -48,7 +48,8 @@
   <div class="grid grid-cols-1 gap-y-2 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:gap-x-2">
     <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'"
                                          [employeeCountInput]="data()?.statistics?.employeeCount"
-                                         [shelters]="data()?.statistics?.shelters ?? []">
+                                         [shelters]="data()?.statistics?.shelters ?? []"
+                                         [refreshKey]="data()">
     </tafel-distribution-statistics-input>
     <tafel-distribution-notes-input class="col-span-2" [initialNotesData]="data()?.notes">
     </tafel-distribution-notes-input>

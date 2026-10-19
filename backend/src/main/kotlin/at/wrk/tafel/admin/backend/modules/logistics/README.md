@@ -152,6 +152,26 @@ DB level — it only governs `modules`-to-`modules` traffic.
   `saveShelters()` drops the deliveries of shelters taken off the route. The last-stop notification
   stays about stops only.
 
+### Shelter share estimate (`internal/ShelterShareService`, `GET /api/food-collections/shelter-shares`)
+- Estimates how much of what the routes collected goes to the shelters picked for today, as whole
+  boxes per shelter and food category (issue #3882) - a rough guide for loading the van, not an
+  allocation. Calculated from the current numbers on every call and never stored, so it cannot go
+  stale and leaves the statistic and the daily report alone.
+- Order of the split, per route: the shelters' `fixedQuantities` first (as far as the category was
+  collected), then the rest of all routes evenly per person - every registered household person
+  (`DistributionEntity.countRegisteredPersons()`, shared with the dashboard) and every shelter person
+  counts the same - with each shelter taking its share from its own route only, scaled down when
+  that route collected less. A shelter only takes categories it needs and does not exclude, and no
+  `FoodCategoryEntity.needsCooking` category unless `hasKitchen == true` (unknown counts as no).
+  Whole boxes, rounded down; the remainders stay with the households.
+- Boxes: a shop counting in boxes contributes its amount; one counting in kg is divided by the
+  category's `weightPerUnit` (a category without one contributes nothing). A shelter picked for
+  several routes is served by the first of them (by route number) only.
+- Read three ways: the endpoint (the Routenerfassung's per-route block, the dashboard's total),
+  and `RouteGuidanceShelter.estimatedShare` in the route guidance, including on a delivery tick's
+  answer. Kept in `logistics` because the dashboard module may not depend on other modules - the
+  dashboard's statistics card asks the endpoint itself.
+
 ### Return boxes overview (`ReturnBoxesController`, `internal/ReturnBoxesService`)
 - Serves the `/logistik/retourkisten` screen for whoever coordinates the routes: `GET /api/return-boxes`
   lists, per route and shop, which boxes are out and since which distribution; `PUT

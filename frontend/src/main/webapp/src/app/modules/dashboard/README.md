@@ -33,7 +33,10 @@ not-excluded additional persons), `tickets` (processed/total), `logistics` (food
 the deliveries confirmed there to the shelters picked for it; `route-progress` appends one lighter
 segment per shelter after the stop segments and shows the shelter count beside the stop count),
 `statistics`
-(current employee count / the shelters today's routes deliver to, each with its persons count),
+(current employee count / the shelters today's routes deliver to, each with its persons count -
+the card also shows the shelter share estimate's total, which it asks `GET
+/food-collections/shelter-shares` for itself, debounced, whenever the dashboard's data changes: the
+card is LOGISTICS-only, and the backend dashboard module may not depend on `logistics`),
 free-text `notes`, `lastDistribution` (a compact summary of the most recently closed distribution)
 and `organizationOverview` (eight organization-wide counts) - see "No active distribution" below for the latter two.
 The template (`dashboard.component.html`) reads `data()` and passes slices of it down as

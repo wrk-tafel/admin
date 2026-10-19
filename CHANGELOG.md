@@ -9,6 +9,8 @@ Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt 
 - Routen-Navi und Übersicht: Das Fahrer-Team bestätigt jede Lieferung an eine Notschlafstelle mit "Geliefert"; die Lieferungen zählen zum Fortschritt der Route - im Routen-Navi im Zähler und auf der Übersicht unter "Routen unterwegs" als zusätzliche Abschnitte.
 - Übersicht → Statistik: Die Notschlafstellen werden hier nicht mehr über den Rechner-Button ausgewählt, sondern aus der Routenerfassung übernommen und nur angezeigt (samt Personen in Notschlafstellen); beim Beenden des Ausgabetags fließen sie in Statistik und Tagesbericht ein.
 - Logistik: Die "Waren-Eingabe" heißt jetzt "Routenerfassung", da dort neben Waren und Kilometerstand auch Fahrzeug, Team und die belieferten Notschlafstellen einer Route erfasst werden; die Adresse der Seite bleibt gleich.
+- Routenerfassung, Routen-Navi und Übersicht: Aus dem, was eine Route gesammelt hat, wird geschätzt, wie viele Kisten an jede ihrer Notschlafstellen gehen - fixe Mengen zuerst, der Rest gleichmäßig pro Person auf Haushalte und Notschlafstellen aufgeteilt; angezeigt im Reiter "Waren" der Routenerfassung, im Routen-Navi unter "Mitnehmen" und auf der Übersicht als Summe.
+- Einstellungen → Waren-Kategorien: Die neue Spalte "Kochware" markiert Kategorien, die erst gekocht werden müssen; Notschlafstellen ohne Kochmöglichkeit bekommen davon bei der Schätzung nichts.
 
 ## [1.35.0] - 2026-10-17
 - Anmeldung und Kundendetails: Ein Doppelklick auf "Ticket löschen" oder "Rückgängig" löscht das Ticket nur noch einmal, statt mehrere Fehlermeldungen ("Interner Serverfehler!", "Löschen des Tickets ... fehlgeschlagen!") zu zeigen, obwohl das Ticket gelöscht wurde.

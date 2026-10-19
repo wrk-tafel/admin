@@ -101,6 +101,19 @@
         </td>
       </ng-container>
 
+      <ng-container matColumnDef="needsCooking">
+        <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">
+          Kochware
+          <tafel-info-tooltip [testId]="'food-categories-needs-cooking-info'" [text]="needsCookingExplanation"/>
+        </th>
+        <td mat-cell *matCellDef="let category; let i = index">
+          <mat-checkbox [checked]="!!category.needsCooking" [disabled]="!category.enabled"
+                        [attr.testid]="'foodCategoryNeedsCooking-' + i"
+                        [aria-label]="'Kochware - Waren-Kategorie ' + category.name"
+                        (change)="toggleNeedsCooking(category, $event.checked)"></mat-checkbox>
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
         <td mat-cell *matCellDef="let category; let i = index">
@@ -175,6 +188,16 @@
                       kein Gewicht - zählt mit 0 kg
                     </span>
                   }
+                </div>
+                <div class="font-bold">
+                  Kochware:
+                  <tafel-info-tooltip [testId]="'food-categories-needs-cooking-info-mobile-' + i" [text]="needsCookingExplanation"/>
+                </div>
+                <div>
+                  <mat-checkbox [checked]="!!category.needsCooking" [disabled]="!category.enabled"
+                                [attr.testid]="'foodCategoryNeedsCookingMobile-' + i"
+                                [aria-label]="'Kochware - Waren-Kategorie ' + category.name"
+                                (change)="toggleNeedsCooking(category, $event.checked)"></mat-checkbox>
                 </div>
               </div>
             </mat-card-content>
