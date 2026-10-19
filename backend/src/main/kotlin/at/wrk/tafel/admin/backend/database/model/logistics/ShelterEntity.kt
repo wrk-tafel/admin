@@ -5,6 +5,9 @@ import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 
@@ -28,6 +31,8 @@ class ShelterEntity(
     var sortOrder: Int,
     @Column(name = "enabled")
     var enabled: Boolean = true,
+    @Column(name = "can_cook")
+    var canCook: Boolean = false,
 ) : BaseChangeTrackingEntity() {
 
     @Column(name = "address_stairway")
@@ -41,4 +46,13 @@ class ShelterEntity(
 
     @OneToMany(mappedBy = "shelter", cascade = [CascadeType.ALL], orphanRemoval = true)
     var contacts: MutableList<ShelterContactEntity> = mutableListOf()
+
+    // the food categories this shelter usually asks for
+    @ManyToMany
+    @JoinTable(
+        name = "shelters_food_categories",
+        joinColumns = [JoinColumn(name = "shelter_id")],
+        inverseJoinColumns = [JoinColumn(name = "food_category_id")],
+    )
+    var foodCategories: MutableSet<FoodCategoryEntity> = mutableSetOf()
 }

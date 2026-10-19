@@ -1279,6 +1279,10 @@ values (1, NOW(), NOW(), 'Shelter 1', 'Erdberg', 1, null, null, '1030', 'Wien', 
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
                       address_door, address_postalCode, address_city, note, persons_count, enabled)
 values (2, NOW(), NOW(), 'Shelter 2 with a very long name', 'Erdberg', 2, '1', '10', '1030', 'Wien', null, 50, true);
+-- what shelter 1 usually needs: it has a kitchen, and asks for vegetables and canned food
+UPDATE shelters SET can_cook = true WHERE id = 1;
+INSERT INTO shelters_food_categories (shelter_id, food_category_id)
+VALUES (1, 2), (1, 7);
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
                       address_door, address_postalCode, address_city, note, persons_count, enabled)
 values (3, NOW(), NOW(), 'Shelter 3', 'Erdberg', 3, null, null, '1030', 'Wien', null, 0, true);

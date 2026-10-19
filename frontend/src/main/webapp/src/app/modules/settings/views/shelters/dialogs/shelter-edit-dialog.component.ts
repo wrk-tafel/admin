@@ -9,9 +9,12 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButton} from '@angular/material/button';
 import {ShelterItem, ShelterContact} from '../../../../../api/shelter-api.service';
 import {MatDividerModule} from '@angular/material/divider';
+import {MatSelectModule} from '@angular/material/select';
+import {FoodCategory} from '../../../../../api/food-categories-api.service';
 
 export interface ShelterEditDialogData {
   shelter?: ShelterItem;
+  foodCategories?: FoodCategory[];
 }
 
 @Component({
@@ -25,7 +28,8 @@ export interface ShelterEditDialogData {
     MatInputModule,
     MatCheckboxModule,
     MatButton,
-    MatDividerModule
+    MatDividerModule,
+    MatSelectModule
   ]
 })
 export class ShelterEditDialogComponent {
@@ -35,6 +39,14 @@ export class ShelterEditDialogComponent {
   private readonly cd = inject(ChangeDetectorRef);
 
   protected readonly title = this.data.shelter ? 'Notschlafstelle bearbeiten' : 'Notschlafstelle anlegen';
+
+  /**
+   * A deactivated food category is no longer offered for a new selection, but one the shelter already
+   * has stays in the list - otherwise it would silently drop out of the selection on the next save.
+   */
+  protected readonly selectableFoodCategories = (this.data.foodCategories ?? []).filter(category =>
+    category.enabled || (this.data.shelter?.foodCategoryIds ?? []).includes(category.id)
+  );
 
   form = this.fb.group({
     id: [this.data.shelter?.id, []],
@@ -48,6 +60,8 @@ export class ShelterEditDialogComponent {
     note: [this.data.shelter?.note ?? ''],
     personsCount: [this.data.shelter?.personsCount ?? '', [Validators.required]],
     enabled: [this.data.shelter?.enabled ?? true],
+    canCook: [this.data.shelter?.canCook ?? false],
+    foodCategoryIds: [this.data.shelter?.foodCategoryIds ?? []],
     // Not user-editable here - preserved as-is on edit, auto-assigned by the backend on
     // create; reordering afterwards happens via drag-and-drop.
     sortOrder: [this.data.shelter?.sortOrder ?? 0],

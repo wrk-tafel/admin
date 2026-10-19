@@ -156,24 +156,27 @@ DB level — it only governs `modules`-to-`modules` traffic.
 
 ### Shelters (`SheltersController`, `internal/ShelterService`)
 - `ShelterEntity` (`shelters`) holds a full address (street/house number/stairway/door/postal
-  code/city), a `personsCount`, an `enabled` flag, and `sortOrder` (added recently alongside
-  drag-and-drop reordering in the UI). Contacts are a `@OneToMany` to `ShelterContactEntity`
-  (table `shelters_contacts`) with `cascade = [CascadeType.ALL], orphanRemoval = true`.
-- **Contacts are wholesale-replaced on every update**, not diffed: `updateShelter()` builds a
-  fresh `mutableList` of brand-new `ShelterContactEntity` instances and assigns it to
-  `shelterEntity.contacts`. This only works correctly because of `orphanRemoval = true` — it's
-  what causes Hibernate to delete the previously-attached contact rows that are no longer
-  referenced. If that cascade setting is ever removed, this update logic will silently leak
-  orphaned contact rows instead of failing loudly.
+  code/city), a `personsCount`, an `enabled` flag, and `sortOrder` (drag-and-drop reordering in
+  the UI). Contacts are a `@OneToMany` to `ShelterContactEntity` (table `shelters_contacts`) with
+  `cascade = [CascadeType.ALL], orphanRemoval = true`.
+- What a shelter usually needs: `canCook` (`shelters.can_cook`) and `foodCategories`, a
+  `@ManyToMany` to `FoodCategoryEntity` over the plain join table `shelters_food_categories` (no
+  entity, no sequence). On the wire it is `foodCategoryIds` in both directions, returned in the
+  categories' own `(sortOrder, name)` order; an unknown id is a `400`. The settings screen resolves
+  the names from `GET /api/food-categories`, deactivated categories included, since a shelter keeps
+  a category that was deactivated after it was picked.
+- **Contacts and food categories are wholesale-replaced on every update**, not diffed:
+  `updateShelter()` clears both collections and adds the new elements in place. In place, because
+  the method is `@Transactional` and the entity therefore managed - assigning a new collection
+  instance to an `orphanRemoval` association is what Hibernate refuses on flush ("A collection with
+  orphan deletion was no longer referenced"). `orphanRemoval = true` is what deletes the contact rows
+  that were cleared; without it, this update logic would silently leak orphaned contact rows.
 - Sort order pattern (identical to food categories, see below): `createShelter()` calls
   `nextSortOrder()` = `(max existing sortOrder ?: 0) + 1`; `reorderShelters(shelterIds)`
   re-numbers strictly by the order the client sent, `index + 1`, with no gap-preservation.
   `getActiveShelters()`/`getAllShelters()` both sort by `(sortOrder, name)`.
-- **No `LOGISTICS`/`SETTINGS` permission gate on this controller** — `SheltersController` is
-  annotated only `@PreAuthorize("isAuthenticated()")` at the class level, so *any* logged-in user
-  can create/update/reorder shelters, unlike food categories (see below) which require
-  `SETTINGS`. Confirm this is intentional before assuming permission parity across logistics
-  sub-areas.
+- `GET /api/shelters/active` (the dashboard's shelter picker) is open to any logged-in user;
+  everything else - the full list, create, update, reorder - requires `SETTINGS`.
 - Shelters are read cross-module (via `ShelterRepository` directly, bypassing `ShelterService`)
   by `reporting.DailyReportService` and `distribution.DistributionService` — e.g. the "respect
   shelter sortOrder in dashboard/daily report PDF" behavior lives in those consumers, not here.

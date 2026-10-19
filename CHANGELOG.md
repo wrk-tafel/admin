@@ -3,6 +3,9 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Einstellungen → Notschlafstellen: Je Notschlafstelle lässt sich jetzt festhalten, ob sie eine Kochmöglichkeit hat und welche Waren-Kategorien sie üblicherweise benötigt; beides steht in der aufgeklappten Zeile.
+
+## [1.35.0] - 2026-10-17
 - Anmeldung und Kundendetails: Ein Doppelklick auf "Ticket löschen" oder "Rückgängig" löscht das Ticket nur noch einmal, statt mehrere Fehlermeldungen ("Interner Serverfehler!", "Löschen des Tickets ... fehlgeschlagen!") zu zeigen, obwohl das Ticket gelöscht wurde.
 - Ein Tab, der über ein Update hinweg offen geblieben ist, lädt eine Seite, deren Programmteile es nicht mehr gibt, jetzt einmal automatisch neu, statt das Öffnen stillschweigend zu verweigern; außerdem erscheint der Hinweis "Eine neue Version ist verfügbar" (und das automatische Neuladen des Ticketmonitors) jetzt zuverlässig.
 - Kunden → Kunden suchen: Während einer Ausgabe führt das neue Feld "Ticketnummer der laufenden Ausgabe" direkt zum Kunden, der dieses Ticket erhalten hat - etwa wenn ein Kunde nur mit seiner Ticketnummer kommt.

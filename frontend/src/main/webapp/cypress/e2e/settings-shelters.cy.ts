@@ -53,6 +53,37 @@ describe('Settings - Shelters', () => {
     });
   });
 
+  it('records whether a shelter can cook and the food categories it needs', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const name = 'Cooking Shelter ' + randomId;
+      cy.byTestId('addShelterButton').click();
+
+      cy.get('input[formControlName="name"]').should('be.visible').type(name);
+      cy.get('input[formControlName="addressStreet"]').type('Kitchen Street');
+      cy.get('input[formControlName="addressHouseNumber"]').type('3');
+      cy.get('input[formControlName="addressPostalCode"]').type('1030');
+      cy.get('input[formControlName="addressCity"]').type('Wien');
+      cy.get('input[formControlName="personsCount"]').type('12');
+
+      cy.byTestId('shelter-can-cook').find('input[type="checkbox"]').check();
+      cy.byTestId('shelter-food-categories').click();
+      cy.contains('mat-option', 'Konserven').click();
+      cy.contains('mat-option', 'Backwaren').click();
+      cy.get('body').type('{esc}');
+
+      cy.intercept('POST', '/api/shelters').as('createShelter');
+      cy.contains('Speichern').click();
+      cy.wait('@createShelter').its('request.body').should('deep.include', {canCook: true});
+
+      cy.byTestId('shelters-list').contains('[testid^="shelters-row-"]', name).as('row');
+      cy.get('@row').find('[testid^="shelters-toggle-"]').click();
+      cy.get('@row').find('[testid^="shelter-can-cook-"]').should('have.text', 'Ja');
+      cy.get('@row').find('[testid^="shelter-food-categories-"]')
+        .should('contain.text', 'Backwaren')
+        .and('contain.text', 'Konserven');
+    });
+  });
+
   it('edits a shelter', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       // The edit button sits in the collapsed header row, so editing needs no expanding. A disabled
@@ -151,6 +182,13 @@ describe('Settings - Shelters', () => {
       cy.get('input[formControlName="firstname"]').should('be.visible');
 
       cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while the food category selection of the edit dialog is open', () => {
+      cy.byTestId('addShelterButton').click();
+      cy.byTestId('shelter-food-categories').click();
+
+      cy.checkSelectAccessibility();
     });
 
   });

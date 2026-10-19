@@ -1,9 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterRequest
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ShelterService(
     private val shelterRepository: ShelterRepository,
+    private val foodCategoryRepository: FoodCategoryRepository,
 ) {
 
     companion object {
@@ -32,6 +36,7 @@ class ShelterService(
         .map { mapShelter(it) }
         .sortedWith(compareBy({ it.sortOrder }, { it.name }))
 
+    @Transactional
     fun createShelter(shelter: ShelterRequest): ShelterResponse {
         val shelterEntity = ShelterEntity(
             name = shelter.name,
@@ -42,10 +47,12 @@ class ShelterService(
             personsCount = shelter.personsCount,
             sortOrder = nextSortOrder(),
             enabled = shelter.enabled,
+            canCook = shelter.canCook,
         ).apply {
             addressStairway = shelter.addressStairway?.takeIf { it.isNotBlank() }?.trim()
             addressDoor = shelter.addressDoor?.takeIf { it.isNotBlank() }?.trim()
             note = shelter.note
+            foodCategories = findFoodCategories(shelter.foodCategoryIds)
         }
 
         // attach contacts
@@ -81,8 +88,13 @@ class ShelterService(
                 phone = it.phone,
             )
         },
+        canCook = shelterEntity.canCook,
+        foodCategoryIds = shelterEntity.foodCategories
+            .sortedWith(compareBy({ it.sortOrder }, { it.name }))
+            .map { it.id!! },
     )
 
+    @Transactional
     fun updateShelter(shelterId: Long, updatedShelter: ShelterRequest): ShelterResponse {
         val shelterEntity = shelterRepository.findByIdOrNull(shelterId)
             ?: throw NotFoundException("Shelter with id $shelterId not found")
@@ -98,14 +110,23 @@ class ShelterService(
         shelterEntity.personsCount = updatedShelter.personsCount
         shelterEntity.enabled = updatedShelter.enabled
         shelterEntity.sortOrder = updatedShelter.sortOrder
+        shelterEntity.canCook = updatedShelter.canCook
 
-        // replace contacts
-        shelterEntity.contacts = updatedShelter.contacts.map { contact ->
-            ShelterContactEntity(shelter = shelterEntity, phone = contact.phone).apply {
-                firstname = contact.firstname
-                lastname = contact.lastname
-            }
-        }.toMutableList()
+        // replaced in place - the entity is managed here, and swapping out an orphan-removal
+        // collection for a new instance is something Hibernate refuses on flush
+        val foodCategories = findFoodCategories(updatedShelter.foodCategoryIds)
+        shelterEntity.foodCategories.clear()
+        shelterEntity.foodCategories.addAll(foodCategories)
+
+        shelterEntity.contacts.clear()
+        shelterEntity.contacts.addAll(
+            updatedShelter.contacts.map { contact ->
+                ShelterContactEntity(shelter = shelterEntity, phone = contact.phone).apply {
+                    firstname = contact.firstname
+                    lastname = contact.lastname
+                }
+            },
+        )
 
         val savedEntity = shelterRepository.save(shelterEntity)
         log.info("Updated shelter {} ({})", savedEntity.id, sanitizeForLog(savedEntity.name))
@@ -122,6 +143,16 @@ class ShelterService(
             shelterRepository.save(entity)
         }
         log.info("Reordered shelters: {}", shelterIds)
+    }
+
+    private fun findFoodCategories(foodCategoryIds: List<Long>): MutableSet<FoodCategoryEntity> {
+        val requestedIds = foodCategoryIds.toSet()
+        val foodCategories = foodCategoryRepository.findAllById(requestedIds)
+        val unknownIds = requestedIds - foodCategories.mapNotNull { it.id }.toSet()
+        if (unknownIds.isNotEmpty()) {
+            throw BusinessRuleException("Unknown food categories: $unknownIds")
+        }
+        return foodCategories.toMutableSet()
     }
 
     private fun nextSortOrder(): Int = (shelterRepository.findAll().maxOfOrNull { it.sortOrder } ?: 0) + 1

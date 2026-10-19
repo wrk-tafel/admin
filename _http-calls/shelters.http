@@ -19,6 +19,8 @@ Content-Type: application/json
   "note": null,
   "personsCount": 10,
   "enabled": true,
+  "canCook": true,
+  "foodCategoryIds": [2, 7],
   "contacts": [
     {
       "firstname": "Max",
@@ -44,6 +46,8 @@ Content-Type: application/json
   "note": null,
   "personsCount": 10,
   "enabled": true,
+  "canCook": true,
+  "foodCategoryIds": [2, 7],
   "contacts": [
     {
       "firstname": "Max",

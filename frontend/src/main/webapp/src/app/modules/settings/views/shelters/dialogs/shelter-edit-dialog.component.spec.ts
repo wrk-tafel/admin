@@ -3,6 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {ShelterEditDialogComponent} from './shelter-edit-dialog.component';
 import {ShelterItem} from '../../../../../api/shelter-api.service';
+import {FoodCategory} from '../../../../../api/food-categories-api.service';
 
 describe('ShelterEditDialogComponent', () => {
   let dialogRef: MockedObject<MatDialogRef<ShelterEditDialogComponent>>;
@@ -19,8 +20,15 @@ describe('ShelterEditDialogComponent', () => {
     personsCount: 2,
     enabled: true,
     sortOrder: 1,
-    contacts: [{ firstname: 'John', lastname: 'Doe', phone: '123' }]
+    contacts: [{ firstname: 'John', lastname: 'Doe', phone: '123' }],
+    canCook: true,
+    foodCategoryIds: [2]
   };
+  const foodCategories: FoodCategory[] = [
+    {id: 1, name: 'Backwaren', weightPerUnit: null, sortOrder: 1, enabled: true},
+    {id: 2, name: 'Konserven', weightPerUnit: null, sortOrder: 2, enabled: false},
+    {id: 3, name: 'Tiefkühl', weightPerUnit: null, sortOrder: 3, enabled: false}
+  ];
 
   beforeEach(async () => {
     dialogRef = {
@@ -30,7 +38,7 @@ describe('ShelterEditDialogComponent', () => {
     await TestBed.configureTestingModule({
       providers: [
         {provide: MatDialogRef, useValue: dialogRef},
-        {provide: MAT_DIALOG_DATA, useValue: {shelter: testShelter}}
+        {provide: MAT_DIALOG_DATA, useValue: {shelter: testShelter, foodCategories}}
       ]
     }).compileComponents();
   });
@@ -64,11 +72,19 @@ describe('ShelterEditDialogComponent', () => {
       addressCity: testShelter.addressCity,
       note: testShelter.note,
       personsCount: testShelter.personsCount,
-      enabled: true
+      enabled: true,
+      canCook: true,
+      foodCategoryIds: [2]
     });
 
     expect(component.contacts.length).toBe(1);
     expect(component.contacts.at(0).value).toMatchObject({ firstname: 'John', lastname: 'Doe', phone: '123' });
+  });
+
+  it('offers the active food categories plus a deactivated one the shelter already has', () => {
+    const fixture = TestBed.createComponent(ShelterEditDialogComponent);
+
+    expect((fixture.componentInstance as any).selectableFoodCategories.map((c: FoodCategory) => c.id)).toEqual([1, 2]);
   });
 
   it('can add and remove contacts', () => {
@@ -122,5 +138,11 @@ describe('ShelterEditDialogComponent (create mode - no shelter passed)', () => {
     const fixture = TestBed.createComponent(ShelterEditDialogComponent);
 
     expect((fixture.componentInstance as any).title).toBe('Notschlafstelle anlegen');
+  });
+
+  it('starts a new shelter without a kitchen and without food categories', () => {
+    const fixture = TestBed.createComponent(ShelterEditDialogComponent);
+
+    expect(fixture.componentInstance.form.value).toMatchObject({canCook: false, foodCategoryIds: []});
   });
 });

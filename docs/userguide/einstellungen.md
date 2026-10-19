@@ -41,7 +41,7 @@ Im Abschnitt "E-Mails erneut senden" kann für eine ausgewählte Ausgabe (Auswah
 
 Unter **Einstellungen → Notschlafstellen** werden die Notschlafstellen verwaltet, deren Personenzahl in die Tagesstatistik einfließt.
 
-Jede Notschlafstelle ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Name, Adresse und Personenanzahl, aufgeklappt die vollständige Adresse (inkl. Stiege/Tür), die Personenanzahl, alle **Kontakte** und den **Hinweis**-Text. Die Telefonnummer eines Kontakts ist ein Link und lässt sich direkt wählen; sind keine Kontakte erfasst, steht dort "Keine Kontakte vorhanden".
+Jede Notschlafstelle ist eine eigene Zeile, die sich aufklappen lässt: zugeklappt zeigt sie Name, Adresse und Personenanzahl, aufgeklappt die vollständige Adresse (inkl. Stiege/Tür), die Personenanzahl, ob es eine **Kochmöglichkeit** gibt, die **Benötigten Lebensmittel**, alle **Kontakte** und den **Hinweis**-Text. Die Telefonnummer eines Kontakts ist ein Link und lässt sich direkt wählen; sind keine Kontakte erfasst, steht dort "Keine Kontakte vorhanden".
 
 ![Notschlafstellen](images/einstellungen-notschlafstellen.jpg)
 
@@ -50,6 +50,11 @@ Rechts in jeder Zeile stehen der Schalter **Aktiv** und der **Stift-Button**, de
 Links in jeder Zeile sortiert das Drag-Handle (⋮⋮) die Liste. Diese Reihenfolge gilt nicht nur hier: Sie bestimmt auch die Reihenfolge der Notschlafstellen in der [Übersicht](README.md#übersicht-dashboard) und im Tagesbericht — deshalb steht dieser Hinweis auch über der Liste.
 
 Im Bearbeiten-Dialog werden neben Name und Adresse (inkl. optional Stiege/Tür) ein freier **Hinweis**-Text sowie beliebig viele **Kontakte** (Vorname, Nachname, Telefonnummer als Pflichtfeld) über **Kontakt hinzufügen**/**Entfernen** erfasst.
+
+Außerdem hält der Dialog fest, was eine Notschlafstelle üblicherweise braucht – als Hilfe bei der Frage, welche Waren man ihr mitgibt:
+
+- **Kochmöglichkeit vorhanden**: angehakt, wenn die Notschlafstelle eine Küche hat. Ohne Kochmöglichkeit kann sie mit Lebensmitteln, die erst zubereitet werden müssen, wenig anfangen.
+- **Benötigte Lebensmittel**: eine Mehrfachauswahl aus den [Waren-Kategorien](#lebensmittelkategorien). Angeboten werden die aktiven Kategorien; eine inzwischen deaktivierte Kategorie, die bei der Notschlafstelle schon ausgewählt war, bleibt mit dem Zusatz "(inaktiv)" in der Auswahl, bis sie dort abgewählt wird. Ist nichts ausgewählt, steht in der aufgeklappten Zeile "Keine angegeben".
 
 ![Notschlafstellen bearbeiten](images/einstellungen-notschlafstellen-kontakte.jpg)
 
@@ -85,8 +90,6 @@ Ein so hinterlegter Betrag steht in der Spalte **Geplant** neben dem aktuellen, 
 Bis zu seinem Datum lässt sich ein geplanter Betrag über das Stift-Symbol in der Spalte **Geplant** ändern (Betrag und Datum) oder über das Papierkorb-Symbol wieder entfernen – dann gilt der aktuelle Betrag einfach weiter. Wird das Datum eines geplanten Betrags auf heute gesetzt, gilt er sofort, und der Plan entfällt. Pro Wert gibt es höchstens einen geplanten Betrag: Wird beim aktuellen Betrag erneut ein späteres Datum gewählt, ersetzt das den bisher geplanten.
 
 Über **Kunden über Limit ansehen** gelangt man direkt zu [Kunden über Limit](kunden.md#kunden-über-limit), also zu jenen Kunden, die mit diesen Werten aktuell über dem Limit liegen. **Wer hat zuletzt geändert?** öffnet das [Zugriffsprotokoll](zugriffsprotokoll.md), gefiltert auf die Änderungen an diesen Werten. Beide Links sind nur mit der jeweiligen Berechtigung sichtbar.
-
-<a id="lebensmittelkategorien"></a>
 
 <a id="lebensmittelkategorien"></a>
 

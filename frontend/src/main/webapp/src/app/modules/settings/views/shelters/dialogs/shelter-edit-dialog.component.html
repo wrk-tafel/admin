@@ -41,7 +41,20 @@
         <input matInput type="number" formControlName="personsCount"/>
       </mat-form-field>
 
-      <mat-checkbox formControlName="enabled" class="mb-6">Aktiv</mat-checkbox>
+      <mat-checkbox formControlName="enabled" class="mb-2">Aktiv</mat-checkbox>
+
+      <mat-checkbox formControlName="canCook" class="mb-6" testid="shelter-can-cook">Kochmöglichkeit vorhanden</mat-checkbox>
+
+      <mat-form-field>
+        <mat-label>Benötigte Lebensmittel</mat-label>
+        <mat-select formControlName="foodCategoryIds" multiple testid="shelter-food-categories">
+          @for (category of selectableFoodCategories; track category.id) {
+            <mat-option [value]="category.id">
+              {{ category.name }}@if (!category.enabled) { (inaktiv)}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
 
       <mat-form-field>
         <mat-label>Hinweis</mat-label>
