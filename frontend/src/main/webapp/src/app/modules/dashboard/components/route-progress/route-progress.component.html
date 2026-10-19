@@ -12,18 +12,29 @@
           <span class="min-w-0 max-w-[45%] truncate font-semibold">{{ route.routeName }}</span>
           <!-- one segment per stop rather than a single filled bar: at a glance it says how many
                stops a route has and how many of them are behind it, not just a percentage -->
+          <!-- the shelters of the day follow the stops in a lighter shade: they are no stops of the
+               route, but delivering to them is part of how far it has got -->
           <div class="flex flex-1 gap-0.5" role="progressbar" [attr.aria-label]="route.label"
-               aria-valuemin="0" [attr.aria-valuemax]="route.totalStops"
-               [attr.aria-valuenow]="route.completedStops"
+               aria-valuemin="0" [attr.aria-valuemax]="route.total"
+               [attr.aria-valuenow]="route.completed"
                [attr.testid]="'route-progress-segments-' + route.routeId">
             @for (segment of route.segments; track $index) {
               <span class="h-2 flex-1 rounded-sm"
-                    [class.bg-green-700]="segment" [class.bg-slate-300]="!segment"></span>
+                    [class.bg-green-700]="segment.done && !segment.shelter"
+                    [class.bg-teal-500]="segment.done && segment.shelter"
+                    [class.bg-slate-300]="!segment.done"
+                    [attr.testid]="segment.shelter ? 'route-progress-shelter-segment' : null"></span>
             }
           </div>
           <span class="tabular-nums" [attr.testid]="'route-progress-count-' + route.routeId">
             {{ route.completedStops }} / {{ route.totalStops }}
           </span>
+          @if (route.totalShelters > 0) {
+            <span class="flex items-center gap-0.5 tabular-nums" [attr.testid]="'route-progress-shelters-' + route.routeId">
+              <mat-icon svgIcon="home" class="!h-4 !w-4" aria-hidden="true"></mat-icon>
+              {{ route.completedShelters }} / {{ route.totalShelters }}
+            </span>
+          }
         </li>
       }
     </ul>

@@ -77,6 +77,15 @@ data class RouteGuidanceShelter(
     val fixedQuantities: String?,
     val contacts: List<ShelterContactItem>,
     val note: String?,
+    // confirmed by the driver today - counted into the route's progress next to the ticked stops
+    val delivered: Boolean = false,
+    val deliveredAt: LocalDateTime? = null,
+    val deliveredBy: String? = null,
+)
+
+@ExcludeFromTestCoverage
+data class RouteShelterDeliveryRequest(
+    val delivered: Boolean,
 )
 
 @ExcludeFromTestCoverage

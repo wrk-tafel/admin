@@ -31,6 +31,10 @@ export class RouteApiService {
     return this.http.get<RouteGuidanceData>(`/routes/${routeId}/guidance`);
   }
 
+  setShelterDelivery(routeId: number, shelterId: number, delivered: boolean): Observable<RouteGuidanceShelter> {
+    return this.http.put<RouteGuidanceShelter>(`/routes/${routeId}/guidance/shelters/${shelterId}`, {delivered});
+  }
+
   setStopCompletion(routeId: number, stopId: number, completed: boolean): Observable<RouteGuidanceStop> {
     return this.http.put<RouteGuidanceStop>(`/routes/${routeId}/guidance/stops/${stopId}`, {completed});
   }
@@ -97,6 +101,10 @@ export interface RouteGuidanceShelter {
   fixedQuantities?: string;
   contacts: RouteGuidanceShelterContact[];
   note?: string;
+  // confirmed by the driver today - counts into the route's progress next to the ticked stops
+  delivered: boolean;
+  deliveredAt?: string;
+  deliveredBy?: string;
 }
 
 export interface RouteGuidanceShelterContact {

@@ -79,6 +79,9 @@ data class DashboardRouteProgressItem(
     val routeName: String,
     val completedStops: Int,
     val totalStops: Int,
+    // the shelters picked for the route today and how many of them have got their goods
+    val completedShelters: Int = 0,
+    val totalShelters: Int = 0,
 )
 
 @ExcludeFromTestCoverage

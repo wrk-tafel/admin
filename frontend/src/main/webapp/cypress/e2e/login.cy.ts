@@ -279,6 +279,10 @@ describe('Login', () => {
   it('an invalidated session redirects to login even via a route with no data-fetch of its own', () => {
     enterLoginData('e2etest', 'e2etest');
     cy.url().should('contain', '/uebersicht');
+    // the overview opens without a resolver, so its first requests are still running once the URL
+    // has changed - clearing the session under them already ends it before the click below
+    cy.byTestId('distribution-state-text').should('be.visible');
+    cy.byTestId('connection-state-badge').should('have.class', 'badge-success');
 
     cy.clearCookie('tafel-admin-session');
 

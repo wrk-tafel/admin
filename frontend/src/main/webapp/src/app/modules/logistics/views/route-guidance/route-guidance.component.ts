@@ -162,9 +162,14 @@ export class RouteGuidanceComponent {
 
   // read off the stepper dots plus this one line - a separate percentage bar restated the same
   // figure a second way without adding anything a driver could not already see in the dots
-  protected readonly progressLabel = computed(
-    () => `${this.completedCount()} von ${this.stops().length} Stopps erledigt`
-  );
+  protected readonly deliveredShelterCount = computed(() => this.shelters().filter(shelter => shelter.delivered).length);
+  // the shelters are no stops of the route, but delivering to them is part of how far it has got
+  protected readonly progressLabel = computed(() => {
+    const stops = `${this.completedCount()} von ${this.stops().length} Stopps erledigt`;
+    return this.shelters().length > 0
+      ? `${stops} · ${this.deliveredShelterCount()} von ${this.shelters().length} Notschlafstellen beliefert`
+      : stops;
+  });
 
   // collapsed by default: planning the rest of the drive is occasional (start of shift, a lull
   // between stops), not part of the per-stop flow, so it should not compete with the current stop
@@ -198,6 +203,42 @@ export class RouteGuidanceComponent {
   }
 
   protected readonly kitchenLabel = shelterKitchenLabel;
+
+  // the shelter whose delivery request is still on its way, so its button can't be pressed twice
+  protected readonly pendingShelterId = signal<number | undefined>(undefined);
+
+  /**
+   * Online only, unlike a stop tick: a delivery is confirmed at the shelter's door, not in a loading
+   * dock, and keeping it out of the offline queue keeps that queue to the one payload it knows.
+   */
+  protected setShelterDelivery(shelter: RouteGuidanceShelter, delivered: boolean) {
+    const routeId = this._guidance()?.routeId;
+    if (routeId === undefined) {
+      return;
+    }
+    this.pendingShelterId.set(shelter.id);
+    this.routeApiService.setShelterDelivery(routeId, shelter.id, delivered).subscribe({
+      next: updated => {
+        this.pendingShelterId.set(undefined);
+        // replace just this shelter, so the list does not jump under the driver's thumb
+        this._guidance.update(guidance => guidance && guidance.routeId === routeId
+          ? {...guidance, shelters: guidance.shelters.map(s => s.id === updated.id ? updated : s)}
+          : guidance);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.pendingShelterId.set(undefined);
+        this.toastr.error(extractErrorMessage(error), 'Lieferung konnte nicht gespeichert werden');
+      }
+    });
+  }
+
+  protected deliveredLabel(shelter: RouteGuidanceShelter): string {
+    // the server's local time as sent, like a stop's completion time
+    const time = shelter.deliveredAt?.substring(11, 16);
+    return ['Geliefert', time ? `um ${time}` : undefined, shelter.deliveredBy ? `von ${shelter.deliveredBy}` : undefined]
+      .filter(part => !!part)
+      .join(' ');
+  }
 
   protected shelterNavigationUrl(shelter: RouteGuidanceShelter): string {
     return buildSingleDestinationMapsUrl(shelter.address);

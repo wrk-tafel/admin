@@ -15,6 +15,8 @@ import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEnt
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
@@ -77,6 +79,9 @@ internal class DashboardServiceTest {
 
     @RelaxedMockK
     private lateinit var shelterRepository: ShelterRepository
+
+    @RelaxedMockK
+    private lateinit var shelterDeliveryRepository: ShelterDeliveryRepository
 
     @RelaxedMockK
     private lateinit var shopRepository: ShopRepository
@@ -322,6 +327,40 @@ internal class DashboardServiceTest {
         assertThat(routeProgress.routeName).isEqualTo("Route 1")
         assertThat(routeProgress.completedStops).isEqualTo(2)
         assertThat(routeProgress.totalStops).isEqualTo(3)
+    }
+
+    @Test
+    fun `route progress counts the deliveries to the shelters picked for a route today`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        // route 2 has no stops - it only shows up because it delivers to shelters today
+        val route2Collection = FoodCollectionEntity(distribution = testDistributionEntity, route = testRoute2).apply {
+            id = 77
+            shelters = mutableSetOf(testShelter1, testShelter2)
+        }
+        testDistributionEntity.foodCollections = mutableListOf(route2Collection)
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute1, testRoute2)
+        every {
+            routeStopCompletionRepository.findAllByRouteStopIdInAndCompletionDate(any(), LocalDate.now())
+        } returns emptyList()
+        every { shelterDeliveryRepository.findAllByFoodCollectionIdIn(listOf(77L)) } returns listOf(
+            ShelterDeliveryEntity(foodCollection = route2Collection, shelter = testShelter1),
+        )
+
+        val data = service.getData()
+
+        val progress = data.logistics!!.routeProgress
+        assertThat(progress.map { it.routeId }).containsExactly(testRoute1.id, testRoute2.id)
+        with(progress.single { it.routeId == testRoute2.id }) {
+            assertThat(completedStops).isZero()
+            assertThat(totalStops).isZero()
+            assertThat(completedShelters).isEqualTo(1)
+            assertThat(totalShelters).isEqualTo(2)
+        }
+        assertThat(progress.single { it.routeId == testRoute1.id }.totalShelters).isZero()
     }
 
     @Test

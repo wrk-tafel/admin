@@ -66,6 +66,9 @@ class FoodCollectionServiceTest {
     private lateinit var shelterRepository: ShelterRepository
 
     @RelaxedMockK
+    private lateinit var shelterDeliveryRepository: ShelterDeliveryRepository
+
+    @RelaxedMockK
     private lateinit var advisoryLockService: AdvisoryLockService
 
     @RelaxedMockK
@@ -303,8 +306,13 @@ class FoodCollectionServiceTest {
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { shelterRepository.findAllById(setOf(testShelter2.id!!)) } returns listOf(testShelter2)
         every { foodCollectionRepository.save(any()) } returns mockk()
+        val staleDelivery = ShelterDeliveryEntity(foodCollection = existingCollection, shelter = testShelter1)
+        every { shelterDeliveryRepository.findAllByFoodCollectionIdIn(listOf(2L)) } returns listOf(staleDelivery)
 
         service.saveShelters(routeId = routeId, data = FoodCollectionSaveSheltersRequest(shelterIds = listOf(testShelter2.id!!)))
+
+        // shelter 1 is no longer picked, so its delivery must not keep counting into the progress
+        verify { shelterDeliveryRepository.deleteAll(listOf(staleDelivery)) }
 
         val foodCollectionSlot = slot<FoodCollectionEntity>()
         verify(exactly = 1) { foodCollectionRepository.save(capture(foodCollectionSlot)) }

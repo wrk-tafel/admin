@@ -125,6 +125,9 @@ export interface DashboardRouteProgressData {
   routeName: string;
   completedStops: number;
   totalStops: number;
+  // the shelters picked for the route today and how many of them have got their goods
+  completedShelters?: number;
+  totalShelters?: number;
 }
 
 export interface DashboardLastDistributionData {

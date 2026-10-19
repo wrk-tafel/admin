@@ -116,7 +116,11 @@ module — or anywhere in application code — ever calls `saveOutboxEntry("dash
    `R__00143_food_collections_shelters.sql` attaches it to `food_collections_shelters`, so picking a
    route's shelters reaches the statistics card live;
    `R__00097_dashboard_route_progress_trigger.sql` attaches the same function to
-   `routes_stops_completions`, which is what makes the route progress panel follow the drivers. Any
+   `routes_stops_completions`, which is what makes the route progress panel follow the drivers -
+   and `R__00144_food_collection_shelter_deliveries.sql` to `food_collections_shelter_deliveries`,
+   since that panel also counts the confirmed shelter deliveries (`completedShelters`/
+   `totalShelters` per route, next to the stops; a route without stops appears once it has shelters
+   picked, and the panel appears once either a stop or a delivery is ticked off). Any
    write to any of those tables (by any module, through any code path — even a raw SQL migration)
    inserts a row into `sse_outbox` with `notification_name = 'dashboard_update'` and `payload = NULL`.
 2. The **row** is deliberately coalesced to at most one per second:

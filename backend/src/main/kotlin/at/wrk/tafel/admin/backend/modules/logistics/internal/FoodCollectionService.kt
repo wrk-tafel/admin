@@ -30,6 +30,7 @@ class FoodCollectionService(
     private val foodCategoryRepository: FoodCategoryRepository,
     private val carRepository: CarRepository,
     private val shelterRepository: ShelterRepository,
+    private val shelterDeliveryRepository: ShelterDeliveryRepository,
     private val advisoryLockService: AdvisoryLockService,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
@@ -114,6 +115,13 @@ class FoodCollectionService(
             }
 
             val foodCollectionEntity = getOrCreateFoodCollectionEntity(distribution, routeId)
+            // a delivery to a shelter no longer picked for the route would count into progress
+            // that the route no longer has
+            foodCollectionEntity.id?.let { foodCollectionId ->
+                val stale = shelterDeliveryRepository.findAllByFoodCollectionIdIn(listOf(foodCollectionId))
+                    .filter { it.shelter.id !in requestedIds }
+                shelterDeliveryRepository.deleteAll(stale)
+            }
             foodCollectionEntity.shelters.clear()
             foodCollectionEntity.shelters.addAll(shelters)
             foodCollectionRepository.save(foodCollectionEntity)

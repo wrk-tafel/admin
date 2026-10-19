@@ -9,6 +9,7 @@ import {
   RouteApiService,
   RouteData,
   RouteGuidanceData,
+  RouteGuidanceShelter,
   RouteGuidanceStop,
   RouteList
 } from '../../../../api/route-api.service';
@@ -393,6 +394,7 @@ describe('RouteGuidanceComponent', () => {
         foodCategories: ['Backwaren', 'Konserven'],
         excludedFoodCategories: ['Brot'],
         restrictions: 'kein Schweinefleisch',
+        delivered: false,
         contacts: [{firstname: 'Anna', phone: '0664 1'}],
         note: 'Hintereingang'
       }]
@@ -420,6 +422,34 @@ describe('RouteGuidanceComponent', () => {
     expect(details().querySelector('a[href="tel:0664 1"]')).not.toBeNull();
     expect(element.querySelector('[testid="guidance-shelter-navigate-0"]')!.getAttribute('href'))
       .toContain(encodeURIComponent('Erdberg 1, 1030 Wien'));
+  });
+
+  it('confirms a shelter delivery and counts it into the progress', () => {
+    const shelter: RouteGuidanceShelter = {
+      id: 5, name: 'Notschlafstelle Erdberg', address: 'Erdberg 1, 1030 Wien', personsCount: 40,
+      hasKitchen: null, acceptsEverything: false, hasFreezer: false, foodCategories: [],
+      excludedFoodCategories: [], contacts: [], delivered: false
+    };
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({...guidance, shelters: [shelter]}));
+    routeApiMock.setShelterDelivery = vi.fn(() => of<RouteGuidanceShelter>({
+      ...shelter, delivered: true, deliveredAt: '2026-08-09T15:42:00', deliveredBy: 'Anna Fahrer'
+    }));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+    fixture.detectChanges();
+
+    expect(component['progressLabel']()).toContain('0 von 1 Notschlafstellen beliefert');
+
+    component['setShelterDelivery'](shelter, true);
+    fixture.detectChanges();
+
+    expect(routeApiMock.setShelterDelivery).toHaveBeenCalledWith(2, 5, true);
+    expect(component['progressLabel']()).toContain('1 von 1 Notschlafstellen beliefert');
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('[testid="guidance-shelter-delivered-badge-0"]')).not.toBeNull();
+    expect(element.querySelector('[testid="guidance-shelter-delivered-label-0"]')!.textContent)
+      .toContain('Geliefert um 15:42 von Anna Fahrer');
   });
 
   it('shows no shelter block for a route without shelters today', () => {

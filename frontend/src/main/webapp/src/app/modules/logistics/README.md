@@ -122,6 +122,12 @@ A few things about it are worth knowing before changing it:
   it does not want and its restrictions - its fixed quantities, its contacts as `tel:` links and its
   note. Which rows are expanded is local state
   (`expandedShelterIds`), cleared when another route is picked.
+- **A delivery is confirmed per shelter** with "Geliefert" in its expanded row (`setShelterDelivery`,
+  `RouteApiService.setShelterDelivery`), taken back with "Rückgängig machen"; the answer replaces
+  just that shelter in the signal, like a stop tick. Deliveries count into `progressLabel()`
+  ("… · 1 von 2 Notschlafstellen beliefert") but not into the stepper dots, which stay the route's
+  fixed stops. Unlike a stop tick it is online only - no offline queue - since it happens at the
+  shelter's door rather than in a loading dock; a failure is a toast and nothing is applied.
 
 ## Food collection recording (`warenerfassung`)
 

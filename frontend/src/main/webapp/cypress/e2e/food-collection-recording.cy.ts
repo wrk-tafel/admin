@@ -54,9 +54,24 @@ describe('Food Collection Recording', () => {
     cy.byTestId('guidance-shelter-navigate-0').should('have.attr', 'href').and('include', 'google.com/maps');
     cy.checkAccessibility('[testid="guidance-shelters"]');
 
-    // and the statistics card shows them, read-only
+    // confirming the delivery counts it into the route's progress
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 2 Notschlafstellen beliefert');
+    cy.byTestId('guidance-shelter-deliver-0').click();
+    cy.byTestId('guidance-shelter-delivered-badge-0').should('be.visible');
+    cy.byTestId('guidance-shelter-delivered-label-0').should('contain.text', 'Geliefert um');
+    cy.byTestId('guidance-summary').should('contain.text', '1 von 2 Notschlafstellen beliefert');
+
+    // and the statistics card shows them, read-only, while "Routen unterwegs" counts the delivery
     cy.visit('/');
     cy.byTestId('distribution-statistics-persons-in-shelter').should('have.text', '150');
+    cy.byTestId('route-progress-shelters-2').should('contain.text', '1 / 2');
+
+    // taking it back is possible, and the progress follows
+    cy.window().then(win => win.localStorage.setItem('tafel.routeGuidance.selectedRouteId', '2'));
+    cy.visit('/logistik/routen-navi');
+    cy.byTestId('guidance-shelter-toggle-0').click();
+    cy.byTestId('guidance-shelter-undo-delivery-0').click();
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 2 Notschlafstellen beliefert');
   });
 
   it('food collection recorded properly on desktop', () => {

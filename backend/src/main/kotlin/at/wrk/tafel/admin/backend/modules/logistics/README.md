@@ -141,6 +141,16 @@ DB level — it only governs `modules`-to-`modules` traffic.
   `restrictions`, `fixedQuantities`), its contacts and its note. Unlike stop progress this is keyed by the distribution, since
   that is where the recording screen stores it: with no distribution running the list is empty,
   even on the morning of a distribution day before it is started.
+- **A shelter delivery is confirmed per shelter, not as a stop** - `PUT .../guidance/shelters/{shelterId}`
+  (`RouteShelterDeliveryRequest{delivered}`, `setShelterDelivery()`) records or removes a
+  `ShelterDeliveryEntity` (`food_collections_shelter_deliveries`, unique per food collection and
+  shelter, who confirmed it and when) under `AdvisoryLockKey.SHELTER_DELIVERY`, the same
+  check-then-act guard stop ticks use. The shelters change from day to day, so they get no place in
+  the route's fixed stop order, but the deliveries count into its progress: `delivered`/
+  `deliveredAt`/`deliveredBy` on each `RouteGuidanceShelter`, and the dashboard's route progress.
+  A shelter that is not picked for the route on the running distribution is a `404`, and
+  `saveShelters()` drops the deliveries of shelters taken off the route. The last-stop notification
+  stays about stops only.
 
 ### Return boxes overview (`ReturnBoxesController`, `internal/ReturnBoxesService`)
 - Serves the `/logistik/retourkisten` screen for whoever coordinates the routes: `GET /api/return-boxes`

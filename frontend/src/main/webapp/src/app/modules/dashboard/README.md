@@ -29,7 +29,9 @@ readonly data: Signal<DashboardData | undefined> = toSignal(
 `registeredPersons` (everyone those households get food for: main persons plus their
 not-excluded additional persons), `tickets` (processed/total), `logistics` (food collection + food amount counters, `allRouteNames`
 - every enabled route, not just the recorded ones, see "Route chips" below - plus
-`routeProgress` - the stops each route has ticked off today in the route guidance screen),
+`routeProgress` - the stops each route has ticked off today in the route guidance screen, plus
+the deliveries confirmed there to the shelters picked for it; `route-progress` appends one lighter
+segment per shelter after the stop segments and shows the shelter count beside the stop count),
 `statistics`
 (current employee count / the shelters today's routes deliver to, each with its persons count),
 free-text `notes`, `lastDistribution` (a compact summary of the most recently closed distribution)

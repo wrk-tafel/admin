@@ -90,4 +90,22 @@ describe('RouteProgressComponent', () => {
 
     expect(fixture.debugElement.query(By.css('[testid^="route-progress-entry-"]'))).toBeNull();
   });
+
+  it('appends the shelters of the day to the bar and counts their deliveries separately', () => {
+    const fixture = createComponent([{...route1, completedShelters: 1, totalShelters: 2}]);
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelectorAll('[testid="route-progress-shelter-segment"]').length).toBe(2);
+    expect(element.querySelector('[testid="route-progress-shelters-1"]')!.textContent).toContain('1 / 2');
+    const bar = element.querySelector('[testid="route-progress-segments-1"]')!;
+    expect(bar.getAttribute('aria-valuenow')).toBe('4');
+    expect(bar.getAttribute('aria-valuemax')).toBe('6');
+    expect(bar.getAttribute('aria-label')).toContain('1 von 2 Notschlafstellen beliefert');
+  });
+
+  it('shows no shelter count for a route without shelters today', () => {
+    const element: HTMLElement = createComponent([route1]).nativeElement;
+
+    expect(element.querySelector('[testid="route-progress-shelters-1"]')).toBeNull();
+  });
 });

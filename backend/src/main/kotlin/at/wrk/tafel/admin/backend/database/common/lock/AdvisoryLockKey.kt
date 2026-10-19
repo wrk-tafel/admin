@@ -53,4 +53,9 @@ enum class AdvisoryLockKey(val lockId: Long) {
     // with exactly two enabled administrators left could each see "another administrator exists"
     // before either commits, letting both succeed and leaving zero administrators
     LAST_ADMINISTRATOR_SAFEGUARD(11000L),
+
+    // serializes the find-then-insert of a shelter delivery: `(food_collection_id, shelter_id)` is
+    // UNIQUE, and a driver and co-driver confirming the same delivery at once would otherwise both
+    // find nothing and both insert - the same race ROUTE_STOP_COMPLETION closes for stops
+    SHELTER_DELIVERY(12000L),
 }

@@ -17,6 +17,8 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEn
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopAddress
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
@@ -53,6 +55,9 @@ class RouteGuidanceServiceTest {
 
     @RelaxedMockK
     private lateinit var foodCollectionRepository: FoodCollectionRepository
+
+    @RelaxedMockK
+    private lateinit var shelterDeliveryRepository: ShelterDeliveryRepository
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
@@ -220,7 +225,13 @@ class RouteGuidanceServiceTest {
         }
         currentDistribution.foodCollections = mutableListOf(
             FoodCollectionEntity(distribution = currentDistribution, route = route).apply {
+                id = 40
                 shelters = mutableSetOf(second, first)
+            },
+        )
+        every { shelterDeliveryRepository.findAllByFoodCollectionIdIn(listOf(40L)) } returns listOf(
+            ShelterDeliveryEntity(foodCollection = currentDistribution.foodCollections.first(), shelter = second).apply {
+                deliveredBy = testUserEntity
             },
         )
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns currentDistribution
@@ -228,6 +239,8 @@ class RouteGuidanceServiceTest {
         val shelters = service.getGuidance(1).shelters
 
         assertThat(shelters.map { it.name }).containsExactly("Erste", "Zweite")
+        assertThat(shelters.map { it.delivered }).containsExactly(false, true)
+        assertThat(shelters.last().deliveredBy).isNotNull()
         with(shelters.first()) {
             assertThat(address).isEqualTo("Gasse 5, Stiege 2, Top 14, 1030 Wien")
             assertThat(hasKitchen).isTrue()
@@ -241,6 +254,48 @@ class RouteGuidanceServiceTest {
             assertThat(note).isEqualTo("Hintereingang")
             assertThat(personsCount).isEqualTo(20)
         }
+    }
+
+    @Test
+    fun `confirming a shelter delivery records it once, and taking it back removes it`() {
+        val currentDistribution = distribution(id = 77, startedAt = LocalDateTime.of(2026, 8, 9, 6, 0))
+        val shelter = guidanceShelter(id = 5, name = "Erste", sortOrder = 1)
+        val collection = FoodCollectionEntity(distribution = currentDistribution, route = route).apply {
+            id = 40
+            shelters = mutableSetOf(shelter)
+        }
+        currentDistribution.foodCollections = mutableListOf(collection)
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns currentDistribution
+        every { shelterDeliveryRepository.findByFoodCollectionIdAndShelterId(40, 5) } returns null
+        every { shelterDeliveryRepository.saveAndFlush(any()) } answers { firstArg() as ShelterDeliveryEntity }
+
+        val delivered = service.setShelterDelivery(1, 5, true)
+
+        assertThat(delivered.delivered).isTrue()
+        verify {
+            advisoryLockService.withLock<Any>(AdvisoryLockKey.SHELTER_DELIVERY, any())
+            shelterDeliveryRepository.saveAndFlush(withArg { assertThat(it.deliveredBy).isEqualTo(testUserEntity) })
+        }
+
+        val existing = ShelterDeliveryEntity(foodCollection = collection, shelter = shelter)
+        every { shelterDeliveryRepository.findByFoodCollectionIdAndShelterId(40, 5) } returns existing
+
+        val undone = service.setShelterDelivery(1, 5, false)
+
+        assertThat(undone.delivered).isFalse()
+        verify { shelterDeliveryRepository.delete(existing) }
+    }
+
+    @Test
+    fun `confirming a delivery to a shelter not picked for the route today is refused`() {
+        val currentDistribution = distribution(id = 77, startedAt = LocalDateTime.of(2026, 8, 9, 6, 0))
+        currentDistribution.foodCollections = mutableListOf(
+            FoodCollectionEntity(distribution = currentDistribution, route = route).apply { id = 40 },
+        )
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns currentDistribution
+
+        assertThrows<NotFoundException> { service.setShelterDelivery(1, 5, true) }
+        verify(exactly = 0) { shelterDeliveryRepository.saveAndFlush(any()) }
     }
 
     @Test
