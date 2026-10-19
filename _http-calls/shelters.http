@@ -19,7 +19,7 @@ Content-Type: application/json
   "note": null,
   "personsCount": 10,
   "enabled": true,
-  "canCook": true,
+  "hasKitchen": true,
   "foodCategoryIds": [2, 7],
   "contacts": [
     {
@@ -46,7 +46,7 @@ Content-Type: application/json
   "note": null,
   "personsCount": 10,
   "enabled": true,
-  "canCook": true,
+  "hasKitchen": true,
   "foodCategoryIds": [2, 7],
   "contacts": [
     {

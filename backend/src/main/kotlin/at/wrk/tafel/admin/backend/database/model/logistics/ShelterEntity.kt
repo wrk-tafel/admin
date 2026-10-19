@@ -31,8 +31,8 @@ class ShelterEntity(
     var sortOrder: Int,
     @Column(name = "enabled")
     var enabled: Boolean = true,
-    @Column(name = "can_cook")
-    var canCook: Boolean = false,
+    @Column(name = "has_kitchen")
+    var hasKitchen: Boolean = false,
 ) : BaseChangeTrackingEntity() {
 
     @Column(name = "address_stairway")

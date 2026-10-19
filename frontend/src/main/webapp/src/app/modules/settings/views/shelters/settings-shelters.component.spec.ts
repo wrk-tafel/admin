@@ -23,7 +23,7 @@ describe('SettingsSheltersComponent', () => {
     enabled: true,
     sortOrder: 1,
     contacts: [{firstname: 'Anna', lastname: 'Smith', phone: '0664 1234567'}],
-    canCook: true,
+    hasKitchen: true,
     foodCategoryIds: [2, 1]
   };
   const testShelter2: ShelterItem = {
@@ -140,14 +140,14 @@ describe('SettingsSheltersComponent', () => {
       .toContain('Keine Kontakte vorhanden');
   });
 
-  it('shows whether a shelter can cook and the food categories it needs by name', () => {
+  it('shows whether a shelter has a kitchen and the food categories it needs by name', () => {
     const fixture = TestBed.createComponent(SettingsSheltersComponent);
     fixture.detectChanges();
     const element: HTMLElement = fixture.nativeElement;
 
-    expect(element.querySelector('[testid="shelter-can-cook-0"]')!.textContent).toContain('Ja');
+    expect(element.querySelector('[testid="shelter-has-kitchen-0"]')!.textContent).toContain('Ja');
     expect(element.querySelector('[testid="shelter-food-categories-0"]')!.textContent).toContain('Konserven, Backwaren');
-    expect(element.querySelector('[testid="shelter-can-cook-1"]')!.textContent).toContain('Nein');
+    expect(element.querySelector('[testid="shelter-has-kitchen-1"]')!.textContent).toContain('Nein');
     expect(element.querySelector('[testid="shelter-food-categories-1"]')!.textContent).toContain('Keine angegeben');
   });
 

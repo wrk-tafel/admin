@@ -1,7 +1,7 @@
 -- What a shelter usually needs (issue #3880): the food categories it asks for, and whether it has a
--- kitchen - a shelter that cannot cook has no use for food that still has to be prepared.
+-- kitchen - a shelter without one has little use for food that still has to be prepared.
 alter table shelters
-    add column if not exists can_cook boolean not null default false;
+    add column if not exists has_kitchen boolean not null default false;
 
 -- A plain join table without an entity of its own, so no id and no sequence. Food categories are only
 -- ever deactivated, never deleted; the cascade just keeps a deletion from being blocked by this list.

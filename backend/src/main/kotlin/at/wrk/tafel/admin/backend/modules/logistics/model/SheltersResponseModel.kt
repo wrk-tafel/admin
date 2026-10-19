@@ -33,7 +33,7 @@ data class ShelterRequest(
     val enabled: Boolean,
     val sortOrder: Int,
     val contacts: List<@Valid ShelterContactItem>,
-    val canCook: Boolean = false,
+    val hasKitchen: Boolean = false,
     val foodCategoryIds: List<Long> = emptyList(),
 )
 
@@ -52,7 +52,7 @@ data class ShelterResponse(
     val enabled: Boolean,
     val sortOrder: Int,
     val contacts: List<ShelterContactItem>,
-    val canCook: Boolean,
+    val hasKitchen: Boolean,
     val foodCategoryIds: List<Long>,
 )
 

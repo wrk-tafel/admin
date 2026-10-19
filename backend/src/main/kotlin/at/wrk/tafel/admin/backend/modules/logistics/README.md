@@ -159,7 +159,7 @@ DB level — it only governs `modules`-to-`modules` traffic.
   code/city), a `personsCount`, an `enabled` flag, and `sortOrder` (drag-and-drop reordering in
   the UI). Contacts are a `@OneToMany` to `ShelterContactEntity` (table `shelters_contacts`) with
   `cascade = [CascadeType.ALL], orphanRemoval = true`.
-- What a shelter usually needs: `canCook` (`shelters.can_cook`) and `foodCategories`, a
+- What a shelter usually needs: `hasKitchen` (`shelters.has_kitchen`) and `foodCategories`, a
   `@ManyToMany` to `FoodCategoryEntity` over the plain join table `shelters_food_categories` (no
   entity, no sequence). On the wire it is `foodCategoryIds` in both directions, returned in the
   categories' own `(sortOrder, name)` order; an unknown id is a `400`. The settings screen resolves

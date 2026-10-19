@@ -65,7 +65,7 @@ class ShelterServiceTest {
                 enabled = testShelter1.enabled!!,
                 sortOrder = testShelter1.sortOrder!!,
                 contacts = emptyList(),
-                canCook = false,
+                hasKitchen = false,
                 foodCategoryIds = emptyList(),
             ),
         )
@@ -93,7 +93,7 @@ class ShelterServiceTest {
                 enabled = testShelter1.enabled!!,
                 sortOrder = testShelter1.sortOrder!!,
                 contacts = emptyList(),
-                canCook = false,
+                hasKitchen = false,
                 foodCategoryIds = emptyList(),
             ),
         )
@@ -137,7 +137,7 @@ class ShelterServiceTest {
                 enabled = updated.enabled,
                 sortOrder = updated.sortOrder,
                 contacts = updated.contacts,
-                canCook = false,
+                hasKitchen = false,
                 foodCategoryIds = emptyList(),
             ),
         )
@@ -185,7 +185,7 @@ class ShelterServiceTest {
                 enabled = createInput.enabled,
                 sortOrder = 4,
                 contacts = createInput.contacts,
-                canCook = false,
+                hasKitchen = false,
                 foodCategoryIds = emptyList(),
             ),
         )
@@ -224,9 +224,9 @@ class ShelterServiceTest {
     }
 
     @Test
-    fun `create shelter stores whether it can cook and the food categories it needs`() {
+    fun `create shelter stores whether it has a kitchen and the food categories it needs`() {
         val createInput = testShelter3ShelterRequest().copy(
-            canCook = true,
+            hasKitchen = true,
             foodCategoryIds = listOf(testFoodCategory1.id!!, testFoodCategory2.id!!),
         )
 
@@ -243,9 +243,9 @@ class ShelterServiceTest {
 
         val savedEntitySlot = slot<ShelterEntity>()
         verify { shelterRepository.save(capture(savedEntitySlot)) }
-        assertThat(savedEntitySlot.captured.canCook).isTrue()
+        assertThat(savedEntitySlot.captured.hasKitchen).isTrue()
         assertThat(savedEntitySlot.captured.foodCategories).containsExactlyInAnyOrder(testFoodCategory1, testFoodCategory2)
-        assertThat(result.canCook).isTrue()
+        assertThat(result.hasKitchen).isTrue()
         // in the food categories' own order, not in the order they were sent
         assertThat(result.foodCategoryIds).containsExactly(testFoodCategory2.id, testFoodCategory1.id)
     }
@@ -260,14 +260,14 @@ class ShelterServiceTest {
             addressCity = "City",
             personsCount = 1,
             sortOrder = 1,
-            canCook = true,
+            hasKitchen = true,
         ).apply {
             id = 7
             foodCategories = mutableSetOf(testFoodCategory1, testFoodCategory2)
         }
         val updated = testShelter3ShelterRequest().copy(
             id = 7,
-            canCook = false,
+            hasKitchen = false,
             foodCategoryIds = listOf(testFoodCategory3.id!!),
         )
 
@@ -277,9 +277,9 @@ class ShelterServiceTest {
 
         val result = service.updateShelter(7, updated)
 
-        assertThat(existing.canCook).isFalse()
+        assertThat(existing.hasKitchen).isFalse()
         assertThat(existing.foodCategories).containsExactly(testFoodCategory3)
-        assertThat(result.canCook).isFalse()
+        assertThat(result.hasKitchen).isFalse()
         assertThat(result.foodCategoryIds).containsExactly(testFoodCategory3.id)
     }
 
@@ -422,7 +422,7 @@ class ShelterServiceTest {
                 enabled = updated.enabled,
                 sortOrder = updated.sortOrder,
                 contacts = updated.contacts,
-                canCook = false,
+                hasKitchen = false,
                 foodCategoryIds = emptyList(),
             ),
         )

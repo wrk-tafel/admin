@@ -46,7 +46,7 @@ export interface ShelterItem {
   enabled: boolean;
   sortOrder: number;
   contacts?: ShelterContact[];
-  canCook?: boolean;
+  hasKitchen?: boolean;
   // the food categories the shelter usually needs, in the categories' own order
   foodCategoryIds?: number[];
 }

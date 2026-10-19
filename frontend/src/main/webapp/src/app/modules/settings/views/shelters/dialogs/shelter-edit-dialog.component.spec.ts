@@ -21,7 +21,7 @@ describe('ShelterEditDialogComponent', () => {
     enabled: true,
     sortOrder: 1,
     contacts: [{ firstname: 'John', lastname: 'Doe', phone: '123' }],
-    canCook: true,
+    hasKitchen: true,
     foodCategoryIds: [2]
   };
   const foodCategories: FoodCategory[] = [
@@ -73,7 +73,7 @@ describe('ShelterEditDialogComponent', () => {
       note: testShelter.note,
       personsCount: testShelter.personsCount,
       enabled: true,
-      canCook: true,
+      hasKitchen: true,
       foodCategoryIds: [2]
     });
 
@@ -143,6 +143,6 @@ describe('ShelterEditDialogComponent (create mode - no shelter passed)', () => {
   it('starts a new shelter without a kitchen and without food categories', () => {
     const fixture = TestBed.createComponent(ShelterEditDialogComponent);
 
-    expect(fixture.componentInstance.form.value).toMatchObject({canCook: false, foodCategoryIds: []});
+    expect(fixture.componentInstance.form.value).toMatchObject({hasKitchen: false, foodCategoryIds: []});
   });
 });

@@ -47,7 +47,7 @@ class ShelterService(
             personsCount = shelter.personsCount,
             sortOrder = nextSortOrder(),
             enabled = shelter.enabled,
-            canCook = shelter.canCook,
+            hasKitchen = shelter.hasKitchen,
         ).apply {
             addressStairway = shelter.addressStairway?.takeIf { it.isNotBlank() }?.trim()
             addressDoor = shelter.addressDoor?.takeIf { it.isNotBlank() }?.trim()
@@ -88,7 +88,7 @@ class ShelterService(
                 phone = it.phone,
             )
         },
-        canCook = shelterEntity.canCook,
+        hasKitchen = shelterEntity.hasKitchen,
         foodCategoryIds = shelterEntity.foodCategories
             .sortedWith(compareBy({ it.sortOrder }, { it.name }))
             .map { it.id!! },
@@ -110,7 +110,7 @@ class ShelterService(
         shelterEntity.personsCount = updatedShelter.personsCount
         shelterEntity.enabled = updatedShelter.enabled
         shelterEntity.sortOrder = updatedShelter.sortOrder
-        shelterEntity.canCook = updatedShelter.canCook
+        shelterEntity.hasKitchen = updatedShelter.hasKitchen
 
         // replaced in place - the entity is managed here, and swapping out an orphan-removal
         // collection for a new instance is something Hibernate refuses on flush

@@ -53,7 +53,7 @@ describe('Settings - Shelters', () => {
     });
   });
 
-  it('records whether a shelter can cook and the food categories it needs', () => {
+  it('records whether a shelter has a kitchen and the food categories it needs', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       const name = 'Cooking Shelter ' + randomId;
       cy.byTestId('addShelterButton').click();
@@ -65,7 +65,7 @@ describe('Settings - Shelters', () => {
       cy.get('input[formControlName="addressCity"]').type('Wien');
       cy.get('input[formControlName="personsCount"]').type('12');
 
-      cy.byTestId('shelter-can-cook').find('input[type="checkbox"]').check();
+      cy.byTestId('shelter-has-kitchen').find('input[type="checkbox"]').check();
       cy.byTestId('shelter-food-categories').click();
       cy.contains('mat-option', 'Konserven').click();
       cy.contains('mat-option', 'Backwaren').click();
@@ -73,11 +73,11 @@ describe('Settings - Shelters', () => {
 
       cy.intercept('POST', '/api/shelters').as('createShelter');
       cy.contains('Speichern').click();
-      cy.wait('@createShelter').its('request.body').should('deep.include', {canCook: true});
+      cy.wait('@createShelter').its('request.body').should('deep.include', {hasKitchen: true});
 
       cy.byTestId('shelters-list').contains('[testid^="shelters-row-"]', name).as('row');
       cy.get('@row').find('[testid^="shelters-toggle-"]').click();
-      cy.get('@row').find('[testid^="shelter-can-cook-"]').should('have.text', 'Ja');
+      cy.get('@row').find('[testid^="shelter-has-kitchen-"]').should('have.text', 'Ja');
       cy.get('@row').find('[testid^="shelter-food-categories-"]')
         .should('contain.text', 'Backwaren')
         .and('contain.text', 'Konserven');

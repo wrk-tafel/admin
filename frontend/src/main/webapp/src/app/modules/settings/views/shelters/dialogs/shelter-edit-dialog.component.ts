@@ -60,7 +60,7 @@ export class ShelterEditDialogComponent {
     note: [this.data.shelter?.note ?? ''],
     personsCount: [this.data.shelter?.personsCount ?? '', [Validators.required]],
     enabled: [this.data.shelter?.enabled ?? true],
-    canCook: [this.data.shelter?.canCook ?? false],
+    hasKitchen: [this.data.shelter?.hasKitchen ?? false],
     foodCategoryIds: [this.data.shelter?.foodCategoryIds ?? []],
     // Not user-editable here - preserved as-is on edit, auto-assigned by the backend on
     // create; reordering afterwards happens via drag-and-drop.
