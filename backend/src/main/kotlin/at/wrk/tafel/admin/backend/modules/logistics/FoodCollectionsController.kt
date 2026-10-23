@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCollectionService
+import at.wrk.tafel.admin.backend.modules.logistics.internal.ShelterShareService
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -13,7 +14,16 @@ import org.springframework.web.bind.annotation.*
 @PreAuthorize("hasAuthority('LOGISTICS')")
 class FoodCollectionsController(
     private val foodCollectionService: FoodCollectionService,
+    private val shelterShareService: ShelterShareService,
 ) {
+
+    /** How much of what the routes collected goes to today's shelters - an estimate, see [ShelterShareService]. */
+    @GetMapping("/shelter-shares")
+    @TafelActiveDistributionRequired
+    fun getShelterShares(): ResponseEntity<ShelterSharesResponse> {
+        val shares = shelterShareService.getShelterShares() ?: return ResponseEntity.noContent().build()
+        return ResponseEntity.ok(shares)
+    }
 
     @GetMapping("/routes/{routeId}")
     @TafelActiveDistributionRequired
@@ -32,6 +42,16 @@ class FoodCollectionsController(
         @Valid @RequestBody request: FoodCollectionSaveRouteRequest,
     ): ResponseEntity<Unit> {
         foodCollectionService.saveRouteData(routeId, request)
+        return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/routes/{routeId}/shelters")
+    @TafelActiveDistributionRequired
+    fun saveFoodCollectionShelters(
+        @PathVariable routeId: Long,
+        @Valid @RequestBody request: FoodCollectionSaveSheltersRequest,
+    ): ResponseEntity<Unit> {
+        foodCollectionService.saveShelters(routeId, request)
         return ResponseEntity.ok().build()
     }
 

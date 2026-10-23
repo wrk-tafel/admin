@@ -8,6 +8,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {LiveAnnouncer} from '@angular/cdk/a11y';
+import {FoodCategoriesApiService, FoodCategory} from '../../../../api/food-categories-api.service';
 
 describe('SettingsSheltersComponent', () => {
   const testShelter1: ShelterItem = {
@@ -21,7 +22,12 @@ describe('SettingsSheltersComponent', () => {
     personsCount: 1,
     enabled: true,
     sortOrder: 1,
-    contacts: [{firstname: 'Anna', lastname: 'Smith', phone: '0664 1234567'}]
+    contacts: [{firstname: 'Anna', lastname: 'Smith', phone: '0664 1234567'}],
+    hasKitchen: true,
+    foodCategoryIds: [2, 1],
+    excludedFoodCategoryIds: [1],
+    restrictions: 'kein Schweinefleisch',
+    fixedQuantities: [{foodCategoryId: 1, amount: 4, note: 'Schnittbrot'}]
   };
   const testShelter2: ShelterItem = {
     id: 2,
@@ -36,7 +42,13 @@ describe('SettingsSheltersComponent', () => {
     sortOrder: 2
   };
 
+  const foodCategories: FoodCategory[] = [
+    {id: 1, name: 'Backwaren', weightPerUnit: null, sortOrder: 2, enabled: true},
+    {id: 2, name: 'Konserven', weightPerUnit: null, sortOrder: 1, enabled: false}
+  ];
+
   let shelterApiMock: Partial<ShelterApiService>;
+  let matDialogMock: Partial<MatDialog>;
   let toastrMock: Partial<TafelToastrService>;
   let liveAnnouncerMock: Partial<LiveAnnouncer>;
 
@@ -55,7 +67,7 @@ describe('SettingsSheltersComponent', () => {
       announce: vi.fn(() => Promise.resolve())
     };
 
-    const matDialogMock: Partial<MatDialog> = {
+    matDialogMock = {
       open: vi.fn(() => ({afterClosed: () => of(undefined)})) as any
     };
 
@@ -66,7 +78,8 @@ describe('SettingsSheltersComponent', () => {
         {provide: ShelterApiService, useValue: shelterApiMock},
         {provide: TafelToastrService, useValue: toastrMock},
         {provide: MatDialog, useValue: matDialogMock},
-        {provide: LiveAnnouncer, useValue: liveAnnouncerMock}
+        {provide: LiveAnnouncer, useValue: liveAnnouncerMock},
+        {provide: FoodCategoriesApiService, useValue: {getAllFoodCategories: vi.fn(() => of(foodCategories))}}
       ]
     }).compileComponents();
   });
@@ -130,12 +143,40 @@ describe('SettingsSheltersComponent', () => {
       .toContain('Keine Kontakte vorhanden');
   });
 
+  it('shows whether a shelter has a kitchen and the food categories it needs by name', () => {
+    const fixture = TestBed.createComponent(SettingsSheltersComponent);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="shelter-has-kitchen-0"]')!.textContent).toContain('Ja');
+    expect(element.querySelector('[testid="shelter-food-categories-0"]')!.textContent).toContain('Konserven, Backwaren');
+    // a kitchen nobody has asked about is not "no kitchen"
+    expect(element.querySelector('[testid="shelter-has-kitchen-1"]')!.textContent).toContain('Unbekannt');
+    expect(element.querySelector('[testid="shelter-food-categories-1"]')!.textContent).toContain('Keine angegeben');
+    expect(element.querySelector('[testid="shelter-excluded-food-categories-0"]')!.textContent).toContain('Backwaren');
+    expect(element.querySelector('[testid="shelter-restrictions-0"]')!.textContent).toContain('kein Schweinefleisch');
+    expect(element.querySelector('[testid="shelter-restrictions-1"]')).toBeNull();
+    expect(element.querySelector('[testid="shelter-fixed-quantities-0"]')!.textContent).toContain('4 Kisten Backwaren (Schnittbrot)');
+    expect(element.querySelector('[testid="shelter-fixed-quantities-1"]')).toBeNull();
+  });
+
+  it('hands the food categories to the edit dialog', () => {
+    const fixture = TestBed.createComponent(SettingsSheltersComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance['editShelter'](testShelter1);
+
+    expect(matDialogMock.open).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      data: {shelter: testShelter1, foodCategories}
+    }));
+  });
+
   it('says that the order is used beyond this screen', () => {
     const fixture = TestBed.createComponent(SettingsSheltersComponent);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('[testid="shelters-order-hint"]').textContent)
-      .toContain('Dashboard');
+      .toContain('Routenerfassung');
   });
 
   it('drop() reorders optimistically and persists the new order', () => {

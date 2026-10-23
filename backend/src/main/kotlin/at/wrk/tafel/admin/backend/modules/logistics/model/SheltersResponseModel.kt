@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
+import jakarta.validation.constraints.Size
 
 @ExcludeFromTestCoverage
 data class ShelterListResponse(
@@ -33,6 +34,14 @@ data class ShelterRequest(
     val enabled: Boolean,
     val sortOrder: Int,
     val contacts: List<@Valid ShelterContactItem>,
+    // null: not known
+    val hasKitchen: Boolean? = null,
+    val hasFreezer: Boolean = false,
+    @field:Size(max = 500)
+    val restrictions: String? = null,
+    val fixedQuantities: List<@Valid ShelterFixedQuantityItem> = emptyList(),
+    val foodCategoryIds: List<Long> = emptyList(),
+    val excludedFoodCategoryIds: List<Long> = emptyList(),
 )
 
 @ExcludeFromTestCoverage
@@ -50,12 +59,28 @@ data class ShelterResponse(
     val enabled: Boolean,
     val sortOrder: Int,
     val contacts: List<ShelterContactItem>,
+    val hasKitchen: Boolean? = null,
+    val hasFreezer: Boolean = false,
+    val restrictions: String? = null,
+    val fixedQuantities: List<ShelterFixedQuantityItem> = emptyList(),
+    val foodCategoryIds: List<Long> = emptyList(),
+    val excludedFoodCategoryIds: List<Long> = emptyList(),
 )
 
 @ExcludeFromTestCoverage
 data class ShelterReorderRequest(
     @field:NotEmpty
     val shelterIds: List<Long>,
+)
+
+@ExcludeFromTestCoverage
+data class ShelterFixedQuantityItem(
+    val foodCategoryId: Long,
+    // whole boxes
+    @field:Positive
+    val amount: Int,
+    @field:Size(max = 100)
+    val note: String? = null,
 )
 
 @ExcludeFromTestCoverage

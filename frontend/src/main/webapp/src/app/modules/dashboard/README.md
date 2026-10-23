@@ -3,9 +3,9 @@
 This module renders the "Übersicht" (overview) landing page. While a food distribution ("Ausgabe")
 is running, it's the operational cockpit: whether a distribution is currently open, how many
 customers have registered, how many tickets have been processed, how much food has been
-recorded/collected, and lets staff enter end-of-day statistics (employee count, shelter occupancy)
-and free-text notes. While none is running, it instead shows a summary of the most recently closed
-distribution and a handful of organization-wide counts. Almost everything on this page is either
+recorded/collected, and lets staff enter end-of-day statistics (employee count; the shelter
+occupancy is shown alongside, read-only) and free-text notes. While none is running, it instead
+shows a summary of the most recently closed distribution and a handful of organization-wide counts. Almost everything on this page is either
 live (pushed via SSE) or gated behind an active distribution.
 
 ## Live data: two independent SSE channels
@@ -29,11 +29,16 @@ readonly data: Signal<DashboardData | undefined> = toSignal(
 `registeredPersons` (everyone those households get food for: main persons plus their
 not-excluded additional persons), `tickets` (processed/total), `logistics` (food collection + food amount counters, `allRouteNames`
 - every enabled route, not just the recorded ones, see "Route chips" below - plus
-`routeProgress` - the stops each route has ticked off today in the route guidance screen),
+`routeProgress` - the stops each route has ticked off today in the route guidance screen, plus
+the deliveries confirmed there to the shelters picked for it; `route-progress` appends one lighter
+segment per shelter after the stop segments and shows the shelter count beside the stop count),
 `statistics`
-(current employee count / selected shelter names), free-text `notes`, `lastDistribution` (a
-compact summary of the most recently closed distribution) and `organizationOverview` (eight
-organization-wide counts) - see "No active distribution" below for the latter two.
+(current employee count / the shelters today's routes deliver to, each with its persons count -
+the card also shows the shelter share estimate's total, which it asks `GET
+/food-collections/shelter-shares` for itself, debounced, whenever the dashboard's data changes: the
+card is LOGISTICS-only, and the backend dashboard module may not depend on `logistics`),
+free-text `notes`, `lastDistribution` (a compact summary of the most recently closed distribution)
+and `organizationOverview` (eight organization-wide counts) - see "No active distribution" below for the latter two.
 The template (`dashboard.component.html`) reads `data()` and passes slices of it down as
 `@Input`-style signal inputs to the presentational child components (`tafel-registered-customers`,
 `tafel-registered-persons`, `tafel-tickets-processed`, `tafel-recorded-food-collections`, `tafel-recorded-route-names`,
@@ -126,9 +131,7 @@ ignores the callback param entirely for `/sse/dashboard`.
 ```
 dashboard/
   dashboard.component.ts / .html / .spec.ts   # page shell, owns the /sse/dashboard subscription
-  dashboard.routes.ts                          # single '' route, resolves sheltersData
-  resolver/
-    dashboard-shelters-resolver-component.service.ts  # DashboardSheltersDataResolver
+  dashboard.routes.ts                          # single '' route, no resolvers
   components/
     distribution-state/                # open/close distribution card + its 2 confirm dialogs
     registered-customers/               # customer count card + PDF customer-list download
@@ -137,10 +140,9 @@ dashboard/
     recorded-food-collections/          # recorded/total food-collection count card
     recorded-route-names/               # one chip per active route, recorded vs outstanding
     food-amount/                        # total recorded food weight (kg) card
-    distribution-statistics-input/      # end-of-day form: employee count + shelter occupancy
+    distribution-statistics-input/      # end-of-day form: employee count, plus the day's shelter
+                                         # occupancy shown read-only
     distribution-notes-input/           # free-text notes form for the distribution
-    select-shelters/                    # multi-select shelter picker + its dialog, used by
-                                         # distribution-statistics-input only
     last-distribution-summary/          # summary of the most recently closed distribution, shown
                                          # in place of the day-specific panels while none is active
     stat-tile/                          # generic label+figure card, used for the organization
@@ -152,13 +154,6 @@ Every component under `components/` is a standalone, presentational-ish componen
 `ngOnInit`. Only `DashboardComponent` itself deals with the SSE stream; everything else is either
 pure presentation (`FoodAmountComponent`, `TicketsProcessedComponent`) or talks to
 `DistributionApiService`/`GlobalStateService` for actions and shared state.
-
-### `resolver/`
-
-`DashboardSheltersDataResolver` (registered in `dashboard.routes.ts`) pre-fetches the active
-shelter list via `ShelterApiService.getActiveShelters()` before the route activates, so
-`sheltersData` is available as a route-resolved `input()` on `DashboardComponent` immediately —
-no loading spinner needed for the shelter picker used by `distribution-statistics-input`.
 
 ## Route chips
 
@@ -181,11 +176,14 @@ above).
   a confirmation dialog first (`CloseDistributionDialogComponent`); if the backend returns
   validation errors/warnings, a second dialog (`CloseDistributionValidationDialogComponent`)
   lets the user force-close anyway.
-- **`DistributionStatisticsInputComponent`**: reconciles three signal sources — the SSE-pushed
-  `employeeCountInput`/`initialSelectedShelterNames` (from `DashboardData.statistics`), the
-  resolver-provided `sheltersData`, and locally-typed form state — using a
-  `initialIdsProcessed` guard flag so the SSE-provided initial shelter *names* (not IDs) are only
-  applied to the form once, matched against `sheltersData()` by name.
+- **`DistributionStatisticsInputComponent`**: the form has one field, the employee count, and
+  "Speichern" saves only that (`DistributionApiService.saveStatistic(employeeCount)`). The
+  SSE-pushed `employeeCountInput` is patched into it only while the control is pristine, so a live
+  update landing mid-typing doesn't wipe what the user entered. The `shelters` input
+  (`DashboardData.statistics.shelters`: name + persons count) is rendered read-only below it, with
+  `personsInShelterCount` as their sum - the shelters are picked per route in the logistics
+  module's food collection recording ("Routenerfassung"), the only place they are chosen, so this
+  card shows them but cannot change them.
 - **`RegisteredCustomersComponent`**: the customer-list download button is only visible while a
   distribution is active (`*tafelIfDistributionActive`), and downloads a PDF by parsing the
   filename out of the `Content-Disposition` response header.
@@ -193,7 +191,7 @@ above).
   `summary: DashboardLastDistributionData | null` and renders its own placeholder text when `null`
   (no distribution has ever been closed) rather than leaving itself blank. Six figures in total:
   customers/persons/tickets/food-amount plus `sheltersCount`/`personsInSheltersCount` - the latter
-  two are `0`/`0` (not a placeholder) when that distribution's statistic had no shelters selected,
+  two are `0`/`0` (not a placeholder) when no route of that distribution had a shelter assigned,
   same "zero is a real answer" rule the other four figures already follow.
 - **`StatTileComponent`** (`tafel-stat-tile`): the one generic panel here - `label`/`value`/`testId`
   inputs rather than a dedicated component per figure, since the eight organization-overview tiles are

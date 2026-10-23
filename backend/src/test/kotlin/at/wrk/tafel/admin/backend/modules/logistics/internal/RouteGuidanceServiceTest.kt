@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionReturnItemEntity
@@ -15,10 +16,17 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterContactEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterFixedQuantityEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopAddress
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.events.RouteAtLastStopEvent
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceFixedQuantityItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -49,6 +57,12 @@ class RouteGuidanceServiceTest {
 
     @RelaxedMockK
     private lateinit var foodCollectionRepository: FoodCollectionRepository
+
+    @RelaxedMockK
+    private lateinit var shelterDeliveryRepository: ShelterDeliveryRepository
+
+    @RelaxedMockK
+    private lateinit var shelterShareService: ShelterShareService
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
@@ -192,6 +206,107 @@ class RouteGuidanceServiceTest {
         assertThat(guidance.returnItemsFrom).isNull()
         assertThat(guidance.unassignedReturnItems).isEmpty()
         assertThat(guidance.stops).allSatisfy { assertThat(it.returnItems).isEmpty() }
+    }
+
+    @Test
+    fun `guidance lists the shelters picked for the route today with what a driver needs`() {
+        val currentDistribution = distribution(id = 77, startedAt = LocalDateTime.of(2026, 8, 9, 6, 0))
+        val vegetables = FoodCategoryEntity(name = "Obst / Gemüse", sortOrder = 2).apply { id = 2 }
+        val bread = FoodCategoryEntity(name = "Backwaren", sortOrder = 1).apply { id = 1 }
+        val second = guidanceShelter(id = 6, name = "Zweite", sortOrder = 2)
+        val first = guidanceShelter(id = 5, name = "Erste", sortOrder = 1).apply {
+            addressStairway = "2"
+            addressDoor = "14"
+            hasKitchen = true
+            hasFreezer = true
+            restrictions = "kein Schweinefleisch"
+            fixedQuantities = mutableListOf(ShelterFixedQuantityEntity(foodCategory = bread, amount = 2, note = "Gebäck"))
+            note = "Hintereingang"
+            foodCategories = mutableSetOf(vegetables, bread)
+            excludedFoodCategories = mutableSetOf(FoodCategoryEntity(name = "Brot", sortOrder = 3).apply { id = 3 })
+            contacts = mutableListOf(
+                ShelterContactEntity(shelter = this, phone = "0664 1").apply { firstname = "Anna" },
+            )
+        }
+        currentDistribution.foodCollections = mutableListOf(
+            FoodCollectionEntity(distribution = currentDistribution, route = route).apply {
+                id = 40
+                shelters = mutableSetOf(second, first)
+            },
+        )
+        every { shelterDeliveryRepository.findAllByFoodCollectionIdIn(listOf(40L)) } returns listOf(
+            ShelterDeliveryEntity(foodCollection = currentDistribution.foodCollections.first(), shelter = second).apply {
+                deliveredBy = testUserEntity
+            },
+        )
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns currentDistribution
+
+        val shelters = service.getGuidance(1).shelters
+
+        assertThat(shelters.map { it.name }).containsExactly("Erste", "Zweite")
+        assertThat(shelters.map { it.delivered }).containsExactly(false, true)
+        assertThat(shelters.last().deliveredBy).isNotNull()
+        with(shelters.first()) {
+            assertThat(address).isEqualTo("Gasse 5, Stiege 2, Top 14, 1030 Wien")
+            assertThat(hasKitchen).isTrue()
+            assertThat(foodCategories).containsExactly("Backwaren", "Obst / Gemüse")
+            assertThat(excludedFoodCategories).containsExactly("Brot")
+            assertThat(hasFreezer).isTrue()
+            assertThat(restrictions).isEqualTo("kein Schweinefleisch")
+            assertThat(fixedQuantities).containsExactly(
+                RouteGuidanceFixedQuantityItem(foodCategory = "Backwaren", amount = 2, note = "Gebäck"),
+            )
+            assertThat(contacts).containsExactly(ShelterContactItem(firstname = "Anna", lastname = null, phone = "0664 1"))
+            assertThat(note).isEqualTo("Hintereingang")
+            assertThat(personsCount).isEqualTo(20)
+        }
+    }
+
+    @Test
+    fun `confirming a shelter delivery records it once, and taking it back removes it`() {
+        val currentDistribution = distribution(id = 77, startedAt = LocalDateTime.of(2026, 8, 9, 6, 0))
+        val shelter = guidanceShelter(id = 5, name = "Erste", sortOrder = 1)
+        val collection = FoodCollectionEntity(distribution = currentDistribution, route = route).apply {
+            id = 40
+            shelters = mutableSetOf(shelter)
+        }
+        currentDistribution.foodCollections = mutableListOf(collection)
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns currentDistribution
+        every { shelterDeliveryRepository.findByFoodCollectionIdAndShelterId(40, 5) } returns null
+        every { shelterDeliveryRepository.saveAndFlush(any()) } answers { firstArg() as ShelterDeliveryEntity }
+
+        val delivered = service.setShelterDelivery(1, 5, true)
+
+        assertThat(delivered.delivered).isTrue()
+        verify {
+            advisoryLockService.withLock<Any>(AdvisoryLockKey.SHELTER_DELIVERY, any())
+            shelterDeliveryRepository.saveAndFlush(withArg { assertThat(it.deliveredBy).isEqualTo(testUserEntity) })
+        }
+
+        val existing = ShelterDeliveryEntity(foodCollection = collection, shelter = shelter)
+        every { shelterDeliveryRepository.findByFoodCollectionIdAndShelterId(40, 5) } returns existing
+
+        val undone = service.setShelterDelivery(1, 5, false)
+
+        assertThat(undone.delivered).isFalse()
+        verify { shelterDeliveryRepository.delete(existing) }
+    }
+
+    @Test
+    fun `confirming a delivery to a shelter not picked for the route today is refused`() {
+        val currentDistribution = distribution(id = 77, startedAt = LocalDateTime.of(2026, 8, 9, 6, 0))
+        currentDistribution.foodCollections = mutableListOf(
+            FoodCollectionEntity(distribution = currentDistribution, route = route).apply { id = 40 },
+        )
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns currentDistribution
+
+        assertThrows<NotFoundException> { service.setShelterDelivery(1, 5, true) }
+        verify(exactly = 0) { shelterDeliveryRepository.saveAndFlush(any()) }
+    }
+
+    @Test
+    fun `guidance lists no shelters while no distribution is running`() {
+        assertThat(service.getGuidance(1).shelters).isEmpty()
     }
 
     @Test
@@ -428,4 +543,14 @@ class RouteGuidanceServiceTest {
             )
         }
     }
+
+    private fun guidanceShelter(id: Long, name: String, sortOrder: Int) = ShelterEntity(
+        name = name,
+        addressStreet = "Gasse",
+        addressHouseNumber = "5",
+        addressPostalCode = 1030,
+        addressCity = "Wien",
+        personsCount = 20,
+        sortOrder = sortOrder,
+    ).apply { this.id = id }
 }

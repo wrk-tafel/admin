@@ -193,10 +193,18 @@ Cypress.Commands.add('closeDistribution', () => {
   // leave the distribution in a state the statistics endpoint accepts. Tolerate that failure so
   // the actual close call below still runs - otherwise the distribution is left stuck open and
   // every later spec's createDistribution() fails with "Ausgabe bereits gestartet!".
+  // shelters 1 and 2 (100 + 50 persons) on route 1 - the food collection recording is where a
+  // distribution's shelters come from, and the statistic freezes them when the distribution closes
+  cy.request({
+    method: 'POST',
+    url: '/api/food-collections/routes/1/shelters',
+    body: {shelterIds: [1, 2]},
+    failOnStatusCode: false
+  });
   cy.request({
     method: 'POST',
     url: '/api/distributions/statistics',
-    body: {employeeCount: 100, selectedShelterIds: [1, 2]},
+    body: {employeeCount: 100},
     failOnStatusCode: false
   });
 

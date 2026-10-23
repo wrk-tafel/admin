@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.modules.base.employee.EmployeeResponse
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCollectionService
+import at.wrk.tafel.admin.backend.modules.logistics.internal.ShelterShareService
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -18,6 +19,9 @@ class FoodCollectionsControllerTest {
 
     @RelaxedMockK
     private lateinit var service: FoodCollectionService
+
+    @RelaxedMockK
+    private lateinit var shelterShareService: ShelterShareService
 
     @InjectMockKs
     private lateinit var controller: FoodCollectionsController
@@ -56,6 +60,7 @@ class FoodCollectionsControllerTest {
                     amount = 4,
                 ),
             ),
+            shelterIds = listOf(3L),
         )
 
         every { service.getFoodCollection(routeId) } returns testFoodCollectionData
@@ -89,6 +94,34 @@ class FoodCollectionsControllerTest {
         controller.saveFoodCollectionRouteData(routeId = routeId, request = request)
 
         verify(exactly = 1) { service.saveRouteData(routeId = routeId, data = request) }
+    }
+
+    @Test
+    fun `get shelter shares`() {
+        val shares = ShelterSharesResponse(householdPersons = 90, shelterPersons = 10, totalBoxes = 0, routes = emptyList())
+        every { shelterShareService.getShelterShares() } returns shares
+
+        val response = controller.getShelterShares()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(shares)
+    }
+
+    @Test
+    fun `get shelter shares without a running distribution`() {
+        every { shelterShareService.getShelterShares() } returns null
+
+        assertThat(controller.getShelterShares().statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+    }
+
+    @Test
+    fun `saves shelters`() {
+        val routeId = 123L
+        val request = FoodCollectionSaveSheltersRequest(shelterIds = listOf(1L, 2L))
+
+        controller.saveFoodCollectionShelters(routeId = routeId, request = request)
+
+        verify(exactly = 1) { service.saveShelters(routeId = routeId, data = request) }
     }
 
     @Test

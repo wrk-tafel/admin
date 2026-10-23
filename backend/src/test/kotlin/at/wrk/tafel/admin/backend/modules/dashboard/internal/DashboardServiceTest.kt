@@ -15,11 +15,14 @@ import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEnt
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsShelter
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
@@ -32,6 +35,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.testRoute3
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute4
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter2
+import at.wrk.tafel.admin.backend.modules.logistics.testShelter3
 import at.wrk.tafel.admin.backend.modules.logistics.testShop1
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
@@ -75,6 +79,9 @@ internal class DashboardServiceTest {
 
     @RelaxedMockK
     private lateinit var shelterRepository: ShelterRepository
+
+    @RelaxedMockK
+    private lateinit var shelterDeliveryRepository: ShelterDeliveryRepository
 
     @RelaxedMockK
     private lateinit var shopRepository: ShopRepository
@@ -179,48 +186,33 @@ internal class DashboardServiceTest {
         val data = service.getData()
 
         assertThat(data.statistics!!.employeeCount).isEqualTo(100)
-        assertThat(data.statistics.selectedShelterNames).hasSameElementsAs(
-            listOf(testShelter1.name, testShelter2.name),
-        )
     }
 
     @Test
-    fun `get statistics sorts shelters by their frozen sortOrder, not name`() {
+    fun `get statistics lists the shelters picked for today's routes once each, in their order`() {
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
         }
-        val testStatistic = DistributionStatisticEntity(distribution = testDistributionEntity).apply {
-            employeeCount = 100
-        }
-        testStatistic.shelters = mutableListOf(
-            DistributionStatisticShelterEntity(
-                statistic = testStatistic,
-                name = "Shelter Z",
-                addressStreet = "Street",
-                addressHouseNumber = "1",
-                addressPostalCode = 1234,
-                addressCity = "City",
-                personsCount = 1,
-                sortOrder = 1,
-            ),
-            DistributionStatisticShelterEntity(
-                statistic = testStatistic,
-                name = "Shelter A",
-                addressStreet = "Street",
-                addressHouseNumber = "2",
-                addressPostalCode = 1234,
-                addressCity = "City",
-                personsCount = 1,
-                sortOrder = 2,
-            ),
+        testDistributionEntity.foodCollections = mutableListOf(
+            FoodCollectionEntity(distribution = testDistributionEntity, route = testRoute1).apply {
+                shelters = mutableSetOf(testShelter2, testShelter1)
+            },
+            FoodCollectionEntity(distribution = testDistributionEntity, route = testRoute2).apply {
+                // the same shelter on a second route counts once; one deactivated since it was picked
+                // still counts - it was delivered to
+                shelters = mutableSetOf(testShelter3, testShelter1)
+            },
         )
-        testDistributionEntity.statistic = testStatistic
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val data = service.getData()
 
-        assertThat(data.statistics!!.selectedShelterNames).containsExactly("Shelter Z", "Shelter A")
+        assertThat(data.statistics!!.shelters).containsExactly(
+            DashboardStatisticsShelter(name = testShelter1.name, personsCount = testShelter1.personsCount),
+            DashboardStatisticsShelter(name = testShelter2.name, personsCount = testShelter2.personsCount),
+            DashboardStatisticsShelter(name = testShelter3.name, personsCount = testShelter3.personsCount),
+        )
     }
 
     @Test
@@ -335,6 +327,40 @@ internal class DashboardServiceTest {
         assertThat(routeProgress.routeName).isEqualTo("Route 1")
         assertThat(routeProgress.completedStops).isEqualTo(2)
         assertThat(routeProgress.totalStops).isEqualTo(3)
+    }
+
+    @Test
+    fun `route progress counts the deliveries to the shelters picked for a route today`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        // route 2 has no stops - it only shows up because it delivers to shelters today
+        val route2Collection = FoodCollectionEntity(distribution = testDistributionEntity, route = testRoute2).apply {
+            id = 77
+            shelters = mutableSetOf(testShelter1, testShelter2)
+        }
+        testDistributionEntity.foodCollections = mutableListOf(route2Collection)
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { routeRepository.findByEnabledIsTrue() } returns listOf(testRoute1, testRoute2)
+        every {
+            routeStopCompletionRepository.findAllByRouteStopIdInAndCompletionDate(any(), LocalDate.now())
+        } returns emptyList()
+        every { shelterDeliveryRepository.findAllByFoodCollectionIdIn(listOf(77L)) } returns listOf(
+            ShelterDeliveryEntity(foodCollection = route2Collection, shelter = testShelter1),
+        )
+
+        val data = service.getData()
+
+        val progress = data.logistics!!.routeProgress
+        assertThat(progress.map { it.routeId }).containsExactly(testRoute1.id, testRoute2.id)
+        with(progress.single { it.routeId == testRoute2.id }) {
+            assertThat(completedStops).isZero()
+            assertThat(totalStops).isZero()
+            assertThat(completedShelters).isEqualTo(1)
+            assertThat(totalShelters).isEqualTo(2)
+        }
+        assertThat(progress.single { it.routeId == testRoute1.id }.totalShelters).isZero()
     }
 
     @Test

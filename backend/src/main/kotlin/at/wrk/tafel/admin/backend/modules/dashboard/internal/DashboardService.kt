@@ -11,6 +11,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
@@ -20,6 +21,7 @@ import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLogisticsData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardOrganizationOverviewData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardRouteProgressItem
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsData
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsShelter
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardTicketsData
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -37,6 +39,7 @@ class DashboardService(
     private val userRepository: UserRepository,
     private val carRepository: CarRepository,
     private val shelterRepository: ShelterRepository,
+    private val shelterDeliveryRepository: ShelterDeliveryRepository,
     private val shopRepository: ShopRepository,
     private val employeeRepository: EmployeeRepository,
 ) {
@@ -115,20 +118,16 @@ class DashboardService(
 
     // the same formula DistributionStatisticService and the customer-list PDF use: one per
     // household (the main person) plus its additional persons that are not excluded
-    private fun getRegisteredPersons(currentDistribution: DistributionEntity): Int {
-        val households = currentDistribution.households
-        return households.size +
-            households
-                .flatMap { it.household.additionalPersons() }
-                .count { !it.excludeFromHousehold }
-    }
+    private fun getRegisteredPersons(currentDistribution: DistributionEntity): Int = currentDistribution.countRegisteredPersons()
 
     private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData = DashboardStatisticsData(
         employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },
-        // Intentionally names, not shelter ids: statistics keep a historic copy independent of later shelter renames/deletions
-        selectedShelterNames = currentDistribution?.statistic?.shelters
+        shelters = currentDistribution?.foodCollections
+            ?.flatMap { it.shelters }
+            ?.distinctBy { it.id }
             ?.sortedWith(compareBy({ it.sortOrder }, { it.name }))
-            ?.map { it.name } ?: emptyList(),
+            ?.map { DashboardStatisticsShelter(name = it.name, personsCount = it.personsCount) }
+            ?: emptyList(),
     )
 
     private fun getLogisticsData(currentDistribution: DistributionEntity): DashboardLogisticsData {
@@ -146,7 +145,7 @@ class DashboardService(
                 .sortedWith(compareBy({ it.number }, { it.name }))
                 .map { it.name },
             foodAmountTotal = getFoodAmountTotal(currentDistribution),
-            routeProgress = getRouteProgress(enabledRoutes),
+            routeProgress = getRouteProgress(enabledRoutes, currentDistribution),
         )
     }
 
@@ -166,31 +165,55 @@ class DashboardService(
      * of the day is ticked off, *every* route appears, including the ones still at zero: from then
      * on "Route 3: 0 / 15" is news rather than noise.
      */
-    private fun getRouteProgress(enabledRoutes: List<RouteEntity>): List<DashboardRouteProgressItem> {
-        val routesWithStops = enabledRoutes.filter { it.stops.isNotEmpty() }
-        val stopIds = routesWithStops.flatMap { route -> route.stops.mapNotNull { it.id } }
-        if (stopIds.isEmpty()) {
+    /**
+     * The ticked stops of the day plus the confirmed deliveries to the shelters picked for each route -
+     * a shelter is not a stop (they change from day to day), but delivering to it is as much a part
+     * of how far the route has got.
+     */
+    private fun getRouteProgress(
+        enabledRoutes: List<RouteEntity>,
+        currentDistribution: DistributionEntity,
+    ): List<DashboardRouteProgressItem> {
+        val collectionsByRouteId = currentDistribution.foodCollections
+            .filter { it.shelters.isNotEmpty() }
+            .associateBy { it.route.id }
+        val routesWithProgress = enabledRoutes.filter { it.stops.isNotEmpty() || it.id in collectionsByRouteId }
+        if (routesWithProgress.isEmpty()) {
             return emptyList()
         }
 
-        // one query for every route's stops rather than one per route
-        val completedStopIds = routeStopCompletionRepository
-            .findAllByRouteStopIdInAndCompletionDate(stopIds, LocalDate.now())
-            .mapNotNull { it.routeStop.id }
-            .toSet()
-        if (completedStopIds.isEmpty()) {
+        // one query each for every route's stops and deliveries rather than one per route
+        val stopIds = routesWithProgress.flatMap { route -> route.stops.mapNotNull { it.id } }
+        val completedStopIds = if (stopIds.isEmpty()) {
+            emptySet()
+        } else {
+            routeStopCompletionRepository
+                .findAllByRouteStopIdInAndCompletionDate(stopIds, LocalDate.now())
+                .mapNotNull { it.routeStop.id }
+                .toSet()
+        }
+        val deliveries = collectionsByRouteId.values.mapNotNull { it.id }
+            .takeIf { it.isNotEmpty() }
+            ?.let { shelterDeliveryRepository.findAllByFoodCollectionIdIn(it) }
+            .orEmpty()
+        // the panel only appears once something has actually been ticked off today
+        if (completedStopIds.isEmpty() && deliveries.isEmpty()) {
             return emptyList()
         }
+        val deliveredCountByCollectionId = deliveries.groupingBy { it.foodCollection.id }.eachCount()
 
-        return routesWithStops
+        return routesWithProgress
             .sortedWith(compareBy({ it.number }, { it.name }))
             .map { route ->
+                val collection = collectionsByRouteId[route.id]
                 DashboardRouteProgressItem(
                     routeId = route.id!!,
                     routeNumber = route.number,
                     routeName = route.name,
                     completedStops = route.stops.count { it.id in completedStopIds },
                     totalStops = route.stops.size,
+                    completedShelters = collection?.let { deliveredCountByCollectionId[it.id] } ?: 0,
+                    totalShelters = collection?.shelters?.size ?: 0,
                 )
             }
     }

@@ -2,7 +2,9 @@ package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.modules.logistics.internal.RouteGuidanceService
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceResponse
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceShelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceStopItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteShelterDeliveryRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteStopCompletionRequest
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -46,6 +48,7 @@ class RouteGuidanceControllerTest {
             returnItemsFrom = null,
             stops = listOf(testStop),
             unassignedReturnItems = emptyList(),
+            shelters = emptyList(),
         )
         every { routeGuidanceService.getGuidance(1) } returns guidance
 
@@ -53,6 +56,30 @@ class RouteGuidanceControllerTest {
 
         assertThat(response).isEqualTo(guidance)
         verify { routeGuidanceService.getGuidance(1) }
+    }
+
+    @Test
+    fun `set shelter delivery`() {
+        val shelter = RouteGuidanceShelter(
+            id = 5,
+            name = "Notschlafstelle",
+            address = "Gasse 1, 1030 Wien",
+            personsCount = 20,
+            hasKitchen = null,
+            hasFreezer = false,
+            foodCategories = emptyList(),
+            excludedFoodCategories = emptyList(),
+            restrictions = null,
+            fixedQuantities = emptyList(),
+            contacts = emptyList(),
+            note = null,
+            delivered = true,
+        )
+        every { routeGuidanceService.setShelterDelivery(1, 5, true) } returns shelter
+
+        val response = controller.setShelterDelivery(1, 5, RouteShelterDeliveryRequest(delivered = true))
+
+        assertThat(response).isEqualTo(shelter)
     }
 
     @Test

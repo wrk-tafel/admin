@@ -19,15 +19,15 @@ describe('Dashboard', () => {
     // fill employee count
     cy.byTestId('distribution-statistics-employee-count-input').type('100');
 
-    // select shelters to calculate person count
-    cy.byTestId('dashboard-select-shelters-button').click();
-    cy.byTestId('selectable-shelter-row-0').find('input[type="checkbox"]').click({force: true});
-    cy.byTestId('selectable-shelter-row-1').find('input[type="checkbox"]').click({force: true});
-    cy.byTestId('selectable-shelter-row-2').find('input[type="checkbox"]').click({force: true});
-    cy.byTestId('selectshelters-save-button').click();
-    cy.byTestId('distribution-statistics-persons-in-shelter-input')
-      .find('input')
-      .should('have.value', '150');
+    // the shelters come from the food collection recording only - picking them there for a route
+    // reaches the dashboard live, without a reload
+    cy.byTestId('distribution-statistics-no-shelters').should('be.visible');
+    cy.request('POST', '/api/food-collections/routes/1/shelters', {shelterIds: [1, 2]});
+    cy.byTestId('distribution-statistics-persons-in-shelter').should('have.text', '150');
+    cy.byTestId('distribution-statistics-shelter-list')
+      .should('contain.text', 'Shelter 1 (100)')
+      .and('contain.text', 'Shelter 2 with a very long name (50)');
+    cy.byTestId('dashboard-select-shelters-button').should('not.exist');
 
     cy.byTestId('distribution-statistics-save-button').click();
 
@@ -40,9 +40,7 @@ describe('Dashboard', () => {
     cy.byTestId('distribution-statistics-employee-count-input')
       .find('input')
       .should('have.value', '100');
-    cy.byTestId('distribution-statistics-persons-in-shelter-input')
-      .find('input')
-      .should('have.value', '150');
+    cy.byTestId('distribution-statistics-persons-in-shelter').should('have.text', '150');
     cy.byTestId('distribution-notes-textarea').should('have.value', 'Test note - everything went well!');
 
     // --> CLOSED
@@ -277,16 +275,6 @@ describe('Dashboard', () => {
 
     afterEach(() => {
       cy.closeDistribution();
-    });
-
-    it('has no violations in the shelter selection dialog', () => {
-      cy.createDistribution();
-      cy.reload();
-
-      cy.byTestId('dashboard-select-shelters-button').click();
-      cy.byTestId('selectable-shelter-row-0').should('be.visible');
-
-      cy.checkDialogAccessibility();
     });
 
     it('has no violations in the two dialogs that close the distribution', () => {

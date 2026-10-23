@@ -35,36 +35,32 @@
         }
       </mat-form-field>
 
-      <div class="gap-2 flex flex-row">
-        <mat-form-field class="w-full" appearance="fill" testid="distribution-statistics-persons-in-shelter-input">
-          <mat-label>Personen in Notschlafstellen</mat-label>
-          <input
-            matInput
-            type="number"
-            formControlName="personsInShelterCount"
-            placeholder="Personen in Notschlafstellen"
-            [readonly]="true"
-          />
-          <tafel-info-tooltip matSuffix [testId]="'persons-in-shelter-info-tooltip'"
-                              text="Wird nicht direkt eingegeben: über den Rechner daneben werden die belieferten Notschlafstellen ausgewählt, die Summe ihrer Personen steht dann hier."></tafel-info-tooltip>
-          @if (personsInShelterCount.errors?.required && personsInShelterCount.touched) {
-            <mat-error>
-              Pflichtfeld
-            </mat-error>
-          }
-          @if (personsInShelterCount.errors?.min && personsInShelterCount.touched) {
-            <mat-error>
-              Muss mindestens 1 sein
-            </mat-error>
-          }
-        </mat-form-field>
-        <tafel-select-shelters
-          (updateSelectedShelters)="onUpdateSelectedShelters($event)"
-          [sheltersList]="sheltersData()?.shelters"
-          [initialSelectedShelters]="selectedShelters()"
-          [disabled]="panelDisabled()"
-        ></tafel-select-shelters>
-      </div>
+      <!-- Read-only on purpose: the shelters are picked per route in the food collection recording
+           ("Routenerfassung"), the one place they are chosen, and frozen onto the statistic when the
+           distribution closes. -->
+      <section class="flex flex-col gap-1" aria-labelledby="distribution-statistics-shelters-heading"
+               testid="distribution-statistics-shelters">
+        <div class="flex items-center gap-1">
+          <h3 id="distribution-statistics-shelters-heading" class="tafel-h6 m-0">Personen in Notschlafstellen</h3>
+          <tafel-info-tooltip [testId]="'persons-in-shelter-info-tooltip'"
+                              text="Ergibt sich aus den Notschlafstellen, die in der Routenerfassung den heutigen Routen zugeordnet werden - geändert wird die Auswahl dort, nicht hier."></tafel-info-tooltip>
+        </div>
+        <span class="text-2xl font-medium" testid="distribution-statistics-persons-in-shelter">{{ personsInShelterCount() }}</span>
+        @if (shelterShares(); as shares) {
+          <span class="text-sm" testid="distribution-statistics-shelter-share">
+            Für Notschlafstellen: ca. {{ shares.totalBoxes }} {{ shares.totalBoxes === 1 ? 'Kiste' : 'Kisten' }}
+          </span>
+        }
+        @if (shelters().length) {
+          <ul class="m-0 list-none p-0 text-sm" testid="distribution-statistics-shelter-list">
+            @for (shelter of shelters(); track shelter.name) {
+              <li>{{ shelter.name }} ({{ shelter.personsCount }})</li>
+            }
+          </ul>
+        } @else {
+          <span class="text-sm" testid="distribution-statistics-no-shelters">Noch keine in der Routenerfassung zugeordnet</span>
+        }
+      </section>
     </form>
   </mat-card-content>
   <mat-card-footer>

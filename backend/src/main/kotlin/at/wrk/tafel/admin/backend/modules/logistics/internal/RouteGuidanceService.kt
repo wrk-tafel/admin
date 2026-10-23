@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
@@ -13,12 +14,18 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopCompletionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterDeliveryRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.events.RouteAtLastStopEvent
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceFixedQuantityItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceReturnItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceShelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceShop
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceStopItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
@@ -41,6 +48,8 @@ class RouteGuidanceService(
     private val routeRepository: RouteRepository,
     private val routeStopCompletionRepository: RouteStopCompletionRepository,
     private val foodCollectionRepository: FoodCollectionRepository,
+    private val shelterDeliveryRepository: ShelterDeliveryRepository,
+    private val shelterShareService: ShelterShareService,
     private val distributionRepository: DistributionRepository,
     private val userRepository: UserRepository,
     private val eventPublisher: ApplicationEventPublisher,
@@ -81,6 +90,7 @@ class RouteGuidanceService(
                 .values
                 .flatten()
                 .sortedWith(compareBy({ it.shopName }, { it.description })),
+            shelters = mapTodaysShelters(findTodaysCollection(routeId)),
         )
     }
 
@@ -182,6 +192,101 @@ class RouteGuidanceService(
         return foodCollectionRepository
             .findFirstByRouteIdAndDistributionIdNotOrderByDistributionStartedAtDescIdDesc(routeId, currentDistributionId)
     }
+
+    /**
+     * The running distribution's food collection of this route - where the day's shelters are picked
+     * and their deliveries recorded. Unlike the stop progress this is keyed by the distribution, not
+     * the date: with no distribution running there is no day to deliver to yet.
+     */
+    private fun findTodaysCollection(routeId: Long): FoodCollectionEntity? = distributionRepository.getCurrentDistribution()
+        ?.foodCollections
+        ?.firstOrNull { it.route.id == routeId }
+
+    private fun mapTodaysShelters(collection: FoodCollectionEntity?): List<RouteGuidanceShelter> {
+        if (collection == null || collection.shelters.isEmpty()) {
+            return emptyList()
+        }
+        val deliveriesByShelterId = shelterDeliveryRepository.findAllByFoodCollectionIdIn(listOf(collection.id!!))
+            .associateBy { it.shelter.id }
+        val sharesByShelterId = shelterShareService.calculate(collection.distribution).routes
+            .flatMap { it.shelters }
+            .associate { it.shelterId to it.items }
+        return collection.shelters
+            .sortedWith(compareBy({ it.sortOrder }, { it.name }))
+            .map { mapShelter(it, deliveriesByShelterId[it.id]).copy(estimatedShare = sharesByShelterId[it.id].orEmpty()) }
+    }
+
+    /**
+     * Confirms (or takes back) that one of the shelters picked for the route today got its goods.
+     * Counted into the route's progress next to the ticked stops, but deliberately not a stop: the
+     * shelters change from day to day, so they have no place in the route's fixed order.
+     */
+    @Transactional
+    fun setShelterDelivery(routeId: Long, shelterId: Long, delivered: Boolean): RouteGuidanceShelter {
+        findRoute(routeId)
+        val collection = findTodaysCollection(routeId)
+        val shelter = collection?.shelters?.firstOrNull { it.id == shelterId }
+            ?: throw NotFoundException("Notschlafstelle $shelterId ist der Route $routeId heute nicht zugeordnet!")
+
+        if (!delivered) {
+            shelterDeliveryRepository.findByFoodCollectionIdAndShelterId(collection.id!!, shelterId)
+                ?.let { shelterDeliveryRepository.delete(it) }
+            return mapShelter(shelter, null).copy(estimatedShare = estimatedShare(collection, shelterId))
+        }
+
+        // see ROUTE_STOP_COMPLETION in setCompletion - the same check-then-act against a UNIQUE pair,
+        // with driver and co-driver both able to confirm the same delivery at once
+        val delivery = advisoryLockService.withLock(AdvisoryLockKey.SHELTER_DELIVERY) {
+            // confirming twice keeps the first confirmation, whose time is the one that matters
+            shelterDeliveryRepository.findByFoodCollectionIdAndShelterId(collection.id!!, shelterId)
+                ?: shelterDeliveryRepository.saveAndFlush(
+                    ShelterDeliveryEntity(foodCollection = collection, shelter = shelter).apply {
+                        deliveredBy = currentUser()
+                    },
+                )
+        }
+        // the answer replaces this shelter on the screen, so it has to carry the estimate too
+        return mapShelter(shelter, delivery).copy(estimatedShare = estimatedShare(collection, shelterId))
+    }
+
+    private fun estimatedShare(collection: FoodCollectionEntity, shelterId: Long) = shelterShareService.calculate(collection.distribution).routes
+        .flatMap { it.shelters }
+        .firstOrNull { it.shelterId == shelterId }
+        ?.items
+        .orEmpty()
+
+    private fun categoryNames(foodCategories: Set<FoodCategoryEntity>): List<String> = foodCategories
+        .sortedWith(compareBy({ it.sortOrder }, { it.name }))
+        .map { it.name }
+
+    private fun mapShelter(shelter: ShelterEntity, delivery: ShelterDeliveryEntity?) = RouteGuidanceShelter(
+        id = shelter.id!!,
+        name = shelter.name,
+        address = listOfNotNull(
+            "${shelter.addressStreet} ${shelter.addressHouseNumber}",
+            shelter.addressStairway?.let { "Stiege $it" },
+            shelter.addressDoor?.let { "Top $it" },
+            "${shelter.addressPostalCode} ${shelter.addressCity}",
+        ).joinToString(", "),
+        personsCount = shelter.personsCount,
+        hasKitchen = shelter.hasKitchen,
+        hasFreezer = shelter.hasFreezer,
+        foodCategories = categoryNames(shelter.foodCategories),
+        excludedFoodCategories = categoryNames(shelter.excludedFoodCategories),
+        restrictions = shelter.restrictions,
+        fixedQuantities = shelter.fixedQuantities.map {
+            RouteGuidanceFixedQuantityItem(foodCategory = it.foodCategory.name, amount = it.amount, note = it.note)
+        },
+        contacts = shelter.contacts.map {
+            ShelterContactItem(firstname = it.firstname, lastname = it.lastname, phone = it.phone)
+        },
+        note = shelter.note,
+        delivered = delivery != null,
+        deliveredAt = delivery?.createdAt,
+        deliveredBy = delivery?.deliveredBy
+            ?.let { listOfNotNull(it.firstname, it.lastname).joinToString(" ") }
+            ?.ifBlank { null },
+    )
 
     private fun findCompletions(stops: List<RouteStopEntity>, date: LocalDate): Map<Long?, RouteStopCompletionEntity> {
         val stopIds = stops.mapNotNull { it.id }

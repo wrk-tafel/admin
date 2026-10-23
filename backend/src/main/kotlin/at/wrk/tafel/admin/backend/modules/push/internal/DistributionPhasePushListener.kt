@@ -73,7 +73,7 @@ class DistributionPhasePushListener(
     fun onFoodCollectionCompleted(event: FoodCollectionCompletedEvent) {
         pushBroadcastService.broadcast(
             type = PushNotificationType.FOOD_COLLECTION_COMPLETED,
-            title = "Warenerfassung abgeschlossen",
+            title = "Routenerfassung abgeschlossen",
             body = "Für alle ${event.routeCount} aktiven Routen wurden die Waren erfasst.",
         )
     }

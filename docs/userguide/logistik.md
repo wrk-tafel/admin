@@ -2,7 +2,7 @@
 
 # Logistik
 
-Der Bereich "Logistik" begleitet die Routen-Teams: das **Routen-Navi** unterwegs auf der Route, die **Retourkisten**-Übersicht für die Leitung, die **Waren-Eingabe** bei der Erfassung der eingesammelten Warenmengen. Die Waren-Eingabe ist nur aktiv, solange ein Ausgabetag gestartet ist; das Routen-Navi ist jederzeit erreichbar, damit eine Route auch vorab durchgesehen werden kann.
+Der Bereich "Logistik" begleitet die Routen-Teams: das **Routen-Navi** unterwegs auf der Route, die **Retourkisten**-Übersicht für die Leitung, die **Routenerfassung** bei der Erfassung der eingesammelten Warenmengen. Die Routenerfassung ist nur aktiv, solange ein Ausgabetag gestartet ist; das Routen-Navi ist jederzeit erreichbar, damit eine Route auch vorab durchgesehen werden kann.
 
 <a id="routen-navi"></a>
 
@@ -20,7 +20,13 @@ Die Abbildung zeigt die Seite so, wie sie unterwegs tatsächlich verwendet wird:
 
 ![Routen-Navi am Handy](images/logistik-routen-navi.jpg)
 
-Hat die Route bei ihrer letzten Fahrt Retourware mitgebracht, steht oberhalb des Stopps ein Hinweis, wie viele Kisten heute zurückgehen und von welchem Ausgabetag sie stammen. Beim jeweiligen Stopp ist dann unter **Retourware** aufgelistet, was bei dieser Filiale abzugeben ist (z. B. "4 × Graue Kisten"); mit **Abgegeben** in derselben Zeile wird bestätigt, dass die Kisten dieser Filiale zurückgebracht wurden — sie erscheinen dann durchgestrichen, **Rückgängig** nimmt das am selben Tag wieder zurück. Die Bestätigung gilt auch in der [Retourkisten-Übersicht](#retourkisten), und sind alle Kisten abgegeben, verschwindet der Hinweis oben. Kisten einer Filiale, die auf der Route inzwischen nicht mehr angefahren wird, werden im Hinweis oben gesondert unter "Ohne Stopp auf dieser Route" angeführt, damit sie nicht übersehen werden. Grundlage ist die zuletzt erfasste Retourware der Route aus der [Waren-Eingabe](#warenerfassung); der laufende Ausgabetag wird dabei nicht herangezogen.
+Hat die Route bei ihrer letzten Fahrt Retourware mitgebracht, steht oberhalb des Stopps ein Hinweis, wie viele Kisten heute zurückgehen und von welchem Ausgabetag sie stammen. Beim jeweiligen Stopp ist dann unter **Retourware** aufgelistet, was bei dieser Filiale abzugeben ist (z. B. "4 × Graue Kisten"); mit **Abgegeben** in derselben Zeile wird bestätigt, dass die Kisten dieser Filiale zurückgebracht wurden — sie erscheinen dann durchgestrichen, **Rückgängig** nimmt das am selben Tag wieder zurück. Die Bestätigung gilt auch in der [Retourkisten-Übersicht](#retourkisten), und sind alle Kisten abgegeben, verschwindet der Hinweis oben. Kisten einer Filiale, die auf der Route inzwischen nicht mehr angefahren wird, werden im Hinweis oben gesondert unter "Ohne Stopp auf dieser Route" angeführt, damit sie nicht übersehen werden. Grundlage ist die zuletzt erfasste Retourware der Route aus der [Routenerfassung](#routenerfassung); der laufende Ausgabetag wird dabei nicht herangezogen.
+
+Wurden der Route in der [Routenerfassung](#notschlafstellen-der-route) für den laufenden Ausgabetag Notschlafstellen zugeordnet, steht oberhalb des Stopps der Bereich **Notschlafstellen heute** mit je einer Zeile pro Notschlafstelle (Name und Personenanzahl). Ein Antippen klappt die Zeile auf und zeigt alles, was für die Zustellung gebraucht wird: Adresse, ob es eine **Kochmöglichkeit** gibt und ob **Tiefkühlware** gelagert werden kann, die üblicherweise **benötigten** Lebensmittel, was **nicht gewünscht** ist, **Einschränkungen** wie "kein Schweinefleisch" (beides rot hervorgehoben, damit es beim Abladen nicht übersehen wird), **fixe Mengen** (z. B. "4 Kisten Backwaren (Schnittbrot)"), unter **Mitnehmen** die [Schätzung](#fuer-notschlafstellen), was aus dem bisher Gesammelten mitgenommen werden sollte (z. B. "ca. 20 Kisten Obst / Gemüse"), die Kontakte (Telefonnummer per Klick direkt wählbar), den Hinweis zur Notschlafstelle sowie **Navigation starten** zur Adresse. Solange kein Ausgabetag läuft oder der Route keine Notschlafstelle zugeordnet ist, entfällt der Bereich. Gepflegt werden diese Angaben unter [Einstellungen → Notschlafstellen](einstellungen.md#notschlafstellen).
+
+Ist eine Notschlafstelle beliefert, bestätigt das Fahrer-Team das in ihrer aufgeklappten Zeile mit **Geliefert**: Die Zeile trägt danach das Abzeichen "Geliefert", darunter stehen Uhrzeit und Name der Person, die bestätigt hat, und **Rückgängig machen** nimmt die Bestätigung wieder zurück. Die Notschlafstellen sind keine festen Stopps der Route – sie wechseln von Tag zu Tag und stehen daher nicht in der Punktreihe –, zählen aber zum Fortschritt: Der Zähler lautet dann z. B. "2 von 15 Stopps erledigt · 1 von 2 Notschlafstellen beliefert", und auch die [Übersicht](README.md#übersicht-dashboard) zeigt die Lieferungen unter "Routen unterwegs". Anders als ein Stopp kann eine Lieferung nur mit Internetverbindung bestätigt werden; ohne Verbindung erscheint eine Fehlermeldung, und die Bestätigung ist später zu wiederholen.
+
+![Notschlafstellen im Routen-Navi](images/logistik-routen-navi-notschlafstellen.jpg)
 
 Neben dem abgehakten Stopp werden Uhrzeit und Name der Person angezeigt, die ihn abgehakt hat. Der Zähler oben rechts zeigt den Fortschritt ("2 von 7 Stopps erledigt") — dieselbe Information, die auch die Punktreihe darüber schon farblich zeigt.
 
@@ -42,15 +48,17 @@ Unter **Logistik → Retourkisten** sieht die Leitung (oder wer die Fahrten koor
 
 ![Retourkisten-Übersicht](images/logistik-retourkisten.jpg)
 
-Die Kisten der Filialen einer Route werden bei der Waren-Eingabe erfasst (siehe [Retourware](#retourware)). Sie bleiben in dieser Übersicht so lange stehen, bis sie zurückgebracht wurden: **Retourniert** markiert alle offenen Kisten dieser Filiale auf dieser Route als zurückgebracht. Wurde eine Kiste bei der nächsten Fahrt nicht mitgenommen, verschwindet sie also nicht, sondern steht in der Woche darauf weiterhin — mit dem ursprünglichen Datum — in der Liste. Die Kisten des gerade laufenden Ausgabetags erscheinen erst nach dessen Ende, da sie erst bei der nächsten Fahrt zurückgehen.
+Die Kisten der Filialen einer Route werden bei der Routenerfassung erfasst (siehe [Retourware](#retourware)). Sie bleiben in dieser Übersicht so lange stehen, bis sie zurückgebracht wurden: **Retourniert** markiert alle offenen Kisten dieser Filiale auf dieser Route als zurückgebracht. Wurde eine Kiste bei der nächsten Fahrt nicht mitgenommen, verschwindet sie also nicht, sondern steht in der Woche darauf weiterhin — mit dem ursprünglichen Datum — in der Liste. Die Kisten des gerade laufenden Ausgabetags erscheinen erst nach dessen Ende, da sie erst bei der nächsten Fahrt zurückgehen.
 
 Wurde versehentlich **Retourniert** gedrückt, stellt **Rückgängig machen** den Stand wieder her — allerdings nur am selben Tag. Zurückgebrachte Kisten sind an diesem Tag noch durchgestrichen zu sehen und verschwinden danach aus der Liste; sind alle Kisten zurück, steht dort "Alle Retourkisten sind zurückgebracht.".
 
 Dieselbe Bestätigung gibt es auch im [Routen-Navi](#routen-navi) beim jeweiligen Stopp (**Abgegeben**), damit sie direkt vor Ort erfolgen kann; das Routen-Navi zeigt dort aber weiterhin nur die Kisten der letzten Fahrt, nicht die aus früheren Wochen.
 
-## Warenerfassung
+<a id="routenerfassung"></a>
 
-Unter **Logistik → Waren-Eingabe** wird zunächst über das Dropdown **Route auswählen** die betreffende Route ausgewählt; zur Auswahl stehen alle aktiven Routen aus [Einstellungen → Routen](einstellungen.md#routen). Danach stehen zwei Reiter zur Verfügung. Der Button **Speichern** liegt unterhalb der Reiter und speichert immer die Eingaben beider Reiter — unabhängig davon, welcher Reiter gerade geöffnet ist.
+## Routenerfassung
+
+Unter **Logistik → Routenerfassung** wird zunächst über das Dropdown **Route auswählen** die betreffende Route ausgewählt; zur Auswahl stehen alle aktiven Routen aus [Einstellungen → Routen](einstellungen.md#routen). Danach stehen zwei Reiter zur Verfügung. Der Button **Speichern** liegt unterhalb der Reiter und speichert immer die Eingaben beider Reiter — unabhängig davon, welcher Reiter gerade geöffnet ist.
 
 Jeder Reiter trägt ein Symbol, das den Speicherstand seiner Eingaben zeigt: **✓ Vollständig** (grün, entspricht dem letzten gespeicherten Stand), **● Nicht gespeichert** (gelb, es gibt Änderungen seit dem letzten Speichern) oder **! Ungültig** (rot, Pflichtangaben fehlen oder sind fehlerhaft). Kein Symbol bedeutet, dass auf diesem Reiter noch nichts erfasst wurde. Auf dem Handy steht aus Platzgründen nur das Symbol (✓, ● bzw. !) ohne den Text daneben. Wurden auf "Waren" bereits Mengen eingetragen, während auf "Route" KFZ/Fahrer/Beifahrer noch fehlen, erscheint zusätzlich ein Hinweis oberhalb der Reiter, dass diese Angaben beim Speichern übersprungen werden. Beim Verlassen der Seite mit ungespeicherten Änderungen — etwa über die Navigation oder durch Auswahl einer anderen Route im Dropdown **Route** — erscheint eine Sicherheitsabfrage, ob die bisherigen Eingaben verworfen werden sollen.
 
@@ -59,6 +67,17 @@ Jeder Reiter trägt ein Symbol, das den Speicherstand seiner Eingaben zeigt: **�
 Erfassung der Stammdaten der Route: verwendetes **Fahrzeug (KFZ)** sowie **Fahrer** und **Beifahrer** (Suche über Personalnummer oder Namen). Diese Daten werden üblicherweise bei der Abfahrt erfasst. Alle drei Felder sind Pflichtfelder — solange sie unvollständig sind, werden die Routendaten beim Speichern übersprungen (Hinweis "unvollständig und daher nicht gespeichert"), die übrigen Eingaben aber trotzdem gespeichert. Fahrer und Beifahrer müssen über die Mitarbeiter-Suche tatsächlich ausgewählt werden (freier Text allein genügt nicht, Hinweis "Bitte die Mitarbeiter-Suche starten"); über das X-Symbol kann eine bereits ausgewählte Person wieder entfernt werden. Anders als die Mitarbeiter-Liste in den Einstellungen findet diese Suche nur genaue Treffer (Akzente spielen trotzdem keine Rolle): Ein einziger Treffer wird ohne Rückfrage übernommen, und ein ähnlich geschriebener Name soll nicht versehentlich für eine andere Person ausgewählt werden. Wird kein passender Mitarbeiter gefunden, kann direkt aus der Suche heraus ein neuer Mitarbeiter angelegt werden - auch wenn es bereits jemanden mit einem sehr ähnlichen Namen gibt. Wird eine bereits gespeicherte Route erneut ausgewählt, werden Fahrer und Beifahrer sofort angezeigt — die Mitarbeiter-Suche wird dafür nicht noch einmal ausgeführt.
 
 ![Route-Basisdaten](images/logistik-warenerfassung-route.jpg)
+
+<a id="notschlafstellen-der-route"></a>
+
+#### Notschlafstellen der Route
+
+Unter den Stammdaten wird im Feld **Notschlafstellen dieser Route** festgelegt, welche [Notschlafstellen](einstellungen.md#notschlafstellen) die Route an diesem Ausgabetag beliefert (Mehrfachauswahl aus den aktiven Notschlafstellen). Das ist die **einzige Stelle**, an der die Notschlafstellen eines Ausgabetags ausgewählt werden:
+
+- Das Fahrer-Team sieht sie samt Adresse, Kontakten, Kochmöglichkeit und benötigten Lebensmitteln im [Routen-Navi](#routen-navi).
+- Die [Übersicht](README.md#übersicht-dashboard) zeigt sie in der Karte **Statistik** an und übernimmt sie beim Beenden des Ausgabetags in die Statistik und den Tagesbericht.
+
+Die Auswahl gilt nur für den laufenden Ausgabetag – beim nächsten Ausgabetag ist sie wieder leer. Sie wird mit **Speichern** gespeichert, und zwar auch dann, wenn KFZ, Fahrer und Beifahrer noch fehlen (die Routendaten werden dann wie gewohnt als "unvollständig" übersprungen); eine geänderte, noch nicht gespeicherte Auswahl zeigt der Reiter "Route" als **● Nicht gespeichert** an.
 
 ### Reiter "Waren"
 
@@ -71,6 +90,20 @@ Unter der Überschrift **Kilometerstand** wird der Stand bei Start/Ende erfasst 
 Darunter folgt — farblich abgesetzt — der Bereich **Warenmenge**: die tabellarische Erfassung der eingesammelten Menge (Anzahl Kisten/Einheiten) je Geschäft/Station der Route und Warenkategorie (z. B. Backwaren, Fleisch/Fisch, Getränke, Milchprodukte, Obst/Gemüse, Tiefkühlprodukte). Die Warenkategorien und deren Gewicht pro Einheit werden zentral unter [Einstellungen → Waren-Kategorien](einstellungen.md#lebensmittelkategorien) gepflegt; die Retourkisten haben eine eigene Liste unter [Retour-Kategorien](einstellungen.md#retourkategorien). Welche Geschäfte in welcher Reihenfolge angezeigt werden, ergibt sich aus den Stopps der Route; ob dort in Kisten oder in Kilogramm gezählt wird, hängt von der Einheit der jeweiligen [Filiale](einstellungen.md#filialen) ab. Zeilen mit einer ungültigen Eingabe werden rot hervorgehoben. Rechts steht je Warenkategorie die Summe über alle Geschäfte, unten je Geschäft die Summe über alle Kategorien, und ganz unten rechts die Gesamtsumme der Route — so ist auf einen Blick ersichtlich, ob die Menge ungefähr stimmt, ohne die Tabelle selbst zusammenzurechnen. Beim Scrollen einer größeren Tabelle bleiben die Kopfzeile (Geschäfte) und die erste Spalte (Warenkategorien) sichtbar, damit eine Zelle nie ihren Bezug verliert.
 
 ![Waren-Erfassung](images/logistik-warenerfassung-waren.jpg)
+
+<a id="fuer-notschlafstellen"></a>
+
+#### Für Notschlafstellen (ca.)
+
+Liefert die Route heute an [Notschlafstellen](#notschlafstellen-der-route), steht am Ende des Reiters "Waren" der Bereich **Für Notschlafstellen (ca.)**. Er schätzt aus dem, was die Route bisher erfasst hat, wie viel davon an jede ihrer Notschlafstellen geht – als grobe Orientierung, damit am Ende des Tages alle Waren verteilt sind:
+
+1. Zuerst die **fixen Mengen** der Notschlafstellen, soweit diese Kategorie gesammelt wurde.
+2. Der Rest aller Routen wird **gleichmäßig pro Person** aufgeteilt – jede angemeldete Person der Haushalte und jede Person einer Notschlafstelle zählt gleich. Eine Notschlafstelle bekommt ihren Anteil aus ihrer eigenen Route, und nicht mehr, als diese gesammelt hat.
+3. Eine Notschlafstelle bekommt nur Kategorien, die sie benötigt, keine, die sie nicht möchte, und ohne Kochmöglichkeit keine [Kochware](einstellungen.md#lebensmittelkategorien). Was sie nicht nimmt, bleibt bei den Haushalten.
+
+Gerechnet wird in ganzen Kisten, abgerundet; was übrig bleibt, bleibt bei den Haushalten. Die Schätzung wird bei jedem Speichern neu berechnet. Da die Anmeldung den ganzen Tag läuft, beruht sie auf den bis dahin angemeldeten Personen und ist deshalb nur ein "ca.". Gespeichert wird sie nicht; Statistik und Tagesbericht bleiben davon unberührt. Dieselbe Schätzung zeigt das [Routen-Navi](#routen-navi) je Notschlafstelle unter **Mitnehmen** und die [Übersicht](README.md#übersicht-dashboard) als Summe.
+
+![Schätzung für Notschlafstellen](images/logistik-warenerfassung-notschlafstellen.jpg)
 
 #### Retourware
 
@@ -87,11 +120,11 @@ Die erfasste Retourware wird beim Beenden des Ausgabetags automatisch per E-Mail
 
 Mit **Speichern** wird die gesamte Erfassung übernommen. Die Gesamtmenge aller Routen fließt in die Kennzahlen "Erfasste Routen" und "Erfasste Warenmenge" auf der [Übersicht](README.md#übersicht-dashboard) ein.
 
-### Warenerfassung auf schmalen Bildschirmen
+### Routenerfassung auf schmalen Bildschirmen
 
-Auf schmalen Bildschirmen (Smartphone/Tablet) wird die Warenerfassung nicht als Tabelle über alle Geschäfte dargestellt, sondern als Ablauf Geschäft für Geschäft: Es wird jeweils ein Geschäft/eine Station angezeigt, über **Vorherige**/**Nächste** wird geblättert, wobei automatisch zum nächsten noch nicht vollständig erfassten Geschäft gesprungen wird. Oberhalb der Filiale zeigt "Filiale 3 von 8", wie weit die Route bereits abgearbeitet ist; über das danebenliegende Auswahlfeld springt man direkt zu einer beliebigen Filiale der Route, mit einem Häkchen bei bereits vollständig erfassten Filialen. Ist für die angezeigte Filiale schon zu jeder Warenkategorie eine Menge größer 0 erfasst, erscheint neben ihrem Namen die Markierung "✓ erfasst". Die Warenkategorien werden dabei je Geschäft als Zähler mit **−**/**+** untereinander erfasst; zum schnellen Hochzählen größerer Mengen kann eine der beiden Schaltflächen gedrückt gehalten werden, sie wiederholt sich dann automatisch.
+Auf schmalen Bildschirmen (Smartphone/Tablet) wird die Routenerfassung nicht als Tabelle über alle Geschäfte dargestellt, sondern als Ablauf Geschäft für Geschäft: Es wird jeweils ein Geschäft/eine Station angezeigt, über **Vorherige**/**Nächste** wird geblättert, wobei automatisch zum nächsten noch nicht vollständig erfassten Geschäft gesprungen wird. Oberhalb der Filiale zeigt "Filiale 3 von 8", wie weit die Route bereits abgearbeitet ist; über das danebenliegende Auswahlfeld springt man direkt zu einer beliebigen Filiale der Route, mit einem Häkchen bei bereits vollständig erfassten Filialen. Ist für die angezeigte Filiale schon zu jeder Warenkategorie eine Menge größer 0 erfasst, erscheint neben ihrem Namen die Markierung "✓ erfasst". Die Warenkategorien werden dabei je Geschäft als Zähler mit **−**/**+** untereinander erfasst; zum schnellen Hochzählen größerer Mengen kann eine der beiden Schaltflächen gedrückt gehalten werden, sie wiederholt sich dann automatisch.
 
-![Warenerfassung auf schmalen Bildschirmen](images/logistik-warenerfassung-mobil.jpg)
+![Routenerfassung auf schmalen Bildschirmen](images/logistik-warenerfassung-mobil.jpg)
 
 Jede Eingabe der Warenmenge wird sofort automatisch übernommen (kein separater Speichern-Button je Feld). Ist das Gerät offline, werden Änderungen zwischengespeichert und ein Banner "Offline - X Änderungen ausstehend" angezeigt; sobald die Verbindung wiederhergestellt ist, werden die ausstehenden Änderungen automatisch synchronisiert und kurz mit "Synchronisiert ✓" bestätigt.
 

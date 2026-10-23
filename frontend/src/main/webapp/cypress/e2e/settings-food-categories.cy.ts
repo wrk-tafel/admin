@@ -15,7 +15,7 @@ describe('Settings - Food Categories', () => {
   it('names what the categories drive', () => {
     cy.byTestId('food-categories-summary').should('contain.text', 'aktiv');
     cy.contains('in der Reihenfolge, in der sie hier stehen').should('be.visible');
-    cy.contains('verschwindet sofort aus der Warenerfassung').should('be.visible');
+    cy.contains('verschwindet sofort aus der Routenerfassung').should('be.visible');
   });
 
   it('shows the weight with its unit and explains what it drives', () => {

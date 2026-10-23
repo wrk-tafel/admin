@@ -45,7 +45,7 @@ class DistributionController(
     @PreAuthorize("hasAuthority('LOGISTICS')")
     @TafelActiveDistributionRequired
     fun saveDistributionStatistic(@Valid @RequestBody statisticData: DistributionStatisticRequest): ResponseEntity<Unit> {
-        service.updateDistributionStatisticData(statisticData.employeeCount, statisticData.selectedShelterIds)
+        service.updateDistributionStatisticData(statisticData.employeeCount)
         return ResponseEntity.ok().build()
     }
 

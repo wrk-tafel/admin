@@ -2,7 +2,9 @@ package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.modules.logistics.internal.RouteGuidanceService
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceResponse
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceShelter
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteGuidanceStopItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteShelterDeliveryRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteStopCompletionRequest
 import jakarta.validation.Valid
 import org.springframework.security.access.prepost.PreAuthorize
@@ -32,4 +34,12 @@ class RouteGuidanceController(
         @PathVariable stopId: Long,
         @Valid @RequestBody completion: RouteStopCompletionRequest,
     ): RouteGuidanceStopItem = routeGuidanceService.setCompletion(routeId, stopId, completion.completed)
+
+    @PutMapping("/shelters/{shelterId}")
+    @PreAuthorize("hasAuthority('LOGISTICS')")
+    fun setShelterDelivery(
+        @PathVariable routeId: Long,
+        @PathVariable shelterId: Long,
+        @Valid @RequestBody delivery: RouteShelterDeliveryRequest,
+    ): RouteGuidanceShelter = routeGuidanceService.setShelterDelivery(routeId, shelterId, delivery.delivered)
 }

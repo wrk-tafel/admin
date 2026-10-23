@@ -25,8 +25,10 @@ destinations), **shops** (pickup points), and **cars** (the vehicle fleet).
 **Only `modules/*` packages are subject to this boundary check.** Entities under
 `database/model/logistics/*` are *not* — they're shared infrastructure, and other modules reach
 into them directly without needing to be declared as an `allowedDependency` here:
-- `reporting.DailyReportService` and `distribution.DistributionService` both query
-  `ShelterRepository` directly (not through `ShelterService`).
+- `dashboard.DashboardService` queries `ShelterRepository` directly (not through
+  `ShelterService`) for its organization-wide count, and both it and
+  `distribution.DistributionService` read `ShelterEntity` rows through
+  `FoodCollectionEntity.shelters` (see food collections below).
 - `FoodCollectionService` itself pulls in `DistributionEntity`/`DistributionRepository` /
   `getCurrentDistribution()` from `database.model.distribution` the same way, even though
   `logistics` has no declared dependency on the `distribution` module.
@@ -132,6 +134,43 @@ DB level — it only governs `modules`-to-`modules` traffic.
   being dropped, so a route edit cannot silently strand them. The `PUT` answer carries the stop's
   return items too: the screen replaces that one stop with the response, so leaving them off would
   make them vanish the moment a driver ticks the stop.
+- **`shelters` are where the goods go today** - the shelters picked for this route on the *running*
+  distribution's food collection (see food collections below), ordered by `(sortOrder, name)`, each
+  with its formatted address, `personsCount`, its needs (`hasKitchen`, `hasFreezer`, the names of
+  the food categories it needs and of those it does not want, `restrictions`, and `fixedQuantities`
+  as category name, whole boxes and note), its contacts and its note. Unlike stop progress this is keyed by the distribution, since
+  that is where the recording screen stores it: with no distribution running the list is empty,
+  even on the morning of a distribution day before it is started.
+- **A shelter delivery is confirmed per shelter, not as a stop** - `PUT .../guidance/shelters/{shelterId}`
+  (`RouteShelterDeliveryRequest{delivered}`, `setShelterDelivery()`) records or removes a
+  `ShelterDeliveryEntity` (`food_collections_shelter_deliveries`, unique per food collection and
+  shelter, who confirmed it and when) under `AdvisoryLockKey.SHELTER_DELIVERY`, the same
+  check-then-act guard stop ticks use. The shelters change from day to day, so they get no place in
+  the route's fixed stop order, but the deliveries count into its progress: `delivered`/
+  `deliveredAt`/`deliveredBy` on each `RouteGuidanceShelter`, and the dashboard's route progress.
+  A shelter that is not picked for the route on the running distribution is a `404`, and
+  `saveShelters()` drops the deliveries of shelters taken off the route. The last-stop notification
+  stays about stops only.
+
+### Shelter share estimate (`internal/ShelterShareService`, `GET /api/food-collections/shelter-shares`)
+- Estimates how much of what the routes collected goes to the shelters picked for today, as whole
+  boxes per shelter and food category (issue #3882) - a rough guide for loading the van, not an
+  allocation. Calculated from the current numbers on every call and never stored, so it cannot go
+  stale and leaves the statistic and the daily report alone.
+- Order of the split, per route: the shelters' `fixedQuantities` first (as far as the category was
+  collected), then the rest of all routes evenly per person - every registered household person
+  (`DistributionEntity.countRegisteredPersons()`, shared with the dashboard) and every shelter person
+  counts the same - with each shelter taking its share from its own route only, scaled down when
+  that route collected less. A shelter only takes categories it needs and does not exclude, and no
+  `FoodCategoryEntity.needsCooking` category unless `hasKitchen == true` (unknown counts as no).
+  Whole boxes, rounded down; the remainders stay with the households.
+- Boxes: a shop counting in boxes contributes its amount; one counting in kg is divided by the
+  category's `weightPerUnit` (a category without one contributes nothing). A shelter picked for
+  several routes is served by the first of them (by route number) only.
+- Read three ways: the endpoint (the Routenerfassung's per-route block, the dashboard's total),
+  and `RouteGuidanceShelter.estimatedShare` in the route guidance, including on a delivery tick's
+  answer. Kept in `logistics` because the dashboard module may not depend on other modules - the
+  dashboard's statistics card asks the endpoint itself.
 
 ### Return boxes overview (`ReturnBoxesController`, `internal/ReturnBoxesService`)
 - Serves the `/logistik/retourkisten` screen for whoever coordinates the routes: `GET /api/return-boxes`
@@ -156,27 +195,43 @@ DB level — it only governs `modules`-to-`modules` traffic.
 
 ### Shelters (`SheltersController`, `internal/ShelterService`)
 - `ShelterEntity` (`shelters`) holds a full address (street/house number/stairway/door/postal
-  code/city), a `personsCount`, an `enabled` flag, and `sortOrder` (added recently alongside
-  drag-and-drop reordering in the UI). Contacts are a `@OneToMany` to `ShelterContactEntity`
-  (table `shelters_contacts`) with `cascade = [CascadeType.ALL], orphanRemoval = true`.
-- **Contacts are wholesale-replaced on every update**, not diffed: `updateShelter()` builds a
-  fresh `mutableList` of brand-new `ShelterContactEntity` instances and assigns it to
-  `shelterEntity.contacts`. This only works correctly because of `orphanRemoval = true` — it's
-  what causes Hibernate to delete the previously-attached contact rows that are no longer
-  referenced. If that cascade setting is ever removed, this update logic will silently leak
-  orphaned contact rows instead of failing loudly.
+  code/city), a `personsCount`, an `enabled` flag, and `sortOrder` (drag-and-drop reordering in
+  the UI). Contacts are a `@OneToMany` to `ShelterContactEntity` (table `shelters_contacts`) with
+  `cascade = [CascadeType.ALL], orphanRemoval = true`.
+- What a shelter usually needs: `hasKitchen` (nullable - `null` is "not known", deliberately not
+  the same as "no kitchen"), `hasFreezer` and the free text `restrictions` (what no category
+  expresses, e.g. "kein Schweinefleisch"), all on `shelters` (`R__00142`); and `fixedQuantities`,
+  an `@ElementCollection` of `ShelterFixedQuantityEntity` (`shelters_fixed_quantities`: food
+  category, whole boxes `> 0`, optional note such as "Schnittbrot") - structured rather than free
+  text so a calculation can take them into account. There is deliberately no "takes everything"
+  flag: such a shelter has every category selected, so the needed categories are always the one
+  answer to "what does it take". Plus two `@ManyToMany`s to
+  `FoodCategoryEntity` over plain join tables (no entity, no sequence): `foodCategories`
+  (`shelters_food_categories`, what it needs) and `excludedFoodCategories`
+  (`shelters_excluded_food_categories`, what it does not want). On the wire they are
+  `foodCategoryIds`/`excludedFoodCategoryIds` in both directions, returned in the categories' own
+  `(sortOrder, name)` order; an unknown id is a `400`. The settings screen resolves the names from
+  `GET /api/food-categories`, deactivated categories included, since a shelter keeps a category that
+  was deactivated after it was picked. The field set follows what shelters actually report about
+  themselves (persons, kitchen, wanted/unwanted goods, dietary restrictions, standing amounts,
+  freezer); anything beyond that is the note.
+- **Contacts and food categories are wholesale-replaced on every update**, not diffed:
+  `updateShelter()` clears both collections and adds the new elements in place. In place, because
+  the method is `@Transactional` and the entity therefore managed - assigning a new collection
+  instance to an `orphanRemoval` association is what Hibernate refuses on flush ("A collection with
+  orphan deletion was no longer referenced"). `orphanRemoval = true` is what deletes the contact rows
+  that were cleared; without it, this update logic would silently leak orphaned contact rows.
 - Sort order pattern (identical to food categories, see below): `createShelter()` calls
   `nextSortOrder()` = `(max existing sortOrder ?: 0) + 1`; `reorderShelters(shelterIds)`
   re-numbers strictly by the order the client sent, `index + 1`, with no gap-preservation.
   `getActiveShelters()`/`getAllShelters()` both sort by `(sortOrder, name)`.
-- **No `LOGISTICS`/`SETTINGS` permission gate on this controller** — `SheltersController` is
-  annotated only `@PreAuthorize("isAuthenticated()")` at the class level, so *any* logged-in user
-  can create/update/reorder shelters, unlike food categories (see below) which require
-  `SETTINGS`. Confirm this is intentional before assuming permission parity across logistics
-  sub-areas.
-- Shelters are read cross-module (via `ShelterRepository` directly, bypassing `ShelterService`)
-  by `reporting.DailyReportService` and `distribution.DistributionService` — e.g. the "respect
-  shelter sortOrder in dashboard/daily report PDF" behavior lives in those consumers, not here.
+- `GET /api/shelters/active` (the food collection recording's shelter picker) is open to any
+  logged-in user; everything else - the full list, create, update, reorder - requires `SETTINGS`.
+- Which shelters a route delivers to on a given day is not stored on the shelter but on that day's
+  food collection (`FoodCollectionEntity.shelters`, see food collections below). The shelter
+  `sortOrder` is respected by each consumer of that list on its own - the route guidance, the
+  dashboard's statistics card, and the statistic snapshot `distribution` freezes at close (which the
+  daily report PDF reads) - not here.
 
 ### Cars (`CarsController`, `internal/CarService`)
 - `CarEntity` (`cars`) is `licensePlate` + `name`, plus `enabled`/`sortOrder` (added alongside the
@@ -230,7 +285,7 @@ This is the most involved sub-area — it records what a route's team actually p
   exist in the context of the currently-open distribution. There is exactly one
   `FoodCollectionEntity` per `(distribution, route)` pair, enforced by the DB unique constraint
   `food_collections_uk (distribution_id, route_id)`. All the save paths
-  (`saveRouteData`/`saveItems`/`saveItemsPerShop`/`patchItem`) follow the same
+  (`saveRouteData`/`saveShelters`/`saveItems`/`saveItemsPerShop`/`patchItem`) follow the same
   find-existing-by-`(distribution, route)`-or-create-new pattern
   (`getOrCreateFoodCollectionEntity` / inline equivalents), then `save()` (upsert).
 - `FoodCollectionItemEntity` (table `food_collections_items`) is an `@Embeddable`
@@ -252,8 +307,8 @@ This is the most involved sub-area — it records what a route's team actually p
   `PATCH_FOOD_COLLECTION_ITEM` (see below). Hibernate rewrites the whole element collection on any
   change, so a concurrent per-shop save for another shop of the same route would otherwise drop the
   rows this one just wrote.
-- **Race condition guard:** `saveRouteData()`, `saveKm()`, `saveItems()`, `saveItemsPerShop()`,
-  `patchItem()`, `saveReturnItems()` and `saveReturnItemsPerShop()` all wrap their find-or-create of
+- **Race condition guard:** `saveRouteData()`, `saveShelters()`, `saveKm()`, `saveItems()`,
+  `saveItemsPerShop()`, `patchItem()`, `saveReturnItems()` and `saveReturnItemsPerShop()` all wrap their find-or-create of
   the `(distribution, route)` row and/or their read-modify-write (or, for `saveItems`, outright
   replace) of `items` in the same
   `advisoryLockService.withLock(AdvisoryLockKey.PATCH_FOOD_COLLECTION_ITEM)` (lock id `4000L` in
@@ -277,6 +332,20 @@ This is the most involved sub-area — it records what a route's team actually p
   one route's id with another route's shop (see #3527) would silently store the item under the
   wrong route instead of failing loudly, and would surface later as `unassignedReturnItems` in
   route guidance/exports.
+- **The shelters a route delivers to that day** are a `@ManyToMany` from the food collection to
+  `ShelterEntity` over the plain join table `food_collections_shelters` (`R__00143`, no entity, no
+  sequence; it also carries the `dashboard_update` trigger, so a pick reaches the dashboard live).
+  `POST /routes/{routeId}/shelters` (`FoodCollectionSaveSheltersRequest{shelterIds}`,
+  `saveShelters()`) replaces the whole set in place; an unknown id is a `400`. They have their own
+  endpoint rather than riding on the base data, since the base data needs car, driver and co-driver
+  complete and the shelters are often known before the team is. `FoodCollectionResponse.shelterIds`
+  returns them in `(sortOrder, name)` order. They are not part of `isFullyRecorded()` - not every
+  trip goes to a shelter - nor of `hasRecordedTripData()`, which is what the distribution's close
+  validation asks to tell a route left half-recorded (an error) from one never driven (a warning):
+  a route that only has its shelters picked, or only the all-zero amount grid the screen sends on
+  every save, counts as not driven. This is the only place a shelter is picked for a day: route guidance shows
+  them to the driver, the dashboard's statistics card shows them read-only, and `distribution`
+  copies them onto the statistic when the distribution closes.
 - `kmStart`/`kmEnd` are nullable at the DB level (migration `R__00061_food_collections_nullable`
   dropped their original `NOT NULL`) — a food collection can exist before mileage is recorded, and
   they have their own endpoint (`POST /routes/{routeId}/km`) separate from the route's base data

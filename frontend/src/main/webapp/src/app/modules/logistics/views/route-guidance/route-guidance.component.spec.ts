@@ -9,6 +9,7 @@ import {
   RouteApiService,
   RouteData,
   RouteGuidanceData,
+  RouteGuidanceShelter,
   RouteGuidanceStop,
   RouteList
 } from '../../../../api/route-api.service';
@@ -63,6 +64,7 @@ describe('RouteGuidanceComponent', () => {
 
   const guidance: RouteGuidanceData = {
     routeId: 2,
+    shelters: [],
     routeNumber: 2,
     routeName: 'Route 2',
     date: '2026-08-09',
@@ -376,6 +378,89 @@ describe('RouteGuidanceComponent', () => {
 
     component['toggleRemainingRouteExpanded']();
     expect(component['remainingRouteExpanded']()).toBe(false);
+  });
+
+  it('lists the shelters of the day collapsed, with their details one tap away', () => {
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({
+      ...guidance,
+      shelters: [{
+        id: 5,
+        name: 'Notschlafstelle Erdberg',
+        address: 'Erdberg 1, 1030 Wien',
+        personsCount: 40,
+        hasKitchen: true,
+        hasFreezer: false,
+        fixedQuantities: [{foodCategory: 'Backwaren', amount: 4, note: 'Schnittbrot'}],
+        foodCategories: ['Backwaren', 'Konserven'],
+        excludedFoodCategories: ['Brot'],
+        restrictions: 'kein Schweinefleisch',
+        delivered: false,
+        estimatedShare: [{foodCategoryId: 2, foodCategory: 'Konserven', boxes: 3}],
+        contacts: [{firstname: 'Anna', phone: '0664 1'}],
+        note: 'Hintereingang'
+      }]
+    }));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="guidance-shelter-0"]')!.textContent).toContain('Notschlafstelle Erdberg');
+    const details = () => element.querySelector('[testid="guidance-shelter-details-0"]')!;
+    expect(details().hasAttribute('hidden')).toBe(true);
+
+    (element.querySelector('[testid="guidance-shelter-toggle-0"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(details().hasAttribute('hidden')).toBe(false);
+    expect(element.querySelector('[testid="guidance-shelter-kitchen-0"]')!.textContent).toContain('Ja');
+    expect(element.querySelector('[testid="guidance-shelter-food-categories-0"]')!.textContent).toContain('Backwaren, Konserven');
+    expect(element.querySelector('[testid="guidance-shelter-excluded-0"]')!.textContent).toContain('Brot');
+    expect(element.querySelector('[testid="guidance-shelter-restrictions-0"]')!.textContent).toContain('kein Schweinefleisch');
+    expect(element.querySelector('[testid="guidance-shelter-fixed-quantities-0"]')!.textContent)
+      .toContain('4 Kisten Backwaren (Schnittbrot)');
+    expect(element.querySelector('[testid="guidance-shelter-estimate-0"]')!.textContent)
+      .toContain('Mitnehmen: ca. 3 Kisten Konserven');
+    expect(details().querySelector('a[href="tel:0664 1"]')).not.toBeNull();
+    expect(element.querySelector('[testid="guidance-shelter-navigate-0"]')!.getAttribute('href'))
+      .toContain(encodeURIComponent('Erdberg 1, 1030 Wien'));
+  });
+
+  it('confirms a shelter delivery and counts it into the progress', () => {
+    const shelter: RouteGuidanceShelter = {
+      id: 5, name: 'Notschlafstelle Erdberg', address: 'Erdberg 1, 1030 Wien', personsCount: 40,
+      hasKitchen: null, hasFreezer: false, fixedQuantities: [], foodCategories: [],
+      excludedFoodCategories: [], contacts: [], delivered: false, estimatedShare: []
+    };
+    routeApiMock.getRouteGuidance = vi.fn(() => of<RouteGuidanceData>({...guidance, shelters: [shelter]}));
+    routeApiMock.setShelterDelivery = vi.fn(() => of<RouteGuidanceShelter>({
+      ...shelter, delivered: true, deliveredAt: '2026-08-09T15:42:00', deliveredBy: 'Anna Fahrer'
+    }));
+    const fixture = createComponent();
+    const component = fixture.componentInstance;
+    component['onSelectedRouteChange'](testRoute);
+    fixture.detectChanges();
+
+    expect(component['progressLabel']()).toContain('0 von 1 Notschlafstellen beliefert');
+
+    component['setShelterDelivery'](shelter, true);
+    fixture.detectChanges();
+
+    expect(routeApiMock.setShelterDelivery).toHaveBeenCalledWith(2, 5, true);
+    expect(component['progressLabel']()).toContain('1 von 1 Notschlafstellen beliefert');
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('[testid="guidance-shelter-delivered-badge-0"]')).not.toBeNull();
+    expect(element.querySelector('[testid="guidance-shelter-delivered-label-0"]')!.textContent)
+      .toContain('Geliefert um 15:42 von Anna Fahrer');
+  });
+
+  it('shows no shelter block for a route without shelters today', () => {
+    const fixture = createComponent();
+    fixture.componentInstance['onSelectedRouteChange'](testRoute);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[testid="guidance-shelters"]')).toBeNull();
   });
 
   it('shows one stop at a time and opens on the first one still to do', () => {

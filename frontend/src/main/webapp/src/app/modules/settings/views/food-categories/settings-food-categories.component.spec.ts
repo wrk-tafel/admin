@@ -255,4 +255,14 @@ describe('SettingsFoodCategoriesComponent', () => {
     expect(foodCategoriesApiMock.reorderFoodCategories).not.toHaveBeenCalled();
   });
 
+  it('saves the cooking flag of a category right away', () => {
+    const fixture = TestBed.createComponent(SettingsFoodCategoriesComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const category = component['foodCategories']()[0];
+
+    component['toggleNeedsCooking'](category, true);
+
+    expect(foodCategoriesApiMock.updateFoodCategory).toHaveBeenCalledWith(category.id, {...category, needsCooking: true});
+  });
 });

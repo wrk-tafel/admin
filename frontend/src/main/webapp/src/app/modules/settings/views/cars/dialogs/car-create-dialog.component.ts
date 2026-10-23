@@ -71,7 +71,7 @@ export class CarCreateDialogComponent {
 
   /**
    * The car this plate already belongs to, if any. A disabled one is the case worth catching: it
-   * is invisible in the Warenerfassung, so without this the admin creates a second record for a
+   * is invisible in the Routenerfassung, so without this the admin creates a second record for a
    * vehicle that is already there instead of re-enabling it.
    */
   duplicate = computed(() => {

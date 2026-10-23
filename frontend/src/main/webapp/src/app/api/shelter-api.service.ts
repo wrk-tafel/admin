@@ -46,6 +46,25 @@ export interface ShelterItem {
   enabled: boolean;
   sortOrder: number;
   contacts?: ShelterContact[];
+  // null/undefined: not known - not the same as "no kitchen"
+  hasKitchen?: boolean | null;
+  hasFreezer?: boolean;
+  // what no food category expresses, e.g. "kein Schweinefleisch"
+  restrictions?: string | null;
+  // the amounts it gets every time, e.g. 4 boxes of bread
+  fixedQuantities?: ShelterFixedQuantity[];
+  // the food categories the shelter usually needs, in the categories' own order
+  foodCategoryIds?: number[];
+  // the food categories the shelter does not want
+  excludedFoodCategoryIds?: number[];
+}
+
+export interface ShelterFixedQuantity {
+  foodCategoryId: number;
+  // whole boxes
+  amount: number;
+  // tells several of the same category apart, e.g. "Schnittbrot"
+  note?: string | null;
 }
 
 export interface ShelterContact {

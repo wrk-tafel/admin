@@ -16,7 +16,7 @@ function keyOf(item: Pick<QueuedItem, 'routeId' | 'shopId' | 'categoryId'>): str
 }
 
 /**
- * Persists Warenerfassung item updates that couldn't be sent immediately - the codriver recording
+ * Persists Routenerfassung item updates that couldn't be sent immediately - the codriver recording
  * a route on their phone can lose connectivity on the road - so they survive a reload/app close,
  * and flushes them automatically once back online. Only the latest amount per
  * (routeId, shopId, categoryId) is kept: each save already sets an absolute amount rather than an

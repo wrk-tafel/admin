@@ -116,7 +116,7 @@ describe('Settings - Employees', () => {
   it('reports a personnel number already given out and opens the employee holding it', () => {
     cy.byTestId('addEmployeeButton').click();
 
-    cy.byTestId('employeeCreateHint').should('contain.text', 'Warenerfassung');
+    cy.byTestId('employeeCreateHint').should('contain.text', 'Routenerfassung');
     cy.byTestId('employeeCreatePersonnelNumberInput').should('be.visible').type('02000');
     cy.byTestId('employeeCreateFirstnameInput').type('Duplicate');
     cy.byTestId('employeeCreateLastnameInput').type('Attempt');

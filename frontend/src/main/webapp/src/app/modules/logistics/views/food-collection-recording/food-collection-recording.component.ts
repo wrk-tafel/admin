@@ -19,6 +19,13 @@ import {
   FoodCollectionRecordingBasedataComponent
 } from '../food-collection-recording-basedata/food-collection-recording-basedata.component';
 import {
+  FoodCollectionRecordingSheltersComponent
+} from '../food-collection-recording-shelters/food-collection-recording-shelters.component';
+import {
+  FoodCollectionRecordingShelterSharesComponent
+} from '../food-collection-recording-shelter-shares/food-collection-recording-shelter-shares.component';
+import {ShelterListResponse} from '../../../../api/shelter-api.service';
+import {
   FoodCollectionRecordingKmComponent
 } from '../food-collection-recording-km/food-collection-recording-km.component';
 import {
@@ -55,6 +62,8 @@ const DESKTOP_BREAKPOINT = '(min-width: 768px)';
     MatSelectModule,
     MatIcon,
     FoodCollectionRecordingBasedataComponent,
+    FoodCollectionRecordingSheltersComponent,
+    FoodCollectionRecordingShelterSharesComponent,
     FoodCollectionRecordingKmComponent,
     FoodCollectionRecordingItemsDesktopComponent,
     FoodCollectionRecordingItemsResponsiveComponent
@@ -67,6 +76,7 @@ export class FoodCollectionRecordingComponent {
   carList = model.required<CarList>();
   foodCategories = model.required<FoodCategory[]>();
   foodReturnCategories = model.required<FoodReturnCategory[]>();
+  shelterList = model.required<ShelterListResponse>();
 
   // A signal, not a plain field: `[ngModel]="selectedRoute()"` has to reliably re-render even when
   // it's reassigned from an async callback outside any DOM event Angular is tracking (e.g. the
@@ -76,6 +86,7 @@ export class FoodCollectionRecordingComponent {
   selectedRouteData = signal<SelectedRouteData | undefined>(undefined);
 
   basedataComponent = viewChild(FoodCollectionRecordingBasedataComponent);
+  sheltersComponent = viewChild(FoodCollectionRecordingSheltersComponent);
   kmComponent = viewChild(FoodCollectionRecordingKmComponent);
   itemsDesktopComponent = viewChild(FoodCollectionRecordingItemsDesktopComponent);
   itemsResponsiveComponent = viewChild(FoodCollectionRecordingItemsResponsiveComponent);
@@ -96,13 +107,23 @@ export class FoodCollectionRecordingComponent {
   );
 
   saving = signal<boolean>(false);
+  // bumped by every completed save, partial ones included - the shelter estimate asks again on it
+  protected readonly saveCount = signal(0);
 
   private readonly itemsComponent = computed(() =>
     this.isDesktopLayout() ? this.itemsDesktopComponent() : this.itemsResponsiveComponent()
   );
 
   /** Badge on the "Route" tab label - see {@link TabStatus}. */
-  protected readonly routeTabStatus = computed<TabStatus | undefined>(() => this.basedataComponent()?.tabStatus());
+  protected readonly routeTabStatus = computed<TabStatus | undefined>(() => {
+    const basedataStatus = this.basedataComponent()?.tabStatus();
+    // a changed shelter selection is unsaved work on this tab too, unless the base data is already
+    // the worse news
+    if (this.sheltersComponent()?.hasUnsavedChanges() && basedataStatus !== 'invalid') {
+      return 'unsaved';
+    }
+    return basedataStatus;
+  });
 
   /** Badge on the "Waren" tab label: the worse of mileage and item amounts. */
   protected readonly warenTabStatus = computed<TabStatus | undefined>(() =>
@@ -115,7 +136,7 @@ export class FoodCollectionRecordingComponent {
    * worth a heads-up before Speichern skips the incomplete part rather than after.
    */
   protected readonly basedataMissingWarning = computed(() =>
-    this.warenTabStatus() !== undefined && this.routeTabStatus() !== 'complete'
+    this.warenTabStatus() !== undefined && this.basedataComponent()?.tabStatus() !== 'complete'
   );
 
   protected readonly hasUnsavedChanges = computed(() =>
@@ -252,6 +273,7 @@ export class FoodCollectionRecordingComponent {
 
   private saveAllSections() {
     const basedata = this.basedataComponent();
+    const shelters = this.sheltersComponent();
     const km = this.kmComponent();
     const items = this.itemsComponent();
 
@@ -261,6 +283,7 @@ export class FoodCollectionRecordingComponent {
 
     const requests = [
       basedata?.saveRequest(),
+      shelters?.saveRequest(),
       km?.saveRequest(),
       ...(items?.saveRequests() ?? [])
     ].filter((request): request is Observable<void> => !!request);
@@ -284,12 +307,14 @@ export class FoodCollectionRecordingComponent {
     concat(...requests).subscribe({
       complete: () => {
         this.saving.set(false);
+        this.saveCount.update(count => count + 1);
 
         // only the sections that actually had a complete request sent flip their badge back to
         // "complete" - a section skipped for being incomplete stays exactly as invalid as before
         if (!basedata?.hasInvalidInput()) {
           basedata?.markAsSaved();
         }
+        shelters?.markAsSaved();
         if (!km?.hasInvalidInput()) {
           km?.markAsSaved();
         }

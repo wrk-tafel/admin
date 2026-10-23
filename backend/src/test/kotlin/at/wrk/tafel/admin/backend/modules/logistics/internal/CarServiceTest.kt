@@ -393,7 +393,7 @@ class CarServiceTest {
 
         val exception = assertThrows<ConflictException> { service.deleteCar(99L) }
         assertThat(exception.body.detail)
-            .isEqualTo("Fahrzeug wird bereits in einer Warenerfassung verwendet und kann nicht gelöscht werden!")
+            .isEqualTo("Fahrzeug wird bereits in einer Routenerfassung verwendet und kann nicht gelöscht werden!")
         verify(exactly = 0) { carRepository.delete(any()) }
     }
 

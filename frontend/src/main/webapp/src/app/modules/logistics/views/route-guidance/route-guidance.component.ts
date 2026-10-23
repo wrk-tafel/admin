@@ -20,17 +20,21 @@ import callIcon from '@material-symbols/svg-400/outlined/call-fill.svg';
 import routeIcon from '@material-symbols/svg-400/outlined/route-fill.svg';
 import restartAltIcon from '@material-symbols/svg-400/outlined/restart_alt-fill.svg';
 import personIcon from '@material-symbols/svg-400/outlined/person-fill.svg';
+import homeIcon from '@material-symbols/svg-400/outlined/home-fill.svg';
 import keyboardArrowUpIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_up-fill.svg';
 import keyboardArrowDownIcon from '@material-symbols/svg-400/outlined/keyboard_arrow_down-fill.svg';
 import {
   RouteApiService,
   RouteData,
   RouteGuidanceData,
+  RouteGuidanceFixedQuantity,
+  RouteGuidanceShelter,
   RouteGuidanceShop,
   RouteGuidanceStop,
   RouteList
 } from '../../../../api/route-api.service';
 import {ReturnBoxesApiService} from '../../../../api/return-boxes-api.service';
+import {formatEstimatedShare, formatFixedQuantity, shelterKitchenLabel} from '../../../../common/util/shelter-kitchen.util';
 import {TafelInfoTooltipComponent} from '../../../../common/components/tafel-info-tooltip/tafel-info-tooltip.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
@@ -116,6 +120,7 @@ export class RouteGuidanceComponent {
     route: routeIcon,
     restart_alt: restartAltIcon,
     person: personIcon,
+    home: homeIcon,
     keyboard_arrow_up: keyboardArrowUpIcon,
     keyboard_arrow_down: keyboardArrowDownIcon
   });
@@ -158,9 +163,14 @@ export class RouteGuidanceComponent {
 
   // read off the stepper dots plus this one line - a separate percentage bar restated the same
   // figure a second way without adding anything a driver could not already see in the dots
-  protected readonly progressLabel = computed(
-    () => `${this.completedCount()} von ${this.stops().length} Stopps erledigt`
-  );
+  protected readonly deliveredShelterCount = computed(() => this.shelters().filter(shelter => shelter.delivered).length);
+  // the shelters are no stops of the route, but delivering to them is part of how far it has got
+  protected readonly progressLabel = computed(() => {
+    const stops = `${this.completedCount()} von ${this.stops().length} Stopps erledigt`;
+    return this.shelters().length > 0
+      ? `${stops} · ${this.deliveredShelterCount()} von ${this.shelters().length} Notschlafstellen beliefert`
+      : stops;
+  });
 
   // collapsed by default: planning the rest of the drive is occasional (start of shift, a lull
   // between stops), not part of the per-stop flow, so it should not compete with the current stop
@@ -175,6 +185,74 @@ export class RouteGuidanceComponent {
   // note worth reading, and it sits right under the route picker precisely so it is the first thing
   // a driver can check before setting off, not something permanently in the way after that. Reset
   // per route selection (see the routeSelection$ subscription) so each route starts unread again.
+  protected readonly shelters = computed(() => this._guidance()?.shelters ?? []);
+
+  // which shelters show their details, by id - collapsed by default so the list stays a glance at
+  // where the goods go, with address and contacts one tap away
+  private readonly expandedShelterIds = signal<ReadonlySet<number>>(new Set());
+
+  protected isShelterExpanded(shelterId: number): boolean {
+    return this.expandedShelterIds().has(shelterId);
+  }
+
+  protected toggleShelterExpanded(shelterId: number) {
+    const expanded = new Set(this.expandedShelterIds());
+    if (!expanded.delete(shelterId)) {
+      expanded.add(shelterId);
+    }
+    this.expandedShelterIds.set(expanded);
+  }
+
+  protected readonly kitchenLabel = shelterKitchenLabel;
+
+  protected estimatedShareLabel(shelter: RouteGuidanceShelter): string {
+    return formatEstimatedShare(shelter.estimatedShare);
+  }
+
+  protected fixedQuantityLabel(quantity: RouteGuidanceFixedQuantity): string {
+    return formatFixedQuantity(quantity.amount, quantity.foodCategory, quantity.note);
+  }
+
+  // the shelter whose delivery request is still on its way, so its button can't be pressed twice
+  protected readonly pendingShelterId = signal<number | undefined>(undefined);
+
+  /**
+   * Online only, unlike a stop tick: a delivery is confirmed at the shelter's door, not in a loading
+   * dock, and keeping it out of the offline queue keeps that queue to the one payload it knows.
+   */
+  protected setShelterDelivery(shelter: RouteGuidanceShelter, delivered: boolean) {
+    const routeId = this._guidance()?.routeId;
+    if (routeId === undefined) {
+      return;
+    }
+    this.pendingShelterId.set(shelter.id);
+    this.routeApiService.setShelterDelivery(routeId, shelter.id, delivered).subscribe({
+      next: updated => {
+        this.pendingShelterId.set(undefined);
+        // replace just this shelter, so the list does not jump under the driver's thumb
+        this._guidance.update(guidance => guidance && guidance.routeId === routeId
+          ? {...guidance, shelters: guidance.shelters.map(s => s.id === updated.id ? updated : s)}
+          : guidance);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.pendingShelterId.set(undefined);
+        this.toastr.error(extractErrorMessage(error), 'Lieferung konnte nicht gespeichert werden');
+      }
+    });
+  }
+
+  protected deliveredLabel(shelter: RouteGuidanceShelter): string {
+    // the server's local time as sent, like a stop's completion time
+    const time = shelter.deliveredAt?.substring(11, 16);
+    return ['Geliefert', time ? `um ${time}` : undefined, shelter.deliveredBy ? `von ${shelter.deliveredBy}` : undefined]
+      .filter(part => !!part)
+      .join(' ');
+  }
+
+  protected shelterNavigationUrl(shelter: RouteGuidanceShelter): string {
+    return buildSingleDestinationMapsUrl(shelter.address);
+  }
+
   protected readonly routeNoteExpanded = signal(false);
 
   protected toggleRouteNoteExpanded() {
@@ -360,6 +438,7 @@ export class RouteGuidanceComponent {
     ).subscribe(guidance => {
       this._guidance.set(guidance);
       this.routeNoteExpanded.set(false);
+      this.expandedShelterIds.set(new Set());
       // open where the driver actually is - the first stop not done yet, or the last one when the
       // whole route is finished
       const firstOpenIndex = guidance.stops.findIndex(stop => !stop.completed);

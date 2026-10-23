@@ -33,6 +33,7 @@ class FoodCategoryService(
             enabled = category.enabled,
         ).apply {
             weightPerUnit = category.weightPerUnit
+            needsCooking = category.needsCooking
         }
 
         val savedEntity = foodCategoriesRepository.save(entity)
@@ -46,6 +47,7 @@ class FoodCategoryService(
 
         entity.name = updatedCategory.name
         entity.weightPerUnit = updatedCategory.weightPerUnit
+        entity.needsCooking = updatedCategory.needsCooking
         entity.sortOrder = updatedCategory.sortOrder
         entity.enabled = updatedCategory.enabled
 
@@ -82,5 +84,6 @@ class FoodCategoryService(
         weightPerUnit = foodCategoryEntity.weightPerUnit,
         sortOrder = foodCategoryEntity.sortOrder,
         enabled = foodCategoryEntity.enabled,
+        needsCooking = foodCategoryEntity.needsCooking,
     )
 }

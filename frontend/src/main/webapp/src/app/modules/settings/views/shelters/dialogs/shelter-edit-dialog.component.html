@@ -43,6 +43,90 @@
 
       <mat-checkbox formControlName="enabled" class="mb-6">Aktiv</mat-checkbox>
 
+      <!-- What the shelter usually needs - read by whoever loads the goods and by the drivers in
+           Routen-Navi -->
+      <h3 class="tafel-h4 mb-2">Bedarf</h3>
+
+      <mat-form-field>
+        <mat-label>Kochmöglichkeit</mat-label>
+        <mat-select formControlName="hasKitchen" testid="shelter-has-kitchen">
+          <mat-option [value]="true">Ja</mat-option>
+          <mat-option [value]="false">Nein, nur kalte Speisen</mat-option>
+          <mat-option [value]="null">Unbekannt</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="hasFreezer" class="mb-4" testid="shelter-has-freezer">Kann Tiefkühlware lagern</mat-checkbox>
+
+      <!-- a shelter that takes everything simply has every category selected -->
+      <div class="flex items-start gap-2">
+        <mat-form-field class="flex-1">
+          <mat-label>Benötigte Lebensmittel</mat-label>
+          <mat-select formControlName="foodCategoryIds" multiple testid="shelter-food-categories">
+            @for (category of selectableFoodCategories; track category.id) {
+              <mat-option [value]="category.id">
+                {{ category.name }}@if (!category.enabled) { (inaktiv)}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button matButton="outlined" type="button" class="mt-2" testid="shelter-select-all-food-categories"
+                (click)="selectAllFoodCategories()">Alle auswählen</button>
+      </div>
+
+      <mat-form-field>
+        <mat-label>Nicht gewünscht</mat-label>
+        <mat-select formControlName="excludedFoodCategoryIds" multiple testid="shelter-excluded-food-categories">
+          @for (category of selectableFoodCategories; track category.id) {
+            <mat-option [value]="category.id">
+              {{ category.name }}@if (!category.enabled) { (inaktiv)}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Einschränkungen</mat-label>
+        <input matInput formControlName="restrictions" maxlength="500"
+               placeholder="z. B. kein Schweinefleisch, keine Aufbackware" testid="shelter-restrictions"/>
+      </mat-form-field>
+
+      <!-- what the shelter gets every time, in whole boxes - e.g. 4 boxes of bread -->
+      <div class="mb-4" formArrayName="fixedQuantities">
+        <h4 class="tafel-h6 mb-2">Fixe Mengen</h4>
+        @for (quantity of fixedQuantities.controls; track quantity; let q = $index) {
+          <!-- two lines like a contact: the dialog is too narrow for all four controls in one -->
+          <div class="mb-2" [formGroupName]="q" [attr.testid]="'shelter-fixed-quantity-' + q">
+            <div class="flex gap-2">
+              <mat-form-field class="w-24">
+                <mat-label>Kisten</mat-label>
+                <input matInput type="number" min="1" formControlName="amount" [attr.testid]="'shelter-fixed-quantity-amount-' + q"/>
+              </mat-form-field>
+              <mat-form-field class="flex-1">
+                <mat-label>Kategorie</mat-label>
+                <mat-select formControlName="foodCategoryId" [attr.testid]="'shelter-fixed-quantity-category-' + q">
+                  @for (category of selectableFoodCategories; track category.id) {
+                    <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="flex items-start gap-2">
+              <mat-form-field class="flex-1">
+                <mat-label>Bezeichnung</mat-label>
+                <input matInput formControlName="note" maxlength="100" placeholder="z. B. Schnittbrot"
+                       [attr.testid]="'shelter-fixed-quantity-note-' + q"/>
+              </mat-form-field>
+              <button matButton="outlined" type="button" class="mt-2" (click)="removeFixedQuantity(q)"
+                      [attr.aria-label]="'Entfernen - fixe Menge ' + (q + 1)">Entfernen</button>
+            </div>
+          </div>
+        }
+        <button matButton="outlined" type="button" testid="shelter-add-fixed-quantity" (click)="addFixedQuantity()">
+          Fixe Menge hinzufügen
+        </button>
+      </div>
+
       <mat-form-field>
         <mat-label>Hinweis</mat-label>
         <textarea matInput formControlName="note" placeholder="Notiz für diese Notschlafstelle eingeben ..."

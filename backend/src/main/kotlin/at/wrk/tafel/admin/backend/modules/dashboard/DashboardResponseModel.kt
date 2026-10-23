@@ -40,7 +40,18 @@ data class DashboardTicketsData(
 @ExcludeFromTestCoverage
 data class DashboardStatisticsData(
     val employeeCount: Int?,
-    val selectedShelterNames: List<String>,
+    /**
+     * The shelters today's routes deliver to, as picked in the food collection recording - the only
+     * place they are picked, so the card shows them read-only. Frozen onto the statistic when the
+     * distribution closes.
+     */
+    val shelters: List<DashboardStatisticsShelter>,
+)
+
+@ExcludeFromTestCoverage
+data class DashboardStatisticsShelter(
+    val name: String,
+    val personsCount: Int,
 )
 
 @ExcludeFromTestCoverage
@@ -68,6 +79,9 @@ data class DashboardRouteProgressItem(
     val routeName: String,
     val completedStops: Int,
     val totalStops: Int,
+    // the shelters picked for the route today and how many of them have got their goods
+    val completedShelters: Int = 0,
+    val totalShelters: Int = 0,
 )
 
 @ExcludeFromTestCoverage

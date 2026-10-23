@@ -8,7 +8,7 @@ Dieses Handbuch beschreibt alle Funktionen der Tafel-Admin-Anwendung aus Sicht d
 |---|---|
 | [Anmeldung & Übersicht](anmeldung.md) | Login, Dashboard, Ausgabetag starten/beenden, Kunden-Annahme, Scanner, Ticket-Monitor |
 | [Kunden](kunden.md) | Kunden suchen, Anspruch-Schnellcheck, anlegen, bearbeiten, Duplikate, Über-Limit-Kunden, gesperrte Kunden, Neu & Verlängert, Kunden zusammenführen, Dokumente |
-| [Logistik](logistik.md) | Routen-Navi auf der Route, Retourkisten-Übersicht, Warenerfassung pro Route |
+| [Logistik](logistik.md) | Routen-Navi auf der Route, Retourkisten-Übersicht, Routenerfassung pro Route |
 | [Benutzer](benutzer.md) | Benutzerverwaltung und Berechtigungen, Anmelde-Versuche |
 | [Einstellungen](einstellungen.md) | E-Mail-Empfänger, Notschlafstellen, Grenzwerte, Warenkategorien, Fahrzeuge, Länder, Mitarbeiter, anstehende Löschungen, Ankündigungen |
 | [Zugriffsprotokoll](zugriffsprotokoll.md) | Wer hat wann was geändert oder auf sensible Daten zugegriffen, und wie war der Wert davor |
@@ -109,7 +109,7 @@ Wurden Benachrichtigungen im Browser selbst blockiert – etwa weil die Nachfrag
 
 ![Benachrichtigungen im Browser blockiert](images/benachrichtigungen-blockiert.jpg)
 
-Tippt bzw. klickt man auf eine eingetroffene Benachrichtigung, öffnet sich direkt die passende Seite in der Anwendung – z. B. die Waren-Eingabe bei einer unvollständigen Warenerfassung. Ist die Anwendung bereits in einem Fenster geöffnet, wird dieses verwendet, statt ein weiteres zu öffnen.
+Tippt bzw. klickt man auf eine eingetroffene Benachrichtigung, öffnet sich direkt die passende Seite in der Anwendung – z. B. die Routenerfassung bei einer unvollständigen Routenerfassung. Ist die Anwendung bereits in einem Fenster geöffnet, wird dieses verwendet, statt ein weiteres zu öffnen.
 
 Darunter listet **Deine Geräte** alle für den eigenen Account aktivierten Geräte, jeweils mit Browser-/Betriebssystem-Erkennung und dem Zeitpunkt der Registrierung. Ein Symbol vor dem Namen zeigt, ob es sich um ein Mobilgerät oder um einen Computer handelt, und die Registrierung wird zuerst als Zeitspanne angegeben ("Registriert vor 3 Wochen"), gefolgt vom genauen Zeitpunkt. Beides hilft dabei, ein altes, nicht mehr verwendetes Gerät in der Liste wiederzuerkennen. Über das Stift-Symbol kann jedem Gerät ein eigener, frei wählbarer Name gegeben werden (z. B. "Tafel Ausgabe 1"), um es in der Liste leichter wiederzuerkennen – dieser Name überschreibt dann die automatische Browser-/Betriebssystem-Anzeige.
 
@@ -134,7 +134,7 @@ Der Bereich **Ablauf der Ausgabe** begleitet einen Ausgabetag von Anfang bis End
 | Ausgabe gestartet | eine Ausgabe gestartet wurde |
 | Anmeldung gestartet | der erste Kunde des Tages angemeldet wurde |
 | Route beim letzten Stopp | eine Route im [Routen-Navi](logistik.md#routen-navi) bis auf den letzten Stopp abgehakt ist, das Fahrzeug also bald zurückkommt. Die Benachrichtigung nennt die Route und den Stopp, bei dem sie gerade steht |
-| Warenerfassung abgeschlossen | für alle aktiven Routen die Waren vollständig erfasst wurden |
+| Routenerfassung abgeschlossen | für alle aktiven Routen die Waren vollständig erfasst wurden |
 | Warenausgabe gestartet | das erste Ticket abgearbeitet wurde, die Warenausgabe also tatsächlich läuft |
 | Alle Kunden abgearbeitet | alle angemeldeten Kunden abgearbeitet wurden |
 | Ausgabe beendet | eine Ausgabe beendet wurde und die Statistiken bereitstehen |
@@ -212,13 +212,13 @@ Der Link **Passwort vergessen?** erscheint nur, wenn der Betreiber den E-Mail-Ve
 
 ## Navigation
 
-Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Waren-Eingabe"), werden grau dargestellt und mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde; ein Kurzhinweis (Tooltip) "Keine Verteilung aktiv" erklärt den Grund, statt den Menüpunkt einfach verschwinden zu lassen. Untergeordnete Bereiche wie "Benutzer" und "Statistiken" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Menü-Symbol ein-/ausgeblendet (siehe [Darstellung auf schmalen Bildschirmen](#darstellung-auf-schmalen-bildschirmen)). Der eingeklappte Zustand der Seitenleiste sowie aufgeklappte Gruppen bleiben auch nach einem Neuladen der Seite erhalten.
+Die linke Seitenleiste zeigt alle Menüpunkte, für die der angemeldete Benutzer berechtigt ist. Menüpunkte, die eine aktive Ausgabe voraussetzen (z. B. "Annahme", "Routenerfassung"), werden grau dargestellt und mit **INAKTIV** gekennzeichnet, solange kein Ausgabetag gestartet wurde; ein Kurzhinweis (Tooltip) "Keine Verteilung aktiv" erklärt den Grund, statt den Menüpunkt einfach verschwinden zu lassen. Untergeordnete Bereiche wie "Benutzer" und "Statistiken" lassen sich auf- und zuklappen. Über den Pfeil-Button unten in der Seitenleiste kann diese auf reine Icons eingeklappt werden, um mehr Platz für den Inhalt zu schaffen; auf schmalen Bildschirmen wird sie stattdessen über ein Menü-Symbol ein-/ausgeblendet (siehe [Darstellung auf schmalen Bildschirmen](#darstellung-auf-schmalen-bildschirmen)). Der eingeklappte Zustand der Seitenleiste sowie aufgeklappte Gruppen bleiben auch nach einem Neuladen der Seite erhalten.
 
 Die Menüstruktur gliedert sich in folgende Bereiche:
 
 - **Anmeldung**: Annahme, Scanner, Ticket-Monitor
 - **Kunden**: Kunden suchen, Kunden anlegen, Anspruch-Schnellcheck, sowie unter der aufklappbaren Gruppe "Auswertungen": Neu & Verlängert, Duplikate, Über Limit, Gesperrt
-- **Logistik**: Routen-Navi, Retourkisten, Waren-Eingabe
+- **Logistik**: Routen-Navi, Retourkisten, Routenerfassung
 - **Verwaltung**: Benutzer, Statistiken, Zugriffsprotokoll, Datenauskunft, Einstellungen
 
 "Einstellungen" ist ein einzelner Menüpunkt: Er öffnet eine Übersichtsseite, die alle Einstellungsbereiche als Karten nach Themen gruppiert zeigt – **Logistik** (Fahrzeuge, Filialen, Mitarbeiter, Routen, Waren-Kategorien, Retour-Kategorien), **Kunden & Betreuung** (Grenzwerte, Länder, Notschlafstellen) und **System** (Ankündigungen, Anstehende Löschungen, E-Mail). Ein Klick auf eine Karte öffnet den jeweiligen Bereich; Bereiche ohne Berechtigung werden nicht angezeigt. Solange eine Seite der Einstellungen geöffnet ist, listet die Seitenleiste statt des Hauptmenüs die Übersicht und alle Bereiche der Einstellungen nach denselben Themen, mit **Zurück zur Anwendung** ganz oben – so wie bei **Mein Konto** (siehe [Einstellungen](einstellungen.md)). Über die Schnellsuche (Strg+K) lässt sich jeder Bereich weiterhin direkt aufrufen.
@@ -277,7 +277,7 @@ Der Titel im Browser-Tab nennt immer die gerade geöffnete Seite (z. B. "Kunden 
 
 ## Darstellung auf schmalen Bildschirmen
 
-Die Anwendung wird auch auf Handy und Tablet verwendet – etwa als Scanner bei der Kunden-Annahme (siehe [Anmeldung](anmeldung.md)) oder für Routen-Navi und Warenerfassung unterwegs im Fahrzeug (siehe [Logistik](logistik.md)). Dafür gibt es keine eigene App und keine eigene Adresse: Es ist dieselbe Anwendung im Browser, die sich lediglich automatisch an die verfügbare Bildschirmbreite anpasst. Wird am PC das Browserfenster schmal gezogen, passiert dasselbe.
+Die Anwendung wird auch auf Handy und Tablet verwendet – etwa als Scanner bei der Kunden-Annahme (siehe [Anmeldung](anmeldung.md)) oder für Routen-Navi und Routenerfassung unterwegs im Fahrzeug (siehe [Logistik](logistik.md)). Dafür gibt es keine eigene App und keine eigene Adresse: Es ist dieselbe Anwendung im Browser, die sich lediglich automatisch an die verfügbare Bildschirmbreite anpasst. Wird am PC das Browserfenster schmal gezogen, passiert dasselbe.
 
 Umgestellt wird in zwei Stufen:
 
@@ -288,7 +288,7 @@ Umgestellt wird in zwei Stufen:
 
 Inhaltlich ändert sich dadurch nichts: Es sind dieselben Daten, dieselben Aktionen (Lupe, Stift, Papierkorb usw.), dieselbe Seitennavigation und dieselben Berechtigungen wie in der Tabellenansicht. Als Kartenliste dargestellt werden das Suchergebnis der Kunden-Suche, die Listen "Kunden über Limit" und "Kunden-Übersicht" (siehe [Kunden](kunden.md)), das Suchergebnis der Benutzer-Suche und die Anmelde-Versuche (siehe [Benutzer](benutzer.md)), die Tabellen der [Einstellungen](einstellungen.md) sowie die Ergebnisliste der Auswertung Kinder (siehe [Statistiken](statistiken.md)). Filialen und Routen sind keine Tabellen, sondern aufklappbare Listen, und sehen daher auf jeder Bildschirmbreite gleich aus.
 
-Eine Ausnahme ist die Warenerfassung: Sie wird auf schmalen Bildschirmen nicht als Kartenliste, sondern als eigener Ablauf Geschäft für Geschäft dargestellt (siehe [Logistik](logistik.md)).
+Eine Ausnahme ist die Routenerfassung: Sie wird auf schmalen Bildschirmen nicht als Kartenliste, sondern als eigener Ablauf Geschäft für Geschäft dargestellt (siehe [Logistik](logistik.md)).
 
 <a id="tooltips-und-erklaerungen"></a>
 
@@ -340,10 +340,10 @@ Sobald eine Ausgabe läuft, zeigt die Übersicht stattdessen die folgenden tages
 - **Kunden angemeldet**: Anzahl der für den heutigen Tag angemeldeten Kunden. Über **Kundenliste** kann die Liste der angemeldeten Kunden heruntergeladen werden.
 - **Personen angemeldet**: Anzahl aller Personen, für die die angemeldeten Kunden Waren erhalten — die Hauptperson jedes Haushalts plus die weiteren Personen im Haushalt. Als "Nicht im selben Haushalt" markierte Personen zählen nicht mit.
 - **Tickets abgearbeitet**: Fortschritt der Ticket-Bearbeitung (verarbeitete / gesamt) als Zahl und als Balken darunter.
-- **Erfasste Routen**: Fortschritt der Warenerfassung aus der Logistik (siehe [Logistik](logistik.md)) – als Zahl mit Balken sowie daneben alle heute zu fahrenden Routen als kleine Kacheln (Chips). Bereits vollständig erfasste Routen sind grün mit Häkchen markiert, die übrigen sind neutral. So ist auf einen Blick erkennbar, welche Routen noch fehlen, statt die erfassten gegen die Gesamtzahl abzuzählen.
+- **Erfasste Routen**: Fortschritt der Routenerfassung aus der Logistik (siehe [Logistik](logistik.md)) – als Zahl mit Balken sowie daneben alle heute zu fahrenden Routen als kleine Kacheln (Chips). Bereits vollständig erfasste Routen sind grün mit Häkchen markiert, die übrigen sind neutral. So ist auf einen Blick erkennbar, welche Routen noch fehlen, statt die erfassten gegen die Gesamtzahl abzuzählen.
 - **Erfasste Warenmenge**: Gesamtgewicht der bisher erfassten Warenmengen.
-- **Routen unterwegs**: Zeigt je Route, wie viele Stopps die Fahrer heute bereits abgehakt haben (z. B. "2 / 7"). Der Balken daneben besteht aus einem Abschnitt je Stopp, die erledigten sind grün — so ist auf einen Blick erkennbar, wie viele Stopps eine Route überhaupt hat und wie viele davon schon hinter ihr liegen. Grundlage ist das [Routen-Navi](logistik.md#routen-navi); die Anzeige aktualisiert sich automatisch, sobald unterwegs ein Stopp abgehakt wird — so ist in der Zentrale ohne Anruf ersichtlich, wo eine Route gerade steht. Der Bereich erscheint erst, sobald an diesem Tag der erste Stopp abgehakt wurde: Wird das Routen-Navi nicht verwendet, bleibt er ganz aus. Ab dann werden alle Routen angeführt, auch die noch bei "0 / 15" stehenden; Routen ohne hinterlegte Stopps werden nicht angeführt.
-- **Statistik**: Eingabe der Mitarbeiteranzahl und der Personen in den ausgewählten Notschlafstellen für den Tagesreport. Die Anzahl der Personen in Notschlafstellen wird über den Rechner-Button neben dem Feld ermittelt, indem die genutzten Notschlafstellen ausgewählt werden.
+- **Routen unterwegs**: Zeigt je Route, wie viele Stopps die Fahrer heute bereits abgehakt haben (z. B. "2 / 7"). Der Balken daneben besteht aus einem Abschnitt je Stopp, die erledigten sind grün — so ist auf einen Blick erkennbar, wie viele Stopps eine Route überhaupt hat und wie viele davon schon hinter ihr liegen. Grundlage ist das [Routen-Navi](logistik.md#routen-navi); die Anzeige aktualisiert sich automatisch, sobald unterwegs ein Stopp abgehakt wird — so ist in der Zentrale ohne Anruf ersichtlich, wo eine Route gerade steht. Der Bereich erscheint erst, sobald an diesem Tag der erste Stopp abgehakt wurde: Wird das Routen-Navi nicht verwendet, bleibt er ganz aus. Ab dann werden alle Routen angeführt, auch die noch bei "0 / 15" stehenden; Routen ohne hinterlegte Stopps werden nicht angeführt. Sind einer Route für den Ausgabetag [Notschlafstellen](logistik.md#notschlafstellen-der-route) zugeordnet, hängt der Balken für jede davon einen weiteren, helleren Abschnitt an, der sich füllt, sobald das Fahrer-Team die Lieferung im [Routen-Navi](logistik.md#routen-navi) bestätigt; daneben steht mit einem Haus-Symbol, wie viele davon schon beliefert sind (z. B. "1 / 2"). Eine Route ohne Stopps erscheint, sobald ihr Notschlafstellen zugeordnet sind. Der Bereich erscheint auch, wenn an diesem Tag zuerst eine Lieferung statt eines Stopps bestätigt wird.
+- **Statistik**: Eingabe der Mitarbeiteranzahl für den Tagesreport. Darunter stehen die **Personen in Notschlafstellen** und die Notschlafstellen, die heute beliefert werden — diese werden hier nicht ausgewählt, sondern ausschließlich in der [Routenerfassung](logistik.md#notschlafstellen-der-route) den Routen zugeordnet; die Karte zeigt sie nur an und aktualisiert sich automatisch, sobald dort gespeichert wird. Beim Beenden des Ausgabetags werden sie in die Statistik übernommen. Darunter steht als Summe aller Routen, wie viele Kisten des bisher Gesammelten ungefähr an die Notschlafstellen gehen ("Für Notschlafstellen: ca. 24 Kisten", siehe [Für Notschlafstellen](logistik.md#fuer-notschlafstellen)).
 - **Anmerkungen**: Freitext-Notizen zum aktuellen Ausgabetag, die z. B. im Tagesreport per E-Mail versendet werden.
 
 Vor dem Beenden des Ausgabetags sollten Statistik und Anmerkungen vollständig ausgefüllt sein, da diese Angaben in den Tagesreport einfließen:

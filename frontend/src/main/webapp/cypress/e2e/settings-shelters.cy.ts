@@ -53,6 +53,53 @@ describe('Settings - Shelters', () => {
     });
   });
 
+  it('records whether a shelter has a kitchen and the food categories it needs', () => {
+    cy.getAnyRandomNumber().then((randomId) => {
+      const name = 'Cooking Shelter ' + randomId;
+      cy.byTestId('addShelterButton').click();
+
+      cy.get('input[formControlName="name"]').should('be.visible').type(name);
+      cy.get('input[formControlName="addressStreet"]').type('Kitchen Street');
+      cy.get('input[formControlName="addressHouseNumber"]').type('3');
+      cy.get('input[formControlName="addressPostalCode"]').type('1030');
+      cy.get('input[formControlName="addressCity"]').type('Wien');
+      cy.get('input[formControlName="personsCount"]').type('12');
+
+      cy.byTestId('shelter-has-kitchen').click();
+      cy.contains('mat-option', 'Ja').click();
+      cy.byTestId('shelter-has-freezer').find('input[type="checkbox"]').check();
+      // a shelter that takes everything has every category selected
+      cy.byTestId('shelter-select-all-food-categories').click();
+      cy.byTestId('shelter-food-categories').should('contain.text', 'Backwaren').and('contain.text', 'Tiefkühlprodukte');
+      cy.byTestId('shelter-excluded-food-categories').click();
+      cy.contains('mat-option', 'Süßwaren').click();
+      cy.get('body').type('{esc}');
+      cy.byTestId('shelter-restrictions').type('kein Schweinefleisch');
+      cy.byTestId('shelter-add-fixed-quantity').click();
+      cy.byTestId('shelter-fixed-quantity-amount-0').clear().type('2');
+      cy.byTestId('shelter-fixed-quantity-category-0').click();
+      cy.contains('mat-option', 'Backwaren').click();
+      cy.byTestId('shelter-fixed-quantity-note-0').type('Gebäck');
+
+      cy.intercept('POST', '/api/shelters').as('createShelter');
+      cy.contains('Speichern').click();
+      cy.wait('@createShelter').its('request.body').then(body => {
+        expect(body).to.deep.include({hasKitchen: true, hasFreezer: true, restrictions: 'kein Schweinefleisch'});
+        expect(body.fixedQuantities).to.deep.equal([{foodCategoryId: 1, amount: 2, note: 'Gebäck'}]);
+      });
+
+      cy.byTestId('shelters-list').contains('[testid^="shelters-row-"]', name).as('row');
+      cy.get('@row').find('[testid^="shelters-toggle-"]').click();
+      cy.get('@row').find('[testid^="shelter-has-kitchen-"]').should('have.text', 'Ja');
+      cy.get('@row').find('[testid^="shelter-food-categories-"]')
+        .should('contain.text', 'Backwaren')
+        .and('contain.text', 'Tiefkühlprodukte');
+      cy.get('@row').find('[testid^="shelter-excluded-food-categories-"]').should('contain.text', 'Süßwaren');
+      cy.get('@row').find('[testid^="shelter-restrictions-"]').should('have.text', 'kein Schweinefleisch');
+      cy.get('@row').find('[testid^="shelter-fixed-quantities-"]').should('contain.text', '2 Kisten Backwaren (Gebäck)');
+    });
+  });
+
   it('edits a shelter', () => {
     cy.getAnyRandomNumber().then((randomId) => {
       // The edit button sits in the collapsed header row, so editing needs no expanding. A disabled
@@ -151,6 +198,13 @@ describe('Settings - Shelters', () => {
       cy.get('input[formControlName="firstname"]').should('be.visible');
 
       cy.checkDialogAccessibility();
+    });
+
+    it('has no violations while the food category selection of the edit dialog is open', () => {
+      cy.byTestId('addShelterButton').click();
+      cy.byTestId('shelter-food-categories').click();
+
+      cy.checkSelectAccessibility();
     });
 
   });

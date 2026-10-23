@@ -3,6 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {ShelterEditDialogComponent} from './shelter-edit-dialog.component';
 import {ShelterItem} from '../../../../../api/shelter-api.service';
+import {FoodCategory} from '../../../../../api/food-categories-api.service';
 
 describe('ShelterEditDialogComponent', () => {
   let dialogRef: MockedObject<MatDialogRef<ShelterEditDialogComponent>>;
@@ -19,8 +20,15 @@ describe('ShelterEditDialogComponent', () => {
     personsCount: 2,
     enabled: true,
     sortOrder: 1,
-    contacts: [{ firstname: 'John', lastname: 'Doe', phone: '123' }]
+    contacts: [{ firstname: 'John', lastname: 'Doe', phone: '123' }],
+    hasKitchen: true,
+    foodCategoryIds: [2]
   };
+  const foodCategories: FoodCategory[] = [
+    {id: 1, name: 'Backwaren', weightPerUnit: null, sortOrder: 1, enabled: true},
+    {id: 2, name: 'Konserven', weightPerUnit: null, sortOrder: 2, enabled: false},
+    {id: 3, name: 'Tiefkühl', weightPerUnit: null, sortOrder: 3, enabled: false}
+  ];
 
   beforeEach(async () => {
     dialogRef = {
@@ -30,7 +38,7 @@ describe('ShelterEditDialogComponent', () => {
     await TestBed.configureTestingModule({
       providers: [
         {provide: MatDialogRef, useValue: dialogRef},
-        {provide: MAT_DIALOG_DATA, useValue: {shelter: testShelter}}
+        {provide: MAT_DIALOG_DATA, useValue: {shelter: testShelter, foodCategories}}
       ]
     }).compileComponents();
   });
@@ -64,11 +72,46 @@ describe('ShelterEditDialogComponent', () => {
       addressCity: testShelter.addressCity,
       note: testShelter.note,
       personsCount: testShelter.personsCount,
-      enabled: true
+      enabled: true,
+      hasKitchen: true,
+      foodCategoryIds: [2]
     });
 
     expect(component.contacts.length).toBe(1);
     expect(component.contacts.at(0).value).toMatchObject({ firstname: 'John', lastname: 'Doe', phone: '123' });
+  });
+
+  it('offers the active food categories plus a deactivated one the shelter already has', () => {
+    const fixture = TestBed.createComponent(ShelterEditDialogComponent);
+
+    expect((fixture.componentInstance as any).selectableFoodCategories.map((c: FoodCategory) => c.id)).toEqual([1, 2]);
+  });
+
+  it('selects every offered food category at once for a shelter that takes everything', () => {
+    const fixture = TestBed.createComponent(ShelterEditDialogComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.selectAllFoodCategories();
+
+    expect(component.form.value.foodCategoryIds).toEqual([1, 2]);
+  });
+
+  it('records fixed quantities as rows of a category, whole boxes and an optional note', () => {
+    const fixture = TestBed.createComponent(ShelterEditDialogComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.addFixedQuantity();
+    expect(component.fixedQuantities.at(0).valid).toBe(false);
+
+    component.fixedQuantities.at(0).patchValue({foodCategoryId: 1, amount: 4, note: 'Schnittbrot'});
+    expect(component.fixedQuantities.at(0).valid).toBe(true);
+    component.fixedQuantities.at(0).patchValue({amount: 0});
+    expect(component.fixedQuantities.at(0).valid).toBe(false);
+
+    component.removeFixedQuantity(0);
+    expect(component.fixedQuantities.length).toBe(0);
   });
 
   it('can add and remove contacts', () => {
@@ -122,5 +165,18 @@ describe('ShelterEditDialogComponent (create mode - no shelter passed)', () => {
     const fixture = TestBed.createComponent(ShelterEditDialogComponent);
 
     expect((fixture.componentInstance as any).title).toBe('Notschlafstelle anlegen');
+  });
+
+  it('starts a new shelter without a kitchen and without food categories', () => {
+    const fixture = TestBed.createComponent(ShelterEditDialogComponent);
+
+    // a new shelter's kitchen is unknown until someone asks, not "no kitchen"
+    expect(fixture.componentInstance.form.value).toMatchObject({
+      hasKitchen: null,
+      hasFreezer: false,
+      fixedQuantities: [],
+      foodCategoryIds: [],
+      excludedFoodCategoryIds: []
+    });
   });
 });

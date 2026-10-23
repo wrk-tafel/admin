@@ -34,6 +34,7 @@ import {
   ReorderFeedbackService
 } from '../../../../common/components/tafel-reorder-handle/reorder-feedback.service';
 import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatCheckbox} from '@angular/material/checkbox';
 import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {RouterLink} from '@angular/router';
@@ -55,6 +56,7 @@ import {
   selector: 'tafel-settings-food-categories',
   templateUrl: 'settings-food-categories.component.html',
   imports: [
+    MatCheckbox,
     MatCard,
     MatCardActions,
     MatCardContent,
@@ -103,13 +105,17 @@ export class SettingsFoodCategoriesComponent {
 
   private _foodCategories = signal<FoodCategory[]>([]);
   protected foodCategories = this._foodCategories;
-  displayedColumns = ['drag', 'active', 'name', 'weightPerUnit', 'actions'];
+  displayedColumns = ['drag', 'active', 'name', 'weightPerUnit', 'needsCooking', 'actions'];
+
+  protected readonly needsCookingExplanation =
+    'Muss erst gekocht werden, bevor es gegessen werden kann. Eine Notschlafstelle ohne (bekannte) ' +
+    'Kochmöglichkeit bekommt davon bei der Aufteilung der gesammelten Waren nichts.';
 
   protected readonly loaded = signal(false);
   protected readonly enabledFilter = signal<EnabledFilter>('ALL');
   /**
    * A deactivated category is never deleted, so the list only ever grows - the filter is what keeps
-   * the working list to the categories the Warenerfassung actually offers.
+   * the working list to the categories the Routenerfassung actually offers.
    */
   protected readonly visibleFoodCategories = computed(() =>
     this._foodCategories().filter(category => matchesEnabledFilter(category.enabled, this.enabledFilter()))
@@ -191,6 +197,17 @@ export class SettingsFoodCategoriesComponent {
         this.loadFoodCategories();
       },
       error: () => this.toastr.error('Speichern fehlgeschlagen', 'Fehler')
+    });
+  }
+
+  /** Saved right away, like the active switch - there is nothing else to fill in for it. */
+  protected toggleNeedsCooking(category: FoodCategory, needsCooking: boolean) {
+    this.foodCategoriesApiService.updateFoodCategory(category.id, {...category, needsCooking}).subscribe({
+      next: () => {
+        this.toastr.success(`Lebensmittelkategorie ${category.name} geändert`, 'Erfolgreich');
+        this.loadFoodCategories();
+      },
+      error: () => this.toastr.error('Fehler beim Ändern', 'Fehler')
     });
   }
 

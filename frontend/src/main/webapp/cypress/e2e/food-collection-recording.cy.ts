@@ -13,6 +13,100 @@ describe('Food Collection Recording', () => {
     cy.closeDistribution();
   });
 
+  it('estimates what goes to the shelters from what the route collected', () => {
+    // route 2 delivers to shelters 1 and 2 and brought back 30 boxes of fruit and vegetables and
+    // 10 of bread; shelter 2 gets 4 boxes of bread every time, shelter 1 wants no bread at all
+    cy.request('POST', '/api/food-collections/routes/2/shelters', {shelterIds: [1, 2]});
+    cy.request('POST', '/api/food-collections/routes/2/items', {
+      items: [{categoryId: 2, shopId: 20, amount: 30}, {categoryId: 1, shopId: 20, amount: 10}]
+    });
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+    cy.byTestId('select-items-tab').click();
+    cy.byTestId('food-collection-shelter-shares').should('be.visible');
+    cy.byTestId('food-collection-shelter-share-0').should('contain.text', 'Kisten Obst / Gemüse')
+      .and('not.contain.text', 'Backwaren');
+    cy.byTestId('food-collection-shelter-share-1').should('contain.text', '4 Kisten Backwaren');
+    cy.checkAccessibility('[testid="food-collection-shelter-shares"]');
+
+    // the drivers see it per shelter, the dashboard as a total
+    cy.window().then(win => win.localStorage.setItem('tafel.routeGuidance.selectedRouteId', '2'));
+    cy.visit('/logistik/routen-navi');
+    cy.byTestId('guidance-shelter-toggle-1').click();
+    cy.byTestId('guidance-shelter-estimate-1').should('contain.text', 'Mitnehmen: ca.').and('contain.text', '4 Kisten Backwaren');
+
+    cy.visit('/');
+    cy.byTestId('distribution-statistics-shelter-share').should('contain.text', 'Für Notschlafstellen: ca.');
+
+    // amounts without base data leave the route incomplete, which would refuse closing the day
+    cy.request('POST', '/api/food-collections/routes/2/items', {
+      items: [{categoryId: 2, shopId: 20, amount: 0}, {categoryId: 1, shopId: 20, amount: 0}]
+    });
+  });
+
+  it('picks the shelters of a route, which the drivers see in Routen-Navi and the dashboard takes over', () => {
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+
+    cy.byTestId('food-collection-shelters').click();
+    cy.byTestId('food-collection-shelters-option-1').click();
+    cy.byTestId('food-collection-shelters-option-2').click();
+    cy.checkSelectAccessibility();
+    cy.get('body').type('{esc}');
+    cy.byTestId('route-tab-status-unsaved').should('exist');
+
+    cy.intercept('POST', '/api/food-collections/routes/2/shelters').as('saveShelters');
+    cy.byTestId('save-button').click();
+    cy.wait('@saveShelters').its('request.body').should('deep.equal', {shelterIds: [1, 2]});
+    // the base data is still empty, which the save names - the shelters went out regardless
+    cy.contains('.toast-message', 'Gespeichert').should('be.visible');
+
+    // picked again once the route is loaded anew
+    cy.reload();
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+    // by the long name of shelter 2 - other specs rename shelter 1 when they share a backend
+    cy.byTestId('food-collection-shelters').should('contain.text', 'Shelter 2 with a very long name');
+
+    // the drivers see where the goods go, with what they need to get there
+    cy.window().then(win => win.localStorage.removeItem('tafel.routeGuidance.selectedRouteId'));
+    cy.visit('/logistik/routen-navi');
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+    cy.byTestId('guidance-shelters').should('be.visible');
+    cy.byTestId('guidance-shelter-0').should('contain.text', '100 Personen');
+    cy.byTestId('guidance-shelter-details-0').should('not.be.visible');
+    cy.byTestId('guidance-shelter-toggle-0').click();
+    cy.byTestId('guidance-shelter-details-0').should('be.visible').and('contain.text', 'Erdberg');
+    // shelter 1 of the testdata cooks, asks for canned food among others and eats no pork
+    cy.byTestId('guidance-shelter-kitchen-0').should('have.text', 'Ja');
+    cy.byTestId('guidance-shelter-food-categories-0').should('contain.text', 'Konserven');
+    cy.byTestId('guidance-shelter-restrictions-0').should('have.text', 'kein Schweinefleisch');
+    cy.byTestId('guidance-shelter-details-0').find('a[href^="tel:"]').should('exist');
+    cy.byTestId('guidance-shelter-navigate-0').should('have.attr', 'href').and('include', 'google.com/maps');
+    cy.checkAccessibility('[testid="guidance-shelters"]');
+
+    // confirming the delivery counts it into the route's progress
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 2 Notschlafstellen beliefert');
+    cy.byTestId('guidance-shelter-deliver-0').click();
+    cy.byTestId('guidance-shelter-delivered-badge-0').should('be.visible');
+    cy.byTestId('guidance-shelter-delivered-label-0').should('contain.text', 'Geliefert um');
+    cy.byTestId('guidance-summary').should('contain.text', '1 von 2 Notschlafstellen beliefert');
+
+    // and the statistics card shows them, read-only, while "Routen unterwegs" counts the delivery
+    cy.visit('/');
+    cy.byTestId('distribution-statistics-persons-in-shelter').should('have.text', '150');
+    cy.byTestId('route-progress-shelters-2').should('contain.text', '1 / 2');
+
+    // taking it back is possible, and the progress follows
+    cy.window().then(win => win.localStorage.setItem('tafel.routeGuidance.selectedRouteId', '2'));
+    cy.visit('/logistik/routen-navi');
+    cy.byTestId('guidance-shelter-toggle-0').click();
+    cy.byTestId('guidance-shelter-undo-delivery-0').click();
+    cy.byTestId('guidance-summary').should('contain.text', '0 von 2 Notschlafstellen beliefert');
+  });
+
   it('food collection recorded properly on desktop', () => {
     // Uses the global 1024x768 desktop baseline from cypress.config.ts.
 

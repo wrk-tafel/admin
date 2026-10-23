@@ -74,7 +74,7 @@ describe('DashboardComponent', () => {
       },
       statistics: {
         employeeCount: 10,
-        selectedShelterNames: ['Shelter 1', 'Shelter 2', 'Shelter 3'],
+        shelters: [{name: 'Shelter 1', personsCount: 10}, {name: 'Shelter 2', personsCount: 20}],
       }
     };
     sseService.topic.mockReturnValueOnce(of(mockData));

@@ -21,4 +21,8 @@ class FoodCategoryEntity(
 
     @Column(name = "weight_per_unit")
     var weightPerUnit: BigDecimal? = null
+
+    /** Has to be cooked before it can be eaten - a shelter without a kitchen gets none of it. */
+    @Column(name = "needs_cooking")
+    var needsCooking: Boolean = false
 }

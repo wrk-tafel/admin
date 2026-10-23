@@ -41,6 +41,7 @@ describe('FoodCollectionsApiService', () => {
       coDriver: {id: 4, personnelNumber: '444', firstname: 'Erika', lastname: 'Musterfrau'},
       kmStart: 1000,
       kmEnd: 2000,
+      shelterIds: [],
       items: [
         {categoryId: 0, shopId: 0, amount: 0},
         {categoryId: 1, shopId: 0, amount: 1},

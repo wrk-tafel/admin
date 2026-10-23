@@ -68,4 +68,14 @@ class DistributionEntity(
 
     @OneToMany(mappedBy = "distribution")
     var foodCollections: List<FoodCollectionEntity> = emptyList()
+
+    /**
+     * Everyone the registered households get food for: the main person of each household plus its
+     * additional persons not excluded from it. Lives on the entity because two modules count it the
+     * same way - `dashboard` shows it, and `logistics` splits the collected goods per person.
+     */
+    fun countRegisteredPersons(): Int = households.size +
+        households
+            .flatMap { it.household.additionalPersons() }
+            .count { !it.excludeFromHousehold }
 }

@@ -20,6 +20,7 @@ data class FoodCategoryRequest(
     val weightPerUnit: BigDecimal?,
     val sortOrder: Int,
     val enabled: Boolean,
+    val needsCooking: Boolean = false,
 )
 
 @ExcludeFromTestCoverage
@@ -29,6 +30,7 @@ data class FoodCategoryResponse(
     val weightPerUnit: BigDecimal?,
     val sortOrder: Int,
     val enabled: Boolean,
+    val needsCooking: Boolean = false,
 )
 
 @ExcludeFromTestCoverage

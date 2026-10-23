@@ -1,9 +1,9 @@
 # Dashboard Module
 
 This module serves the single overview screen shown to employees. While a distribution is running: registered
-household count, ticket processing progress, logistics/food-collection progress, the selected shelters and
-employee count for the current statistic, and free-text distribution notes. While none is: a summary of the
-most recently closed distribution and a handful of organization-wide counts, so the page still has something
+household count, ticket processing progress, logistics/food-collection progress, the employee count for
+the current statistic plus the shelters today's routes deliver to, and free-text distribution notes.
+While none is: a summary of the most recently closed distribution and a handful of organization-wide counts, so the page still has something
 to show. There is exactly one endpoint, and it is a long-lived Server-Sent-Events (SSE) stream, not a
 request/response poll.
 
@@ -19,7 +19,8 @@ Only three source files (plus `package-info.java`):
   (`DistributionRepository.getCurrentDistribution()`). If one is open, it assembles
   ticket counts, registered-household count, registered-person count (one per household plus its
   not-excluded additional persons - the same formula as `DistributionStatisticService` and the
-  customer-list PDF), statistics (employee count + shelter names), and logistics
+  customer-list PDF), statistics (employee count + the day's shelters, each with its persons count),
+  and logistics
   (food collections vs. total routes, total food weight, the enabled routes' names both recorded and in
   full - the frontend renders the latter as chips so the routes that haven't handed in yet are visible
   without diffing two lists itself); `lastDistribution` and `organizationOverview` stay `null`. If none
@@ -27,8 +28,8 @@ Only three source files (plus `package-info.java`):
   overview page still has something to show: `lastDistribution`, from the most recently closed
   distribution (`DistributionRepository.findFirstByEndedAtIsNotNullOrderByStartedAtDesc()`) - customer/
   person/ticket/food-amount counts the same way the active branch computes them, plus `sheltersCount`/
-  `personsInSheltersCount` read off that distribution's own `statistic?.shelters` (the same frozen
-  snapshot `getStatisticsData()` reads `selectedShelterNames` from, see below) - `null` there too on a
+  `personsInSheltersCount` read off that distribution's own `statistic?.shelters` (the frozen
+  snapshot taken when it closed, see below) - `null` there too on a
   fresh installation that has never closed one - and `organizationOverview`, eight organization-wide
   counts (active households/persons/users/cars/shelters/routes/shops, plus employees) read straight off
   `HouseholdRepository`, `PersonRepository`, `UserRepository`, `CarRepository`, `ShelterRepository`,
@@ -36,7 +37,8 @@ Only three source files (plus `package-info.java`):
   panels while a distribution is open, and the last-distribution summary plus the organization overview
   tiles (plus a row of permission-gated quick links to fill whatever space is still left) otherwise.
 - **`DashboardResponseModel`** (`DashboardData`, `DashboardTicketsData`, `DashboardStatisticsData`,
-  `DashboardLogisticsData`, `DashboardLastDistributionData`, `DashboardOrganizationOverviewData`) – Plain
+  `DashboardStatisticsShelter`, `DashboardLogisticsData`, `DashboardLastDistributionData`,
+  `DashboardOrganizationOverviewData`) – Plain
   DTOs serialized straight onto the SSE stream as JSON.
 
 ## The `allowedDependencies = {}` puzzle
@@ -78,17 +80,20 @@ module dependencies because it depends on the database, not on the other modules
 read-only aggregation module by construction — it cannot call into `distribution`/`logistics` service logic,
 only re-read the same rows those modules write.
 
-One consequence worth knowing: `getStatisticsData()` reads shelter *names* off of
-`DistributionStatisticEntity.shelters` rather than joining live `Shelter` rows, deliberately — see the
-comment in `DashboardService`:
+The shelters come from two different places depending on which branch is shown, and that is
+deliberate:
 
-```kotlin
-// Intentionally names, not shelter ids: statistics keep a historic copy independent of later shelter renames/deletions
-```
+- **While a distribution is running**, `getStatisticsData()` reads them live off the current
+  distribution's food collections (`FoodCollectionEntity.shelters`, picked per route in the food
+  collection recording - the only place a shelter is picked for a day): distinct, ordered by the
+  shelters' `sortOrder` then name, deactivated shelters included, each as name + current
+  `personsCount`. The statistics card shows them read-only; nothing in this module writes them.
+- **For `lastDistribution`**, it reads `DistributionStatisticEntity.shelters` instead - a copy (name,
+  address, persons count) that the `distribution` module freezes onto the statistic when the
+  distribution closes, so a later rename, recount or deletion of a shelter doesn't rewrite history.
 
-So even the "shelter" data displayed here is a frozen snapshot captured at statistic-save time by the
-`distribution` module, not a live reference — another reason dashboard doesn't need a dependency on
-`logistics`' `Shelter` entities to render it correctly.
+Either way the dashboard only re-reads `database.model.*` entities, so neither needs a dependency on
+the `logistics` or `distribution` modules' code.
 
 ## How the SSE update actually gets triggered (the outbox flow)
 
@@ -108,8 +113,14 @@ module — or anywhere in application code — ever calls `saveOutboxEntry("dash
    `R__00099_dashboard_notify_every_change.sql`) as an `AFTER INSERT OR UPDATE OR DELETE` trigger
    on `distributions`, `distributions_households`, `distributions_statistics`,
    `distributions_statistics_shelters`, `food_collections`, and `food_collections_items`;
+   `R__00143_food_collections_shelters.sql` attaches it to `food_collections_shelters`, so picking a
+   route's shelters reaches the statistics card live;
    `R__00097_dashboard_route_progress_trigger.sql` attaches the same function to
-   `routes_stops_completions`, which is what makes the route progress panel follow the drivers. Any
+   `routes_stops_completions`, which is what makes the route progress panel follow the drivers -
+   and `R__00144_food_collection_shelter_deliveries.sql` to `food_collections_shelter_deliveries`,
+   since that panel also counts the confirmed shelter deliveries (`completedShelters`/
+   `totalShelters` per route, next to the stops; a route without stops appears once it has shelters
+   picked, and the panel appears once either a stop or a delivery is ticked off). Any
    write to any of those tables (by any module, through any code path — even a raw SQL migration)
    inserts a row into `sse_outbox` with `notification_name = 'dashboard_update'` and `payload = NULL`.
 2. The **row** is deliberately coalesced to at most one per second:
@@ -145,7 +156,9 @@ notification. `organizationOverview` deliberately does *not* get this treatment:
 `users`, `cars`, `shelters`, `routes`, `shops` and `employees` carry no `dashboard_update` trigger, so
 those eight counts are only as fresh as the last time something distribution-related pushed a new
 snapshot (or a client (re)connects) - acceptable for a background figure that fills otherwise-empty
-space, not something to build a trigger migration for.
+space, not something to build a trigger migration for. The same holds for a shelter's `personsCount`
+on the running statistics card: editing a shelter in the settings shows up there with the next push,
+not at once.
 
 ## Gotchas
 

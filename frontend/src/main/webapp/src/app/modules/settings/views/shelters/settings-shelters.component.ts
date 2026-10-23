@@ -5,6 +5,8 @@ import {FormatShelterAddressPipe} from '../../../../common/pipes/format-shelter-
 import {MatCard, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray} from '@angular/cdk/drag-drop';
 import {ShelterApiService, ShelterItem} from '../../../../api/shelter-api.service';
+import {FoodCategoriesApiService, FoodCategory} from '../../../../api/food-categories-api.service';
+import {formatFixedQuantity, shelterKitchenLabel} from '../../../../common/util/shelter-kitchen.util';
 import {MatIcon} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
@@ -64,6 +66,7 @@ export class SettingsSheltersComponent {
   });
 
   private readonly shelterApiService = inject(ShelterApiService);
+  private readonly foodCategoriesApiService = inject(FoodCategoriesApiService);
   private readonly toastr = inject(TafelToastrService);
   private readonly reorderFeedback = inject(ReorderFeedbackService);
   private readonly dialog = inject(MatDialog);
@@ -77,6 +80,25 @@ export class SettingsSheltersComponent {
 
   protected readonly totalCount = computed(() => this._shelters().length);
   protected readonly enabledCount = computed(() => this._shelters().filter(shelter => shelter.enabled).length);
+
+  // all of them, deactivated ones included: a shelter may still list a category deactivated since
+  private readonly foodCategories = signal<FoodCategory[]>([]);
+  protected readonly foodCategoryNamesByShelter = computed(() => {
+    const names = new Map(this.foodCategories().map(category => [category.id, category.name]));
+    const namesOf = (ids: number[] | undefined) =>
+      (ids ?? []).map(id => names.get(id)).filter((name): name is string => !!name);
+    return new Map(this._shelters().map(shelter => [
+      shelter.id,
+      {
+        needed: namesOf(shelter.foodCategoryIds),
+        excluded: namesOf(shelter.excludedFoodCategoryIds),
+        fixedQuantities: (shelter.fixedQuantities ?? []).map(quantity =>
+          formatFixedQuantity(quantity.amount, names.get(quantity.foodCategoryId) ?? '', quantity.note))
+      }
+    ]));
+  });
+
+  protected readonly kitchenLabel = shelterKitchenLabel;
 
   protected readonly enabledFilter = signal<EnabledFilter>('ALL');
   /**
@@ -93,6 +115,14 @@ export class SettingsSheltersComponent {
 
   constructor() {
     this.loadShelters();
+    this.loadFoodCategories();
+  }
+
+  private loadFoodCategories() {
+    this.foodCategoriesApiService.getAllFoodCategories().subscribe({
+      next: categories => this.foodCategories.set(categories),
+      error: () => this.toastr.error('Fehler beim Laden der Lebensmittelkategorien', 'Fehler')
+    });
   }
 
   private loadShelters() {
@@ -110,7 +140,7 @@ export class SettingsSheltersComponent {
 
   protected editShelter(shelter: ShelterItem) {
     const dialogRef = this.dialog.open(ShelterEditDialogComponent, {
-      data: {shelter},
+      data: {shelter, foodCategories: this.foodCategories()},
       width: '600px'
     });
 
@@ -147,7 +177,7 @@ export class SettingsSheltersComponent {
 
   protected addShelter() {
     const dialogRef = this.dialog.open(ShelterEditDialogComponent, {
-      data: {},
+      data: {foodCategories: this.foodCategories()},
       width: '600px'
     });
 

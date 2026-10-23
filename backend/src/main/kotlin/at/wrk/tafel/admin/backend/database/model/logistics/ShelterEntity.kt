@@ -3,8 +3,13 @@ package at.wrk.tafel.admin.backend.database.model.logistics
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
 import jakarta.persistence.CascadeType
+import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
+import jakarta.persistence.ElementCollection
 import jakarta.persistence.Entity
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 
@@ -30,6 +35,22 @@ class ShelterEntity(
     var enabled: Boolean = true,
 ) : BaseChangeTrackingEntity() {
 
+    // null while nobody knows - not the same as "no kitchen"
+    @Column(name = "has_kitchen")
+    var hasKitchen: Boolean? = null
+
+    @Column(name = "has_freezer")
+    var hasFreezer: Boolean = false
+
+    // what no food category expresses, e.g. "kein Schweinefleisch"
+    @Column(name = "restrictions")
+    var restrictions: String? = null
+
+    // the amounts it gets every time, e.g. 4 boxes of bread
+    @ElementCollection
+    @CollectionTable(name = "shelters_fixed_quantities", joinColumns = [JoinColumn(name = "shelter_id")])
+    var fixedQuantities: MutableList<ShelterFixedQuantityEntity> = mutableListOf()
+
     @Column(name = "address_stairway")
     var addressStairway: String? = null
 
@@ -41,4 +62,22 @@ class ShelterEntity(
 
     @OneToMany(mappedBy = "shelter", cascade = [CascadeType.ALL], orphanRemoval = true)
     var contacts: MutableList<ShelterContactEntity> = mutableListOf()
+
+    // the food categories this shelter usually asks for
+    @ManyToMany
+    @JoinTable(
+        name = "shelters_food_categories",
+        joinColumns = [JoinColumn(name = "shelter_id")],
+        inverseJoinColumns = [JoinColumn(name = "food_category_id")],
+    )
+    var foodCategories: MutableSet<FoodCategoryEntity> = mutableSetOf()
+
+    // the food categories this shelter does not want
+    @ManyToMany
+    @JoinTable(
+        name = "shelters_excluded_food_categories",
+        joinColumns = [JoinColumn(name = "shelter_id")],
+        inverseJoinColumns = [JoinColumn(name = "food_category_id")],
+    )
+    var excludedFoodCategories: MutableSet<FoodCategoryEntity> = mutableSetOf()
 }

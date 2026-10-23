@@ -1,16 +1,18 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {of} from 'rxjs';
+import {of, throwError} from 'rxjs';
 import {signal} from '@angular/core';
 import {DistributionStatisticsInputComponent} from './distribution-statistics-input.component';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
+import {FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 
 describe('DistributionStatisticsInputComponent', () => {
   let distributionApiService: MockedObject<DistributionApiService>;
   let toastr: MockedObject<TafelToastrService>;
+  let foodCollectionsApiServiceSpy: {getShelterShares: ReturnType<typeof vi.fn>};
 
   beforeEach(() => {
     const distributionApiServiceSpy = {
@@ -21,6 +23,9 @@ describe('DistributionStatisticsInputComponent', () => {
       error: vi.fn().mockName('TafelToastrService.error')
     };
     const testDistribution: DistributionItem = {id: 1, startedAt: new Date()};
+    foodCollectionsApiServiceSpy = {
+      getShelterShares: vi.fn(() => of({householdPersons: 90, shelterPersons: 10, totalBoxes: 7, routes: []}))
+    };
     const globalStateServiceSpy = {
       getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
         .mockReturnValue(signal<DistributionItem | null>(testDistribution).asReadonly())
@@ -31,7 +36,8 @@ describe('DistributionStatisticsInputComponent', () => {
       providers: [
         {provide: DistributionApiService, useValue: distributionApiServiceSpy},
         {provide: TafelToastrService, useValue: toastrSpy},
-        {provide: GlobalStateService, useValue: globalStateServiceSpy}
+        {provide: GlobalStateService, useValue: globalStateServiceSpy},
+        {provide: FoodCollectionsApiService, useValue: foodCollectionsApiServiceSpy}
       ]
     }).compileComponents();
 
@@ -67,7 +73,7 @@ describe('DistributionStatisticsInputComponent', () => {
 
     fixture.componentInstance.save();
 
-    expect(distributionApiService.saveStatistic).toHaveBeenCalledWith(5, []);
+    expect(distributionApiService.saveStatistic).toHaveBeenCalledWith(5);
     expect(toastr.success).toHaveBeenCalledWith('Statistik-Daten gespeichert!');
   });
 
@@ -95,5 +101,66 @@ describe('DistributionStatisticsInputComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.employeeCount.value).toBe(7);
+  });
+
+  it('shows an error toast when saving fails', () => {
+    distributionApiService.saveStatistic.mockReturnValue(throwError(() => new Error('failed')));
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.employeeCount.setValue(5);
+
+    fixture.componentInstance.save();
+
+    expect(toastr.error).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
+  });
+
+  it('shows the shelters of the routes of the day and the persons in them, read-only', () => {
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    fixture.componentRef.setInput('shelters', [
+      {name: 'Shelter 1', personsCount: 100},
+      {name: 'Shelter 2', personsCount: 50}
+    ]);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="distribution-statistics-persons-in-shelter"]')!.textContent).toContain('150');
+    expect(element.querySelector('[testid="distribution-statistics-shelter-list"]')!.textContent)
+      .toContain('Shelter 1 (100)');
+    // nothing to pick here - the food collection recording is the one place shelters are chosen
+    expect(element.querySelector('[testid="dashboard-select-shelters-button"]')).toBeNull();
+  });
+
+  it('says that no shelters are assigned yet', () => {
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[testid="distribution-statistics-persons-in-shelter"]')!.textContent).toContain('0');
+    expect(element.querySelector('[testid="distribution-statistics-no-shelters"]')).not.toBeNull();
+  });
+
+  it('shows how many boxes go to the shelters, estimated from what the routes collected', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    fixture.componentRef.setInput('shelters', [{name: 'Shelter 1', personsCount: 10}]);
+    fixture.componentRef.setInput('refreshKey', {});
+    fixture.detectChanges();
+    await vi.advanceTimersByTimeAsync(400);
+    fixture.detectChanges();
+    vi.useRealTimers();
+
+    expect(foodCollectionsApiServiceSpy.getShelterShares).toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('[testid="distribution-statistics-shelter-share"]').textContent)
+      .toContain('ca. 7 Kisten');
+  });
+
+  it('asks for no estimate while no shelters are picked', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    fixture.detectChanges();
+    await vi.advanceTimersByTimeAsync(400);
+    vi.useRealTimers();
+
+    expect(foodCollectionsApiServiceSpy.getShelterShares).not.toHaveBeenCalled();
   });
 });

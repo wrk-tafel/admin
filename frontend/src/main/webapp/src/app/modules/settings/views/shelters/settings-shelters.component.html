@@ -17,12 +17,12 @@
   </mat-card-header>
   <mat-card-content>
     <p class="mb-2 text-sm text-slate-600">
-      Notschlafstellen samt Ansprechpersonen und Personenanzahl, die bei der Statistik eines
-      Ausgabetags ausgewählt werden können.
+      Notschlafstellen samt Ansprechpersonen, Personenanzahl und Bedarf, die in der Routenerfassung den
+      Routen eines Ausgabetags zugeordnet werden.
     </p>
     <p class="mb-4 flex items-start gap-2 text-sm text-slate-600" testid="shelters-order-hint">
       <mat-icon svgIcon="info" class="mt-0.5 text-slate-400"></mat-icon>
-      <span>Die Reihenfolge gilt auch für die Auswahl im Dashboard und für den Tagesbericht.</span>
+      <span>Die Reihenfolge gilt auch für die Auswahl in der Routenerfassung, das Routen-Navi, die Übersicht und den Tagesbericht.</span>
     </p>
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
@@ -87,6 +87,49 @@
                 <dt class="text-xs uppercase tracking-wide text-slate-500">Anz. Personen</dt>
                 <dd class="m-0">{{ shelter.personsCount }}</dd>
               </div>
+              @let needs = foodCategoryNamesByShelter().get(shelter.id);
+              <div>
+                <dt class="text-xs uppercase tracking-wide text-slate-500">Kochmöglichkeit</dt>
+                <dd class="m-0" [attr.testid]="'shelter-has-kitchen-' + i">{{ kitchenLabel(shelter.hasKitchen) }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase tracking-wide text-slate-500">Tiefkühlware</dt>
+                <dd class="m-0" [attr.testid]="'shelter-has-freezer-' + i">{{ shelter.hasFreezer ? 'Kann gelagert werden' : 'Nein' }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase tracking-wide text-slate-500">Benötigte Lebensmittel</dt>
+                <dd class="m-0" [attr.testid]="'shelter-food-categories-' + i">
+                  @if (needs?.needed?.length) {
+                    {{ needs!.needed.join(', ') }}
+                  } @else {
+                    <span class="text-slate-400">Keine angegeben</span>
+                  }
+                </dd>
+              </div>
+              @if (needs?.excluded?.length) {
+                <div>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">Nicht gewünscht</dt>
+                  <dd class="m-0" [attr.testid]="'shelter-excluded-food-categories-' + i">{{ needs!.excluded.join(', ') }}</dd>
+                </div>
+              }
+              @if (shelter.restrictions) {
+                <div>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">Einschränkungen</dt>
+                  <dd class="m-0" [attr.testid]="'shelter-restrictions-' + i">{{ shelter.restrictions }}</dd>
+                </div>
+              }
+              @if (needs?.fixedQuantities?.length) {
+                <div>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">Fixe Mengen</dt>
+                  <dd class="m-0" [attr.testid]="'shelter-fixed-quantities-' + i">
+                    <ul class="m-0 list-none p-0">
+                      @for (quantity of needs!.fixedQuantities; track $index) {
+                        <li>{{ quantity }}</li>
+                      }
+                    </ul>
+                  </dd>
+                </div>
+              }
               <div class="sm:col-span-2">
                 <dt class="text-xs uppercase tracking-wide text-slate-500">Kontakte</dt>
                 <dd class="m-0">

@@ -13,7 +13,6 @@ import at.wrk.tafel.admin.backend.database.model.distribution.*
 import at.wrk.tafel.admin.backend.database.model.household.HouseholdRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
-import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.ConflictException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
@@ -54,7 +53,6 @@ class DistributionService(
     private val householdRepository: HouseholdRepository,
     private val pdfService: PDFService,
     private val transactionTemplate: TransactionTemplate,
-    private val shelterRepository: ShelterRepository,
     private val routeRepository: RouteRepository,
     private val advisoryLockService: AdvisoryLockService,
     private val eventPublisher: ApplicationEventPublisher,
@@ -459,8 +457,11 @@ class DistributionService(
                 errors.add("Statistik-Daten fehlen!")
             }
 
+            // a route that only has its shelters picked was not driven - the "nicht erfasst" warning
+            // below covers it, not this error
             val incompleteRoutes = currentDistribution.foodCollections.filter {
-                it.driver == null || it.coDriver == null || it.car == null || it.kmStart == null || it.kmEnd == null || it.items == null || it.items!!.isEmpty()
+                it.hasRecordedTripData() &&
+                    (it.driver == null || it.coDriver == null || it.car == null || it.kmStart == null || it.kmEnd == null || it.items.isNullOrEmpty())
             }
             if (incompleteRoutes.isNotEmpty()) {
                 errors.add("Die Route(n) ${incompleteRoutes.joinToString(", ") { it.route.name }} sind unvollständig!")
@@ -475,7 +476,9 @@ class DistributionService(
                 // Warnings
                 // a disabled route isn't driven anymore, so not recording it is not a problem
                 val routes: List<RouteEntity> = routeRepository.findByEnabledIsTrue()
-                val recordedRouteIds = currentDistribution.foodCollections.map { it.route.id }
+                val recordedRouteIds = currentDistribution.foodCollections
+                    .filter { it.hasRecordedTripData() }
+                    .map { it.route.id }
                 val missingRoutes = routes.filterNot { recordedRouteIds.contains(it.id) }
                 if (missingRoutes.isNotEmpty()) {
                     warnings.add("Die Route(n) ${missingRoutes.joinToString(", ") { it.name }} wurden nicht erfasst!")
@@ -516,6 +519,7 @@ class DistributionService(
                 currentDistribution.endedByUser =
                     authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
                         ?: currentDistribution.startedByUser
+                snapshotShelters(currentDistribution)
 
                 distributionRepository.save(currentDistribution)
             }
@@ -593,47 +597,53 @@ class DistributionService(
     }
 
     @Transactional
-    fun updateDistributionStatisticData(
-        employeeCount: Int,
-        selectedShelterIds: List<Long>,
-    ) {
+    fun updateDistributionStatisticData(employeeCount: Int) {
         val currentDistribution = distributionRepository.getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
         val currentStatistic = currentDistribution.statistic
-        if (currentStatistic == null) {
-            throw BusinessRuleException("Statistik-Daten nicht vorhanden!")
-        } else {
-            currentStatistic.employeeCount = employeeCount
+            ?: throw BusinessRuleException("Statistik-Daten nicht vorhanden!")
+        currentStatistic.employeeCount = employeeCount
 
-            val selectedShelters = shelterRepository.findAllById(selectedShelterIds).toList()
-            // Mutate the existing collection in place - reassigning `shelters` to a brand-new list
-            // detaches Hibernate's live PersistentBag from the field, and orphanRemoval = true then
-            // fails the flush with "collection ... was no longer referenced", surfacing to the
-            // caller as an UnexpectedRollbackException once this whole method runs inside one
-            // transaction/session (issue #3602's @Transactional addition exposed this).
-            currentStatistic.shelters.clear()
-            currentStatistic.shelters.addAll(
-                selectedShelters.map {
-                    DistributionStatisticShelterEntity(
-                        statistic = currentStatistic,
-                        name = it.name,
-                        addressStreet = it.addressStreet,
-                        addressHouseNumber = it.addressHouseNumber,
-                        addressPostalCode = it.addressPostalCode,
-                        addressCity = it.addressCity,
-                        personsCount = it.personsCount,
-                        sortOrder = it.sortOrder,
-                    ).apply {
-                        createdAt = LocalDateTime.now()
-                        updatedAt = LocalDateTime.now()
-                        addressStairway = it.addressStairway
-                        addressDoor = it.addressDoor
-                    }
-                },
-            )
+        distributionRepository.save(currentDistribution)
+    }
 
-            distributionRepository.save(currentDistribution)
-        }
+    /**
+     * Freezes the shelters the routes delivered to onto the statistic, as a copy rather than a
+     * reference - the statistic keeps the name, address and persons count a shelter had that day
+     * (R__00074). They come from the food collection recording, which is the only place a shelter
+     * is picked: a second, separately edited list would sooner or later disagree with it. Taken
+     * when the distribution closes, since recording needs a running distribution and nothing can
+     * change the picks afterwards.
+     */
+    private fun snapshotShelters(distribution: DistributionEntity) {
+        val statistic = distribution.statistic ?: return
+        val shelters = distribution.foodCollections
+            .flatMap { it.shelters }
+            .distinctBy { it.id }
+
+        // Mutate the existing collection in place - reassigning `shelters` to a brand-new list
+        // detaches Hibernate's live PersistentBag from the field, and orphanRemoval = true then
+        // fails the flush with "collection ... was no longer referenced".
+        statistic.shelters.clear()
+        statistic.shelters.addAll(
+            shelters.map {
+                DistributionStatisticShelterEntity(
+                    statistic = statistic,
+                    name = it.name,
+                    addressStreet = it.addressStreet,
+                    addressHouseNumber = it.addressHouseNumber,
+                    addressPostalCode = it.addressPostalCode,
+                    addressCity = it.addressCity,
+                    personsCount = it.personsCount,
+                    sortOrder = it.sortOrder,
+                ).apply {
+                    createdAt = LocalDateTime.now()
+                    updatedAt = LocalDateTime.now()
+                    addressStairway = it.addressStairway
+                    addressDoor = it.addressDoor
+                }
+            },
+        )
     }
 
     @Transactional

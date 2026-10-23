@@ -71,7 +71,7 @@ internal class DistributionPhasePushListenerTest {
         verify {
             pushBroadcastService.broadcast(
                 type = PushNotificationType.FOOD_COLLECTION_COMPLETED,
-                title = "Warenerfassung abgeschlossen",
+                title = "Routenerfassung abgeschlossen",
                 body = "Für alle 5 aktiven Routen wurden die Waren erfasst.",
             )
         }

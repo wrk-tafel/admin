@@ -1,11 +1,17 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.BusinessRuleException
 import at.wrk.tafel.admin.backend.modules.base.exception.NotFoundException
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterContactItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterFixedQuantityItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterRequest
 import at.wrk.tafel.admin.backend.modules.logistics.model.ShelterResponse
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory2
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory3
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter2
 import at.wrk.tafel.admin.backend.modules.logistics.testShelter3
@@ -31,6 +37,9 @@ class ShelterServiceTest {
 
     @RelaxedMockK
     private lateinit var shelterRepository: ShelterRepository
+
+    @RelaxedMockK
+    private lateinit var foodCategoryRepository: FoodCategoryRepository
 
     @InjectMockKs
     private lateinit var service: ShelterService
@@ -205,6 +214,109 @@ class ShelterServiceTest {
         val result = service.createShelter(createInput)
 
         assertThat(result.sortOrder).isEqualTo(1)
+    }
+
+    @Test
+    fun `create shelter stores whether it has a kitchen and the food categories it needs`() {
+        val createInput = testShelter3ShelterRequest().copy(
+            hasKitchen = true,
+            foodCategoryIds = listOf(testFoodCategory1.id!!, testFoodCategory2.id!!),
+        )
+
+        every { shelterRepository.findAll() } returns emptyList()
+        every { foodCategoryRepository.findAllById(setOf(testFoodCategory1.id!!, testFoodCategory2.id!!)) } returns
+            listOf(testFoodCategory1, testFoodCategory2)
+        every { shelterRepository.save(any()) } answers {
+            val arg = firstArg() as ShelterEntity
+            arg.id = 42
+            arg
+        }
+
+        val result = service.createShelter(createInput)
+
+        val savedEntitySlot = slot<ShelterEntity>()
+        verify { shelterRepository.save(capture(savedEntitySlot)) }
+        assertThat(savedEntitySlot.captured.hasKitchen).isTrue()
+        assertThat(savedEntitySlot.captured.foodCategories).containsExactlyInAnyOrder(testFoodCategory1, testFoodCategory2)
+        assertThat(result.hasKitchen).isTrue()
+        // in the food categories' own order, not in the order they were sent
+        assertThat(result.foodCategoryIds).containsExactly(testFoodCategory2.id, testFoodCategory1.id)
+    }
+
+    @Test
+    fun `update shelter replaces the food categories it needs`() {
+        val existing = ShelterEntity(
+            name = "Shelter",
+            addressStreet = "Street",
+            addressHouseNumber = "1",
+            addressPostalCode = 1234,
+            addressCity = "City",
+            personsCount = 1,
+            sortOrder = 1,
+        ).apply {
+            id = 7
+            hasKitchen = true
+            foodCategories = mutableSetOf(testFoodCategory1, testFoodCategory2)
+        }
+        val updated = testShelter3ShelterRequest().copy(
+            id = 7,
+            hasKitchen = false,
+            hasFreezer = true,
+            restrictions = "  kein Schweinefleisch ",
+            fixedQuantities = listOf(ShelterFixedQuantityItem(foodCategoryId = testFoodCategory2.id!!, amount = 4, note = " Schnittbrot ")),
+            foodCategoryIds = listOf(testFoodCategory3.id!!),
+            excludedFoodCategoryIds = listOf(testFoodCategory1.id!!),
+        )
+
+        every { shelterRepository.findByIdOrNull(7) } returns existing
+        every { foodCategoryRepository.findAllById(setOf(testFoodCategory3.id!!)) } returns listOf(testFoodCategory3)
+        every { foodCategoryRepository.findAllById(setOf(testFoodCategory1.id!!)) } returns listOf(testFoodCategory1)
+        every { foodCategoryRepository.findAllById(setOf(testFoodCategory2.id!!)) } returns listOf(testFoodCategory2)
+        every { shelterRepository.save(any()) } answers { firstArg() as ShelterEntity }
+
+        val result = service.updateShelter(7, updated)
+
+        assertThat(existing.hasKitchen).isFalse()
+        assertThat(existing.foodCategories).containsExactly(testFoodCategory3)
+        assertThat(existing.excludedFoodCategories).containsExactly(testFoodCategory1)
+        assertThat(existing.hasFreezer).isTrue()
+        assertThat(existing.restrictions).isEqualTo("kein Schweinefleisch")
+        assertThat(existing.fixedQuantities.single().foodCategory).isEqualTo(testFoodCategory2)
+        assertThat(existing.fixedQuantities.single().amount).isEqualTo(4)
+        assertThat(existing.fixedQuantities.single().note).isEqualTo("Schnittbrot")
+        assertThat(result.fixedQuantities).containsExactly(
+            ShelterFixedQuantityItem(foodCategoryId = testFoodCategory2.id!!, amount = 4, note = "Schnittbrot"),
+        )
+        assertThat(result.excludedFoodCategoryIds).containsExactly(testFoodCategory1.id)
+        assertThat(result.hasKitchen).isFalse()
+        assertThat(result.foodCategoryIds).containsExactly(testFoodCategory3.id)
+    }
+
+    @Test
+    fun `create shelter keeps a kitchen nobody knows about as unknown`() {
+        every { shelterRepository.findAll() } returns emptyList()
+        every { shelterRepository.save(any()) } answers {
+            val arg = firstArg() as ShelterEntity
+            arg.id = 42
+            arg
+        }
+
+        val result = service.createShelter(testShelter3ShelterRequest().copy(hasKitchen = null))
+
+        assertThat(result.hasKitchen).isNull()
+    }
+
+    @Test
+    fun `create shelter rejects a food category that does not exist`() {
+        val createInput = testShelter3ShelterRequest().copy(foodCategoryIds = listOf(testFoodCategory1.id!!, 999L))
+
+        every { shelterRepository.findAll() } returns emptyList()
+        every { foodCategoryRepository.findAllById(setOf(testFoodCategory1.id!!, 999L)) } returns listOf(testFoodCategory1)
+
+        val exception = assertThrows<BusinessRuleException> { service.createShelter(createInput) }
+
+        assertThat(exception.body.detail).isEqualTo("Unknown food categories: [999]")
+        verify(exactly = 0) { shelterRepository.save(any()) }
     }
 
     @Test
