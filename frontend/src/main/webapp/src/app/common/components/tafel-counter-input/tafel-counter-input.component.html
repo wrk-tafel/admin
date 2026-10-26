@@ -13,9 +13,9 @@
           (pointercancel)="onHoldPointerLeave()" [attr.testid]="testId() + '-decrement-button'">
     <mat-icon svgIcon="remove"></mat-icon>
   </button>
-  <input [attr.testid]="testId() + '-input'" type="number" name="valueInput" [attr.aria-label]="label()"
+  <input #valueInput [attr.testid]="testId() + '-input'" type="number" name="valueInput" [attr.aria-label]="label()"
          class="w-16 text-center border border-gray-300 rounded-md py-1.5"
-         [ngModel]="currentValue()" (ngModelChange)="onValueChange($event)" />
+         [ngModel]="currentValue()" (ngModelChange)="onValueChange($event)" (blur)="onInputBlur(valueInput)" />
   <button matButton="outlined" [attr.aria-label]="label() + ' erhöhen'" (click)="onIncrementClick()"
           (pointerdown)="startHoldIncrement()" (pointerup)="stopHold()" (pointerleave)="onHoldPointerLeave()"
           (pointercancel)="onHoldPointerLeave()" [attr.testid]="testId() + '-increment-button'">

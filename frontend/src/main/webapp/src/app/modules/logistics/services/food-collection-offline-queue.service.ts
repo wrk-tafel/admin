@@ -11,6 +11,11 @@ interface QueuedItem {
   amount: number;
 }
 
+// Mirrors the backend's `@PositiveOrZero val amount: Int`.
+function isValidAmount(amount: unknown): amount is number {
+  return Number.isInteger(amount) && (amount as number) >= 0;
+}
+
 function keyOf(item: Pick<QueuedItem, 'routeId' | 'shopId' | 'categoryId'>): string {
   return `${item.routeId}:${item.shopId}:${item.categoryId}`;
 }
@@ -52,6 +57,9 @@ export class FoodCollectionOfflineQueueService {
   }
 
   enqueue(routeId: number, shopId: number, categoryId: number, amount: number) {
+    if (!isValidAmount(amount)) {
+      return;
+    }
     const item: QueuedItem = {routeId, shopId, categoryId, amount};
     this.queue.update(current => ({...current, [keyOf(item)]: item}));
     this.persist();
@@ -150,7 +158,11 @@ export class FoodCollectionOfflineQueueService {
   private loadFromStorage(): Record<string, QueuedItem> {
     try {
       const raw = this.window.localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
+      const stored: Record<string, QueuedItem> = raw ? JSON.parse(raw) : {};
+      // Drops entries the backend can only reject (e.g. an `amount: null` queued by an emptied
+      // input) - flush() sends the queue in order and keeps a rejected entry, so one of these would
+      // hold back every entry queued after it.
+      return Object.fromEntries(Object.entries(stored).filter(([, item]) => isValidAmount(item.amount)));
     } catch {
       return {};
     }

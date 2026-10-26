@@ -233,4 +233,32 @@ describe('FoodCollectionOfflineQueueService', () => {
     expect(service.getPendingForShop(1, 2)).toEqual([{categoryId: 3, shopId: 2, amount: 20}]);
   });
 
+  it('does not queue an amount the backend would reject', () => {
+    const {service, patchItems} = setup({online: false});
+
+    service.enqueue(1, 2, 3, null as unknown as number);
+    service.enqueue(1, 2, 4, -1);
+    service.enqueue(1, 2, 5, 1.5);
+
+    expect(service.pendingCount()).toBe(0);
+    expect(patchItems).not.toHaveBeenCalled();
+  });
+
+  it('drops a stored entry the backend would reject, so it cannot hold back the ones after it', () => {
+    const {service, patchItems} = setup({
+      online: true,
+      initialStorage: {
+        'tafel.foodCollectionOfflineQueue': JSON.stringify({
+          '1:2:3': {routeId: 1, shopId: 2, categoryId: 3, amount: null},
+          '1:2:4': {routeId: 1, shopId: 2, categoryId: 4, amount: 7}
+        })
+      }
+    });
+    TestBed.flushEffects();
+
+    expect(patchItems).toHaveBeenCalledTimes(1);
+    expect(patchItems).toHaveBeenCalledWith(1, {categoryId: 4, shopId: 2, amount: 7});
+    expect(service.pendingCount()).toBe(0);
+  });
+
 });

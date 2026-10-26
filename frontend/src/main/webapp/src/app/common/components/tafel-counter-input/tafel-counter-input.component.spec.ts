@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import {TafelCounterInputComponent} from './tafel-counter-input.component';
+import {TafelCounterInputComponent, TafelCounterInputValueChange} from './tafel-counter-input.component';
 
 describe('TafelCounterInputComponent', () => {
   beforeEach(() => {
@@ -123,6 +123,48 @@ describe('TafelCounterInputComponent', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  function createCounter(value: number) {
+    const fixture = TestBed.createComponent(TafelCounterInputComponent);
+    fixture.componentRef.setInput('testId', 'category-1');
+    fixture.componentRef.setInput('label', 'Warenmenge Backwaren');
+    fixture.componentRef.setInput('key', 1);
+    fixture.componentRef.setInput('value', value);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const emitted: TafelCounterInputValueChange[] = [];
+    component.valueChanged.subscribe(change => emitted.push(change));
+    return {fixture, component, emitted};
+  }
+
+  it('an emptied field emits nothing and keeps the last value', () => {
+    const {component, emitted} = createCounter(5);
+
+    component.onValueChange(null);
+    component.onValueChange(NaN);
+
+    expect(emitted).toEqual([]);
+    expect(component.currentValue()).toBe(5);
+  });
+
+  it('a fraction is cut to a whole number', () => {
+    const {component, emitted} = createCounter(0);
+
+    component.onValueChange(2.7);
+
+    expect(emitted).toEqual([{key: 1, value: 2}]);
+  });
+
+  it('leaving an emptied field shows the last value again', () => {
+    const {fixture, component} = createCounter(5);
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
+
+    input.value = '';
+    component.onValueChange(null);
+    input.dispatchEvent(new Event('blur'));
+
+    expect(input.value).toBe('5');
   });
 
   it('releasing before the hold delay never starts repeating', () => {
