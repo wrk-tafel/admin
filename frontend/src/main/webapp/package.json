@@ -42,7 +42,7 @@
     "@tailwindcss/postcss": "4.3.3",
     "@zxing/browser": "0.2.1",
     "@zxing/library": "0.23.0",
-    "chart.js": "4.5.1",
+    "chart.js": "4.6.1",
     "core-js": "3.51.0",
     "dayjs": "1.11.23",
     "html-to-image": "1.11.13",
