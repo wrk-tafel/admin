@@ -2,6 +2,7 @@ import type {MockedObject} from 'vitest';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
+import dayjs from 'dayjs';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 import {PushNotificationSettingsComponent} from './push-notification-settings.component';
@@ -568,7 +569,9 @@ describe('PushNotificationSettingsComponent', () => {
   describe('registeredAgo', () => {
     it('describes how long ago the device was registered', () => {
       const fixture = TestBed.createComponent(PushNotificationSettingsComponent);
-      const createdAt = new Date(Date.now() - 3 * 7 * 24 * 60 * 60 * 1000).toISOString();
+      // Three calendar weeks, not 21 × 24 h: across a DST switch the latter is an hour short of
+      // three weeks on the clock, which relativeTimeLabel rightly reads as "vor 2 Wochen".
+      const createdAt = dayjs().subtract(3, 'week').toISOString();
 
       expect((fixture.componentInstance as any).registeredAgo({...testDevice, createdAt})).toEqual('vor 3 Wochen');
     });
