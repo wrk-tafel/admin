@@ -257,6 +257,35 @@ describe('Food Collection Recording', () => {
     completeRouteViaApi();
   });
 
+  it('mobile: an emptied Warenmenge field sends nothing and later amounts still arrive', () => {
+    // An emptied number field used to go out as `amount: null`, which the backend rejects with a
+    // 400 - and the offline queue then kept retrying it ahead of everything entered after it.
+    cy.viewport(PHONE_VIEWPORT);
+    cy.byTestId('routeInput').should('be.visible');
+
+    const sentAmounts: unknown[] = [];
+    cy.intercept('PATCH', '**/food-collections/routes/*/items', (req) => {
+      sentAmounts.push(req.body.amount);
+    }).as('patchItem');
+
+    cy.byTestId('routeInput').click();
+    cy.get('mat-option').contains('Route 2').click();
+    cy.byTestId('select-items-tab').click();
+    cy.byTestId('shop-title').should('contain.text', 'Lidl');
+
+    cy.byTestId('category-1-input').type('7');
+    waitForFinalPatches([{categoryId: 1, shopId: 20, amount: 7}]);
+
+    cy.byTestId('category-1-input').clear().blur();
+    cy.byTestId('category-1-input').should('have.value', '7');
+
+    cy.byTestId('category-2-increment-button').click();
+    waitForFinalPatches([{categoryId: 2, shopId: 20, amount: 1}]);
+    cy.wrap(sentAmounts).should('not.include', null);
+
+    completeRouteViaApi();
+  });
+
   it('mobile: keeps a shop\'s freshly edited return items marked unsaved when the previous shop\'s save resolves late', () => {
     // Regression test for #3628: a slow response to the outgoing shop's return-items save must not
     // clear dirty state that, by the time it arrives, already belongs to the shop switched to.

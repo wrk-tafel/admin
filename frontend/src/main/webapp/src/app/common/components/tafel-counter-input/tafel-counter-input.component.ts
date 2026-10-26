@@ -47,7 +47,17 @@ export class TafelCounterInputComponent {
     this.destroyRef.onDestroy(() => this.stopHold());
   }
 
-  onValueChange(count: number) {
+  /**
+   * `count` is null while the field is empty (e.g. cleared with backspace before typing the new
+   * amount) or holds something that is not a number yet. That is an edit in progress, not a value:
+   * emitting it sent `amount: null` to the backend, which rejected it with a 400.
+   */
+  onValueChange(count: number | null) {
+    if (count === null || !Number.isFinite(count)) {
+      return;
+    }
+    // A counter counts whole items; the backend takes an integer and rejects a fraction.
+    count = Math.trunc(count);
     if (count < this.minValue()) {
       count = this.minValue();
     } else if (count > this.maxValue()) {
@@ -57,6 +67,16 @@ export class TafelCounterInputComponent {
 
     const valueChange: TafelCounterInputValueChange = {key: this.key(), value: this.currentValue()};
     this.valueChanged.emit(valueChange);
+  }
+
+  /**
+   * Leaving the field empty keeps the last valid value, so it is shown again. Written to the
+   * element directly: `currentValue` did not change, so ngModel has nothing to write back.
+   */
+  onInputBlur(input: HTMLInputElement) {
+    if (input.value === '') {
+      input.value = String(this.currentValue());
+    }
   }
 
   increment() {
