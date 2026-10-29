@@ -12,7 +12,11 @@ import net.javacrumbs.shedlock.core.LockingTaskExecutor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import java.io.UncheckedIOException
+import java.nio.file.FileSystemException
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
@@ -137,5 +141,43 @@ internal class DocumentScannerWatcherServiceTest {
         service.publishIfChanged()
 
         verify(exactly = 0) { sseOutboxService.saveOutboxEntry(any(), any()) }
+    }
+
+    /**
+     * A NAS share that stops answering is not something the application can fix, and the next tick
+     * retries on its own - so the poll must not hand it to the scheduler's error handler, which logs
+     * it as an ERROR with a stack trace.
+     */
+    @Test
+    fun `pollForChanges swallows an unreachable scanner folder`() {
+        every { scannerFileService.isEnabled() } returns true
+        every { scannerFileService.listFiles() } throws UncheckedIOException(FileSystemException("/app/scanner-inbox: Host is down"))
+
+        assertDoesNotThrow { service.pollForChanges() }
+        assertDoesNotThrow { service.pollForChanges() }
+    }
+
+    @Test
+    fun `pollForChanges keeps the last listing while the scanner folder is unreachable`() {
+        val files = listOf(ScannerFileItem(fileName = "scan1.pdf", displayName = "Scan 1", sizeBytes = 100, modifiedAt = LocalDateTime.now()))
+        every { scannerFileService.isEnabled() } returns true
+        every { scannerFileService.listFiles() } returns files andThenThrows
+            UncheckedIOException(FileSystemException("/app/scanner-inbox: Host is down")) andThen files
+
+        service.pollForChanges()
+        service.pollForChanges()
+        service.pollForChanges()
+
+        // Published once for the first listing; neither the outage nor the identical listing after it
+        // reaches the frontend.
+        verify(exactly = 1) { sseOutboxService.saveOutboxEntry(DocumentScannerWatcherService.NOTIFICATION_NAME, any()) }
+    }
+
+    /** The import's own caller is not the poll: a failure there still belongs to the request. */
+    @Test
+    fun `publishIfChanged still throws when the scanner folder is unreachable`() {
+        every { scannerFileService.listFiles() } throws UncheckedIOException(FileSystemException("/app/scanner-inbox: Host is down"))
+
+        assertThrows<UncheckedIOException> { service.publishIfChanged() }
     }
 }
