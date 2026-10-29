@@ -3,8 +3,12 @@ package at.wrk.tafel.admin.backend.modules.household.internal.document
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import net.javacrumbs.shedlock.core.LockConfiguration
 import net.javacrumbs.shedlock.core.LockingTaskExecutor
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import java.io.IOException
+import java.io.UncheckedIOException
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
@@ -28,6 +32,9 @@ class DocumentScannerWatcherService(
     @Volatile
     private var lastKnownListing: List<ScannerFileItem> = emptyList()
 
+    @Volatile
+    private var folderUnreachable = false
+
     /**
      * Skipped entirely while the feature is switched off (see `ScannerFileService.isEnabled`), so a
      * deployment without a scanner folder doesn't run a once-per-second no-op forever.
@@ -45,13 +52,43 @@ class DocumentScannerWatcherService(
      * The lock only ever covers this poll, never [publishIfChanged]'s other caller: an import has
      * just changed the folder and its own UI is waiting to see it, so it publishes whether or not
      * another instance happens to hold the poll.
+     *
+     * The share is a network mount the application cannot repair, and the next tick tries again on
+     * its own, so a listing that fails is logged once as a WARN when the folder becomes unreachable
+     * and once at INFO when it is back - not as an ERROR with a stack trace per tick, which is what
+     * the scheduler's own error handler would make of it. Nothing is published meanwhile: the
+     * frontend keeps showing the last listing rather than an empty folder that makes the scans look
+     * gone.
      */
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.SECONDS)
     fun pollForChanges() {
         if (!scannerFileService.isEnabled()) {
             return
         }
-        lockingTaskExecutor.executeWithLock(Runnable { publishIfChanged() }, pollLockConfiguration())
+        lockingTaskExecutor.executeWithLock(Runnable { pollOnce() }, pollLockConfiguration())
+    }
+
+    private fun pollOnce() {
+        try {
+            publishIfChanged()
+        } catch (e: IOException) {
+            reportUnreachable(e)
+            return
+        } catch (e: UncheckedIOException) {
+            reportUnreachable(e.cause ?: e)
+            return
+        }
+        if (folderUnreachable) {
+            folderUnreachable = false
+            logger.info("Scanner folder is reachable again")
+        }
+    }
+
+    private fun reportUnreachable(e: Exception) {
+        if (!folderUnreachable) {
+            folderUnreachable = true
+            logger.warn("Scanner folder is unreachable, retrying every second: {}", e.toString())
+        }
     }
 
     /**
@@ -91,6 +128,8 @@ class DocumentScannerWatcherService(
     }
 
     companion object {
+        private val logger: Logger = LoggerFactory.getLogger(DocumentScannerWatcherService::class.java)
+
         const val NOTIFICATION_NAME = "document_scanner_files"
         private const val POLL_LOCK_NAME = "documentScannerWatcherPoll"
     }
