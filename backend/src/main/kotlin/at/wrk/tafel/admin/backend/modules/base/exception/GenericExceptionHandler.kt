@@ -89,7 +89,7 @@ class GenericExceptionHandler(
         }
         problemDetail.title = localizedTitle(status, request)
 
-        return renderResponse(problemDetail, status, request)
+        return renderResponse(problemDetail, status, request, headers)
     }
 
     /**
@@ -327,7 +327,12 @@ class GenericExceptionHandler(
      * `event: error` SSE frame so an in-flight SSE connection doesn't just look like it silently
      * broke.
      */
-    private fun renderResponse(problemDetail: ProblemDetail, status: HttpStatus, request: WebRequest): ResponseEntity<Any> {
+    private fun renderResponse(
+        problemDetail: ProblemDetail,
+        status: HttpStatus,
+        request: WebRequest,
+        headers: HttpHeaders = HttpHeaders.EMPTY,
+    ): ResponseEntity<Any> {
         val isSseRequest = request.getHeader("Accept")?.contains("text/event-stream") == true
         return if (isSseRequest) {
             val errorMessage = jsonMapper.writeValueAsString(problemDetail)
@@ -336,7 +341,7 @@ class GenericExceptionHandler(
                 .contentType(MediaType.TEXT_EVENT_STREAM)
                 .body<Any>("event: error\ndata: $errorMessage\n\n")
         } else {
-            ResponseEntity.status(status).body<Any>(problemDetail)
+            ResponseEntity.status(status).headers(headers).body<Any>(problemDetail)
         }
     }
 }

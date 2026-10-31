@@ -86,8 +86,8 @@ class TafelLoginProvider(
             throw BadCredentialsException("Password wrong for user '${authentication.name}'")
         }
 
-        // The stored hash was produced with Argon2 parameters older than the currently configured
-        // ones (see SecurityArgon2Properties) - re-encode it with the raw password we just verified
+        // The stored hash was produced with Argon2 parameters other than the currently configured
+        // ones (see SecurityArgon2Properties, TafelArgon2PasswordEncoder) - re-encode it with the raw password we just verified
         // so this user is migrated onto the current parameters without a forced password reset.
         if (passwordEncoder.upgradeEncoding(userDetails.password)) {
             upgradePasswordHash(userDetails.username, passwordEncoder.encode(rawPassword)!!)

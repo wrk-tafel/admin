@@ -30,7 +30,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
@@ -307,14 +306,18 @@ class WebSecurityConfig(
     @Bean
     fun passwordEncoder(): PasswordEncoder {
         val argon2Properties = applicationProperties.security.argon2
-        val argon2PasswordEncoder = Argon2PasswordEncoder(
+        val argon2PasswordEncoder = TafelArgon2PasswordEncoder(
             argon2Properties.saltLength,
             argon2Properties.hashLength,
             argon2Properties.parallelism,
             argon2Properties.memory,
             argon2Properties.iterations,
         )
-        return DelegatingPasswordEncoder("argon2", mapOf("argon2" to argon2PasswordEncoder))
+        return BoundedPasswordEncoder(
+            DelegatingPasswordEncoder("argon2", mapOf("argon2" to argon2PasswordEncoder)),
+            argon2Properties.maxConcurrentHashes,
+            argon2Properties.maxWaitInSeconds,
+        )
     }
 
     @Bean

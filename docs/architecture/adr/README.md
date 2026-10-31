@@ -61,6 +61,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0062](0062-mandatory-mfa-also-requires-an-email-address.md) | A mandatory second factor also requires an e-mail address on file | accepted |
 | [0072](0072-mailed-links-carry-a-hashed-single-use-token-in-the-fragment.md) | Mailed links carry a hashed, single-use token in the URL fragment | accepted |
 | [0074](0074-passkeys-are-a-second-factor-of-their-own.md) | Passkeys are a second factor of their own | accepted |
+| [0075](0075-password-hashes-use-owasps-minimum-argon2id-cost-and-a-bounded-number-of-slots.md) | Password hashes use OWASP's minimum Argon2id cost and a bounded number of slots | accepted |
 | [0063](0063-one-event-stream-per-tab-with-topics.md) | One event stream per browser tab, made of topics | accepted |
 | [0064](0064-client-error-reports-and-the-event-stream-need-a-completed-login.md) | Client-error reports and the event stream need a completed login | accepted |
 | [0066](0066-the-digital-id-card-is-a-pdf-and-an-image-not-a-wallet-pass.md) | The digital ID card is a PDF and an image, not a wallet pass | superseded by [0067](0067-the-id-card-is-handed-out-on-paper-only.md) |
