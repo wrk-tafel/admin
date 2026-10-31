@@ -7,8 +7,10 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.apache.commons.io.IOUtils
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
@@ -38,6 +40,18 @@ class TafelLoginFilter(
 
     public override fun obtainPassword(request: HttpServletRequest): String = basicAuthConverter.convert(request)?.credentials as? String
         ?: throw BadCredentialsException("Missing or invalid 'Authorization: Basic' header")
+
+    /**
+     * A [PasswordHashingBusyException] is no [AuthenticationException], so it would pass the filter's
+     * own failure handling and end as a `500` from the servlet container. Wrapped, it reaches
+     * [unsuccessfulAuthentication], which answers it with `503` and `Retry-After` - and, since it is
+     * no [BadCredentialsException], it does not count as a failed attempt (`TafelLoginProvider`).
+     */
+    public override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication = try {
+        super.attemptAuthentication(request, response)
+    } catch (e: PasswordHashingBusyException) {
+        throw LoginBusyException(e)
+    }
 
     /**
      * Opens the login session (see [UserSessionService.startSession]). When [TafelUser.passwordChangeRequired]
@@ -82,6 +96,13 @@ class TafelLoginFilter(
         response: HttpServletResponse,
         failed: AuthenticationException,
     ) {
+        if (failed is LoginBusyException) {
+            response.status = HttpStatus.SERVICE_UNAVAILABLE.value()
+            response.setHeader(HttpHeaders.RETRY_AFTER, failed.cause.retryAfterInSeconds.toString())
+            logger.warn("Login not attempted - ${failed.message}")
+            return
+        }
+
         // Deliberately the same status for a locked-out account/IP (LockedException) as for wrong
         // credentials: distinguishing them here would tell a caller which usernames/IPs are already
         // locked out, before they've even proven who they are.
@@ -89,3 +110,11 @@ class TafelLoginFilter(
         logger.info("Login failed - ${failed.message}")
     }
 }
+
+/**
+ * A login that got no password hashing slot in time ([PasswordHashingBusyException]), as the
+ * [AuthenticationException] [TafelLoginFilter.unsuccessfulAuthentication] needs to see it.
+ */
+class LoginBusyException(
+    override val cause: PasswordHashingBusyException,
+) : AuthenticationServiceException(cause.message, cause)

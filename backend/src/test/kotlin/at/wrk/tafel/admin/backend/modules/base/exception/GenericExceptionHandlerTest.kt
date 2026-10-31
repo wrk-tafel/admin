@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.base.exception
 
+import at.wrk.tafel.admin.backend.common.auth.components.PasswordHashingBusyException
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -125,6 +126,17 @@ internal class GenericExceptionHandlerTest {
             .contains("404")
             .contains("NotFoundException")
             .contains("notfound-msg")
+    }
+
+    @Test
+    fun `keeps the headers an exception carries, such as Retry-After`() {
+        val exception = PasswordHashingBusyException(5)
+
+        val response = exceptionHandler.handleExceptionInternal(exception, null, exception.headers, exception.statusCode, request)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+        assertThat(response.headers.getFirst(HttpHeaders.RETRY_AFTER)).isEqualTo("5")
+        assertThat((response.body as ProblemDetail).detail).contains("gleichzeitig")
     }
 
     @Test

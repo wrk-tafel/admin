@@ -235,15 +235,19 @@ security:
     capacity: 30
     refillTokens: 30
     refillPeriodInSeconds: 60
-  # Argon2id tuning for password hashes (WebSecurityConfig.passwordEncoder). A change here only
-  # affects newly-created hashes; an existing user's hash is migrated onto it lazily, on their next
-  # successful login, rather than needing a bulk rehash (see
-  # TafelLoginProvider.additionalAuthenticationChecks). saltLength/hashLength are left at their
-  # defaults (16/32 bytes) below since raising them invalidates nothing but also buys nothing here.
+  # Argon2id tuning for password hashes (WebSecurityConfig.passwordEncoder) - OWASP's minimum, see
+  # ADR-0075. A change here only affects newly-created hashes; an existing user's hash is migrated
+  # onto it lazily, on their next successful login, whether the change made it stronger or weaker
+  # (see TafelLoginProvider.additionalAuthenticationChecks). saltLength/hashLength are left at their
+  # defaults (16/32 bytes) since raising them invalidates nothing but also buys nothing here.
+  # maxConcurrentHashes/maxWaitInSeconds bound how many hashes run at once and how long a login waits
+  # for a slot before it is answered with 503 and Retry-After (BoundedPasswordEncoder).
   argon2:
-    memory: 131072 # KiB
-    iterations: 3
+    memory: 19456 # KiB
+    iterations: 2
     parallelism: 1
+    maxConcurrentHashes: 4
+    maxWaitInSeconds: 5
 
 # Swagger UI/OpenAPI docs are only browsable on developer machines (see application-local.yml) -
 # never exposed in production or e2e/testdata environments

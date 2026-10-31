@@ -92,12 +92,20 @@ data class SecuritySessionProperties(
  * `encode` (a login with a new/changed password) picks up new values immediately. An existing
  * user's hash is migrated onto the current parameters lazily, the next time they log in
  * successfully, rather than needing a bulk rehash or a forced reset - see
- * `TafelLoginProvider.additionalAuthenticationChecks`.
+ * `TafelLoginProvider.additionalAuthenticationChecks`. That includes a hash created with *stronger*
+ * parameters than the current ones (`TafelArgon2PasswordEncoder`).
+ *
+ * The defaults are OWASP's minimum for Argon2id (19 MiB, 2 passes, 1 lane) - see ADR-0075 for why
+ * not more. [maxConcurrentHashes] and [maxWaitInSeconds] bound how many hashes run at once and how
+ * long a caller waits for a slot before it is answered with `503` (`BoundedPasswordEncoder`), so
+ * the heap a burst of logins takes is at most `maxConcurrentHashes * memory`.
  */
 data class SecurityArgon2Properties(
     val saltLength: Int = 16,
     val hashLength: Int = 32,
     val parallelism: Int = 1,
-    val memory: Int = 131072,
-    val iterations: Int = 3,
+    val memory: Int = 19456,
+    val iterations: Int = 2,
+    val maxConcurrentHashes: Int = 4,
+    val maxWaitInSeconds: Long = 5,
 )

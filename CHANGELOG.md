@@ -3,6 +3,9 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Anmeldung: Das Prüfen des Passworts braucht deutlich weniger Rechenzeit und Arbeitsspeicher, die Anmeldung geht dadurch schneller, und viele gleichzeitige Anmeldungen bringen den Server nicht mehr ins Stocken; ist er trotzdem kurz ausgelastet, erscheint die Bitte, es gleich noch einmal zu versuchen, statt dass die Anmeldung hängen bleibt.
+
+## [1.35.3] - 2026-10-27
 - Logistik → Warenerfassung: Ein geleertes Mengenfeld (z. B. beim Löschen der Zahl, bevor die neue eingetippt wird) führt nicht mehr zu "Die Anfrage war ungültig oder unvollständig." und hält danach erfasste Mengen nicht mehr in der Warteschlange zurück; verlässt man das leere Feld, erscheint wieder die zuletzt gespeicherte Menge.
 
 ## [1.35.0] - 2026-10-18

@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.security.components
 
+import at.wrk.tafel.admin.backend.common.auth.components.LoginBusyException
 import at.wrk.tafel.admin.backend.common.auth.components.MfaEmailCodeService
+import at.wrk.tafel.admin.backend.common.auth.components.PasswordHashingBusyException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.UserSessionService
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
@@ -180,5 +182,27 @@ class TafelLoginFilterTest {
         tafelLoginFilter.unsuccessfulAuthentication(request, response, LockedException("account locked"))
 
         verify { response.status = HttpStatus.FORBIDDEN.value() }
+    }
+
+    @Test
+    fun `attemptAuthentication turns a busy password hasher into an authentication failure`() {
+        // user:pwd
+        every { request.method } returns "POST"
+        every { request.getHeader(HttpHeaders.AUTHORIZATION) } returns "Basic dXNlcjpwd2Q="
+        val busy = PasswordHashingBusyException(5)
+        every { authenticationManager.authenticate(any()) } throws busy
+
+        assertThatThrownBy { tafelLoginFilter.attemptAuthentication(request, response) }
+            .isInstanceOf(LoginBusyException::class.java)
+            .hasCause(busy)
+    }
+
+    @Test
+    fun `unsuccessfulAuthentication with a busy password hasher responds with 503 and Retry-After`() {
+        tafelLoginFilter.unsuccessfulAuthentication(request, response, LoginBusyException(PasswordHashingBusyException(5)))
+
+        verify { response.status = HttpStatus.SERVICE_UNAVAILABLE.value() }
+        verify { response.setHeader(HttpHeaders.RETRY_AFTER, "5") }
+        verify(exactly = 0) { response.status = HttpStatus.FORBIDDEN.value() }
     }
 }
