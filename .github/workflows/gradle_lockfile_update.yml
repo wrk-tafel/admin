@@ -12,11 +12,12 @@ on:
     paths:
       # A Renovate gradle PR touches the version catalog - every dependency
       # coordinate lives there, none are declared inline in the build scripts -
-      # or the wrapper version. Listing the build scripts and the
+      # the wrapper version, or the jacoco tool version in the build script. Listing the build scripts and the
       # lock/checksum files as well only queues the workflow on ordinary PRs,
       # where the actor guard below reports it as a skipped run.
       - 'gradle/libs.versions.toml'
       - 'gradle/wrapper/gradle-wrapper.properties'
+      - 'backend/build.gradle.kts'
 
 env:
   JAVA_VERSION: '26'
