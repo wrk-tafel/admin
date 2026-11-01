@@ -21,7 +21,7 @@ on:
 
 jobs:
   run:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Every deploy is recorded against a GitHub environment named after the server folder it writes
     # to: that is what lists it under the repository's Deployments, and what per-environment secrets
     # and protection rules would attach to. None of the three carries a protection rule - every

@@ -157,7 +157,7 @@ tafeladmin:
 ```yaml
 services:
   database:
-    image: "postgres:18-bookworm"
+    image: "postgres:18.6-bookworm"
     environment:
       POSTGRES_USER: tafeladmin
       POSTGRES_PASSWORD: <database-password>

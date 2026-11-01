@@ -2,7 +2,7 @@
 // as the GitHub App wrk-tafel-renovate. See ADR-0076.
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
-  extends: ['config:recommended'],
+  extends: ['config:recommended', ':pinAllExceptPeerDependencies', 'helpers:pinGitHubActionDigests'],
 
   timezone: 'Europe/Vienna',
   // The instance only runs on Sundays, see .github/workflows/renovate.yml in wrk-infrastructure.
@@ -19,10 +19,11 @@
   // image file below from the custom manager.
   ignorePaths: ['**/node_modules/**'],
 
-  // The workflow gradle_lockfile_update.yml commits lockfile and checksum changes onto Renovate's
-  // branches. Without this, such a commit counts as somebody's edit and Renovate stops updating the
-  // branch.
-  gitIgnoredAuthors: ['41898282+github-actions[bot]@users.noreply.github.com'],
+  // The JDK Renovate installs to run the Gradle wrapper, which updates the lockfiles and checksums. It
+  // has to follow the toolchain version in backend/build.gradle.kts, see ADR-0077.
+  constraints: {
+    java: '^26.0.0',
+  },
 
   customManagers: [
     {

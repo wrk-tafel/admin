@@ -1,6 +1,6 @@
 # ADR-0076: Dependency updates come from a self-hosted Renovate
 
-**Status:** accepted · **Recorded:** 2026-11-01
+**Status:** accepted; lockfile part superseded by [ADR-0077](0077-renovate-updates-gradle-lockfiles-itself.md) · **Recorded:** 2026-11-01
 
 ## Context
 
