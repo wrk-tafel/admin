@@ -189,7 +189,7 @@ tasks.withType<Test> {
 }
 
 jacoco {
-    toolVersion = "0.8.14"
+    toolVersion = "0.8.16"
 }
 
 tasks.jacocoTestReport {
