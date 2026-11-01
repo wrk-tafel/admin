@@ -1,0 +1,103 @@
+// Runs as the hosted Renovate GitHub App, see ADR-0076.
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: ['config:recommended'],
+
+  timezone: 'Europe/Vienna',
+  schedule: ['before 6am'],
+  prConcurrentLimit: 50,
+  prHourlyLimit: 0,
+  labels: ['dependencies'],
+
+  // One pull request per dependency (or group) up to its newest version. Whoever reviews it decides
+  // whether a major is taken now; a separate major branch next to it would only be a second PR.
+  separateMajorMinor: false,
+
+  // config:recommended ignores every path containing /test/, which would hide the Testcontainers
+  // image file below from the custom manager.
+  ignorePaths: ['**/node_modules/**'],
+
+  // The workflow gradle_lockfile_update.yml commits lockfile and checksum changes onto Renovate's
+  // branches. Without this, such a commit counts as somebody's edit and Renovate stops updating the
+  // branch.
+  gitIgnoredAuthors: ['41898282+github-actions[bot]@users.noreply.github.com'],
+
+  customManagers: [
+    {
+      // Plain string constants, which no built-in manager reads. Every image a Testcontainers test
+      // starts is named in this one file.
+      customType: 'regex',
+      managerFilePatterns: ['/^backend/src/test/kotlin/at/wrk/tafel/admin/backend/TestContainerImages\\.kt$/'],
+      matchStrings: ['const val TEST_\\w+_IMAGE = "(?<depName>[^":]+):(?<currentValue>[^"]+)"'],
+      datasourceTemplate: 'docker',
+    },
+  ],
+
+  // Later rules win over earlier ones, and over the presets.
+  packageRules: [
+    {
+      // release.yml derives the version bump from the Conventional Commits type of the PR title, and
+      // the preset would make it `fix` for runtime dependencies.
+      matchPackageNames: ['*'],
+      semanticCommitType: 'chore',
+      semanticCommitScope: 'deps',
+    },
+    {
+      matchManagers: ['npm'],
+      matchDepTypes: ['devDependencies'],
+      semanticCommitScope: 'deps-dev',
+    },
+
+    {
+      matchManagers: ['npm'],
+      matchPackageNames: ['eslint'],
+      allowedVersions: '!/^10\\./',
+    },
+    {
+      matchManagers: ['npm'],
+      matchPackageNames: ['typescript'],
+      allowedVersions: '<6.0.0',
+    },
+
+    {
+      matchManagers: ['gradle'],
+      matchPackageNames: ['io.mockk:mockk-jvm', 'com.tngtech.archunit:archunit-junit5', 'org.testcontainers:*'],
+      groupName: 'gradle testing tools',
+    },
+    {
+      matchManagers: ['npm'],
+      matchPackageNames: ['chart.js', 'ng2-charts'],
+      groupName: 'charts',
+    },
+    {
+      matchManagers: ['npm'],
+      matchPackageNames: ['cypress', '@cypress/**', 'cypress-*', 'vitest', '@vitest/**', 'jsdom', 'wait-on'],
+      groupName: 'npm testing tools',
+    },
+    {
+      matchManagers: ['npm'],
+      matchPackageNames: ['eslint', 'eslint-*', '@typescript-eslint/**', 'prettier'],
+      groupName: 'eslint',
+    },
+    {
+      // After the eslint group, so that @angular-eslint moves together with Angular.
+      matchManagers: ['npm'],
+      matchPackageNames: ['@angular/**', '@angular-devkit/**', '@angular-eslint/**', 'rxjs*', 'typescript', 'tslib'],
+      groupName: 'angular',
+    },
+    {
+      // Actions only: the same manager also reports the workflows' service container images.
+      matchManagers: ['github-actions'],
+      matchDepTypes: ['action'],
+      groupName: 'github actions',
+    },
+    {
+      // Named in the Testcontainers file, docker-compose.yml and the workflows' service containers,
+      // which have to stay on one version. It should also match what production runs, which the
+      // infrastructure repository decides.
+      matchDatasources: ['docker'],
+      matchPackageNames: ['postgres'],
+      groupName: 'postgres',
+    },
+  ],
+}

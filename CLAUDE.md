@@ -741,7 +741,7 @@ Authentication: Basic HTTP auth at `POST /api/login` opens a login session - a r
   `release.yml` is deliberately ungated —
   every release produces a new version tag, image and userguide PDF regardless of what changed.
   Two jobs are gated on *who* opened the pull request rather than on what it touched: `deploy-dev`
-  and, with it, `build-push-image` are skipped for Dependabot, since a pull-request image exists
+  and, with it, `build-push-image` are skipped for Renovate, since a pull-request image exists
   only to be deployed to dev. And `lighthouse` doesn't run on a pull request at all (ADR-0055).
 - **Light and dark theme**: `ThemeService` puts `dark-theme` on `<html>`; `assets/theme-init.js` does the
   same before first paint (a separate file, since the CSP allows no inline script). `scss/_dark-theme.scss`
@@ -981,10 +981,10 @@ This repository includes custom skills for Claude Code in the `.claude/skills/` 
 - **process-issue**: Implements a GitHub issue end-to-end (branch, implementation, tests, PR),
   then hands off to process-pr
 - **process-pr**: Reviews and fixes an already-open PR, then babysits CI/SonarCloud until green
-- **process-dependabot**: Handles Dependabot PRs
+- **process-renovate**: Handles Renovate PRs
 - **release**: Release workflow
 
-You can invoke these using `/fix-e2e`, `/process-issue`, `/process-pr`, `/process-dependabot`,
+You can invoke these using `/fix-e2e`, `/process-issue`, `/process-pr`, `/process-renovate`,
 `/release` in conversations.
 
 ## Common Tasks

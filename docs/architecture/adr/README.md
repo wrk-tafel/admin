@@ -104,6 +104,7 @@ instead, so a number's position in a group says nothing about its age.
 | [0056](0056-backend-coverage-skipped-on-a-frontend-only-pull-request.md) | Backend suite and its coverage skipped on a pull request that cannot touch the backend | accepted |
 | [0036](0036-page-performance-index-in-the-pipeline.md) | Page performance rated by Lighthouse, with thresholds that fail the build | accepted (pull-request gating superseded by [0055](0055-lighthouse-runs-after-the-merge-not-on-every-pull-request.md)) |
 | [0055](0055-lighthouse-runs-after-the-merge-not-on-every-pull-request.md) | Lighthouse rates the frontend after the merge, not on every pull request | accepted |
+| [0076](0076-dependency-updates-come-from-the-hosted-renovate-app.md) | Dependency updates come from the hosted Renovate app | accepted |
 | [0037](0037-eager-bundle-bounded-by-its-own-build-check.md) | The eager bundle bounded by a build check of its own | accepted (file-count ceiling superseded by [0073](0073-the-eager-bundle-is-bounded-by-bytes-only.md)) |
 | [0073](0073-the-eager-bundle-is-bounded-by-bytes-only.md) | The eager bundle is bounded by its bytes only | accepted |
 | [0038](0038-axe-assertions-in-the-e2e-suite.md) | Post-interaction accessibility asserted by axe inside the e2e suite | accepted |

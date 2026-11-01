@@ -42,7 +42,7 @@ sharing one spec source across multiple repositories/teams.
 | `openspec/changes/<name>/tasks.md` | Implementation checklist | The PR description's "Test plan" checklist, and the issue itself when it already lists steps |
 | `openspec/changes/<name>/specs/*.md` (WHEN/THEN scenarios) | Concrete, reviewable behavior before coding | Cypress e2e specs *are* exactly this in executable form (`cypress/e2e/*.cy.ts`) — required for any new/changed user-facing behavior per [CLAUDE.md](../../CLAUDE.md#frontend-tests); the German user guide is the human-readable behavior description |
 | `openspec/specs/` (merged, current truth) | Living requirements doc | `docs/architecture/adr/`, module `README.md` files, and `docs/userguide/` together, plus the code itself |
-| `/opsx:explore`, `/opsx:propose`, `/opsx:apply`, `/opsx:archive` | The propose→implement→review loop, generic across tools | `.claude/skills/process-issue`, `process-pr`, `process-dependabot` — the same loop, but already encoding *this* project's rules (module boundaries, `Request`/`Response`/`Item` DTO suffixes, changelog bullet requirement, user-guide update requirement, Conventional-Commits branch/PR naming) that a generic OpenSpec template has no way to know about |
+| `/opsx:explore`, `/opsx:propose`, `/opsx:apply`, `/opsx:archive` | The propose→implement→review loop, generic across tools | `.claude/skills/process-issue`, `process-pr`, `process-renovate` — the same loop, but already encoding *this* project's rules (module boundaries, `Request`/`Response`/`Item` DTO suffixes, changelog bullet requirement, user-guide update requirement, Conventional-Commits branch/PR naming) that a generic OpenSpec template has no way to know about |
 | Claude Code's own plan mode (`EnterPlanMode`) | Aligning on an approach before code, within one session | Already built into the tool this project standardizes on, no extra install |
 
 The overlap isn't incidental — `docs/architecture/adr/README.md` already draws the same distinction
@@ -132,7 +132,7 @@ Nothing here needs a new tool:
 - [`adr/README.md`](adr/README.md) — this repo's existing decided/proposed split and ADR index
 - [`rls-postgres-evaluation.md`](rls-postgres-evaluation.md), [`gdpr-compliance.md`](gdpr-compliance.md)
   — the two existing analyses this document follows the format of
-- `.claude/skills/process-issue/SKILL.md`, `process-pr/SKILL.md`, `process-dependabot/SKILL.md` —
+- `.claude/skills/process-issue/SKILL.md`, `process-pr/SKILL.md`, `process-renovate/SKILL.md` —
   this repo's existing propose→implement→review workflows
 - [ADR-0001](adr/0001-modular-monolith-with-spring-modulith.md),
   [ADR-0002](adr/0002-single-deployable-image-with-independent-builds.md) — single-repository

@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth
 
+import at.wrk.tafel.admin.backend.TEST_MAILPIT_IMAGE
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import at.wrk.tafel.admin.backend.common.auth.components.TafelSessionAttributes
 import at.wrk.tafel.admin.backend.common.auth.model.EmailChangeConfirmRequest
@@ -49,7 +50,7 @@ private class MailedLinksMailpitContainer(image: DockerImageName) : GenericConta
 class MailedLinksIT : TafelBaseIntegrationTest() {
 
     companion object {
-        private val mailpitContainer = MailedLinksMailpitContainer(DockerImageName.parse("axllent/mailpit:latest"))
+        private val mailpitContainer = MailedLinksMailpitContainer(DockerImageName.parse(TEST_MAILPIT_IMAGE))
             .withExposedPorts(MAILPIT_SMTP_PORT, MAILPIT_HTTP_PORT)
             .apply { start() }
 

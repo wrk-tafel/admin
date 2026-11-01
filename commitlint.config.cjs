@@ -1,7 +1,6 @@
-// Dependabot's auto-generated commit messages routinely trip config-conventional's
-// defaults: headers grow past 100 chars once a directory path or dependency-group
-// name is included, and bodies quote third-party changelog text we don't control.
-// Relax both instead of fighting an ever-recurring CI failure on every bump PR.
+// Relaxes config-conventional's defaults for long headers and for bodies quoting third-party
+// text such as a changelog. .githooks/commit-msg and pull_request.yml's pr-title-lint apply the
+// same header limit.
 module.exports = {
   extends: ['@commitlint/config-conventional'],
   rules: {

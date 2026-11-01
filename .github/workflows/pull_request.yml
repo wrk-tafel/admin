@@ -16,13 +16,6 @@ concurrency:
 jobs:
   commitlint:
     runs-on: ubuntu-latest
-    # Keyed off who *authored* the pull request, not github.actor: the actor is whoever triggered
-    # this particular run, so any human touch on a Dependabot PR - merging main into it, editing
-    # the title, re-running a job - silently drops the exemption and lints a message nobody on the
-    # team wrote. Dependabot's auto-generated wording is deliberately exempt here (see
-    # commitlint.config.cjs), and that has to hold for every run on such a PR, not just the ones
-    # Dependabot itself kicked off.
-    if: github.event.pull_request.user.login != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -35,8 +28,6 @@ jobs:
     # the final commit on the target branch, so the title needs the same Conventional Commits check
     # as individual commits above — otherwise release.yml's version bump can't see the intent.
     runs-on: ubuntu-latest
-    # Author-based for the same reason as the commitlint job above.
-    if: github.event.pull_request.user.login != 'dependabot[bot]'
     permissions:
       pull-requests: read
     steps:
@@ -101,9 +92,9 @@ jobs:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: build
     # On a pull request the image exists only to be deployed to dev, and deploy-dev below never runs
-    # for Dependabot. Building and pushing one anyway costs a runner and leaves a tag in the registry
+    # for Renovate. Building and pushing one anyway costs a runner and leaves a tag in the registry
     # for cleanup.yml to reap, so the two carry the same condition.
-    if: github.actor != 'dependabot[bot]'
+    if: github.actor != 'renovate[bot]'
     with:
       # the mutable "dev" tag always points at the most recently built candidate for that
       # environment, which is what cleanup.yml keys off to protect it regardless of how many
@@ -130,4 +121,4 @@ jobs:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
-    if: github.actor != 'dependabot[bot]'
+    if: github.actor != 'renovate[bot]'

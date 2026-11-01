@@ -15,7 +15,7 @@ services:
       - tafeladmin_net
 
   pgadmin:
-    image: "dpage/pgadmin4:latest"
+    image: "dpage/pgadmin4:9.19.0"
     container_name: tafeladmin-pgadmin
     hostname: tafeladmin-pgadmin
     ports:
@@ -30,7 +30,7 @@ services:
       - tafeladmin_net
 
   mailpit:
-    image: axllent/mailpit:latest
+    image: axllent/mailpit:v1.33.0
     container_name: tafeladmin-mailpit
     hostname: tafeladmin-mailpit
     ports:

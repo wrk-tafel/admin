@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal
 
+import at.wrk.tafel.admin.backend.TEST_MAILPIT_IMAGE
 import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createDistribution
@@ -65,7 +66,7 @@ class DistributionSendMailsIT : TafelBaseIntegrationTest() {
     companion object {
         // Self-provisioned like postgreSQLContainer in TafelBaseIntegrationTest - neither CI nor
         // `gradlew :backend:test` run docker-compose, so Mailpit is not available otherwise.
-        private val mailpitContainer = MailpitContainer(DockerImageName.parse("axllent/mailpit:latest"))
+        private val mailpitContainer = MailpitContainer(DockerImageName.parse(TEST_MAILPIT_IMAGE))
             .withExposedPorts(MAILPIT_SMTP_PORT, MAILPIT_HTTP_PORT)
             .apply { start() }
 

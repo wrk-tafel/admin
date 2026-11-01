@@ -21,7 +21,7 @@ env:
   # Pinned deliberately, and this pin is what fixes the Lighthouse version too (@lhci/cli 0.15.1
   # depends on exactly lighthouse 12.6.1): a Lighthouse upgrade moves scores on unchanged code, which
   # would show up as a regression nobody caused. Bumping this is a conscious step that comes with
-  # re-reading the baselines in lighthouserc.cjs. Dependabot does not see this pin - the tool is
+  # re-reading the baselines in lighthouserc.cjs. Renovate does not see this pin - the tool is
   # intentionally not a dependency of the frontend package, where it would pull its own transitive
   # tree into the application's lockfile and into every other job's `npm ci` for a tool only this job
   # runs.

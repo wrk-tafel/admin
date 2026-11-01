@@ -1,22 +1,22 @@
 name: Update Gradle Lock File
 
-# Dependabot's native Gradle lockfile update support is unreliable for this
-# repo's setup (version catalog + multi-module project), see:
-# https://github.com/dependabot/dependabot-core/issues/12557
-# https://github.com/dependabot/dependabot-core/issues/14633
+# Renovate only updates Gradle lockfiles and verification metadata by running
+# the Gradle wrapper, which needs allowedUnsafeExecutions, a setting of the
+# Renovate instance rather than of this repository (see ADR-0076).
 # This workflow regenerates backend/gradle.lockfile and
-# gradle/verification-metadata.xml on Dependabot gradle PRs so the build
+# gradle/verification-metadata.xml on Renovate's gradle PRs so the build
 # can't land broken because of a stale lock/checksum.
 
 on:
   pull_request:
     paths:
-      # The version catalog is the only path a Dependabot gradle PR is
-      # guaranteed to touch — every dependency coordinate lives there, none are
-      # declared inline in the build scripts. Listing the build scripts and the
+      # A Renovate gradle PR touches the version catalog - every dependency
+      # coordinate lives there, none are declared inline in the build scripts -
+      # or the wrapper version. Listing the build scripts and the
       # lock/checksum files as well only queues the workflow on ordinary PRs,
       # where the actor guard below reports it as a skipped run.
       - 'gradle/libs.versions.toml'
+      - 'gradle/wrapper/gradle-wrapper.properties'
 
 env:
   JAVA_VERSION: '26'
@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   update-lockfile:
-    if: github.actor == 'dependabot[bot]'
+    if: github.actor == 'renovate[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -50,10 +50,10 @@ jobs:
           # recursive runs), so pushing with it leaves this commit - the one that fixes the PR -
           # with no CI run against it at all. A PAT belonging to an account other than this
           # workflow's own token isn't subject to that suppression. Add a fine-grained PAT with
-          # "Contents: write" on this repo as the DEPENDABOT_LOCKFILE_PAT repository secret to
+          # "Contents: write" on this repo as the RENOVATE_LOCKFILE_PAT repository secret to
           # enable that; without it, the commit still pushes (so the branch stays correct) but
           # falls back to the same unchecked push this replaces.
-          PUSH_TOKEN: ${{ secrets.DEPENDABOT_LOCKFILE_PAT || secrets.GITHUB_TOKEN }}
+          PUSH_TOKEN: ${{ secrets.RENOVATE_LOCKFILE_PAT || secrets.GITHUB_TOKEN }}
         run: |
           if [ -n "$(git status --porcelain backend/gradle.lockfile settings-gradle.lockfile gradle/verification-metadata.xml)" ]; then
             git config user.name "github-actions[bot]"

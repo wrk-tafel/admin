@@ -5,7 +5,7 @@ description: Implements a GitHub issue end-to-end: reads the ticket, creates a b
 This workflow is fully automated end-to-end (implementation, testing, branch, PR) — never ask the
 user to run a command, restart something, or confirm intermediate state yourself. **Never merge the
 resulting PR** — the workflow ends at "PR open," same as this repo's other skills
-(`process-dependabot`, `process-pr`). Never fix a red check by weakening it (skipping
+(`process-renovate`, `process-pr`). Never fix a red check by weakening it (skipping
 a test, loosening a lint rule, lowering a Sonar gate, `--no-verify`) — fix the root cause, same
 philosophy as `fix-e2e`.
 
