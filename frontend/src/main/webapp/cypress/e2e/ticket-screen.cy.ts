@@ -318,7 +318,10 @@ describe('TicketScreen', () => {
       cy.byTestId('costcontribution-paid-yes-button').click();
       assertTicketText('2');
 
-      cy.byTestId('show-previousticket-button').focus().type('{enter}');
+      // `text` is the live preview, updated over SSE - it can show "2" before this screen's own
+      // response (whose processedTicketsCount enables "Ticket zurück") has arrived, and unlike
+      // click(), focus() does not wait for a disabled element to become enabled.
+      cy.byTestId('show-previousticket-button').should('be.enabled').focus().type('{enter}');
       assertTicketText('1');
     });
 
