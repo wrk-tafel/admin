@@ -10,11 +10,9 @@ name: Update Gradle Lock File
 on:
   pull_request:
     paths:
-      # A Renovate gradle PR touches the version catalog - every dependency
-      # coordinate lives there, none are declared inline in the build scripts -
-      # the wrapper version, or the jacoco tool version in the build script. Listing the build scripts and the
-      # lock/checksum files as well only queues the workflow on ordinary PRs,
-      # where the actor guard below reports it as a skipped run.
+      # What a Renovate gradle PR touches: the version catalog, where every dependency coordinate
+      # lives, the wrapper version, and the jacoco tool version in the build script. The actor guard
+      # below reports the workflow as skipped on ordinary PRs touching these.
       - 'gradle/libs.versions.toml'
       - 'gradle/wrapper/gradle-wrapper.properties'
       - 'backend/build.gradle.kts'
