@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   commitlint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -27,7 +27,7 @@ jobs:
     # Squash-merged PRs (squash_merge_commit_title: PR_TITLE in repo settings) use the PR title as
     # the final commit on the target branch, so the title needs the same Conventional Commits check
     # as individual commits above — otherwise release.yml's version bump can't see the intent.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pull-requests: read
     steps:
