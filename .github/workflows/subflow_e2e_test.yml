@@ -82,7 +82,7 @@ jobs:
       # Where the e2e profile delivers its mails (application-e2e.yml) - password-reset.cy.ts reads
       # the link it was sent from Mailpit's API.
       mailpit:
-        image: axllent/mailpit:latest
+        image: axllent/mailpit:v1.33.0
         ports:
           - 1025:1025
           - 8025:8025

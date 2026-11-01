@@ -5,7 +5,7 @@ description: Takes over an already-open pull request end-to-end without any tick
 This workflow is fully automated end-to-end (review, fixes, CI babysitting) — never ask the user to
 run a command, restart something, or confirm intermediate state yourself. **Never merge the PR** —
 the workflow ends at "reviewed, all checks green," same as this repo's other skills
-(`process-issue`, `process-dependabot`). Never fix a red check by weakening it
+(`process-issue`, `process-renovate`). Never fix a red check by weakening it
 (skipping a test, loosening a lint rule, lowering a Sonar gate, `--no-verify`) — fix the root cause,
 same philosophy as `fix-e2e`.
 

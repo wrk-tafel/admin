@@ -93,7 +93,7 @@ flow-control syntax):
 
 ## Dependency updates
 
-Dependabot manages routine dependency bumps. If you update `gradle/libs.versions.toml` by hand,
+Renovate manages routine dependency bumps. If you update `gradle/libs.versions.toml` by hand,
 regenerate the verification metadata (see
 [README.md](README.md#dependency-verification)):
 
