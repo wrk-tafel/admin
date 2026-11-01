@@ -382,26 +382,6 @@ describe('CheckIn', () => {
     assertDashboardCustomerCount(0);
   });
 
-  it('a CHECKIN-only user can look up a customer and complete a check-in', () => {
-    // checkin1 holds only CHECKIN, no CUSTOMER - GET /api/households/{id} (which this screen's
-    // customer lookup calls) must accept that alone, not just CUSTOMER (#3623).
-    cy.login('checkin1', '12345');
-    cy.visit('/anmeldung/annahme');
-
-    searchCustomer(100);
-    cy.byTestId('customerDetailPanel').should('be.visible');
-
-    assignTicket(30);
-    assertFormReset();
-
-    cy.visit('/anmeldung/annahme');
-    searchCustomer(100);
-    cy.byTestId('ticketNumberInput').should('have.value', '30');
-
-    // restore the default session - afterEach's closeDistribution needs permissions checkin1 lacks
-    cy.loginDefault();
-  });
-
   it('undo the last check-in from the persistent "zuletzt angenommen" line', () => {
     searchCustomer(100);
     assignTicket(10);
@@ -435,6 +415,43 @@ describe('CheckIn', () => {
       cy.checkAccessibility(MAIN_CONTENT);
     });
 
+  });
+
+});
+
+// Not part of the block above: its beforeEach already has the screen open as e2etest, and logging
+// in as someone else ends that session - a request the page still has in flight (e.g. its initial
+// GET /api/scanners) then fails with 401 and fails the test as an uncaught application error.
+describe('CheckIn - CHECKIN-only user', () => {
+
+  beforeEach(() => {
+    cy.loginDefault();
+    cy.createDistribution();
+  });
+
+  afterEach(() => {
+    // closeDistribution needs permissions checkin1 lacks - restore the default session first, here
+    // rather than at the end of the test, so a failing test doesn't leave the distribution open
+    // for the next spec
+    cy.loginDefault();
+    cy.closeDistribution();
+  });
+
+  it('a CHECKIN-only user can look up a customer and complete a check-in', () => {
+    // checkin1 holds only CHECKIN, no CUSTOMER - GET /api/households/{id} (which this screen's
+    // customer lookup calls) must accept that alone, not just CUSTOMER (#3623).
+    cy.login('checkin1', '12345');
+    cy.visit('/anmeldung/annahme');
+
+    searchCustomer(100);
+    cy.byTestId('customerDetailPanel').should('be.visible');
+
+    assignTicket(30);
+    assertFormReset();
+
+    cy.visit('/anmeldung/annahme');
+    searchCustomer(100);
+    cy.byTestId('ticketNumberInput').should('have.value', '30');
   });
 
 });
