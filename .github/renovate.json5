@@ -1,4 +1,5 @@
-// Runs as the hosted Renovate GitHub App, see ADR-0076.
+// Runs self-hosted from the private wrk-infrastructure repository (.github/workflows/renovate.yml),
+// as the GitHub App wrk-tafel-renovate. See ADR-0076.
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   extends: ['config:recommended'],
@@ -93,11 +94,19 @@
     },
     {
       // Named in the Testcontainers file, docker-compose.yml and the workflows' service containers,
-      // which have to stay on one version. It should also match what production runs, which the
-      // infrastructure repository decides.
+      // which have to stay on one version.
       matchDatasources: ['docker'],
       matchPackageNames: ['postgres'],
       groupName: 'postgres',
+    },
+    {
+      // Production's major is an upgrade of its data directory, decided in the infrastructure
+      // repository. Tests moving ahead of it would test against a server nothing runs, so a major
+      // waits for approval on the dependency dashboard.
+      matchDatasources: ['docker'],
+      matchPackageNames: ['postgres'],
+      matchUpdateTypes: ['major'],
+      dependencyDashboardApproval: true,
     },
   ],
 }

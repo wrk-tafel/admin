@@ -7,7 +7,7 @@ Goal: turn N open Renovate PRs into one buildable, tested branch + one PR, then 
 ## 1. Discover open Renovate PRs
 
 ```bash
-gh pr list --author "app/renovate" --state open --json number,title,headRefName,baseRefName,url
+gh pr list --author "app/wrk-tafel-renovate" --state open --json number,title,headRefName,baseRefName,url
 ```
 
 Filter to `baseRefName == "main"`. If the list is empty, tell the user there's nothing to do and stop here — do not create a branch or PR.

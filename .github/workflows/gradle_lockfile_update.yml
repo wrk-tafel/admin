@@ -1,8 +1,8 @@
 name: Update Gradle Lock File
 
 # Renovate only updates Gradle lockfiles and verification metadata by running
-# the Gradle wrapper, which needs allowedUnsafeExecutions, a setting of the
-# Renovate instance rather than of this repository (see ADR-0076).
+# the Gradle wrapper, which our instance deliberately doesn't allow: it would
+# run this repository's build with Renovate's token at hand (see ADR-0076).
 # This workflow regenerates backend/gradle.lockfile and
 # gradle/verification-metadata.xml on Renovate's gradle PRs so the build
 # can't land broken because of a stale lock/checksum.
@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   update-lockfile:
-    if: github.actor == 'renovate[bot]'
+    if: github.actor == 'wrk-tafel-renovate[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

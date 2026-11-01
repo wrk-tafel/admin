@@ -94,7 +94,7 @@ jobs:
     # On a pull request the image exists only to be deployed to dev, and deploy-dev below never runs
     # for Renovate. Building and pushing one anyway costs a runner and leaves a tag in the registry
     # for cleanup.yml to reap, so the two carry the same condition.
-    if: github.actor != 'renovate[bot]'
+    if: github.actor != 'wrk-tafel-renovate[bot]'
     with:
       # the mutable "dev" tag always points at the most recently built candidate for that
       # environment, which is what cleanup.yml keys off to protect it regardless of how many
@@ -121,4 +121,4 @@ jobs:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
-    if: github.actor != 'renovate[bot]'
+    if: github.actor != 'wrk-tafel-renovate[bot]'
