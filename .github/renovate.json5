@@ -43,6 +43,13 @@
   // Later rules win over earlier ones, and over the presets.
   packageRules: [
     {
+      // The aquasecurity organization has an IP allow list, which refuses any authenticated API request
+      // from a GitHub runner, while its tags stay readable over git.
+      matchPackageNames: ['aquasecurity/trivy-action'],
+      overrideDatasource: 'git-tags',
+      overridePackageName: 'https://github.com/aquasecurity/trivy-action',
+    },
+    {
       // release.yml derives the version bump from the Conventional Commits type of the PR title, and
       // the preset would make it `fix` for runtime dependencies.
       matchPackageNames: ['*'],
