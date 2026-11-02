@@ -298,10 +298,15 @@ describe('TicketScreen', () => {
     });
 
     it('advances the ticket via keyboard shortcuts (Enter = bezahlt, N = nicht bezahlt)', () => {
+      cy.intercept('POST', '/api/distributions/ticket-screen/show-next').as('showNext');
       cy.byTestId('show-currentticket-button').click();
       assertTicketText('1');
 
       cy.get('body').type('{enter}');
+      // The preview monitor follows SSE and can show the next ticket before the request that
+      // advanced it has returned - and the screen ignores the shortcuts while that request is in
+      // flight, so the next key press has to wait for it.
+      cy.wait('@showNext');
       assertTicketText('2');
 
       cy.get('body').type('n');
