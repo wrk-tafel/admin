@@ -26,6 +26,14 @@ class DistributionSseTopic(
 
     override val name = "distribution"
 
+    /**
+     * Every open tab has this topic, so the update is read once per change and compared per stream,
+     * not read once per stream - see `SseSharedSnapshot`.
+     */
+    private val registrationUpdate = sseOutboxService.sharedSnapshot(REGISTRATION_CHANGE_NOTIFICATION_NAME) {
+        service.getCurrentDistributionUpdate()
+    }
+
     override fun subscribe(emitter: SseEmitter, argument: String?) {
         // initial data
         val initialUpdate = service.getCurrentDistributionUpdate()
@@ -41,12 +49,7 @@ class DistributionSseTopic(
         // The header shows the registered-customer count on every screen, so it rides on this topic.
         // The trigger fires for much more than registrations, hence the send only on a changed count.
         val lastSentCount = AtomicReference(initialUpdate.registeredCustomers)
-        sseOutboxService.listenForNotificationEvents<Unit>(
-            sseEmitter = emitter,
-            notificationName = REGISTRATION_CHANGE_NOTIFICATION_NAME,
-            resultType = null,
-        ) {
-            val update = service.getCurrentDistributionUpdate()
+        sseOutboxService.listenForSharedSnapshot(emitter, registrationUpdate) { update ->
             // Start/close events above deliberately carry no count - they are published from the
             // request that caused them and can be delivered after newer counts. So the first count of
             // a distribution (0) also comes from here, and a closed one must not suppress the next.

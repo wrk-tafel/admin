@@ -1,19 +1,20 @@
 package at.wrk.tafel.admin.backend.modules.dashboard
 
 import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseSharedSnapshot
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardSseTopic.Companion.DASHBOARD_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardService
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.math.BigDecimal
+import java.util.concurrent.Executor
 
 @ExtendWith(MockKExtension::class)
 internal class DashboardSseTopicTest {
@@ -24,8 +25,21 @@ internal class DashboardSseTopicTest {
     @RelaxedMockK
     private lateinit var sseOutboxService: SseOutboxService
 
-    @InjectMockKs
     private lateinit var topic: DashboardSseTopic
+
+    private lateinit var dashboardData: SseSharedSnapshot<DashboardData>
+
+    @BeforeEach
+    fun beforeEach() {
+        every { sseOutboxService.sharedSnapshot<DashboardData>(DASHBOARD_UPDATE_NOTIFICATION_NAME, any()) } answers {
+            SseSharedSnapshot(firstArg(), Executor { it.run() }, secondArg<() -> DashboardData>())
+                .also { dashboardData = it }
+        }
+        every { sseOutboxService.listenForSharedSnapshot<DashboardData>(any(), any(), any()) } answers {
+            secondArg<SseSharedSnapshot<DashboardData>>().subscribe(thirdArg())
+        }
+        topic = DashboardSseTopic(service, sseOutboxService)
+    }
 
     @Test
     fun `listen for dashboard data`() {
@@ -67,19 +81,24 @@ internal class DashboardSseTopicTest {
 
         verify { sseOutboxService.sendEvent(sseEmitter, data, "dashboard") }
 
-        val callbackSlot = slot<(Void?) -> Unit>()
-        verify {
-            sseOutboxService.listenForNotificationEvents(
-                sseEmitter = sseEmitter,
-                notificationName = DASHBOARD_UPDATE_NOTIFICATION_NAME,
-                resultType = null,
-                resultCallback = capture(callbackSlot),
-            )
-        }
+        verify { sseOutboxService.listenForSharedSnapshot(sseEmitter, dashboardData, any()) }
 
-        val callback = callbackSlot.captured
-        callback(null)
+        dashboardData.changed()
 
-        verify { sseOutboxService.sendEvent(sseEmitter, data, "dashboard") }
+        verify(exactly = 2) { sseOutboxService.sendEvent(sseEmitter, data, "dashboard") }
+    }
+
+    @Test
+    fun `a change is computed once for every open dashboard`() {
+        val data = mockk<DashboardData>()
+        every { service.getData() } returns data
+        val emitters = List(5) { mockk<SseEmitter>(relaxed = true) }
+        emitters.forEach { topic.subscribe(it, null) }
+
+        dashboardData.changed()
+
+        // five initial snapshots, one for the change
+        verify(exactly = 6) { service.getData() }
+        emitters.forEach { verify(exactly = 2) { sseOutboxService.sendEvent(it, data, "dashboard") } }
     }
 }

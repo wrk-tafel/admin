@@ -14,6 +14,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.within
@@ -35,6 +36,9 @@ import java.io.IOException
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 @ExtendWith(MockKExtension::class)
@@ -67,7 +71,14 @@ class SseOutboxServiceTest {
     fun beforeEach() {
         logAppender = ListAppender<ILoggingEvent>().apply { start() }
         serviceLogger.addAppender(logAppender)
-        service = SseOutboxService(jsonMapper, sseOutboxRepository, sseOutboxListenerService, tafelAdminProperties)
+        service = SseOutboxService(
+            jsonMapper,
+            sseOutboxRepository,
+            sseOutboxListenerService,
+            tafelAdminProperties,
+            SseDeliveryExecutor(Executor { it.run() }),
+        )
+        service.open(sseEmitter)
 
         every { jsonMapper.readValue(testPayloadString, TestJsonPayload::class.java) } returns testPayload
         every { jsonMapper.writeValueAsString(testPayload) } returns testPayloadString
@@ -242,8 +253,9 @@ class SseOutboxServiceTest {
 
     @Test
     fun `send event`() {
-        val sseEmitter = mockk<SseEmitter>()
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
         every { sseEmitter.send(any<SseEventBuilder>()) } returns Unit
+        service.open(sseEmitter)
 
         val testPayload = TestJsonPayload(123)
         val testPayloadString = "{\"value\":123}"
@@ -290,9 +302,10 @@ class SseOutboxServiceTest {
 
     @Test
     fun `send event completes emitter when AsyncRequestNotUsableException occurs`() {
-        val sseEmitter = mockk<SseEmitter>()
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
         every { sseEmitter.send(any<SseEventBuilder>()) } throws AsyncRequestNotUsableException("disconnected")
         every { sseEmitter.complete() } returns Unit
+        service.open(sseEmitter)
 
         assertThatCode { service.sendEvent(sseEmitter, testPayload) }.doesNotThrowAnyException()
 
@@ -301,25 +314,28 @@ class SseOutboxServiceTest {
 
     @Test
     fun `send event ignores exception when completing an already completed emitter`() {
-        val sseEmitter = mockk<SseEmitter>()
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
         every { sseEmitter.send(any<SseEventBuilder>()) } throws AsyncRequestNotUsableException("disconnected")
         every { sseEmitter.complete() } throws IllegalStateException("already completed")
+        service.open(sseEmitter)
 
         assertThatCode { service.sendEvent(sseEmitter, testPayload) }.doesNotThrowAnyException()
     }
 
     @Test
     fun `send event handles IOException`() {
-        val sseEmitter = mockk<SseEmitter>()
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
         every { sseEmitter.send(any<SseEventBuilder>()) } throws IOException("broken pipe")
+        service.open(sseEmitter)
 
         assertThatCode { service.sendEvent(sseEmitter, testPayload) }.doesNotThrowAnyException()
     }
 
     @Test
     fun `send event handles IllegalStateException`() {
-        val sseEmitter = mockk<SseEmitter>()
+        val sseEmitter = mockk<SseEmitter>(relaxed = true)
         every { sseEmitter.send(any<SseEventBuilder>()) } throws IllegalStateException("already completed")
+        service.open(sseEmitter)
 
         assertThatCode { service.sendEvent(sseEmitter, testPayload) }.doesNotThrowAnyException()
     }
@@ -373,6 +389,7 @@ class SseOutboxServiceTest {
         every { sseEmitter.onCompletion(any()) } returns Unit
         every { sseEmitter.onError(any<Consumer<Throwable>>()) } returns Unit
         every { sseEmitter.send(any<SseEventBuilder>()) } throws IOException("broken pipe")
+        service.open(sseEmitter)
 
         service.forwardNotificationEventsToSse(
             sseEmitter = sseEmitter,
@@ -603,6 +620,71 @@ class SseOutboxServiceTest {
         )
         logAppender.list.clear()
         return onErrorSlot
+    }
+
+    @Test
+    fun `an event for a stream that was never opened is dropped`() {
+        val unopened = mockk<SseEmitter>(relaxed = true)
+
+        service.sendEvent(unopened, testPayload)
+
+        verify(exactly = 0) { unopened.send(any<SseEventBuilder>()) }
+    }
+
+    @Test
+    fun `an event that arrives after the stream ended is dropped`() {
+        val emitter = mockk<SseEmitter>(relaxed = true)
+        val onCompletion = mutableListOf<Runnable>()
+        every { emitter.onCompletion(capture(onCompletion)) } returns Unit
+        service.open(emitter)
+
+        onCompletion.forEach { it.run() }
+        service.sendEvent(emitter, testPayload)
+
+        verify(exactly = 0) { emitter.send(any<SseEventBuilder>()) }
+    }
+
+    @Test
+    fun `completing a stream writes what is queued first`() {
+        service.sendEvent(sseEmitter, testPayload)
+
+        service.complete(sseEmitter)
+
+        verifyOrder {
+            sseEmitter.send(any<SseEventBuilder>())
+            sseEmitter.complete()
+        }
+    }
+
+    /**
+     * Issue #3942: a client that stops reading makes every write to its stream block in the
+     * container. The listener hands each subscriber its notification in turn, so a write on that
+     * thread held back every other stream's events too.
+     */
+    @Test
+    fun `a stream whose client stopped reading does not hold back the others`() {
+        service = SseOutboxService(jsonMapper, sseOutboxRepository, sseOutboxListenerService, tafelAdminProperties, SseDeliveryExecutor())
+        val release = CountDownLatch(1)
+        val stuck = mockk<SseEmitter>(relaxed = true)
+        every { stuck.send(any<SseEventBuilder>()) } answers { release.await() }
+        val delivered = CountDownLatch(1)
+        val reading = mockk<SseEmitter>(relaxed = true)
+        every { reading.send(any<SseEventBuilder>()) } answers { delivered.countDown() }
+        val callbacks = mutableListOf<(String?) -> Unit>()
+        every { sseOutboxListenerService.registerCallback(notificationName, capture(callbacks), any()) } returns Unit
+        listOf(stuck, reading).forEach {
+            service.open(it)
+            service.forwardNotificationEventsToSse(it, notificationName, TestJsonPayload::class.java)
+        }
+
+        try {
+            // what the listener does with a notification: every subscriber in turn, on its own thread
+            callbacks.forEach { it(testPayloadString) }
+
+            assertThat(delivered.await(5, TimeUnit.SECONDS)).isTrue()
+        } finally {
+            release.countDown()
+        }
     }
 }
 
