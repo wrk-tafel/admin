@@ -79,8 +79,9 @@ describe('Two-factor authentication', () => {
   }
 
   // For a login made while a config reload may be in flight: the backend re-binds its configuration for a moment,
-  // during which the mail settings read as absent and the e-mail method answers "not set up". The send is asked
-  // for again until the reload has settled, and any other refusal still fails at once.
+  // during which the mail settings read as absent and the e-mail method answers "not set up", and the fixed test code
+  // reads as absent too, so a random code goes out and the fixed one is refused. Both are asked for again until the
+  // reload has settled, and any other refusal still fails at once. The wait outlasts the e2e profile's resend cooldown.
   function loginByApiWithEmailCodeAcrossReload(user: MfaUser, attempts = 10) {
     cy.login(user.username, user.password);
     cy.request({method: 'POST', url: '/api/mfa/email/send', failOnStatusCode: false}).then(response => {
@@ -91,7 +92,14 @@ describe('Two-factor authentication', () => {
         return;
       }
       expect(response.status, 'the e-mail code was sent').to.eq(202);
-      cy.request({method: 'POST', url: '/api/mfa/verify', body: {code: EMAIL_CODE}});
+      cy.request({method: 'POST', url: '/api/mfa/verify', body: {code: EMAIL_CODE}, failOnStatusCode: false}).then(verified => {
+        if (verified.status === 400 && attempts > 1) {
+          cy.wait(1100);
+          loginByApiWithEmailCodeAcrossReload(user, attempts - 1);
+          return;
+        }
+        expect(verified.status, 'the e-mail code was accepted').to.be.lessThan(300);
+      });
     });
   }
 
