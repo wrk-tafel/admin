@@ -232,7 +232,7 @@ Contributors sometimes assume the backend computes/generates the next ticket num
 (the check-in/scanner flow); `DistributionService.assignHouseholdToDistribution()` only validates it:
 
 ```kotlin
-val existingTicket = distribution.households.firstOrNull { it.ticketNumber == ticketNumber }
+val existingTicket = distributionHouseholdRepository.findByDistributionIdAndTicketNumber(distribution.id!!, ticketNumber)
 // Can't assign to another household if already assigned but ok if it's the same household
 if (existingTicket != null && existingHousehold?.household?.id != householdId) {
     throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")

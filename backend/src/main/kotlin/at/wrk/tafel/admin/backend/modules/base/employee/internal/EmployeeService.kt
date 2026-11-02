@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.base.employee.internal
 
 import at.wrk.tafel.admin.backend.common.api.PaginationDefaults
 import at.wrk.tafel.admin.backend.common.sanitizeForLog
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
@@ -24,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional
 class EmployeeService(
     private val employeeRepository: EmployeeRepository,
     private val searchTermNormalizer: SearchTermNormalizer,
-    private val tafelAdminProperties: TafelAdminProperties,
 ) {
 
     companion object {
@@ -36,6 +34,7 @@ class EmployeeService(
      * - unless [verbatimOnly], which the driver/co-driver picker asks for (see
      * `EmployeeEntity.Specs.searchTextMatches`).
      */
+    @Transactional(readOnly = true)
     fun findEmployees(
         searchInput: String? = null,
         page: Int? = null,
@@ -49,7 +48,7 @@ class EmployeeService(
         val spec = EmployeeEntity.Specs.orderById(
             Specification.allOf(
                 listOfNotNull(
-                    EmployeeEntity.Specs.searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold, verbatimOnly),
+                    EmployeeEntity.Specs.searchTextMatches(searchTerm, verbatimOnly),
                 ),
             ),
             sortBy,

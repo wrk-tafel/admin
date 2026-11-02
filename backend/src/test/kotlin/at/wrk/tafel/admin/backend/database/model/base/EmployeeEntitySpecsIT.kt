@@ -22,13 +22,9 @@ class EmployeeEntitySpecsIT : TafelBaseIntegrationTest() {
     @Autowired
     private lateinit var searchTermNormalizer: SearchTermNormalizer
 
-    companion object {
-        private const val SIMILARITY_THRESHOLD = 0.5f
-    }
-
     @Test
     fun `searchTextMatches returns null spec when the search term is null`() {
-        assertThat(EmployeeEntity.Specs.searchTextMatches(null, SIMILARITY_THRESHOLD)).isNull()
+        assertThat(EmployeeEntity.Specs.searchTextMatches(null)).isNull()
     }
 
     @Test
@@ -111,7 +107,7 @@ class EmployeeEntitySpecsIT : TafelBaseIntegrationTest() {
 
     @Test
     fun `searchTextMatches returns null spec for a blank search input`() {
-        assertThat(EmployeeEntity.Specs.searchTextMatches(searchTermNormalizer.normalize("   "), SIMILARITY_THRESHOLD)).isNull()
+        assertThat(EmployeeEntity.Specs.searchTextMatches(searchTermNormalizer.normalize("   "))).isNull()
     }
 
     @Test
@@ -182,7 +178,7 @@ class EmployeeEntitySpecsIT : TafelBaseIntegrationTest() {
 
     private fun orderBySpec(tag: Long): Specification<EmployeeEntity> = searchSpec("$tag", verbatimOnly = true)
 
-    private fun searchSpec(searchInput: String, verbatimOnly: Boolean = false): Specification<EmployeeEntity> = EmployeeEntity.Specs.searchTextMatches(searchTermNormalizer.normalize(searchInput), SIMILARITY_THRESHOLD, verbatimOnly)!!
+    private fun searchSpec(searchInput: String, verbatimOnly: Boolean = false): Specification<EmployeeEntity> = EmployeeEntity.Specs.searchTextMatches(searchTermNormalizer.normalize(searchInput), verbatimOnly)!!
 
     private fun persist(personnelNumber: String, firstname: String, lastname: String): EmployeeEntity {
         val entity = EmployeeEntity(personnelNumber = personnelNumber, firstname = firstname, lastname = lastname)

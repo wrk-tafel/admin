@@ -1036,7 +1036,7 @@ class HouseholdServiceTest {
         val selectedPage = 3
         val pageRequest = PageRequest.of(selectedPage - 1, PaginationDefaults.DEFAULT_PAGE_SIZE)
         val page = PageImpl(listOf(testHouseholdEntity1, testHouseholdEntity2), pageRequest, 123)
-        every { householdRepository.findAll(any<Specification<HouseholdEntity>>(), pageRequest) } returns page
+        every { householdRepository.findPageWithTotal(any<Specification<HouseholdEntity>>(), pageRequest) } returns page
 
         val searchResult =
             service.getHouseholds(
@@ -1061,7 +1061,7 @@ class HouseholdServiceTest {
         assertThat(households).hasSize(2)
         assertThat(households[0]).isEqualTo(testHousehold)
 
-        verify(exactly = 1) { householdRepository.findAll(any<Specification<HouseholdEntity>>(), pageRequest) }
+        verify(exactly = 1) { householdRepository.findPageWithTotal(any<Specification<HouseholdEntity>>(), pageRequest) }
     }
 
     @Test

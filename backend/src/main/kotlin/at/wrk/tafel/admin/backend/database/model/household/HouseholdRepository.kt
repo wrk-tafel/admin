@@ -13,7 +13,8 @@ import java.time.LocalDateTime
 
 interface HouseholdRepository :
     JpaRepository<HouseholdEntity, Long>,
-    JpaSpecificationExecutor<HouseholdEntity> {
+    JpaSpecificationExecutor<HouseholdEntity>,
+    HouseholdPageRepository {
 
     /**
      * The human-facing `household_id` business number, drawn from a dedicated Postgres sequence -

@@ -4,11 +4,13 @@ import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * The term has to be folded exactly like the stored `search_text` - against the real
  * `fold_search_text` function, since a mocked database could only ever agree with itself.
  */
+@Transactional
 class SearchTermNormalizerIT : TafelBaseIntegrationTest() {
 
     @Autowired

@@ -22,10 +22,6 @@ import java.time.Period
 @Transactional
 class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
 
-    companion object {
-        private const val SIMILARITY_THRESHOLD = 0.5f
-    }
-
     @Autowired
     private lateinit var testEntityManager: TestEntityManager
 
@@ -49,7 +45,7 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
 
     @Test
     fun `searchTextMatches returns null spec when the search term is null`() {
-        assertThat(HouseholdEntity.Specs.searchTextMatches(null, SIMILARITY_THRESHOLD)).isNull()
+        assertThat(HouseholdEntity.Specs.searchTextMatches(null)).isNull()
     }
 
     @Test
@@ -653,7 +649,6 @@ class HouseholdEntitySpecsIT : TafelBaseIntegrationTest() {
 
     private fun searchSpec(searchInput: String) = HouseholdEntity.Specs.searchTextMatches(
         searchTermNormalizer.normalize(searchInput),
-        SIMILARITY_THRESHOLD,
     )!!
 
     /**

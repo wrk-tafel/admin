@@ -836,11 +836,13 @@ Authentication: Basic HTTP auth at `POST /api/login` opens a login session - a r
   employee, personnel number and name. The text is *folded* (lower-cased, diacritics stripped, `ß` →
   `ss`) by the SQL function `fold_search_text`, and the term is folded by the very same function
   through `SearchTermNormalizer` (one query per search) — never fold in Kotlin, or the two drift
-  apart (ADR-0071). Two modes are OR'd: `like '%term%'` for the verbatim hit and
-  `strict_word_similarity` (`pg_trgm`, GIN-indexed) for typo tolerance, with results ranked
+  apart (ADR-0071). Two modes are OR'd: `like '%term%'` for the verbatim hit and the `pg_trgm`
+  operator `term <<% search_text` for typo tolerance, both served by the GIN index (a
+  `strict_word_similarity(...) >= x` call would not be, ADR-0078), with results ranked
   verbatim-first — see `SearchTextSpecs`. The driver/co-driver picker asks for verbatim matches only
   (`verbatimOnly`), since it auto-selects a single hit. The cutoff is
-  `tafeladmin.search.similarityThreshold`, read per request so it can be tuned without a restart.
+  `tafeladmin.search.similarityThreshold`, read per request so it can be tuned without a restart:
+  `SearchTermNormalizer` sets it for the transaction, which is why it refuses to run outside of one.
   Note the trigger is the only thing maintaining `search_text`: a new searchable column on
   `households`/`persons`/`users`/`employees` has to be added to those trigger functions too, or it
   silently won't be findable.

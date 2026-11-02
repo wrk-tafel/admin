@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.common.search
 
+import at.wrk.tafel.admin.backend.database.config.PgTrgmFunctionContributor
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.Expression
 import jakarta.persistence.criteria.Predicate
@@ -12,13 +13,19 @@ import jakarta.persistence.criteria.Predicate
  *
  * A row matches when the term appears in its search text verbatim, or - so a typo still finds the
  * customer standing at the desk - when the term is trigram-similar enough to some run of words
- * inside it. `strict_word_similarity` compares the term against the best-matching extent of the text
+ * inside it. Strict word similarity compares the term against the best-matching extent of the text
  * rather than against the whole thing, which is what makes a threshold meaningful at all here: the
  * search text also holds address, phone number and e-mail, so plain `similarity` would drown a
  * perfect name match in trigrams the term was never going to match. The *strict* variant is what
  * keeps that from swinging too far the other way - it only considers extents that start and end on a
  * word boundary, so "Mustermann" no longer scores a hit against every "Musterhuber" in the database
  * purely on the shared stem, the way the non-strict variant's mid-word extents do.
+ *
+ * The similarity half filters with the operator `term <<% search_text` rather than by comparing
+ * `strict_word_similarity(...)` to a number: only an operator can be answered by the GIN trigram
+ * index, a function call means computing it for every row of the table (ADR-0078). The operator
+ * takes its cutoff from a database setting, which [SearchTermNormalizer] sets for the transaction,
+ * so a search has to run in the transaction its term was normalized in.
  *
  * Verbatim hits score [EXACT_MATCH_SCORE] so they always outrank fuzzy ones.
  */
@@ -33,10 +40,9 @@ object SearchTextSpecs {
         cb: CriteriaBuilder,
         searchText: Expression<String>,
         searchTerm: String,
-        similarityThreshold: Float,
     ): Predicate = cb.or(
         containsPredicate(cb, searchText, searchTerm),
-        cb.greaterThanOrEqualTo(wordSimilarity(cb, searchText, searchTerm), similarityThreshold),
+        cb.isTrue(cb.function(PgTrgmFunctionContributor.STRICT_WORD_SIMILAR, Boolean::class.javaObjectType, cb.literal(searchTerm), searchText)),
     )
 
     /** The verbatim half of [matches] alone - for a caller that must not act on a near miss. */
@@ -64,7 +70,7 @@ object SearchTextSpecs {
         cb: CriteriaBuilder,
         searchText: Expression<String>,
         searchTerm: String,
-    ): Expression<Float> = cb.function("strict_word_similarity", Float::class.java, cb.literal(searchTerm), searchText)
+    ): Expression<Float> = cb.function(PgTrgmFunctionContributor.STRICT_WORD_SIMILARITY, Float::class.java, cb.literal(searchTerm), searchText)
 
     /**
      * `%` and `_` are ordinary characters in a name or an e-mail address - without escaping them a

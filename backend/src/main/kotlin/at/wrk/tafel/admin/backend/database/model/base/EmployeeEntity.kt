@@ -41,7 +41,6 @@ class EmployeeEntity(
              */
             fun searchTextMatches(
                 searchTerm: String?,
-                similarityThreshold: Float,
                 verbatimOnly: Boolean = false,
             ): Specification<EmployeeEntity>? = searchTerm?.let {
                 Specification { root: Root<EmployeeEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
@@ -49,7 +48,7 @@ class EmployeeEntity(
                     if (verbatimOnly) {
                         SearchTextSpecs.contains(cb, searchText, it)
                     } else {
-                        SearchTextSpecs.matches(cb, searchText, it, similarityThreshold)
+                        SearchTextSpecs.matches(cb, searchText, it)
                     }
                 }
             }

@@ -486,7 +486,7 @@ class HouseholdService(
         val where = where(
             Specification.allOf(
                 listOfNotNull(
-                    searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold),
+                    searchTextMatches(searchTerm),
                     booleanFilterSpec(filters.postProcessing, postProcessingNecessary()),
                     booleanFilterSpec(filters.costContribution, pendingCostContribution()),
                     booleanFilterSpec(filters.valid, validHousehold()),
@@ -505,7 +505,7 @@ class HouseholdService(
         )
 
         val spec = orderBySearchRelevance(searchTerm, where, sortBy, sortDirection)
-        val pagedResult = householdRepository.findAll(spec, pageRequest)
+        val pagedResult = householdRepository.findPageWithTotal(spec, pageRequest)
 
         return HouseholdSearchResult(
             items = pagedResult.map { householdConverter.mapEntityToHousehold(it) }.toList(),

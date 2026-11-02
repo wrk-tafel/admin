@@ -46,10 +46,11 @@ class DashboardService(
         val currentDistribution = distributionRepository.getCurrentDistribution()
 
         return currentDistribution?.let {
+            val registeredCustomers = getRegisteredCustomers(currentDistribution)
             DashboardData(
-                registeredCustomers = getRegisteredCustomers(currentDistribution),
-                registeredPersons = getRegisteredPersons(currentDistribution),
-                tickets = getTicketsData(currentDistribution),
+                registeredCustomers = registeredCustomers,
+                registeredPersons = getRegisteredPersons(currentDistribution, registeredCustomers),
+                tickets = getTicketsData(currentDistribution, registeredCustomers),
                 statistics = getStatisticsData(currentDistribution),
                 logistics = getLogisticsData(currentDistribution),
                 notes = currentDistribution.notes,
@@ -92,11 +93,12 @@ class DashboardService(
             ?: return null
 
         val shelters = lastDistribution.statistic?.shelters ?: emptyList()
+        val registeredCustomers = getRegisteredCustomers(lastDistribution)
 
         return DashboardLastDistributionData(
             date = lastDistribution.startedAt.toLocalDate(),
-            registeredCustomers = getRegisteredCustomers(lastDistribution),
-            registeredPersons = getRegisteredPersons(lastDistribution),
+            registeredCustomers = registeredCustomers,
+            registeredPersons = getRegisteredPersons(lastDistribution, registeredCustomers),
             countProcessedTickets = countProcessedTickets(lastDistribution),
             foodAmountTotal = getFoodAmountTotal(lastDistribution),
             sheltersCount = shelters.size,
@@ -104,24 +106,18 @@ class DashboardService(
         )
     }
 
-    private fun getTicketsData(currentDistribution: DistributionEntity): DashboardTicketsData = DashboardTicketsData(
+    private fun getTicketsData(currentDistribution: DistributionEntity, registeredCustomers: Int): DashboardTicketsData = DashboardTicketsData(
         countProcessedTickets = countProcessedTickets(currentDistribution),
-        countTotalTickets = currentDistribution.households.size,
+        countTotalTickets = registeredCustomers,
     )
 
-    private fun countProcessedTickets(distribution: DistributionEntity): Int = distribution.households.count { it.processed == true }
+    private fun countProcessedTickets(distribution: DistributionEntity): Int = distributionHouseholdRepository.countByDistributionIdAndProcessedTrue(distribution.id!!)
 
     private fun getRegisteredCustomers(currentDistribution: DistributionEntity): Int = distributionHouseholdRepository.countAllByDistributionId(currentDistribution.id!!)
 
     // the same formula DistributionStatisticService and the customer-list PDF use: one per
     // household (the main person) plus its additional persons that are not excluded
-    private fun getRegisteredPersons(currentDistribution: DistributionEntity): Int {
-        val households = currentDistribution.households
-        return households.size +
-            households
-                .flatMap { it.household.additionalPersons() }
-                .count { !it.excludeFromHousehold }
-    }
+    private fun getRegisteredPersons(distribution: DistributionEntity, registeredCustomers: Int): Int = registeredCustomers + distributionHouseholdRepository.countAdditionalPersons(distribution.id!!).toInt()
 
     private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData = DashboardStatisticsData(
         employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },

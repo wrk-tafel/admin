@@ -160,7 +160,7 @@ class TafelUserDetailsManager(
             where(
                 Specification.allOf(
                     listOf(
-                        searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold),
+                        searchTextMatches(searchTerm),
                         enabledEquals(enabled),
                     ).mapNotNull { it },
                 ),
