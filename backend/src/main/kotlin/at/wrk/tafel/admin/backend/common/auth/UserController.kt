@@ -297,6 +297,7 @@ class UserController(
 
     @PostMapping("/search")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional(readOnly = true)
     fun searchUsers(@RequestBody request: UserSearchRequest): PagedResponse<UserResponse> {
         val userSearchResult = userDetailsManager.loadUsers(
             searchInput = request.searchInput,

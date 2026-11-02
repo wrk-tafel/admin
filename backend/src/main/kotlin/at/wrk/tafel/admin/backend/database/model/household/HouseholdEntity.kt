@@ -161,9 +161,9 @@ class HouseholdEntity(
 
     interface Specs {
         companion object {
-            fun searchTextMatches(searchTerm: String?, similarityThreshold: Float): Specification<HouseholdEntity>? = searchTerm?.let {
+            fun searchTextMatches(searchTerm: String?): Specification<HouseholdEntity>? = searchTerm?.let {
                 Specification { root: Root<HouseholdEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    SearchTextSpecs.matches(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], searchTerm, similarityThreshold)
+                    SearchTextSpecs.matches(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], searchTerm)
                 }
             }
 

@@ -99,9 +99,9 @@ class UserEntity(
 
     interface Specs {
         companion object {
-            fun searchTextMatches(searchTerm: String?, similarityThreshold: Float): Specification<UserEntity>? = searchTerm?.let {
+            fun searchTextMatches(searchTerm: String?): Specification<UserEntity>? = searchTerm?.let {
                 Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
-                    SearchTextSpecs.matches(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], searchTerm, similarityThreshold)
+                    SearchTextSpecs.matches(cb, root[SearchTextSpecs.SEARCH_TEXT_ATTRIBUTE], searchTerm)
                 }
             }
 

@@ -20,9 +20,6 @@ import at.wrk.tafel.admin.backend.database.model.logistics.ShopRepository
 import at.wrk.tafel.admin.backend.database.model.person.PersonRepository
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity1
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity2
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionHouseholdEntity3
 import at.wrk.tafel.admin.backend.modules.logistics.testCar1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
@@ -106,17 +103,14 @@ internal class DashboardServiceTest {
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
-            households = listOf(
-                testDistributionHouseholdEntity1,
-                testDistributionHouseholdEntity2,
-                testDistributionHouseholdEntity3,
-            )
         }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionHouseholdRepository.countAllByDistributionId(123) } returns 3
+        every { distributionHouseholdRepository.countAdditionalPersons(123) } returns 1
 
         val data = service.getData()
 
-        // 3 main persons + household 1's one additional person that is not excluded from the household
+        // 3 main persons + one additional person that is not excluded from the household
         assertThat(data.registeredPersons).isEqualTo(4)
     }
 
@@ -125,13 +119,10 @@ internal class DashboardServiceTest {
         val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
             endedAt = null
-            households = listOf(
-                testDistributionHouseholdEntity1,
-                testDistributionHouseholdEntity2,
-                testDistributionHouseholdEntity3,
-            )
         }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionHouseholdRepository.countAllByDistributionId(123) } returns 3
+        every { distributionHouseholdRepository.countByDistributionIdAndProcessedTrue(123) } returns 1
 
         val data = service.getData()
 
@@ -443,11 +434,6 @@ internal class DashboardServiceTest {
         val testLastDistributionEntity = DistributionEntity(startedAt = closedAt, startedByUser = testUserEntity).apply {
             id = 456
             endedAt = closedAt.plusHours(4)
-            households = listOf(
-                testDistributionHouseholdEntity1,
-                testDistributionHouseholdEntity2,
-                testDistributionHouseholdEntity3,
-            )
             foodCollections = listOf(testFoodCollectionRoute1Entity)
         }
         val testStatistic = DistributionStatisticEntity(distribution = testLastDistributionEntity)
@@ -478,6 +464,8 @@ internal class DashboardServiceTest {
 
         val countRegisteredCustomers = 3
         every { distributionHouseholdRepository.countAllByDistributionId(testLastDistributionEntity.id!!) } returns countRegisteredCustomers
+        every { distributionHouseholdRepository.countAdditionalPersons(testLastDistributionEntity.id!!) } returns 1
+        every { distributionHouseholdRepository.countByDistributionIdAndProcessedTrue(testLastDistributionEntity.id!!) } returns 1
 
         val data = service.getData()
 
@@ -486,7 +474,6 @@ internal class DashboardServiceTest {
         assertThat(lastDistribution.registeredCustomers).isEqualTo(countRegisteredCustomers)
         // 3 main persons + household 1's one additional person that is not excluded from the household
         assertThat(lastDistribution.registeredPersons).isEqualTo(4)
-        // only testDistributionHouseholdEntity1 is processed
         assertThat(lastDistribution.countProcessedTickets).isEqualTo(1)
         assertThat(lastDistribution.foodAmountTotal).isEqualTo(BigDecimal(140))
         assertThat(lastDistribution.sheltersCount).isEqualTo(2)

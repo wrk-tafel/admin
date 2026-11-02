@@ -208,6 +208,36 @@ internal class DistributionServiceTest {
 
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
         every { advisoryLockService.withLock<Any>(any(), any()) } answers { secondArg<() -> Any>().invoke() }
+        answerTicketQueriesFromTheDistribution()
+    }
+
+    /**
+     * The tests describe a day through `DistributionEntity.households`; the repository's single-ticket
+     * reads and counts answer from that list, the way the database would from its rows. What those
+     * queries really select is covered by `DistributionTicketQueriesIT`.
+     */
+    private fun answerTicketQueriesFromTheDistribution() {
+        val deletedTicketIds = mutableSetOf<Long>()
+        fun tickets() = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+            ?.households.orEmpty()
+            .filterNot { it.id in deletedTicketIds }
+
+        every { distributionHouseholdRepository.findByDistributionIdAndTicketNumber(any(), any()) } answers {
+            tickets().firstOrNull { it.ticketNumber == secondArg<Int>() }
+        }
+        every { distributionHouseholdRepository.findByDistributionIdAndHouseholdHouseholdId(any(), any()) } answers {
+            tickets().filter { it.household.householdId == secondArg<Long>() }.minByOrNull { it.processed }
+        }
+        every { distributionHouseholdRepository.findFirstByDistributionIdAndProcessedFalseOrderByTicketNumberAsc(any()) } answers {
+            tickets().filterNot { it.processed }.minByOrNull { it.ticketNumber }
+        }
+        every { distributionHouseholdRepository.findFirstByDistributionIdAndProcessedTrueOrderByTicketNumberDesc(any()) } answers {
+            tickets().filter { it.processed }.maxByOrNull { it.ticketNumber }
+        }
+        every { distributionHouseholdRepository.countByDistributionIdAndProcessedTrue(any()) } answers { tickets().count { it.processed } }
+        every { distributionHouseholdRepository.countAllByDistributionId(any()) } answers { tickets().size }
+        every { distributionHouseholdRepository.existsByDistributionIdAndProcessedFalse(any()) } answers { tickets().any { !it.processed } }
+        every { distributionHouseholdRepository.deleteUnprocessed(any()) } answers { if (deletedTicketIds.add(firstArg())) 1 else 0 }
     }
 
     @AfterEach
@@ -1622,7 +1652,6 @@ internal class DistributionServiceTest {
 
     private fun distributionWithUnprocessedTickets(count: Int = 1): DistributionEntity {
         every { distributionHouseholdRepository.save(any()) } returns mockk<DistributionHouseholdEntity>()
-        every { distributionHouseholdRepository.deleteUnprocessed(any()) } returns 1
 
         val distribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
             id = 123
@@ -1655,7 +1684,6 @@ internal class DistributionServiceTest {
             )
         }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
-        every { distributionHouseholdRepository.deleteUnprocessed(any()) } returns 1
 
         service.deleteCurrentTicket(testDistributionHouseholdEntity2.household.householdId)
 

@@ -13,6 +13,39 @@ interface DistributionHouseholdRepository : JpaRepository<DistributionHouseholdE
     fun findByDistributionId(distributionId: Long): List<DistributionHouseholdEntity>
 
     /**
+     * The single-ticket reads and counts below are what the check-in desks, the ticket screen and the
+     * dashboard ask for all day. They exist so those requests don't load `DistributionEntity.households`,
+     * whose cost grows with the size of the day - that list is for the closing statistics, which do
+     * need all of it.
+     */
+    fun findByDistributionIdAndTicketNumber(distributionId: Long, ticketNumber: Int): DistributionHouseholdEntity?
+
+    /** @param householdId the business number (`HouseholdEntity.householdId`), not the primary key. */
+    fun findByDistributionIdAndHouseholdHouseholdId(distributionId: Long, householdId: Long): DistributionHouseholdEntity?
+
+    fun findFirstByDistributionIdAndProcessedFalseOrderByTicketNumberAsc(distributionId: Long): DistributionHouseholdEntity?
+
+    fun findFirstByDistributionIdAndProcessedTrueOrderByTicketNumberDesc(distributionId: Long): DistributionHouseholdEntity?
+
+    fun countByDistributionIdAndProcessedTrue(distributionId: Long): Int
+
+    fun existsByDistributionIdAndProcessedFalse(distributionId: Long): Boolean
+
+    /**
+     * The persons of the distribution's households other than their main persons, leaving out the ones
+     * excluded from their household - with one per household for the main person, that is the formula
+     * `DistributionStatisticService` and the customer-list PDF use for "persons".
+     */
+    @Query(
+        """
+            select count(p) from DistributionHousehold dh
+            join Person p on p.household = dh.household
+            where dh.distribution.id = :distributionId and p.isMainPerson = false and p.excludeFromHousehold = false
+        """,
+    )
+    fun countAdditionalPersons(@Param("distributionId") distributionId: Long): Long
+
+    /**
      * @param householdEntityIds `households.id` (entity primary keys) - never the business
      * `householdId`. Used by `HouseholdMergeService` to gather every distribution-attendance row of
      * the target and its merge sources in one query, so same-distribution collisions (see

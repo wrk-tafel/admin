@@ -169,6 +169,9 @@ class DistributionService(
      * this insert could commit *after* [DistributionEndedEventListener] already read
      * `distribution.households` for the closing distribution, silently excluding the household from
      * that day's statistics and cost-contribution tracking (issue #3602).
+     *
+     * Every desk waits on these locks, so the section reads the two rows it checks rather than the
+     * day's whole list of households.
      */
     @Transactional
     fun assignHouseholdToDistribution(
@@ -181,9 +184,9 @@ class DistributionService(
 
             val household = householdRepository.findByHouseholdId(householdId)
                 ?: throw NotFoundException("Kunde Nr. $householdId nicht vorhanden!")
-            val existingHousehold = distribution.households.firstOrNull { it.household.householdId == householdId }
+            val existingHousehold = distributionHouseholdRepository.findByDistributionIdAndHouseholdHouseholdId(distribution.id!!, householdId)
 
-            val existingTicket = distribution.households.firstOrNull { it.ticketNumber == ticketNumber }
+            val existingTicket = distributionHouseholdRepository.findByDistributionIdAndTicketNumber(distribution.id!!, ticketNumber)
 
             // Can't assign to another household if already assigned but ok if it's the same household (update costContributionPaid flag)
             if (existingTicket != null && existingTicket.household.householdId != householdId) {
@@ -347,7 +350,7 @@ class DistributionService(
                 eventPublisher.publishEvent(
                     AllTicketsProcessedEvent(
                         distributionId = distribution.id!!,
-                        ticketCount = distribution.households.size,
+                        ticketCount = distributionHouseholdRepository.countAllByDistributionId(distribution.id!!),
                     ),
                 )
             }
@@ -385,7 +388,7 @@ class DistributionService(
     fun getHouseholdIdForTicketNumber(ticketNumber: Int): Long {
         val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
-        return distribution.households.firstOrNull { it.ticketNumber == ticketNumber }?.household?.householdId
+        return distributionHouseholdRepository.findByDistributionIdAndTicketNumber(distribution.id!!, ticketNumber)?.household?.householdId
             ?: throw NotFoundException("Ticket $ticketNumber wurde in der laufenden Ausgabe nicht vergeben!")
     }
 
@@ -403,8 +406,8 @@ class DistributionService(
         householdId = distributionHouseholdEntity?.household?.householdId,
         householdName = distributionHouseholdEntity?.household?.mainPerson?.let { "${it.firstname} ${it.lastname}" },
         pendingCostContribution = distributionHouseholdEntity?.household?.pendingCostContribution,
-        processedTicketsCount = distribution?.households?.count { it.processed == true },
-        totalTicketsCount = distribution?.households?.size,
+        processedTicketsCount = distribution?.let { distributionHouseholdRepository.countByDistributionIdAndProcessedTrue(it.id!!) },
+        totalTicketsCount = distribution?.let { distributionHouseholdRepository.countAllByDistributionId(it.id!!) },
     )
 
     /**
@@ -428,18 +431,14 @@ class DistributionService(
             // Deleting the last unprocessed ticket reaches the same "everyone served" state as
             // processing it (see closeCurrentTicketAndGetNext), but without going through that method
             // - so it has to mark completion here too, or AllTicketsProcessedEvent never fires for
-            // this distribution. `distribution.households` is the already-loaded collection from
-            // getFirstUnprocessedDistributionHouseholdEntity above, so the just-deleted entity is
-            // excluded by id rather than relying on the delete having removed it from that collection.
-            val remainingHouseholds = distribution.households.filter { entity -> entity.id != it.id }
-            val unprocessedTicketsRemain = remainingHouseholds.any { entity -> entity.processed == false }
-            if (!unprocessedTicketsRemain &&
+            // this distribution.
+            if (!distributionHouseholdRepository.existsByDistributionIdAndProcessedFalse(distribution.id!!) &&
                 distributionRepository.markTicketsCompleted(distribution.id!!, LocalDateTime.now()) == 1
             ) {
                 eventPublisher.publishEvent(
                     AllTicketsProcessedEvent(
                         distributionId = distribution.id!!,
-                        ticketCount = remainingHouseholds.size,
+                        ticketCount = distributionHouseholdRepository.countAllByDistributionId(distribution.id!!),
                     ),
                 )
             }
@@ -548,25 +547,16 @@ class DistributionService(
         endedAt = distribution.endedAt,
     )
 
-    private fun getLastProcessedDistributionHouseholdEntity(
-        distribution: DistributionEntity,
-        householdId: Long? = null,
-    ): DistributionHouseholdEntity? = distribution.households
-        .asSequence()
-        .filter { householdId == null || it.household.householdId == householdId }
-        .filter { it.processed == true }
-        .sortedBy { it.ticketNumber }
-        .lastOrNull()
+    private fun getLastProcessedDistributionHouseholdEntity(distribution: DistributionEntity): DistributionHouseholdEntity? = distributionHouseholdRepository.findFirstByDistributionIdAndProcessedTrueOrderByTicketNumberDesc(distribution.id!!)
 
     private fun getFirstUnprocessedDistributionHouseholdEntity(
         distribution: DistributionEntity,
         householdId: Long? = null,
-    ): DistributionHouseholdEntity? = distribution.households
-        .asSequence()
-        .filter { householdId == null || it.household.householdId == householdId }
-        .filter { it.processed == false }
-        .sortedBy { it.ticketNumber }
-        .firstOrNull()
+    ): DistributionHouseholdEntity? = if (householdId == null) {
+        distributionHouseholdRepository.findFirstByDistributionIdAndProcessedFalseOrderByTicketNumberAsc(distribution.id!!)
+    } else {
+        distributionHouseholdRepository.findByDistributionIdAndHouseholdHouseholdId(distribution.id!!, householdId)?.takeUnless { it.processed }
+    }
 
     /**
      * [referenceDate] is the distribution's own day rather than today, so a list regenerated for a

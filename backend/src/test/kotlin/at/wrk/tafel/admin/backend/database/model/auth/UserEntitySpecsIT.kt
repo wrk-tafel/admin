@@ -18,10 +18,6 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class UserEntitySpecsIT : TafelBaseIntegrationTest() {
 
-    companion object {
-        private const val SIMILARITY_THRESHOLD = 0.5f
-    }
-
     @Autowired
     private lateinit var testEntityManager: TestEntityManager
 
@@ -33,7 +29,7 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
 
     @Test
     fun `searchTextMatches returns null spec when the search term is null`() {
-        assertThat(UserEntity.Specs.searchTextMatches(null, SIMILARITY_THRESHOLD)).isNull()
+        assertThat(UserEntity.Specs.searchTextMatches(null)).isNull()
     }
 
     @Test
@@ -311,7 +307,6 @@ class UserEntitySpecsIT : TafelBaseIntegrationTest() {
 
     private fun searchSpec(searchInput: String) = UserEntity.Specs.searchTextMatches(
         searchTermNormalizer.normalize(searchInput),
-        SIMILARITY_THRESHOLD,
     )!!
 
     /**

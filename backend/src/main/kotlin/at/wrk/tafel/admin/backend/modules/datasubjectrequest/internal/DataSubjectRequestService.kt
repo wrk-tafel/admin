@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.components.UserExportService
 import at.wrk.tafel.admin.backend.common.auth.model.TafelAuthentication
 import at.wrk.tafel.admin.backend.common.export.ExportFileResult
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.common.search.SearchTermNormalizer
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
@@ -47,7 +46,6 @@ class DataSubjectRequestService(
     private val employeeFacade: EmployeeDataSubjectFacade,
     private val userExportService: UserExportService,
     private val userDetailsManager: TafelUserDetailsManager,
-    private val tafelAdminProperties: TafelAdminProperties,
     private val searchTermNormalizer: SearchTermNormalizer,
 ) {
 
@@ -68,6 +66,7 @@ class DataSubjectRequestService(
      * area they hold the permission for, so `DATA_SUBJECT_REQUESTS` alone never surfaces a name,
      * household number or username the caller couldn't otherwise reach (issue #3428).
      */
+    @Transactional(readOnly = true)
     fun search(searchInput: String): DataSubjectMatchListResponse {
         val searchTerm = searchTermNormalizer.normalize(searchInput)
             ?: return DataSubjectMatchListResponse(items = emptyList())
@@ -146,7 +145,7 @@ class DataSubjectRequestService(
     private fun searchHouseholds(searchTerm: String): SearchResult {
         val spec = orderHouseholdsBySearchRelevance(
             searchTerm,
-            where(householdSearchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold)!!),
+            where(householdSearchTextMatches(searchTerm)!!),
         )
         val page = householdRepository.findAll(spec, PageRequest.of(0, MAX_RESULTS_PER_TYPE))
         return SearchResult(
@@ -165,7 +164,7 @@ class DataSubjectRequestService(
     private fun searchUsers(searchTerm: String): SearchResult {
         val spec = orderUsersBySearchRelevance(
             searchTerm,
-            where(userSearchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold)!!),
+            where(userSearchTextMatches(searchTerm)!!),
         )
         val page = userRepository.findAll(spec, PageRequest.of(0, MAX_RESULTS_PER_TYPE))
         return SearchResult(
@@ -184,7 +183,7 @@ class DataSubjectRequestService(
     private fun searchEmployees(searchTerm: String): SearchResult {
         val spec = EmployeeEntity.Specs.orderById(
             Specification.allOf(
-                listOfNotNull(EmployeeEntity.Specs.searchTextMatches(searchTerm, tafelAdminProperties.search.similarityThreshold)),
+                listOfNotNull(EmployeeEntity.Specs.searchTextMatches(searchTerm)),
             ),
             searchTerm = searchTerm,
         )
