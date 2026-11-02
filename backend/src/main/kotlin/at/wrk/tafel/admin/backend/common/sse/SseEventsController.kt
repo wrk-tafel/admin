@@ -69,7 +69,7 @@ class SseEventsController(
     private fun endWithSession(sseEmitter: SseEmitter, sessionKey: String) {
         sseOutboxService.listenForNotificationEvents(sseEmitter, UserSessionService.SESSIONS_ENDED_NOTIFICATION, SessionsEndedEvent::class.java) {
             if (it?.sessionKeys?.contains(sessionKey) == true) {
-                sseEmitter.complete()
+                sseOutboxService.complete(sseEmitter)
             }
         }
     }

@@ -13,7 +13,8 @@ Only three source files (plus `package-info.java`):
 
 - **`DashboardSseTopic`** – the `dashboard` topic of `GET /api/sse/events`. On subscribe it immediately pushes one snapshot,
   then subscribes to a single outbox notification (`dashboard_update`) and re-pushes a fresh snapshot every
-  time that notification fires. It never queries the database itself.
+  time that notification fires - one snapshot per change for every open dashboard (`SseSharedSnapshot`).
+  It never queries the database itself.
 - **`internal/DashboardService`** – Builds the `DashboardData` snapshot from scratch on every call
   (`getData()`). Looks up the current open distribution
   (`DistributionRepository.getCurrentDistribution()`). If one is open, it assembles
@@ -93,10 +94,15 @@ So even the "shelter" data displayed here is a frozen snapshot captured at stati
 ## How the SSE update actually gets triggered (the outbox flow)
 
 The dashboard's SSE endpoint pushes an initial snapshot on connect, then waits for a
-`dashboard_update` notification via `SseOutboxService.listenForNotificationEvents<Unit>(...)`. Note the
-`resultType = null` / generic type `Unit` — the notification payload is **ignored on purpose**; whenever
-`dashboard_update` fires, the callback just calls `dashboardService.getData()` again and pushes a brand new
-snapshot. This module never has to know *what* changed, only *that* something did.
+`dashboard_update` notification. The notification's payload is empty and **ignored on purpose**;
+whenever `dashboard_update` fires, `dashboardService.getData()` runs again and the brand new snapshot is
+pushed to every open dashboard. This module never has to know *what* changed, only *that* something did.
+
+That call happens once per notification, not once per open dashboard: the topic holds one
+`SseSharedSnapshot` (`SseOutboxService.sharedSnapshot`) that every stream subscribes to
+(`listenForSharedSnapshot`). It runs on the SSE delivery executor rather than the outbox listener's
+coroutine, and notifications that arrive while it is running are merged into one more run after it.
+The `distribution` topic reads the header's registration count from the same notification the same way.
 
 Unlike `distribution`'s or `checkin`'s SSE producers (`DistributionController`, `ScannerController`), which
 call `SseOutboxService.saveOutboxEntry(...)` from Kotlin code to enqueue an outbox row, **nothing in this

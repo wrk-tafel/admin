@@ -16,6 +16,7 @@ import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
 import java.time.Duration
 import java.time.LocalDateTime
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 
@@ -35,6 +36,7 @@ class SseOutboxService(
     private val sseOutboxRepository: SseOutboxRepository,
     private val sseOutboxListenerService: SseOutboxListenerService,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val sseDeliveryExecutor: SseDeliveryExecutor,
 ) {
 
     companion object {
@@ -48,6 +50,9 @@ class SseOutboxService(
      * here once, however many topics it carries.
      */
     private val openEmitters = CopyOnWriteArrayList<SseEmitter>()
+
+    /** The send queue of each open stream, see [open] and [SseStreamSender]. */
+    private val senders = ConcurrentHashMap<SseEmitter, SseStreamSender>()
 
     @Volatile
     private var shuttingDown = false
@@ -77,7 +82,7 @@ class SseOutboxService(
      */
     @Scheduled(fixedRate = 25, timeUnit = TimeUnit.SECONDS)
     fun sendHeartbeats() {
-        openEmitters.forEach { trySend(it, SseEmitter.event().comment("heartbeat")) }
+        openEmitters.forEach { send(it, SseEmitter.event().comment("heartbeat")) }
     }
 
     /**
@@ -103,7 +108,32 @@ class SseOutboxService(
         if (emitters.isNotEmpty()) {
             logger.info("Application is shutting down, completing {} open SSE stream(s)", emitters.size)
         }
-        emitters.forEach(::tryComplete)
+        emitters.forEach(::complete)
+    }
+
+    /**
+     * Ends [sseEmitter] once what is already queued for it has been written. The way to end a stream
+     * from anywhere that must not wait for its socket - completing an emitter waits for a write that
+     * is still in progress.
+     */
+    fun complete(sseEmitter: SseEmitter) {
+        senders[sseEmitter]?.complete() ?: tryComplete(sseEmitter)
+    }
+
+    /**
+     * A [SseSharedSnapshot] that is computed anew on every [notificationName] - one per kind of
+     * value, held by the topic that serves it, not one per stream.
+     */
+    fun <T> sharedSnapshot(notificationName: String, compute: () -> T): SseSharedSnapshot<T> {
+        val snapshot = SseSharedSnapshot(notificationName, sseDeliveryExecutor, compute)
+        sseOutboxListenerService.registerCallback(notificationName, { snapshot.changed() })
+        return snapshot
+    }
+
+    /** Hands [sseEmitter]'s topic every value [snapshot] computes while the stream is open. */
+    fun <T> listenForSharedSnapshot(sseEmitter: SseEmitter, snapshot: SseSharedSnapshot<T>, onSnapshot: (T) -> Unit) {
+        snapshot.subscribe(onSnapshot)
+        finalize(sseEmitter, "shared snapshot") { snapshot.unsubscribe(onSnapshot) }
     }
 
     @Transactional
@@ -155,7 +185,7 @@ class SseOutboxService(
         }
 
         registerCallback(notificationName, callback, replayable)
-        finalize(sseEmitter, notificationName, callback)
+        finalize(sseEmitter, notificationName) { sseOutboxListenerService.unregisterCallback(notificationName, callback) }
     }
 
     fun <T> listenForNotificationEvents(
@@ -171,7 +201,7 @@ class SseOutboxService(
         }
 
         registerCallback(notificationName, callback)
-        finalize(sseEmitter, notificationName, callback)
+        finalize(sseEmitter, notificationName) { sseOutboxListenerService.unregisterCallback(notificationName, callback) }
     }
 
     /**
@@ -195,10 +225,14 @@ class SseOutboxService(
         }
     }
 
+    /**
+     * @param subscription what [unsubscribe] ends, for the debug log only
+     * @param unsubscribe stops whatever feeds this topic of the stream, once the stream has ended
+     */
     private fun finalize(
         sseEmitter: SseEmitter,
-        notificationName: String,
-        callback: (String?) -> Unit,
+        subscription: String,
+        unsubscribe: () -> Unit,
     ) {
         // One stream carries several topics, and each of them comes through here with the same
         // emitter. The cleanup is per topic; what is said about the stream itself is said once.
@@ -206,8 +240,8 @@ class SseOutboxService(
 
         val cleanup = {
             openEmitters.remove(sseEmitter)
-            sseOutboxListenerService.unregisterCallback(notificationName, callback)
-            logger.debug("Unregistered SSE callback for notification: {}", notificationName)
+            unsubscribe()
+            logger.debug("Unregistered SSE callback for: {}", subscription)
         }
 
         sseEmitter.onTimeout {
@@ -232,8 +266,37 @@ class SseOutboxService(
         }
 
         if (shuttingDown) {
-            tryComplete(sseEmitter)
+            complete(sseEmitter)
         }
+    }
+
+    /**
+     * Gives a new stream its send queue ([SseStreamSender]), for as long as the stream is open.
+     * Called by `SseEmitterFactory` for every emitter it creates; a stream that was never opened, or
+     * has ended, is not written to - an event that arrives for it after the end is dropped.
+     */
+    fun open(sseEmitter: SseEmitter) {
+        val stream = describeCurrentRequest()
+        senders[sseEmitter] = SseStreamSender(
+            executor = sseDeliveryExecutor,
+            write = { trySend(sseEmitter, it) },
+            completeStream = { tryComplete(sseEmitter) },
+            onOverflow = {
+                logger.info(
+                    "SSE stream {} fell {} events behind, ending it - its client stopped reading",
+                    stream,
+                    SseStreamSender.MAX_PENDING_EVENTS,
+                )
+            },
+        )
+        val close = { senders.remove(sseEmitter)?.close() }
+        sseEmitter.onCompletion { close() }
+        sseEmitter.onTimeout { close() }
+        sseEmitter.onError { close() }
+    }
+
+    private fun send(sseEmitter: SseEmitter, event: SseEmitter.SseEventBuilder) {
+        senders[sseEmitter]?.send(event) ?: logger.debug("Dropped an event for an SSE stream that is not open")
     }
 
     private fun tryComplete(sseEmitter: SseEmitter) {
@@ -289,7 +352,7 @@ class SseOutboxService(
         if (data != null) {
             event = event.data(data)
         }
-        trySend(sseEmitter, event)
+        send(sseEmitter, event)
     }
 
     private fun trySend(sseEmitter: SseEmitter, event: SseEmitter.SseEventBuilder) {

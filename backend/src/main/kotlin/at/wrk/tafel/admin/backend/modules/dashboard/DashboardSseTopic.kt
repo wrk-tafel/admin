@@ -18,16 +18,17 @@ class DashboardSseTopic(
 
     override val name = "dashboard"
 
+    /** Computed once per change for every open dashboard, see `SseSharedSnapshot`. */
+    private val dashboardData = sseOutboxService.sharedSnapshot(DASHBOARD_UPDATE_NOTIFICATION_NAME) {
+        dashboardService.getData()
+    }
+
     override fun subscribe(emitter: SseEmitter, argument: String?) {
         // Initial data
         sseOutboxService.sendEvent(emitter, dashboardService.getData(), name)
 
-        sseOutboxService.listenForNotificationEvents<Unit>(
-            sseEmitter = emitter,
-            notificationName = DASHBOARD_UPDATE_NOTIFICATION_NAME,
-            resultType = null,
-        ) {
-            sseOutboxService.sendEvent(emitter, dashboardService.getData(), name)
+        sseOutboxService.listenForSharedSnapshot(emitter, dashboardData) { data ->
+            sseOutboxService.sendEvent(emitter, data, name)
         }
     }
 }

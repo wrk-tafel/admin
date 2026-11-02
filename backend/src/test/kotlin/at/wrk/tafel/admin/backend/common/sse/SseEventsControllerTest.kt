@@ -109,10 +109,10 @@ internal class SseEventsControllerTest {
         controller.listen(listOf("distribution"))
 
         onSessionsEnded.captured(SessionsEndedEvent(listOf("OTHER")))
-        verify(exactly = 0) { emitter.complete() }
+        verify(exactly = 0) { sseOutboxService.complete(emitter) }
 
         onSessionsEnded.captured(SessionsEndedEvent(listOf("OTHER", "KEY")))
-        verify(exactly = 1) { emitter.complete() }
+        verify(exactly = 1) { sseOutboxService.complete(emitter) }
     }
 
     @Test

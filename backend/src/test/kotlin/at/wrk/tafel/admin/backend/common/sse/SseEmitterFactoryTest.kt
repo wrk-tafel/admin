@@ -1,10 +1,13 @@
 package at.wrk.tafel.admin.backend.common.sse
 
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.common.sseoutbox.SseOutboxService
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.slot
 import io.mockk.unmockkConstructor
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
@@ -21,11 +24,21 @@ internal class SseEmitterFactoryTest {
     fun `the configured timeout is how long a stream is held open`() {
         val factory = SseEmitterFactory(
             TafelAdminProperties().apply { sse.timeout = Duration.ofMinutes(90) },
+            mockk(relaxed = true),
         )
 
         val sseEmitter = factory.createSseEmitter()
 
         assertThat(sseEmitter.timeout).isEqualTo(Duration.ofMinutes(90).toMillis())
+    }
+
+    @Test
+    fun `every stream it creates is opened for sending`() {
+        val sseOutboxService = mockk<SseOutboxService>(relaxed = true)
+
+        val sseEmitter = SseEmitterFactory(TafelAdminProperties(), sseOutboxService).createSseEmitter()
+
+        verify { sseOutboxService.open(sseEmitter) }
     }
 
     @Test
@@ -36,6 +49,7 @@ internal class SseEmitterFactoryTest {
             every { anyConstructed<SseEmitter>().send(capture(eventSlot)) } returns Unit
             val factory = SseEmitterFactory(
                 TafelAdminProperties().apply { sse.reconnectTime = Duration.ofSeconds(5) },
+                mockk(relaxed = true),
             )
 
             factory.createSseEmitter()
