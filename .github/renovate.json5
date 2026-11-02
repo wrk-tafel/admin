@@ -25,6 +25,10 @@
     java: '^26.0.0',
   },
 
+  // Renovate's npm refuses to fetch a tarball by its URL, which the lockfile update needs for the
+  // bundled @tailwindcss/oxide-wasm32-wasi when a group like Angular is updated.
+  npmrc: 'allow-remote=all',
+
   customManagers: [
     {
       // Plain string constants, which no built-in manager reads. Every image a Testcontainers test
