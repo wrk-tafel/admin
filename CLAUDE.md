@@ -716,6 +716,13 @@ Authentication: Basic HTTP auth at `POST /api/login` opens a login session - a r
   A migration the previous release cannot work with - a dropped or renamed column it still reads, a
   constraint it violates - breaks requests on the old version for that window. See
   [ADR-0069](docs/architecture/adr/0069-prod-is-deployed-without-downtime-and-without-a-deploy-window.md).
+- **Workflow token permissions**: every workflow declares `permissions: contents: read` at the top,
+  and a job that needs more lists exactly that. A reusable workflow's job can never hold more than
+  the calling job grants, so a new permission in a `subflow_*.yml` needs adding to the job that
+  calls it in `pull_request.yml`, `main_push.yml` and `release.yml` as well. A missing grant fails
+  the whole run at startup, and only for the workflow that was triggered, so a pull request's
+  pipeline says nothing about the other two. Every checkout sets `persist-credentials: false`,
+  which keeps the token out of reach of build scripts; a job that has to push would opt back in.
 - **Deploys run in GitHub Environments**: `subflow_deploy.yml`'s job declares
   `environment: ${{ inputs.environment }}` — one name for both the folder on the server and the
   GitHub environment the deployment is recorded against. `dev`/`test`/`prod` are the only three, all

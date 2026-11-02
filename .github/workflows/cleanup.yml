@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '00 8 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   delete-workflow-runs:
     runs-on: ubuntu-26.04

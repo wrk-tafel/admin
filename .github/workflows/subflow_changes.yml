@@ -25,6 +25,9 @@ on:
         description: 'true when the change affects the deployable application at all (backend, frontend or docker)'
         value: ${{ jobs.detect.outputs.app }}
 
+permissions:
+  contents: read
+
 jobs:
   detect:
     runs-on: ubuntu-26.04

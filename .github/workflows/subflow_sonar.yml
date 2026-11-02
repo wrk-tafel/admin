@@ -11,14 +11,19 @@ on:
       SONAR_TOKEN:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   sonar:
     runs-on: ubuntu-26.04
     permissions:
+      contents: read
       pull-requests: read # allows SonarCloud to decorate PRs with analysis results
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0 # SonarCloud needs full history for blame and branch comparison
       - name: Set up JDK
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0

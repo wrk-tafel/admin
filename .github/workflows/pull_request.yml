@@ -13,12 +13,19 @@ concurrency:
   group: pull-request-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   commitlint:
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
         with:
@@ -66,6 +73,9 @@ jobs:
       # the note on that job. main_push.yml deliberately passes nothing and always runs it.
       backend: ${{ needs.changes.outputs.backend == 'true' }}
   sonar:
+    permissions:
+      contents: read
+      pull-requests: read
     uses: ./.github/workflows/subflow_sonar.yml
     needs: test
     secrets:
@@ -79,6 +89,10 @@ jobs:
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
       docker: ${{ needs.changes.outputs.docker == 'true' }}
   codeql:
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     uses: ./.github/workflows/subflow_codeql.yml
     needs: changes
     if: needs.changes.outputs.app == 'true'
@@ -89,6 +103,9 @@ jobs:
   # whose dependency was skipped. The image and the deploy below carry one anyway, for who rather
   # than for what changed.
   build-push-image:
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: build
     # On a pull request the image exists only to be deployed to dev, and deploy-dev below never runs

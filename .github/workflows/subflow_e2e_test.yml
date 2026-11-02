@@ -28,6 +28,9 @@ on:
   workflow_dispatch:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   discover-specs:
     name: discover specs
@@ -36,6 +39,8 @@ jobs:
       shards: ${{ steps.list.outputs.shards }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - id: list
         working-directory: frontend/src/main/webapp/cypress/e2e
         run: |
@@ -88,6 +93,8 @@ jobs:
           - 8025:8025
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: 'frontend/src/main/webapp/.nvmrc'
