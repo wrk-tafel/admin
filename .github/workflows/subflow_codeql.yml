@@ -23,7 +23,7 @@ jobs:
   # inputs.* are unset on a manual run, which should exercise everything.
   codeql-backend:
     if: ${{ github.event_name == 'workflow_dispatch' || inputs.backend }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       security-events: write
       actions: read
@@ -65,7 +65,7 @@ jobs:
 
   codeql-frontend:
     if: ${{ github.event_name == 'workflow_dispatch' || inputs.frontend }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       security-events: write
       actions: read

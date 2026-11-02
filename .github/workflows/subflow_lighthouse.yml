@@ -39,7 +39,7 @@ on:
 
 jobs:
   shell:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
@@ -111,7 +111,7 @@ jobs:
 
   pages:
     name: pages (${{ matrix.shard.name }}, ${{ matrix.formFactor }})
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       # One shard failing its accessibility threshold says nothing about the others, and a sweep
       # that stops at the first red page reports a fraction of what it measured.
