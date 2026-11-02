@@ -9,7 +9,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 
-interface HouseholdPageRepository {
+fun interface HouseholdPageRepository {
 
     /**
      * What `findAll(spec, pageable)` answers, in one statement rather than a page plus a separate
@@ -32,7 +32,7 @@ class HouseholdPageRepositoryImpl : HouseholdPageRepository {
         val query = cb.createTupleQuery()
         val root = query.from(HouseholdEntity::class.java)
         spec.toPredicate(root, query, cb)?.let { query.where(it) }
-        query.multiselect(root, cb.count(root.get<Long>("id"), cb.createWindow()))
+        query.select(cb.tuple(root, cb.count(root.get<Long>("id"), cb.createWindow())))
 
         val rows: List<Tuple> = entityManager.createQuery(query)
             .setFirstResult(pageable.offset.toInt())
