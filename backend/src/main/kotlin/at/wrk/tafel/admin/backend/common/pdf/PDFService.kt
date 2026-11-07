@@ -8,6 +8,7 @@ import org.apache.fop.events.EventFormatter
 import org.apache.fop.events.EventListener
 import org.apache.fop.events.model.EventSeverity
 import org.slf4j.LoggerFactory
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.stereotype.Service
 import tools.jackson.dataformat.xml.XmlMapper
 import java.io.ByteArrayInputStream
@@ -92,6 +93,22 @@ class PDFService {
                 }
             }
         }
+    }
+
+    /**
+     * Compiles every document stylesheet (`/pdf-templates/<folder>/<name>.xsl` - the `includes/`
+     * folders below them are compiled as part of the stylesheets that include them) into the cache
+     * [generatePdf] reads from, and returns the paths it compiled. Used by [PdfWarmup].
+     */
+    fun precompileStylesheets(): List<String> {
+        val stylesheetPaths = PathMatchingResourcePatternResolver(PDFService::class.java.classLoader)
+            .getResources("classpath*:/pdf-templates/*/*.xsl")
+            .mapNotNull { it.url.toString().substringAfterLast("/pdf-templates/", "").ifEmpty { null } }
+            .map { "/pdf-templates/$it" }
+            .distinct()
+            .sorted()
+        stylesheetPaths.forEach { compiledStylesheet(it) }
+        return stylesheetPaths
     }
 
     /**

@@ -3,6 +3,9 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Kunden: Das erste Stammdatenblatt, der erste Kundenausweis und die übrigen PDFs nach einem Update oder Neustart brauchen nicht mehr einige Sekunden, weil der Server das PDF-Erstellen schon beim Start vorbereitet.
+
+## [1.35.7] - 2026-11-02
 - Ticket-Monitor, Übersicht und die übrigen Live-Anzeigen bleiben nicht mehr minutenlang stehen, wenn ein Gerät (z. B. ein Handy ohne Netz oder ein Laptop im Ruhezustand) die Verbindung verliert, ohne sie zu schließen; außerdem belasten viele gleichzeitig geöffnete Übersichten den Server bei jeder Änderung deutlich weniger.
 - Kundensuche, Anmeldung zur Ausgabe, Ticket-Monitor und Übersicht antworten bei vielen Kunden und an Tagen mit vielen Tickets deutlich schneller; die Suchergebnisse bleiben dabei dieselben.
 
