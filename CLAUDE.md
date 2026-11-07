@@ -871,7 +871,9 @@ Authentication: Basic HTTP auth at `POST /api/login` opens a login session - a r
   Note this is memoization of classpath resources, which cannot change while the application runs —
   it needs no eviction, no TTL and nothing that reaches a second instance. It is not a precedent for
   holding on to anything a user or operator can edit; that is what ADR-0048 rules out for
-  `static_values` above.
+  `static_values` above. `PdfWarmup` (an `ApplicationRunner`) fills both at startup —
+  compiling every `/pdf-templates/*/*.xsl` and rendering `warmup/warmup-document.xsl` once — so the
+  first user's PDF doesn't pay several seconds for it (issue #3945); a failure there is only logged.
 - **Mail Templates**: Thymeleaf templates in `backend/src/main/resources/mail-templates/`. Golden
   reference files in `src/test/resources/mail-references/` are compared byte-for-byte by
   `MailTemplateRenderingTest`, so a new/changed template needs its reference regenerated — and keep
