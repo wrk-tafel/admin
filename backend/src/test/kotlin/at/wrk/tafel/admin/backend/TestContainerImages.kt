@@ -6,4 +6,4 @@ package at.wrk.tafel.admin.backend
 // values: these tests also run directly from an IDE, not just via Gradle, so the versions have to be
 // available on the JVM classpath already.
 const val TEST_POSTGRES_IMAGE = "postgres:18.6-bookworm"
-const val TEST_MAILPIT_IMAGE = "axllent/mailpit:v1.33.0"
+const val TEST_MAILPIT_IMAGE = "axllent/mailpit:v1.33.1"
