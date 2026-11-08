@@ -80,6 +80,9 @@ describe('Statistics Children', () => {
 
       cy.byTestId('childrenAgeMinInput').clear().type('11');
       cy.byTestId('childrenAgeMaxInput').clear().type('16');
+      // children-basis follows the response, not the inputs - paging before the narrowed result has
+      // landed would click "last" on the old, longer result and ask for a page beyond the new one's end
+      cy.byTestId('children-basis').should('contain.text', 'Kinder von 11 bis 16 Jahren');
       goToLastResultPage();
 
       cy.byTestId('children-table').contains(child.lastname).scrollIntoView();
@@ -156,6 +159,7 @@ describe('Statistics Children', () => {
       cy.visit('/statistiken/auswertung-kinder');
       cy.byTestId('childrenAgeMinInput').clear().type('13');
       cy.byTestId('childrenAgeMaxInput').clear().type('14');
+      cy.byTestId('children-basis').should('contain.text', 'Kinder von 13 bis 14 Jahren');
       goToLastResultPage();
 
       // rows of one household are consecutive, so only the first of them repeats the number - which
