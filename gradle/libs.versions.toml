@@ -29,7 +29,7 @@ springdoc-openapi = "3.2.0"
 spring-retry = "2.0.13"
 # Runs the scheduled jobs that are not row-based once per cluster. Stores its lock in the same
 # PostgreSQL as everything else (ADR-0003) - a library, not another piece of infrastructure.
-shedlock = "7.10.1"
+shedlock = "7.11.0"
 googleauth = "1.5.0"
 # WebAuthn (passkey) verification - the version Spring Security 7.1 builds its own WebAuthn support on.
 webauthn4j = "0.31.11.RELEASE"
