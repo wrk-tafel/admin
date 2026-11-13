@@ -178,7 +178,7 @@ class DistributionConcurrentAssignHouseholdIT : TafelBaseIntegrationTest() {
                 distributionHouseholdRepository.findByDistributionId(distributionId)
             }!!
             assertThat(storedEntries).hasSize(1)
-            assertThat(storedEntries.first().household.householdId).isEqualTo(household.householdId)
+            assertThat(storedEntries.first().household!!.householdId).isEqualTo(household.householdId)
         } finally {
             executor.shutdownNow()
         }

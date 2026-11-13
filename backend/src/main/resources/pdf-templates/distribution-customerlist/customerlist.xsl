@@ -92,7 +92,12 @@
                                     </fo:table-cell>
                                     <fo:table-cell text-align="center" display-align="center" padding="2mm">
                                         <fo:block>
-                                            <xsl:value-of select="householdId"/>
+                                            <xsl:choose>
+                                                <xsl:when test="goodwill = 'true'">Kulanz</xsl:when>
+                                                <xsl:otherwise>
+                                                    <xsl:value-of select="householdId"/>
+                                                </xsl:otherwise>
+                                            </xsl:choose>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell text-align="center" display-align="center" padding="2mm">

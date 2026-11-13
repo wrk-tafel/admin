@@ -20,6 +20,19 @@ Content-Type: application/json
   "ticketNumber": 100
 }
 
+### Hand out a goodwill package (ticket without a household)
+POST {{baseApiPath}}/distributions/goodwill-tickets
+Content-Type: application/json
+
+{
+  "ticketNumber": 101,
+  "personCount": 3,
+  "infantCount": 1
+}
+
+### Take back a goodwill package that hasn't been called yet
+DELETE {{baseApiPath}}/distributions/goodwill-tickets/101
+
 ### Save statistic data to distribution
 POST {{baseApiPath}}/distributions/statistics
 Content-Type: application/json

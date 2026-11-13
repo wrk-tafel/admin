@@ -54,6 +54,14 @@ class DistributionStatisticEntity(
     @Column(name = "count_single_parent_households")
     var countSingleParentHouseholds: Int = 0
 
+    /** Goodwill packages ("Kulanzpakete") - tickets handed out without a household, not part of the counts above. */
+    @Column(name = "count_goodwill_packages")
+    var countGoodwillPackages: Int = 0
+
+    /** The persons the goodwill packages were for, as given at check-in. */
+    @Column(name = "count_goodwill_persons")
+    var countGoodwillPersons: Int = 0
+
     @Column(name = "shops_total_count")
     var shopsTotalCount: Int = 0
 
@@ -82,6 +90,8 @@ class DistributionStatisticEntity(
         countPersonsProlonged == 0 &&
         countCustomersUpdated == 0 &&
         countSingleParentHouseholds == 0 &&
+        countGoodwillPackages == 0 &&
+        countGoodwillPersons == 0 &&
         shopsTotalCount == 0 &&
         shopsWithFoodCount == 0 &&
         BigDecimal.ZERO.compareTo(foodTotalAmount) == 0 &&

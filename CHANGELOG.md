@@ -3,6 +3,9 @@
 Diese Datei dokumentiert die nennenswerten Änderungen an Tafel Admin auf Deutsch, kurz und knapp gehalten. Jede neue Funktion oder Korrektur, die für Anwender:innen sichtbar ist, ergänzt hier einen Eintrag unter `## [Unreleased]`. Die Release-Pipeline übernimmt neu hinzugekommene Zeilen automatisch in die Release-Notes auf GitHub (siehe `release.yml` und CLAUDE.md, Abschnitt "Changelog").
 Jeder Eintrag ist eine einzelne, nicht umgebrochene Zeile, die mit `- ` beginnt - die Release-Pipeline erkennt einen neuen Changelog-Eintrag genau daran.
 ## [Unreleased]
+- Anmeldung: Neue Schaltfläche "Kulanzpaket" gibt Personen ohne Kundennummer (z. B. wenn die Unterlagen für die Aufnahme fehlen) ein Ticket mit Personenanzahl; es wird am Ticket-Monitor aufgerufen, steht auf der Kundenliste als "Kulanz" an seiner Ticket-Nummer und wird im Tagesreport und im Statistik-Export als Kulanzpakete gezählt.
+
+## [1.35.8] - 2026-11-07
 - Kunden: Das erste Stammdatenblatt, der erste Kundenausweis und die übrigen PDFs nach einem Update oder Neustart brauchen nicht mehr einige Sekunden, weil der Server das PDF-Erstellen schon beim Start vorbereitet.
 
 ## [1.35.7] - 2026-11-02

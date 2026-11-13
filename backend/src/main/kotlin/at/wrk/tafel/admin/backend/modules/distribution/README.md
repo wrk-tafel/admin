@@ -33,6 +33,13 @@ block over the actually-open one from another's.
 - **DistributionHouseholdEntity** (table `distributions_households`) — a household's ticket within a
   distribution: `ticketNumber`, `processed` (has this ticket already been called/served?),
   `costContributionPaid`, `skipped` (closed without being served - the household wasn't there).
+  A ticket can also be a **goodwill package** ("Kulanzpaket", `goodwill`): handed to persons who are
+  not a registered household, so `household` is `null` and the row records only
+  `goodwillPersonCount`/`goodwillInfantCount` (`ck_distributions_households_goodwill` allows exactly
+  one of the two shapes). It is queued, called and listed on the Kundenliste like any ticket, but
+  owes no cost contribution and has no demographics: the closing statistics count it separately
+  (`countGoodwillPackages`/`countGoodwillPersons`) rather than as a household. Anything reading
+  `ticket.household` has to expect `null`.
 - **DistributionStatisticEntity** / **DistributionStatisticShelterEntity** (tables
   `distributions_statistics`, and a shelter snapshot list) — the statistics snapshot for a
   *closed* distribution. `isEmpty()` is used to validate that a distribution isn't closed without
@@ -40,6 +47,7 @@ block over the actually-open one from another's.
 
 ### DistributionService (`internal/DistributionService.kt`)
 The core service. Notable methods: `createNewDistribution()`, `assignHouseholdToDistribution()`,
+`assignGoodwillTicket()` / `deleteGoodwillTicket()` (goodwill packages, see above),
 `getCurrentTicketNumber()` / `closeCurrentTicketAndGetNext()` / `skipCurrentTicketAndGetNext()` /
 `reopenAndGetPreviousTicket()` / `deleteCurrentTicket()` (the ticket queue workflow),
 `getHouseholdIdForTicketNumber()`, `validateClose()` / `closeDistribution()`,
@@ -48,7 +56,7 @@ and `sendMails()` (manual re-send, see below).
 
 ### Controllers
 - **DistributionController** — `/api/distributions*`: list, create, close, notes, statistics,
-  household-list PDF, manual mail re-send, and the `distribution` SSE topic (`DistributionSseTopic`) that pushes
+  goodwill packages (`POST /goodwill-tickets`, `DELETE /goodwill-tickets/{ticketNumber}`), household-list PDF, manual mail re-send, and the `distribution` SSE topic (`DistributionSseTopic`) that pushes
   `DistributionUpdateResponse` whenever the current distribution starts/ends. The response also
   carries `registeredCustomers` (the header's live count): the stream re-sends it whenever the
   count changes, driven by the `dashboard_update` notification, so the header needs no stream of its own.

@@ -67,6 +67,24 @@ describe('DistributionApiService', () => {
     expect(req.request.body).toEqual({householdId: requestBody.customerId, ticketNumber: requestBody.ticketNumber});
   });
 
+  it('assign goodwill ticket', () => {
+    apiService.assignGoodwillTicket({ticketNumber: 7, personCount: 3, infantCount: 1}).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/goodwill-tickets'});
+    req.flush(null);
+    httpMock.verify();
+
+    expect(req.request.body).toEqual({ticketNumber: 7, personCount: 3, infantCount: 1});
+  });
+
+  it('delete goodwill ticket', () => {
+    apiService.deleteGoodwillTicket(7).subscribe();
+
+    const req = httpMock.expectOne({method: 'DELETE', url: '/distributions/goodwill-tickets/7'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('save statistics', () => {
     const requestBody: SaveDistributionStatisticRequest = {employeeCount: 100, selectedShelterIds: [1, 2, 3]};
     apiService.saveStatistic(requestBody.employeeCount, requestBody.selectedShelterIds).subscribe();

@@ -14,6 +14,7 @@ import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardService
 import jakarta.persistence.EntityManagerFactory
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.hibernate.SessionFactory
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -87,7 +88,7 @@ class DistributionTicketQueriesIT : TafelBaseIntegrationTest() {
         val ticket = tickets[3]
 
         assertThat(repository.findByDistributionIdAndTicketNumber(distribution.id!!, 4)?.id).isEqualTo(ticket.id)
-        assertThat(repository.findByDistributionIdAndHouseholdHouseholdId(distribution.id!!, ticket.household.householdId)?.id).isEqualTo(ticket.id)
+        assertThat(repository.findByDistributionIdAndHouseholdHouseholdId(distribution.id!!, ticket.household!!.householdId)?.id).isEqualTo(ticket.id)
         assertThat(repository.findByDistributionIdAndTicketNumber(distribution.id!!, 999)).isNull()
     }
 
@@ -110,9 +111,9 @@ class DistributionTicketQueriesIT : TafelBaseIntegrationTest() {
 
     @Test
     fun `counts additional persons without main persons and without the ones excluded from their household`() {
-        addPerson(tickets[0].household, excludeFromHousehold = false)
-        addPerson(tickets[0].household, excludeFromHousehold = true)
-        addPerson(tickets[1].household, excludeFromHousehold = false)
+        addPerson(tickets[0].household!!, excludeFromHousehold = false)
+        addPerson(tickets[0].household!!, excludeFromHousehold = true)
+        addPerson(tickets[1].household!!, excludeFromHousehold = false)
         testEntityManager.flush()
         val expected = countAdditionalPersonsThroughTheEntities()
 
@@ -121,7 +122,7 @@ class DistributionTicketQueriesIT : TafelBaseIntegrationTest() {
 
     @Test
     fun `a check-in reads the rows it checks, not the day's list`() {
-        val newHousehold = tickets[5].household.householdId
+        val newHousehold = tickets[5].household!!.householdId
 
         val loaded = ticketsLoadedBy { distributionService.assignHouseholdToDistribution(newHousehold, 100) }
 
@@ -160,6 +161,49 @@ class DistributionTicketQueriesIT : TafelBaseIntegrationTest() {
         return statistics.getEntityStatistics(DistributionHouseholdEntity::class.java.name).loadCount
     }
 
+    @Test
+    fun `a goodwill package is stored without a household and counts its further persons`() {
+        distributionService.assignGoodwillTicket(ticketNumber = 50, personCount = 3, infantCount = 1)
+        distributionService.assignGoodwillTicket(ticketNumber = 51, personCount = 1, infantCount = 0)
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val stored = repository.findByDistributionIdAndTicketNumber(distribution.id!!, 50)!!
+        assertThat(stored.household).isNull()
+        assertThat(stored.goodwill).isTrue()
+        assertThat(stored.goodwillPersonCount).isEqualTo(3)
+        assertThat(stored.goodwillInfantCount).isEqualTo(1)
+        assertThat(repository.countGoodwillAdditionalPersons(distribution.id!!)).isEqualTo(2)
+        assertThat(repository.countAdditionalPersons(distribution.id!!)).isEqualTo(countAdditionalPersonsThroughTheEntities())
+    }
+
+    @Test
+    fun `the database refuses a goodwill package that belongs to a household`() {
+        val household = tickets[0].household!!
+
+        assertThatThrownBy {
+            testEntityManager.persist(
+                DistributionHouseholdEntity(
+                    distribution = distribution,
+                    household = household,
+                    ticketNumber = 60,
+                    goodwill = true,
+                    goodwillPersonCount = 1,
+                    goodwillInfantCount = 0,
+                ),
+            )
+            testEntityManager.flush()
+        }.hasStackTraceContaining("ck_distributions_households_goodwill")
+    }
+
+    @Test
+    fun `the database refuses a ticket with neither a household nor a goodwill package`() {
+        assertThatThrownBy {
+            testEntityManager.persist(DistributionHouseholdEntity(distribution = distribution, household = null, ticketNumber = 61))
+            testEntityManager.flush()
+        }.hasStackTraceContaining("ck_distributions_households_goodwill")
+    }
+
     private fun addPerson(household: HouseholdEntity, excludeFromHousehold: Boolean) {
         val person = PersonEntity(household = household, country = country, isMainPerson = false)
         person.lastname = "Additional"
@@ -170,7 +214,7 @@ class DistributionTicketQueriesIT : TafelBaseIntegrationTest() {
     }
 
     private fun countAdditionalPersonsThroughTheEntities(): Long = tickets
-        .flatMap { it.household.additionalPersons() }
+        .flatMap { it.household!!.additionalPersons() }
         .count { !it.excludeFromHousehold }
         .toLong()
 }

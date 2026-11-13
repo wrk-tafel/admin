@@ -226,7 +226,7 @@ internal class DistributionServiceTest {
             tickets().firstOrNull { it.ticketNumber == secondArg<Int>() }
         }
         every { distributionHouseholdRepository.findByDistributionIdAndHouseholdHouseholdId(any(), any()) } answers {
-            tickets().filter { it.household.householdId == secondArg<Long>() }.minByOrNull { it.processed }
+            tickets().filter { it.household?.householdId == secondArg<Long>() }.minByOrNull { it.processed }
         }
         every { distributionHouseholdRepository.findFirstByDistributionIdAndProcessedFalseOrderByTicketNumberAsc(any()) } answers {
             tickets().filterNot { it.processed }.minByOrNull { it.ticketNumber }
@@ -1014,6 +1014,197 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `generate customerlist pdf lists a goodwill package at its ticket number and counts its persons`() {
+        val localTestDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        val householdTicket = DistributionHouseholdEntity(
+            distribution = localTestDistributionEntity,
+            household = testHouseholdEntity2,
+            ticketNumber = 10,
+        ).apply { id = 10 }
+        val goodwillTicket = goodwillTicket(localTestDistributionEntity, ticketNumber = 5, personCount = 3, infantCount = 1)
+
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns localTestDistributionEntity
+        every { distributionHouseholdRepository.findByDistributionId(123) } returns listOf(householdTicket, goodwillTicket)
+        every { pdfService.generatePdf(any(), any()) } returns ByteArray(0)
+
+        service.generateHouseholdListPdf()
+
+        val householdListPdfModelSlot = slot<HouseholdListPdfModel>()
+        verify { pdfService.generatePdf(capture(householdListPdfModelSlot), any()) }
+
+        val pdfModel = householdListPdfModelSlot.captured
+        assertThat(pdfModel.households).containsExactly(
+            HouseholdListItem(ticketNumber = 5, householdId = null, goodwill = true, countPersons = 3, countInfants = 1),
+            HouseholdListItem(ticketNumber = 10, householdId = 200, countPersons = 1, countInfants = 0),
+        )
+        assertThat(pdfModel.countHouseholdsOverall).isEqualTo(2)
+        assertThat(pdfModel.countPersonsOverall).isEqualTo(4)
+    }
+
+    @Test
+    fun `assign goodwill ticket saves a ticket without a household`() {
+        val activeDistribution = testDistributionEntity.apply {
+            endedAt = null
+            households = emptyList()
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { distributionHouseholdRepository.save(any()) } returns mockk()
+        every { distributionRepository.markCheckinStarted(activeDistribution.id!!, any()) } returns 1
+
+        service.assignGoodwillTicket(ticketNumber = 77, personCount = 2, infantCount = 1)
+
+        verify {
+            distributionHouseholdRepository.save(
+                withArg {
+                    assertThat(it.household).isNull()
+                    assertThat(it.goodwill).isTrue()
+                    assertThat(it.goodwillPersonCount).isEqualTo(2)
+                    assertThat(it.goodwillInfantCount).isEqualTo(1)
+                    assertThat(it.ticketNumber).isEqualTo(77)
+                    assertThat(it.distribution).isEqualTo(activeDistribution)
+                },
+            )
+        }
+        verify(exactly = 1) { advisoryLockService.acquireLock(AdvisoryLockKey.CLOSE_DISTRIBUTION) }
+        verify { advisoryLockService.withLock<Any>(AdvisoryLockKey.ASSIGN_HOUSEHOLD_TO_DISTRIBUTION, any()) }
+        verify { eventPublisher.publishEvent(CheckinStartedEvent(activeDistribution.id!!)) }
+    }
+
+    @Test
+    fun `assign goodwill ticket refuses a ticket number that is taken`() {
+        val activeDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+            households = listOf(testDistributionHouseholdEntity1)
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+
+        val exception = assertThrows<ConflictException> {
+            service.assignGoodwillTicket(ticketNumber = testDistributionHouseholdEntity1.ticketNumber, personCount = 1, infantCount = 0)
+        }
+
+        assertThat(exception.body.detail).isEqualTo("Ticketnummer ${testDistributionHouseholdEntity1.ticketNumber} bereits vergeben!")
+        verify(exactly = 0) { distributionHouseholdRepository.save(any()) }
+    }
+
+    @Test
+    fun `assign goodwill ticket refuses more infants than persons`() {
+        val exception = assertThrows<BusinessRuleException> {
+            service.assignGoodwillTicket(ticketNumber = 1, personCount = 1, infantCount = 2)
+        }
+
+        assertThat(exception.body.detail).isEqualTo("Es können nicht mehr Kinder unter 3 Jahren als Personen angegeben werden!")
+    }
+
+    @Test
+    fun `a household cannot take the ticket number of a goodwill package`() {
+        val activeDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        activeDistribution.households = listOf(goodwillTicket(activeDistribution, ticketNumber = 5))
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+        every { householdRepository.findByHouseholdId(100) } returns testHouseholdEntity1
+
+        val exception = assertThrows<ConflictException> {
+            service.assignHouseholdToDistribution(householdId = 100, ticketNumber = 5)
+        }
+
+        assertThat(exception.body.detail).isEqualTo("Ticketnummer 5 bereits vergeben!")
+    }
+
+    @Test
+    fun `delete goodwill ticket removes an uncalled goodwill package`() {
+        val activeDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        val ticket = goodwillTicket(activeDistribution, ticketNumber = 5)
+        activeDistribution.households = listOf(ticket)
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+
+        service.deleteGoodwillTicket(5)
+
+        verify { distributionHouseholdRepository.deleteUnprocessed(ticket.id!!) }
+    }
+
+    @Test
+    fun `delete goodwill ticket refuses a household's ticket`() {
+        val activeDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+            households = listOf(testDistributionHouseholdEntity1)
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+
+        assertThrows<BusinessRuleException> { service.deleteGoodwillTicket(testDistributionHouseholdEntity1.ticketNumber) }
+
+        verify(exactly = 0) { distributionHouseholdRepository.deleteUnprocessed(any()) }
+    }
+
+    @Test
+    fun `delete goodwill ticket of an unknown ticket number does nothing`() {
+        val activeDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+            households = emptyList()
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+
+        service.deleteGoodwillTicket(5)
+
+        verify(exactly = 0) { distributionHouseholdRepository.deleteUnprocessed(any()) }
+    }
+
+    @Test
+    fun `get current ticket-screen ticket marks a goodwill package`() {
+        val activeDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        activeDistribution.households = listOf(goodwillTicket(activeDistribution, ticketNumber = 5, personCount = 4))
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+
+        val result = service.getCurrentTicketScreenTicket()
+
+        assertThat(result.ticketNumber).isEqualTo(5)
+        assertThat(result.goodwill).isTrue()
+        assertThat(result.goodwillPersonCount).isEqualTo(4)
+        assertThat(result.householdId).isNull()
+        assertThat(result.householdName).isNull()
+        assertThat(result.pendingCostContribution).isNull()
+    }
+
+    @Test
+    fun `ticket lookup of a goodwill package finds no household`() {
+        val activeDistribution = DistributionEntity(startedAt = LocalDateTime.now(), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = null
+        }
+        activeDistribution.households = listOf(goodwillTicket(activeDistribution, ticketNumber = 5))
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
+
+        assertThat(service.getHouseholdIdForTicketNumber(5)).isNull()
+    }
+
+    private fun goodwillTicket(
+        distribution: DistributionEntity,
+        ticketNumber: Int,
+        personCount: Int = 1,
+        infantCount: Int = 0,
+    ) = DistributionHouseholdEntity(
+        distribution = distribution,
+        household = null,
+        ticketNumber = ticketNumber,
+        goodwill = true,
+        goodwillPersonCount = personCount,
+        goodwillInfantCount = infantCount,
+    ).apply { id = 1000L + ticketNumber }
+
+    @Test
     fun `get current ticketNumber without registered customers`() {
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns activeDistribution
@@ -1128,7 +1319,7 @@ internal class DistributionServiceTest {
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val distributionHouseholdEntity = service.getCurrentTicketNumber(
-            testDistributionHouseholdEntity2.household.householdId,
+            testDistributionHouseholdEntity2.household!!.householdId,
         )
 
         assertThat(distributionHouseholdEntity?.ticketNumber).isEqualTo(51)
@@ -1685,7 +1876,7 @@ internal class DistributionServiceTest {
         }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
-        service.deleteCurrentTicket(testDistributionHouseholdEntity2.household.householdId)
+        service.deleteCurrentTicket(testDistributionHouseholdEntity2.household!!.householdId)
 
         verify(exactly = 1) { distributionHouseholdRepository.deleteUnprocessed(testDistributionHouseholdEntity2.id!!) }
     }

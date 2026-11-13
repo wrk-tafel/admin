@@ -48,6 +48,10 @@
             <xsl:with-param name="label" select="'davon Alleinerzieher (Haushalte)'"/>
             <xsl:with-param name="value" select="countSingleParentHouseholds"/>
         </xsl:call-template>
+        <xsl:call-template name="stat-row">
+            <xsl:with-param name="label" select="'Kulanzpakete / Personen'"/>
+            <xsl:with-param name="value" select="concat(countGoodwillPackages, ' / ', countGoodwillPersons)"/>
+        </xsl:call-template>
     </xsl:template>
     <xsl:template name="administration">
         <xsl:call-template name="section-title">

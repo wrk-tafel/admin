@@ -210,6 +210,51 @@ internal class DistributionStatisticServiceTest {
     }
 
     @Test
+    fun `goodwill packages are counted on their own and not as households`() {
+        val testDistributionEntity = DistributionEntity(startedAt = LocalDateTime.now().minusHours(2), startedByUser = testUserEntity).apply {
+            id = 123
+            endedAt = LocalDateTime.now()
+        }
+        testDistributionEntity.statistic = DistributionStatisticEntity(distribution = testDistributionEntity)
+
+        fun goodwill(ticketNumber: Int, personCount: Int, infantCount: Int) = DistributionHouseholdEntity(
+            distribution = testDistributionEntity,
+            household = null,
+            ticketNumber = ticketNumber,
+            goodwill = true,
+            goodwillPersonCount = personCount,
+            goodwillInfantCount = infantCount,
+        )
+
+        testDistributionEntity.households = listOf(
+            DistributionHouseholdEntity(
+                distribution = testDistributionEntity,
+                household = HouseholdEntity(householdId = nextHouseholdId(), validUntil = LocalDate.now()),
+                ticketNumber = 1,
+            ),
+            goodwill(ticketNumber = 2, personCount = 3, infantCount = 1),
+            goodwill(ticketNumber = 3, personCount = 1, infantCount = 0),
+        )
+
+        every { householdRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.findIdByUpdatedAtBetween(any(), any()) } returns emptyList()
+        every { householdRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
+        every { distributionStatisticRepository.save(any()) } returns mockk()
+
+        service.saveStatistic(testDistributionEntity)
+
+        val savedStatisticSlot = slot<DistributionStatisticEntity>()
+        verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }
+
+        val statistic = savedStatisticSlot.captured
+        assertThat(statistic.countCustomers).isEqualTo(1)
+        assertThat(statistic.countPersons).isEqualTo(1)
+        assertThat(statistic.countInfants).isEqualTo(0)
+        assertThat(statistic.countGoodwillPackages).isEqualTo(2)
+        assertThat(statistic.countGoodwillPersons).isEqualTo(4)
+    }
+
+    @Test
     fun `count infants uses the age on the distribution day, not the age today`() {
         val startedAt = LocalDateTime.now().minusYears(3)
         val testDistributionEntity = DistributionEntity(startedAt = startedAt, startedByUser = testUserEntity).apply {

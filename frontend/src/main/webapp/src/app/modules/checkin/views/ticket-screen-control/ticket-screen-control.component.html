@@ -43,6 +43,11 @@
           }
         </div>
 
+        @if (currentTicket()?.goodwill) {
+          <div class="mt-2 text-gray-600" testid="current-ticket-goodwill">
+            Kulanzpaket ({{ currentTicket()?.goodwillPersonCount }} {{ currentTicket()?.goodwillPersonCount === 1 ? 'Person' : 'Personen' }})
+          </div>
+        }
         @if (currentTicket()?.householdId) {
           <div class="mt-2 text-gray-600" testid="current-ticket-household">
             Haushalt Nr. {{ currentTicket()?.householdId }}

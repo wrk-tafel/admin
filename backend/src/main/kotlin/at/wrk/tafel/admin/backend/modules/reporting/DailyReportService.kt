@@ -50,6 +50,8 @@ class DailyReportService(
             countPersonsProlonged = statistic.countPersonsProlonged,
             countCustomersUpdated = statistic.countCustomersUpdated,
             countSingleParentHouseholds = statistic.countSingleParentHouseholds,
+            countGoodwillPackages = statistic.countGoodwillPackages,
+            countGoodwillPersons = statistic.countGoodwillPersons,
 
             shopsTotalCount = statistic.shopsTotalCount,
             shopsWithFoodCount = statistic.shopsWithFoodCount,

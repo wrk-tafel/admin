@@ -31,6 +31,15 @@ export class DistributionApiService {
     return this.http.post<void>('/distributions/households', body, {context});
   }
 
+  /** A goodwill package ("Kulanzpaket"): a ticket for persons who are not a registered customer. */
+  assignGoodwillTicket(request: GoodwillTicketRequest): Observable<void> {
+    return this.http.post<void>('/distributions/goodwill-tickets', request);
+  }
+
+  deleteGoodwillTicket(ticketNumber: number): Observable<void> {
+    return this.http.delete<void>(`/distributions/goodwill-tickets/${ticketNumber}`);
+  }
+
   saveStatistic(employeeCount: number, selectedShelterIds: number[]): Observable<void> {
     const body: SaveDistributionStatisticRequest = {
       employeeCount: employeeCount,
@@ -85,6 +94,12 @@ export interface AssignCustomerRequest {
 interface AssignHouseholdRequest {
   householdId: number;
   ticketNumber: number;
+}
+
+export interface GoodwillTicketRequest {
+  ticketNumber: number;
+  personCount: number;
+  infantCount: number;
 }
 
 export interface SaveDistributionStatisticRequest {

@@ -27,4 +27,13 @@ internal class DistributionTicketLookupControllerTest {
 
         assertThat(response).isEqualTo(TicketHouseholdResponse(ticketNumber = 12, householdId = 345L))
     }
+
+    @Test
+    fun `goodwill package for ticket number`() {
+        every { service.getHouseholdIdForTicketNumber(12) } returns null
+
+        val response = controller.getHouseholdForTicketNumber(12)
+
+        assertThat(response).isEqualTo(TicketHouseholdResponse(ticketNumber = 12, householdId = null, goodwill = true))
+    }
 }
