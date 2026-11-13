@@ -115,9 +115,12 @@ class DashboardService(
 
     private fun getRegisteredCustomers(currentDistribution: DistributionEntity): Int = distributionHouseholdRepository.countAllByDistributionId(currentDistribution.id!!)
 
-    // the same formula DistributionStatisticService and the customer-list PDF use: one per
-    // household (the main person) plus its additional persons that are not excluded
-    private fun getRegisteredPersons(distribution: DistributionEntity, registeredCustomers: Int): Int = registeredCustomers + distributionHouseholdRepository.countAdditionalPersons(distribution.id!!).toInt()
+    // the same formula the customer-list PDF uses: one per ticket (a household's main person, or a
+    // goodwill package's first person) plus the household's additional persons that are not excluded
+    // and the goodwill package's further persons
+    private fun getRegisteredPersons(distribution: DistributionEntity, registeredCustomers: Int): Int = registeredCustomers +
+        distributionHouseholdRepository.countAdditionalPersons(distribution.id!!).toInt() +
+        distributionHouseholdRepository.countGoodwillAdditionalPersons(distribution.id!!).toInt()
 
     private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData = DashboardStatisticsData(
         employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },

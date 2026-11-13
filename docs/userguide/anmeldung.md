@@ -14,11 +14,32 @@ Unter **Anmeldung → Annahme** wird die Kundennummer eines Kunden eingegeben (o
 
 - **Kundennummer**: Manuelle Eingabe der Kundennummer, falls kein Scanner verwendet wird. Mit **Anzeigen** oder der Eingabetaste wird der Kunde geöffnet.
 - **Scanner**: Kompakter Bereich rechts in derselben Zeile zur Auswahl eines aktiven Scanners, falls mehrere Scanner-Handys im Einsatz sind (siehe [Scanner](#scanner) weiter unten). Der Status (Aktiv/Inaktiv) zeigt, ob eine Verbindung zum ausgewählten Scanner besteht. Da diese Auswahl in der Regel nur einmal pro Schicht getroffen wird, nimmt sie bewusst wenig Platz ein.
-- **Zuletzt angenommen**: Erscheint nach dem Annehmen eines Kunden als eigene Zeile mit Kundennummer und Ticket-Nummer sowie einem **Rückgängig**-Button, um eine falsch eingegebene Ticket-Nummer sofort zu korrigieren, ohne den Kunden erneut suchen zu müssen. Dieselbe Rückgängig-Aktion steht zusätzlich kurz als Hinweis mit Aktions-Button an.
+- **Kulanzpaket**: Gibt ein Ticket an Personen aus, die (noch) keine Kundennummer haben – siehe [Kulanzpaket](#kulanzpaket) weiter unten.
+- **Zuletzt angenommen**: Erscheint nach dem Annehmen eines Kunden (bzw. nach dem Ausgeben eines Kulanzpakets) als eigene Zeile mit Kundennummer und Ticket-Nummer sowie einem **Rückgängig**-Button, um eine falsch eingegebene Ticket-Nummer sofort zu korrigieren, ohne den Kunden erneut suchen zu müssen. Dieselbe Rückgängig-Aktion steht zusätzlich kurz als Hinweis mit Aktions-Button an.
 
 Wurde ein Kunde angezeigt, erscheint darunter ein großflächiges, farbiges Statusband (grün/gelb/rot) mit dem Status in großer Schrift sowie der entscheidenden Zusatzinformation direkt darunter: bei GÜLTIG bzw. GÜLTIG – läuft bald ab [innerhalb der nächsten 8 Wochen] das Gültig-bis-Datum, bei UNGÜLTIG das Datum, seit dem die Gültigkeit abgelaufen ist, und bei GESPERRT der hinterlegte Sperrgrund. Ist zusätzlich ein Unkostenbeitrag offen, wird der Betrag als eigene Kennzeichnung im Statusband angezeigt, damit er nicht übersehen wird. Liegt für den Haushalt noch keine unterschriebene Datenschutzerklärung als Dokument vor, erscheint dort ebenso eine Kennzeichnung "Datenschutzerklärung fehlt", damit das direkt bei der Annahme nachgeholt werden kann (Upload über die Kundendetailansicht, siehe [Kunden](kunden.md#dokumente)). Darunter stehen Kundennummer, Name, Geburtsdatum/Alter und Adresse in einer Zeile beisammen, sodass die Identität ohne weiteren Klick geprüft werden kann. Danach folgt die letzte Notiz zum Haushalt – ist eine vorhanden, ist sie farblich/mit Symbol hervorgehoben, da sie oft wichtige Hinweise für die Annahme enthält. Haushaltsgröße und Anzahl der Personen unter 3 Jahren werden als große Zahlen dargestellt, da diese beiden Werte bei jeder Annahme relevant sind. Die weiteren Haushaltspersonen werden darunter kompakt zeilenweise aufgelistet (Name, Geburtsdatum/Alter, Geschlecht, Land; nicht im Haushalt lebende Personen sind eigens gekennzeichnet und zählen nicht zur Haushaltsgröße). Bei aktivem Ausgabetag folgt die Eingabe einer Ticket-Nummer, um den Kunden mit **Annehmen** der laufenden Ausgabe zuzuweisen. Ein gesperrter Kunde erhält kein Ticket – auch dann nicht, wenn er gesperrt wurde, nachdem er hier angezeigt wurde: Die Anwendung lehnt die Zuweisung mit einer Meldung ab und lädt den Kunden neu, sodass das Statusband dann GESPERRT samt Sperrgrund zeigt. Ein Kunde mit abgelaufener Gültigkeit kann dagegen weiterhin angenommen werden. Der gesamte Ablauf ist so kompakt gehalten, dass er ohne Scrollen auf einen Bildschirm passt. Ist bereits ein Ticket zugewiesen, kann die Eingabe über **Abbrechen** verworfen bzw. das Ticket über den Papierkorb-Button wieder gelöscht werden.
 
 ![Kunden-Annahme mit Kunde](images/anmeldung-annahme-kunde.jpg)
+
+## Kulanzpaket
+
+Manchmal bekommt jemand ein Paket, der noch kein Kunde ist – etwa eine Person, die zur Aufnahme gekommen ist, aber die nötigen Unterlagen nicht dabei hat. Damit sie trotzdem ganz normal aufgerufen wird und auf der Kundenliste steht (statt händisch nachgetragen zu werden), gibt es in der **Kunden-Annahme** die Schaltfläche **Kulanzpaket**. Sie öffnet einen Dialog mit drei Feldern:
+
+- **Ticket-Nummer**: Die Nummer, die die Person erhält. Sie darf in der laufenden Ausgabe noch nicht vergeben sein – umgekehrt kann danach auch kein Kunde mehr diese Nummer bekommen.
+- **Personen**: Für wie viele Personen das Paket ist (mindestens 1).
+- **davon unter 3 Jahren**: Wie viele davon Kleinkinder sind; das kann nicht mehr sein als die Personenanzahl.
+
+Name oder andere Angaben zur Person werden bewusst nicht erfasst, da sie (noch) kein Kunde ist und keine Datenschutzerklärung unterschrieben hat. Mit **Ausgeben** wird das Ticket vergeben; es erscheint als "Zuletzt angenommen: Kulanzpaket → Ticket …" und kann wie ein normaler Check-in über **Rückgängig** wieder zurückgenommen werden, solange es noch nicht aufgerufen wurde.
+
+![Kulanzpaket ausgeben](images/anmeldung-kulanzpaket.jpg)
+
+Ein Kulanzpaket verhält sich danach wie jedes andere Ticket, mit diesen Unterschieden:
+
+- Am **Ticket-Monitor – Steuerung** steht statt Haushaltsnummer und Name "Kulanzpaket (… Personen)". Ein Unkostenbeitrag wird für ein Kulanzpaket nie verrechnet, auch nicht bei **Weiter (nicht bezahlt)**.
+- Auf der **Kundenliste** steht es an seiner Ticket-Nummer, in der Spalte der Kundennummer mit "Kulanz", und zählt bei der Anzahl der Haushalte und Personen mit.
+- In der **Übersicht** zählt es als angemeldetes Ticket mit seinen Personen.
+- Die Suche nach einer Ticket-Nummer in der Kundensuche meldet bei einem Kulanzpaket "Ticket … ist ein Kulanzpaket ohne Kundennummer.", da es keinen Kunden zum Öffnen gibt.
+- Im **Tagesreport** und im Statistik-Export werden Kulanzpakete als eigene Zahl geführt ("Kulanzpakete / Personen"), nicht als Haushalte – in die Auswertungen nach Alter, Herkunftsland und Haushaltsgröße fließen sie nicht ein, da zu den Personen nichts weiter bekannt ist. Bei den versorgten Personen im Statistik-Export sind sie mitgezählt.
 
 ## Scanner
 

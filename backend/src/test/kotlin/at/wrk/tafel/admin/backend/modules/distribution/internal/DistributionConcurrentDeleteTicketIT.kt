@@ -142,7 +142,7 @@ class DistributionConcurrentDeleteTicketIT : TafelBaseIntegrationTest() {
             val storedEntries = transactionTemplate.execute {
                 distributionHouseholdRepository.findByDistributionId(distributionId)
             }!!
-            assertThat(storedEntries.map { it.household.householdId }).containsExactly(otherHousehold.householdId)
+            assertThat(storedEntries.map { it.household!!.householdId }).containsExactly(otherHousehold.householdId)
         } finally {
             executor.shutdownNow()
         }

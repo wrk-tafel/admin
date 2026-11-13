@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionServ
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.*
 import jakarta.validation.Valid
 import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -102,6 +103,31 @@ class DistributionController(
             assignHouseholdRequest.ticketNumber,
         )
 
+        return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/goodwill-tickets")
+    @PreAuthorize("hasAuthority('CHECKIN')")
+    @TafelActiveDistributionRequired
+    fun assignGoodwillTicket(
+        @Valid @RequestBody goodwillTicketRequest: GoodwillTicketRequest,
+    ): ResponseEntity<Unit> {
+        service.assignGoodwillTicket(
+            ticketNumber = goodwillTicketRequest.ticketNumber,
+            personCount = goodwillTicketRequest.personCount,
+            infantCount = goodwillTicketRequest.infantCount,
+        )
+
+        return ResponseEntity.status(HttpStatus.CREATED).build()
+    }
+
+    @DeleteMapping("/goodwill-tickets/{ticketNumber}")
+    @PreAuthorize("hasAuthority('CHECKIN')")
+    @TafelActiveDistributionRequired
+    fun deleteGoodwillTicket(
+        @PathVariable ticketNumber: Int,
+    ): ResponseEntity<Unit> {
+        service.deleteGoodwillTicket(ticketNumber)
         return ResponseEntity.noContent().build()
     }
 

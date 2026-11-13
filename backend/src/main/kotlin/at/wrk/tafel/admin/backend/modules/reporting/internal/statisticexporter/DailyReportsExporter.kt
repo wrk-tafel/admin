@@ -28,8 +28,10 @@ class DailyReportsExporter(
             "Versorgte Personen",
             "davon in NOST",
             "davon in Ausgabestelle",
+            "davon Kulanzpakete",
             "davon Kinder < 3 Jahre",
             "Haushalte",
+            "Kulanzpakete",
             "Verlängert (Haushalte)",
             "Verlängert (Personen)",
             "Neue Kunden",
@@ -74,13 +76,16 @@ class DailyReportsExporter(
         columns.add(startedAt[IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString())
 
         val countPersonsInShelter = statistic.shelters.sumOf { it.personsCount }
-        val countPeopleTotal = statistic.countPersons.plus(countPersonsInShelter)
+        // goodwill packages ("Kulanzpakete") are served people too, just without a household behind them
+        val countPeopleTotal = statistic.countPersons + countPersonsInShelter + statistic.countGoodwillPersons
         columns.add(countPeopleTotal.toString())
         columns.add(countPersonsInShelter.toString())
 
         columns.add(statistic.countPersons.toString())
+        columns.add(statistic.countGoodwillPersons.toString())
         columns.add(statistic.countInfants.toString())
         columns.add(statistic.countCustomers.toString())
+        columns.add(statistic.countGoodwillPackages.toString())
         columns.add(statistic.countCustomersProlonged.toString())
         columns.add(statistic.countPersonsProlonged.toString())
         columns.add(statistic.countCustomersNew.toString())

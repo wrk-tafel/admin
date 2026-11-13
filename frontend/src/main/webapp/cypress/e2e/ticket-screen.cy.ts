@@ -88,6 +88,24 @@ describe('TicketScreen', () => {
     cy.closeDistribution();
   });
 
+  it('calls a goodwill package like any ticket and labels it instead of a household', () => {
+    cy.createDistribution();
+    cy.request('POST', '/api/distributions/goodwill-tickets', {ticketNumber: 1, personCount: 2, infantCount: 0});
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 2});
+    cy.visit('/anmeldung/ticketmonitor-steuerung');
+
+    cy.byTestId('current-ticket-number').should('have.text', '1');
+    cy.byTestId('current-ticket-goodwill').should('contain.text', 'Kulanzpaket (2 Personen)');
+    cy.byTestId('current-ticket-household').should('not.exist');
+
+    cy.byTestId('costcontribution-paid-yes-button').click();
+    cy.byTestId('current-ticket-number').should('have.text', '2');
+    cy.byTestId('current-ticket-household').should('contain.text', 'Haushalt Nr. 100');
+    cy.byTestId('current-ticket-goodwill').should('not.exist');
+
+    cy.closeDistribution();
+  });
+
   it('skips a ticket whose customer is not there, and the back arrow reopens it', () => {
     createDistributionWithTickets();
     cy.visit('/anmeldung/ticketmonitor-steuerung');

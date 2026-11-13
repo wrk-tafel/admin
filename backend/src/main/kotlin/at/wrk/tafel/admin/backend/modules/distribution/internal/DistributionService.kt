@@ -189,7 +189,7 @@ class DistributionService(
             val existingTicket = distributionHouseholdRepository.findByDistributionIdAndTicketNumber(distribution.id!!, ticketNumber)
 
             // Can't assign to another household if already assigned but ok if it's the same household (update costContributionPaid flag)
-            if (existingTicket != null && existingTicket.household.householdId != householdId) {
+            if (existingTicket != null && existingTicket.household?.householdId != householdId) {
                 throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")
             }
 
@@ -214,12 +214,99 @@ class DistributionService(
 
             distributionHouseholdRepository.save(entry)
 
-            // The first check-in of the day is the moment the desk opens - see DistributionPhaseEvents.
-            if (distributionRepository.markCheckinStarted(distribution.id!!, LocalDateTime.now()) == 1) {
-                eventPublisher.publishEvent(CheckinStartedEvent(distribution.id!!))
-            }
+            markCheckinStarted(distribution)
         }
     }
+
+    /**
+     * Hands out a goodwill package ("Kulanzpaket"): a ticket for someone who is not a registered
+     * household, e.g. a newcomer who didn't bring the documents for the registration yet. It is called
+     * on the ticket monitor and listed on the Kundenliste like any other ticket, but belongs to no
+     * household - so there is no lock to check and no cost contribution to charge. Same locks as
+     * [assignHouseholdToDistribution], for the same reasons.
+     */
+    @Transactional
+    fun assignGoodwillTicket(
+        ticketNumber: Int,
+        personCount: Int,
+        infantCount: Int,
+    ) {
+        if (infantCount > personCount) {
+            throw BusinessRuleException("Es können nicht mehr Kinder unter 3 Jahren als Personen angegeben werden!")
+        }
+
+        advisoryLockService.acquireLock(AdvisoryLockKey.CLOSE_DISTRIBUTION)
+        advisoryLockService.withLock(AdvisoryLockKey.ASSIGN_HOUSEHOLD_TO_DISTRIBUTION) {
+            val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
+
+            if (distributionHouseholdRepository.findByDistributionIdAndTicketNumber(distribution.id!!, ticketNumber) != null) {
+                throw ConflictException("Ticketnummer $ticketNumber bereits vergeben!")
+            }
+
+            distributionHouseholdRepository.save(
+                DistributionHouseholdEntity(
+                    distribution = distribution,
+                    household = null,
+                    ticketNumber = ticketNumber,
+                    goodwill = true,
+                    goodwillPersonCount = personCount,
+                    goodwillInfantCount = infantCount,
+                ),
+            )
+            logger.info("Goodwill package: ticket $ticketNumber for $personCount person(s) (distribution: ID ${distribution.id})")
+
+            markCheckinStarted(distribution)
+        }
+    }
+
+    /**
+     * Takes back a goodwill package that hasn't been called yet - the check-in screen's "Rückgängig".
+     * Idempotent like [deleteCurrentTicket]: a ticket that is gone already is no error.
+     */
+    @Transactional
+    fun deleteGoodwillTicket(ticketNumber: Int) {
+        val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
+
+        val entry = distributionHouseholdRepository.findByDistributionIdAndTicketNumber(distribution.id!!, ticketNumber)
+            ?: return
+        if (!entry.goodwill) {
+            throw BusinessRuleException("Ticket $ticketNumber ist kein Kulanzpaket!")
+        }
+        if (entry.processed) {
+            throw ConflictException("Ticket $ticketNumber wurde bereits aufgerufen!")
+        }
+
+        if (distributionHouseholdRepository.deleteUnprocessed(entry.id!!) == 1) {
+            logger.info("Deleted goodwill ticket $ticketNumber (distribution: ID ${distribution.id})")
+            markTicketsCompletedIfNoneLeft(distribution)
+        }
+    }
+
+    // The first check-in of the day is the moment the desk opens - see DistributionPhaseEvents.
+    private fun markCheckinStarted(distribution: DistributionEntity) {
+        if (distributionRepository.markCheckinStarted(distribution.id!!, LocalDateTime.now()) == 1) {
+            eventPublisher.publishEvent(CheckinStartedEvent(distribution.id!!))
+        }
+    }
+
+    // Deleting the last unprocessed ticket reaches the same "everyone served" state as processing it
+    // (see closeCurrentTicketAndGetNext), but without going through that method - so it has to mark
+    // completion here too, or AllTicketsProcessedEvent never fires for this distribution.
+    private fun markTicketsCompletedIfNoneLeft(distribution: DistributionEntity) {
+        if (!distributionHouseholdRepository.existsByDistributionIdAndProcessedFalse(distribution.id!!) &&
+            distributionRepository.markTicketsCompleted(distribution.id!!, LocalDateTime.now()) == 1
+        ) {
+            eventPublisher.publishEvent(
+                AllTicketsProcessedEvent(
+                    distributionId = distribution.id!!,
+                    ticketCount = distributionHouseholdRepository.countAllByDistributionId(distribution.id!!),
+                ),
+            )
+        }
+    }
+
+    /** What a log line names as the ticket's holder - the household number, or that it is a goodwill package. */
+    private fun ticketHolderForLog(entry: DistributionHouseholdEntity): String = entry.household?.householdId?.let { "household: $it" } ?: "goodwill package"
 
     /**
      * Not read-only: the Kundenliste export is one of the sensitive-handful reads recorded in
@@ -247,12 +334,14 @@ class DistributionService(
 
         val halftimeIndex = BigDecimal(countHouseholds - 1).divide(BigDecimal("2"), RoundingMode.FLOOR).toInt()
         val halftimeTicketNumber = if (countHouseholds > 1) sortedHouseholds[halftimeIndex].ticketNumber else null
+        // one per ticket below, plus every further person of a household or a goodwill package
         val countAddPersons = sortedHouseholds
-            .map { it.household }
+            .mapNotNull { it.household }
             .flatMap {
                 it.additionalPersons().filterNot { addPerson -> addPerson.excludeFromHousehold }
             }
-            .count()
+            .count() +
+            sortedHouseholds.filter { it.goodwill }.sumOf { (it.goodwillPersonCount ?: 1) - 1 }
 
         val logoBytes = IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
         val data = HouseholdListPdfModel(
@@ -304,7 +393,7 @@ class DistributionService(
             distributionHouseholdRepository.save(distributionHouseholdEntity)
             logger.info(
                 "Reopened ticket ${distributionHouseholdEntity.ticketNumber} " +
-                    "(household: ${distributionHouseholdEntity.household.householdId}, distribution: ID ${distribution.id})",
+                    "(${ticketHolderForLog(distributionHouseholdEntity)}, distribution: ID ${distribution.id})",
             )
         }
 
@@ -330,7 +419,7 @@ class DistributionService(
             val nextTicket = getCurrentTicketNumber()
             logger.info(
                 "Processed ticket ${distributionHouseholdEntity.ticketNumber} " +
-                    "(household: ${distributionHouseholdEntity.household.householdId}, distribution: ID ${distribution.id}), " +
+                    "(${ticketHolderForLog(distributionHouseholdEntity)}, distribution: ID ${distribution.id}), " +
                     "next one: ${nextTicket?.ticketNumber}",
             )
 
@@ -382,14 +471,16 @@ class DistributionService(
 
     /**
      * The household holding [ticketNumber] in the current distribution - for a customer who shows up
-     * with nothing but their ticket.
+     * with nothing but their ticket. `null` when the ticket is a goodwill package, which has no
+     * household to show.
      */
     @Transactional(readOnly = true)
-    fun getHouseholdIdForTicketNumber(ticketNumber: Int): Long {
+    fun getHouseholdIdForTicketNumber(ticketNumber: Int): Long? {
         val distribution = getCurrentDistribution() ?: throw ConflictException(ALREADY_CLOSED_MESSAGE)
 
-        return distributionHouseholdRepository.findByDistributionIdAndTicketNumber(distribution.id!!, ticketNumber)?.household?.householdId
+        val entry = distributionHouseholdRepository.findByDistributionIdAndTicketNumber(distribution.id!!, ticketNumber)
             ?: throw NotFoundException("Ticket $ticketNumber wurde in der laufenden Ausgabe nicht vergeben!")
+        return entry.household?.householdId
     }
 
     /**
@@ -406,6 +497,8 @@ class DistributionService(
         householdId = distributionHouseholdEntity?.household?.householdId,
         householdName = distributionHouseholdEntity?.household?.mainPerson?.let { "${it.firstname} ${it.lastname}" },
         pendingCostContribution = distributionHouseholdEntity?.household?.pendingCostContribution,
+        goodwill = distributionHouseholdEntity?.goodwill == true,
+        goodwillPersonCount = distributionHouseholdEntity?.goodwillPersonCount,
         processedTicketsCount = distribution?.let { distributionHouseholdRepository.countByDistributionIdAndProcessedTrue(it.id!!) },
         totalTicketsCount = distribution?.let { distributionHouseholdRepository.countAllByDistributionId(it.id!!) },
     )
@@ -425,23 +518,10 @@ class DistributionService(
         distributionHouseholdEntity?.takeIf { distributionHouseholdRepository.deleteUnprocessed(it.id!!) == 1 }?.let {
             logger.info(
                 "Deleted ticket ${it.ticketNumber} " +
-                    "(household: ${it.household.householdId}, distribution: ID ${distribution.id})",
+                    "(${ticketHolderForLog(it)}, distribution: ID ${distribution.id})",
             )
 
-            // Deleting the last unprocessed ticket reaches the same "everyone served" state as
-            // processing it (see closeCurrentTicketAndGetNext), but without going through that method
-            // - so it has to mark completion here too, or AllTicketsProcessedEvent never fires for
-            // this distribution.
-            if (!distributionHouseholdRepository.existsByDistributionIdAndProcessedFalse(distribution.id!!) &&
-                distributionRepository.markTicketsCompleted(distribution.id!!, LocalDateTime.now()) == 1
-            ) {
-                eventPublisher.publishEvent(
-                    AllTicketsProcessedEvent(
-                        distributionId = distribution.id!!,
-                        ticketCount = distributionHouseholdRepository.countAllByDistributionId(distribution.id!!),
-                    ),
-                )
-            }
+            markTicketsCompletedIfNoneLeft(distribution)
         }
     }
 
@@ -567,6 +647,13 @@ class DistributionService(
         referenceDate: LocalDate,
     ): List<HouseholdListItem> = households.map { distributionHouseholdEntity ->
         val household = distributionHouseholdEntity.household
+            ?: return@map HouseholdListItem(
+                ticketNumber = distributionHouseholdEntity.ticketNumber,
+                householdId = null,
+                goodwill = true,
+                countPersons = distributionHouseholdEntity.goodwillPersonCount ?: 1,
+                countInfants = distributionHouseholdEntity.goodwillInfantCount ?: 0,
+            )
         val countPersons = household.additionalPersons()
             .filterNot { it.excludeFromHousehold }
             .size + 1

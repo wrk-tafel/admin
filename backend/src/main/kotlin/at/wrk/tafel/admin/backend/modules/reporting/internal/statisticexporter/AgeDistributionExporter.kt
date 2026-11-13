@@ -40,7 +40,7 @@ class AgeDistributionExporter : StatisticExporter {
         // ages are bucketed as of the distribution's own day, not as of today, so re-exporting a past
         // distribution reproduces the buckets it had back then instead of shifting everyone forward
         val referenceDate = statistic.distribution.startedAt.toLocalDate()
-        val households = statistic.distribution.households.map { it.household }
+        val households = statistic.distribution.households.mapNotNull { it.household }
         val persons = households.flatMap { it.additionalPersonsAsOf(referenceDate) }
         val householdsBirthDates = households.map { household ->
             (household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson })?.birthDate

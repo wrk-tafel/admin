@@ -27,5 +27,7 @@ export interface TicketNumberResponse {
 
 export interface TicketHouseholdResponse {
   ticketNumber: number;
-  householdId: number;
+  /** `null` for a goodwill package ("Kulanzpaket"), which has no customer behind it. */
+  householdId: number | null;
+  goodwill?: boolean;
 }

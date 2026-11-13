@@ -9,7 +9,9 @@ import {EMPTY, of, throwError} from 'rxjs';
 import dayjs from 'dayjs';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../api/customer-note-api.service';
 import {Router} from '@angular/router';
-import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
+import {DistributionApiService, DistributionItem, GoodwillTicketRequest} from '../../../../api/distribution-api.service';
+import {MatDialog} from '@angular/material/dialog';
+import {GoodwillTicketDialogComponent} from '../../components/goodwill-ticket-dialog/goodwill-ticket-dialog.component';
 import {FormsModule} from '@angular/forms';
 import {signal} from '@angular/core';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
@@ -42,6 +44,8 @@ describe('CheckinComponent', () => {
     let router: MockedObject<Router>;
     let toastr: MockedObject<TafelToastrService>;
     let snackBarOnAction: Subject<void>;
+    let dialog: MockedObject<MatDialog>;
+    let dialogAfterClosed: Subject<GoodwillTicketRequest | undefined>;
 
     beforeEach(() => {
         const customerApiServiceSpy = {
@@ -67,7 +71,13 @@ describe('CheckinComponent', () => {
               .mockReturnValue(signal(true).asReadonly())
         };
         const distributionApiServiceSpy = {
-            assignCustomer: vi.fn().mockName('DistributionApiService.assignCustomer')
+            assignCustomer: vi.fn().mockName('DistributionApiService.assignCustomer'),
+            assignGoodwillTicket: vi.fn().mockName('DistributionApiService.assignGoodwillTicket'),
+            deleteGoodwillTicket: vi.fn().mockName('DistributionApiService.deleteGoodwillTicket')
+        };
+        dialogAfterClosed = new Subject<GoodwillTicketRequest | undefined>();
+        const dialogSpy = {
+            open: vi.fn().mockName('MatDialog.open').mockReturnValue({afterClosed: () => dialogAfterClosed})
         };
         const distributionTicketApiServiceSpy = {
             getCurrentTicketForCustomer: vi.fn().mockName('DistributionTicketApiService.getCurrentTicketForCustomer'),
@@ -138,6 +148,10 @@ describe('CheckinComponent', () => {
                 {
                     provide: TafelToastrService,
                     useValue: toastrSpy
+                },
+                {
+                    provide: MatDialog,
+                    useValue: dialogSpy
                 }
             ]
         }).compileComponents();
@@ -151,6 +165,7 @@ describe('CheckinComponent', () => {
         distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as MockedObject<DistributionTicketApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
         toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
+        dialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
     });
 
     it('component can be created', () => {
@@ -942,6 +957,47 @@ describe('CheckinComponent', () => {
         expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(133);
         expect(component.lastAcceptedCheckin()).toBeUndefined();
         expect(toastr.success).toHaveBeenCalledWith('Ticket 55 von Kunde Nr. 133 wurde rückgängig gemacht.');
+    });
+
+    it('hands out a goodwill package from the dialog and shows it as the last check-in', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+        distributionApiService.assignGoodwillTicket.mockReturnValue(of(undefined));
+
+        component.openGoodwillTicketDialog();
+        dialogAfterClosed.next({ticketNumber: 12, personCount: 3, infantCount: 1});
+
+        expect(dialog.open).toHaveBeenCalledWith(GoodwillTicketDialogComponent);
+        expect(distributionApiService.assignGoodwillTicket).toHaveBeenCalledWith({ticketNumber: 12, personCount: 3, infantCount: 1});
+        expect(component.lastAcceptedCheckin()).toEqual({ticketNumber: 12});
+        expect(toastr.success).toHaveBeenCalledWith(
+            'Kulanzpaket → Ticket 12 ausgegeben.', undefined, {action: 'Rückgängig', durationMs: 8000});
+    });
+
+    it('a cancelled goodwill dialog hands out nothing', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        fixture.componentInstance.customerNotes.set([]);
+
+        fixture.componentInstance.openGoodwillTicketDialog();
+        dialogAfterClosed.next(undefined);
+
+        expect(distributionApiService.assignGoodwillTicket).not.toHaveBeenCalled();
+    });
+
+    it('undoLastCheckin takes back a goodwill package by its ticket number', () => {
+        const fixture = TestBed.createComponent(CheckinComponent);
+        const component = fixture.componentInstance;
+        component.customerNotes.set([]);
+        component.lastAcceptedCheckin.set({ticketNumber: 12});
+        distributionApiService.deleteGoodwillTicket.mockReturnValue(of(undefined));
+
+        component.undoLastCheckin();
+
+        expect(distributionApiService.deleteGoodwillTicket).toHaveBeenCalledWith(12);
+        expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).not.toHaveBeenCalled();
+        expect(component.lastAcceptedCheckin()).toBeUndefined();
+        expect(toastr.success).toHaveBeenCalledWith('Kulanzpaket mit Ticket 12 wurde rückgängig gemacht.');
     });
 
     // A double click or a held Enter key used to send a burst of deletes (issue #3873).
