@@ -1,4 +1,4 @@
-FROM amazoncorretto:26-alpine@sha256:26a8444c023a7c2ab2608f179581287e3ad333cef246b027c628da099d1b096e AS builder
+FROM amazoncorretto:27-alpine@sha256:2a1963f0f2748128ca5ca81cc9ea69f26f1af4be481997afb04e8fb32f19aa4f AS builder
 WORKDIR /builder
 COPY ./artifact/admin-backend.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted \
@@ -11,7 +11,7 @@ RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination 
 # #2881). The trainer must launch the app the exact same way the final ENTRYPOINT does (JarLauncher over
 # the extracted layered jar, not a plain `java -jar`) - CDS is classpath-layout sensitive, and a mismatch
 # here would silently produce a dead archive that never gets used at runtime.
-FROM amazoncorretto:26-alpine@sha256:26a8444c023a7c2ab2608f179581287e3ad333cef246b027c628da099d1b096e AS cds-trainer
+FROM amazoncorretto:27-alpine@sha256:2a1963f0f2748128ca5ca81cc9ea69f26f1af4be481997afb04e8fb32f19aa4f AS cds-trainer
 # Version matches what's actually run everywhere else (docker-compose.yml, Testcontainers, e2e/
 # lighthouse CI - all postgres:18-bookworm), so the CDS training run boots against the same major
 # version the app is deployed against. fuzzystrmatch (used by household duplicate detection, see
@@ -38,12 +38,12 @@ COPY --from=builder /builder/extracted/application/ ./
 # exist here.
 RUN mkdir documents scanner-inbox logs
 RUN su postgres -c "pg_ctl -D '$PGDATA' -o \"-c listen_addresses=localhost\" -w start" \
-    && java -Dspring.context.exit=onRefresh -XX:-UseBASE64Intrinsics \
+    && java -Dspring.context.exit=onRefresh \
          -XX:ArchiveClassesAtExit=/app-cds.jsa \
          org.springframework.boot.loader.launch.JarLauncher --spring.profiles.active=local \
     && su postgres -c "pg_ctl -D '$PGDATA' -w stop"
 
-FROM amazoncorretto:26-alpine@sha256:26a8444c023a7c2ab2608f179581287e3ad333cef246b027c628da099d1b096e
+FROM amazoncorretto:27-alpine@sha256:2a1963f0f2748128ca5ca81cc9ea69f26f1af4be481997afb04e8fb32f19aa4f
 # The base image is pinned by digest so every build - local or CI, today or in a year - starts from the
 # same JDK and the same Alpine release. The cost is that a fixed digest also fixes its bundled package
 # versions, so a patched CVE (see the Trivy code-scanning alerts this addresses) never arrives on its
@@ -79,12 +79,8 @@ COPY ./frontend-dist/ ./static/
 # percentage that actually uses the memory given to this container. -XX:+ExitOnOutOfMemoryError
 # makes an OOM kill the process instead of leaving it running in a corrupted state, so the
 # container's restart policy is what recovers it (see issue #2879/#2935) rather than a wedged app
-# silently serving errors until someone notices. -XX:-UseBASE64Intrinsics switches off the JIT's
-# AVX-512 Base64 decoder, whose memory corruption is Java4Shell (CVE-2026-114938, remote code
-# execution through crafted Base64 input such as a JWT or a Basic auth header); Java 26 gets no fixed
-# build, so the flag stays until the image moves to a JDK that has the fix. The plain Java decoder
-# takes over, at no cost this app would notice.
-ENTRYPOINT ["java","-Duser.language=de","-Duser.country=DE","-XX:SharedArchiveFile=/app/app-cds.jsa","-XX:MaxRAMPercentage=75.0","-XX:+ExitOnOutOfMemoryError","-XX:-UseBASE64Intrinsics","-Dspring.config.additional-location=file:/app/config/config.yml","org.springframework.boot.loader.launch.JarLauncher"]
+# silently serving errors until someone notices.
+ENTRYPOINT ["java","-Duser.language=de","-Duser.country=DE","-XX:SharedArchiveFile=/app/app-cds.jsa","-XX:MaxRAMPercentage=75.0","-XX:+ExitOnOutOfMemoryError","-Dspring.config.additional-location=file:/app/config/config.yml","org.springframework.boot.loader.launch.JarLauncher"]
 
 # Management port (see application.yml) is separate from the app's server port and stays reachable
 # even if the main servlet container is wedged. wget is busybox's, not GNU's - it ships in the base

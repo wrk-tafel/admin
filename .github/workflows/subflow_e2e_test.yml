@@ -18,7 +18,7 @@ name: E2E Test
 # same fresh database it did when it had a runner to itself - the runner is shared, the state is not.
 
 env:
-  JAVA_VERSION: '26'
+  JAVA_VERSION: '27'
   JAVA_DISTRIBUTION: 'corretto'
   # Chosen to match the parallelism the runners actually grant this workflow (see above), so a shard
   # queues rather than the suite serialising. Raising it past that just re-buys the per-shard setup.

@@ -14,7 +14,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(26)
+        languageVersion = JavaLanguageVersion.of(27)
     }
 
     sourceSets {
@@ -25,8 +25,16 @@ java {
     }
 }
 
+// The toolchain (and the image's JDK) is 27, the bytecode 26: Kotlin 2.4 cannot target 27 yet and
+// rejects a Java target that differs from its own. A JDK runs older bytecode unchanged, so this costs
+// nothing at runtime. Raise both to 27 once the Kotlin version here supports JvmTarget.JVM_27.
+tasks.withType<JavaCompile>().configureEach {
+    options.release = 26
+}
+
 kotlin {
     compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_26
         freeCompilerArgs.add("-Xjsr305=strict")
         // Without this, Kotlin drops annotations written on a type argument (`List<@Valid Person>`)
         // instead of writing them into the field's bytecode - and Bean Validation then silently

@@ -7,7 +7,7 @@ and conventions already documented in [README.md](README.md) into a single check
 ## Setup
 
 See [README.md](README.md#prerequisites) and [README.md](README.md#getting-started) for
-prerequisites (Java 26, Node.js, Docker) and the local dev loop (start infra with
+prerequisites (Java 27, Node.js, Docker) and the local dev loop (start infra with
 `docker compose up -d`, backend with `./gradlew :backend:bootRun --args='--spring.profiles.active=local'`,
 frontend with `npm run dev`).
 
