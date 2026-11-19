@@ -38,7 +38,7 @@ COPY --from=builder /builder/extracted/application/ ./
 # exist here.
 RUN mkdir documents scanner-inbox logs
 RUN su postgres -c "pg_ctl -D '$PGDATA' -o \"-c listen_addresses=localhost\" -w start" \
-    && java -Dspring.context.exit=onRefresh \
+    && java -Dspring.context.exit=onRefresh -XX:-UseBASE64Intrinsics \
          -XX:ArchiveClassesAtExit=/app-cds.jsa \
          org.springframework.boot.loader.launch.JarLauncher --spring.profiles.active=local \
     && su postgres -c "pg_ctl -D '$PGDATA' -w stop"
@@ -79,8 +79,12 @@ COPY ./frontend-dist/ ./static/
 # percentage that actually uses the memory given to this container. -XX:+ExitOnOutOfMemoryError
 # makes an OOM kill the process instead of leaving it running in a corrupted state, so the
 # container's restart policy is what recovers it (see issue #2879/#2935) rather than a wedged app
-# silently serving errors until someone notices.
-ENTRYPOINT ["java","-Duser.language=de","-Duser.country=DE","-XX:SharedArchiveFile=/app/app-cds.jsa","-XX:MaxRAMPercentage=75.0","-XX:+ExitOnOutOfMemoryError","-Dspring.config.additional-location=file:/app/config/config.yml","org.springframework.boot.loader.launch.JarLauncher"]
+# silently serving errors until someone notices. -XX:-UseBASE64Intrinsics switches off the JIT's
+# AVX-512 Base64 decoder, whose memory corruption is Java4Shell (CVE-2026-114938, remote code
+# execution through crafted Base64 input such as a JWT or a Basic auth header); Java 26 gets no fixed
+# build, so the flag stays until the image moves to a JDK that has the fix. The plain Java decoder
+# takes over, at no cost this app would notice.
+ENTRYPOINT ["java","-Duser.language=de","-Duser.country=DE","-XX:SharedArchiveFile=/app/app-cds.jsa","-XX:MaxRAMPercentage=75.0","-XX:+ExitOnOutOfMemoryError","-XX:-UseBASE64Intrinsics","-Dspring.config.additional-location=file:/app/config/config.yml","org.springframework.boot.loader.launch.JarLauncher"]
 
 # Management port (see application.yml) is separate from the app's server port and stays reachable
 # even if the main servlet container is wedged. wget is busybox's, not GNU's - it ships in the base
