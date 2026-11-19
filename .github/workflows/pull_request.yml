@@ -63,6 +63,8 @@ jobs:
     uses: ./.github/workflows/subflow_build.yml
     needs: changes
     if: needs.changes.outputs.app == 'true'
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   test:
     uses: ./.github/workflows/subflow_test.yml
     needs: changes
@@ -72,6 +74,8 @@ jobs:
       # Only a pull request skips the backend suite, and only when the diff cannot reach it - see
       # the note on that job. main_push.yml deliberately passes nothing and always runs it.
       backend: ${{ needs.changes.outputs.backend == 'true' }}
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   sonar:
     permissions:
       contents: read
@@ -88,6 +92,8 @@ jobs:
       backend: ${{ needs.changes.outputs.backend == 'true' }}
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
       docker: ${{ needs.changes.outputs.docker == 'true' }}
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   codeql:
     permissions:
       actions: read
@@ -99,6 +105,8 @@ jobs:
     with:
       backend: ${{ needs.changes.outputs.backend == 'true' }}
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   # sonar and e2e-test need no gate of their own: they depend on build/test, and GitHub skips a job
   # whose dependency was skipped. The image and the deploy below carry one anyway, for who rather
   # than for what changed.

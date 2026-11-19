@@ -20,12 +20,16 @@ jobs:
     uses: ./.github/workflows/subflow_build.yml
     needs: changes
     if: needs.changes.outputs.app == 'true'
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   test:
     uses: ./.github/workflows/subflow_test.yml
     needs: changes
     if: needs.changes.outputs.app == 'true'
     with:
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   sonar:
     # A leaf: nothing waits for this. It needs `test` only because it consumes the jacoco report that
     # job uploads - it reports, and with `sonar.qualitygate.wait: false` (see build.gradle.kts) it
@@ -46,6 +50,8 @@ jobs:
       backend: ${{ needs.changes.outputs.backend == 'true' }}
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
       docker: ${{ needs.changes.outputs.docker == 'true' }}
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   codeql:
     permissions:
       actions: read
@@ -57,6 +63,8 @@ jobs:
     with:
       backend: ${{ needs.changes.outputs.backend == 'true' }}
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   # sonar, build-push-image, e2e-test and the deploy jobs need no gate of their own: they depend on
   # build/test, and GitHub skips a job whose dependency was skipped.
   build-push-image:

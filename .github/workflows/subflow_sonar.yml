@@ -48,7 +48,9 @@ jobs:
         with:
           name: frontend-lcov-report
           path: ./frontend/src/main/webapp/coverage/ng
+      # Without the configuration cache: the token is a system property here, and the cache would
+      # store it in its entry.
       - name: Analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=$SONAR_TOKEN
+        run: ./gradlew sonar --no-configuration-cache -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=$SONAR_TOKEN
