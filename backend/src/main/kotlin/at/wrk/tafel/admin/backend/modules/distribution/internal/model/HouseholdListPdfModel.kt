@@ -70,7 +70,9 @@ data class HouseholdListPdfModel(
 @ExcludeFromTestCoverage
 data class HouseholdListItem(
     val ticketNumber: Int,
-    val householdId: Long,
+    /** `null` for a goodwill package ("Kulanzpaket"), which belongs to no household. */
+    val householdId: Long?,
+    val goodwill: Boolean = false,
     val countPersons: Int,
     val countInfants: Int,
 )

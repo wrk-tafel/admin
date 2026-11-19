@@ -164,6 +164,17 @@ describe('CustomerSearchComponent', () => {
       expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 345]);
     });
 
+    it('says so when the ticket is a goodwill package, without navigating', () => {
+      const {component} = createComponent();
+      ticketApiService.getHouseholdForTicketNumber.mockReturnValue(of({ticketNumber: 12, householdId: null, goodwill: true}));
+
+      component.ticketNumber.set(12);
+      component.searchTicketNumber();
+
+      expect(toastr.warning).toHaveBeenCalledWith('Ticket 12 ist ein Kulanzpaket ohne Kundennummer.');
+      expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', expect.anything()]);
+    });
+
     it('says so when nobody holds the ticket, without navigating', () => {
       const {component} = createComponent();
       ticketApiService.getHouseholdForTicketNumber.mockReturnValue(throwError(() => new HttpErrorResponse({status: 404})));

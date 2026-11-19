@@ -78,7 +78,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
         val remaining = distributionHouseholdRepository.findByDistributionId(distribution.id!!)
         assertThat(remaining).hasSize(1)
         val survivor = remaining.single()
-        assertThat(survivor.household.householdId).isEqualTo(target.householdId)
+        assertThat(survivor.household!!.householdId).isEqualTo(target.householdId)
         assertThat(survivor.ticketNumber).isEqualTo(5) // target's own ticket, never overwritten
         assertThat(survivor.processed).isTrue() // OR-folded from the source's processed=true
         assertThat(survivor.costContributionPaid).isFalse() // AND-folded from the source's unpaid=false
@@ -108,7 +108,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
         val remaining = distributionHouseholdRepository.findByDistributionId(distribution.id!!)
         assertThat(remaining).hasSize(1)
         val survivor = remaining.single()
-        assertThat(survivor.household.householdId).isEqualTo(target.householdId)
+        assertThat(survivor.household!!.householdId).isEqualTo(target.householdId)
         assertThat(survivor.id).isEqualTo(source1Row.id) // lowest-id row wins
         assertThat(survivor.ticketNumber).isEqualTo(3)
         assertThat(survivor.processed).isTrue() // OR-folded from source2
@@ -194,7 +194,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
 
         val movedNote = testEntityManager.find<HouseholdNoteEntity>(note.id!!)
         assertThat(movedNote).isNotNull
-        assertThat(movedNote!!.household.householdId).isEqualTo(target.householdId)
+        assertThat(movedNote!!.household!!.householdId).isEqualTo(target.householdId)
     }
 
     @Test
@@ -229,7 +229,7 @@ class HouseholdMergeServiceIT : TafelBaseIntegrationTest() {
 
         val movedDocument = testEntityManager.find<DocumentEntity>(document.id!!)
         assertThat(movedDocument).isNotNull
-        assertThat(movedDocument!!.household.householdId).isEqualTo(target.householdId)
+        assertThat(movedDocument!!.household!!.householdId).isEqualTo(target.householdId)
         assertThat(movedDocument.person!!.id).isEqualTo(targetPerson.id)
         assertThat(Files.exists(documentFile)).isTrue()
     }

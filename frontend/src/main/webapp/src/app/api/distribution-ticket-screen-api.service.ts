@@ -61,4 +61,7 @@ export interface TicketScreenTicketResponse {
   householdName?: string | null;
   processedTicketsCount?: number | null;
   totalTicketsCount?: number | null;
+  /** A goodwill package ("Kulanzpaket") - no customer behind it, so `householdId` is `null`. */
+  goodwill?: boolean;
+  goodwillPersonCount?: number | null;
 }

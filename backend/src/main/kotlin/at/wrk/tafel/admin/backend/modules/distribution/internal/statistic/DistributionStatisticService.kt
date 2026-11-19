@@ -63,11 +63,18 @@ class DistributionStatisticService(
         statisticEndTime: LocalDateTime,
         statistic: DistributionStatisticEntity,
     ) {
-        val countHouseholds = distribution.households.size
+        // Goodwill packages belong to no household, so they have no demographics to count - they are
+        // recorded on their own, as packages and the persons they were for.
+        val goodwillTickets = distribution.households.filter { it.goodwill }
+        statistic.countGoodwillPackages = goodwillTickets.size
+        statistic.countGoodwillPersons = goodwillTickets.sumOf { it.goodwillPersonCount ?: 0 }
+
+        val households = distribution.households.mapNotNull { it.household }
+        val countHouseholds = households.size
         statistic.countCustomers = countHouseholds
 
         val countPersons =
-            distribution.households.flatMap { it.household.additionalPersons() }
+            households.flatMap { it.additionalPersons() }
                 .filterNot { it.excludeFromHousehold }
                 .count() + countHouseholds
         statistic.countPersons = countPersons
@@ -75,7 +82,7 @@ class DistributionStatisticService(
         // ages are counted as of the distribution's own day, not as of today, so re-running this for
         // a past distribution yields the same numbers it did when that distribution closed
         val referenceDate = distribution.startedAt.toLocalDate()
-        val countInfants = distribution.households.flatMap { it.household.additionalPersons() }
+        val countInfants = households.flatMap { it.additionalPersons() }
             .filterNot { it.excludeFromHousehold }
             .count { it.birthDate != null && Period.between(it.birthDate, referenceDate).years < 3 }
         statistic.countInfants = countInfants
@@ -116,7 +123,7 @@ class DistributionStatisticService(
         statistic.countCustomersUpdated = (updatedHouseholdIds - newOrProlongedHouseholdIds).size
 
         statistic.countSingleParentHouseholds =
-            distribution.households.count { it.household.singleParent }
+            households.count { it.singleParent }
     }
 
     private fun fillLogisticsStatistics(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {

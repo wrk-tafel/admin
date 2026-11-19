@@ -23,6 +23,13 @@
           <button matButton="filled" [disabled]="!customerId()" (click)="searchForCustomerId()" testid="showCustomerButton">
             Anzeigen
           </button>
+          <!-- For persons without a customer number - a once-in-a-while case, so a quiet button next to
+               the every-check-in controls rather than a field of its own -->
+          <button matButton="outlined" (click)="openGoodwillTicketDialog()" testid="goodwillTicketButton"
+                  matTooltip="Ticket für Personen ohne Kundennummer ausgeben">
+            <mat-icon svgIcon="volunteer_activism"></mat-icon>
+            Kulanzpaket
+          </button>
         </div>
       </div>
       <div class="order-2 lg:order-none flex flex-wrap items-center gap-3 text-sm" testid="scannerToolbar">
@@ -53,7 +60,7 @@
     @if (lastAcceptedCheckin(); as last) {
       <div class="flex flex-wrap items-center gap-3 text-sm mt-2 px-3 py-1 rounded border"
            style="border-color: var(--tafel-border-color);" testid="lastAcceptedCheckin">
-        <span>Zuletzt angenommen: Kunde Nr. {{ last.customerId }} → Ticket {{ last.ticketNumber }}</span>
+        <span>Zuletzt angenommen: {{ last.customerId === undefined ? 'Kulanzpaket' : 'Kunde Nr. ' + last.customerId }} → Ticket {{ last.ticketNumber }}</span>
         <button matButton [disabled]="deletingTicket()" (click)="undoLastCheckin()" testid="undoLastCheckinButton">
           <mat-icon svgIcon="restart_alt"></mat-icon>
           Rückgängig

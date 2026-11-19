@@ -119,6 +119,20 @@ describe('TicketScreenControlComponent', () => {
     expect(component.currentTicket()).toEqual(response);
   });
 
+  it('labels a goodwill package instead of a household', async () => {
+    const response: TicketScreenTicketResponse = {
+      ticketNumber: 5, householdId: null, pendingCostContribution: null, goodwill: true, goodwillPersonCount: 3
+    };
+    distributionTicketScreenApiService.getCurrentTicket.mockReturnValue(of(response));
+
+    const fixture = TestBed.createComponent(TicketScreenControlComponent);
+    await fixture.whenStable();
+
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('[testid="current-ticket-goodwill"]')?.textContent?.trim()).toBe('Kulanzpaket (3 Personen)');
+    expect(element.querySelector('[testid="current-ticket-household"]')).toBeNull();
+  });
+
   it('openScreenInNewTab', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;

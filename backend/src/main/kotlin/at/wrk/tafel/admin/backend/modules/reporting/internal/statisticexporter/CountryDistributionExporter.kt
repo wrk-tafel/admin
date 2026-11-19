@@ -34,7 +34,7 @@ class CountryDistributionExporter : StatisticExporter {
     private fun calculateDistribution(statistic: DistributionStatisticEntity): List<List<String>> {
         val rows = mutableListOf<List<String>>()
         val referenceDate = statistic.distribution.startedAt.toLocalDate()
-        val households = statistic.distribution.households.map { it.household }
+        val households = statistic.distribution.households.mapNotNull { it.household }
 
         val householdCountries = households.map { household ->
             (household.mainPerson ?: household.persons.firstOrNull { it.isMainPerson })?.country

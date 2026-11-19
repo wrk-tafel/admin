@@ -113,4 +113,7 @@ data class TicketScreenTicketResponse(
     val householdName: String? = null,
     val processedTicketsCount: Int? = null,
     val totalTicketsCount: Int? = null,
+    /** A goodwill package ("Kulanzpaket") - no household behind it, so [householdId] is `null`. */
+    val goodwill: Boolean = false,
+    val goodwillPersonCount: Int? = null,
 )

@@ -339,7 +339,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - `persons`: every household member, including the main person, flagged via `is_main_person` (exactly one per household, enforced by a partial unique index)
 - `household_notes`: notes attached to a household
 - `distributions`: Food distribution events
-- `distributions_households`: household participation in distributions
+- `distributions_households`: the tickets of a distribution - a household's participation, or a goodwill package ("Kulanzpaket") with `household_id` null and only a person count
 - `distributions_statistics`: Statistics per distribution
 - `routes`, `route_stops`, `shops`: Logistics route management
 - `food_categories`, `food_collections`, `food_collection_items`: Food recording

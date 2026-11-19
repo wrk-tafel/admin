@@ -46,6 +46,19 @@ interface DistributionHouseholdRepository : JpaRepository<DistributionHouseholdE
     fun countAdditionalPersons(@Param("distributionId") distributionId: Long): Long
 
     /**
+     * The persons of the distribution's goodwill packages beyond one per package - the counterpart of
+     * [countAdditionalPersons] for tickets without a household, so "one per ticket plus these" stays the
+     * person count.
+     */
+    @Query(
+        """
+            select coalesce(sum(dh.goodwillPersonCount - 1), 0) from DistributionHousehold dh
+            where dh.distribution.id = :distributionId and dh.goodwill = true
+        """,
+    )
+    fun countGoodwillAdditionalPersons(@Param("distributionId") distributionId: Long): Long
+
+    /**
      * @param householdEntityIds `households.id` (entity primary keys) - never the business
      * `householdId`. Used by `HouseholdMergeService` to gather every distribution-attendance row of
      * the target and its merge sources in one query, so same-distribution collisions (see

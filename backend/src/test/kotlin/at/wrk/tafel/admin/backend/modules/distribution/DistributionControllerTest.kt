@@ -287,6 +287,22 @@ internal class DistributionControllerTest {
     }
 
     @Test
+    fun `assign goodwill ticket`() {
+        val response = controller.assignGoodwillTicket(GoodwillTicketRequest(ticketNumber = 7, personCount = 3, infantCount = 1))
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
+        verify { service.assignGoodwillTicket(ticketNumber = 7, personCount = 3, infantCount = 1) }
+    }
+
+    @Test
+    fun `delete goodwill ticket`() {
+        val response = controller.deleteGoodwillTicket(7)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        verify { service.deleteGoodwillTicket(7) }
+    }
+
+    @Test
     fun `generate householdlist pdf - no result`() {
         every { service.generateHouseholdListPdf() } returns null
 
