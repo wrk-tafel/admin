@@ -30,7 +30,7 @@ env:
   # own cookie jar (see lighthouse-session.cjs). puppeteer-core rather than puppeteer: it is the same
   # API without the bundled Chromium download, and the runner already has a Chrome to point it at.
   PUPPETEER_VERSION: '25.5.0'
-  JAVA_VERSION: '26'
+  JAVA_VERSION: '27'
   JAVA_DISTRIBUTION: 'corretto'
 
 on:

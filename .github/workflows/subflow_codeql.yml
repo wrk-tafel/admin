@@ -1,7 +1,7 @@
 name: CodeQL
 
 env:
-  JAVA_VERSION: '26'
+  JAVA_VERSION: '27'
   JAVA_DISTRIBUTION: 'corretto'
 
 on:

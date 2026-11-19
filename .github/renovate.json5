@@ -22,7 +22,7 @@
   // The JDK Renovate installs to run the Gradle wrapper, which updates the lockfiles and checksums. It
   // has to follow the toolchain version in backend/build.gradle.kts, see ADR-0077.
   constraints: {
-    java: '^26.0.0',
+    java: '^27.0.0',
   },
 
   // Renovate's npm refuses to fetch a tarball by its URL, which the lockfile update needs for the
