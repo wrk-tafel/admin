@@ -17,8 +17,12 @@ jobs:
   # PDF, no matter how small the change that triggered it was.
   build:
     uses: ./.github/workflows/subflow_build.yml
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   test:
     uses: ./.github/workflows/subflow_test.yml
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   version:
     runs-on: ubuntu-26.04
     outputs:
@@ -66,6 +70,8 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   lint:
     uses: ./.github/workflows/subflow_lint.yml
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build

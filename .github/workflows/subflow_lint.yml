@@ -23,6 +23,10 @@ on:
         type: boolean
         required: false
         default: true
+    secrets:
+      GRADLE_ENCRYPTION_KEY:
+        description: 'Encrypts the configuration-cache entries setup-gradle saves; optional, without it they are not saved'
+        required: false
 
 permissions:
   contents: read
@@ -43,6 +47,8 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
       - name: Backend lint
         run: ./gradlew :backend:ktlintCheck
 
