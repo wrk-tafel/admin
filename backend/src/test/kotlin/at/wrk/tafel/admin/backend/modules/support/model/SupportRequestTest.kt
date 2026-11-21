@@ -24,4 +24,20 @@ class SupportRequestTest {
         assertThat(violations).extracting<String> { it.propertyPath.toString() }
             .containsExactly("text")
     }
+
+    @Test
+    fun `an invalid recent error in the client context is reported`() {
+        val request = SupportRequest(
+            title = "Bug in login",
+            text = "Something is broken",
+            clientContext = SupportClientContext(
+                recentErrors = listOf(SupportClientLogItem(message = "x".repeat(1001))),
+            ),
+        )
+
+        val violations = validator.validate(request)
+
+        assertThat(violations).extracting<String> { it.propertyPath.toString() }
+            .containsExactly("clientContext.recentErrors[0].message")
+    }
 }

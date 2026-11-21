@@ -44,9 +44,8 @@ data class SupportClientContext(
     val language: String? = null,
     @field:Size(max = 100)
     val timeZone: String? = null,
-    @field:Valid
     @field:Size(max = 20)
-    val recentErrors: List<SupportClientLogItem> = emptyList(),
+    val recentErrors: List<@Valid SupportClientLogItem> = emptyList(),
 )
 
 data class SupportClientLogItem(
