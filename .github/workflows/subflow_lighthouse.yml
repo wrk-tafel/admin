@@ -194,7 +194,7 @@ jobs:
               /zugriffsprotokoll
     services:
       postgres:
-        image: postgres:18.7-bookworm
+        image: postgres:19.0-bookworm
         env:
           POSTGRES_USER: tafeladmin
           POSTGRES_PASSWORD: tafeladmin
