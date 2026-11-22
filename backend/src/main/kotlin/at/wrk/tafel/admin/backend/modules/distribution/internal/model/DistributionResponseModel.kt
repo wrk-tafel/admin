@@ -1,7 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Positive
+import jakarta.validation.constraints.PositiveOrZero
 import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
@@ -34,6 +36,19 @@ data class AssignHouseholdRequest(
     val ticketNumber: Int,
 )
 
+/** A goodwill package ("Kulanzpaket") - a ticket for persons who are not a registered household. */
+@ExcludeFromTestCoverage
+data class GoodwillTicketRequest(
+    @field:Positive
+    val ticketNumber: Int,
+    @field:Positive
+    @field:Max(99)
+    val personCount: Int,
+    @field:PositiveOrZero
+    @field:Max(99)
+    val infantCount: Int,
+)
+
 @ExcludeFromTestCoverage
 data class TicketNumberResponse(
     val ticketNumber: Int?,
@@ -42,7 +57,9 @@ data class TicketNumberResponse(
 @ExcludeFromTestCoverage
 data class TicketHouseholdResponse(
     val ticketNumber: Int,
-    val householdId: Long,
+    /** `null` for a goodwill package ("Kulanzpaket"), which belongs to no household. */
+    val householdId: Long?,
+    val goodwill: Boolean = false,
 )
 
 @ExcludeFromTestCoverage

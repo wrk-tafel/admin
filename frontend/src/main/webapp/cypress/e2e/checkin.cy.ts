@@ -394,6 +394,44 @@ describe('CheckIn', () => {
     assertDashboardCustomerCount(0);
   });
 
+  it('goodwill package handed out without a customer number, counted on the dashboard and undone again', () => {
+    cy.byTestId('goodwillTicketButton').click();
+    cy.byTestId('goodwill-ticket-dialog').should('be.visible');
+    cy.checkDialogAccessibility();
+
+    cy.byTestId('goodwillTicketNumberInput').type('20');
+    cy.byTestId('goodwillPersonCountInput').clear().type('3');
+    cy.byTestId('goodwillInfantCountInput').clear().type('4');
+    cy.byTestId('goodwillTooManyInfantsHint').should('be.visible');
+    cy.byTestId('okButton').should('be.disabled');
+    cy.byTestId('goodwillInfantCountInput').clear().type('1');
+    cy.byTestId('okButton').click();
+
+    cy.get('.toast-message').should('be.visible').should('contain.text', 'Kulanzpaket → Ticket 20 ausgegeben.');
+    cy.byTestId('lastAcceptedCheckin').should('be.visible').should('contain.text', 'Kulanzpaket → Ticket 20');
+
+    // the ticket number is taken now - a customer can't get it as well
+    searchCustomer(100);
+    assignTicket(20);
+    cy.get('.toast-message').should('be.visible').should('contain.text', 'Ticketnummer 20 bereits vergeben!');
+    cy.byTestId('cancelButton').click();
+
+    cy.byTestId('undoLastCheckinButton').click();
+    cy.get('.toast-message').should('be.visible').should('contain.text', 'Kulanzpaket mit Ticket 20 wurde rückgängig gemacht.');
+    assertDashboardCustomerCount(0);
+  });
+
+  it('goodwill package counts as a ticket with its persons on the dashboard', () => {
+    cy.byTestId('goodwillTicketButton').click();
+    cy.byTestId('goodwillTicketNumberInput').type('21');
+    cy.byTestId('goodwillPersonCountInput').clear().type('3');
+    cy.byTestId('okButton').click();
+    cy.get('.toast-message').should('be.visible').should('contain.text', 'Kulanzpaket → Ticket 21 ausgegeben.');
+
+    assertDashboardCustomerCount(1);
+    assertDashboardPersonCount(3);
+  });
+
   // The customer panel - the whole point of this screen - only exists after a search, so the
   // Lighthouse `pages` sweep grades the empty form and nothing else.
   // See cypress/support/accessibility.ts.

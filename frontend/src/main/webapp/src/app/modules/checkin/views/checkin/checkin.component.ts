@@ -29,9 +29,12 @@ import stickyNote2Icon from '@material-symbols/svg-400/outlined/sticky_note_2-fi
 import restartAltIcon from '@material-symbols/svg-400/outlined/restart_alt-fill.svg';
 import deleteIcon from '@material-symbols/svg-400/outlined/delete-fill.svg';
 import warningIcon from '@material-symbols/svg-400/outlined/warning-fill.svg';
+import volunteerActivismIcon from '@material-symbols/svg-400/outlined/volunteer_activism-fill.svg';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 import {extractErrorMessage} from '../../../../common/api/problem-detail';
 import {expectedErrorContext} from '../../../../common/http/suppress-client-log-record.token';
+import {MatDialog} from '@angular/material/dialog';
+import {GoodwillTicketDialogComponent} from '../../components/goodwill-ticket-dialog/goodwill-ticket-dialog.component';
 
 @Component({
     selector: 'tafel-checkin',
@@ -64,7 +67,8 @@ export class CheckinComponent {
     sticky_note_2: stickyNote2Icon,
     restart_alt: restartAltIcon,
     delete: deleteIcon,
-    warning: warningIcon
+    warning: warningIcon,
+    volunteer_activism: volunteerActivismIcon
   });
 
   private readonly customerApiService = inject(CustomerApiService);
@@ -76,6 +80,7 @@ export class CheckinComponent {
   private readonly sseService = inject(SseService);
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
+  private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
@@ -375,6 +380,33 @@ export class CheckinComponent {
   }
 
   /**
+   * A goodwill package ("Kulanzpaket") for persons without a customer number. It takes the place of a
+   * check-in of its own, so it shows up as the last accepted one and can be undone the same way.
+   */
+  openGoodwillTicketDialog() {
+    this.dialog.open(GoodwillTicketDialogComponent).afterClosed().subscribe(request => {
+      if (!request) {
+        return;
+      }
+      this.distributionApiService.assignGoodwillTicket(request).subscribe({
+        next: () => {
+          this.lastAcceptedCheckin.set({ticketNumber: request.ticketNumber});
+          const snackBarRef = this.toastr.success(
+            `Kulanzpaket → Ticket ${request.ticketNumber} ausgegeben.`,
+            undefined,
+            {action: 'Rückgängig', durationMs: 8000}
+          );
+          snackBarRef.onAction().subscribe(() => this.undoLastCheckin());
+          this.customerIdInputRef()?.nativeElement?.focus?.();
+        },
+        // the interceptor already toasted and recorded the failure (e.g. the ticket number is taken)
+        error: () => {
+        }
+      });
+    });
+  }
+
+  /**
    * The delete-ticket API doubles as "undo the last check-in" - a mistyped ticket number is
    * otherwise only fixable by re-searching the customer. Available both from the confirmation
    * toast's action button and from the persistent "zuletzt angenommen" line, so it stays reachable
@@ -388,12 +420,17 @@ export class CheckinComponent {
     }
 
     this.deletingTicket.set(true);
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(last.customerId)
+    const delete$ = last.customerId === undefined
+      ? this.distributionApiService.deleteGoodwillTicket(last.ticketNumber)
+      : this.distributionTicketApiService.deleteCurrentTicketOfCustomer(last.customerId);
+    delete$
       .pipe(finalize(() => this.deletingTicket.set(false)))
       .subscribe({
         next: () => {
           this.lastAcceptedCheckin.set(undefined);
-          this.toastr.success(`Ticket ${last.ticketNumber} von Kunde Nr. ${last.customerId} wurde rückgängig gemacht.`);
+          this.toastr.success(last.customerId === undefined
+            ? `Kulanzpaket mit Ticket ${last.ticketNumber} wurde rückgängig gemacht.`
+            : `Ticket ${last.ticketNumber} von Kunde Nr. ${last.customerId} wurde rückgängig gemacht.`);
         },
         // the interceptor already toasted and recorded the failure
         error: () => {
@@ -421,6 +458,7 @@ export interface ScanResult {
 }
 
 export interface LastAcceptedCheckin {
-  customerId: number;
+  /** Absent for a goodwill package ("Kulanzpaket"), which has no customer behind it. */
+  customerId?: number;
   ticketNumber: number;
 }

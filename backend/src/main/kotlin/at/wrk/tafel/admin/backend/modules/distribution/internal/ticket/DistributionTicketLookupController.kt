@@ -20,8 +20,12 @@ class DistributionTicketLookupController(
     @TafelActiveDistributionRequired
     fun getHouseholdForTicketNumber(
         @PathVariable ticketNumber: Int,
-    ): TicketHouseholdResponse = TicketHouseholdResponse(
-        ticketNumber = ticketNumber,
-        householdId = service.getHouseholdIdForTicketNumber(ticketNumber),
-    )
+    ): TicketHouseholdResponse {
+        val householdId = service.getHouseholdIdForTicketNumber(ticketNumber)
+        return TicketHouseholdResponse(
+            ticketNumber = ticketNumber,
+            householdId = householdId,
+            goodwill = householdId == null,
+        )
+    }
 }

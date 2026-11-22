@@ -321,7 +321,13 @@ export class CustomerSearchComponent {
       return;
     }
     this.distributionTicketApiService.getHouseholdForTicketNumber(ticketNumber, expectedErrorContext(404)).subscribe({
-      next: (response) => this.navigateToCustomerDetail(response.householdId),
+      next: (response) => {
+        if (response.householdId === null) {
+          this.toastr.warning(`Ticket ${ticketNumber} ist ein Kulanzpaket ohne Kundennummer.`);
+          return;
+        }
+        this.navigateToCustomerDetail(response.householdId);
+      },
       error: (error: HttpErrorResponse) => {
         if (error.status === 404) {
           this.toastr.warning(`Ticket ${ticketNumber} wurde in der laufenden Ausgabe nicht vergeben.`);

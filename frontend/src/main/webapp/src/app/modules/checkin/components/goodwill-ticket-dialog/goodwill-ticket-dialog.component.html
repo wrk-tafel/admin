@@ -1,0 +1,33 @@
+<tafel-dialog testId="goodwill-ticket-dialog" type="info" title="Kulanzpaket ausgeben">
+  <div tafel-dialog-content>
+    <p class="mb-4">Für Personen ohne Kundennummer, z.B. wenn die Unterlagen für die Aufnahme fehlen. Das Ticket wird
+      aufgerufen und steht auf der Kundenliste wie jedes andere.</p>
+    <div class="flex flex-col gap-2">
+      <mat-form-field>
+        <mat-label>Ticket-Nummer</mat-label>
+        <input testid="goodwillTicketNumberInput" matInput type="number" min="1" tafelAutofocus
+               [ngModel]="ticketNumber()" (ngModelChange)="ticketNumber.set($event)"
+               (keydown.enter)="confirm()" (wheel)="$event.preventDefault()">
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Personen</mat-label>
+        <input testid="goodwillPersonCountInput" matInput type="number" min="1" max="99"
+               [ngModel]="personCount()" (ngModelChange)="personCount.set($event)"
+               (keydown.enter)="confirm()" (wheel)="$event.preventDefault()">
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>davon unter 3 Jahren</mat-label>
+        <input testid="goodwillInfantCountInput" matInput type="number" min="0"
+               [ngModel]="infantCount()" (ngModelChange)="infantCount.set($event)"
+               (keydown.enter)="confirm()" (wheel)="$event.preventDefault()">
+        @if (tooManyInfants()) {
+          <mat-hint testid="goodwillTooManyInfantsHint" style="color: var(--mat-sys-error);">Mehr als Personen angegeben</mat-hint>
+        }
+      </mat-form-field>
+    </div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" matButton="filled" (click)="confirm()" [disabled]="!valid()">Ausgeben</button>
+    <button testid="cancelButton" matButton="outlined" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

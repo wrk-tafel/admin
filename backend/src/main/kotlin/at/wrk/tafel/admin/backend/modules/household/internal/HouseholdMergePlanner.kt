@@ -253,26 +253,26 @@ internal object HouseholdMergePlanner {
         rows.groupBy { it.distribution.id!! }.forEach { (_, groupRows) ->
             if (groupRows.size == 1) {
                 val row = groupRows.first()
-                if (row.household.id != targetEntityId) {
+                if (row.household?.id != targetEntityId) {
                     rowIdsToMove += row.id!!
                 }
                 return@forEach
             }
 
-            val winner = groupRows.firstOrNull { it.household.id == targetEntityId } ?: groupRows.minBy { it.id!! }
+            val winner = groupRows.firstOrNull { it.household?.id == targetEntityId } ?: groupRows.minBy { it.id!! }
             val losers = groupRows.filterNot { it.id == winner.id }
 
             val processed = winner.processed || losers.any { it.processed }
             val costContributionPaid = winner.costContributionPaid && losers.all { it.costContributionPaid }
             flagUpdates[winner.id!!] = processed to costContributionPaid
 
-            if (winner.household.id != targetEntityId) {
+            if (winner.household?.id != targetEntityId) {
                 rowIdsToMove += winner.id!!
             }
             rowIdsToDrop += losers.map { it.id!! }
 
             losers.forEach { loser ->
-                val loserHousehold = entityIdToHousehold.getValue(loser.household.id!!)
+                val loserHousehold = entityIdToHousehold.getValue(requireNotNull(loser.household?.id) { "a merged household's ticket has a household" })
                 collisions += HouseholdMergeDistributionCollisionItem(
                     distributionId = loser.distribution.id!!,
                     distributionStartedAt = loser.distribution.startedAt,
