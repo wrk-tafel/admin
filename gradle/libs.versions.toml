@@ -22,7 +22,7 @@ passay = "2.0.0"
 bucket4j = "8.22.0"
 apache-commons-csv = "1.14.1"
 apache-commons-lang3 = "3.22.0"
-springdoc-openapi = "3.2.0"
+springdoc-openapi = "3.2.1"
 spring-retry = "2.0.13"
 # Runs the scheduled jobs that are not row-based once per cluster. Stores its lock in the same
 # PostgreSQL as everything else (ADR-0003) - a library, not another piece of infrastructure.
