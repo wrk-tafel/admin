@@ -22,7 +22,7 @@
   // The JDK Renovate installs to run the Gradle wrapper, which updates the lockfiles and checksums. It
   // has to follow the toolchain version in backend/build.gradle.kts, see ADR-0077.
   constraints: {
-    java: '^26.0.0',
+    java: '^27.0.0',
   },
 
   // Renovate's npm refuses to fetch a tarball by its URL, which the lockfile update needs for the
@@ -60,6 +60,21 @@
       matchManagers: ['npm'],
       matchDepTypes: ['devDependencies'],
       semanticCommitScope: 'deps-dev',
+    },
+
+    {
+      // Renovate's own Gradle step only runs `dependencies`, and in a container whose Gradle cache is
+      // already warm from the branches before, so the checksums of artifacts it finds there go missing
+      // and the pull request fails dependency verification on CI (ADR-0079). This is the command from
+      // CLAUDE.md's "Dependency Verification"; allowedCommands in wrk-infrastructure's
+      // .github/renovate-global.json has to match it exactly.
+      matchManagers: ['gradle', 'gradle-wrapper'],
+      postUpgradeTasks: {
+        commands: ['./gradlew --write-verification-metadata sha256 --refresh-dependencies help'],
+        fileFilters: ['gradle/verification-metadata.xml'],
+        executionMode: 'branch',
+        installTools: { java: {} },
+      },
     },
 
     {

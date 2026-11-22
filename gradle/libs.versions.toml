@@ -1,14 +1,11 @@
 [versions]
 kotlin = "2.4.21"
 kotlinx-coroutines = "1.11.0"
-spring-boot = "4.1.2"
-# Transitive-only, via spring-boot-starter-tomcat - Spring Boot 4.1.1 still manages 11.0.24, vulnerable
-# to CVE-2026-65182, CVE-2026-65905 and CVE-2026-68525; all three are fixed in 11.0.25.
-tomcat = "11.0.27"
-spring-modulith = "2.1.2"
-# Release train "Oakwood" - the first line compatible with Spring Boot 4.1. Only spring-cloud-context
+spring-boot = "4.2.0"
+spring-modulith = "2.2.0"
+# The Spring Cloud release train that matches the Spring Boot line above. Only spring-cloud-context
 # is used from it (see backend/build.gradle.kts), not the config server/client or the bus.
-spring-cloud = "2025.1.4"
+spring-cloud = "2026.0.0"
 jackson = "3.3.0"
 # Legacy Jackson 2.x line, pulled in transitively (jjwt-jackson, swagger-core-jakarta) alongside the Jackson 3.x
 # used directly by this project. Pinned separately to patch known CVEs in that transitive line: the fix for
@@ -18,14 +15,14 @@ jackson = "3.3.0"
 jackson-legacy = "2.23.0"
 jjwt = "0.13.0"
 postgresql = "42.7.14"
-bouncycastle = "1.86"
+bouncycastle = "1.87"
 apache-fop = "2.12"
 qrcode-kotlin = "4.5.0"
 passay = "2.0.0"
 bucket4j = "8.22.0"
 apache-commons-csv = "1.14.1"
-apache-commons-lang3 = "3.21.0"
-springdoc-openapi = "3.2.0"
+apache-commons-lang3 = "3.22.0"
+springdoc-openapi = "3.2.1"
 spring-retry = "2.0.13"
 # Runs the scheduled jobs that are not row-based once per cluster. Stores its lock in the same
 # PostgreSQL as everything else (ADR-0003) - a library, not another piece of infrastructure.
@@ -43,7 +40,7 @@ image-comparison = "4.4.0"
 awaitility = "4.3.0"
 
 # Plugin versions
-sonarqube = "7.5.0.8588"
+sonarqube = "7.6.0.18749"
 ktlint-gradle = "14.2.0"
 
 [libraries]
@@ -92,11 +89,6 @@ flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql
 # Micrometer
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 
-# Tomcat
-tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat" }
-tomcat-embed-el = { module = "org.apache.tomcat.embed:tomcat-embed-el", version.ref = "tomcat" }
-tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websocket", version.ref = "tomcat" }
-
 # Jackson
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jackson-dataformat-xml = { module = "tools.jackson.dataformat:jackson-dataformat-xml", version.ref = "jackson" }
@@ -121,7 +113,7 @@ qrcode-kotlin-jvm = { module = "io.github.g0dkar:qrcode-kotlin-jvm", version.ref
 # Utilities
 passay = { module = "org.passay:passay", version.ref = "passay" }
 # In-memory token-bucket rate limiting (RateLimiterIpService) - _jdk17, matching this project's JDK
-# 26 toolchain being well above the artifact's JDK 17 baseline.
+# 27 toolchain being well above the artifact's JDK 17 baseline.
 bucket4j-core = { module = "com.bucket4j:bucket4j_jdk17-core", version.ref = "bucket4j" }
 apache-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "apache-commons-csv" }
 apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apache-commons-lang3" }

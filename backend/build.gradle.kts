@@ -14,7 +14,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(26)
+        languageVersion = JavaLanguageVersion.of(27)
     }
 
     sourceSets {
@@ -25,8 +25,16 @@ java {
     }
 }
 
+// The toolchain (and the image's JDK) is 27, the bytecode 26: Kotlin 2.4 cannot target 27 yet and
+// rejects a Java target that differs from its own. A JDK runs older bytecode unchanged, so this costs
+// nothing at runtime. Raise both to 27 once the Kotlin version here supports JvmTarget.JVM_27.
+tasks.withType<JavaCompile>().configureEach {
+    options.release = 26
+}
+
 kotlin {
     compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_26
         freeCompilerArgs.add("-Xjsr305=strict")
         // Without this, Kotlin drops annotations written on a type argument (`List<@Valid Person>`)
         // instead of writing them into the field's bytecode - and Bean Validation then silently
@@ -54,17 +62,6 @@ dependencies {
         // known-fixed version rather than relying on "newest transitively resolved" being safe.
         implementation(libs.jackson.databind.legacy) {
             because("Fixes GHSA-mhm7-754m-9p8w, CVE-2026-54515, CVE-2026-59889 (JsonView bypass / ignored-properties issues)")
-        }
-
-        // Transitive-only, via spring-boot-starter-tomcat. Spring Boot 4.1.1 still manages 11.0.24.
-        implementation(libs.tomcat.embed.core) {
-            because("Fixes CVE-2026-65182, CVE-2026-65905, CVE-2026-68525 (FORM auth bypass, DIGEST replay, security constraint bypass)")
-        }
-        implementation(libs.tomcat.embed.el) {
-            because("Keep in lockstep with tomcat-embed-core")
-        }
-        implementation(libs.tomcat.embed.websocket) {
-            because("Keep in lockstep with tomcat-embed-core")
         }
     }
 

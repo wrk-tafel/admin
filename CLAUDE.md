@@ -126,6 +126,8 @@ Gradle dependency verification is configured via `gradle/verification-metadata.x
 
 Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips re-downloading them, so new checksums (e.g., `.module` files) may not be recorded. This causes CI failures where artifacts are downloaded fresh and cannot be verified.
 
+Renovate runs this command (with `help`) itself on every Gradle update, as a post-upgrade task in `.github/renovate.json5` (ADR-0079). It has to stay identical to the command `allowedCommands` in wrk-infrastructure's `.github/renovate-global.json` allows, or Renovate skips it.
+
 ## Architecture
 
 ### Backend Architecture

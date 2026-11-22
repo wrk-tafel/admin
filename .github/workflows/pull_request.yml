@@ -40,7 +40,7 @@ jobs:
     steps:
       # subjectPattern mirrors the commitlint job's config-conventional rules (no leading
       # uppercase, no trailing period) so a title can't pass this check and fail that one.
-      - uses: amannn/action-semantic-pull-request@2252a14e810aa9b85c2d560bd7070c802206ecf6 # v6.1.2
+      - uses: amannn/action-semantic-pull-request@c5e23b7e584519ee15caa684cf60d056aa9f035f # v6.1.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -63,6 +63,8 @@ jobs:
     uses: ./.github/workflows/subflow_build.yml
     needs: changes
     if: needs.changes.outputs.app == 'true'
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   test:
     uses: ./.github/workflows/subflow_test.yml
     needs: changes
@@ -72,6 +74,8 @@ jobs:
       # Only a pull request skips the backend suite, and only when the diff cannot reach it - see
       # the note on that job. main_push.yml deliberately passes nothing and always runs it.
       backend: ${{ needs.changes.outputs.backend == 'true' }}
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   sonar:
     permissions:
       contents: read
@@ -88,6 +92,8 @@ jobs:
       backend: ${{ needs.changes.outputs.backend == 'true' }}
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
       docker: ${{ needs.changes.outputs.docker == 'true' }}
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   codeql:
     permissions:
       actions: read
@@ -99,6 +105,8 @@ jobs:
     with:
       backend: ${{ needs.changes.outputs.backend == 'true' }}
       frontend: ${{ needs.changes.outputs.frontend == 'true' }}
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
   # sonar and e2e-test need no gate of their own: they depend on build/test, and GitHub skips a job
   # whose dependency was skipped. The image and the deploy below carry one anyway, for who rather
   # than for what changed.

@@ -1,4 +1,4 @@
-FROM amazoncorretto:26-alpine@sha256:26a8444c023a7c2ab2608f179581287e3ad333cef246b027c628da099d1b096e AS builder
+FROM amazoncorretto:27-alpine@sha256:2a1963f0f2748128ca5ca81cc9ea69f26f1af4be481997afb04e8fb32f19aa4f AS builder
 WORKDIR /builder
 COPY ./artifact/admin-backend.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted \
@@ -11,10 +11,11 @@ RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination 
 # #2881). The trainer must launch the app the exact same way the final ENTRYPOINT does (JarLauncher over
 # the extracted layered jar, not a plain `java -jar`) - CDS is classpath-layout sensitive, and a mismatch
 # here would silently produce a dead archive that never gets used at runtime.
-FROM amazoncorretto:26-alpine@sha256:26a8444c023a7c2ab2608f179581287e3ad333cef246b027c628da099d1b096e AS cds-trainer
-# Version matches what's actually run everywhere else (docker-compose.yml, Testcontainers, e2e/
-# lighthouse CI - all postgres:18-bookworm), so the CDS training run boots against the same major
-# version the app is deployed against. fuzzystrmatch (used by household duplicate detection, see
+FROM amazoncorretto:27-alpine@sha256:2a1963f0f2748128ca5ca81cc9ea69f26f1af4be481997afb04e8fb32f19aa4f AS cds-trainer
+# Everywhere else (docker-compose.yml, Testcontainers, e2e/lighthouse CI) runs postgres:19-bookworm;
+# this stage uses PostgreSQL 18 because the base image's Alpine release carries no postgresql19
+# package. The training run only boots the application once to record which classes it loads, and
+# the server's major version does not change that set. fuzzystrmatch (used by household duplicate detection, see
 # R__00031) lives in postgresql-contrib, not the base package. Deliberately not version-pinned:
 # Alpine's repo only carries the current build of each package, so a pinned version here would
 # eventually vanish from the index and break the build outright rather than just drift - the base
@@ -43,7 +44,7 @@ RUN su postgres -c "pg_ctl -D '$PGDATA' -o \"-c listen_addresses=localhost\" -w 
          org.springframework.boot.loader.launch.JarLauncher --spring.profiles.active=local \
     && su postgres -c "pg_ctl -D '$PGDATA' -w stop"
 
-FROM amazoncorretto:26-alpine@sha256:26a8444c023a7c2ab2608f179581287e3ad333cef246b027c628da099d1b096e
+FROM amazoncorretto:27-alpine@sha256:2a1963f0f2748128ca5ca81cc9ea69f26f1af4be481997afb04e8fb32f19aa4f
 # The base image is pinned by digest so every build - local or CI, today or in a year - starts from the
 # same JDK and the same Alpine release. The cost is that a fixed digest also fixes its bundled package
 # versions, so a patched CVE (see the Trivy code-scanning alerts this addresses) never arrives on its

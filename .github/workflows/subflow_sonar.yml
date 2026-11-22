@@ -1,7 +1,7 @@
 name: Analyze
 
 env:
-  JAVA_VERSION: '26'
+  JAVA_VERSION: '27'
   JAVA_DISTRIBUTION: 'corretto'
 
 on:
@@ -26,7 +26,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0 # SonarCloud needs full history for blame and branch comparison
       - name: Set up JDK
-        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
@@ -48,7 +48,9 @@ jobs:
         with:
           name: frontend-lcov-report
           path: ./frontend/src/main/webapp/coverage/ng
+      # Without the configuration cache: the token is a system property here, and the cache would
+      # store it in its entry.
       - name: Analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=$SONAR_TOKEN
+        run: ./gradlew sonar --no-configuration-cache -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=$SONAR_TOKEN
