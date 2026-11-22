@@ -68,8 +68,8 @@
     "@types/node": "26.6.6",
     "@typescript-eslint/eslint-plugin": "8.72.2",
     "@typescript-eslint/parser": "8.72.2",
-    "@vitest/browser-playwright": "5.1.0",
-    "@vitest/coverage-v8": "5.1.0",
+    "@vitest/browser-playwright": "5.1.1",
+    "@vitest/coverage-v8": "5.1.1",
     "angular-eslint": "22.6.0",
     "axe-core": "4.14.0",
     "cypress": "16.3.0",
@@ -82,7 +82,7 @@
     "ts-node": "10.9.2",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.2",
-    "vitest": "5.1.0",
+    "vitest": "5.1.1",
     "wait-on": "9.5.1"
   },
   "engines": {
