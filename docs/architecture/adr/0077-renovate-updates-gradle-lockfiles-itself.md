@@ -1,6 +1,6 @@
 # ADR-0077: Renovate updates the Gradle lockfiles itself
 
-**Status:** accepted · **Recorded:** 2026-11-02
+**Status:** accepted; checksum consequence superseded by [ADR-0079](0079-renovate-regenerates-the-dependency-checksums.md) · **Recorded:** 2026-11-02
 
 Supersedes the lockfile part of [ADR-0076](0076-dependency-updates-come-from-a-self-hosted-renovate.md).
 

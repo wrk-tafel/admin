@@ -63,6 +63,21 @@
     },
 
     {
+      // Renovate's own Gradle step only runs `dependencies`, and in a container whose Gradle cache is
+      // already warm from the branches before, so the checksums of artifacts it finds there go missing
+      // and the pull request fails dependency verification on CI (ADR-0079). This is the command from
+      // CLAUDE.md's "Dependency Verification"; allowedCommands in wrk-infrastructure's
+      // .github/renovate-global.json has to match it exactly.
+      matchManagers: ['gradle', 'gradle-wrapper'],
+      postUpgradeTasks: {
+        commands: ['./gradlew --write-verification-metadata sha256 --refresh-dependencies help'],
+        fileFilters: ['gradle/verification-metadata.xml'],
+        executionMode: 'branch',
+        installTools: { java: {} },
+      },
+    },
+
+    {
       matchManagers: ['npm'],
       matchPackageNames: ['eslint'],
       allowedVersions: '!/^10\\./',
