@@ -58,6 +58,11 @@ This starts:
 - **pgAdmin** on port 5050
 - **Mailpit** (SMTP on port 1025, web UI on port 8025)
 
+The database runs PostgreSQL 19. A `database-data` volume created by an older major version does not
+start with it (the image refuses to run next to another major's data). For local data, remove the
+volume and let the `testdata` profile fill a new one: `docker compose down -v` (this also removes
+pgAdmin's settings).
+
 ### 2. Start Backend
 
 ```bash
@@ -157,7 +162,7 @@ tafeladmin:
 ```yaml
 services:
   database:
-    image: "postgres:18.6-bookworm"
+    image: "postgres:19.0-bookworm"
     environment:
       POSTGRES_USER: tafeladmin
       POSTGRES_PASSWORD: <database-password>

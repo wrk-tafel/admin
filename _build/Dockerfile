@@ -12,9 +12,10 @@ RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination 
 # the extracted layered jar, not a plain `java -jar`) - CDS is classpath-layout sensitive, and a mismatch
 # here would silently produce a dead archive that never gets used at runtime.
 FROM amazoncorretto:27-alpine@sha256:2a1963f0f2748128ca5ca81cc9ea69f26f1af4be481997afb04e8fb32f19aa4f AS cds-trainer
-# Version matches what's actually run everywhere else (docker-compose.yml, Testcontainers, e2e/
-# lighthouse CI - all postgres:18-bookworm), so the CDS training run boots against the same major
-# version the app is deployed against. fuzzystrmatch (used by household duplicate detection, see
+# Everywhere else (docker-compose.yml, Testcontainers, e2e/lighthouse CI) runs postgres:19-bookworm;
+# this stage uses PostgreSQL 18 because the base image's Alpine release carries no postgresql19
+# package. The training run only boots the application once to record which classes it loads, and
+# the server's major version does not change that set. fuzzystrmatch (used by household duplicate detection, see
 # R__00031) lives in postgresql-contrib, not the base package. Deliberately not version-pinned:
 # Alpine's repo only carries the current build of each package, so a pinned version here would
 # eventually vanish from the index and break the build outright rather than just drift - the base
